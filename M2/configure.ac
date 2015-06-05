@@ -6,7 +6,7 @@ dnl Things to do when incrementing the version number:
 dnl    - make a git branch of the form release-X.Y.Z, if it's for final development of a binary release
 dnl    - make a git tag of the form version-X.Y.Z, if it's stable
 dnl    - add an entry to distributions/deb/changelog
-AC_INIT(Macaulay2, 1.7, Macaulay2@math.uiuc.edu, Macaulay2, http://macaulay2.com/)
+AC_INIT(Macaulay2, 1.7.0.1, Macaulay2@math.uiuc.edu, Macaulay2, http://macaulay2.com/)
 
 dnl The convention for version numbers of Macaulay2 is this:
 dnl   1.3     : a major release, such as occurs every 12 months, stable, made into binary distributions
@@ -80,6 +80,7 @@ AC_CHECK_PROGS(FAKEROOT,fakeroot,false)
 AC_CHECK_PROGS(RPMLINT,rpmlint,false)
 AC_CHECK_PROGS(TAR,gtar gnutar tar,false)
 AC_CHECK_PROGS(FIND,gfind find,false)
+AC_CHECK_PROGS(STRIPCMD,strip)
 AC_CHECK_PROGS(OBJDUMP,objdump,false)
 AC_CHECK_PROGS(OBJCOPY,objcopy,false)
 AC_CHECK_PROGS(LDD,ldd,false)
@@ -90,9 +91,9 @@ AC_CHECK_TOOL(DLLTOOL,dlltool,false)
 AC_CHECK_TOOL(LD,ld,false)
 AC_CHECK_TOOL(STRIP,strip,false)
 
-if test "$STRIP" != "false"
-then AC_MSG_CHECKING(whether $STRIP accepts the remove-section option)
-     if "$STRIP" --help 2>&1 | grep remove-section >/dev/null
+if test "$STRIPCMD" != ""
+then AC_MSG_CHECKING(whether $STRIPCMD accepts the remove-section option)
+     if strip --help 2>&1 | grep remove-section >/dev/null
      then val=yes
      else val=no
      fi
@@ -142,12 +143,11 @@ AC_SUBST(UNAME_INFO,"` eval $UNAME_INFO_COMMAND `")
 case $OS-$REL in
   Darwin-7.*) REL=10.3 ; OS=MacOS ;;
   Darwin-8.*) REL=10.4 ; OS=MacOS ;;
-  Darwin-9.*) REL=10.5 ; OS=MacOS ;; # Leopard
-  Darwin-10.*) REL=10.6 ; OS=MacOS ;; # Snow Leopard
-  Darwin-11.*) REL=10.7 ; OS=MacOS ;; # Lion
-  Darwin-12.*) REL=10.8 ; OS=MacOS ;; # Mountain Lion
-  Darwin-13.*) REL=10.9 ; OS=MacOS ;; # Mavericks
-  Darwin-14.*) REL=10.10 ; OS=MacOS ;; # Yosemite
+  Darwin-9.*) REL=10.5 ; OS=MacOS ;;
+  Darwin-10.*) REL=10.6 ; OS=MacOS ;;
+  Darwin-11.*) REL=10.7 ; OS=MacOS ;;
+  Darwin-12.*) REL=10.8 ; OS=MacOS ;;
+  Darwin-13.*) REL=10.9 ; OS=MacOS ;;
   Darwin-*) echo "Darwin release number translation needed in configure.ac" >&2 ; exit 1 ;;
   CYGWIN*-*) OS=MicrosoftWindows ; ISSUE=Cygwin ;;
 esac
@@ -197,6 +197,16 @@ AC_DEFINE_UNQUOTED(ARCH,"$ARCH",[machine hardware type])
 AC_VALIDATE_CACHED_SYSTEM_TUPLE()
 dnl AC_ARG_VAR(CC,C compiler to use)
 dnl AC_ARG_VAR(CXX,C++ compiler to use)
+
+if test "$STRIP" != "false"
+then AC_MSG_CHECKING(whether the strip command $STRIP accepts the remove-section option)
+     if $STRIP --help 2>&1 | grep remove-section >/dev/null
+     then val=yes
+     else val=no
+     fi
+     AC_MSG_RESULT($val)
+     AC_SUBST(STRIP_REMOVE_SECTION,$val)
+fi
 
 AC_SUBST(OPTIMIZE,yes) AC_ARG_ENABLE(optimize, AS_HELP_STRING(--disable-optimize,disable optimization), OPTIMIZE=$enableval)
 AC_SUBST(DEBUG,no)     AC_ARG_ENABLE(debug, AS_HELP_STRING(--enable-debug,enable debugging (and disable stripping)), DEBUG=$enableval)
@@ -296,7 +306,7 @@ dnl 	  esac
 dnl      fi
 dnl fi
 
-AC_MSG_CHECKING([whether compiling with $CXX and then linking with $CC works])
+AC_MSG_CHECKING([whether compiling with $CXX and then linking $CC works])
 cat >unwindtest-main.cpp <<EOF
 #include "unwindtest-monomials.hpp"
 int main(int argc, char **argv) { Monomials *M = new Monomials(); return 1; }
@@ -1257,6 +1267,8 @@ test $BUILD_givaro = yes && BUILTLIBS="-lgivaro $BUILTLIBS"
 test $BUILD_linbox = yes && BUILTLIBS="-llinbox $BUILTLIBS"
 test $BUILD_fplll = yes && BUILTLIBS="-lfplll $BUILTLIBS"
 
+AC_ARG_WITH(veclib, AS_HELP_STRING(--with-veclib,[use "-framework vecLib" for lapack]), LIBS="-framework vecLib $LIBS" )
+
 AC_SUBST(LAPACK,yes)
 AC_ARG_WITH(lapack, AS_HELP_STRING(--without-lapack,[compile and link without lapack and blas]), LAPACK=$withval)
 test "$LAPACK" = no; val=$?
@@ -1310,8 +1322,8 @@ test $BUILD_factory = yes && BUILTLIBS="$SINGULARLIBS $BUILTLIBS"
 # needlessly causes the library to be linked against.)
 FORTRANUSED=no
 if test "$LAPACK" = yes
-then AC_MSG_CHECKING([whether the Accelerate framework is available])
-     SAVELIBS=$LIBS LIBS="-framework Accelerate $LIBS"
+then AC_MSG_CHECKING([whether the vecLib framework is available])
+     SAVELIBS=$LIBS LIBS="-framework vecLib $LIBS"
      AC_LANG(C)
      AC_LINK_IFELSE(
 	 [AC_LANG_PROGRAM(,[sgemv_();dgetrf_();])],
