@@ -208,16 +208,6 @@ AC_VALIDATE_CACHED_SYSTEM_TUPLE()
 dnl AC_ARG_VAR(CC,C compiler to use)
 dnl AC_ARG_VAR(CXX,C++ compiler to use)
 
-if test "$STRIP" != "false"
-then AC_MSG_CHECKING(whether the strip command $STRIP accepts the remove-section option)
-     if $STRIP --help 2>&1 | grep remove-section >/dev/null
-     then val=yes
-     else val=no
-     fi
-     AC_MSG_RESULT($val)
-     AC_SUBST(STRIP_REMOVE_SECTION,$val)
-fi
-
 AC_SUBST(OPTIMIZE,yes) AC_ARG_ENABLE(optimize, AS_HELP_STRING(--disable-optimize,disable optimization), OPTIMIZE=$enableval)
 AC_SUBST(DEBUG,no)     AC_ARG_ENABLE(debug, AS_HELP_STRING(--enable-debug,enable debugging (and disable stripping)), DEBUG=$enableval)
 AC_SUBST(NTL_WIZARD,yes) AC_ARG_ENABLE(ntl-wizard, AS_HELP_STRING(--disable-ntl-wizard,disable running the NTL wizard), NTL_WIZARD=$enableval)
@@ -316,7 +306,7 @@ dnl 	  esac
 dnl      fi
 dnl fi
 
-AC_MSG_CHECKING([whether compiling with $CXX and then linking $CC works])
+AC_MSG_CHECKING([whether compiling with $CXX and then linking with $CC works])
 cat >unwindtest-main.cpp <<EOF
 #include "unwindtest-monomials.hpp"
 int main(int argc, char **argv) { Monomials *M = new Monomials(); return 1; }
@@ -1272,8 +1262,6 @@ test $BUILD_givaro = yes && BUILTLIBS="-lgivaro $BUILTLIBS"
 test $BUILD_linbox = yes && BUILTLIBS="-llinbox $BUILTLIBS"
 test $BUILD_fplll = yes && BUILTLIBS="-lfplll $BUILTLIBS"
 
-AC_ARG_WITH(veclib, AS_HELP_STRING(--with-veclib,[use "-framework vecLib" for lapack]), LIBS="-framework vecLib $LIBS" )
-
 AC_SUBST(LAPACK,yes)
 AC_ARG_WITH(lapack, AS_HELP_STRING(--without-lapack,[compile and link without lapack and blas]), LAPACK=$withval)
 test "$LAPACK" = no; val=$?
@@ -1327,8 +1315,8 @@ test $BUILD_factory = yes && BUILTLIBS="$SINGULARLIBS $BUILTLIBS"
 # needlessly causes the library to be linked against.)
 FORTRANUSED=no
 if test "$LAPACK" = yes
-then AC_MSG_CHECKING([whether the vecLib framework is available])
-     SAVELIBS=$LIBS LIBS="-framework vecLib $LIBS"
+then AC_MSG_CHECKING([whether the Accelerate framework is available])
+     SAVELIBS=$LIBS LIBS="-framework Accelerate $LIBS"
      AC_LANG(C)
      AC_LINK_IFELSE(
 	 [AC_LANG_PROGRAM(,[sgemv_();dgetrf_();])],
