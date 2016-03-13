@@ -9,7 +9,7 @@ Last-Update: 2015-06-10
  	       "program licenses" => "@licensesdir@/",
  	       "package" => "@packagesdir@/PKG/",
 -	       "factory gftables" =>  "@packagesdir@/Core/factory/",
-+	       "factory gftables" =>  "/usr/share/singular/factory/",
++	       "factory gftables" =>  "@GFTABLES_PATH@/",
  	       "packagedoc" => "@docdir@/PKG/",
  	       "packageimages" => "@docdir@/PKG/images/",
  	       "packagetests" => "@docdir@/PKG/tests/",
@@ -24,3 +24,24 @@ Last-Update: 2015-06-10
  gftestfile = gfdir | "gftables/961" -- 961==31^2
  if not fileExists gftestfile
  then error ("sample Factory finite field addition table file missing, needed for factorization: ", gftestfile)
+--- a/M2/configure.ac
++++ b/M2/configure.ac
+@@ -1267,7 +1267,17 @@
+ test "$LAPACK" = no; val=$?
+ AC_DEFINE_UNQUOTED(LAPACK,$val,whether to link with lapack)
+ 
+-BUILD_gftables=yes		dnl it seems that factory now includes gftables, and installs it
++AC_ARG_WITH([gftables-path],
++    [AS_HELP_STRING([--with-gftables-path=...],
++	[specify path to gftables instead of building (do not include the
++	 gftables directory itself)])],
++    [AC_CHECK_FILE([$withval],
++	[BUILD_gftables=no
++    	 AC_SUBST(GFTABLES_PATH, $withval)],
++	[AC_MSG_ERROR([gftables not found])])],
++    [BUILD_gftables=yes
++     AC_SUBST([GFTABLES_PATH], [$datadir/Macaulay2/Core/factory])]
++    )
+ 
+ SINGULARLIBS="-lfactory  "
+ if test $BUILD_factory = no
