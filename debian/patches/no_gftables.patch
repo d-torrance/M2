@@ -1,0 +1,144 @@
+Description: Remove dependency on gftables.
+ Included in factory since singular 4-0-0.
+Author: Doug Torrance <dtorrance@piedmont.edu>
+Last-Update: 2016-03-13
+
+--- a/M2/.gitignore
++++ b/M2/.gitignore
+@@ -79,7 +79,6 @@
+ /libraries/readline/Makefile
+ /libraries/ntl/Makefile
+ /libraries/libtool/Makefile
+-/libraries/gftables/Makefile
+ /libraries/factory/Makefile
+ /libraries/libfac/Makefile
+ /libraries/frobby/Makefile
+--- a/M2/Macaulay2/d/actors5.d
++++ b/M2/Macaulay2/d/actors5.d
+@@ -2068,16 +2068,6 @@
+      else WrongNumArgs(0));
+ setupfun("GCstats",GCstats);
+ 
+-header "
+-extern void set_gftable_dir(char *); /* defined in library factory, as patched by us */
+-";
+-setFactoryGFtableDirectory(e:Expr):Expr := (
+-     when e is d:stringCell do (
+-     	  Ccode(void,"set_gftable_dir(", tocharstar(d.v), ")");
+-	  nullE)
+-     else WrongArgString());
+-setupfun("setFactoryGFtableDirectory",setFactoryGFtableDirectory);
+-
+ serialNumber(e:Expr):Expr := (
+      when e 
+      is s:SymbolClosure do toExpr(s.symbol.serialNumber)
+--- a/M2/Macaulay2/d/startup.m2.in
++++ b/M2/Macaulay2/d/startup.m2.in
+@@ -284,7 +284,6 @@
+ 	       "programs" => "@programsdir@/",
+ 	       "program licenses" => "@licensesdir@/",
+ 	       "package" => "@packagesdir@/PKG/",
+-	       "factory gftables" =>  "@packagesdir@/Core/factory/",
+ 	       "packagedoc" => "@docdir@/PKG/",
+ 	       "packageimages" => "@docdir@/PKG/images/",
+ 	       "packagetests" => "@docdir@/PKG/tests/",
+--- a/M2/Macaulay2/m2/factor.m2
++++ b/M2/Macaulay2/m2/factor.m2
+@@ -48,15 +48,6 @@
+ 
+ inversePermutation = v -> ( w := new MutableList from #v:null; scan(#v, i -> w#(v#i)=i); toList w)
+ 
+--- We mimic the procedure for finding a finite field addition table used in the routine gf_get_table
+--- for building the file name in "gffilename", in the file BUILD_DIR/libraries/factory/build/factory/gfops.cc .
+--- Reminder: the contents of currentLayout are determined by the file ../d/startup.m2.in .
+-gfdir = prefixDirectory | currentLayout#"factory gftables"
+-gftestfile = gfdir | "gftables/961" -- 961==31^2
+-if not fileExists gftestfile
+-then error ("sample Factory finite field addition table file missing, needed for factorization: ", gftestfile)
+-setFactoryGFtableDirectory gfdir
+-
+ irreducibleCharacteristicSeries = method()
+ irreducibleCharacteristicSeries Ideal := I -> (		    -- rawCharSeries
+      R := ring I;
+--- a/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
+@@ -389,7 +389,6 @@
+      "docdir" => "documentation for Macaulay2 packages",
+      "emacs" => "emacs source files (*.el, *.elc)",
+      "exec" => "architecture dependent files",
+-     "factory gftables" => "directory for files containing addition tables in small finite fields used by the library 'factory'",
+      "info" => "documentation in info form",
+      "lib" => "architecture dependent data and executable files",
+      "libraries" => "dynamically loadable libraries from third party packages linked with Macaulay2",
+--- a/M2/config/files
++++ b/M2/config/files
+@@ -65,7 +65,6 @@
+ libraries/readline/Makefile
+ libraries/ntl/Makefile
+ libraries/libtool/Makefile
+-libraries/gftables/Makefile
+ libraries/factory/Makefile
+ libraries/frobby/Makefile
+ libraries/lapack/Makefile
+--- a/M2/configure.ac
++++ b/M2/configure.ac
+@@ -753,7 +753,7 @@
+ # it reflects dependencies, with prerequisites listed first
+ # in particular, there are the following dependencies:
+ #    gc needs atomic_ops (and sometimes includes it)
+-#    factory needs gftables, flint, ntl and gmp
++#    factory needs flint, ntl and gmp
+ #    libfac has been replaced by code in factory
+ #    ntl needs gmp
+ #    lapack includes blas, makes both libblas and liblapack
+@@ -783,7 +783,7 @@
+ #    Henry Duong is experimenting with mpack, a multi-precision version of blas+lapack based on mpfr
+ #    mpack depends on gmp (which mpir provides) mpfr mpc qd
+ #    flint depends on mpir and mpfr
+-AC_SUBST(PROGLIST, "4ti2 gfan normaliz nauty cddplus lrslib gftables")
++AC_SUBST(PROGLIST, "4ti2 gfan normaliz nauty cddplus lrslib")
+ AC_SUBST(LIBLIST, " atomic_ops gc gdbm mpir mpfr pari readline ntl flint factory lapack frobby glpk cddlib fplll givaro fflas_ffpack linbox boost mpc qd mpack gtest ")
+ 
+ # a library is listed in BUILD_ALWAYS if and only if we *always* build it, 
+@@ -821,7 +821,7 @@
+ fi
+ 
+ LIBLIST=" $LIBLIST "
+-AC_ARG_ENABLE(build-libraries, AS_HELP_STRING(--enable-build-libraries=...,[list of libraries and programs to build from downloaded source code (e.g., gc gdbm mpir mpfr pari readline ntl gftables factory lapack frobby glpk cddlib givaro fflas_ffpack linbox boost mpc qd mpack 4ti2 gfan normaliz nauty cddplus lrslib)]),
++AC_ARG_ENABLE(build-libraries, AS_HELP_STRING(--enable-build-libraries=...,[list of libraries and programs to build from downloaded source code (e.g., gc gdbm mpir mpfr pari readline ntl factory lapack frobby glpk cddlib givaro fflas_ffpack linbox boost mpc qd mpack 4ti2 gfan normaliz nauty cddplus lrslib)]),
+     [for i in $enableval
+     do case $LIBLIST in
+ 	    *" $i "*) 
+@@ -1267,8 +1267,6 @@
+ test "$LAPACK" = no; val=$?
+ AC_DEFINE_UNQUOTED(LAPACK,$val,whether to link with lapack)
+ 
+-BUILD_gftables=yes		dnl it seems that factory now includes gftables, and installs it
+-
+ SINGULARLIBS="-lfactory  "
+ if test $BUILD_factory = no
+ then
+--- a/M2/libraries/gftables/Makefile.in
++++ /dev/null
+@@ -1,21 +0,0 @@
+-# this pseudo-library fetches the precomputed finite field addition tables used by factory and puts them in the right place
+-
+-# URL = ftp://www.mathematik.uni-kl.de/pub/Math/Singular/Factory
+-URL = http://www.math.uiuc.edu/Macaulay2/Downloads/OtherSourceCode
+-VERSION=1.1
+-#TARFILE = factory-gftables.tar.gz
+-TARFILE = factory.4.0.1-gftables.tar.gz
+-TARDIR = gftables
+-CONFIGURECMD = :
+-BUILDCMD = :
+-CHECKTARGET = .
+-# same as in m2/factor.m2
+-GFTABLEDIR = @pre_packagesdir@/Core/factory/gftables
+-INSTALLCMD = $(MKDIR_P) $(GFTABLEDIR) && cp * $(GFTABLEDIR)/.
+-
+-include ../Makefile.library
+-Makefile: @srcdir@/Makefile.in ; cd ../.. && ./config.status libraries/gftables/Makefile
+-
+-# Local Variables:
+-# compile-command: "make -C $M2BUILDDIR/libraries/gftables "
+-# End:
