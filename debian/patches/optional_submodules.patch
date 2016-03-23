@@ -3,11 +3,12 @@ Description: Optional compilation of submodules
  compiled versions of submodules in the system, and build them only
  if necessary.
 Origin: https://github.com/DanGrayson/M2/commit/20e09a5
-Last-Update: 2016-03-22
+Origin: https://github.com/DanGrayson/M2/commit/1699856
+Last-Update: 2016-03-23
 
 --- a/M2/GNUmakefile.in
 +++ b/M2/GNUmakefile.in
-@@ -55,17 +55,42 @@
+@@ -55,17 +55,44 @@
  # it was ../configure --build=@host_alias@ (for cross compiling)
  SUBMODULE_CONFIGOPTIONS += --host=@host_alias@
  endif
@@ -47,14 +48,16 @@ Last-Update: 2016-03-22
 +
 +$(foreach t,$(BUILDSUBTARGETS),$(eval $t:$t-in-submodules))
 +
++$(foreach t,$(BUILDSUBTARGETS),$(eval $t-in-submodules:))
 +define build-submodule-rules
 +$(foreach t,$(BUILDSUBTARGETS),$(eval $t-in-submodules:$t-in-$1))
 +endef
 +
++$(foreach t,$(SUBTARGETS) $(GITSUBTARGETS),$(eval $t-in-submodules:))
  define submodule-rules
  $(foreach t,$(SUBTARGETS) $(GITSUBTARGETS),$(eval $t-in-submodules:$t-in-$1))
  all-in-$1: run-configure-in-$1 build-in-$1 copy-license-files-from-$1
-@@ -122,7 +147,8 @@
+@@ -122,7 +149,8 @@
  endif
  @srcdir@/submodules/$1/configure:@srcdir@/submodules/$1/configure.ac @srcdir@/submodules/$1/Makefile.am; cd @srcdir@/submodules/$1 && ./autogen.sh
  endef
