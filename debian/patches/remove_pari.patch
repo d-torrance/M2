@@ -1,0 +1,179 @@
+Description: Remove all traces of pari.
+Author: Doug Torrance <dtorrance@piedmont.edu>
+Last-Update: 2016-04-10
+
+--- a/M2/Macaulay2/m2/factor.m2
++++ b/M2/Macaulay2/m2/factor.m2
+@@ -84,15 +84,7 @@
+      (apply(rawCharSeries raw StoT m, rawmat -> map(T,rawmat)),TtoR))
+ 
+ factor ZZ := ( f -> opts -> f ) (
+-     if instance(Pari$factorint, Function) 
+-     then n -> (
+-	  if n === 0 then Product { Power{0,1} }
+-	  else (
+-	       r := Pari$factorint n; 
+-	       Product apply(r#0,r#1,(p,i)-> Power{p,i})
+-	       )
+-	  )
+-     else n -> Product apply(sort pairs factorInteger n, (p,i)-> Power{p,i})
++     n -> Product apply(sort pairs factorInteger n, (p,i)-> Power{p,i})
+      )
+ factor QQ := opts -> (r) -> factor numerator r / factor denominator r
+ -----------------------------------------------------------------------------
+--- a/M2/Macaulay2/m2/integers.m2
++++ b/M2/Macaulay2/m2/integers.m2
+@@ -65,11 +65,7 @@
+ 
+ biggest := 2^31-1
+ 
+-isPseudoprime ZZ := Boolean => Pari$ispseudoprime
+-
+ isPrime ZZ := Boolean => (
+-     if instance(Pari$isprime,Function) then Pari$isprime
+-     else 
+      n -> (
+ 	  n = abs n;
+ 	  n > 1 and
+--- a/M2/Macaulay2/d/basictests/factor.m2
++++ /dev/null
+@@ -1,23 +0,0 @@
+-assert = x -> if not x then error "assertion failed"
+-
+-v = Pari$factorint (12 * 2^32 + 3)
+-if v === ((2, 3, 5, 13, 41, 61, 1321), (2, 1, 2, 1, 1, 1, 1)) then error "pari/gmp integer conversion: 32-bit reversal"
+-assert( v == ((3, 5, 137, 953, 26317), (1, 1, 1, 1, 1)) )
+-
+-v = Pari$factorint (1 + 4 * 2^64)
+-if v == ((2, 5, 5581, 8681, 49477, 384773), (2, 1, 1, 1, 1, 1)) then error "pari/gmp integer conversion: 64-bit reversal"
+-assert( v == ((5, 13, 397, 2113, 312709, 4327489), (1, 1, 1, 1, 1, 1)) )
+-
+-end
+-
+-If this test fails, try adding
+-
+-	--enable-build-libraries=pari
+-
+-to the configure script command line.  I think the problem is that you have a
+-dynamically shared pari library (e.g., in Fedora), and somehow it was compiled
+-differently, so that the 64 bit words constituting a big number are stored in
+-the other order.
+-
+-Eventually the configure script will figure this out for itself.
+-
+--- a/M2/Macaulay2/m2/methods.m2
++++ b/M2/Macaulay2/m2/methods.m2
+@@ -253,7 +253,7 @@
+ setupMethods(Dispatch => Thing, {transpose} )
+ setupMethods(TypicalValue => Boolean,
+      {isBorel, isWellDefined, isInjective, isSurjective, isUnit, match,
+-	  isSubset,isHomogeneous, isIsomorphism, isPrime, isPseudoprime, isField, isConstant
++	  isSubset,isHomogeneous, isIsomorphism, isPrime, isField, isConstant
+ 	  })
+ setupMethods(TypicalValue => ZZ,
+      {binomial,degreeLength,height,char,pdim,dim,depth,width,euler,genus})
+--- a/M2/Macaulay2/m2/exports.m2
++++ b/M2/Macaulay2/m2/exports.m2
+@@ -757,7 +757,6 @@
+ 	"isPolynomialRing",
+ 	"isPrime",
+ 	"isPrimitive",
+-	"isPseudoprime",
+ 	"isQuotientModule",
+ 	"isQuotientOf",
+ 	"isQuotientRing",
+--- a/M2/Macaulay2/packages/Macaulay2Doc/changes.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/changes.m2
+@@ -928,9 +928,6 @@
+ 		    	 TO (map,Module,RingMap), "."
+ 			 },
+ 		    LI { "The total Ext functor now accepts multigraded modules, see ", TO (Ext,Module,Module), "." },
+-		    LI { "Macaulay2 now incorporates ", TO "pari", ", a free library for computing in number theory.
+-			 It is used by ", TO (factor,ZZ), ", ", TO (factor,QQ), ", ", TO (isPseudoprime, ZZ), ", and ", TO (isPrime,ZZ), "."
+-			 },
+ 		    LI { "new packages, included:",
+ 			 UL {
+ 			      TO "BGG :: BGG",
+--- a/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
+@@ -48,7 +48,6 @@
+ 	  "libraries",
+ 	  TO "Singular-Factory",
+ 	  TO "frobby",
+-	  TO "pari",
+ 	  TO "MPIR",
+ 	  TO "GNU MP",
+ 	  TO "MPFR",
+@@ -244,17 +243,6 @@
+      }
+ 
+ document {
+-     Key => "pari",
+-     PARA {
+-	  "Starting with version 1.2, Macaulay2 incorporates ", TT "pari", ", a free library for fast computations in number theory,
+-	  available at ", HREF "http://pari.math.u-bordeaux.fr/", ",
+-	  originally developed by Henri Cohen and his co-workers at Université Bordeaux I, France.
+-	  It is used by ", TO (factor,ZZ), ", ", TO (factor,QQ), ", ", TO (isPseudoprime, ZZ), ", and ", TO (isPrime,ZZ), ".
+-	  It is distributed under the terms of the GNU General Public License, version 2, see ", TO "COPYING-GPL-2", "."
+-	  }
+-     }
+-
+-document {
+      Key => "frobby",
+      PARA {
+ 	  "Starting with version 1.2, Macaulay2 incorporates ", TT "frobby", ", a free library of routines for computing
+--- a/M2/Macaulay2/packages/Macaulay2Doc/doc10.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/doc10.m2
+@@ -439,10 +439,6 @@
+ 	  },
+      EXAMPLE "peek'(100,x)",
+      PARA {
+-	  "For integers, factorization is done by ", TO "pari", TEX ", and the factors $x$ are actually
+-	  just pseudoprimes, as described in the documentation of ", TO "isPseudoprime", "."
+-	  },
+-     PARA {
+ 	  "For multivariate polynomials the
+ 	  factorization is done with code of Michael Messollen (see 
+ 	  ", TO "Singular-Factory", ").  For univariate
+--- a/M2/Macaulay2/packages/Macaulay2Doc/functions/isPrime-doc.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/isPrime-doc.m2
+@@ -3,31 +3,6 @@
+ --- notes: 
+ 
+ document { 
+-     Key => {(isPseudoprime, ZZ), isPseudoprime},
+-     Headline => "whether an integer is a pseudoprime",
+-     Usage => "isPseudoprime x",
+-     Inputs => { "x" },
+-     Outputs => {
+-	  Boolean => {TO "true", " if ", TT "x", " is a strong pseudoprime in the sense of Baillie-Pomerance-Selfridge-Wagstaff"}
+-	  },
+-     PARA {
+-	  "The algorithm is provided by ", TO "pari", ".  The pseudoprimality test means that
+-	  it has no small factors, that it is a Rabin-Miller pseudoprime for the 
+-	  base $2$, and that it passes the strong Lucas test for the sequence $(P, -1)$, where $P$ is the 
+-	  smallest positive integer such that $P^2 - 4$ is not a square modulo $x$.
+-	  Such pseudoprimes may not be prime; to check primality, use ", TO "isPrime", ".
+-	  According to the documentation of ", TO "pari", TEX ", such pseudoprimes are known
+-	  to be prime up to $10^{13}$, and no nonprime pseudoprime is known."
+-	  }
+-     }
+-
+-TEST ///
+-assert not isPseudoprime(101*1617839547365369353)
+-assert not isPseudoprime(18158848484363*1617839547365369353)
+-assert isPseudoprime 1617839547365369353
+-///
+-
+-document { 
+      Key => {isPrime, (isPrime, ZZ), (isPrime,Ideal)},
+      Headline => "whether a integer, polynomial, or ideal is prime",
+      Usage => "isPrime f",
+@@ -69,7 +44,6 @@
+ -- 	  {"At the moment, for integers larger than ", TT "2^31-1", " it checks for
+ --      	       divisibility by small primes, and then applies a strong pseudoprimality
+ --      	       test (Rabin-Miller) to the base 2."},},
+-     SeeAlso => {factor, isPseudoprime}
+      }
+ 
+ TEST "
