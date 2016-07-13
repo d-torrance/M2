@@ -4,6 +4,7 @@ export DEB_CPPFLAGS_MAINT_APPEND=-I/usr/src/gtest
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,--as-needed
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 UNBUILT_PROGRAMS = 4ti2 gfan normaliz nauty cddplus lrslib
+UVER = 1.9.1
 
 %:
 	dh $@ --sourcedirectory=M2 --with autoreconf
@@ -29,4 +30,11 @@ override_dh_auto_install:
 	dh_auto_install -- IgnoreExampleErrors=true
 
 get-orig-source:
-	uscan --verbose --force-download --rename
+	wget https://github.com/Macaulay2/M2/archive/release-${UVER}.tar.gz
+	git checkout release-${UVER}
+	git pull https://github.com/Macaulay2/M2 release-${UVER}
+	echo "${UVER}+git`date -d @\`git log -1 --pretty=format:%ct\` +%Y%m%d`" > version; \
+	fi
+	git checkout master
+	mv -v release-${UVER}.tar.gz ../macaulay2_`cat version`.orig.tar.gz
+	rm version
