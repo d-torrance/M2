@@ -819,8 +819,6 @@ AC_SUBST(BUILTLIBS,)
 #    fflas_ffpack needs givaro and lapack
 #    mpir is used by givaro
 #    mpir and mpfr are used by fplll
-#    fflas_ffpack is provided as an option for experimentation
-#        it needs lapack
 #    Henry Duong is experimenting with mpack, a multi-precision version of blas+lapack based on mpfr
 #    mpack depends on gmp (which mpir provides) mpfr mpc qd
 #    flint depends on gmp or mpir and mpfr
@@ -1262,10 +1260,10 @@ AC_SUBST(BUILD_flint)		dnl factory needs to know
 
 # test for givaro
 if test $BUILD_givaro = no
-then AC_MSG_CHECKING(for givaro library)
+then AC_MSG_CHECKING(for givaro library, at least version 4)
      GIVARO_LIBS=`givaro-config --libs 2>&1`
      dnl warning: a pre-installed givaro library might be compiled and linked against gmp, which could cause a problem if we are building mpir ourselves
-     if test $? = 0
+     if test $? = 0 && test "`givaro-config --decimal-version`" -gt 40000
      then AC_MSG_RESULT(found)
 	  LIBS="$LIBS $GIVARO_LIBS"
           M2_CPPFLAGS="$M2_CPPFLAGS `givaro-config --cflags`"
@@ -1273,13 +1271,16 @@ then AC_MSG_CHECKING(for givaro library)
           BUILD_givaro=yes
      fi
 fi
-test $BUILD_givaro = yes && BUILTLIBS="-lgivaro $BUILTLIBS"
+if test $BUILD_givaro = yes
+then BUILTLIBS="-lgivaro $BUILTLIBS"
+     BUILD_fflas_ffpack=yes
+fi
 
 # test for fflas_ffpack
 if test $BUILD_fflas_ffpack = no
 then AC_MSG_CHECKING(for fflas_ffpack library)
      FFLAS_FFPACK_CXXFLAGS=`fflas-ffpack-config --cflags 2>&1`
-     if test $? = 0
+     if test $? = 0 && test "`fflas-ffpack-config --decimal-version`" -gt 20000
      then AC_MSG_RESULT(found)
           M2_CXXFLAGS="$M2_CXXFLAGS $FFLAS_FFPACK_CXXFLAGS"
      else AC_MSG_RESULT(not found, will build)
@@ -1453,6 +1454,8 @@ then
 	 AC_DEFINE([FACTORY_STREAMIO], [0])])
 fi
 
+AC_SUBST(LINALGLIBS)
+
 # we need to do the fortran library testing last, in case AC_SEARCH_LIBS adds
 # one of them to $LIBS, making it impossible to check for the presence of C or
 # C++ libraries.  (I'm not sure why putting -llapack on the gcc command line
@@ -1465,21 +1468,22 @@ then if test $USE_FCLIBS != no
 else lapack_found=no
      blas_found=no
      AC_MSG_CHECKING([whether the Accelerate framework for lapack is available])
-     SAVELIBS=$LIBS LIBS="-framework Accelerate $LIBS"
+     LINALGLIBS="-framework Accelerate"
+     SAVELIBS=$LIBS LIBS="$LINALGLIBS $LIBS"
      AC_LANG(C)
      AC_LINK_IFELSE(
 	 [AC_LANG_PROGRAM(,[sgemv_();dgetrf_();])],
 	 [USE_FCLIBS=no; blas_found=yes; lapack_found=yes; AC_MSG_RESULT(yes)],
-	 [LIBS=$SAVELIBS; AC_MSG_RESULT(no)])
+	 [LINALGLIBS= LIBS=$SAVELIBS; AC_MSG_RESULT(no)])
      if test $blas_found = no
      then AC_MSG_CHECKING([whether package blas is provided])
 	  if pkg-config --exists blas
 	  then AC_MSG_RESULT(yes)
 	       blas_found=yes
-	       NEWLIBS=`pkg-config --libs blas`
-	       LIBS="$NEWLIBS $LIBS"
+	       BLASLIBS=`pkg-config --libs blas`
+	       LIBS="$BLASLIBS $LIBS"
 	       CPPFLAGS="`pkg-config --cflags-only-I blas` $CPPFLAGS"
-	       AC_SEARCH_LIBS(sgemv_,,,AC_MSG_ERROR(blas function sgemv_ not found with $NEWLIBS))
+	       AC_SEARCH_LIBS(sgemv_,,,AC_MSG_ERROR(blas function sgemv_ not found with $BLASLIBS))
 	  else AC_MSG_RESULT(no)
 	  fi
      fi
@@ -1488,10 +1492,10 @@ else lapack_found=no
 	  if pkg-config --exists lapack
 	  then AC_MSG_RESULT(yes)
 	       lapack_found=yes
-	       NEWLIBS=`pkg-config --libs lapack`
-	       LIBS="$NEWLIBS $LIBS"
+	       LAPACKLIBS="`pkg-config --libs lapack`"
+	       LIBS="$LAPACKLIBS $LIBS"
 	       CPPFLAGS="`pkg-config --cflags-only-I lapack` $CPPFLAGS"
-	       AC_SEARCH_LIBS(dgetrf_,,,AC_MSG_ERROR(lapack function dgetrf_ not found with $NEWLIBS))
+	       AC_SEARCH_LIBS(dgetrf_,,,AC_MSG_ERROR(lapack function dgetrf_ not found with $LAPACKLIBS))
 	  else AC_MSG_RESULT(no)
 	  fi
      fi
@@ -1499,15 +1503,22 @@ else lapack_found=no
      then LIBS="$FCLIBS $LIBS"; added_fclibs=yes
      fi
      if test $blas_found = no
-     then AC_SEARCH_LIBS(sgemv_,refblas blas f77blas atlcblas,blas_found=yes)
+     then AC_SEARCH_LIBS(sgemv_,refblas blas f77blas atlcblas,
+                         blas_found=yes
+			 BLASLIBS=$ac_cv_search_sgemv_
+			 )
           # we've been told that both f77blas and atlcblas are needed.  If so, fix this somehow.
      fi
      if test $lapack_found = no
-     then AC_SEARCH_LIBS(dgetrf_,lapack atllapack,lapack_found=yes)
+     then AC_SEARCH_LIBS(dgetrf_,lapack atllapack,
+	  		 lapack_found=yes
+			 LAPACKLIBS=$ac_cv_search_dgetrf_
+			 )
      fi
      if test $blas_found = no -o $lapack_found = no
      then BUILD_lapack=yes
      fi
+     LINALGLIBS="$LINALGLIBS $LAPACKLIBS $BLASLIBS"
 fi
 
 if test $BUILD_lapack = yes
@@ -1796,6 +1807,7 @@ AC_MSG_NOTICE([using BUILD_ALWAYS  = $BUILD_ALWAYS])
 AC_MSG_NOTICE([link using:])
 dnl the order of this list should agree with that in Macaulay2/bin/Makefile.in
 AC_MSG_NOTICE([     BUILTLIBS          = $BUILTLIBS])
+AC_MSG_NOTICE([     LINALGLIBS         = $LINALGLIBS])
 AC_MSG_NOTICE([     LIBS_STATIC        = $LIBS_STATIC])
 AC_MSG_NOTICE([     LIBS_EITHER        = $LIBS_EITHER])
 AC_MSG_NOTICE([     LIBS_DYNAMIC       = $LIBS_DYNAMIC])
