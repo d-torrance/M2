@@ -3710,6 +3710,39 @@ export rawResolutionGetMatrix2(e:Expr):Expr := (
      else WrongNumArgs(3));
 setupfun("rawResolutionGetMatrix2", rawResolutionGetMatrix2);
 
+export rawResolutionGetMutableMatrixB(e:Expr):Expr := (
+     when e is a:Sequence do 
+     if length(a) == 3 then 
+     when a.0 is G:RawComputationCell do 
+     when a.1 is R:RawRingCell do 
+     when a.2 is level:ZZcell do
+     if !isInt(level) then WrongArgSmallInteger(2) else
+     toExpr(Ccode(RawMutableMatrixOrNull, "rawResolutionGetMutableMatrixB(", G.p, ",", R.p, ",", toInt(level), ")" ))
+     else WrongArgZZ(3)
+     else WrongArg(2,"a raw ring")
+     else WrongArg(1,"a raw computation")
+     else WrongNumArgs(3)
+     else WrongNumArgs(3));
+setupfun("rawResolutionGetMutableMatrixB", rawResolutionGetMutableMatrixB);
+
+export rawResolutionGetMutableMatrix2B(e:Expr):Expr := (
+     when e is a:Sequence do 
+     if length(a) == 4 then 
+     when a.0 is G:RawComputationCell do 
+     when a.1 is R:RawRingCell do
+     when a.2 is level:ZZcell do
+     when a.3 is degree:ZZcell do
+     if !isInt(level) then WrongArgSmallInteger(2) else
+     if !isInt(degree) then WrongArgSmallInteger(3) else
+     toExpr(Ccode(RawMutableMatrixOrNull, "rawResolutionGetMutableMatrix2B(", G.p, ",", R.p, ",", toInt(level), ",", toInt(degree), ")" ))
+     else WrongArgZZ(4)
+     else WrongArgZZ(3)
+     else WrongArg(2,"a raw ring")
+     else WrongArg(1,"a raw computation")
+     else WrongNumArgs(4)
+     else WrongNumArgs(4));
+setupfun("rawResolutionGetMutableMatrix2B", rawResolutionGetMutableMatrix2B);
+
 export rawResolutionStatusLevel(e:Expr):Expr := (
      when e is s:Sequence do
      if length(s) != 3 then WrongNumArgs(3) else
@@ -3859,13 +3892,13 @@ export rawLU(e:Expr):Expr := (
 setupfun("rawLU", rawLU);
 
 
-export rawLQUPFactorization(e:Expr):Expr := (
-     -- rawLQUPFactorization(A) returns a pair of list of integers (P, Qt permutations),
-     when e is m:RawMutableMatrixCell do
-     	  toExpr(
-	       Ccode(RawArrayIntPairOrNull, "rawLQUPFactorization(", m.p, ")"))
-     else WrongArgMutableMatrix(1));
-setupfun("rawLQUPFactorization", rawLQUPFactorization);
+-- export rawLQUPFactorization(e:Expr):Expr := (
+--      -- rawLQUPFactorization(A) returns a pair of list of integers (P, Qt permutations),
+--      when e is m:RawMutableMatrixCell do
+--      	  toExpr(
+-- 	       Ccode(RawArrayIntPairOrNull, "rawLQUPFactorization(", m.p, ")"))
+--      else WrongArgMutableMatrix(1));
+-- setupfun("rawLQUPFactorization", rawLQUPFactorization);
 
 export rawFFLU(e:Expr):Expr := (
      when e is M:RawMutableMatrixCell do toExpr( Ccode(RawArrayIntOrNull, "IM2_FF_LU(", M.p, ")" ) )
@@ -4150,6 +4183,25 @@ export rawLeastSquares(e:Expr):Expr := (
      else WrongArgMutableMatrix(1)
      else WrongNumArgs(4));
 setupfun("rawLeastSquares", rawLeastSquares);
+
+export rawQR(e:Expr):Expr := (
+     when e is s:Sequence do
+     if length(s) != 4 then WrongNumArgs(4) else
+     when s.0 
+     is M:RawMutableMatrixCell do 
+     when s.1 is Q:RawMutableMatrixCell do
+     when s.2 is R:RawMutableMatrixCell do
+     if isBoolean(s.3) then possibleEngineError(
+	  Ccode(bool, "rawQR(",
+	       M.p, ",", Q.p, ",", R.p, ",", 
+	       toBoolean(s.3),				    -- type of result: true means Q, false means encoded Householder
+	       ")"))
+     else WrongArgBoolean(4)
+     else WrongArgMutableMatrix(3)
+     else WrongArgMutableMatrix(2)
+     else WrongArgMutableMatrix(1)
+     else WrongNumArgs(4));
+setupfun("rawQR", rawQR);
 
 pi0(e:Expr):Expr := (
      when e is prec:ZZcell do

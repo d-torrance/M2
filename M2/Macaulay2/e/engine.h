@@ -22,11 +22,14 @@ class RingElement;
 class RingMap;
 class Computation;
 class EngineComputation;
+// NAG begin
 class SLEvaluator;
 class Homotopy;
 class SLProgram;
 class StraightLineProgram;
 class PathTracker;
+class PointArray;
+// NAG end
 
 typedef struct MonomialOrdering MonomialOrdering;
 #else
@@ -43,11 +46,14 @@ typedef struct Computation Computation;
 typedef struct EngineComputation EngineComputation;
 typedef struct MonomialOrdering MonomialOrdering;
 typedef struct MonomialIdeal MonomialIdeal;
+// NAG begin
 typedef struct SLEvaluator SLEvaluator;
 typedef struct Homotopy Homotopy;
 typedef struct SLProgram SLProgram;
 typedef struct StraightLineProgram StraightLineProgram;
 typedef struct PathTracker PathTracker;
+typedef struct PointArray PointArray;
+// NAG end
 #endif
 
 #if defined(NO_CONST)
@@ -437,6 +443,9 @@ extern "C" {
      this implements the (anti-)isomorphism of the ring and its opposite ring.
   */
 
+  const Matrix* /* or null */ rawHomogenizeMatrix(const Matrix* a, const Matrix* b, const Matrix* c);
+  /* TEST dummy function!! */
+  
   const RingElement /* or null */ *IM2_RingElement_homogenize_to_degree(
             const RingElement *a,
             int v,
@@ -1488,7 +1497,14 @@ extern "C" {
   /* Case 1: A is a dense matrix over RR.  Then so are b,x.
      Case 2: A is a dense matrix over CC.  Then so are b,x. */
 
-
+  M2_bool rawQR(const MutableMatrix* A, /* input m x n matrix */
+                MutableMatrix* Q, /* output m x n orthonormal columns matrix */
+                MutableMatrix* R, /* output R matrix: upper triangular, nonsingular if A has ker A = 0 */
+                M2_bool return_QR); /* if false, the output is instead the lapack encoded Householder transformations */
+  /* if return_QR is false, then Q will contain the encoded Householder reflections
+     and the multipliers tau_i will appear in R.
+     MES TODO: be more specific here, once we know the exact format!
+  */
 
   /**************************************************/
   /**** Monomial ideal routines *********************/
@@ -1772,6 +1788,19 @@ enum gbTraceValues
   MutableMatrix /* or null */ *rawResolutionGetMatrix2(Computation *G,int level,int degree);
   /* rawResolutionGetMatrix2 */
 
+  // This might be temporary!
+  MutableMatrix /* or null */ *
+  rawResolutionGetMutableMatrixB(Computation *C,
+                                 const Ring* R, // A polynomial ring with coeffs = RR, or a finite field used in C, same monoid as C's ring.
+                                 int level);
+
+  // This might be temporary!
+  MutableMatrix /* or null */ *
+  rawResolutionGetMutableMatrix2B(Computation *C,
+                           const Ring* KK, // should be RR, or a finite field used in C.
+                           int level,
+                           int degree);
+
   const FreeModule /* or null */ *rawResolutionGetFree(Computation *G, int level);
     /*drg: connected rawResolutionGetFree*/
 
@@ -1989,6 +2018,11 @@ enum gbTraceValues
   M2_string rawSLEvaluatorToString(SLEvaluator *); /* connected */
   M2_bool rawSLEvaluatorEvaluate(SLEvaluator *sle, const MutableMatrix *inputs, MutableMatrix *outputs);
   M2_string rawHomotopyToString(Homotopy *); /* connected */
+  M2_string rawSLProgramToString(SLProgram *); /* connected */
+  unsigned int rawSLEvaluatorHash(SLEvaluator *); /* connected */
+  unsigned int rawHomotopyHash(Homotopy *); /* connected */
+  unsigned int rawSLProgramHash(SLProgram *); /* connected */
+
   M2_bool rawHomotopyTrack(Homotopy *H, const MutableMatrix *inputs, MutableMatrix *outputs,
                            MutableMatrix* output_extras,  
                            gmp_RR init_dt, gmp_RR min_dt,
@@ -1996,10 +2030,7 @@ enum gbTraceValues
                            int max_corr_steps, 
                            gmp_RR infinity_threshold,
                            M2_bool checkPrecision);
-  M2_string rawSLProgramToString(SLProgram *); /* connected */
-  unsigned int rawSLEvaluatorHash(SLEvaluator *); /* connected */
-  unsigned int rawHomotopyHash(Homotopy *); /* connected */
-  unsigned int rawSLProgramHash(SLProgram *); /* connected */
+
   gmp_ZZ rawSLPInputGate(SLProgram *S);
   gmp_ZZ rawSLPSumGate(SLProgram *S, M2_arrayint a);
   gmp_ZZ rawSLPProductGate(SLProgram *S, M2_arrayint a);
@@ -2036,6 +2067,13 @@ enum gbTraceValues
   gmp_RRorNull rawGetSolutionLastTvaluePT(PathTracker* PT, int solN);
   gmp_RRorNull rawGetSolutionRcondPT(PathTracker* PT, int solN);
   const Matrix /* or null */ *rawRefinePT(PathTracker* PT, const Matrix* sols, gmp_RR tolerance, int max_corr_steps_refine);
+  // PointArray
+  unsigned int rawPointArrayHash(PointArray *); 
+  M2_string rawPointArrayToString(PointArray *);
+  PointArray /* or null */ *rawPointArray(double epsilon, int n);
+  int rawPointArrayLookup(PointArray *pa, const MutableMatrix *M, int col);
+  int rawPointArrayLookupOrAppend(PointArray *pa, const MutableMatrix *M, int col);
+  // NAG end  
   const Matrix /* or null */ *rawGbBoolean(const Matrix *m);
   const Matrix /* or null */ *rawBIBasis(const Matrix* m, int toGroebner);
 #if defined(__cplusplus)

@@ -42,10 +42,11 @@ namespace M2 {
 };
 
 #else
-#include <givaro/givgfq.h>
+#include <givaro/gfq.h>
 #include <givaro/givpower.h>
 #include <givaro/givtimer.h>
-#include <givaro/givextension.h>     //multiple definition problem...   solvable by encapsulating (see linbox)? Also solvable with the namespace trick, but do not overuse that...
+#include <givaro/gfq.h>
+// #include <givaro/givextension.h>     //multiple definition problem...   solvable by encapsulating (see linbox)? Also solvable with the namespace trick, but do not overuse that...
 #include <math.h>
 #include <givaro/givinteger.h>
 #include <givaro/givintnumtheo.h>
@@ -70,7 +71,7 @@ class ARingGFGivaro : public RingInterface
   public:
     static const RingID ringID = ring_GFGivaro;
 
-    typedef Givaro::GFqDom<long>    FieldType;
+    typedef Givaro::GFqDom<unsigned long long>    FieldType;
     typedef FieldType::Element      ElementType;
     typedef M2::ARingGFGivaro             ring_type ;
   
@@ -116,14 +117,7 @@ class ARingGFGivaro : public RingInterface
 
     const FieldType     givaroField;
  
-    mutable  FieldType::randIter     givaroRandomIterator;
-
-    size_t      mGeneratorExponent;  
-
-    //  int p1; // p-1
-    // int minus_one;
-    // int prim_root; // element we will use for our primitive root
-
+    mutable  Givaro::GFqDom<unsigned long long>::RandIter     givaroRandomIterator;
 
     M2_arrayint     representationToM2Array(UTT representation,  long coeffNum ) const;
 
@@ -219,11 +213,11 @@ class ARingGFGivaro : public RingInterface
 
         void copy(elem &result,const elem a) const ;
 
-        void set_from_long(elem &result, long a) const ;
+        void set_from_long(elem &result, int64_t a) const ;
 
         void set_from_mpz(elem &result,const mpz_ptr a) const ;
 
-        void set_from_mpq(elem &result,const mpq_ptr a) const ;
+        bool set_from_mpq(elem &result,const mpq_ptr a) const ;
 
         bool set_from_BigReal(elem &result, gmp_RR a) const { return false; }
 
@@ -263,7 +257,7 @@ class ARingGFGivaro : public RingInterface
             void swap(ElementType &a, ElementType &b) const;
 
 
-            void random(FieldType::randIter &it, ElementType &result) const;
+    void random(Givaro::GFqDom<unsigned long long>::RandIter &it, ElementType &result) const;
             void random(ElementType &result) const;
             
     /** @} */

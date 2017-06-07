@@ -33,7 +33,7 @@
 
 #define stmt x=1
 
-volatile int s0 = 100, x = 200, y;
+volatile int s0 = 100, x = 200;
 
 int main (int argc, char **argv) {
      int i,j;
@@ -50,7 +50,7 @@ int main (int argc, char **argv) {
        else { printf("unknown test: %s\n", argv[1]); exit(1); }
      }
 #    define roll 100
-     printf("%Ld repetitions\n",(long long)inner*outer*roll);
+     printf("%lld repetitions\n",(long long)inner*outer*roll);
      for (i=outer; i>0; i--) for (j=0; j<inner; j++) { // 100 times ( == roll, defined above )
           { stmt; stmt; stmt; stmt; stmt; stmt; stmt; stmt; stmt; stmt; /* 10 times */ }
           { stmt; stmt; stmt; stmt; stmt; stmt; stmt; stmt; stmt; stmt; /* 10 times */ }
@@ -64,6 +64,6 @@ int main (int argc, char **argv) {
           { stmt; stmt; stmt; stmt; stmt; stmt; stmt; stmt; stmt; stmt; /* 10 times */ } } }
 
 // Local Variables:
-// compile-command: "cd $M2BUILDDIR/Macaulay2/e && make DEPENDS=no overflow-test-demangled.s overflow-test && time ./overflow-test"
+// compile-command: "cd $M2BUILDDIR/Macaulay2/e && make DEPENDS=no overflow-test && time ./overflow-test"
 // indent-tabs-mode: nil
 // End:

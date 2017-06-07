@@ -206,6 +206,18 @@ std::vector<int> Monoid::getFirstWeightVector() const
   return result;
 }
 
+std::vector<int> Monoid::getPrimaryDegreeVector() const
+{
+  std::vector<int> result;
+
+  M2_arrayint degs = primary_degree_of_vars();
+
+  for (int i=0; i<degs->len; i++)
+    result.push_back(degs->array[i]);
+
+  return result;
+}
+
 void Monoid::set_overflow_flags()
 {
   overflow = newarray_atomic(enum overflow_type, monomial_size_);
@@ -344,14 +356,13 @@ void Monoid::to_expvector(const_monomial m, exponents result_exp) const
 
 void Monoid::mult(const_monomial m, const_monomial n, monomial result) const
 {
-  static char err[] = "monomial overflow";
   overflow_type *t = overflow;
   for (int i = monomial_size_; i != 0; i--)
       switch (*t++) {
-      case OVER:   *result++ = safe::    add  (*m++,*n++,err); break;
-      case OVER1:  *result++ = safe::pos_add  (*m++,*n++,err); break;
-      case OVER2:  *result++ = safe::pos_add_2(*m++,*n++,err); break;
-      case OVER4:  *result++ = safe::pos_add_4(*m++,*n++,err); break;
+      case OVER:   *result++ = safe::    add  (*m++,*n++); break;
+      case OVER1:  *result++ = safe::pos_add  (*m++,*n++); break;
+      case OVER2:  *result++ = safe::pos_add_2(*m++,*n++); break;
+      case OVER4:  *result++ = safe::pos_add_4(*m++,*n++); break;
       default: throw(exc::internal_error("missing case"));
       }
 }
@@ -600,6 +611,15 @@ int Monoid::degree_weights(const_monomial m, M2_arrayint wts) const
   to_expvector(m, EXP1);
   int sz = (wts->len < nvars_ ? wts->len : nvars_);
   return ntuple::weight(sz, EXP1, wts);
+}
+
+int Monoid::simple_degree(const_monomial m) const
+{
+  if (nvars_ == 0) return 0;
+
+  exponents EXP1 = ALLOCATE_EXPONENTS(exp_size);
+  to_expvector(m, EXP1);
+  return ntuple::degree(nvars_, EXP1);
 }
 
 bool Monoid::is_one(const_monomial m) const

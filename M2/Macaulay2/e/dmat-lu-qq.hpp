@@ -91,8 +91,8 @@ public:
     U.resize(min, LU.numColumns());
     
     // At this point, lower and upper should be zero matrices.
-    M2_ASSERT(MatrixOps::isZero(L));
-    M2_ASSERT(MatrixOps::isZero(U));
+    assert(MatrixOps::isZero(L));
+    assert(MatrixOps::isZero(U));
 
     fmpq_t b;
     fmpq_init(b);
@@ -111,7 +111,8 @@ public:
                 
                 fmpq_set_fmpz_frac(b, fmpz_mat_entry(LU.value(),r,c), den);
                 flint_mpq_init_set_readonly(a, b);
-                U.ring().set_from_mpq(U.entry(r,c), a);
+                assert(U.ring().set_from_mpq(U.entry(r,c), a));
+                U.ring().set_from_mpq(U.entry(r,c), a); // ignore the result boolean: this operation should not fail
                 flint_mpq_clear_readonly(a);
               }
             else if (c < L.numRows())

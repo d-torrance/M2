@@ -519,7 +519,14 @@ const RingElement *IM2_RingElement_from_Integer(const Ring *R, gmp_ZZ d)
 
 const RingElement *IM2_RingElement_from_rational(const Ring *R, gmp_QQ r)
 {
-  return RingElement::make_raw(R, R->from_rational(r));
+  ring_elem result;
+  bool ok = R->from_rational(r, result);
+  if (not ok)
+    {
+      ERROR("unable to coerce rational into ring");
+      return nullptr;
+    }
+  return RingElement::make_raw(R, result);
 }
 
 const RingElement *IM2_RingElement_from_BigComplex(const Ring *R, gmp_CC z)
@@ -556,7 +563,7 @@ gmp_ZZorNull IM2_RingElement_to_Integer(const RingElement *a)
       gmp_ZZ result = newitem(__mpz_struct);
 
       std::pair<bool,long> res = R->coerceToLongInteger(a->get_value());
-      M2_ASSERT(res.first);
+      assert(res.first);
 
       mpz_init_set_si(result, static_cast<int>(res.second));
       return result;

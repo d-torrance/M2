@@ -80,7 +80,14 @@ namespace M2 {
       mpz_set(&result, a);
     }
     
-    void set_from_mpq(ElementType &result, const mpq_ptr a) const {M2_ASSERT(false);}
+    bool set_from_mpq(ElementType &result, const mpq_ptr a) const {
+      if (mpz_cmp_si(mpq_denref(a), 1) == 0)
+        {
+          set_from_mpz(result, mpq_numref(a));
+          return true;
+        }
+      return false;
+    }
     
     bool set_from_BigReal(ElementType &result, gmp_RR a) const {return false;}
     
@@ -113,7 +120,7 @@ namespace M2 {
     }
     
     void power(ElementType& result,const ElementType& a, unsigned long n) const {
-      M2_ASSERT(n >= 0);
+      assert(n >= 0);
       return mpz_pow_ui(&result,&a,n);
     }
     

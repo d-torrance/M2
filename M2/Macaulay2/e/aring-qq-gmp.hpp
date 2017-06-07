@@ -102,8 +102,9 @@ namespace M2 {
       return false;
     }
 
-    void set_from_mpq(ElementType& result,const mpq_ptr a) const { 
-      mpq_set(&result, a); 
+    bool set_from_mpq(ElementType& result,const mpq_ptr a) const { 
+      mpq_set(&result, a);
+      return true;
     }
     
     bool set_from_BigReal(ElementType& result, gmp_RR a) const {return false;}
@@ -149,7 +150,7 @@ namespace M2 {
     }
     
     void power(ElementType& result, const ElementType& a, long n) const {
-      M2_ASSERT(n >= 0);
+      assert(n >= 0);
       mpz_pow_ui(mpq_numref(&result),mpq_numref(&a),n);
       mpz_pow_ui(mpq_denref(&result),mpq_denref(&a),n);
     }
@@ -228,7 +229,6 @@ namespace M2 {
     }
     
     bool lift(const Ring *Rg, const ElementType& f, ring_elem &result) const {
-      printf("ARingQQGMP::calling lift\n");
       return false;
     }
 #endif

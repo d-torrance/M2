@@ -22,6 +22,25 @@
 #include <functional>
 #include <algorithm>
 #include <iostream>
+
+int gbA::get_resolved_gb_index(int i) const
+{
+  if (not over_ZZ()) return i;
+  int prev = i;
+  int next = forwardingZZ[i];
+  while (next != -1) {
+    prev = next;
+    next = forwardingZZ[prev];
+  }
+  if (M2_gbTrace >= 16)
+    {
+      buffer o;
+      o << "resolve(" << i << ") = " << prev << newline;
+      std::cout << o.str() << std::endl;
+    }
+  return prev;
+}
+
 /*************************
  * Initialization ********
  *************************/
@@ -47,14 +66,19 @@ gbA * gbA::create(const Matrix *m,
       ERROR("ring is not a polynomial ring");
       return nullptr;
     }
-#if 0
-  // This test should be added, commented out in version 1.8, as QuillenSuslin package uses this (suspect) functionality!
   if (origR->getMonoid()->numInvertibleVariables() > 0)
     {
       ERROR("cannot compute Groebner basis of ideal over a Laurent polynomial ring, ie. with Inverses=>true");
       return nullptr;
     }
-#endif  
+  bool overZZ = origR->coefficient_type() == Ring::COEFF_ZZ;
+  bool isLocal = origR->getMonoid()->numNonTermOrderVariables() > 0;
+  if (overZZ and isLocal)
+    {
+      ERROR("Groebner bases in rings over ZZ with variables less than zero are not yet supported");
+      return nullptr;
+    }
+  
   gbA *result = new gbA;
   result->initialize(m, collect_syz, n_rows_to_keep, gb_weights, strategy, max_reduction_count);
   return result;
@@ -86,8 +110,7 @@ void gbA::initialize(const Matrix *m, int csyz, int nsyz, M2_arrayint gb_weights
   _coeff_type = origR->coefficient_type();
   n_fraction_vars = origR->n_fraction_vars();
 
-  M2_arrayint localvars = origR->getMonoid()->getNonTermOrderVariables();
-  is_local_gb = (localvars->len > 0);
+  is_local_gb = (origR->getMonoid()->numNonTermOrderVariables() > 0);
 
   spair_stash = new stash("gbA spairs", sizeof(spair));
   gbelem_stash = new stash("gbA elems", sizeof(gbelem));
@@ -160,6 +183,7 @@ void gbA::initialize(const Matrix *m, int csyz, int nsyz, M2_arrayint gb_weights
           gbvector *f = const_cast<gbvector *>(originalR->quotient_gbvector(i));
           gbelem *g = gbelem_ring_make(f);
           gb.push_back(g);
+          forwardingZZ.push_back(-1);
         }
     }
   for (int i=0; i<m->n_cols(); i++)
@@ -341,6 +365,20 @@ gbA::gbelem *gbA::gbelem_make(gbvector *f,  // grabs f
     g->gap = 0;
   g->size = R->gbvector_n_terms(f);
   g->minlevel = minlevel;
+  return g;
+}
+
+gbA::gbelem* gbA::gbelem_copy(gbelem* g)
+{
+  gbelem *gnew = reinterpret_cast<gbelem *>(gbelem_stash->new_elem());
+
+  gnew->g.f = R->gbvector_copy(g->g.f);
+  gnew->g.fsyz = R->gbvector_copy(g->g.fsyz);
+  gnew->lead = exponents_make();
+  for (int i=0; i<_nvars; i++)
+    gnew->lead[i] = g->lead[i];
+  gnew->deg = g->deg;
+  gnew->minlevel = g->minlevel;
   return g;
 }
 
@@ -707,7 +745,7 @@ void gbA::minimalize_pairs_non_ZZ(spairs &new_set)
 //     debug_spair(new_set[i]);
 //   }
 #endif
-  std::sort(new_set.begin(), new_set.end(), spair_sorter(_nvars));
+  std::stable_sort(new_set.begin(), new_set.end(), spair_sorter(_nvars));
   MonomialTable *montab = MonomialTable::make(_nvars);
 
   //  array_sort(new_set, (compareFcn)spair_compare, 0);
@@ -809,6 +847,7 @@ void gbA::minimalize_pairs_ZZ(spairs &new_set)
               if (M2_gbTrace >= 4)
                 {
                   buffer o;
+                  o << "  creating ";
                   spair_text_out(o, p2);
                   emit_line(o.str());
                 }
@@ -829,6 +868,7 @@ void gbA::minimalize_pairs_ZZ(spairs &new_set)
       if (M2_gbTrace >= 4)
         {
           buffer o;
+          o << "  creating ";
           spair_text_out(o, p);
           emit_line(o.str());
         }
@@ -861,7 +901,7 @@ void gbA::minimalize_pairs(spairs &new_set)
 
 void gbA::update_pairs(int id)
 {
-  M2_ASSERT(gb[id] != nullptr);
+  assert(gb[id] != nullptr);
   gbelem *r = gb[id];
   int x = gbelem_COMPONENT(r);
 
@@ -1146,7 +1186,7 @@ void gbA::spairs_sort(int len, spair *&ps)
 
   SPolySorter SP(R,_F);
   //  QuickSorter<SPolySorter>::sort(&SP,&a[0],a.size());
-  std::sort(a.begin(), a.end(), SP);
+  std::stable_sort(a.begin(), a.end(), SP);
   int asize = INTSIZE(a);
   int bsize = INTSIZE(b);
 
@@ -1231,6 +1271,7 @@ void gbA::spair_set_lead_spoly(spair *p)
 void gbA::compute_s_pair(spair *p)
 {
   POLY f,g;
+  int i,j;
   if (M2_gbTrace >= 5 && M2_gbTrace != 15)
     {
       buffer o;
@@ -1240,7 +1281,8 @@ void gbA::compute_s_pair(spair *p)
   if (p->type > SPAIR::SPAIR_SKEW) return;
   R->gbvector_remove(p->lead_of_spoly);
   p->lead_of_spoly = 0;
-  f = gb[p->x.pair.i]->g;
+  i = get_resolved_gb_index(p->x.pair.i);
+  f = gb[i]->g;
   if (p->type == SPAIR::SPAIR_SKEW)
     {
       const int *mon = R->skew_monomial_var(p->x.pair.j);
@@ -1251,7 +1293,8 @@ void gbA::compute_s_pair(spair *p)
     }
   else if (p->type == SPAIR::SPAIR_GCD_ZZ)
     {
-      g = gb[p->x.pair.j]->g;
+      j = get_resolved_gb_index(p->x.pair.j);      
+      g = gb[j]->g;
       R->gbvector_combine_lead_terms_ZZ(_F, _Fsyz,
                                         f.f, f.fsyz,
                                         g.f,g.fsyz,
@@ -1260,7 +1303,8 @@ void gbA::compute_s_pair(spair *p)
     }
   else
     {
-      g = gb[p->x.pair.j]->g;
+      j = get_resolved_gb_index(p->x.pair.j);
+      g = gb[j]->g;
       R->gbvector_cancel_lead_terms(_F, _Fsyz,
                                     f.f, f.fsyz,
                                     g.f,g.fsyz,
@@ -2087,6 +2131,7 @@ void gbA::insert_gb(POLY f, gbelem_type minlevel)
   minimal_gb_valid = false;
   int me = INTSIZE(gb);
   gb.push_back(g);
+  forwardingZZ.push_back(-1);
   n_gb++;
   int x = g->g.f->comp;
 
@@ -2168,11 +2213,14 @@ void gbA::replace_gb_element_ZZ(MonomialTableZZ::mon_term* t)
   
   //  tail_remainder_ZZ(g->g,this_degree);
   gb.push_back(g);
+  forwardingZZ.push_back(-1);
+  forwardingZZ[gbval] = INTSIZE(gb)-1;
+  
   lookupZZ->change_coefficient(t, g->g.f->coeff.get_mpz(), me); 
   if (M2_gbTrace == 15)
     {
       buffer o;
-      o << "    retiring " << gbval << " new ";
+      o << "    retiring g" << gbval << " with new ";
       //      o << "    new ";
       gbelem_text_out(o, INTSIZE(gb)-1);
 
@@ -2215,7 +2263,7 @@ bool gbA::spair_is_retired(spair* p) const
 bool gbA::process_spair(spair *p)
 {
   stats_npairs++;
-  if (spair_is_retired(p))
+  if (false and spair_is_retired(p))
     {
       stats_nretired++;
       spair_delete(p);      
@@ -2381,10 +2429,10 @@ void gbA::do_computation()
 
             if (S->n_in_degree == 0)
               {
-                int old_degree = this_degree;
+                //int old_degree = this_degree;
                 npairs = spair_set_prepare_next_degree(this_degree); // sets this_degree
-                if (old_degree < this_degree)
-                  first_in_degree = INTSIZE(gb);
+                //                if (old_degree < this_degree)
+                //                  first_in_degree = INTSIZE(gb);
                 complete_thru_this_degree = this_degree-1;
                 if (npairs == 0)
                   {
@@ -2584,6 +2632,11 @@ Computation /* or null */ *gbA::set_hilbert_function(const RingElement *hf)
   // We may only use the Hilbert function if syzygies are not being collected
   // since otherwise we will miss syzygies
 
+  if (over_ZZ())
+    {
+      ERROR("cannot use Hilbert function for Groebner basis computation over the integers");
+      return nullptr;
+    }
   if (!_collect_syz)
     {
       hf_orig = hf;

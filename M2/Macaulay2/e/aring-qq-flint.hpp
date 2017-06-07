@@ -103,9 +103,9 @@ namespace M2 {
       fmpz_one(fmpq_denref(&result));
     }
     
-    void set_from_mpq(ElementType& result,const mpq_ptr a) const { 
-      // printf("ARingQQFlint::calling set_from_mpq\n");
-      fmpq_set_mpq(&result, a); 
+    bool set_from_mpq(ElementType& result,const mpq_ptr a) const { 
+      fmpq_set_mpq(&result, a);
+      return true;
     }
     
     bool set_from_BigReal(ElementType& result, gmp_RR a) const {return false;}
@@ -145,7 +145,7 @@ namespace M2 {
     }
     
     void power(ElementType& result, const ElementType& a, long n) const {
-      M2_ASSERT(n >= 0);
+      assert(n >= 0);
       return fmpq_pow_si(&result,&a,n);
     }
     
@@ -213,7 +213,6 @@ namespace M2 {
     }
     
     bool lift(const Ring *Rg, const ElementType& f, ring_elem &result) const {
-      // printf("ARingQQFlint::calling lift\n");
       return false;
     }
     
