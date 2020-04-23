@@ -13,7 +13,6 @@ newPackage(
      AuxiliaryFiles => true, -- set to true if package comes with auxiliary files
      -- DebuggingMode should be true while developing a package, 
      --   but false after it is done
-     DebuggingMode => true,
      AuxiliaryFiles => true
      )
 
@@ -788,10 +787,10 @@ egbSignature (List) := o -> F -> (
 	deleteMin JP;
 	if width j > 7 then error "breakpoint!!!"; 
 	if isCovered(j,G) or 
-	   isCovered(j,H) {* perhaps this is not needed... 
+	   isCovered(j,H) -* perhaps this is not needed... 
 	                  but there are duplicates in JP at the moment.
 			  Another question: why do we check if a j-pair is covered by syzygies only when we insert it in JP? 
-	                  *} 
+	                  *- 
 	   then (
 	    out << "  covered pair in JP: " << j << endl;
 	    coveredCount = coveredCount + 1;

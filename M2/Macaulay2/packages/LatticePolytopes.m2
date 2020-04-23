@@ -1,9 +1,9 @@
 --*- coding: utf-8 -*-
-{*
+-*
    Written by Anders Lundman & Gustav Sædén Ståhl , 2015.
 
    This file is in the public domain.
-   *}
+   *-
 ---------------------------------------------------------------------------
 -- PURPOSE: A package for computations with lattice polytopes 
 -- PROGRAMMERS : Anders Lundman and Gustav Sædén Ståhl 
@@ -21,8 +21,7 @@ newPackage("LatticePolytopes",
 	    HomePage => "http://www.math.kth.se/~gss",
 	    Email => "gss@math.kth.se"}
       	},
-    PackageExports => {"Polyhedra","NormalToricVarieties"},
-    DebuggingMode => true
+    PackageExports => {"Polyhedra","NormalToricVarieties"}
     )
 
 export{
@@ -50,8 +49,6 @@ export{
     "epsilonBounds",
     "iskCayleykEdges"
        }
-needsPackage "Polyhedra"
-needsPackage "NormalToricVarieties"
 
 -- PURPOSE : Create the Cayley sum of polytopes
 cayley = method(TypicalValue => Polyhedron)

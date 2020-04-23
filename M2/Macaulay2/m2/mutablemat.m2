@@ -11,10 +11,10 @@ entries MutableMatrix := m -> (
      applyTable(entries raw m, r -> promote(r,R)))
 toString MutableMatrix := m -> "mutableMatrix " | toString entries m
 precision MutableMatrix := precision @@ ring
-net MutableMatrix := m -> (
-     m = raw m;
-     if m == 0 then return "0";
-     stack toSequence apply(lines toString m, x -> concatenate("| ",x,"|")))
+expression MutableMatrix := m -> MatrixExpression applyTable(entries m, expression)
+texMath MutableMatrix := m -> texMath expression m
+net MutableMatrix := m -> net expression m
+
 map(Ring,RawMutableMatrix) := opts -> (R,m) -> (
      new MutableMatrix from {
 	  symbol Ring => R,
@@ -270,7 +270,7 @@ QRDecomposition MutableMatrix := A -> (
      if k =!= RR_53 then error "currently, QRDecomposition is only defined for matrices over RR_53";
      Q := mutableMatrix(k,0,0,Dense=>true);
      R := mutableMatrix(k,0,0,Dense=>true);
-     rawQR(raw A, raw Q, raw R, true {* ReturnQR was a bad option name *} );
+     rawQR(raw A, raw Q, raw R, true -* ReturnQR was a bad option name *- );
      (Q,R))
 QRDecomposition Matrix := A -> (
      k := ring A;

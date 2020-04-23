@@ -25,8 +25,7 @@ newPackage(
 	     {Name => "Hal Schenck"},
 	     {Name => "Claudiu Raicu", Email => "claudiu@math.berkeley.edu", HomePage => "http://math.berkeley.edu/~claudiu/"}
 	     },
-    	Headline => "representation rings of general linear groups and of symmetric groups",
-    	DebuggingMode => true
+    	Headline => "representation rings of general linear groups and of symmetric groups"
 --	AuxiliaryFiles => true
     	)
 
@@ -601,7 +600,7 @@ plethysm(BasicList,ClassFunction) := (lambda,cF) -> (
      f := jacobiTrudi(lambda,Rf);
      plethysm(f,cF))
 
-{*
+-*
 -- degree of a polynomial in a SchurRing
 -- this is no longer used
 degSchurPol = method()
@@ -609,7 +608,7 @@ degSchurPol(RingElement) := ps -> (
      tms := listForm ps;
      tms/first/sum//max
      )
-*}
+*-
 ---------------------------------------------------------------
 -----------End plethysm----------------------------------------
 ---------------------------------------------------------------
@@ -1161,7 +1160,7 @@ internalProduct(RingElement,RingElement) := (f1,f2)->
      toS rez
      )
 
-{*
+-*
 chi(BasicList,BasicList) := (lambda, rho) ->
 (
      la := toList lambda;
@@ -1174,7 +1173,7 @@ chi(BasicList,BasicList) := (lambda, rho) ->
      for i from 0 to #rh-1 do pr = pr * R_(ll-1+rh#i);
      scalarProduct(sl,pr)
      )
-*}
+*-
 ---------------------------------------------------------------
 --------------End characters-----------------------------------
 ---------------------------------------------------------------
@@ -2283,7 +2282,7 @@ Description
     symmetricFunction(pl1,S)
     symmetricFunction(pl2,S)
 ///
-{*
+-*
 doc ///
 Key
   (exteriorPower,ZZ,RingElement)
@@ -2335,7 +2334,7 @@ Description
      T = schurRing(S,t,3)
      symmetricPower(4,s_{1}+t_{1})
 ///
-*}
+*-
 
 doc ///
 Key
@@ -2557,7 +2556,7 @@ doc ///
       partitions(set{a,b,c,d,e},new Partition from {3,2})
 ///  
 
-{*
+-*
 doc ///
  Key
   (chi,BasicList,BasicList)
@@ -2597,7 +2596,7 @@ SeeAlso
    symmetricFunction
    classFunction
 ///
-*}
+*-
 
 doc ///
 Key

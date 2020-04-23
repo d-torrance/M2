@@ -11,6 +11,7 @@ newPackage(
 		  Email => "christine.e.jost@gmail.com"}},
     	Headline => "Computes CSM classes, Segre classes and the Euler Char. for some Subschemes of Smooth Complete Toric Varieties",
     	DebuggingMode => false,
+	PackageImports => { "Elimination", "PrimaryDecomposition", "NormalToricVarieties"},
 	Configuration => { "pathToBertini" => ""},
 	Certification => {
 	     "journal name" => "The Journal of Software for Algebra and Geometry",
@@ -31,7 +32,6 @@ newPackage(
 -- Check the ~/.Macaulay2/init-CharacteristicClasses.m2 file for the absolute path.
 bertini'path = (options CharacteristicClasses).Configuration#"pathToBertini";
 if not instance(bertini'path,String) then error "expected configuration option pathToBertini to be a string."
-needsPackage "NormalToricVarieties";
 --Exported functions/variables
 export{"Segre",
    "CSM",
@@ -1553,10 +1553,10 @@ output = (segreList,ambientDim,hyperplaneClass) -> (
      return  sum(0..dimension, i -> segreList_i * (outputRing_0)^(ambientDim - dimension + i))
      )
 
-{*
+-*
 MyGb is a wrapper function for the M2 groebner basis command which 
 uses the fastest avalible GB algorithm depending on the users system and on the feild over which they are working
-*}
+*-
 
 MyGb =(I,stdgy)->(
     gbI:=0;
@@ -2463,7 +2463,7 @@ doc ///
 	       The option CheckSmooth is only used by the commands @TO CSM@ and only when computing the CSM class of a toric variety. It is set to true by default. When true it will check if the toric variety is smooth before proceeding, if it is this will speed up computation; however checking for smoothness does take some time.
 	  Example
 	       needsPackage "NormalToricVarieties"
-               U = projectiveSpace 7
+               U = toricProjectiveSpace 7
 	       time CSM U
                time CSM(U,CheckSmooth=>false)
 	       
@@ -2486,10 +2486,10 @@ TEST ///
 ///
 
 TEST ///
-{*
+-*
    restart
    needsPackage "CharacteristicClasses"
-*}
+*-
    R = ZZ/32749[x_0..x_4];
    I = ideal(random(1,R),random(1,R),x_0^2*x_3-x_4*x_1*x_0);
    A=ChowRing(R);
@@ -2499,10 +2499,10 @@ TEST ///
 ///
 
 TEST ///
-{*
+-*
    restart
    needsPackage "CharacteristicClasses"
-*}
+*-
     n=4;
     kk=ZZ/32749;
     R=kk[x_0..x_n];
@@ -2519,11 +2519,11 @@ TEST ///
 ///
 
 TEST ///
-{*
+-*
    restart
    needsPackage "CharacteristicClasses"
    installPackage "CharacteristicClasses"
-*}
+*-
     R=MultiProjCoordRing({2,2});
     A=ChowRing(R);
     I=ideal(random({1,1},R),R_0*R_3^2-R_1*R_4*R_3);

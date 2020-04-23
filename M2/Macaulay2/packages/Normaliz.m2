@@ -1,13 +1,13 @@
 -- -*- coding: utf-8 -*-
 
-{*
+-*
 Copyright 2009, 2010 Winfried Bruns and Gesa Kaempf.
 Copyright 2011, 2012, 2015, 2016 Christof Soeger
 
 You may redistribute this file under the terms of the GNU General Public
 License as published by the Free Software Foundation, either version 2 of
 the License, or any later version.
-*}
+*-
 
 newPackage(
            "Normaliz",
@@ -195,7 +195,7 @@ rmNmzFiles=()->
 ---------------------------------------------------------
 
 -- returns the next number in the string s, and the remaining string
-getNumber=method(TypicalValue=>(String,String))
+getNumber=method()
 getNumber String :=s->
 (
     l:=regex("[0-9-]+",s);

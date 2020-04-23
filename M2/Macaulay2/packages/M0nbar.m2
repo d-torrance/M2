@@ -9,8 +9,7 @@ newPackage(
 	   Email=> "dswinarski@fordham.edu",
 	   HomePage=>"http://faculty.fordham.edu/dswinarski"}
 	  },
-     Headline => "calculations for divisors and F-curves on the moduli space of stable n-pointed genus zero curves",
-     DebuggingMode => true
+     Headline => "calculations for divisors and F-curves on the moduli space of stable n-pointed genus zero curves"
      )
 export {"CurveClassRepresentativeM0nbar",
 	"DivisorClassRepresentativeM0nbar",
@@ -33,7 +32,7 @@ export {"CurveClassRepresentativeM0nbar",
        	} 
      
 
-{*
+-*
 We define two types that are used by the M0nbar package:
 CurveClassRepresentativeM0nbar
 DivisorClassRepresentativeM0nbar
@@ -71,7 +70,7 @@ scalar multiplication
 ----Left out for now: 
 ----create the Chow ring of M0nbar
 ----write expressions equivalent to zero in Rulla's basis of relations
-*}
+*-
 
 
 

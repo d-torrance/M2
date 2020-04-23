@@ -31,7 +31,7 @@ export makeUniqueWord(s:string,p:parseinfo):Word := (
      hashTable.hashCode = WordListCell(newWord,hashTable.hashCode);
      newWord);
 
-export NewlineW := Word("{*dummy word for newline*}",TCnone,0,newParseinfo());	    	  -- filled in by keywords.d
+export NewlineW := Word("-*dummy word for newline*-",TCnone,0,newParseinfo());	    	  -- filled in by keywords.d
 export equal(t:ParseTree,w:Word):bool := (
      when t is u:Token do u.word == w else false
      );
@@ -262,7 +262,11 @@ skipwhite(file:PosFile):int := (
 		    ) do getc(file);
 	       )
 	  else if c == int('{') && peek(file,1) == int('*') then (
-	       -- block comment: {* ... *}
+	       -- block comment: {* ... *}, deprecated style, not colored by emacs
+	       return DEPRECATED
+	       )
+	  else if c == int('-') && peek(file,1) == int('*') then (
+	       -- block comment: -* ... *-
 	       getc(file); getc(file);
 	       hadnewline := false;
 	       until (
@@ -280,7 +284,7 @@ skipwhite(file:PosFile):int := (
 			 getc(file);
 			 c = peek(file);
 		    	 if c == ERROR || c == EOF then return c; 
-		    	 c == int('}')			    -- {
+		    	 c == int('-')			    -- -
 		    	 && (
 			      getc(file);
 			      true ) ) )
@@ -288,7 +292,7 @@ skipwhite(file:PosFile):int := (
 	  else return 0));
 
 -- this errorToken means there was a parsing error or an error reading the file!
-export errorToken := Token(Word("{*error token*}",TCnone,0,newParseinfo()),
+export errorToken := Token(Word("-*error token*-",TCnone,0,newParseinfo()),
      dummyPosition.filename,
      dummyPosition.line,
      dummyPosition.column,
@@ -302,9 +306,13 @@ gettoken1(file:PosFile,sawNewline:bool):Token := (
 	  rc := skipwhite(file);
 	  if rc == ERROR then return errorToken;
 	  if rc == EOF  then (
-	       printErrorMessage(file.filename,swline,swcolumn,"EOF in block comment {* ... *} beginning here");
+	       printErrorMessage(file.filename,swline,swcolumn,"EOF in block comment -* ... *- beginning here");
 	       -- empty(tokenbuf);
 	       -- while true do (ch2 := getc(file); if ch2 == EOF || ch2 == ERROR || ch2 == int('\n') then break;);
+     	       return errorToken;
+	       );
+	  if rc == DEPRECATED then (
+	       printErrorMessage(file.filename,swline,swcolumn,"encountered disabled block comment syntax {* ... *} beginning here");
      	       return errorToken;
 	       );
 	  line := file.line;
@@ -395,7 +403,6 @@ export gettoken(file:PosFile,obeylines:bool):Token := (
 	  w := gettoken1(file,sawNewline);
 	  if w.word != NewlineW then return w;
 	  if obeylines then return w;
-	  if int(w.column) == 0 && isatty(file) then return errorToken; -- user gets out with an extra NEWLINE
 	  sawNewline = true;
 	  ));
 

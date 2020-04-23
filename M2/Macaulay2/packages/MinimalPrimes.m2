@@ -15,13 +15,12 @@ newPackage(
             {Name => "Franziska Hinkelmann"}
             },
         AuxiliaryFiles=>true,
-        --PackageImports => {"MGBInterface"},
-        DebuggingMode => true
+        PackageImports => {"Elimination", "IntegralClosure"}
         )
 
-<< "warning!  This package is experimental.  The interface will change, and although" << endl;
-<< "  it passes its tests, it has not been fully debugged yet!" << endl;
-<< "  In particular, in small characteristic, it *sometimes* might miss a component" << endl;
+-- << "warning!  This package is experimental.  The interface will change, and although" << endl;
+-- << "  it passes its tests, it has not been fully debugged yet!" << endl;
+-- << "  In particular, in small characteristic, it *sometimes* might miss a component" << endl;
 
 --USEMGB = true;
 USEMGB = false;
@@ -51,7 +50,7 @@ protect symbol Squarefree  -- MES todo: this is never being set but is being tes
 
 protect symbol toAmbientField
 protect symbol fromAmbientField
-{*
+-*
     --
     -- Support routines
     -- The following functions are used in UnitTestsPD.  They should
@@ -87,7 +86,7 @@ protect symbol fromAmbientField
     CharacteristicSets,
     Minprimes,
     Squarefree
-*}
+*-
 
 raw  = value Core#"private dictionary"#"raw"
 rawGBContains = value Core#"private dictionary"#"rawGBContains"
@@ -324,7 +323,7 @@ isSubset (Ideal,AnnotatedIdeal) := (J,I) -> (
 --      Answer should be yes: but if we know the ideal is prime, then 
 --      we think we can avoid this.  BUT: we need to be very precise about
 --      this logic.
-{*
+-*
 ideal AnnotatedIdeal := (I) -> (
     --F := product unique join(I.Linears / (x -> x#1),I.Inverted);
     if not I#?"CachedIdeal" then I#"CachedIdeal" = (
@@ -343,7 +342,7 @@ ideal AnnotatedIdeal := (I) -> (
     );
     I#"CachedIdeal"
 )
-*}
+*-
 
 ideal AnnotatedIdeal := (I) -> (
     --F := product unique join(I.Linears / (x -> x#1),I.Inverted);
@@ -559,24 +558,24 @@ splitFunction#Factorization = (I,opts) -> (
     nonzeroFacs := toList(set facs - nonzeros);
     if #nonzeroFacs == 1 and nonzeroFacs#0 != f then
        return {adjoinElement(I,nonzeroFacs#0)};
-       {*return {annotatedIdeal(trim(ideal nonzeroFacs#0 + J),
+       -*return {annotatedIdeal(trim(ideal nonzeroFacs#0 + J),
                               I.Linears,
                               I.NonzeroDivisors,
-                              I.Inverted)};*}
+                              I.Inverted)};*-
     L := for g in nonzeroFacs list (
           -- colon or sum?
           -- Try and fix UseColon?  May not be fixable...
-          {*if opts#"UseColon" then (
+          -*if opts#"UseColon" then (
           --   -- TODO: Find the components that are missing when using colons!
           --   --       This process will miss any component for which g is in I for all g.
           --   J = I:(f // g);
-          *}
-          {*
+          *-
+          -*
           J = (ideal(g) + I.Ideal);
           J = trim ideal apply(J_*, f -> (
                 product toList (set ((factors f)/last) - nonzeros)
               ));
-          *}
+          *-
           J = adjoinElement(I,g);
           J = squarefreeGenerators(J,  -- there used to be a trim here, but we changed
                                        -- the function so that it was no longer needed.
@@ -864,7 +863,7 @@ detectMembership (RingElement, Ideal) := (f,I) -> (
    else
       null   
 )
-{*
+-*
 -- Old version - 5/28/2013
 -- this function is used in the #Factorization splitting option, followed by a trim.
 -- TODO: rethink how the trim is done when variables are added?
@@ -891,7 +890,7 @@ squarefreeGenerators AnnotatedIdeal := opts -> I -> (
    else 
       I
 )
-*}
+*-
 -- new version with trim moved to a smaller ideal than the whole input.
 squarefreeGenerators = method(Options=>{"SquarefreeFactorSize"=>1})
 squarefreeGenerators AnnotatedIdeal := opts -> I -> (
@@ -1074,7 +1073,7 @@ updatePDState (PDState,List,ZZ) := (pdState,L,pruned) -> (
      else
         ansSoFar#c = append(ansSoFar#c,(p,I));
   );
-  {*
+  -*
   -- here we update the isPrime flag if L comes in with more than one
   -- prime, then the ideal is neither prime nor primary.
   -- the reason for this is that no single step will produce multiple redundant
@@ -1084,7 +1083,7 @@ updatePDState (PDState,List,ZZ) := (pdState,L,pruned) -> (
      pdState#"isPrimeIdeal" = false;
      pdState#"isPrimaryIdeal" = false;
   );
-  *}
+  *-
 )
 
 numPrimesInPDState = method()
