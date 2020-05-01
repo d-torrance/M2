@@ -16,7 +16,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(macaulay2 VERSION 1.9 LANGUAGES C CXX)
 
-set(BOOTSTRAP "/Users/mike/src/M2/M2/BUILD/mike/builds.tmp/darwin64-gcc9")
 add_subdirectory(Macaulay2/e)
 
 # target_include_directories(m2 PUBLIC
