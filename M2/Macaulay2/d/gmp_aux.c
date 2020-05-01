@@ -1,9 +1,13 @@
 /* some routines to augment the gmp library */
 
+#if USING_MPIR 
+#include <mpir.h>
+#else
 #include <gmp.h>
+#endif
 #include <mpfr.h>
 
-int mpz_hash(mpz_t x) {
+int mpz_hash(mpz_srcptr x) {
   int h = 0;
   int n = x->_mp_size;
   int i;
@@ -13,7 +17,7 @@ int mpz_hash(mpz_t x) {
   return h;
 }
 
-int mpfr_hash(mpfr_t x) {
+int mpfr_hash(mpfr_srcptr x) {
   int h = 0;
   int n = (x->_mpfr_prec+mp_bits_per_limb-1)/mp_bits_per_limb;
   int i;

@@ -1,7 +1,11 @@
 -- this file is small, so the exported definitions can be imported into the engine
 declarations "
     #include <math.h>
+    #if USING_MPIR 
+    #include <mpir.h>
+    #else
     #include <gmp.h>
+    #endif
     #include <mpfr.h>
 ";
 
@@ -14,14 +18,15 @@ use gmp;
 use stdio;
 use err;
 
-pow(x:ZZ, y:ZZ, n:ulong) ::= Ccode( void, "mpz_pow_ui(", x, ",", y, ",", n, ")" );
+pow(x:ZZmutable, y:ZZ, n:ulong) ::= Ccode( void, "mpz_pow_ui(", x, ",", y, ",", n, ")" );
 
 export (x:ZZ) ^ (n:int) : ZZ := (
      if n < 0 then fatal("internal error: negative exponent for integer power"); -- what else can we do???
      if isZero(x) then return x;
-     y := newZZ();
+     y := newZZmutable();
      pow(y,x,ulong(n));
-     y);
+     moveToZZ(y)
+     );
 export (x:ZZ) ^ (n:ZZ) : ZZ := (
      if isNegative(n) then fatal("internal error: negative exponent for integer power"); -- what else can we do???
      if !isULong(n) then fatal("integer exponent too large");
@@ -29,9 +34,10 @@ export (x:ZZ) ^ (n:ZZ) : ZZ := (
 
 export powermod(x:ZZ, y:ZZ, n:ZZ) : ZZ := (
      -- z = x^y mod n
-     z := newZZ();
+     z := newZZmutable();
      Ccode( void, "mpz_powm(",  z, ",",  x, ",",  y, ",",  n, ")" );
-     z);
+     moveToZZ(z)
+     );
 
 export (x:QQ) ^ (nn:ZZ) : QQ := (
      if !isLong(nn) then fatal("integer exponent too large");

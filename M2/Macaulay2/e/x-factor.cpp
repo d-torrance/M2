@@ -1,12 +1,18 @@
 // copyright Daniel R. Grayson, 1995
 
-#include "../d/M2inits.h"
-
 #include "exceptions.hpp"
 #include <M2/config.h>
 #include <assert.h>
 #include <iostream>
 #include <cstdio>
+
+#if USING_MPIR 
+#include <mpir.h>
+#include <mpirxx.h>
+#else
+#include <gmp.h>
+#include <gmpxx.h>
+#endif
 
 #define Matrix FactoryMatrix
 #include <factory/factory.h>  // from Messollen's libfac
