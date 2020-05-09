@@ -16,7 +16,7 @@ uscan
 Visualize
 ---------
 * Get 3 remaining embedded Javascript libraries in Debian:
-  - BootSideMenu.js
+  - BootSideMenu.js (s/autoClose/closeOnClick/ needed after switch)
   - clipboard.js
   - nouislider.js
 * Use Debian glyphicons font
