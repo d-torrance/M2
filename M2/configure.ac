@@ -805,6 +805,7 @@ dnl Note: we don't include -lgccpp below, because linking with that library is w
 if [ pkg-config --exists bdw-gc ]
 then AC_MSG_RESULT(yes)
      CPPFLAGS="`pkg-config --cflags-only-I bdw-gc | sed -e 's=^-I/=-isystem /=g' -e 's= -I/= -isystem /=g'` $CPPFLAGS"
+     dnl should probably use `pkg-config --libs bdw-gc` here instead
      LIBS="-lgc $LIBS"
      FOUND_gc=yes
 else AC_MSG_RESULT(no)
@@ -918,6 +919,7 @@ AC_SUBST(BUILD_flint)
 dnl  We always build flint, until flint comes out with a release whose version number we can check for.
 dnl  (Now we use flint for factoring integers, and only a recent development version does that well.)
 BUILD_flint=yes
+BUILD_ALWAYS="$BUILD_ALWAYS flint"
 dnl 
 if test $BUILD_flint = no
 then AC_LANG(C)
@@ -1519,16 +1521,18 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])],
     AC_MSG_RESULT(no))
 CFLAGS=$SAVE
 
-AC_MSG_CHECKING(whether $CC accepts -Wmismatched-tags)
 dnl Always check for the option that turns the warning on, because gcc doesn't complain
 dnl about invalid options that turn off warnings, if there are no warnings to be issued anyway.
 dnl It's a feature, not a bug!
-AC_LANG(C++)
+dnl On the other hand, clang does complain!
+
+AC_MSG_CHECKING(whether $CC accepts -Wmismatched-tags)
+AC_LANG(C)
 SAVE=$CFLAGS
 CFLAGS="$CFLAGS -Wmismatched-tags -Werror"
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])], 
-    CXXFLAGS="$CXXFLAGS -Wno-mismatched-tags"
-    # we don't like seeing this warning, especially from the "clang" compiler
+    CFLAGS="$CLAGS -Wmismatched-tags"
+    dnl we don't like seeing this warning, especially from the "clang" compiler
     AC_MSG_RESULT(yes, adding -Wno-mismatched-tags to flags),
     AC_MSG_RESULT(no))
 CFLAGS=$SAVE
@@ -1645,6 +1649,19 @@ subset() {
     return 0
 }
 
+complement() {
+    # the words of $1 not among the words of $2
+    y=" $2 "
+    for i in $1
+    do 	case "$y" in
+	    *" $i "*) ;;
+	    *) echo -n "$i " ;;
+	esac
+    done
+    echo
+}
+
+
 BUILDING=yes
 AC_ARG_ENABLE(building, AS_HELP_STRING(--disable-building,disable automatic building of libraries), BUILDING=$enableval)
 # This option looks useless, but it allows us to test the configure script.  After we build the libraries, we
@@ -1652,7 +1669,8 @@ AC_ARG_ENABLE(building, AS_HELP_STRING(--disable-building,disable automatic buil
 subset "$BUILDLIBLIST" "$BUILD_ALWAYS"
 sub=$?
 if test "$BUILDING" = no -a $sub = 1
-then AC_MSG_ERROR([automatic building of libraries disabled, but some must be built])
+then c=`complement "$BUILDLIBLIST" "$BUILD_ALWAYS"`
+     AC_MSG_ERROR([automatic building of libraries disabled, but some must be built: $c])
 fi
 
 # Here we insert autoconf's default values so we can compute the relative locations in the directory tree
