@@ -45,7 +45,6 @@ documentation
   sitting upstream for 4 years (#402)
 * lots of examples reference build path
 * move various package README's to /usr/share/doc
-* remove empty example-output directories
 
 d/copyright
 -----------
@@ -61,3 +60,25 @@ upstream metadata
 * github
 * citation
 
+3rd-party applications
+----------------------
+* Do these work properly with the Debian package?
+  - Maple
+    + AdjointIdeal
+    + ConvexInterface
+    + MapleInterface
+    + Parametrization
+  - Bertini (can't package, non-free license)
+    + Bertini
+  - qepcad (not in Debian, RFP #951553)
+    + CoincidentRootLoci
+  - phcpack (not in Debian, ITP #820848)
+    + MonodromySolver
+    + NumericalSchubertCalculus
+    + PHCpack
+  - bergman (not in Debian, license appears to be free)
+    + NCAlgebra
+  - polymake (in Debian, but upstream doesn't assume it's available
+    during build like it does gfan, 4ti2, nauty, etc.)
+    + StatePolytope
+    + Tropical
