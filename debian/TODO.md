@@ -31,6 +31,10 @@ flint
   `skip-factor-for-now.patch` since we'll be able to factor large
   integers again.
 
+normaliz
+--------
+* Restore Normaliz package once #960614 is resolved.
+
 html-check-links
 ----------------
 * Once mpsolve, TOPCOM, and flint issues resolved, we shouldn't
