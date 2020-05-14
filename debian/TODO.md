@@ -3,15 +3,16 @@ Getting Macaulay2 into Debian
 
 Visualize
 ---------
-* Get 3 remaining embedded Javascript libraries in Debian:
+* Get remaining embedded Javascript libraries in Debian:
   - BootSideMenu.js (s/autoClose/closeOnClick/ needed after switch)
-  - clipboard.js
   - nouislider.js
-* Use Debian glyphicons font
 * Repack tarball w/o embedded Javascript/font files
 * Fix bug in 3D visualization w/ modern three.js
   - `THREE.ShaderMaterial: attributes should now be defined in
     THREE.BufferGeometry instead.`
+* When https://salsa.debian.org/js-team/node-clipboard/-/merge_requests/1 is
+  merged and uploaded to Debian, we should update the path to clipboard.js
+  to use /usr/share/javascript instead of /usr/share/nodejs.
 
 mpsolve
 -------
