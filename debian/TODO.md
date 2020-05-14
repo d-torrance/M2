@@ -87,3 +87,7 @@ upstream metadata
     during build like it does gfan, 4ti2, nauty, etc.)
     + StatePolytope
     + Tropical
+  - MOSEK (proprietary)
+    + SemidefiniteProgramming
+  - SDPA (in Debian)
+    + SemidefiniteProgramming
