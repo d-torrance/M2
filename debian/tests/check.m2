@@ -1,6 +1,7 @@
 skip = {"Macaulay2Doc", -- https://github.com/Macaulay2/M2/issues/1157
 	-- waiting for topcom to enter debian
-	"Polyhedra", "ToricInvariants",
+	"Polyhedra", "ToricInvariants", "Truncations", "Matroids",
+	"ReflexivePolytopesDB", "SymbolicPowers", "Topcom",
 	-- waiting for normaliz (#960614)
 	"Normaliz", "NormalToricVarieties", "MultiplierIdeals"
 	}
