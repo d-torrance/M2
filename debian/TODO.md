@@ -7,9 +7,6 @@ Visualize
   - BootSideMenu.js (s/autoClose/closeOnClick/ needed after switch)
   - nouislider.js
 * Repack tarball w/o embedded Javascript/font files
-* Fix bug in 3D visualization w/ modern three.js
-  - `THREE.ShaderMaterial: attributes should now be defined in
-    THREE.BufferGeometry instead.`
 * When https://salsa.debian.org/js-team/node-clipboard/-/merge_requests/1 is
   merged and uploaded to Debian, we should update the path to clipboard.js
   to use /usr/share/javascript instead of /usr/share/nodejs.
@@ -46,9 +43,9 @@ documentation
   TOPCOM, but what's up with CodepthThree?)
 * .gitignore inside Macaulay2Doc/test is getting installed -- maybe fix
   this upstream?
-* What to do with missing images from MonomialAlgebras?  Issue has been
-  sitting upstream for 4 years (#402)
-* lots of examples reference build path
+* Fix for missing MonomialAlgebras images has been submitted upstream
+  (#1131).
+* lots of examples reference build path (#1149)
 * move various package README's to /usr/share/doc
 
 d/copyright
@@ -58,7 +55,7 @@ d/copyright
 
 tests
 -----
-* Figure out autopkgtests
+* Work has begun, but we've run into upstream bugs (#1157, #1162)
 
 upstream metadata
 -----------------
