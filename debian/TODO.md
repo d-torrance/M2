@@ -80,10 +80,6 @@ upstream metadata
     + PHCpack
   - bergman (not in Debian, license appears to be free)
     + NCAlgebra
-  - polymake (in Debian, but upstream doesn't assume it's available
-    during build like it does gfan, 4ti2, nauty, etc.)
-    + StatePolytope
-    + Tropical
   - MOSEK (proprietary)
     + SemidefiniteProgramming
   - SDPA (in Debian)
