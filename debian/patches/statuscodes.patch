@@ -1,0 +1,168 @@
+Description: set computation status codes directly in engine.h and gb.m2
+Origin: https://github.com/mahrud/M2/commit/e2690d2
+
+--- a/M2/.clang-format
++++ b/M2/.clang-format
+@@ -26,6 +26,7 @@
+   AfterClass:      true
+   AfterControlStatement: true
+   AfterEnum:       false
++  AfterExternBlock: true
+   AfterFunction:   true
+   AfterNamespace:  false
+   AfterObjCDeclaration: false
+--- a/M2/Macaulay2/d/Makefile.files.in
++++ b/M2/Macaulay2/d/Makefile.files.in
+@@ -107,7 +107,6 @@
+ 	@srcdir@/../e/newdelete.hpp \
+ 	@srcdir@/../d/M2mem.h \
+ 	@srcdir@/../d/debug.h \
+-	../../include/M2/statuscodes.h \
+ 	../../include/M2/config.h
+ 
+ # now assemble the files into various categories:
+--- a/M2/Macaulay2/e/engine.h
++++ b/M2/Macaulay2/e/engine.h
+@@ -1654,30 +1654,43 @@
+   /**** Groebner basis and resolution routines ******/
+   /**************************************************/
+ 
+-enum ComputationStatusCode
+-{
+-  /* include/M2/statuscodes.h is generated from Macaulay2/m2/statuscodes */
+-#include "M2/statuscodes.h"
+-};
++  enum ComputationStatusCode {
++    /* Keep this enum in sync with RawStatusCodes in Macaulay2/m2/gb.m2 */
++    COMP_NEED_RESIZE = 1,         /* need resize */
++    COMP_ERROR = 2,               /* error */
++    COMP_INTERRUPTED = 3,         /* interrupted */
++    COMP_NOT_STARTED = 4,         /* not started */
++    COMP_INITIAL_STOP = 5,        /* StopBeforeComputation */
++    COMP_DONE = 6,                /* done */
++    COMP_DONE_DEGREE_LIMIT = 7,   /* DegreeLimit */
++    COMP_DONE_LENGTH_LIMIT = 8,   /* LengthLimit */
++    COMP_DONE_SYZYGY_LIMIT = 9,   /* SyzygyLimit */
++    COMP_DONE_PAIR_LIMIT = 10,    /* PairLimit */
++    COMP_DONE_GB_LIMIT = 11,      /* BasisElementLimit */
++    COMP_DONE_SYZ_LIMIT = 12,     /* SyzygyLimit */
++    COMP_DONE_CODIM = 13,         /* CodimensionLimit */
++    COMP_DONE_MIN_GENS = 14,      /* StopWithMinimalGenerators */
++    COMP_DONE_STEPS = 15,         /* StepLimit */
++    COMP_DONE_SUBRING_LIMIT = 16, /* SubringLimit */
++    COMP_COMPUTING = 17,          /* computing */
++    COMP_OVERFLOWED = 18,         /* overflowed */
++  };
+ 
+-enum StrategyValues
+-  {
++  enum StrategyValues {
+     STRATEGY_LONGPOLYNOMIALS = 1,
+     STRATEGY_SORT = 2,
+     STRATEGY_USE_HILB = 4,
+     STRATEGY_USE_SYZ = 8
+   };
+ 
+-enum Algorithms
+-  {
++  enum Algorithms {
+     GB_polyring_field = 1, /* The main GB algorithm to use */
+     GB_polyring_field_homog = 2
+   };
+ 
+-enum gbTraceValues
+-  {
++  enum gbTraceValues {
+     /* The printlevel flags */
+-    PRINT_SPAIR_TRACKING=1024
++    PRINT_SPAIR_TRACKING = 1024
+   };
+ 
+   Computation /* or null */* IM2_Computation_set_stop(Computation *G,
+--- a/M2/Macaulay2/html-check-links/.gitignore
++++ b/M2/Macaulay2/html-check-links/.gitignore
+@@ -4,6 +4,3 @@
+ /grammar.tab.h
+ /html-check-links
+ /run-overflow-test
+-/e-includes/geogbvec.hpp
+-/e-includes/geores.hpp
+-/e-includes/statuscodes.h
+--- a/M2/Macaulay2/m2/Makefile.in
++++ b/M2/Macaulay2/m2/Makefile.in
+@@ -26,9 +26,6 @@
+ LOADSEQUENCE := $(shell cat @srcdir@/loadsequence)
+ DUMPEDM2FILES += $(LOADSEQUENCE)
+ DUMPEDM2SRCFILES += $(patsubst version.m2, version.m2.in, $(LOADSEQUENCE))
+-############################## statuscodes.m2
+-# an obsolete file:
+-clean::; rm -f statuscodes.m2
+ ############################## mpcodes.m2
+ ifdef MP
+ mpcodes.m2: ../../include/MP.h mpcodes.sed
+@@ -74,7 +71,6 @@
+ 		@srcdir@/../tests/normal/*.m2 \
+ 		@srcdir@/../tests/engine/*.m2 \
+ 		@srcdir@/../packages/SimpleDoc/doc.txt \
+-		statuscodes \
+ 		loadsequence \
+ 		Makefile.in \
+ 		Makefile.tests \
+--- a/M2/Macaulay2/m2/gb.m2
++++ b/M2/Macaulay2/m2/gb.m2
+@@ -1,8 +1,26 @@
+ --		Copyright 1995-2002,2012 by Daniel R. Grayson
+ 
+-RawStatusCodes = new HashTable from apply(
+-     lines get (currentFileDirectory | "statuscodes"),
+-     l -> ( fields := separate(":", l); value fields#0 => value fields#2 ))
++-- Keep this in sync with the ComputationStatusCode in Macaulay2/e/engine.h
++RawStatusCodes = new HashTable from {
++    1 => "need resize",              -- COMP_NEED_RESIZE
++    2 => "error",                    -- COMP_ERROR
++    3 => "interrupted",              -- COMP_INTERRUPTED
++    4 => "not started",              -- COMP_NOT_STARTED
++    5 => StopBeforeComputation,      -- COMP_INITIAL_STOP
++    6 => "done",                     -- COMP_DONE
++    7 => DegreeLimit,                -- COMP_DONE_DEGREE_LIMIT
++    8 => LengthLimit,                -- COMP_DONE_LENGTH_LIMIT
++    9 => SyzygyLimit,                -- COMP_DONE_SYZYGY_LIMIT
++    10 => PairLimit,                 -- COMP_DONE_PAIR_LIMIT
++    11 => BasisElementLimit,         -- COMP_DONE_GB_LIMIT
++    12 => SyzygyLimit,               -- COMP_DONE_SYZ_LIMIT
++    13 => CodimensionLimit,          -- COMP_DONE_CODIM
++    14 => StopWithMinimalGenerators, -- COMP_DONE_MIN_GENS
++    15 => "StepLimit",               -- COMP_DONE_STEPS
++    16 => SubringLimit,              -- COMP_DONE_SUBRING_LIMIT
++    17 => "computing",               -- COMP_COMPUTING
++    18 => "overflowed",              -- COMP_OVERFLOWED
++    }
+ 
+ Nothing#BeforeEval = x -> (
+      -- for internal use only, for general clean up
+--- a/M2/Macaulay2/d/Makefile.in
++++ b/M2/Macaulay2/d/Makefile.in
+@@ -76,11 +76,8 @@
+ libd.a: $(LIBFILES) ; ar -r $@ $?
+ rm-libd.a:; rm libd.a
+ 
+-../../include/M2/statuscodes.h: @srcdir@/../m2/statuscodes; (sed 's/\(.*\):\(.*\):\(.*\)/  \2 = \1,/' ; echo "  DUMMY_STATUS_CODE") <$< >$@
+-
+ clean:: ; rm -f $(M2_MADECFILES)
+ xml-c.o: xml-c.h xml-exports.h
+-engine.o: ../../include/M2/statuscodes.h
+ M2lib.o basic.o equality.o actors4.o actors5.o interface.o interface2.o engine.o : CPPFLAGS += -I@srcdir@/../e
+ 
+ pthread-tmp.c : SCCFLAGS += -noline
+--- a/M2/Macaulay2/e/Makefile.in
++++ b/M2/Macaulay2/e/Makefile.in
+@@ -27,8 +27,7 @@
+ @srcdir@/TAGS: Makefile.in @srcdir@/*.hpp @srcdir@/*.h @srcdir@/*.cpp @srcdir@/*.c \
+ 		 @srcdir@/f4/*.hpp @srcdir@/f4/*.cpp \
+ 		 @srcdir@/bibasis/*.hpp @srcdir@/bibasis/*.cpp \
+-		 @srcdir@/unit-tests/*.cpp \
+-		 @srcdir@/../m2/statuscodes
++		 @srcdir@/unit-tests/*.cpp
+ 	@ echo " ** making TAGS file"
+ 	@ cd @srcdir@ && @ETAGS@ -o TAGS $(patsubst @srcdir@/%, %, $^)
+ 
