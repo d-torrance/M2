@@ -7,15 +7,7 @@ Last-Update: 2020-05-14
 
 --- a/M2/Macaulay2/packages/=distributed-packages
 +++ b/M2/Macaulay2/packages/=distributed-packages
-@@ -46,7 +46,6 @@
- Polymake
- gfanInterface
- PieriMaps
--Normaliz
- Posets
- XML
- OpenMath
-@@ -74,7 +73,6 @@
+@@ -74,7 +74,6 @@
  Parametrization
  Serialization
  NAGtypes
@@ -23,7 +15,7 @@ Last-Update: 2020-05-14
  DGAlgebras
  Graphs
  GraphicalModels
-@@ -99,7 +97,6 @@
+@@ -99,7 +98,6 @@
  Triplets
  CompleteIntersectionResolutions
  MCMApproximations
@@ -31,3 +23,440 @@ Last-Update: 2020-05-14
  InvariantRing
  QuillenSuslin
  EnumerationCurves
+--- a/M2/Macaulay2/packages/Normaliz.m2
++++ b/M2/Macaulay2/packages/Normaliz.m2
+@@ -1075,27 +1075,15 @@
+    {0, 0, 1, 1, 1, 0, 1},
+    {0, 0, 1, 1, 0, 1, 1}};",
+   "L=for i in l list R_i",
+-  "S=intclToricRing L"
+ },
+ PARA{},"The function ", TO intclToricRing, " returns a ", TO MonomialSubalgebra, ". The Hilbert basis of the cone consists of the exponent vectors of the generators of the subalgebra. The generators can be extracted with ", TO gens, ".",
+-EXAMPLE lines ///
+-hb = flatten \ exponents \  gens S
+-///,
+ PARA{}, "It is also possible to call ", TT "Normaliz", " directly to do this computation by using the function ", TO normaliz, ". It takes as input the matrix containing the generators as rows, and the type for the computation.",
+-
+-EXAMPLE lines ///
+-M=matrix l;
+-d=(normaliz(M,"normalization"))#"gen"
+-set entries d===set hb
+-///,
+ PARA{}, "The result is an object of type ", TO RationalCone, " from which you obtain the Hilbert basis via the key \"gen\".",
+ PARA{}, "The support hyperplanes are stored in the ", TT "Normaliz", " file <filename>.sup. To inspect these, one has to assure that the computations by ", TT "Normaliz", " are kept. This can be done by specifying a filename, that is, assigning a non-empty string to the global variable ", TO "nmzFilename", ", see also ", TO "Keeping results of the computation by Normaliz", ". Then use ", TO readNmzData, " to read the .sup file.",
+ 
+ 
+ EXAMPLE lines ///
+  nmzFilename="rproj2";
+- intclToricRing L;
+-hypes=readNmzData("sup")
+ ///,
+ 
+ PARA{}, "This means there are 24 support hyperplanes in ", TEX "\\ZZ^7",". So in contrast to the convention of M2 Normaliz writes vectors as rows. If you don't want to keep the results of the computations any longer, use ", TO rmNmzFiles, " to delete the files created by ", TT "Normaliz", ".",
+@@ -1106,11 +1094,6 @@
+ 
+ HR{},
+ PARA{}, "Conversely, suppose the cone is given by the above hyperplanes. In that case, to compute the Hilbert basis, you should use ", TT "Normaliz", " in type inequalities. The result is an object of type ", TO RationalCone,". The Hilbert basis is accessible via the key \"gen\". Not surprisingly, it is the same Hilbert basis as above (but in another order).",
+-EXAMPLE lines ///
+-normaliz(hypes,"inequalities")
+-set entries oo#"gen"===set hb
+-///,
+-
+ PARA{}, "Note that for the comparison ", TO set, " has to be used because the order of the generators may differ.",
+ HR{},
+ PARA{}, "To illustrate the third possibility we compute the Hilbert basis of the cone given by the equations ",
+@@ -1126,7 +1109,6 @@
+ PARA{}, "(this is the solution cone for a 3x3 magic square). To this end one has to choose type 5.",
+ EXAMPLE lines ///
+ eq=matrix {{1, 1, 1, -1, -1, -1,  0,  0,  0}, {1, 1, 1,  0,  0,  0, -1, -1, -1}, {0, 1, 1, -1,  0,  0, -1,  0,  0}, {1, 0, 1,  0, -1,  0,  0, -1,  0}, {1, 1, 0,  0,  0, -1,  0,  0, -1}, {0, 1, 1,  0, -1,  0,  0,  0, -1}, {1, 1, 0,  0, -1,  0, -1,  0,  0}};
+-normaliz(eq,"equations")
+ ///,
+ "Again the rows of this matrix are the elements of the Hilbert basis.",
+ }
+@@ -1143,16 +1125,11 @@
+ EXAMPLE lines ///
+ R=ZZ/37[x,y,z];
+ L={x^0,x^2,y^3,z^5};
+-(l,e)=ehrhartRing L;
+- l
+- e
+- flatten \ exponents \ gens l
+ ///,
+ PARA{},"The lattice points of the polytope are the exponent vectors of the generators of the first subalgebra, that can be obtained with ", TO exponents, " if necessary. Note that in this example there were no free auxiliary variable in the ring, so a new variable ", EM "a", " was added, whence at first the exponents have four components. The exponent vectors of the generators of the second subalgebra are the generators of the Ehrhart semigroup (the semigroup determined by the polytope).",
+ PARA{}, "It is also possible to call ", TT "Normaliz", " directly to do this computation by using the function ", TO normaliz, ". It takes a matrix as input, whose rows are the vertices of the polytope, and the type for the computation. It returns an object of type ", TO RationalCone, " that gives access to the lattice points via the key \" gen\".",
+ EXAMPLE lines ///
+ M=matrix {{0,0,0},{2,0,0},{0,3,0},{0,0,5}};
+-(normaliz(M,"polytope"))#"gen"
+ ///,
+ }
+ 
+@@ -1162,17 +1139,11 @@
+ EXAMPLE lines ///
+   R=ZZ/37[x_1..x_7];
+   I=ideal(x_1..x_6, x_1*x_2*x_3*x_7, x_1*x_2*x_4*x_7, x_1*x_3*x_5*x_7, x_1*x_4*x_6*x_7, x_1*x_5*x_6*x_7, x_2*x_3*x_6*x_7, x_2*x_4*x_5*x_7, x_2*x_5*x_6*x_7,x_3*x_4*x_5*x_7,x_3*x_4*x_6*x_7);
+-  (intcl,rees)=intclMonIdeal I;
+-  intcl
+-  rees
+ ///,
+ PARA{}, "The first entry is an ideal, the integral closure of the original ideal, the second one a monomial subalgebra. Each variable in the example appears in a generator of the ideal. Therefore an auxiliary variable ", EM "a", " is added to the ring. If there were a free variable in the ring, say ", TEX "x_8", ", then one can give this variable as a second argument to the function, which then is used as auxiliary variable.",
+ EXAMPLE lines ///
+   R=ZZ/37[x_1..x_8];
+   I=ideal(x_1..x_6, x_1*x_2*x_3*x_7, x_1*x_2*x_4*x_7, x_1*x_3*x_5*x_7, x_1*x_4*x_6*x_7, x_1*x_5*x_6*x_7, x_2*x_3*x_6*x_7, x_2*x_4*x_5*x_7, x_2*x_5*x_6*x_7,x_3*x_4*x_5*x_7,x_3*x_4*x_6*x_7);
+-  (intcl,rees)=intclMonIdeal(I,x_8);
+-  intcl
+-  rees
+ ///,
+ }
+ 
+@@ -1286,16 +1257,8 @@
+ EXAMPLE lines ///
+ setNmzOption("allf",true);
+ eq=matrix {{1, 1, 1, -1, -1, -1,  0,  0,  0}, {1, 1, 1,  0,  0,  0, -1, -1, -1}, {0, 1, 1, -1,  0,  0, -1,  0,  0}, {1, 0, 1,  0, -1,  0,  0, -1,  0}, {1, 1, 0,  0,  0, -1,  0,  0, -1}, {0, 1, 1,  0, -1,  0,  0,  0, -1}, {1, 1, 0,  0, -1,  0, -1,  0,  0}};
+-rc=normaliz(eq,"equations");
+-rc#"gen"
+-rc#"inv"
+ ///,
+ PARA{}, "To obtain all the information written by ", TT "Normaliz", " set the option ", TO allComputations, " to true. Then the method returns an object of type RationalCone whose keys are the suffixes of all the output files written, with value the content of the corresponding output file (also to be read line by line).",
+-EXAMPLE lines ///
+-arc=normaliz(allComputations=>true,eq,"equations");
+-arc#"gen"
+-arc#"ext"
+-///,
+ PARA{}, "See ", TO "output files written by Normaliz", " for an explanation of the different output files.",
+ SeeAlso => {allComputations, readNmzData, "Keeping results of the computation by Normaliz","output files written by Normaliz"},
+ }
+@@ -1327,13 +1290,8 @@
+ nmzFilename="polytope";
+ setNmzOption("allf",true);
+ R=ZZ/37[x,y,z];
+-ehrhartRing {x^0,x^2,y^3,z^5};
+ ///,
+ PARA{}, "Now all the files created by ", TT "Normaliz", " are saved as ", TT "polytope.suffix", ". The generators of the integral closure are in the file with suffix ", TT "gen", ", and the functions of the package return always the content of this file. The support hyperplanes, the defining equations and congruences are printed into the file with suffix ", TT "cst", ". For more suffixes see ", TO "output files written by Normaliz", ".  Use ", TO readNmzData , " to read the files into Macaulay 2 provided they have been written, except for the suffix ", TT "cst", " you should use ", TO readMultipleNmzData," as there are several matrices in this file. Which files are written depends on the input data and on the \"computation mode\" which is determined by the options set, here the option ", TT "allf", " means that all possible data is written. For more options see ", TO setNmzOption, ".",
+-EXAMPLE lines ///
+-extremeRays=readNmzData "ext"
+-constraints=readMultipleNmzData "cst"
+-///,
+ PARA{},"The filename is kept during the Macaulay 2 process until another filename is specified.",
+ EXAMPLE lines ///
+ nmzFilename="square";
+@@ -1379,10 +1337,6 @@
+ nmzFilename="polytope";
+ setNmzOption("allf",true);
+ R=ZZ/37[x,y,z];
+-hb=intclToricRing {x^2,y^2,z^2};
+-extremalRays=readNmzData "ext"
+-rmNmzFiles();
+-nmzFilename
+ ///,
+ SeeAlso =>"Keeping results of the computation by Normaliz"
+ }
+@@ -1408,10 +1362,6 @@
+      EXAMPLE lines ///
+           nmzFilename="VeryInteresting";
+           R=ZZ/37[x,y,z];
+-          normalToricRing {x^2*y, y^3};
+-          get ("VeryInteresting.cst")
+-          rmNmzFiles();
+-          nmzFilename
+           ///,
+      TEST ///
+      nmzFilename="VeryInteresting";
+@@ -1502,9 +1452,6 @@
+          nmzFilename="example" -- to keep the files
+          setNmzOption("allf",true); -- to write all files
+          mat=matrix({{1,2,3},{4,5,6},{7,8,10}});
+-         normaliz(mat,"integral_closure")
+-         readNmzData "typ"
+-         rmNmzFiles();
+           ///,
+      SeeAlso => {writeNmzData, normaliz, allComputations, "Keeping results of the computation by Normaliz","output files written by Normaliz" },
+      TEST ///
+@@ -1541,9 +1488,6 @@
+     EXAMPLE lines ///
+          nmzFilename="example" -- to keep the files
+          mat=matrix({{1,2,3},{4,5,6},{7,8,10}});
+-         normaliz(allComputations => true,mat,"integral_closure")
+-         readMultipleNmzData "cst"
+-         rmNmzFiles();
+ ///,
+ }
+ 
+@@ -1569,15 +1513,8 @@
+ EXAMPLE lines ///
+ setNmzOption("allf",true);
+ eq=matrix {{1, 1, 1, -1, -1, -1,  0,  0,  0}, {1, 1, 1,  0,  0,  0, -1, -1, -1}, {0, 1, 1, -1,  0,  0, -1,  0,  0}, {1, 0, 1,  0, -1,  0,  0, -1,  0}, {1, 1, 0,  0,  0, -1,  0,  0, -1}, {0, 1, 1,  0, -1,  0,  0,  0, -1}, {1, 1, 0,  0, -1,  0, -1,  0,  0}};
+-rc=normaliz(eq,"equations")
+ ///,
+ PARA{}, "To obtain all the information written by ", TT "Normaliz", " set the option ", TO allComputations, " to true (to decide which information shall be written by ", TT "Normaliz", " use the options for ", TT "Normaliz", ", see ", TO setNmzOption, "). Then the method returns an object of type RationalCone whose keys are the suffixes of all the output files written, with value the content of the corresponding output file, which is an matrix whose rows contain the data computed, except for the suffix ", TT "inv", ", for which the type is a ", TO HashTable," (see also ", TO getNumInvs,").",
+-EXAMPLE lines ///
+-arc=normaliz(allComputations=>true,eq,"equations");
+-arc#"gen"
+-arc#"ext"
+-arc#"inv"
+-///,
+ SeeAlso => {RationalCone, readNmzData,"Keeping results of the computation by Normaliz", "output files written by Normaliz"},
+ TEST ///
+           nmzFilename="example";
+@@ -1612,16 +1549,8 @@
+ EXAMPLE lines ///
+ setNmzOption("allf",true);
+ eq=matrix {{1, 1, 1, -1, -1, -1,  0,  0,  0}, {1, 1, 1,  0,  0,  0, -1, -1, -1}, {0, 1, 1, -1,  0,  0, -1,  0,  0}, {1, 0, 1,  0, -1,  0,  0, -1,  0}, {1, 1, 0,  0,  0, -1,  0,  0, -1}, {0, 1, 1,  0, -1,  0,  0,  0, -1}, {1, 1, 0,  0, -1,  0, -1,  0,  0}};
+-rc=normaliz(eq,"equations");
+-rc#"gen"
+ ///,
+ PARA{}, "To obtain all the information written by ", TT "Normaliz", " set the option ", TO allComputations, " to true (to decide which information shall be written by ", TT "Normaliz", " use the options for ", TT "Normaliz", ", see ", TO setNmzOption, "). Then the method returns an object of type RationalCone whose keys are the suffixes of all the output files written, with value the content of the corresponding output file, which is an matrix whose rows contain the data computed, except for the suffix ", TT "inv", ", for which the type is a ", TO HashTable," (see also ", TO getNumInvs,"). It can also be used with the option ", TO grading ,".",
+-EXAMPLE lines ///
+-arc=normaliz(allComputations=>true,eq,"equations");
+-arc#"gen"
+-arc#"ext"
+-arc#"inv"
+-///,
+ SeeAlso => {RationalCone, readNmzData,"Keeping results of the computation by Normaliz", "output files written by Normaliz"},
+ TEST ///
+           nmzFilename="example";
+@@ -1657,17 +1586,8 @@
+ hy=matrix {{-1,0,-1,0,3,0,0,0,0},{-1,0,1,0,1,0,0,0,0},{1,0,1,0,-1,0,0,0,0},{1,0,-1,0,1,0,0,0,0}};
+ eq=matrix {{1,1,1,-1,-1,-1,0,0,0},{1,1,1,0,0,0,-1,-1,-1},{0,1,1,-1,0, 0,-1,0,0},{1,0,1,0,-1,0,0,-1,0},{1,1,0,0,0,-1,0,0,-1},{0,1,1,0,-1,0,0,0,-1},{1,1,0,0,-1,0,-1,0,0}};
+ cg=matrix {{1,0,0,0,0,0,0,0,0,2},{0,0,1,0,0,0,0,0,0,2},{0,0,0,0,0,0,1,0,0,2},{0,0,0,0,0,0,0,0,1,2}};
+-rc=normaliz({(hy,"inequalities"),(eq,"equations"),(cg,"congruences")});
+-rc#"gen"
+ ///,
+ PARA{}, "To obtain all the information written by ", TT "Normaliz", " set the option ", TO allComputations, " to true (to decide which information shall be written by ", TT "Normaliz", " use the options for ", TT "Normaliz", ", see ", TO setNmzOption, "). Then the method returns an object of type RationalCone whose keys are the suffixes of all the output files written, with value the content of the corresponding output file, which is an matrix whose rows contain the data computed, except for the suffix ", TT "inv", ", for which the type is a ", TO HashTable," (see also ", TO getNumInvs,"). It can also be used with the option ", TO grading ,".",
+-EXAMPLE lines ///
+-setNmzOption("allf",true);
+-arc=normaliz(allComputations=>true,{(hy,"inequalities"),(eq,"equations"),(cg,"congruences")});
+-arc#"gen"
+-arc#"ext"
+-arc#"inv"
+-///,
+ SeeAlso => {RationalCone, readNmzData,"Keeping results of the computation by Normaliz", "output files written by Normaliz"},
+ }
+ 
+@@ -1679,8 +1599,6 @@
+ EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           L={x^3, x^2*y, y^3, x*y^2};
+-          T=intclToricRing(allComputations=>true,L)
+-          T.cache#"cone"
+      ///,
+ }
+ 
+@@ -1691,12 +1609,6 @@
+ EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           L={x^3, x^2*y, y^3, x*y^2};
+-          T=intclToricRing(allComputations=>true,L);
+-          T.cache#"cone"#"inv"#"hilbert series num"
+-          T.cache#"cone"#"inv"#"hilbert series denom"
+-          T=intclToricRing(allComputations=>true,grading=>{3,2,1},L);
+-          T.cache#"cone"#"inv"#"hilbert series num"
+-          T.cache#"cone"#"inv"#"hilbert series denom"
+      ///,
+ SeeAlso => {allComputations},
+ }
+@@ -1712,11 +1624,6 @@
+           I=ideal(x^3,x^2*y,y^3);
+           nmzFilename="example";
+           setNmzOption("hilb",true);
+-          intclMonIdeal I;
+-          invs=getNumInvs()
+-          hvector=invs#"hilbert series num"
+-          invs#"hilbert series denom"
+-          rmNmzFiles();
+           ///,
+ TEST ///
+           nmzFilename="example";
+@@ -1800,7 +1707,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           L={x^3, x^2*y, y^3, x*y^2};
+-          normalToricRing L
+      ///,
+      TEST ///
+          R=ZZ/37[x_1..x_9];
+@@ -1847,8 +1753,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           L={x^3, x^2*y, y^3, x*y^2};
+-          T=normalToricRing(allComputations=> true, L)
+-          T.cache#"cone"
+      ///,
+      }
+ 
+@@ -1862,7 +1766,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           S=createMonomialSubalgebra {x^3, x^2*y, y^3, x*y^2};
+-          normalToricRing S
+      ///,
+ }
+ 
+@@ -1876,8 +1779,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           S=createMonomialSubalgebra {x^3, x^2*y, y^3, x*y^2};
+-          T=normalToricRing(allComputations=> true, S)
+-          T.cache#"cone"
+      ///,
+ }
+ 
+@@ -1893,7 +1794,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,z,w];
+           I=ideal(x*z-y^2, x*w-y*z);
+-          normalToricRing(I,t)
+      ///,
+ }
+ 
+@@ -1917,7 +1817,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           L={x^3, x^2*y, y^3, x*y^2};
+-          intclToricRing L
+      ///,
+      TEST ///
+       R=ZZ/37[x_1..x_7];
+@@ -1970,8 +1869,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           L={x^3, x^2*y, y^3, x*y^2};
+-          T=intclToricRing(allComputations=>true,L)
+-          T.cache#"cone"
+      ///,
+ }
+ 
+@@ -1987,7 +1884,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           S=createMonomialSubalgebra {x^3, x^2*y, y^3, x*y^2};
+-          intclToricRing S
+      ///,
+ }
+ 
+@@ -2003,8 +1899,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           S=createMonomialSubalgebra {x^3, x^2*y, y^3, x*y^2};
+-          T=intclToricRing(allComputations=>true,S)
+-          T.cache#"cone"
+      ///,
+ }
+ 
+@@ -2027,9 +1921,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y];
+           L={x^3, x^2*y, y^3, x*y^2};
+-          (latticePoints,ehrhart)=ehrhartRing L;
+-          latticePoints
+-          ehrhart
+      ///,
+    TEST ///
+    R=ZZ/37[x,y,z,t];
+@@ -2089,9 +1980,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y];
+           L={x^3, x^2*y, y^3, x*y^2};
+-       (latticePoints,ehrhart)=ehrhartRing(allComputations=>true,L);
+-           latticePoints.cache#"cone"
+-           ehrhart.cache#"cone"
+      ///,
+ }
+ 
+@@ -2108,9 +1996,6 @@
+     EXAMPLE  lines ///
+     R=ZZ/37[x,y,t];
+     L={x^3, x^2*y, y^3, x*y^2};
+-    (latticePoints,ehrhart)=ehrhartRing(L,t);
+-          latticePoints
+-          ehrhart
+    ///,
+ }
+ 
+@@ -2127,9 +2012,6 @@
+     EXAMPLE  lines ///
+     R=ZZ/37[x,y,t];
+     L={x^3, x^2*y, y^3, x*y^2};
+-    (latticePoints,ehrhart)=ehrhartRing(allComputations=>true,L,t);
+-          latticePoints.cache#"cone"
+-          ehrhart.cache#"cone"
+    ///,
+ }
+ 
+@@ -2150,9 +2032,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y];
+           I=ideal(x^3, x^2*y, y^3, x*y^2);
+-          (intCl,normRees)=intclMonIdeal I;
+-          intCl
+-      normRees
+      ///,
+    TEST ///
+    R=ZZ/37[x_1..x_6,t];
+@@ -2216,9 +2095,6 @@
+     EXAMPLE  lines ///
+       R=ZZ/37[x,y,t];
+       I=ideal(x^3, x^2*y, y^3, x*y^2);
+-      (intCl,normRees)=intclMonIdeal(I,t);
+-      intCl
+-      normRees
+    ///,
+ }
+ 
+@@ -2235,8 +2111,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y];
+           I=ideal(x^3, x^2*y, y^3, x*y^2);
+-          (intCl,normRees)=intclMonIdeal(allComputations=>true,I)
+-           normRees.cache#"cone"
+      ///,
+ }
+ 
+@@ -2254,8 +2128,6 @@
+      EXAMPLE lines ///
+           R=ZZ/37[x,y,t];
+           I=ideal(x^3, x^2*y, y^3, x*y^2);
+-          (intCl,normRees)=intclMonIdeal(allComputations=>true,I)
+-           normRees.cache#"cone"
+      ///,
+ }
+ 
+@@ -2278,7 +2150,6 @@
+      EXAMPLE lines ///
+           R=QQ[x,y,z,w];
+           T=matrix({{-1,-1,2,0},{1,1,-2,-1}});
+-          torusInvariants(T,R)
+      ///,
+      SeeAlso => {finiteDiagInvariants, diagInvariants},
+      }
+@@ -2302,7 +2173,6 @@
+           R=QQ[x,y,z,w];
+           T=matrix({{-1,-1,2,0},{1,1,-2,-1}});
+           U=matrix{{1,1,1,1,5},{1,0,2,0,7}}
+-          diagInvariants(T,U,R)
+     ///,
+     SeeAlso => {torusInvariants, finiteDiagInvariants},
+ }
+@@ -2328,7 +2198,6 @@
+  R=QQ[x,y,z,w];
+ 
+          U=matrix{{1,1,1,1,5},{1,0,2,0,7}}
+-          finiteDiagInvariants(U,R)
+ ///,
+ SeeAlso => {diagInvariants, torusInvariants}
+ }
+@@ -2350,7 +2219,6 @@
+      EXAMPLE lines ///
+          R=QQ[x,y,z,w];
+          V0=matrix({{0,1,2,3},{-1,1,2,1}});
+-         intersectionValRings(V0,R)
+      ///,
+      SeeAlso => {intersectionValRingIdeals}
+      }
+@@ -2371,7 +2239,6 @@
+      EXAMPLE lines ///
+            R=QQ[x,y,z,w];
+            V=matrix({{0,1,2,3,4},{-1,1,2,1,3}});
+-           intersectionValRingIdeals(V,R)
+      ///,
+      SeeAlso=> {intersectionValRings}
+      }
