@@ -928,12 +928,15 @@ if test $BUILD_flint = yes
 then BUILTLIBS="-lflint $BUILTLIBS"
 fi
 
-AC_MSG_CHECKING(whether the package 4ti2 is installed)
-if test "`type -t 4ti2-circuits`" = file
-then AC_MSG_RESULT(yes)
-else AC_MSG_RESULT([no, will build])
-     BUILD_4ti2=yes
-fi
+dnl we can't use the test below for the presence of 4ti2 until the package FourTiTwo knows
+dnl how to find programs such as "markov" under the name "4ti2-markov"
+BUILD_4ti2=yes
+dnl AC_MSG_CHECKING(whether the package 4ti2 is installed)
+dnl if test "`type -t 4ti2-circuits`" = file
+dnl then AC_MSG_RESULT(yes)
+dnl else AC_MSG_RESULT([no, will build])
+dnl      BUILD_4ti2=yes
+dnl fi
 
 AC_MSG_CHECKING(whether the package cohomcalg is installed)
 if test "`type -t cohomcalg`" = file
@@ -969,12 +972,16 @@ else AC_MSG_RESULT([no, will build])
      BUILD_csdp=yes
 fi
 
-AC_MSG_CHECKING(whether the package normaliz is installed)
-if test "`type -t normaliz`" = file
-then AC_MSG_RESULT(yes)
-else AC_MSG_RESULT([no, will build])
-     BUILD_normaliz=yes
-fi
+dnl we can't use the test below for the presence of normaliz until the package Normaliz knows
+dnl how to find normaliz on the path
+BUILD_normaliz=yes
+BUILD_ALWAYS="$BUILD_ALWAYS normaliz"
+dnl AC_MSG_CHECKING(whether the package normaliz is installed)
+dnl if test "`type -t normaliz`" = file
+dnl then AC_MSG_RESULT(yes)
+dnl else AC_MSG_RESULT([no, will build])
+dnl      BUILD_normaliz=yes
+dnl fi
 
 AC_MSG_CHECKING(whether the package nauty is installed)
 if test "`type -t nauty-complg`" = file
@@ -983,8 +990,12 @@ else AC_MSG_RESULT([no, will build])
      BUILD_nauty=yes
 fi
 
-# no test for presence of topcom yet ...
-BUILD_topcom=yes
+AC_MSG_CHECKING(whether the package topcom is installed)
+if test "`type -t points2finetrianga`" = file
+then AC_MSG_RESULT(yes)
+else AC_MSG_RESULT([no, will build])
+     BUILD_topcom=yes
+fi
 
 AC_MSG_CHECKING([whether eigen3 library is installed])
 if $PKG_CONFIG --exists eigen3
