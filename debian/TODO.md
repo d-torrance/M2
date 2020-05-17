@@ -14,6 +14,7 @@ Visualize
 	+ r55 &rightarrow; r111 (in Debian) or r116 (current upstream)
 	+ drop `ShaderMaterial` for `LineBasicMaterial`/`MeshBasicMaterial`
   - clipboard.js
+    + 1.5.10 &rightarrow; 2.0.6
     + `Clipboard` &rightarrow; `ClipboardJS`
 * After [#960859](https://bugs.debian.org/960859) is fixed, we should use
   the `/usr/share/javascript` path to clipboard.js instead of the
@@ -46,7 +47,7 @@ flint
 
 normaliz
 --------
-* Currently broken ([#960614](https://bugs.debian.org/960614)]
+* Currently broken ([#960614](https://bugs.debian.org/960614))
 * Once this has been fixed, remove `skip-normaliz-for-now.patch` so
   we can use the corresponding packages.
 
