@@ -4,37 +4,55 @@ Getting Macaulay2 into Debian
 Visualize
 ---------
 * Get remaining embedded Javascript libraries in Debian:
-  - BootSideMenu.js (s/autoClose/closeOnClick/ needed after switch)
-  - nouislider.js
-* Repack tarball w/o embedded Javascript/font files
-* When https://salsa.debian.org/js-team/node-clipboard/-/merge_requests/1 is
-  merged and uploaded to Debian, we should update the path to clipboard.js
-  to use /usr/share/javascript instead of /usr/share/nodejs.
+  - BootSideMenu ([#960097](https://bugs.debian.org/960097))
+  - noUiSlider ([#960618](https://bugs.debian.org/960618))
+* Update versions of libraries upstream:
+  - BootSideMenu
+	+ 0.0.1 &rightarrow; 1.0.0
+	+ `autoClose` &rightarrow; `closeOnClick`
+  - three.js
+	+ r55 &rightarrow; r111 (in Debian) or r116 (current upstream)
+	+ drop `ShaderMaterial` for `LineBasicMaterial`/`MeshBasicMaterial`
+  - clipboard.js
+    + `Clipboard` &rightarrow; `ClipboardJS`
+* After [#960859](https://bugs.debian.org/960859) is fixed, we should use
+  the `/usr/share/javascript` path to clipboard.js instead of the
+  `/usr/share/nodejs` one.
+* Update `d/copyright` and `d/watch` to repack the tarball without the
+  embedded Javascript/font files.
 
 mpsolve
 -------
-* One this is sponsored and goes through NEW, we can remove
-  skip-mpsolve-for-now.patch and use `roots` again
+* Not in Debian yet  ([#958919](https://bugs.debian.org/958919))
+  - Packaging complete, waiting for sponsor
+  - https://salsa.debian.org/science-team/mpsolve
+* Once it arrives in Debian, we can remove `skip-mpsolve-for-now.patch`
+  and use `roots` again.
 
 TOPCOM
 ------
-* Once I finish packaging it and it's sponsored and goes through NEW,
-  we can remove skip-buggy-packages.patch and use `Polyhedra` and
-  `ToricInvariants`.
+* Not in Debian yet  ([#959826](https://bugs.debian.org/959826))
+  - Packaging complete, waiting for sponsor
+  - https://salsa.debian.org/science-team/topcom
+* Once it arrives in Debian, we can remove `skip-topcom-for-now.patch`
+  and build all the examplse for `Polyhedra` and `ToricInvariants`.
 
 flint
 -------------------
-* Once flint 2.6 is released and packaged for Debian, remove
-  `skip-factor-for-now.patch` since we'll be able to factor large
-  integers again.
+* We need [flint 2.6](https://github.com/wbhart/flint2/milestone/2),
+  which has not been released yet
+* Once it has been released and packaged for Debian, remove
+  `skip-factor-for-now.patch` so we can use `factor` in `ZZ` again.
 
 normaliz
 --------
-* Restore Normaliz package once #960614 is resolved.
+* Currently broken ([#960614](https://bugs.debian.org/960614)]
+* Once this has been fixed, remove `skip-normaliz-for-now.patch` so
+  we can use the corresponding packages.
 
 html-check-links
 ----------------
-* Once mpsolve, TOPCOM, and flint issues resolved, we shouldn't
+* Once mpsolve/topcom/flint/normaliz issues resolved, we shouldn't
   have any more broken links and we can run this check again.
 
 documentation
@@ -44,8 +62,9 @@ documentation
 * .gitignore inside Macaulay2Doc/test is getting installed -- maybe fix
   this upstream?
 * Fix for missing MonomialAlgebras images has been submitted upstream
-  (#1131).
-* lots of examples reference build path (#1149)
+  ([#1131](https://github.com/Macaulay2/M2/issues/1131)).
+* lots of examples reference build path
+  ([#1149](https://github.com/Macaulay2/M2/issues/1149)))
 * move various package README's to /usr/share/doc
 
 d/copyright
@@ -55,7 +74,10 @@ d/copyright
 
 tests
 -----
-* Work has begun, but we've run into upstream bugs (#1157, #1162)
+* Work has begun, but we're currently skipping some tests:
+  - `Macaulay2Doc` ([#1157](https://github.com/Macaulay2/M2/issues/1157))
+  - `Topcom`, et. al, while we wait for topcom
+  - `Normaliz`, et. al, while we wait for normaliz
 
 upstream metadata
 -----------------
@@ -72,9 +94,9 @@ upstream metadata
     + Parametrization
   - Bertini (can't package, non-free license)
     + Bertini
-  - qepcad (not in Debian, RFP #951553)
+  - qepcad (not in Debian, [#951553](https://bugs.debian.org/951553))
     + CoincidentRootLoci
-  - phcpack (not in Debian, ITP #820848)
+  - phcpack (not in Debian, [#820848](https://bugs.debian.org/820848))
     + MonodromySolver
     + NumericalSchubertCalculus
     + PHCpack
