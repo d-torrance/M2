@@ -3,7 +3,9 @@ skip = {"Macaulay2Doc", -- https://github.com/Macaulay2/M2/issues/1157
 	"Polyhedra", "ToricInvariants", "Truncations", "Matroids",
 	"ReflexivePolytopesDB", "SymbolicPowers", "Topcom",
 	-- waiting for normaliz (#960614)
-	"Normaliz", "NormalToricVarieties", "MultiplierIdeals"
+	"Normaliz", "NormalToricVarieties", "MultiplierIdeals",
+	-- running into memory issues
+	"Depth"
 	}
 pkgs = separate_" " version#"packages"
 scan(pkgs, pkg -> if not member(pkg, skip) then (
