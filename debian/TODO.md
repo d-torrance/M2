@@ -16,9 +16,6 @@ Visualize
   - clipboard.js
     + 1.5.10 &rightarrow; 2.0.6
     + `Clipboard` &rightarrow; `ClipboardJS`
-* After [#960859](https://bugs.debian.org/960859) is fixed, we should use
-  the `/usr/share/javascript` path to clipboard.js instead of the
-  `/usr/share/nodejs` one.
 * Update `d/copyright` and `d/watch` to repack the tarball without the
   embedded Javascript/font files.
 
