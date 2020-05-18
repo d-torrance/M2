@@ -77,6 +77,19 @@ tests
   - `Topcom`, et. al, while we wait for topcom
   - `Normaliz`, et. al, while we wait for normaliz
 
+uscan
+-----
+* Modify script a bit and move to pages.debian.net
+* One tarball is sufficient; don't need them all.
+* Current versioning scheme could pose problems, e.g., let's say upstream
+  releases a patch version 1.16.1, which would sort before, say,
+  1.16.5.gdeadbeef.
+  New proposal: 1.16+git5.deadbeef.  The following should work:
+  ```
+  git describe --tags | \
+  sed 's/version-\([0-9.]\+\)-\([0-9]\+\)-g\([0-9a-f]\+\)/\1+git\2.\3/'
+  ```
+
 upstream metadata
 -----------------
 * github
