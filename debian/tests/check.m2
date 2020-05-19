@@ -7,7 +7,9 @@ skip = {"Macaulay2Doc", -- https://github.com/Macaulay2/M2/issues/1157
 	-- running into memory issues
 	"Depth",
 	-- https://github.com/Macaulay2/M2/issues/1173
-	"StatePolytope"
+	"StatePolytope",
+	-- https://github.com/Macaulay2/M2/issues/1177
+	"NumericalAlgebraicGeometry"
 	}
 pkgs = separate_" " version#"packages"
 scan(pkgs, pkg -> if not member(pkg, skip) then (
