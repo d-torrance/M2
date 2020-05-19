@@ -104,5 +104,3 @@ uscan
     + NCAlgebra
   - MOSEK (proprietary)
     + SemidefiniteProgramming
-  - SDPA (in Debian)
-    + SemidefiniteProgramming
