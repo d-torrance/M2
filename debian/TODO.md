@@ -16,8 +16,7 @@ Visualize
   - clipboard.js
     + 1.5.10 &rightarrow; 2.0.6
     + `Clipboard` &rightarrow; `ClipboardJS`
-* Update `d/copyright` and `d/watch` to repack the tarball without the
-  embedded Javascript/font files.
+  - Pull request: [#1172](https://github.com/Macaulay2/M2/pull/1172)
 
 mpsolve
 -------
@@ -57,18 +56,13 @@ documentation
 -------------
 * CodepthThree and Polyhedra info's missing (Polyhedra makes sense becomes of
   TOPCOM, but what's up with CodepthThree?)
-* .gitignore inside Macaulay2Doc/test is getting installed -- maybe fix
-  this upstream?
-* Fix for missing MonomialAlgebras images has been submitted upstream
-  ([#1131](https://github.com/Macaulay2/M2/issues/1131)).
 * lots of examples reference build path
   ([#1149](https://github.com/Macaulay2/M2/issues/1149)))
-* move various package README's to /usr/share/doc
 
 d/copyright
 -----------
 * make sure it's up-to-date
-* at least once thing is wrong (M2/Macaulay2/kernel/bibasis)
+* at least one thing is wrong (M2/Macaulay2/kernel/bibasis)
 
 tests
 -----
@@ -76,6 +70,7 @@ tests
   - `Macaulay2Doc` ([#1157](https://github.com/Macaulay2/M2/issues/1157))
   - `Topcom`, et. al, while we wait for topcom
   - `Normaliz`, et. al, while we wait for normaliz
+  - `Depth`, occassionally gives memory errors
 
 uscan
 -----
