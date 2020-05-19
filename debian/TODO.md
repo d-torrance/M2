@@ -6,17 +6,6 @@ Visualize
 * Get remaining embedded Javascript libraries in Debian:
   - BootSideMenu ([#960097](https://bugs.debian.org/960097))
   - noUiSlider ([#960618](https://bugs.debian.org/960618))
-* Update versions of libraries upstream:
-  - BootSideMenu
-	+ 0.0.1 &rightarrow; 1.0.0
-	+ `autoClose` &rightarrow; `closeOnClick`
-  - three.js
-	+ r55 &rightarrow; r111 (in Debian) or r116 (current upstream)
-	+ drop `ShaderMaterial` for `LineBasicMaterial`/`MeshBasicMaterial`
-  - clipboard.js
-    + 1.5.10 &rightarrow; 2.0.6
-    + `Clipboard` &rightarrow; `ClipboardJS`
-  - Pull request: [#1172](https://github.com/Macaulay2/M2/pull/1172)
 
 mpsolve
 -------
@@ -56,6 +45,7 @@ documentation
 -------------
 * lots of examples reference build path
   ([#1149](https://github.com/Macaulay2/M2/issues/1149))
+* building examples for `TateOnProducts` causes memory errors
 
 d/copyright
 -----------
@@ -70,6 +60,8 @@ tests
   - `Normaliz`, et. al, while we wait for normaliz
   - `Depth`, occassionally gives memory errors
   - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
+  - `NumericalAlgebraicGeometry`
+    ([#1177](https://github.com/Macaulay2/M2/issues/1177)]
 
 uscan
 -----
