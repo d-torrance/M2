@@ -54,10 +54,8 @@ html-check-links
 
 documentation
 -------------
-* CodepthThree and Polyhedra info's missing (Polyhedra makes sense becomes of
-  TOPCOM, but what's up with CodepthThree?)
 * lots of examples reference build path
-  ([#1149](https://github.com/Macaulay2/M2/issues/1149)))
+  ([#1149](https://github.com/Macaulay2/M2/issues/1149))
 
 d/copyright
 -----------
@@ -71,6 +69,7 @@ tests
   - `Topcom`, et. al, while we wait for topcom
   - `Normaliz`, et. al, while we wait for normaliz
   - `Depth`, occassionally gives memory errors
+  - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
 
 uscan
 -----
@@ -84,11 +83,6 @@ uscan
   git describe --tags | \
   sed 's/version-\([0-9.]\+\)-\([0-9]\+\)-g\([0-9a-f]\+\)/\1+git\2.\3/'
   ```
-
-upstream metadata
------------------
-* github
-* citation
 
 3rd-party applications
 ----------------------
