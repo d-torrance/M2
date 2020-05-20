@@ -21,7 +21,7 @@ TOPCOM
   - Packaging complete, waiting for sponsor
   - https://salsa.debian.org/science-team/topcom
 * Once it arrives in Debian, we can remove `skip-topcom-for-now.patch`
-  and build all the examplse for `Polyhedra` and `ToricInvariants`.
+  and build all the examples for `Polyhedra` and `ToricInvariants`.
 
 flint
 -------------------
@@ -61,20 +61,8 @@ tests
   - `Depth`, occassionally gives memory errors
   - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
   - `NumericalAlgebraicGeometry`
-    ([#1177](https://github.com/Macaulay2/M2/issues/1177)]
-
-uscan
------
-* Modify script a bit and move to pages.debian.net
-* One tarball is sufficient; don't need them all.
-* Current versioning scheme could pose problems, e.g., let's say upstream
-  releases a patch version 1.16.1, which would sort before, say,
-  1.16.5.gdeadbeef.
-  New proposal: 1.16+git5.deadbeef.  The following should work:
-  ```
-  git describe --tags | \
-  sed 's/version-\([0-9.]\+\)-\([0-9]\+\)-g\([0-9a-f]\+\)/\1+git\2.\3/'
-  ```
+    ([#1177](https://github.com/Macaulay2/M2/issues/1177))
+  - `PHCpack` until phcpack is packaged
 
 3rd-party applications
 ----------------------
