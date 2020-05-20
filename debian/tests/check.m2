@@ -4,6 +4,8 @@ skip = {"Macaulay2Doc", -- https://github.com/Macaulay2/M2/issues/1157
 	"ReflexivePolytopesDB", "SymbolicPowers", "Topcom",
 	-- waiting for normaliz (#960614)
 	"Normaliz", "NormalToricVarieties", "MultiplierIdeals",
+	"CharacteristicClasses", "CohomCalg", "ReflexivePolytopesDB",
+	"SpecialFanoFourfolds",
 	-- running into memory issues
 	"Depth",
 	-- https://github.com/Macaulay2/M2/issues/1173
