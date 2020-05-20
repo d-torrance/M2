@@ -13,7 +13,9 @@ skip = {"Macaulay2Doc", -- https://github.com/Macaulay2/M2/issues/1157
 	-- https://github.com/Macaulay2/M2/issues/1177
 	"NumericalAlgebraicGeometry",
 	-- waiting for phcpack (#820848)
-	"PHCpack"
+	"PHCpack",
+	-- uses factor, so waiting for flint 2.6
+	"QuillenSuslin"
 	}
 pkgs = separate_" " version#"packages"
 scan(pkgs, pkg -> if not member(pkg, skip) then (
