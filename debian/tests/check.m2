@@ -9,7 +9,9 @@ skip = {"Macaulay2Doc", -- https://github.com/Macaulay2/M2/issues/1157
 	-- https://github.com/Macaulay2/M2/issues/1173
 	"StatePolytope",
 	-- https://github.com/Macaulay2/M2/issues/1177
-	"NumericalAlgebraicGeometry"
+	"NumericalAlgebraicGeometry",
+	-- waiting for phcpack (#820848)
+	"PHCpack"
 	}
 pkgs = separate_" " version#"packages"
 scan(pkgs, pkg -> if not member(pkg, skip) then (
