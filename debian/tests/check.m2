@@ -10,8 +10,6 @@ skip = {"Macaulay2Doc", -- https://github.com/Macaulay2/M2/issues/1157
 	"Depth",
 	-- https://github.com/Macaulay2/M2/issues/1173
 	"StatePolytope",
-	-- https://github.com/Macaulay2/M2/issues/1177
-	"NumericalAlgebraicGeometry",
 	-- waiting for phcpack (#820848)
 	"PHCpack",
 	-- uses factor, so waiting for flint 2.6
