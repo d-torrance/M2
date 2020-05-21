@@ -15,7 +15,9 @@ skip = {"Macaulay2Doc", -- https://github.com/Macaulay2/M2/issues/1157
 	-- waiting for phcpack (#820848)
 	"PHCpack",
 	-- uses factor, so waiting for flint 2.6
-	"QuillenSuslin"
+	"QuillenSuslin",
+	-- bertini is non-free, so we will always skip this
+	"Bertini"
 	}
 pkgs = separate_" " version#"packages"
 scan(pkgs, pkg -> if not member(pkg, skip) then (
