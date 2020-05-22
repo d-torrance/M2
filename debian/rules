@@ -5,21 +5,16 @@ export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 export VERBOSE=1
 UNBUILT_PROGRAMS = 4ti2 gfan normaliz nauty cddplus lrslib topcom cohomcalg \
 	csdp
-UVER = 1.15
 
 %:
 	dh $@ --sourcedirectory=M2
 
 override_dh_auto_configure:
-	dh_auto_configure -- --with-unbuilt-programs="$(UNBUILT_PROGRAMS)" \
-		--disable-shared --libdir=\$${exec_prefix}/lib \
-		--enable-debug
-# --disable-shared needed for install-dynamic-libraries target in
-# M2/libraries/Makefile.  Otherwise, it tries to cd into $(BUILTLIBPATH)/lib,
-# which doesn't exist since we haven't built any libraries.
-# Ideally, we should set SHARED to 'no' if BUILTLIBS is empty.  But this
-# is currently not possible upstream until the whole "can't compile with
-# regular gmp" problem is fixed.  Once it is, prepare a pull request.
+	dh_auto_configure -- \
+# don't try to build 3rd party applications
+		--with-unbuilt-programs="$(UNBUILT_PROGRAMS)" \
+# needed so make doesn't try to cd into a nonexistent directory
+		--disable-shared
 
 override_dh_auto_install:
 # replace build paths with installation paths in documentation
@@ -39,5 +34,6 @@ override_dh_link:
 	jdupes -rl debian/macaulay2-common/usr/share/doc/Macaulay2
 	dh_link
 
+# remove before release
 iso:
 	genisoimage -R -o m2.iso ~/pbuilder/sid_result/mac*$(REF)*.deb
