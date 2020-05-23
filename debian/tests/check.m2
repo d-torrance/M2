@@ -8,7 +8,7 @@ skip = {-- waiting for topcom to enter debian
 	-- https://github.com/Macaulay2/M2/issues/1173
 	"StatePolytope",
 	-- waiting for phcpack (#820848)
-	"PHCpack",
+	"PHCpack", "MonodromySolver",
 	-- uses factor, so waiting for flint 2.6
 	"QuillenSuslin",
 	-- bertini is non-free, so we will always skip this
