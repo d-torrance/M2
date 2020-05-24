@@ -1,3 +1,10 @@
+print "====================================================="
+print "running basic tests..."
+print "====================================================="
+cmd = "M2 --check 1 -q --stop -E \"exit 0\""
+print cmd
+if run cmd == 0 then print "basic tests passed" else error "basic tests failed"
+
 skip = {-- waiting for topcom to enter debian
 	"Polyhedra", "ToricInvariants", "Truncations", "Matroids",
 	"ReflexivePolytopesDB", "SymbolicPowers", "Topcom",
