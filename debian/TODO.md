@@ -45,7 +45,8 @@ documentation
 -------------
 * lots of examples reference build path
   ([#1149](https://github.com/Macaulay2/M2/issues/1149))
-* building examples for `TateOnProducts` causes memory errors
+* work has begun in my [reproducible-builds branch](
+  https://github.com/d-torrance/M2/tree/reproducible-builds)
 
 d/copyright
 -----------
@@ -54,7 +55,7 @@ d/copyright
 
 autopkgtest
 -----------
-* Work has begun, but we're currently skipping some tests:
+* Package testing is working except for
   - `Topcom`, et. al, while we wait for topcom
   - `Normaliz`, et. al, while we wait for normaliz
   - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
@@ -62,26 +63,17 @@ autopkgtest
   - `QuillenSuslin` until flint 2.6 is packaged
   - `SumOfSquares`, strange "protected global variable" error I can't
     reproduce
-* Still need to incorporate the upstream test suites in `M2/Macaulay2/tests`
-  and `M2/Macaulay2/d/basictests`
+* Still need to incorporate the upstream test suite in `M2/Macaulay2/tests`
 
 3rd-party applications
 ----------------------
-* Do these work properly with the Debian package?
-  - Maple
-    + AdjointIdeal
-    + ConvexInterface
-    + MapleInterface
-    + Parametrization
-  - Bertini (can't package, non-free license)
-    + Bertini
-  - qepcad (not in Debian, [#951553](https://bugs.debian.org/951553))
+* Not necessary for building/running Macaulay2, but used by some
+  packages so would be nice to have
+  - qepcad ([#951553](https://bugs.debian.org/951553))
     + CoincidentRootLoci
-  - phcpack (not in Debian, [#820848](https://bugs.debian.org/820848))
+  - phcpack ([#820848](https://bugs.debian.org/820848))
     + MonodromySolver
     + NumericalSchubertCalculus
     + PHCpack
-  - bergman (not in Debian, license appears to be free)
+  - bergman (no ITP bug)
     + NCAlgebra
-  - MOSEK (proprietary)
-    + SemidefiniteProgramming
