@@ -52,17 +52,18 @@ d/copyright
 * make sure it's up-to-date
 * at least one thing is wrong (M2/Macaulay2/kernel/bibasis)
 
-tests
------
+autopkgtest
+-----------
 * Work has begun, but we're currently skipping some tests:
-  - `Macaulay2Doc` ([#1157](https://github.com/Macaulay2/M2/issues/1157))
   - `Topcom`, et. al, while we wait for topcom
   - `Normaliz`, et. al, while we wait for normaliz
-  - `Depth`, occassionally gives memory errors
   - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
-  - `NumericalAlgebraicGeometry`
-    ([#1177](https://github.com/Macaulay2/M2/issues/1177))
-  - `PHCpack` until phcpack is packaged
+  - `PHCpack`, et. al, until phcpack is packaged
+  - `QuillenSuslin` until flint 2.6 is packaged
+  - `SumOfSquares`, strange "protected global variable" error I can't
+    reproduce
+* Still need to incorporate the upstream test suites in `M2/Macaulay2/tests`
+  and `M2/Macaulay2/d/basictests`
 
 3rd-party applications
 ----------------------
