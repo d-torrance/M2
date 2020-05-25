@@ -8,10 +8,6 @@ if run cmd == 0 then print "basic tests passed" else error "basic tests failed"
 skip = {-- waiting for topcom to enter debian
 	"Polyhedra", "ToricInvariants", "Truncations", "Matroids",
 	"ReflexivePolytopesDB", "SymbolicPowers", "Topcom",
-	-- waiting for normaliz (#960614)
-	"Normaliz", "NormalToricVarieties", "MultiplierIdeals",
-	"CharacteristicClasses", "CohomCalg", "ReflexivePolytopesDB",
-	"SpecialFanoFourfolds",
 	-- https://github.com/Macaulay2/M2/issues/1173
 	"StatePolytope",
 	-- waiting for phcpack (#820848)

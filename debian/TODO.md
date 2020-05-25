@@ -30,15 +30,9 @@ flint
 * Once it has been released and packaged for Debian, remove
   `skip-factor-for-now.patch` so we can use `factor` in `ZZ` again.
 
-normaliz
---------
-* Currently broken ([#960614](https://bugs.debian.org/960614))
-* Once this has been fixed, remove `skip-normaliz-for-now.patch` so
-  we can use the corresponding packages.
-
 html-check-links
 ----------------
-* Once mpsolve/topcom/flint/normaliz issues resolved, we shouldn't
+* Once mpsolve/topcom/flint issues resolved, we shouldn't
   have any more broken links and we can run this check again.
 
 documentation
@@ -52,7 +46,6 @@ autopkgtest
 -----------
 * Package testing is working except for
   - `Topcom`, et. al, while we wait for topcom
-  - `Normaliz`, et. al, while we wait for normaliz
   - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
   - `PHCpack`, et. al, until phcpack is packaged
   - `QuillenSuslin` until flint 2.6 is packaged
