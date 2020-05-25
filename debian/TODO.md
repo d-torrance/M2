@@ -62,8 +62,6 @@ autopkgtest
 
 3rd-party applications
 ----------------------
-* Check if we really need all of those programs in --with-unbuilt-programs
-  in d/rules.  Upstream has some pretty good checks now.
 * Not necessary for building/running Macaulay2, but used by some
   packages so would be nice to have
   - qepcad ([#951553](https://bugs.debian.org/951553))
