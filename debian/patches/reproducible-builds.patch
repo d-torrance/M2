@@ -24,3 +24,43 @@ Last-Update: 2020-05-24
  	 done ; \
  	 echo '};' ; \
  	 cat @srcdir@/startup-trailer.h; \
+--- a/M2/Macaulay2/m2/code.m2
++++ b/M2/Macaulay2/m2/code.m2
+@@ -26,7 +26,7 @@
+ 	  if #file < stop then error("line number ",toString stop, " not found in file ", filename);
+ 	  while stop >= start and file#(stop-1) === "" do stop = stop-1;
+ 	  stack prepend(
+-	       concatenate(filename, ":", 
++	       concatenate(reproduciblePath(filename), ":", 
+ 		    toString start, ":", toString (startcol+1),
+ 		    "-",
+ 		    toString stop, ":", toString (stopcol+1),
+--- a/M2/Macaulay2/m2/nets.m2
++++ b/M2/Macaulay2/m2/nets.m2
+@@ -62,11 +62,25 @@
+      else error("can't convert anonymous function (",t#0, ":", toString t#1| ":", toString t#2, "-", toString t#3| ":", toString t#4,") to external string")
+      )
+ 
++reproduciblePath = buildPath -> (
++	-- m2 -> core
++	result := regex("/M2/Macaulay2/m2/", buildPath);
++	if result =!= null then
++		return "/usr/share/Macaulay2/Core/" |
++			substring(first first result + 17, buildPath);
++	-- packages
++	result = regex("/M2/Macaulay2/packages/", buildPath);
++	if result =!= null then
++		return "/usr/share/Macaulay2/" |
++			substring(first first result + 23, buildPath);
++	buildPath
++	)
++
+ net Function := toString Function := f -> (
+      if hasAttribute(f,ReverseDictionary) then return toString getAttribute(f,ReverseDictionary);
+      t := locate f;
+      if t === null then "-*Function*-" 
+-     else concatenate("-*Function[", t#0, ":", toString t#1| ":", toString (t#2+1), "-", toString t#3| ":", toString (t#4+1), "]*-")
++     else concatenate("-*Function[", reproduciblePath(t#0), ":", toString t#1| ":", toString (t#2+1), "-", toString t#3| ":", toString (t#4+1), "]*-")
+      )
+ 
+ net FunctionBody := toString FunctionBody := f -> (
