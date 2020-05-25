@@ -48,11 +48,6 @@ documentation
 * work has begun in my [reproducible-builds branch](
   https://github.com/d-torrance/M2/tree/reproducible-builds)
 
-d/copyright
------------
-* make sure it's up-to-date
-* at least one thing is wrong (M2/Macaulay2/kernel/bibasis)
-
 autopkgtest
 -----------
 * Package testing is working except for
