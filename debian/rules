@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+include /usr/share/dpkg/architecture.mk
+
 export DEB_CPPFLAGS_MAINT_APPEND=-I/usr/src/gtest
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 export VERBOSE=1
@@ -12,9 +14,11 @@ UNBUILT_PROGRAMS = 4ti2 gfan normaliz nauty cddplus lrslib topcom cohomcalg \
 override_dh_auto_configure:
 # --with-unbuilt-programs: don't try to build 3rd party applications
 # --disable-shared: prevent make from trying to cd into a nonexistent directory
+# --libdir: M2 expects exec_prefix to properly substitute paths in Layout#2
 	dh_auto_configure -- \
 		--with-unbuilt-programs="$(UNBUILT_PROGRAMS)" \
-		--disable-shared
+		--disable-shared \
+		--libdir=\$${exec_prefix}/lib/$(DEB_HOST_MULTIARCH)
 
 # since a "test" target exists, dh_auto_test defaults to using that, but
 # it just prints the values of some variables.  we want the "check" target
