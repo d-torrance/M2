@@ -35,12 +35,36 @@ html-check-links
 * Once mpsolve/topcom/flint issues resolved, we shouldn't
   have any more broken links and we can run this check again.
 
-documentation
--------------
-* lots of examples reference build path
-  ([#1149](https://github.com/Macaulay2/M2/issues/1149))
-* work has begun in my [reproducible-builds branch](
-  https://github.com/d-torrance/M2/tree/reproducible-builds)
+reproducible builds
+-------------------
+* Build paths in documentation ([#1149](
+  https://github.com/Macaulay2/M2/issues/1149))
+  - Currently have a patch (`replace-build-path.patch`) which is applied
+    only during build to take care of *some* of these problems.
+  - Remaining problems:
+    + Sometimes `error` returns the filename, and this code lies in the
+      compiled d code, so the current patch won't work (plus I don't
+      understand the d code yet!)
+    + final `--loaded ...` message when loading package with `notify` set
+      to `true` (possible related bug: `database not present` warning
+      in docs -- is that what we want?)
+    + `Core#"private dictionary"#"userpath"` isn't using the `HOME`
+      environment variable I passed in the patch.  What's going on there?
+      (see `path` docs)
+    + `path`
+    + `prefixPath`
+    * `version#"configure arguments"`
+    * `availableOffline` from `ReflexivePolytopesDB` (strangely, the
+       build path appears in the html docs, but outputs aren't appearing
+       when we run `help` -- what's going on?)
+    * `runExternalM2` from `RunExternalM2` (same html-only issue as
+      `availableOffline`)
+    * `gfanInterface#"source file"` from `gfanInterface`
+      (again, html only)
+  - Brainstorming a solution:
+    + Add a command line argument (`--doc-prefix`?) that tells M2 that
+      it needs to swap the current path for the eventual installed path
+      when generating docs?
 
 autopkgtest
 -----------
