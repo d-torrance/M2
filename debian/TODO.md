@@ -9,9 +9,7 @@ Visualize
 
 mpsolve
 -------
-* Not in Debian yet  ([#958919](https://bugs.debian.org/958919))
-  - Packaging complete, waiting for sponsor
-  - https://salsa.debian.org/science-team/mpsolve
+* In NEW queue!
 * Once it arrives in Debian, we can remove `skip-mpsolve-for-now.patch`
   and use `roots` again.
 
