@@ -6,6 +6,8 @@ Visualize
 * Get remaining embedded Javascript libraries in Debian:
   - BootSideMenu ([#960097](https://bugs.debian.org/960097))
   - noUiSlider ([#960618](https://bugs.debian.org/960618))
+* Packaging complete, waiting for sponsor
+* Once they arrive in Debian, add to `Recommends`
 
 mpsolve
 -------
