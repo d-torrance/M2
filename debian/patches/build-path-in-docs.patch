@@ -1,0 +1,154 @@
+Description: Various patches for removing build paths from docs.
+Author: Doug Torrance <dtorrance@piedmont.edu>
+Last-Update: 2020-06-03
+
+--- a/M2/Macaulay2/d/actors4.d
++++ b/M2/Macaulay2/d/actors4.d
+@@ -1497,7 +1497,7 @@
+      locate1();
+      p := codePosition(c);
+      Expr(Sequence(
+-	       toExpr(verifyMinimizeFilename(locatedCode.filename)),
++	       toExpr(relativizeFilename(locatedCode.filename)),
+ 	       toExpr(locatedCode.minline),
+ 	       toExpr(locatedCode.mincol),
+ 	       toExpr(locatedCode.maxline),
+@@ -1516,7 +1516,7 @@
+ 	  then nullE
+ 	  else Expr(
+ 	       Sequence(
+-		    toExpr(verifyMinimizeFilename(p.filename)),
++		    toExpr(relativizeFilename(p.filename)),
+ 		    toExpr(int(p.line)),toExpr(int(p.column)),
+ 		    toExpr(int(p.line)),toExpr(int(p.column)+length(s.symbol.word.name)),
+ 		    toExpr(int(p.line)),toExpr(int(p.column))
+--- a/M2/Macaulay2/d/startup.m2.in
++++ b/M2/Macaulay2/d/startup.m2.in
+@@ -54,7 +54,7 @@
+      markLoaded = (fullfilename,origfilename,notify,filetime) -> ( 
+ 	  fullfilename = minimizeFilename fullfilename;
+ 	  filesLoaded#origfilename = (fullfilename,filetime); 
+-	  loadedFiles##loadedFiles = realpath toAbsolutePath fullfilename; 
++	  loadedFiles##loadedFiles = relativizeFilename fullfilename;
+ 	  if notify then stderr << "--loaded " << fullfilename << endl;
+ 	  );
+      normalPrompts = () -> (
+--- a/M2/Macaulay2/d/stdiop.d
++++ b/M2/Macaulay2/d/stdiop.d
+@@ -111,7 +111,7 @@
+ export tostring(w:Position) : string := (
+      if w == dummyPosition 
+      then "-*dummy position*-"
+-     else errfmt(verifyMinimizeFilename(w.filename),int(w.line),int(w.column + 1),int(w.loadDepth)));
++     else errfmt(relativizeFilename(w.filename),int(w.line),int(w.column + 1),int(w.loadDepth)));
+ export (o:file) << (w:Position) : file := o << tostring(w);
+ export (o:BasicFile) << (w:Position) : BasicFile := o << tostring(w);
+ threadLocal export SuppressErrors := false;
+--- a/M2/Macaulay2/m2/html.m2
++++ b/M2/Macaulay2/m2/html.m2
+@@ -472,13 +472,14 @@
+      src := concatenate apply(srcdirs, d -> (" --srcdir ",format d));
+      -- we specify --no-readline because the readline library catches SIGINT:
+      args := "--silent --print-width 77 --stop --int --no-readline" | (if usermode then "" else " -q") | src | setseed | ldpkg;
+-     env := "GC_MAXIMUM_HEAP_SIZE=400M ";
++     env := "GC_MAXIMUM_HEAP_SIZE=400M HOME=/home/m2user ";
+      cmdname := commandLine#0;
+      -- must convert a relative path to an absolute path so we can run the same M2 from another directory while
+      -- running the examples:
+      if match("/",cmdname) then cmdname = toAbsolutePath cmdname;
+      tmpf << "-- -*- M2-comint -*- hash: " << inputhash << endl << close; -- must match regular expression below
+-     rundir := temporaryFileName() | "-rundir/";
++     rundir := toString temporaryFilenameCounter | "-rundir/";
++     temporaryFilenameCounter = temporaryFilenameCounter + 1;
+      cmd := ulimit | "cd " | rundir | "; " | env | cmdname | " " | args | " <" | format inf | " >>" | format toAbsolutePath tmpf | " 2>&1";
+      stderr << cmd << endl;
+      makeDirectory rundir;
+--- a/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
+@@ -1090,9 +1090,8 @@
+      Outputs => {
+ 	  "the complete path to the current directory, together with an extra slash"
+ 	  },
+-     EXAMPLE lines ///
+-     currentDirectory()
+-     ///,
++     EXAMPLE {PRE("i1 : currentDirectory()" | newline | newline |
++	  "o1 = /home/m2user/")},
+      PARA {
+ 	  "If a component of the path to the current directory no longer exist, an error will be signalled."
+ 	  }
+--- a/M2/Macaulay2/packages/Macaulay2Doc/doc3.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/doc3.m2
+@@ -1425,9 +1425,8 @@
+      Outputs => {
+ 	  String => {"the absolute (real) path name of ", TT "filename"}
+ 	  },
+-     EXAMPLE lines ///
+-         toAbsolutePath "a/b.m2"
+-     ///,
++     EXAMPLE {PRE(///i1 : toAbsolutePath "a/b.m2"/// | newline | newline |
++	  ///o1 = /home/m2user/a/b.m2 ///)},
+      PARA {
+ 	  "Paths of the form ", TT "foo/x/../bar", ", are shortened to ", TT "foo/bar", " without
+ 	  checking the file system to see whether ", TT "x", " is a symbolic link.  For the other
+--- a/M2/Macaulay2/packages/Macaulay2Doc/functions/realpath-doc.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/realpath-doc.m2
+@@ -9,8 +9,9 @@
+      Inputs => { "fn" => String => "a filename, or path to a file" },
+      Outputs => { String => { "a pathname to ", TT "fn", " passing through no symbolic links, and
+ 	       ending with a slash if ", TT "fn", " refers to a directory" }},
+-     EXAMPLE lines ///
+-     	  realpath "."
++     EXAMPLE ({PRE(///i1 : realpath "."/// | newline | newline |
++	  ///o1 = /home/m2user/ ///)} |
++	  lines ///
+      	  p = temporaryFileName()
+ 	  q = temporaryFileName()
+ 	  symlinkFile(p,q)
+@@ -19,11 +20,12 @@
+ 	  realpath q
+ 	  removeFile p
+ 	  removeFile q
+-     ///,
++     ///),
+      PARA {
+ 	  "The empty string is interpreted as a reference to the current directory."
+ 	  },
+-     EXAMPLE ///realpath ""///,
++     EXAMPLE {PRE(///i9 : realpath ""/// | newline | newline |
++	  ///o9 = /home/m2user/ ///)},
+      SeeAlso => {readlink},
+      Caveat => {
+ 	  "Every component of the path must exist in the file system and be accessible to the user.
+--- a/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
+@@ -419,17 +419,26 @@
+ 	  "The following example shows the list of places where we might find the source code of a package called ", TT "Foo", "
+ 	  after it has been installed by ", TO "installPackage", "."
+ 	  },
+-     EXAMPLE ///stack apply(prefixPath, p -> p | Layout#1#"packages" | "Foo.m2")///,
++     EXAMPLE {PRE(
++	  ///i1 : stack apply(prefixPath, p -> p | Layout#1#"packages" | "Foo.m2")///
++	  | newline | newline | ///o1 = /home/m2user/.Macaulay2/local/share/Macaulay2/Foo.m2///
++	  | newline | ///     /usr/share/Macaulay2/Foo.m2///)},
+      PARA {
+      	  "This example shows the list of places where we might reasonably find the html file documenting a
+ 	  function named ", TT "bar", " in a package called ", TT "Foo", "."
+ 	  },
+-     EXAMPLE ///stack apply(prefixPath, p -> p | replace("PKG","Foo",Layout#1#"packagehtml") | "bar.html")///,
++     EXAMPLE {PRE(
++	  ///i2 : stack apply(prefixPath, p -> p | replace("PKG","Foo",Layout#1#"packagehtml") | "bar.html")///
++	  | newline | newline | ///o2 = /home/m2user/.Macaulay2/local/share/doc/Macaulay2/Foo/html/bar.html///
++	  | newline | ///     /usr/share/doc/Macaulay2/Foo/html/bar.html///)},
+      PARA {
+      	  "This example shows the list of places where we might reasonably find the info file documenting a
+ 	  package called ", TT "Foo", "."
+ 	  },
+-     EXAMPLE ///stack apply(prefixPath, p -> p | Layout#1#"info" | "Foo.info")///,
++     EXAMPLE {PRE(
++	  ///i3 : stack apply(prefixPath, p -> p | Layout#1#"info" | "Foo.info")///
++	  | newline | newline | ///o3 = /home/m2user/.Macaulay2/local/share/info/Foo.info///
++	  | newline | ///     /usr/share/info/Foo.info///)},
+      SeeAlso => {"commandLine", "Invoking the program", applicationDirectory, "prefixDirectory", "path", searchPath, load, loadPackage, needsPackage}
+      }
+ 
