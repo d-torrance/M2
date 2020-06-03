@@ -1,6 +1,8 @@
 Description: Use relative paths for displaying code positions
  Otherwise we end up with the build path in the documentation, making
  the package non-reproducible.
+ Also use a temporary subdirectory in the build directory to build the
+ examples from.
 Author: Doug Torrance <dtorrance@piedmont.edu>
 Last-Update: 2020-06-02
 
@@ -35,3 +37,15 @@ Last-Update: 2020-06-02
  export (o:file) << (w:Position) : file := o << tostring(w);
  export (o:BasicFile) << (w:Position) : BasicFile := o << tostring(w);
  threadLocal export SuppressErrors := false;
+--- a/M2/Macaulay2/m2/html.m2
++++ b/M2/Macaulay2/m2/html.m2
+@@ -478,7 +478,8 @@
+      -- running the examples:
+      if match("/",cmdname) then cmdname = toAbsolutePath cmdname;
+      tmpf << "-- -*- M2-comint -*- hash: " << inputhash << endl << close; -- must match regular expression below
+-     rundir := temporaryFileName() | "-rundir/";
++     rundir := toString temporaryFilenameCounter | "-rundir/";
++     temporaryFilenameCounter = temporaryFilenameCounter + 1;
+      cmd := ulimit | "cd " | rundir | "; " | env | cmdname | " " | args | " <" | format inf | " >>" | format toAbsolutePath tmpf | " 2>&1";
+      stderr << cmd << endl;
+      makeDirectory rundir;
