@@ -39,32 +39,28 @@ reproducible builds
 -------------------
 * Build paths in documentation ([#1149](
   https://github.com/Macaulay2/M2/issues/1149))
-  - Currently have a patch (`replace-build-path.patch`) which is applied
-    only during build to take care of *some* of these problems.
-  - Remaining problems:
-    + Sometimes `error` returns the filename, and this code lies in the
-      compiled d code, so the current patch won't work (plus I don't
-      understand the d code yet!)
-    + final `--loaded ...` message when loading package with `notify` set
-      to `true` (possible related bug: `database not present` warning
-      in docs -- is that what we want?)
-    + `Core#"private dictionary"#"userpath"` isn't using the `HOME`
-      environment variable I passed in the patch.  What's going on there?
-      (see `path` docs)
-    + `path`
-    + `prefixPath`
-    * `version#"configure arguments"`
-    * `availableOffline` from `ReflexivePolytopesDB` (strangely, the
-       build path appears in the html docs, but outputs aren't appearing
-       when we run `help` -- what's going on?)
-    * `runExternalM2` from `RunExternalM2` (same html-only issue as
-      `availableOffline`)
-    * `gfanInterface#"source file"` from `gfanInterface`
-      (again, html only)
-  - Brainstorming a solution:
-    + Add a command line argument (`--doc-prefix`?) that tells M2 that
-      it needs to swap the current path for the eventual installed path
-      when generating docs?
+* After switching to relative paths at Dan's suggestion, we're down to
+  33 instances.  Problems are:
+  - `HOME` - previously fixed in an earlier patch; we can just set
+     this during build, say `/home/m2user` to match the online interface)
+	 + `Core#"private dictionary"#"userpath"` isn't using the `HOME`
+       environment variable I passed in the patch.  What's going on there?
+       (see `path` docs)
+  - `currentDirectory` - canned example
+  - `PKG#"index.html"` - currently absolute path, which seems like what
+     we want in practice.  canned example?
+  - `database not present` message - use relative path?
+  - `prefixPath`, `realpath`, `toAbsolutePath` - canned example
+  - `loadedFiles` - relative path?
+* I've encountered a bug not present in 1.15.  Some examples
+  exist in html form only.  No corresponding `example-output` file,
+  and when viewed in M2 with `help`, we just get the input command without
+  `i1`:
+  - `loadedFiles`
+  - `version`
+  - `availableOffline` from `ReflexivePolytopesDB`
+  - `runExternalM2` from `RunExternalM2`
+  - `gfanInterface#"source file"` from `gfanInterface`
 
 autopkgtest
 -----------
