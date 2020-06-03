@@ -1027,10 +1027,8 @@ else AC_MSG_RESULT([no, will build])
 fi
 
 AC_MSG_CHECKING(whether the package topcom is installed)
-if test "`type -t points2finetriangs`" = file
-then AC_MSG_RESULT([yes, will build anyway])
-     BUILD_topcom=yes
-     dnl currently the package Topcom uses only the internal Macaulay2 path to run its programs
+if test "`type -t topcom-points2finetriangs`" = file
+then AC_MSG_RESULT([yes])
 else AC_MSG_RESULT([no, will build])
      BUILD_topcom=yes
 fi
