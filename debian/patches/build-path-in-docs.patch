@@ -1,10 +1,10 @@
-Description: Various patches for removing build paths from docs.
+Description: Fix build paths in documentation.
 Author: Doug Torrance <dtorrance@piedmont.edu>
 Last-Update: 2020-06-03
 
 --- a/M2/Macaulay2/d/actors4.d
 +++ b/M2/Macaulay2/d/actors4.d
-@@ -1497,7 +1497,7 @@
+@@ -1500,7 +1500,7 @@
       locate1();
       p := codePosition(c);
       Expr(Sequence(
@@ -13,7 +13,7 @@ Last-Update: 2020-06-03
  	       toExpr(locatedCode.minline),
  	       toExpr(locatedCode.mincol),
  	       toExpr(locatedCode.maxline),
-@@ -1516,7 +1516,7 @@
+@@ -1519,7 +1519,7 @@
  	  then nullE
  	  else Expr(
  	       Sequence(
@@ -22,17 +22,6 @@ Last-Update: 2020-06-03
  		    toExpr(int(p.line)),toExpr(int(p.column)),
  		    toExpr(int(p.line)),toExpr(int(p.column)+length(s.symbol.word.name)),
  		    toExpr(int(p.line)),toExpr(int(p.column))
---- a/M2/Macaulay2/d/startup.m2.in
-+++ b/M2/Macaulay2/d/startup.m2.in
-@@ -54,7 +54,7 @@
-      markLoaded = (fullfilename,origfilename,notify,filetime) -> ( 
- 	  fullfilename = minimizeFilename fullfilename;
- 	  filesLoaded#origfilename = (fullfilename,filetime); 
--	  loadedFiles##loadedFiles = realpath toAbsolutePath fullfilename; 
-+	  loadedFiles##loadedFiles = relativizeFilename fullfilename;
- 	  if notify then stderr << "--loaded " << fullfilename << endl;
- 	  );
-      normalPrompts = () -> (
 --- a/M2/Macaulay2/d/stdiop.d
 +++ b/M2/Macaulay2/d/stdiop.d
 @@ -111,7 +111,7 @@
@@ -46,23 +35,45 @@ Last-Update: 2020-06-03
  threadLocal export SuppressErrors := false;
 --- a/M2/Macaulay2/m2/html.m2
 +++ b/M2/Macaulay2/m2/html.m2
-@@ -472,13 +472,14 @@
-      src := concatenate apply(srcdirs, d -> (" --srcdir ",format d));
-      -- we specify --no-readline because the readline library catches SIGINT:
-      args := "--silent --print-width 77 --stop --int --no-readline" | (if usermode then "" else " -q") | src | setseed | ldpkg;
--     env := "GC_MAXIMUM_HEAP_SIZE=400M ";
-+     env := "GC_MAXIMUM_HEAP_SIZE=400M HOME=/home/m2user ";
-      cmdname := commandLine#0;
-      -- must convert a relative path to an absolute path so we can run the same M2 from another directory while
-      -- running the examples:
-      if match("/",cmdname) then cmdname = toAbsolutePath cmdname;
+@@ -501,7 +501,8 @@
+      if fileExists outf then removeFile outf;
+      pkgname := toString pkg;
       tmpf << "-- -*- M2-comint -*- hash: " << inputhash << endl << close; -- must match regular expression below
 -     rundir := temporaryFileName() | "-rundir/";
 +     rundir := toString temporaryFilenameCounter | "-rundir/";
 +     temporaryFilenameCounter = temporaryFilenameCounter + 1;
-      cmd := ulimit | "cd " | rundir | "; " | env | cmdname | " " | args | " <" | format inf | " >>" | format toAbsolutePath tmpf | " 2>&1";
-      stderr << cmd << endl;
       makeDirectory rundir;
+      -* The bits in the binary representation of argmode determine arguments to add.
+         If the 64th bit is set, argumentMode modifies the defaultMode rather than overriding them. *-
+@@ -513,6 +514,7 @@
+      cmd = cmd | readmode(GCMAXHEAP,      "GC_MAXIMUM_HEAP_SIZE=400M");
+      cmd = cmd | readmode(GCSTATS,        "GC_PRINT_STATS=1");
+      cmd = cmd | readmode(GCVERBOSE,      "GC_PRINT_VERBOSE_STATS=1");
++     cmd = cmd | " HOME=/home/m2user";
+      cmd = cmd | " " | format toAbsolutePath commandLine#0;
+      if argmode =!= defaultMode and not usermode then
+      cmd = cmd | readmode(ArgQ,           "-q");
+--- a/M2/Macaulay2/m2/startup.m2.in
++++ b/M2/Macaulay2/m2/startup.m2.in
+@@ -51,7 +51,7 @@
+      markLoaded = (fullfilename,origfilename,notify,filetime) -> ( 
+ 	  fullfilename = minimizeFilename fullfilename;
+ 	  filesLoaded#origfilename = (fullfilename,filetime); 
+-	  loadedFiles##loadedFiles = realpath toAbsolutePath fullfilename; 
++	  loadedFiles##loadedFiles = relativizeFilename fullfilename;
+ 	  if notify then stderr << "--loaded " << fullfilename << endl;
+ 	  );
+      normalPrompts = () -> (
+--- a/M2/Macaulay2/packages/=distributed-packages
++++ b/M2/Macaulay2/packages/=distributed-packages
+@@ -1,6 +1,6 @@
+ Style
+-Macaulay2Doc
+ FirstPackage
++Macaulay2Doc
+ Parsing
+ Classic
+ Browse
 --- a/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
 +++ b/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
 @@ -1090,9 +1090,8 @@
@@ -152,3 +163,19 @@ Last-Update: 2020-06-03
       SeeAlso => {"commandLine", "Invoking the program", applicationDirectory, "prefixDirectory", "path", searchPath, load, loadPackage, needsPackage}
       }
  
+--- a/M2/Macaulay2/packages/Makefile.in
++++ b/M2/Macaulay2/packages/Makefile.in
+@@ -84,9 +84,11 @@
+ endif
+ $(foreach i, $(PACKAGES), $(eval all: all-$i) $(eval install: install-$i))
+ 
+-# make packages Style and Macaulay2Doc get installed before the others:
++# make packages Style, FirstPackage, and Macaulay2Doc get installed
++# before the others:
+ $(foreach i, $(patsubst Style,,$(ALL_PACKAGES)), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/Style/.installed))
+-$(foreach i, $(patsubst Macaulay2Doc,,$(patsubst Style,,$(ALL_PACKAGES))), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/Macaulay2Doc/.installed))
++$(foreach i, $(patsubst FirstPackage,,$(patsubst Style,,$(ALL_PACKAGES))), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/FirstPackage/.installed))
++$(foreach i, $(patsubst Macaulay2Doc,,$(patsubst FirstPackage,,$(patsubst Style,,$(ALL_PACKAGES)))), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/Macaulay2Doc/.installed))
+ 
+ # the Info-validate function doesn't work well enough to be useful:
+ # check::check-info
