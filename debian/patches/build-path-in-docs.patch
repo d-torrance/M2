@@ -82,15 +82,6 @@ Subject: [PATCH] foo
  threadLocal export SuppressErrors := false;
 --- a/M2/Macaulay2/m2/html.m2
 +++ b/M2/Macaulay2/m2/html.m2
-@@ -51,7 +51,7 @@
- 
- runfun := o -> if instance(o, Function) then o() else o
- initInstallDirectory := o -> (
--     installPrefix = realpath toAbsolutePath(runfun o.InstallPrefix);
-+     installPrefix = relativizeFilename(runfun o.InstallPrefix);
-      if not match("/$",installPrefix) then installPrefix = installPrefix | "/";
-      installLayoutIndex = detectCurrentLayout installPrefix;
-      if installLayoutIndex === null then installLayoutIndex = if o.SeparateExec then 2 else 1;
 @@ -501,7 +501,8 @@
       if fileExists outf then removeFile outf;
       pkgname := toString pkg;
@@ -101,17 +92,6 @@ Subject: [PATCH] foo
       makeDirectory rundir;
       -* The bits in the binary representation of argmode determine arguments to add.
          If the 64th bit is set, argumentMode modifies the defaultMode rather than overriding them. *-
---- a/M2/Macaulay2/m2/packages.m2
-+++ b/M2/Macaulay2/m2/packages.m2
-@@ -252,7 +252,7 @@
- 	  "example results" => new MutableHashTable,
- 	  "source directory" => toAbsolutePath currentFileDirectory,
- 	  if opts.AuxiliaryFiles then "auxiliary files" => toAbsolutePath currentFileDirectory | pkgname | "/",
--	  "source file" => toAbsolutePath currentFileName,
-+	  "source file" => relativizeFilename currentFileName,
- 	  "undocumented keys" => new MutableHashTable,
- 	  if packagePrefix =!= null then ("package prefix" => packagePrefix)
- 	  };
 --- a/M2/Macaulay2/m2/startup.m2.in
 +++ b/M2/Macaulay2/m2/startup.m2.in
 @@ -51,7 +51,7 @@
