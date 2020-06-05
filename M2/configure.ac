@@ -416,6 +416,7 @@ test "$DEBUG" = "yes" && ENABLE_STRIP=no
 AC_SUBST(MEMDEBUG,no)  AC_ARG_ENABLE(memdebug, AS_HELP_STRING(--enable-memdebug,enable memory allocation debugging), MEMDEBUG=$enableval)
 AC_SUBST(ENCAP,no)     AC_ARG_ENABLE(encap, AS_HELP_STRING(--enable-encap,encapsulate all files in a subdirectory at installation time), ENCAP=$enableval)
 AC_SUBST(XCODE,no)     AC_ARG_ENABLE(xcode, AS_HELP_STRING(--enable-xcode,create Macaulay2/d/interpret.a for use with xcode), XCODE=$enableval)
+AC_SUBST(BUILD_DOCS,yes) AC_ARG_ENABLE(build-docs, AS_HELP_STRING(--enable-build-docs,build documentation), BUILD_DOCS=$enableval)
 
 AC_SUBST(CC_THREAD_SUPPORT)
 AC_MSG_CHECKING(whether the C compiler accepts the __thread storage attribute)
