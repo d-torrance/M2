@@ -1,7 +1,54 @@
-Description: Fix build paths in documentation.
-Author: Doug Torrance <dtorrance@piedmont.edu>
-Last-Update: 2020-06-03
+From d01c8f4ec56260f10944b57f882ddb6692b4ba72 Mon Sep 17 00:00:00 2001
+From: Doug Torrance <dtorrance@piedmont.edu>
+Date: Thu, 4 Jun 2020 20:53:13 -0400
+Subject: [PATCH] foo
 
+---
+ M2/Macaulay2/d/actors2.dd                         |  9 ++++++---
+ M2/Macaulay2/d/actors4.d                          |  4 ++--
+ M2/Macaulay2/d/stdiop.d                           |  2 +-
+ M2/Macaulay2/m2/html.m2                           |  5 +++--
+ M2/Macaulay2/m2/packages.m2                       |  2 +-
+ M2/Macaulay2/m2/startup.m2.in                     |  2 +-
+ M2/Macaulay2/packages/=distributed-packages       |  2 +-
+ M2/Macaulay2/packages/Macaulay2Doc/doc2.m2        |  5 ++---
+ M2/Macaulay2/packages/Macaulay2Doc/doc3.m2        |  5 ++---
+ .../Macaulay2Doc/functions/realpath-doc.m2        | 10 ++++++----
+ M2/Macaulay2/packages/Macaulay2Doc/overview3.m2   | 15 ++++++++++++---
+ M2/Macaulay2/packages/Makefile.in                 |  8 +++++---
+ 12 files changed, 42 insertions(+), 27 deletions(-)
+
+--- a/M2/Macaulay2/d/actors2.dd
++++ b/M2/Macaulay2/d/actors2.dd
+@@ -27,14 +27,16 @@
+ dbmopenin(e:Expr):Expr := (
+      when e
+      is a:stringCell do (
+-	  if notify then stderr << "--opening database " << a.v << endl;
++	  if notify then stderr << "--opening database " <<
++	       relativizeFilename(a.v) << endl;
+ 	  dbmopenin(a.v))
+      else buildErrorPacket("expected a string as filename"));
+ setupfun("openDatabase",dbmopenin);
+ dbmopenout(e:Expr):Expr := (
+      when e
+      is a:stringCell do (
+-	  if notify then stderr << "--opening database for output " << a.v << endl;
++	  if notify then stderr << "--opening database for output " <<
++	       relativizeFilename(a.v) << endl;
+ 	  dbmopenout(a.v))
+      else buildErrorPacket("expected a string as filename"));
+ setupfun("openDatabaseOut",dbmopenout);
+@@ -484,7 +486,8 @@
+ 	  g)
+      is f:file do when close(f) is m:errmsg do buildErrorPacket(m.message) else g
+      is x:Database do (
+-	  if notify then stderr << "--closing database " << x.filename << endl;
++	  if notify then stderr << "--closing database " <<
++	       relativizeFilename(x.filename) << endl;
+ 	  dbmclose(x))
+      else buildErrorPacket("expected a file or database"));
+ setupfun("close",close).Protected = false;
 --- a/M2/Macaulay2/d/actors4.d
 +++ b/M2/Macaulay2/d/actors4.d
 @@ -1500,7 +1500,7 @@
@@ -35,6 +82,15 @@ Last-Update: 2020-06-03
  threadLocal export SuppressErrors := false;
 --- a/M2/Macaulay2/m2/html.m2
 +++ b/M2/Macaulay2/m2/html.m2
+@@ -51,7 +51,7 @@
+ 
+ runfun := o -> if instance(o, Function) then o() else o
+ initInstallDirectory := o -> (
+-     installPrefix = realpath toAbsolutePath(runfun o.InstallPrefix);
++     installPrefix = relativizeFilename(runfun o.InstallPrefix);
+      if not match("/$",installPrefix) then installPrefix = installPrefix | "/";
+      installLayoutIndex = detectCurrentLayout installPrefix;
+      if installLayoutIndex === null then installLayoutIndex = if o.SeparateExec then 2 else 1;
 @@ -501,7 +501,8 @@
       if fileExists outf then removeFile outf;
       pkgname := toString pkg;
@@ -45,14 +101,17 @@ Last-Update: 2020-06-03
       makeDirectory rundir;
       -* The bits in the binary representation of argmode determine arguments to add.
          If the 64th bit is set, argumentMode modifies the defaultMode rather than overriding them. *-
-@@ -513,6 +514,7 @@
-      cmd = cmd | readmode(GCMAXHEAP,      "GC_MAXIMUM_HEAP_SIZE=400M");
-      cmd = cmd | readmode(GCSTATS,        "GC_PRINT_STATS=1");
-      cmd = cmd | readmode(GCVERBOSE,      "GC_PRINT_VERBOSE_STATS=1");
-+     cmd = cmd | " HOME=/home/m2user";
-      cmd = cmd | " " | format toAbsolutePath commandLine#0;
-      if argmode =!= defaultMode and not usermode then
-      cmd = cmd | readmode(ArgQ,           "-q");
+--- a/M2/Macaulay2/m2/packages.m2
++++ b/M2/Macaulay2/m2/packages.m2
+@@ -252,7 +252,7 @@
+ 	  "example results" => new MutableHashTable,
+ 	  "source directory" => toAbsolutePath currentFileDirectory,
+ 	  if opts.AuxiliaryFiles then "auxiliary files" => toAbsolutePath currentFileDirectory | pkgname | "/",
+-	  "source file" => toAbsolutePath currentFileName,
++	  "source file" => relativizeFilename currentFileName,
+ 	  "undocumented keys" => new MutableHashTable,
+ 	  if packagePrefix =!= null then ("package prefix" => packagePrefix)
+ 	  };
 --- a/M2/Macaulay2/m2/startup.m2.in
 +++ b/M2/Macaulay2/m2/startup.m2.in
 @@ -51,7 +51,7 @@
@@ -165,6 +224,15 @@ Last-Update: 2020-06-03
  
 --- a/M2/Macaulay2/packages/Makefile.in
 +++ b/M2/Macaulay2/packages/Makefile.in
+@@ -61,7 +61,7 @@
+ 	$$(WHY)
+ 	$(MKDIR_P) $1-temporary
+ 	@echo "make: Entering directory \`$(shell pwd)/$1-temporary'"
+-	cd $1-temporary && @pre_bindir@/M2 $(M2DIRS) \
++	cd $1-temporary && HOME=/home/m2user @pre_bindir@/M2 $(M2DIRS) \
+ 	    -q $(STOP) \
+ 	    -e errorDepth=$(errorDepth) \
+ 	    -e debugLevel=$(debugLevel) \
 @@ -84,9 +84,11 @@
  endif
  $(foreach i, $(PACKAGES), $(eval all: all-$i) $(eval install: install-$i))
