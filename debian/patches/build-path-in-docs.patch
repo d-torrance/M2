@@ -1,14 +1,13 @@
-From d01c8f4ec56260f10944b57f882ddb6692b4ba72 Mon Sep 17 00:00:00 2001
+From be16d490ef3892d559af4bf392f6be77326926cd Mon Sep 17 00:00:00 2001
 From: Doug Torrance <dtorrance@piedmont.edu>
-Date: Thu, 4 Jun 2020 20:53:13 -0400
+Date: Fri, 5 Jun 2020 21:24:55 -0400
 Subject: [PATCH] foo
 
 ---
  M2/Macaulay2/d/actors2.dd                         |  9 ++++++---
  M2/Macaulay2/d/actors4.d                          |  4 ++--
  M2/Macaulay2/d/stdiop.d                           |  2 +-
- M2/Macaulay2/m2/html.m2                           |  5 +++--
- M2/Macaulay2/m2/packages.m2                       |  2 +-
+ M2/Macaulay2/m2/html.m2                           |  6 +++---
  M2/Macaulay2/m2/startup.m2.in                     |  2 +-
  M2/Macaulay2/packages/=distributed-packages       |  2 +-
  M2/Macaulay2/packages/Macaulay2Doc/doc2.m2        |  5 ++---
@@ -16,7 +15,9 @@ Subject: [PATCH] foo
  .../Macaulay2Doc/functions/realpath-doc.m2        | 10 ++++++----
  M2/Macaulay2/packages/Macaulay2Doc/overview3.m2   | 15 ++++++++++++---
  M2/Macaulay2/packages/Makefile.in                 |  8 +++++---
- 12 files changed, 42 insertions(+), 27 deletions(-)
+ M2/Macaulay2/packages/ReflexivePolytopesDB.m2     |  2 +-
+ M2/Macaulay2/packages/RunExternalM2.m2            |  2 +-
+ 13 files changed, 43 insertions(+), 29 deletions(-)
 
 --- a/M2/Macaulay2/d/actors2.dd
 +++ b/M2/Macaulay2/d/actors2.dd
@@ -82,7 +83,24 @@ Subject: [PATCH] foo
  threadLocal export SuppressErrors := false;
 --- a/M2/Macaulay2/m2/html.m2
 +++ b/M2/Macaulay2/m2/html.m2
-@@ -501,7 +501,8 @@
+@@ -51,7 +51,7 @@
+ 
+ runfun := o -> if instance(o, Function) then o() else o
+ initInstallDirectory := o -> (
+-     installPrefix = realpath toAbsolutePath(runfun o.InstallPrefix);
++     installPrefix = relativizeFilename(runfun o.InstallPrefix);
+      if not match("/$",installPrefix) then installPrefix = installPrefix | "/";
+      installLayoutIndex = detectCurrentLayout installPrefix;
+      if installLayoutIndex === null then installLayoutIndex = if o.SeparateExec then 2 else 1;
+@@ -127,7 +127,6 @@
+ 	       ));
+      if layout === null then error ("package ",pkgname," is not installed on the prefixPath");
+      tail := replace("PKG",pkgname,layout#"packagehtml") | basefilename;
+-     assert isAbsolutePath prefix;
+      (prefix,tail)					    -- this pair will be processed by toURL(String,String)
+      )
+ htmlFilename Thing := x -> htmlFilename makeDocumentTag x
+@@ -501,7 +500,8 @@
       if fileExists outf then removeFile outf;
       pkgname := toString pkg;
       tmpf << "-- -*- M2-comint -*- hash: " << inputhash << endl << close; -- must match regular expression below
@@ -227,3 +245,25 @@ Subject: [PATCH] foo
  
  # the Info-validate function doesn't work well enough to be useful:
  # check::check-info
+--- a/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
++++ b/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
+@@ -134,7 +134,7 @@
+     hashTable for k in keys offlines list (
+         val := offlines#k;
+         (maxlimit, filename) := if instance(val, Sequence) then val else (infinity, val);
+-        actualfile := offlineDirectory | filename;
++        actualfile := relativizeFilename(offlineDirectory | filename);
+         fcncall := if instance(k, ZZ) then (
+           "kreuzerSkarke("|k|
+             (if maxlimit === infinity then ")" else ", Limit => "|maxlimit|")")
+--- a/M2/Macaulay2/packages/RunExternalM2.m2
++++ b/M2/Macaulay2/packages/RunExternalM2.m2
+@@ -760,7 +760,7 @@
+ 	);	
+ 	if (M2Loc===null) then (
+ 		-- TODO, do we need rootPath for Cygwin?
+-		M2Loc=toAbsolutePath(first(commandLine));
++		M2Loc=relativizeFilename(first(commandLine));
+ 	);
+ 	if not(fileExists(M2Loc)) then (
+ 		error "runExternalM2: error finding location of M2 program; check M2Location option";
