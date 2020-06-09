@@ -907,7 +907,7 @@ then AC_LANG(C)
      AC_CHECK_HEADER(flint/flint.h,LIBS="-lflint -lgmp $LIBS",BUILD_flint=yes)
 fi
 if test $BUILD_flint = yes
-then BUILTLIBS="-lflint $BUILTLIBS"
+then BUILTLIBS="-lflint $BUILTLIBS -lm"
 fi
 
 dnl we can't use the test below for the presence of 4ti2 until the package FourTiTwo knows
@@ -1013,9 +1013,11 @@ then
     then
         CPPFLAGS="$GTEST_CPPFLAGS $CPPFLAGS"
         GTEST_PATH=$GTEST_SOURCE
+	AC_MSG_NOTICE(we have found gtest)
     else
         BUILD_gtest=yes
         GTEST_PATH="\$(BUILTLIBPATH)/include/gtest"
+	AC_MSG_NOTICE(we will build gtest)
     fi
 else
     GTEST_PATH="\$(BUILTLIBPATH)/include/gtest"
@@ -1154,9 +1156,10 @@ fi
 # test for fflas_ffpack
 if test $BUILD_fflas_ffpack = no
 then AC_MSG_CHECKING([for fflas_ffpack library, version at least 2])
-     FFLAS_FFPACK_CXXFLAGS=`fflas-ffpack-config --cflags 2>&1`
      if test $? = 0 && test "`fflas-ffpack-config --decimal-version`" -gt 20000
      then AC_MSG_RESULT(found)
+          FFLAS_FFPACK_CXXFLAGS=$(for x in $(fflas-ffpack-config --cflags 2>&1) ; do case $x in (-I*) echo -n "$x " ;; esac done)
+	  AC_MSG_NOTICE([adding fflas_ffpack flags $FFLAS_FFPACK_CXXFLAGS])
           M2_CXXFLAGS="$M2_CXXFLAGS $FFLAS_FFPACK_CXXFLAGS"
 	  LIBS="$LIBS `fflas-ffpack-config --libs`"
      else AC_MSG_RESULT(not found, will build)
@@ -1402,9 +1405,12 @@ AC_PREPROC_IFELSE(
    [AC_LANG_SOURCE([[
 	#include <libxml2/libxml/xmlexports.h>
 	]])],
-   LIBXML_LOCATION=` grep libxml2/libxml/xmlexports.h conftest.i | sed 's=.* "\(.*\)/libxml/xmlexports.h.*=\1=' `)
-AC_MSG_NOTICE(found in libxml2: will search for include files also in $LIBXML_LOCATION)
-CPPFLAGS="-isystem $LIBXML_LOCATION $CPPFLAGS"
+   [ LIBXML_LOCATION=` grep libxml2/libxml/xmlexports.h conftest.i | sed 's=.* "\(.*\)/libxml/xmlexports.h.*=\1=' `
+     AC_MSG_NOTICE(libxml found in libxml2: will search for include files also in $LIBXML_LOCATION)
+     CPPFLAGS="-isystem $LIBXML_LOCATION $CPPFLAGS"
+     ]
+   )
+
 AC_CHECK_HEADERS(libxml/xmlexports.h libxml/parser.h)
 
 AC_SEARCH_LIBS(pow,m,,AC_MSG_ERROR(libm not found or not linkable))
@@ -1533,7 +1539,7 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() {}])],
     CXXFLAGS="$CXXFLAGS -Wno-mismatched-tags"
     dnl We don't like seeing this warning, especially from the "clang++" compiler, because
     dnl we like using "struct" and "class" interchangeably.
-    AC_MSG_RESULT(yes, adding -Wno-mismatched-tags to flags),
+    AC_MSG_RESULT([[yes, adding -Wno-mismatched-tags to flags]]),
     CXXFLAGS=$SAVE
     AC_MSG_RESULT(no))
 
