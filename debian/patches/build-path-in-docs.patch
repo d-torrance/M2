@@ -1,25 +1,21 @@
-From ef84443d59d780affaf6d966c0b341683cd41d01 Mon Sep 17 00:00:00 2001
+From adb8c317146c1e9d3974f9395fccf531a13a3310 Mon Sep 17 00:00:00 2001
 From: Doug Torrance <dtorrance@piedmont.edu>
-Date: Sun, 7 Jun 2020 09:14:56 -0400
+Date: Tue, 9 Jun 2020 11:08:09 -0400
 Subject: [PATCH] foo
 
 ---
- M2/Macaulay2/d/actors2.dd                         |  9 ++++++---
- M2/Macaulay2/d/actors4.d                          |  4 ++--
- M2/Macaulay2/d/stdiop.d                           |  2 +-
- M2/Macaulay2/m2/html.m2                           |  3 ++-
- M2/Macaulay2/m2/startup.m2.in                     |  2 +-
- M2/Macaulay2/packages/=distributed-packages       |  2 +-
- M2/Macaulay2/packages/Macaulay2Doc/doc2.m2        |  5 ++---
- M2/Macaulay2/packages/Macaulay2Doc/doc3.m2        |  5 ++---
- .../Macaulay2Doc/functions/endPackage-doc.m2      |  1 -
- .../Macaulay2Doc/functions/realpath-doc.m2        |  9 +++++----
- M2/Macaulay2/packages/Macaulay2Doc/overview3.m2   | 15 ++++++++++++---
- M2/Macaulay2/packages/Makefile.in                 |  8 +++++---
- M2/Macaulay2/packages/ReflexivePolytopesDB.m2     |  2 +-
- M2/Macaulay2/packages/RunExternalM2.m2            |  2 +-
- M2/Macaulay2/packages/gfanInterface.m2            | 14 --------------
- 15 files changed, 41 insertions(+), 42 deletions(-)
+ M2/Macaulay2/d/actors2.dd                          |  9 ++++++---
+ M2/Macaulay2/d/actors4.d                           |  4 ++--
+ M2/Macaulay2/d/stdiop.d                            |  2 +-
+ M2/Macaulay2/m2/document.m2                        |  3 +++
+ M2/Macaulay2/m2/html.m2                            |  3 ++-
+ M2/Macaulay2/m2/startup.m2.in                      |  2 +-
+ .../Macaulay2Doc/functions/endPackage-doc.m2       |  1 -
+ M2/Macaulay2/packages/Makefile.in                  |  2 +-
+ M2/Macaulay2/packages/ReflexivePolytopesDB.m2      |  2 +-
+ M2/Macaulay2/packages/RunExternalM2.m2             |  2 +-
+ M2/Macaulay2/packages/gfanInterface.m2             | 14 --------------
+ 11 files changed, 18 insertions(+), 26 deletions(-)
 
 --- a/M2/Macaulay2/d/actors2.dd
 +++ b/M2/Macaulay2/d/actors2.dd
@@ -83,6 +79,18 @@ Subject: [PATCH] foo
  export (o:file) << (w:Position) : file := o << tostring(w);
  export (o:BasicFile) << (w:Position) : BasicFile := o << tostring(w);
  threadLocal export SuppressErrors := false;
+--- a/M2/Macaulay2/m2/document.m2
++++ b/M2/Macaulay2/m2/document.m2
+@@ -536,6 +536,9 @@
+ M2outputREindex := 1
+ separateM2output = method()
+ separateM2output String := r -> (
++     -- replace paths for reproducible documentation
++     r = replace(currentDirectory(), "/home/m2user/", r);
++     r = replace(prefixDirectory, "/usr/", r);
+      m := regex("^i1 : ",r);
+      if m#?0 then r = substring(m#0#0,r);
+      while r#?-1 and r#-1 == "\n" do r = substring(0,#r-1,r);
 --- a/M2/Macaulay2/m2/html.m2
 +++ b/M2/Macaulay2/m2/html.m2
 @@ -501,7 +501,8 @@
@@ -106,114 +114,6 @@ Subject: [PATCH] foo
  	  if notify then stderr << "--loaded " << fullfilename << endl;
  	  );
       normalPrompts = () -> (
---- a/M2/Macaulay2/packages/=distributed-packages
-+++ b/M2/Macaulay2/packages/=distributed-packages
-@@ -1,6 +1,6 @@
- Style
--Macaulay2Doc
- FirstPackage
-+Macaulay2Doc
- Parsing
- Classic
- Browse
---- a/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
-+++ b/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
-@@ -1090,9 +1090,8 @@
-      Outputs => {
- 	  "the complete path to the current directory, together with an extra slash"
- 	  },
--     EXAMPLE lines ///
--     currentDirectory()
--     ///,
-+     EXAMPLE {PRE("i1 : currentDirectory()" | newline | newline |
-+	  "o1 = /home/m2user/")},
-      PARA {
- 	  "If a component of the path to the current directory no longer exist, an error will be signalled."
- 	  }
---- a/M2/Macaulay2/packages/Macaulay2Doc/doc3.m2
-+++ b/M2/Macaulay2/packages/Macaulay2Doc/doc3.m2
-@@ -1425,9 +1425,8 @@
-      Outputs => {
- 	  String => {"the absolute (real) path name of ", TT "filename"}
- 	  },
--     EXAMPLE lines ///
--         toAbsolutePath "a/b.m2"
--     ///,
-+     EXAMPLE {PRE(///i1 : toAbsolutePath "a/b.m2"/// | newline | newline |
-+	  ///o1 = /home/m2user/a/b.m2 ///)},
-      PARA {
- 	  "Paths of the form ", TT "foo/x/../bar", ", are shortened to ", TT "foo/bar", " without
- 	  checking the file system to see whether ", TT "x", " is a symbolic link.  For the other
---- a/M2/Macaulay2/packages/Macaulay2Doc/functions/endPackage-doc.m2
-+++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/endPackage-doc.m2
-@@ -15,7 +15,6 @@
- 	  abc = 3
- 	  dictionaryPath
- 	  endPackage "Foo"
--	  peek oo
- 	  dictionaryPath
- 	  abc
-      ///
---- a/M2/Macaulay2/packages/Macaulay2Doc/functions/realpath-doc.m2
-+++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/realpath-doc.m2
-@@ -9,8 +9,7 @@
-      Inputs => { "fn" => String => "a filename, or path to a file" },
-      Outputs => { String => { "a pathname to ", TT "fn", " passing through no symbolic links, and
- 	       ending with a slash if ", TT "fn", " refers to a directory" }},
--     EXAMPLE lines ///
--     	  realpath "."
-+     EXAMPLE (lines ///
-      	  p = temporaryFileName()
- 	  q = temporaryFileName()
- 	  symlinkFile(p,q)
-@@ -19,11 +18,13 @@
- 	  realpath q
- 	  removeFile p
- 	  removeFile q
--     ///,
-+     /// | {PRE(///i9 : realpath "."/// | newline | newline |
-+	  ///o9 = /home/m2user/ ///)}),
-      PARA {
- 	  "The empty string is interpreted as a reference to the current directory."
- 	  },
--     EXAMPLE ///realpath ""///,
-+     EXAMPLE {PRE(///i10 : realpath ""/// | newline | newline |
-+	  ///o10 = /home/m2user/ ///)},
-      SeeAlso => {readlink},
-      Caveat => {
- 	  "Every component of the path must exist in the file system and be accessible to the user.
---- a/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
-+++ b/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
-@@ -419,17 +419,26 @@
- 	  "The following example shows the list of places where we might find the source code of a package called ", TT "Foo", "
- 	  after it has been installed by ", TO "installPackage", "."
- 	  },
--     EXAMPLE ///stack apply(prefixPath, p -> p | Layout#1#"packages" | "Foo.m2")///,
-+     EXAMPLE {PRE(
-+	  ///i1 : stack apply(prefixPath, p -> p | Layout#1#"packages" | "Foo.m2")///
-+	  | newline | newline | ///o1 = /home/m2user/.Macaulay2/local/share/Macaulay2/Foo.m2///
-+	  | newline | ///     /usr/share/Macaulay2/Foo.m2///)},
-      PARA {
-      	  "This example shows the list of places where we might reasonably find the html file documenting a
- 	  function named ", TT "bar", " in a package called ", TT "Foo", "."
- 	  },
--     EXAMPLE ///stack apply(prefixPath, p -> p | replace("PKG","Foo",Layout#1#"packagehtml") | "bar.html")///,
-+     EXAMPLE {PRE(
-+	  ///i2 : stack apply(prefixPath, p -> p | replace("PKG","Foo",Layout#1#"packagehtml") | "bar.html")///
-+	  | newline | newline | ///o2 = /home/m2user/.Macaulay2/local/share/doc/Macaulay2/Foo/html/bar.html///
-+	  | newline | ///     /usr/share/doc/Macaulay2/Foo/html/bar.html///)},
-      PARA {
-      	  "This example shows the list of places where we might reasonably find the info file documenting a
- 	  package called ", TT "Foo", "."
- 	  },
--     EXAMPLE ///stack apply(prefixPath, p -> p | Layout#1#"info" | "Foo.info")///,
-+     EXAMPLE {PRE(
-+	  ///i3 : stack apply(prefixPath, p -> p | Layout#1#"info" | "Foo.info")///
-+	  | newline | newline | ///o3 = /home/m2user/.Macaulay2/local/share/info/Foo.info///
-+	  | newline | ///     /usr/share/info/Foo.info///)},
-      SeeAlso => {"commandLine", "Invoking the program", applicationDirectory, "prefixDirectory", "path", searchPath, load, loadPackage, needsPackage}
-      }
- 
 --- a/M2/Macaulay2/packages/Makefile.in
 +++ b/M2/Macaulay2/packages/Makefile.in
 @@ -61,7 +61,7 @@
@@ -225,20 +125,6 @@ Subject: [PATCH] foo
  	    -q $(STOP) \
  	    -e errorDepth=$(errorDepth) \
  	    -e debugLevel=$(debugLevel) \
-@@ -84,9 +84,11 @@
- endif
- $(foreach i, $(PACKAGES), $(eval all: all-$i) $(eval install: install-$i))
- 
--# make packages Style and Macaulay2Doc get installed before the others:
-+# make packages Style, FirstPackage, and Macaulay2Doc get installed
-+# before the others:
- $(foreach i, $(patsubst Style,,$(ALL_PACKAGES)), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/Style/.installed))
--$(foreach i, $(patsubst Macaulay2Doc,,$(patsubst Style,,$(ALL_PACKAGES))), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/Macaulay2Doc/.installed))
-+$(foreach i, $(patsubst FirstPackage,,$(patsubst Style,,$(ALL_PACKAGES))), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/FirstPackage/.installed))
-+$(foreach i, $(patsubst Macaulay2Doc,,$(patsubst FirstPackage,,$(patsubst Style,,$(ALL_PACKAGES)))), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/Macaulay2Doc/.installed))
- 
- # the Info-validate function doesn't work well enough to be useful:
- # check::check-info
 --- a/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
 +++ b/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
 @@ -134,7 +134,7 @@
@@ -261,19 +147,3 @@ Subject: [PATCH] foo
  	);
  	if not(fileExists(M2Loc)) then (
  		error "runExternalM2: error finding location of M2 program; check M2Location option";
---- a/M2/Macaulay2/packages/gfanInterface.m2
-+++ b/M2/Macaulay2/packages/gfanInterface.m2
-@@ -2642,13 +2642,6 @@
- 			{\tt gfanInterface.m2} either before installing or in the installed copy.
- 			You will find the path configuration near the top of the file.
- 
--			If {\tt gfanInterface} is already installed and loaded, you can find the path
--			of the source file by the following command:
--
--		Example
--			gfanInterface#"source file"
--
--		Text
- 			If you would like to see the input and output files used to communicate with {\tt gfan}
- 			you can set the {\tt "keepfiles"} configuration option to {\tt true}. If {\tt "verbose"}
- 			is set to {\tt true}, {\tt gfanInterface} will output the names of the temporary files used.
