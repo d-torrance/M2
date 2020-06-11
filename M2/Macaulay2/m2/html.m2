@@ -501,7 +501,8 @@ runFile := (inf,inputhash,outf,tmpf,desc,pkg,announcechange,usermode,examplefile
      if fileExists outf then removeFile outf;
      pkgname := toString pkg;
      tmpf << "-- -*- M2-comint -*- hash: " << inputhash << endl << close; -- must match regular expression below
-     rundir := temporaryFileName() | "-rundir/";
+     rundir := toString temporaryFilenameCounter | "-rundir/";
+     temporaryFilenameCounter = temporaryFilenameCounter + 1;
      makeDirectory rundir;
      -* The bits in the binary representation of argmode determine arguments to add.
         If the 64th bit is set, argumentMode modifies the defaultMode rather than overriding them. *-
@@ -771,7 +772,6 @@ installPackage Package := opts -> pkg -> (
 
 	  -- cache raw documentation in database, and check for changes
 	  rawDocUnchanged := new MutableHashTable;
-	  libDir := pkg#"package prefix" | replace("PKG",pkg#"pkgname",installLayout#"packagelib");
 	  rawdbname := databaseFilename(installLayout,pkg#"package prefix",pkg#"pkgname");
 	  rawdbnametmp := rawdbname | ".tmp";
 	  if verbose then stderr << "--storing raw documentation in " << rawdbname << endl;
@@ -1076,6 +1076,7 @@ installPackage Package := opts -> pkg -> (
      -- all done
      SRC = null;
      if not hadExampleError then (
+ 	  libDir := pkg#"package prefix" | replace("PKG",pkg#"pkgname",installLayout#"packagelib");
 	  iname := libDir|".installed";
 	  iname << close;
 	  if verbose then stderr << "--file created: " << iname << endl;
