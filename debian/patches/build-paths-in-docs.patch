@@ -1,0 +1,56 @@
+From a202c25f58be037546376c2d42dbde2b7ca38562 Mon Sep 17 00:00:00 2001
+From: Doug Torrance <dtorrance@piedmont.edu>
+Date: Tue, 9 Jun 2020 10:58:40 -0400
+Subject: [PATCH] foo
+
+---
+ M2/Macaulay2/m2/html.m2       | 26 +++++++++++++++++++++++++-
+ M2/Macaulay2/m2/startup.m2.in |  2 ++
+ 2 files changed, 27 insertions(+), 1 deletion(-)
+
+--- a/M2/Macaulay2/m2/html.m2
++++ b/M2/Macaulay2/m2/html.m2
+@@ -868,7 +868,31 @@
+ 			      )
+ 			 );
+ 		    -- read, separate, and store example output
+-		    if fileExists outf then pkg#"example results"#fkey = drop(separateM2output get outf,-1)
++		    if fileExists outf then (
++			outstr := get outf;
++			if match("/", outstr) then (
++			    print(" =================== ");
++			    print(" == POSSIBLE PATH == ");
++			    print(" =================== ");
++			    print("");
++			    print(" ======================");
++			    print(" == ORIGINAL VERSION == ");
++			    print(" ======================");
++			    print(outstr);
++			    print("");
++			    -- replace some absolute paths for reproducible documentation
++			    outstr = replace("[.|/][^\0]+/m2",
++				finalPrefix | Layout#1#"packages" | "Core",
++				outstr);
++			    print(" =================");
++			    print(" == NEW VERSION == ");
++			    print(" =================");
++			    print(outstr);
++			    print("");
++			    outf << outstr << close;
++			    );
++			pkg#"example results"#fkey = drop(separateM2output outstr,-1)
++			 )
+ 		    else (
+ 			 if debugLevel > 1 then stderr << "--warning: missing file " << outf << endl;
+ 			 )
+--- a/M2/Macaulay2/m2/startup.m2.in
++++ b/M2/Macaulay2/m2/startup.m2.in
+@@ -296,6 +296,8 @@
+ 		    replaceStrings("^\\$\\{(pre_)?prefix\\}","common",	    -- as in configure.ac
+ 			 replaceStrings("^\\$\\{(pre_)?exec_prefix\\}",version#"machine", -- as in configure.ac
+ 			      x)))};
++	  finalPrefix = "@prefix@";
++	  if last finalPrefix != "/" then finalPrefix = finalPrefix | "/";
+ 	  );
+      initlayout();
+      )
