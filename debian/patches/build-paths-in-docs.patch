@@ -1,36 +1,56 @@
-From a202c25f58be037546376c2d42dbde2b7ca38562 Mon Sep 17 00:00:00 2001
+From d0bfc5655619535f2e6469c5c5e457f98b257515 Mon Sep 17 00:00:00 2001
 From: Doug Torrance <dtorrance@piedmont.edu>
-Date: Tue, 9 Jun 2020 10:58:40 -0400
+Date: Mon, 15 Jun 2020 14:03:05 -0400
 Subject: [PATCH] foo
 
 ---
- M2/Macaulay2/m2/html.m2       | 26 +++++++++++++++++++++++++-
- M2/Macaulay2/m2/startup.m2.in |  2 ++
- 2 files changed, 27 insertions(+), 1 deletion(-)
+ M2/Macaulay2/m2/exports.m2                    |  1 +
+ M2/Macaulay2/m2/html.m2                       | 25 +++++++++++++++++-
+ M2/Macaulay2/m2/methods.m2                    |  8 ++++++
+ M2/Macaulay2/m2/startup.m2.in                 |  3 ++-
+ .../packages/Macaulay2Doc/functions.m2        |  1 +
+ .../Macaulay2Doc/functions/regex-doc.m2       |  3 ++-
+ .../Macaulay2Doc/functions/toRegex-doc.m2     | 19 ++++++++++++++
+ M2/Macaulay2/tests/normal/regex.m2            | 26 +++++++++++++++++++
+ 8 files changed, 83 insertions(+), 3 deletions(-)
+ create mode 100644 M2/Macaulay2/packages/Macaulay2Doc/functions/toRegex-doc.m2
 
+diff --git a/M2/Macaulay2/m2/exports.m2 b/M2/Macaulay2/m2/exports.m2
+index ec4d55455..b9f557bba 100644
+--- a/M2/Macaulay2/m2/exports.m2
++++ b/M2/Macaulay2/m2/exports.m2
+@@ -1134,6 +1134,7 @@ export {
+ 	"toField",
+ 	"toList",
+ 	"toLower",
++	"toRegex",
+ 	"toRR",
+ 	"toSequence",
+ 	"toString",
+diff --git a/M2/Macaulay2/m2/html.m2 b/M2/Macaulay2/m2/html.m2
+index 870b800f1..bbcd13b5b 100644
 --- a/M2/Macaulay2/m2/html.m2
 +++ b/M2/Macaulay2/m2/html.m2
-@@ -868,7 +868,31 @@
+@@ -868,7 +868,30 @@ installPackage Package := opts -> pkg -> (
  			      )
  			 );
  		    -- read, separate, and store example output
 -		    if fileExists outf then pkg#"example results"#fkey = drop(separateM2output get outf,-1)
 +		    if fileExists outf then (
 +			outstr := get outf;
-+			if match("/", outstr) then (
-+			    print(" =================== ");
-+			    print(" == POSSIBLE PATH == ");
-+			    print(" =================== ");
-+			    print("");
++			srcdir := toRegex toAbsolutePath topSrcdir;
++			if match(srcdir, outstr) then (
 +			    print(" ======================");
 +			    print(" == ORIGINAL VERSION == ");
 +			    print(" ======================");
 +			    print(outstr);
 +			    print("");
 +			    -- replace some absolute paths for reproducible documentation
-+			    outstr = replace("[.|/][^\0]+/m2",
++			    outstr = replace(srcdir | "Macaulay2/m2",
 +				finalPrefix | Layout#1#"packages" | "Core",
 +				outstr);
++			    outstr = replace(srcdir | "Macaulay2/packages/",
++				finalPrefix | Layout#1#"packages", outstr);
 +			    print(" =================");
 +			    print(" == NEW VERSION == ");
 +			    print(" =================");
@@ -43,9 +63,38 @@ Subject: [PATCH] foo
  		    else (
  			 if debugLevel > 1 then stderr << "--warning: missing file " << outf << endl;
  			 )
+diff --git a/M2/Macaulay2/m2/methods.m2 b/M2/Macaulay2/m2/methods.m2
+index f390d84a3..7deaa59e9 100644
+--- a/M2/Macaulay2/m2/methods.m2
++++ b/M2/Macaulay2/m2/methods.m2
+@@ -302,6 +302,14 @@ toExternalString Thing := x -> (
+      if hasAttribute(x,ReverseDictionary) then return toString getAttribute(x,ReverseDictionary);
+      error("can't convert anonymous object of class ",toString class x," to external string"))
+ 
++toRegex = method(Dispatch => Thing, TypicalValue => String)
++toRegex String := s -> (
++     specialChars := {"\\", "^", "$", ".", "|", "?", "*", "+", "(", ")", "[",
++	  "]", "{", "}"};
++     concatenate apply(characters s, c ->
++	  if member(c, specialChars) then "\\" | c else c)
++     )
++
+ options = method(Dispatch => Thing, TypicalValue => OptionTable)
+ setupMethods(Dispatch => Thing, {max,min,directSum,intersect,vars})
+ net = method(Dispatch => Thing, TypicalValue => Net)
+diff --git a/M2/Macaulay2/m2/startup.m2.in b/M2/Macaulay2/m2/startup.m2.in
+index 4dc694c03..68126d4b8 100644
 --- a/M2/Macaulay2/m2/startup.m2.in
 +++ b/M2/Macaulay2/m2/startup.m2.in
-@@ -296,6 +296,8 @@
+@@ -32,7 +32,6 @@ toString := value' getGlobalSymbol if firstTime then "simpleToString" else "toSt
+ match := X -> null =!= regex X
+ 
+ local exe
+-local topSrcdir
+ local topBuilddir
+ 
+ -- this next bit has to be *parsed* after the "debug" above, to prevent the symbols from being added to the User dictionary
+@@ -296,6 +295,8 @@ if firstTime then (
  		    replaceStrings("^\\$\\{(pre_)?prefix\\}","common",	    -- as in configure.ac
  			 replaceStrings("^\\$\\{(pre_)?exec_prefix\\}",version#"machine", -- as in configure.ac
  			      x)))};
@@ -54,3 +103,94 @@ Subject: [PATCH] foo
  	  );
       initlayout();
       )
+diff --git a/M2/Macaulay2/packages/Macaulay2Doc/functions.m2 b/M2/Macaulay2/packages/Macaulay2Doc/functions.m2
+index b21fa2901..ca7ac7d05 100644
+--- a/M2/Macaulay2/packages/Macaulay2Doc/functions.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/functions.m2
+@@ -251,6 +251,7 @@ load "./functions/htmlWithTex-doc.m2"
+ load "./functions/toExternalString-doc.m2"
+ load "./functions/toField-doc.m2"
+ load "./functions/toList-doc.m2"
++load "./functions/toRegex-doc.m2"
+ load "./functions/toString-doc.m2"
+ load "./functions/top-doc.m2"
+ load "./functions/topCoefficients-doc.m2"
+diff --git a/M2/Macaulay2/packages/Macaulay2Doc/functions/regex-doc.m2 b/M2/Macaulay2/packages/Macaulay2Doc/functions/regex-doc.m2
+index 7f6040dda..3d8335bd0 100644
+--- a/M2/Macaulay2/packages/Macaulay2Doc/functions/regex-doc.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/regex-doc.m2
+@@ -120,7 +120,8 @@ document {
+ 	  {TT "[:upper:]", " -- uppercase letters"},
+ 	  {TT "[:xdigit:]", " -- hexadecimal digits"},
+ 	  },
+-     "In order to match one of the special characters itself, precede it with a backslash.",
++     PARA {"In order to match one of the special characters itself, precede it with a backslash ",
++	  "or use ", TO toRegex, "."},
+      PARA {"We illustrate the use of regular expressions with ", TO (regex,String,String), "."},
+      EXAMPLE lines ///
+      s = "1abcddddeF2";
+diff --git a/M2/Macaulay2/packages/Macaulay2Doc/functions/toRegex-doc.m2 b/M2/Macaulay2/packages/Macaulay2Doc/functions/toRegex-doc.m2
+new file mode 100644
+index 000000000..24452ebb3
+--- /dev/null
++++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/toRegex-doc.m2
+@@ -0,0 +1,19 @@
++document {
++     Headline => "escape special characters in regular expressions",
++     Key => {toRegex, (toRegex, String)},
++     Usage => "toRegex s",
++     Inputs => {
++	  "s" => "a string"
++	  },
++     Outputs => {
++	  {"obtained from ", TT "s", " by escaping all of the ",
++	   "characters that have special meanings in regular expressions ",
++	   "(\\, ^, $, ., |, ?, *, +, (, ), [, ], {, and }) with a \\."}
++	  },
++     EXAMPLE lines ///
++     match("2+2", "2+2")
++     toRegex "2+2"
++     match(oo, "2+2")
++     ///,
++     SeeAlso => {"regular expressions", "regex", "match"}
++     }
+diff --git a/M2/Macaulay2/tests/normal/regex.m2 b/M2/Macaulay2/tests/normal/regex.m2
+index f96412869..003dfa184 100644
+--- a/M2/Macaulay2/tests/normal/regex.m2
++++ b/M2/Macaulay2/tests/normal/regex.m2
+@@ -15,6 +15,32 @@ assert(replace("b","B",replace("a","A",s)) === "lpdiBdjlpwvwvpvuovhqdjcgdufxqfwi
+ assert(replace("b","B",replace("a","A",s)) === replace("a","A",replace("b","B",s)))
+ assert( (replace("a(b+)(c+)","\\2\\1"," abbcc abccc ")) === " ccbb cccb " )
+ assert( (replace("a(b+).(c+)","\\2\\1"," abbcc ab\nccc ")) === " cbb ab\nccc " )
++
++assert match(toRegex ///foo\///, ///foo\///)
++assert match(toRegex "foo^", "foo^")
++assert match(toRegex "foo$", "foo$")
++assert match(toRegex "foo.", "foo.")
++assert match(toRegex "foo|", "foo|")
++assert match(toRegex "foo?", "foo?")
++assert match(toRegex "foo*", "foo*")
++assert match(toRegex "foo+", "foo+")
++assert match(toRegex "(foo)", "(foo)")
++assert match(toRegex "[foo]", "[foo]")
++assert match(toRegex "{foo}", "{foo}")
++
++-- the following matches would all return true without toRegex
++assert not match(toRegex ///\w///, "foo")
++assert not match(toRegex "^foo", "foo")
++assert not match(toRegex "foo$", "foo")
++assert not match(toRegex "foo.", "fooo")
++assert not match(toRegex "f|oo", "oo")
++assert not match(toRegex "foo?", "fo")
++assert not match(toRegex "foo*", "fo")
++assert not match(toRegex "foo+", "foo")
++assert not match(toRegex "(foo)", "foo")
++assert not match(toRegex "[foo]", "foo")
++assert not match(toRegex "foo{1}", "foo")
++
+ end
+ print generateAssertions ///
+ 6
+-- 
+2.20.1
+
