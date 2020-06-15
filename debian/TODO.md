@@ -25,10 +25,11 @@ TOPCOM
 
 flint
 -------------------
-* We need [flint 2.6](https://github.com/wbhart/flint2/milestone/2),
-  which has not been released yet
+* We need flint 2.6, which has been packaged by Julien Puydt and is waiting
+  in the NEW queue.
 * Once it has been released and packaged for Debian, remove
   `skip-factor-for-now.patch` so we can use `factor` in `ZZ` again.
+* We should also put (>= 2.6.0~) in Build-Depends.
 
 html-check-links
 ----------------
@@ -37,30 +38,17 @@ html-check-links
 
 reproducible builds
 -------------------
-* Build paths in documentation ([#1149](
-  https://github.com/Macaulay2/M2/issues/1149))
-* After switching to relative paths at Dan's suggestion, we're down to
-  33 instances.  Problems are:
-  - `HOME` - previously fixed in an earlier patch; we can just set
-     this during build, say `/home/m2user` to match the online interface)
-	 + `Core#"private dictionary"#"userpath"` isn't using the `HOME`
-       environment variable I passed in the patch.  What's going on there?
-       (see `path` docs)
-  - `currentDirectory` - canned example
-  - `PKG#"index.html"` - currently absolute path, which seems like what
-     we want in practice.  canned example?
-  - `database not present` message - use relative path?
-  - `prefixPath`, `realpath`, `toAbsolutePath` - canned example
-  - `loadedFiles` - relative path?
-* I've encountered a bug not present in 1.15.  Some examples
-  exist in html form only.  No corresponding `example-output` file,
-  and when viewed in M2 with `help`, we just get the input command without
-  `i1`:
-  - `loadedFiles`
-  - `version`
-  - `availableOffline` from `ReflexivePolytopesDB`
-  - `runExternalM2` from `RunExternalM2`
-  - `gfanInterface#"source file"` from `gfanInterface`
+* At one point, we were down to 0 build paths in the documentation, but
+  there are two big issues:
+  - One of the changes (building examples inside the build directory instead
+    of /tmp) was causing build failures, so that commit has been reverted.
+  - We're using a few canned examples, which is not ideal.
+* New idea: Replace the build paths that appear in the output file right
+  after the example is run.
+  - Early drafts are working pretty well.
+  - We'll probably want to revert most of the relative build path commits,
+    since now we're getting a bunch of "../../../usr/share/Macaulay2"'s.
+  - Big issue: sometimes the build path has been split over multiple lines.
 
 autopkgtest
 -----------
@@ -71,7 +59,6 @@ autopkgtest
   - `QuillenSuslin` until flint 2.6 is packaged
   - `SumOfSquares`, strange "protected global variable" error I can't
     reproduce
-* Still need to incorporate the upstream test suite in `M2/Macaulay2/tests`
 
 3rd-party applications
 ----------------------
