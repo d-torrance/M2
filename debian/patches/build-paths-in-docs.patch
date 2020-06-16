@@ -1,41 +1,99 @@
-From d0bfc5655619535f2e6469c5c5e457f98b257515 Mon Sep 17 00:00:00 2001
+From cfdb24d2f6c6a89d3ec1531c66e59184672172de Mon Sep 17 00:00:00 2001
 From: Doug Torrance <dtorrance@piedmont.edu>
-Date: Mon, 15 Jun 2020 14:03:05 -0400
+Date: Tue, 16 Jun 2020 10:59:33 -0400
 Subject: [PATCH] foo
 
 ---
- M2/Macaulay2/m2/exports.m2                    |  1 +
- M2/Macaulay2/m2/html.m2                       | 25 +++++++++++++++++-
- M2/Macaulay2/m2/methods.m2                    |  8 ++++++
- M2/Macaulay2/m2/startup.m2.in                 |  3 ++-
- .../packages/Macaulay2Doc/functions.m2        |  1 +
- .../Macaulay2Doc/functions/regex-doc.m2       |  3 ++-
- .../Macaulay2Doc/functions/toRegex-doc.m2     | 19 ++++++++++++++
- M2/Macaulay2/tests/normal/regex.m2            | 26 +++++++++++++++++++
- 8 files changed, 83 insertions(+), 3 deletions(-)
- create mode 100644 M2/Macaulay2/packages/Macaulay2Doc/functions/toRegex-doc.m2
+ M2/Macaulay2/d/actors2.dd                     |  9 ++---
+ M2/Macaulay2/d/actors4.d                      |  4 +--
+ M2/Macaulay2/d/stdiop.d                       |  2 +-
+ M2/Macaulay2/m2/html.m2                       | 33 ++++++++++++++++++-
+ M2/Macaulay2/m2/startup.m2.in                 |  5 +--
+ M2/Macaulay2/packages/Macaulay2Doc/doc2.m2    |  5 +--
+ M2/Macaulay2/packages/Macaulay2Doc/doc3.m2    |  5 +--
+ .../Macaulay2Doc/functions/endPackage-doc.m2  |  1 +
+ .../Macaulay2Doc/functions/realpath-doc.m2    |  9 +++--
+ .../packages/Macaulay2Doc/overview3.m2        | 15 ++-------
+ M2/Macaulay2/packages/ReflexivePolytopesDB.m2 |  2 +-
+ M2/Macaulay2/packages/RunExternalM2.m2        |  2 +-
+ M2/Macaulay2/packages/gfanInterface.m2        | 14 ++++++++
+ 13 files changed, 71 insertions(+), 35 deletions(-)
 
---- a/M2/Macaulay2/m2/exports.m2
-+++ b/M2/Macaulay2/m2/exports.m2
-@@ -1134,6 +1134,7 @@
- 	"toField",
- 	"toList",
- 	"toLower",
-+	"toRegex",
- 	"toRR",
- 	"toSequence",
- 	"toString",
+--- a/M2/Macaulay2/d/actors2.dd
++++ b/M2/Macaulay2/d/actors2.dd
+@@ -27,16 +27,14 @@
+ dbmopenin(e:Expr):Expr := (
+      when e
+      is a:stringCell do (
+-	  if notify then stderr << "--opening database " <<
+-	       relativizeFilename(a.v) << endl;
++	  if notify then stderr << "--opening database " << a.v << endl;
+ 	  dbmopenin(a.v))
+      else buildErrorPacket("expected a string as filename"));
+ setupfun("openDatabase",dbmopenin);
+ dbmopenout(e:Expr):Expr := (
+      when e
+      is a:stringCell do (
+-	  if notify then stderr << "--opening database for output " <<
+-	       relativizeFilename(a.v) << endl;
++	  if notify then stderr << "--opening database for output " << a.v << endl;
+ 	  dbmopenout(a.v))
+      else buildErrorPacket("expected a string as filename"));
+ setupfun("openDatabaseOut",dbmopenout);
+@@ -486,8 +484,7 @@
+ 	  g)
+      is f:file do when close(f) is m:errmsg do buildErrorPacket(m.message) else g
+      is x:Database do (
+-	  if notify then stderr << "--closing database " <<
+-	       relativizeFilename(x.filename) << endl;
++	  if notify then stderr << "--closing database " << x.filename << endl;
+ 	  dbmclose(x))
+      else buildErrorPacket("expected a file or database"));
+ setupfun("close",close).Protected = false;
+--- a/M2/Macaulay2/d/actors4.d
++++ b/M2/Macaulay2/d/actors4.d
+@@ -1500,7 +1500,7 @@
+      locate1();
+      p := codePosition(c);
+      Expr(Sequence(
+-	       toExpr(relativizeFilename(locatedCode.filename)),
++	       toExpr(verifyMinimizeFilename(locatedCode.filename)),
+ 	       toExpr(locatedCode.minline),
+ 	       toExpr(locatedCode.mincol),
+ 	       toExpr(locatedCode.maxline),
+@@ -1519,7 +1519,7 @@
+ 	  then nullE
+ 	  else Expr(
+ 	       Sequence(
+-		    toExpr(relativizeFilename(p.filename)),
++		    toExpr(verifyMinimizeFilename(p.filename)),
+ 		    toExpr(int(p.line)),toExpr(int(p.column)),
+ 		    toExpr(int(p.line)),toExpr(int(p.column)+length(s.symbol.word.name)),
+ 		    toExpr(int(p.line)),toExpr(int(p.column))
+--- a/M2/Macaulay2/d/stdiop.d
++++ b/M2/Macaulay2/d/stdiop.d
+@@ -112,7 +112,7 @@
+ export tostring(w:Position) : string := (
+      if w == dummyPosition 
+      then "-*dummy position*-"
+-     else errfmt(relativizeFilename(w.filename),int(w.line),int(w.column + 1),int(w.loadDepth)));
++     else errfmt(verifyMinimizeFilename(w.filename),int(w.line),int(w.column + 1),int(w.loadDepth)));
+ export (o:file) << (w:Position) : file := o << tostring(w);
+ export (o:BasicFile) << (w:Position) : BasicFile := o << tostring(w);
+ threadLocal export SuppressErrors := false;
 --- a/M2/Macaulay2/m2/html.m2
 +++ b/M2/Macaulay2/m2/html.m2
-@@ -868,7 +868,30 @@
+@@ -868,7 +868,38 @@
  			      )
  			 );
  		    -- read, separate, and store example output
 -		    if fileExists outf then pkg#"example results"#fkey = drop(separateM2output get outf,-1)
 +		    if fileExists outf then (
 +			outstr := get outf;
-+			srcdir := toRegex toAbsolutePath topSrcdir;
-+			if match(srcdir, outstr) then (
++			srcdir := regexQuote toAbsolutePath topSrcdir;
++			builddir := regexQuote prefixDirectory;
++			if match(srcdir, outstr) or match(builddir, outstr)
++			then (
 +			    print(" ======================");
 +			    print(" == ORIGINAL VERSION == ");
 +			    print(" ======================");
@@ -47,6 +105,12 @@ Subject: [PATCH] foo
 +				outstr);
 +			    outstr = replace(srcdir | "Macaulay2/packages/",
 +				finalPrefix | Layout#1#"packages", outstr);
++			    outstr = replace(builddir | Layout#2#"bin",
++				finalPrefix | Layout#1#"bin", outstr);
++			    outstr = replace(builddir | Layout#2#"data",
++				finalPrefix | Layout#1#"data", outstr);
++			    outstr = replace(builddir | Layout#2#"lib",
++				finalPrefix | Layout#1#"lib", outstr);
 +			    print(" =================");
 +			    print(" == NEW VERSION == ");
 +			    print(" =================");
@@ -59,23 +123,6 @@ Subject: [PATCH] foo
  		    else (
  			 if debugLevel > 1 then stderr << "--warning: missing file " << outf << endl;
  			 )
---- a/M2/Macaulay2/m2/methods.m2
-+++ b/M2/Macaulay2/m2/methods.m2
-@@ -302,6 +302,14 @@
-      if hasAttribute(x,ReverseDictionary) then return toString getAttribute(x,ReverseDictionary);
-      error("can't convert anonymous object of class ",toString class x," to external string"))
- 
-+toRegex = method(Dispatch => Thing, TypicalValue => String)
-+toRegex String := s -> (
-+     specialChars := {"\\", "^", "$", ".", "|", "?", "*", "+", "(", ")", "[",
-+	  "]", "{", "}"};
-+     concatenate apply(characters s, c ->
-+	  if member(c, specialChars) then "\\" | c else c)
-+     )
-+
- options = method(Dispatch => Thing, TypicalValue => OptionTable)
- setupMethods(Dispatch => Thing, {max,min,directSum,intersect,vars})
- net = method(Dispatch => Thing, TypicalValue => Net)
 --- a/M2/Macaulay2/m2/startup.m2.in
 +++ b/M2/Macaulay2/m2/startup.m2.in
 @@ -32,7 +32,6 @@
@@ -86,6 +133,15 @@ Subject: [PATCH] foo
  local topBuilddir
  
  -- this next bit has to be *parsed* after the "debug" above, to prevent the symbols from being added to the User dictionary
+@@ -51,7 +50,7 @@
+      markLoaded = (fullfilename,origfilename,notify,filetime) -> ( 
+ 	  fullfilename = minimizeFilename fullfilename;
+ 	  filesLoaded#origfilename = (fullfilename,filetime); 
+-	  loadedFiles##loadedFiles = relativizeFilename fullfilename;
++	  loadedFiles##loadedFiles = realpath toAbsolutePath fullfilename; 
+ 	  if notify then stderr << "--loaded " << fullfilename << endl;
+ 	  );
+      normalPrompts = () -> (
 @@ -296,6 +295,8 @@
  		    replaceStrings("^\\$\\{(pre_)?prefix\\}","common",	    -- as in configure.ac
  			 replaceStrings("^\\$\\{(pre_)?exec_prefix\\}",version#"machine", -- as in configure.ac
@@ -95,82 +151,146 @@ Subject: [PATCH] foo
  	  );
       initlayout();
       )
---- a/M2/Macaulay2/packages/Macaulay2Doc/functions.m2
-+++ b/M2/Macaulay2/packages/Macaulay2Doc/functions.m2
-@@ -251,6 +251,7 @@
- load "./functions/toExternalString-doc.m2"
- load "./functions/toField-doc.m2"
- load "./functions/toList-doc.m2"
-+load "./functions/toRegex-doc.m2"
- load "./functions/toString-doc.m2"
- load "./functions/top-doc.m2"
- load "./functions/topCoefficients-doc.m2"
---- a/M2/Macaulay2/packages/Macaulay2Doc/functions/regex-doc.m2
-+++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/regex-doc.m2
-@@ -120,7 +120,8 @@
- 	  {TT "[:upper:]", " -- uppercase letters"},
- 	  {TT "[:xdigit:]", " -- hexadecimal digits"},
+--- a/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
+@@ -1090,8 +1090,9 @@
+      Outputs => {
+ 	  "the complete path to the current directory, together with an extra slash"
  	  },
--     "In order to match one of the special characters itself, precede it with a backslash.",
-+     PARA {"In order to match one of the special characters itself, precede it with a backslash ",
-+	  "or use ", TO toRegex, "."},
-      PARA {"We illustrate the use of regular expressions with ", TO (regex,String,String), "."},
-      EXAMPLE lines ///
-      s = "1abcddddeF2";
---- /dev/null
-+++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/toRegex-doc.m2
-@@ -0,0 +1,19 @@
-+document {
-+     Headline => "escape special characters in regular expressions",
-+     Key => {toRegex, (toRegex, String)},
-+     Usage => "toRegex s",
-+     Inputs => {
-+	  "s" => "a string"
-+	  },
-+     Outputs => {
-+	  {"obtained from ", TT "s", " by escaping all of the ",
-+	   "characters that have special meanings in regular expressions ",
-+	   "(\\, ^, $, ., |, ?, *, +, (, ), [, ], {, and }) with a \\."}
-+	  },
+-     EXAMPLE {PRE("i1 : currentDirectory()" | newline | newline |
+-	  "o1 = /home/m2user/")},
 +     EXAMPLE lines ///
-+     match("2+2", "2+2")
-+     toRegex "2+2"
-+     match(oo, "2+2")
++     currentDirectory()
 +     ///,
-+     SeeAlso => {"regular expressions", "regex", "match"}
-+     }
---- a/M2/Macaulay2/tests/normal/regex.m2
-+++ b/M2/Macaulay2/tests/normal/regex.m2
-@@ -15,6 +15,32 @@
- assert(replace("b","B",replace("a","A",s)) === replace("a","A",replace("b","B",s)))
- assert( (replace("a(b+)(c+)","\\2\\1"," abbcc abccc ")) === " ccbb cccb " )
- assert( (replace("a(b+).(c+)","\\2\\1"," abbcc ab\nccc ")) === " cbb ab\nccc " )
+      PARA {
+ 	  "If a component of the path to the current directory no longer exist, an error will be signalled."
+ 	  }
+--- a/M2/Macaulay2/packages/Macaulay2Doc/doc3.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/doc3.m2
+@@ -1425,8 +1425,9 @@
+      Outputs => {
+ 	  String => {"the absolute (real) path name of ", TT "filename"}
+ 	  },
+-     EXAMPLE {PRE(///i1 : toAbsolutePath "a/b.m2"/// | newline | newline |
+-	  ///o1 = /home/m2user/a/b.m2 ///)},
++     EXAMPLE lines ///
++         toAbsolutePath "a/b.m2"
++     ///,
+      PARA {
+ 	  "Paths of the form ", TT "foo/x/../bar", ", are shortened to ", TT "foo/bar", " without
+ 	  checking the file system to see whether ", TT "x", " is a symbolic link.  For the other
+--- a/M2/Macaulay2/packages/Macaulay2Doc/functions/endPackage-doc.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/endPackage-doc.m2
+@@ -15,6 +15,7 @@
+ 	  abc = 3
+ 	  dictionaryPath
+ 	  endPackage "Foo"
++	  peek oo
+ 	  dictionaryPath
+ 	  abc
+      ///
+--- a/M2/Macaulay2/packages/Macaulay2Doc/functions/realpath-doc.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/functions/realpath-doc.m2
+@@ -9,7 +9,8 @@
+      Inputs => { "fn" => String => "a filename, or path to a file" },
+      Outputs => { String => { "a pathname to ", TT "fn", " passing through no symbolic links, and
+ 	       ending with a slash if ", TT "fn", " refers to a directory" }},
+-     EXAMPLE (lines ///
++     EXAMPLE lines ///
++     	  realpath "."
+      	  p = temporaryFileName()
+ 	  q = temporaryFileName()
+ 	  symlinkFile(p,q)
+@@ -18,13 +19,11 @@
+ 	  realpath q
+ 	  removeFile p
+ 	  removeFile q
+-     /// | {PRE(///i9 : realpath "."/// | newline | newline |
+-	  ///o9 = /home/m2user/ ///)}),
++     ///,
+      PARA {
+ 	  "The empty string is interpreted as a reference to the current directory."
+ 	  },
+-     EXAMPLE {PRE(///i10 : realpath ""/// | newline | newline |
+-	  ///o10 = /home/m2user/ ///)},
++     EXAMPLE ///realpath ""///,
+      SeeAlso => {readlink},
+      Caveat => {
+ 	  "Every component of the path must exist in the file system and be accessible to the user.
+--- a/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/overview3.m2
+@@ -419,26 +419,17 @@
+ 	  "The following example shows the list of places where we might find the source code of a package called ", TT "Foo", "
+ 	  after it has been installed by ", TO "installPackage", "."
+ 	  },
+-     EXAMPLE {PRE(
+-	  ///i1 : stack apply(prefixPath, p -> p | Layout#1#"packages" | "Foo.m2")///
+-	  | newline | newline | ///o1 = /home/m2user/.Macaulay2/local/share/Macaulay2/Foo.m2///
+-	  | newline | ///     /usr/share/Macaulay2/Foo.m2///)},
++     EXAMPLE ///stack apply(prefixPath, p -> p | Layout#1#"packages" | "Foo.m2")///,
+      PARA {
+      	  "This example shows the list of places where we might reasonably find the html file documenting a
+ 	  function named ", TT "bar", " in a package called ", TT "Foo", "."
+ 	  },
+-     EXAMPLE {PRE(
+-	  ///i2 : stack apply(prefixPath, p -> p | replace("PKG","Foo",Layout#1#"packagehtml") | "bar.html")///
+-	  | newline | newline | ///o2 = /home/m2user/.Macaulay2/local/share/doc/Macaulay2/Foo/html/bar.html///
+-	  | newline | ///     /usr/share/doc/Macaulay2/Foo/html/bar.html///)},
++     EXAMPLE ///stack apply(prefixPath, p -> p | replace("PKG","Foo",Layout#1#"packagehtml") | "bar.html")///,
+      PARA {
+      	  "This example shows the list of places where we might reasonably find the info file documenting a
+ 	  package called ", TT "Foo", "."
+ 	  },
+-     EXAMPLE {PRE(
+-	  ///i3 : stack apply(prefixPath, p -> p | Layout#1#"info" | "Foo.info")///
+-	  | newline | newline | ///o3 = /home/m2user/.Macaulay2/local/share/info/Foo.info///
+-	  | newline | ///     /usr/share/info/Foo.info///)},
++     EXAMPLE ///stack apply(prefixPath, p -> p | Layout#1#"info" | "Foo.info")///,
+      SeeAlso => {"commandLine", "Invoking the program", applicationDirectory, "prefixDirectory", "path", searchPath, load, loadPackage, needsPackage}
+      }
+ 
+--- a/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
++++ b/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
+@@ -134,7 +134,7 @@
+     hashTable for k in keys offlines list (
+         val := offlines#k;
+         (maxlimit, filename) := if instance(val, Sequence) then val else (infinity, val);
+-        actualfile := relativizeFilename(offlineDirectory | filename);
++        actualfile := offlineDirectory | filename;
+         fcncall := if instance(k, ZZ) then (
+           "kreuzerSkarke("|k|
+             (if maxlimit === infinity then ")" else ", Limit => "|maxlimit|")")
+--- a/M2/Macaulay2/packages/RunExternalM2.m2
++++ b/M2/Macaulay2/packages/RunExternalM2.m2
+@@ -760,7 +760,7 @@
+ 	);	
+ 	if (M2Loc===null) then (
+ 		-- TODO, do we need rootPath for Cygwin?
+-		M2Loc=relativizeFilename(first(commandLine));
++		M2Loc=toAbsolutePath(first(commandLine));
+ 	);
+ 	if not(fileExists(M2Loc)) then (
+ 		error "runExternalM2: error finding location of M2 program; check M2Location option";
+--- a/M2/Macaulay2/packages/gfanInterface.m2
++++ b/M2/Macaulay2/packages/gfanInterface.m2
+@@ -2646,6 +2646,20 @@
+ 			{\tt gfanInterface.m2} either before installing or in the installed copy.
+ 			You will find the path configuration near the top of the file.
+ 
++			If {\tt gfanInterface} is already installed and loaded, you can find the path
++			of the source file by the following command:
 +
-+assert match(toRegex ///foo\///, ///foo\///)
-+assert match(toRegex "foo^", "foo^")
-+assert match(toRegex "foo$", "foo$")
-+assert match(toRegex "foo.", "foo.")
-+assert match(toRegex "foo|", "foo|")
-+assert match(toRegex "foo?", "foo?")
-+assert match(toRegex "foo*", "foo*")
-+assert match(toRegex "foo+", "foo+")
-+assert match(toRegex "(foo)", "(foo)")
-+assert match(toRegex "[foo]", "[foo]")
-+assert match(toRegex "{foo}", "{foo}")
++		Example
++			gfanInterface#"source file"
 +
-+-- the following matches would all return true without toRegex
-+assert not match(toRegex ///\w///, "foo")
-+assert not match(toRegex "^foo", "foo")
-+assert not match(toRegex "foo$", "foo")
-+assert not match(toRegex "foo.", "fooo")
-+assert not match(toRegex "f|oo", "oo")
-+assert not match(toRegex "foo?", "fo")
-+assert not match(toRegex "foo*", "fo")
-+assert not match(toRegex "foo+", "foo")
-+assert not match(toRegex "(foo)", "foo")
-+assert not match(toRegex "[foo]", "foo")
-+assert not match(toRegex "foo{1}", "foo")
++		Text
++			If you want to use {\tt gfan} executables outside of @EM "Macaulay2"@, they can be found with
++			{\tt currentLayout#"programs"}:
 +
- end
- print generateAssertions ///
- 6
++		Example
++			prefixDirectory | currentLayout#"programs"
++
++		Text
+ 			If you would like to see the input and output files used to communicate with {\tt gfan}
+ 			you can set the {\tt "keepfiles"} configuration option to {\tt true}. If {\tt "verbose"}
+ 			is set to {\tt true}, {\tt gfanInterface} will output the names of the temporary files used.
