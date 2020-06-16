@@ -939,7 +939,7 @@ then AC_LANG(C)
 	  [#include <flint/flint.h>
 	  ],
 	  [
-#if __FLINT_VERSION < 2 || (__FLINT_VERSION == 2 && __FLINT_VERSION_MINOR < 6)
+#if __FLINT_VERSION < 2 || (__FLINT_VERSION == 2 && __FLINT_VERSION_MINOR < 5)
 #error old flint
 #endif
 	  ])],
