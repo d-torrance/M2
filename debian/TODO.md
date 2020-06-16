@@ -49,6 +49,15 @@ reproducible builds
   - We'll probably want to revert most of the relative build path commits,
     since now we're getting a bunch of "../../../usr/share/Macaulay2"'s.
   - Big issue: sometimes the build path has been split over multiple lines.
+  - Many of the build paths that still appear are inside *Function[...].
+    Let's switch that to relative paths (or actually, minimizeFilename)
+    to match the behavior of locate, etc.
+  - Perhaps just increase the line width for examples?  Many of them
+    ignore it anyways.
+  - Use "stack" for "path" example to match "prefixPath" and help with
+    wrapping if we increase line width.
+  - Instead of setting HOME, just swap it.  Otherwise we get errors in
+    runExternalM2 docs.
 
 autopkgtest
 -----------
