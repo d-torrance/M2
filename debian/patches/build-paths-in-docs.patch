@@ -1,23 +1,24 @@
-From cfdb24d2f6c6a89d3ec1531c66e59184672172de Mon Sep 17 00:00:00 2001
+From 5b5709f29d78838d055bb28f7359446d3ea2591e Mon Sep 17 00:00:00 2001
 From: Doug Torrance <dtorrance@piedmont.edu>
-Date: Tue, 16 Jun 2020 10:59:33 -0400
+Date: Tue, 16 Jun 2020 21:27:36 -0400
 Subject: [PATCH] foo
 
 ---
- M2/Macaulay2/d/actors2.dd                     |  9 ++---
- M2/Macaulay2/d/actors4.d                      |  4 +--
+ M2/Macaulay2/d/actors2.dd                     |  9 ++--
+ M2/Macaulay2/d/actors4.d                      |  4 +-
  M2/Macaulay2/d/stdiop.d                       |  2 +-
- M2/Macaulay2/m2/html.m2                       | 33 ++++++++++++++++++-
- M2/Macaulay2/m2/startup.m2.in                 |  5 +--
- M2/Macaulay2/packages/Macaulay2Doc/doc2.m2    |  5 +--
- M2/Macaulay2/packages/Macaulay2Doc/doc3.m2    |  5 +--
+ M2/Macaulay2/m2/installPackage.m2             | 43 ++++++++++++++++++-
+ M2/Macaulay2/m2/startup.m2.in                 |  5 ++-
+ M2/Macaulay2/packages/Macaulay2Doc/doc2.m2    |  5 ++-
+ M2/Macaulay2/packages/Macaulay2Doc/doc3.m2    |  5 ++-
  .../Macaulay2Doc/functions/endPackage-doc.m2  |  1 +
- .../Macaulay2Doc/functions/realpath-doc.m2    |  9 +++--
- .../packages/Macaulay2Doc/overview3.m2        | 15 ++-------
+ .../Macaulay2Doc/functions/realpath-doc.m2    |  9 ++--
+ .../packages/Macaulay2Doc/overview3.m2        | 15 ++-----
+ M2/Macaulay2/packages/Makefile.in             |  2 +-
  M2/Macaulay2/packages/ReflexivePolytopesDB.m2 |  2 +-
  M2/Macaulay2/packages/RunExternalM2.m2        |  2 +-
- M2/Macaulay2/packages/gfanInterface.m2        | 14 ++++++++
- 13 files changed, 71 insertions(+), 35 deletions(-)
+ M2/Macaulay2/packages/gfanInterface.m2        | 14 ++++++
+ 14 files changed, 82 insertions(+), 36 deletions(-)
 
 --- a/M2/Macaulay2/d/actors2.dd
 +++ b/M2/Macaulay2/d/actors2.dd
@@ -81,45 +82,55 @@ Subject: [PATCH] foo
  export (o:file) << (w:Position) : file := o << tostring(w);
  export (o:BasicFile) << (w:Position) : BasicFile := o << tostring(w);
  threadLocal export SuppressErrors := false;
---- a/M2/Macaulay2/m2/html.m2
-+++ b/M2/Macaulay2/m2/html.m2
-@@ -868,7 +868,38 @@
+--- a/M2/Macaulay2/m2/installPackage.m2
++++ b/M2/Macaulay2/m2/installPackage.m2
+@@ -822,7 +822,48 @@
  			      )
  			 );
  		    -- read, separate, and store example output
 -		    if fileExists outf then pkg#"example results"#fkey = drop(separateM2output get outf,-1)
 +		    if fileExists outf then (
-+			outstr := get outf;
-+			srcdir := regexQuote toAbsolutePath topSrcdir;
-+			builddir := regexQuote prefixDirectory;
-+			if match(srcdir, outstr) or match(builddir, outstr)
-+			then (
-+			    print(" ======================");
-+			    print(" == ORIGINAL VERSION == ");
-+			    print(" ======================");
-+			    print(outstr);
-+			    print("");
-+			    -- replace some absolute paths for reproducible documentation
-+			    outstr = replace(srcdir | "Macaulay2/m2",
-+				finalPrefix | Layout#1#"packages" | "Core",
-+				outstr);
-+			    outstr = replace(srcdir | "Macaulay2/packages/",
-+				finalPrefix | Layout#1#"packages", outstr);
-+			    outstr = replace(builddir | Layout#2#"bin",
-+				finalPrefix | Layout#1#"bin", outstr);
-+			    outstr = replace(builddir | Layout#2#"data",
-+				finalPrefix | Layout#1#"data", outstr);
-+			    outstr = replace(builddir | Layout#2#"lib",
-+				finalPrefix | Layout#1#"lib", outstr);
-+			    print(" =================");
-+			    print(" == NEW VERSION == ");
-+			    print(" =================");
-+			    print(outstr);
-+			    print("");
-+			    outf << outstr << close;
-+			    );
-+			pkg#"example results"#fkey = drop(separateM2output outstr,-1)
-+			 )
++			 outstr := get outf;
++			 srcdir := regexQuote toAbsolutePath topSrcdir;
++			 builddir := regexQuote prefixDirectory;
++			 homedir := regexQuote homeDirectory;
++			 if any({srcdir, builddir, homedir},
++			      dir -> match(dir, outstr))
++			 then (
++			      print(" ======================");
++			      print(" == ORIGINAL VERSION == ");
++			      print(" ======================");
++			      print(outstr);
++			      print("");
++			      -- replace some absolute paths for
++			      -- reproducible documentation
++			      outstr = replace(srcdir |
++				   "Macaulay2/m2/startup.m2.in",
++				   "/path/to/source/Macaulay2/m2/startup.m2.in",
++				   outstr);
++			      outstr = replace(srcdir | "Macaulay2/m2",
++				   finalPrefix | Layout#1#"packages" | "Core",
++				   outstr);
++			      outstr = replace(srcdir | "Macaulay2/packages/",
++				   finalPrefix | Layout#1#"packages", outstr);
++			      outstr = replace(builddir | Layout#2#"bin",
++				   finalPrefix | Layout#1#"bin", outstr);
++			      outstr = replace(builddir | Layout#2#"data",
++				   finalPrefix | Layout#1#"data", outstr);
++			      outstr = replace(builddir | Layout#2#"lib",
++				   finalPrefix | Layout#1#"lib", outstr);
++			      outstr = replace(homedir, "/home/m2user/",
++				   outstr);
++			      outstr = replace(builddir, finalPrefix, outstr);
++			      print(" =================");
++			      print(" == NEW VERSION == ");
++			      print(" =================");
++			      print(outstr);
++			      print("");
++			      outf << outstr << close;
++			 );
++		    pkg#"example results"#fkey = drop(separateM2output outstr,-1)
++		    )
  		    else (
  			 if debugLevel > 1 then stderr << "--warning: missing file " << outf << endl;
  			 )
@@ -249,6 +260,17 @@ Subject: [PATCH] foo
       SeeAlso => {"commandLine", "Invoking the program", applicationDirectory, "prefixDirectory", "path", searchPath, load, loadPackage, needsPackage}
       }
  
+--- a/M2/Macaulay2/packages/Makefile.in
++++ b/M2/Macaulay2/packages/Makefile.in
+@@ -61,7 +61,7 @@
+ 	$$(WHY)
+ 	$(MKDIR_P) $1-temporary
+ 	@echo "make: Entering directory \`$(shell pwd)/$1-temporary'"
+-	cd $1-temporary && HOME=/home/m2user @pre_bindir@/M2 $(M2DIRS) \
++	cd $1-temporary && @pre_bindir@/M2 $(M2DIRS) \
+ 	    -q $(STOP) \
+ 	    -e errorDepth=$(errorDepth) \
+ 	    -e debugLevel=$(debugLevel) \
 --- a/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
 +++ b/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
 @@ -134,7 +134,7 @@
