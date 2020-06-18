@@ -1,24 +1,24 @@
-From 5b5709f29d78838d055bb28f7359446d3ea2591e Mon Sep 17 00:00:00 2001
+From d0c91d0eab1e4e77abb3a99eedc103e7cc8a4360 Mon Sep 17 00:00:00 2001
 From: Doug Torrance <dtorrance@piedmont.edu>
-Date: Tue, 16 Jun 2020 21:27:36 -0400
+Date: Wed, 17 Jun 2020 22:28:21 -0400
 Subject: [PATCH] foo
 
 ---
  M2/Macaulay2/d/actors2.dd                     |  9 ++--
  M2/Macaulay2/d/actors4.d                      |  4 +-
  M2/Macaulay2/d/stdiop.d                       |  2 +-
- M2/Macaulay2/m2/installPackage.m2             | 43 ++++++++++++++++++-
+ M2/Macaulay2/m2/installPackage.m2             | 41 ++++++++++++++++++-
  M2/Macaulay2/m2/startup.m2.in                 |  5 ++-
+ M2/Macaulay2/packages/Macaulay2Doc/doc.m2     |  4 +-
  M2/Macaulay2/packages/Macaulay2Doc/doc2.m2    |  5 ++-
  M2/Macaulay2/packages/Macaulay2Doc/doc3.m2    |  5 ++-
  .../Macaulay2Doc/functions/endPackage-doc.m2  |  1 +
  .../Macaulay2Doc/functions/realpath-doc.m2    |  9 ++--
  .../packages/Macaulay2Doc/overview3.m2        | 15 ++-----
- M2/Macaulay2/packages/Makefile.in             |  2 +-
  M2/Macaulay2/packages/ReflexivePolytopesDB.m2 |  2 +-
  M2/Macaulay2/packages/RunExternalM2.m2        |  2 +-
- M2/Macaulay2/packages/gfanInterface.m2        | 14 ++++++
- 14 files changed, 82 insertions(+), 36 deletions(-)
+ M2/Macaulay2/packages/gfanInterface.m2        | 14 +++++++
+ 14 files changed, 80 insertions(+), 38 deletions(-)
 
 --- a/M2/Macaulay2/d/actors2.dd
 +++ b/M2/Macaulay2/d/actors2.dd
@@ -84,7 +84,16 @@ Subject: [PATCH] foo
  threadLocal export SuppressErrors := false;
 --- a/M2/Macaulay2/m2/installPackage.m2
 +++ b/M2/Macaulay2/m2/installPackage.m2
-@@ -822,7 +822,48 @@
+@@ -483,7 +483,7 @@
+      cmd = cmd | readmode(ArgNotify,      "--notify");
+      cmd = cmd | readmode(ArgSilent,      "--silent");
+      cmd = cmd | readmode(ArgStop,        "--stop");
+-     cmd = cmd | readmode(ArgPrintWidth,  "--print-width 77");
++     cmd = cmd | readmode(ArgPrintWidth,  "--print-width 0");
+      cmd = cmd | concatenate apply(srcdirs, d -> (" --srcdir",format d));
+      needsline := concatenate(" -e 'needsPackage(\"",pkgname,"\", Reload => true, FileName => \"",pkg#"source file","\")'");
+      cmd = cmd | if pkgname != "Macaulay2Doc" then needsline else "";
+@@ -822,7 +822,44 @@
  			      )
  			 );
  		    -- read, separate, and store example output
@@ -93,9 +102,7 @@ Subject: [PATCH] foo
 +			 outstr := get outf;
 +			 srcdir := regexQuote toAbsolutePath topSrcdir;
 +			 builddir := regexQuote prefixDirectory;
-+			 homedir := regexQuote homeDirectory;
-+			 if any({srcdir, builddir, homedir},
-+			      dir -> match(dir, outstr))
++			 if any({srcdir, builddir}, dir -> match(dir, outstr))
 +			 then (
 +			      print(" ======================");
 +			      print(" == ORIGINAL VERSION == ");
@@ -119,8 +126,6 @@ Subject: [PATCH] foo
 +				   finalPrefix | Layout#1#"data", outstr);
 +			      outstr = replace(builddir | Layout#2#"lib",
 +				   finalPrefix | Layout#1#"lib", outstr);
-+			      outstr = replace(homedir, "/home/m2user/",
-+				   outstr);
 +			      outstr = replace(builddir, finalPrefix, outstr);
 +			      print(" =================");
 +			      print(" == NEW VERSION == ");
@@ -162,6 +167,19 @@ Subject: [PATCH] foo
  	  );
       initlayout();
       )
+--- a/M2/Macaulay2/packages/Macaulay2Doc/doc.m2
++++ b/M2/Macaulay2/packages/Macaulay2Doc/doc.m2
+@@ -276,8 +276,8 @@
+ 	  },
+      PRE concatenate between_"\n" apply(value Core#"private dictionary"#"userpath",s -> (5,s)),
+      EXAMPLE {
+-	  "path",
+-	  ///path = append(path, "~/resolutions/")///
++	  "stack path",
++	  ///path = append(path, "~/resolutions/"); stack path///
+ 	  }
+      }
+ 
 --- a/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
 +++ b/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
 @@ -1090,8 +1090,9 @@
@@ -260,17 +278,6 @@ Subject: [PATCH] foo
       SeeAlso => {"commandLine", "Invoking the program", applicationDirectory, "prefixDirectory", "path", searchPath, load, loadPackage, needsPackage}
       }
  
---- a/M2/Macaulay2/packages/Makefile.in
-+++ b/M2/Macaulay2/packages/Makefile.in
-@@ -61,7 +61,7 @@
- 	$$(WHY)
- 	$(MKDIR_P) $1-temporary
- 	@echo "make: Entering directory \`$(shell pwd)/$1-temporary'"
--	cd $1-temporary && HOME=/home/m2user @pre_bindir@/M2 $(M2DIRS) \
-+	cd $1-temporary && @pre_bindir@/M2 $(M2DIRS) \
- 	    -q $(STOP) \
- 	    -e errorDepth=$(errorDepth) \
- 	    -e debugLevel=$(debugLevel) \
 --- a/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
 +++ b/M2/Macaulay2/packages/ReflexivePolytopesDB.m2
 @@ -134,7 +134,7 @@
