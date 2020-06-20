@@ -38,8 +38,6 @@ skip = {-- waiting for topcom to enter debian
 	"StatePolytope",
 	-- waiting for phcpack (#820848)
 	"PHCpack", "MonodromySolver",
-	-- uses factor, so waiting for flint 2.6
-	"QuillenSuslin",
 	-- bertini is non-free, so we will always skip this
 	"Bertini",
 	-- getting "assignment to protected global variable 'MaxRoundTol'"
