@@ -1,25 +1,25 @@
-From 9711e390047062cbac2f89845761a90ee1a1db0a Mon Sep 17 00:00:00 2001
+From 9cfc33a4995ec11baa9260e0cea66cf4dcbee21c Mon Sep 17 00:00:00 2001
 From: Doug Torrance <dtorrance@piedmont.edu>
-Date: Mon, 22 Jun 2020 15:16:20 -0400
+Date: Mon, 22 Jun 2020 19:56:55 -0400
 Subject: [PATCH] foo
 
 ---
- M2/Macaulay2/d/actors2.dd                     |  9 ++--
- M2/Macaulay2/d/actors4.d                      |  4 +-
+ M2/Macaulay2/d/actors2.dd                     |  9 ++---
+ M2/Macaulay2/d/actors4.d                      |  4 +--
  M2/Macaulay2/d/stdiop.d                       |  2 +-
  M2/Macaulay2/m2/debugging.m2                  |  2 +-
- M2/Macaulay2/m2/installPackage.m2             | 45 +++++++++++++++++--
- M2/Macaulay2/m2/startup.m2.in                 |  5 ++-
+ M2/Macaulay2/m2/installPackage.m2             | 36 +++++++++++++++++--
+ M2/Macaulay2/m2/startup.m2.in                 |  5 +--
  M2/Macaulay2/packages/Macaulay2Doc/doc.m2     |  3 +-
- M2/Macaulay2/packages/Macaulay2Doc/doc2.m2    |  5 ++-
- M2/Macaulay2/packages/Macaulay2Doc/doc3.m2    |  5 ++-
+ M2/Macaulay2/packages/Macaulay2Doc/doc2.m2    |  5 +--
+ M2/Macaulay2/packages/Macaulay2Doc/doc3.m2    |  5 +--
  .../Macaulay2Doc/functions/endPackage-doc.m2  |  1 +
- .../Macaulay2Doc/functions/realpath-doc.m2    |  9 ++--
- .../packages/Macaulay2Doc/overview3.m2        | 15 ++-----
+ .../Macaulay2Doc/functions/realpath-doc.m2    |  9 +++--
+ .../packages/Macaulay2Doc/overview3.m2        | 15 ++------
  M2/Macaulay2/packages/ReflexivePolytopesDB.m2 |  2 +-
  M2/Macaulay2/packages/RunExternalM2.m2        |  2 +-
- M2/Macaulay2/packages/gfanInterface.m2        | 14 ++++++
- 15 files changed, 84 insertions(+), 39 deletions(-)
+ M2/Macaulay2/packages/gfanInterface.m2        | 14 ++++++++
+ 15 files changed, 75 insertions(+), 39 deletions(-)
 
 --- a/M2/Macaulay2/d/actors2.dd
 +++ b/M2/Macaulay2/d/actors2.dd
@@ -114,7 +114,7 @@ Subject: [PATCH] foo
       cmd = cmd | concatenate apply(srcdirs, d -> (" --srcdir",format d));
       needsline := concatenate(" -e 'needsPackage(\"",pkgname,"\", Reload => true, FileName => \"",pkg#"source file","\")'");
       cmd = cmd | if pkgname != "Macaulay2Doc" then needsline else "";
-@@ -630,6 +630,42 @@
+@@ -630,6 +630,33 @@
       f := lookup m;
       any(dispatcherFunctions, g -> functionBody f === functionBody g))
  
@@ -123,13 +123,9 @@ Subject: [PATCH] foo
 +     srcdir := regexQuote toAbsolutePath topSrcdir;
 +     builddir := regexQuote prefixDirectory;
 +     homedir := regexQuote homeDirectory;
++     if last homedir == "/" then homedir = substring(0, #homedir - 1, homedir);
 +     if any({srcdir, builddir, homedir}, dir -> match(dir, outstr))
 +     then (
-+	 print(" ======================");
-+	 print(" == ORIGINAL VERSION == ");
-+	 print(" ======================");
-+	 print(outstr);
-+	 print("");
 +	 outstr = replace(srcdir | "Macaulay2/m2/startup.m2.in",
 +	     "/path/to/source/Macaulay2/m2/startup.m2.in", outstr);
 +	 outstr = replace(srcdir | "Macaulay2/m2",
@@ -142,13 +138,8 @@ Subject: [PATCH] foo
 +	     finalPrefix | Layout#1#"data", outstr);
 +	 outstr = replace(builddir | Layout#2#"lib",
 +	     finalPrefix | Layout#1#"lib", outstr);
-+	 outstr = replace(homedir, "/home/m2user/", outstr);
++	 outstr = replace(homedir, "/home/m2user", outstr);
 +	 outstr = replace(builddir, finalPrefix, outstr);
-+	 print(" =================");
-+	 print(" == NEW VERSION == ");
-+	 print(" =================");
-+	 print(outstr);
-+	 print("");
 +	 outf << outstr << close;
 +	 );
 +     outstr
@@ -157,7 +148,7 @@ Subject: [PATCH] foo
  installPackage Package := opts -> pkg -> (
       tallyInstalledPackages();
       verbose := opts.Verbose or debugLevel > 0;
-@@ -822,7 +858,10 @@
+@@ -822,7 +849,10 @@
  			      )
  			 );
  		    -- read, separate, and store example output
