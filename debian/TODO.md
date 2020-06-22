@@ -17,23 +17,13 @@ mpsolve
 
 TOPCOM
 ------
-* Not in Debian yet  ([#959826](https://bugs.debian.org/959826))
-  - Packaging complete, waiting for sponsor
-  - https://salsa.debian.org/science-team/topcom
+* In NEW queue!
 * Once it arrives in Debian, we can remove `skip-topcom-for-now.patch`
   and build all the examples for `Polyhedra` and `ToricInvariants`.
 
-flint
--------------------
-* We need flint 2.6, which has been packaged by Julien Puydt and is waiting
-  in the NEW queue.
-* Once it has been released and packaged for Debian, remove
-  `skip-factor-for-now.patch` so we can use `factor` in `ZZ` again.
-* We should also put (>= 2.6.0~) in Build-Depends.
-
 html-check-links
 ----------------
-* Once mpsolve/topcom/flint issues resolved, we shouldn't
+* Once mpsolve/topcom issues resolved, we shouldn't
   have any more broken links and we can run this check again.
 
 reproducible builds
@@ -65,7 +55,6 @@ autopkgtest
   - `Topcom`, et. al, while we wait for topcom
   - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
   - `PHCpack`, et. al, until phcpack is packaged
-  - `QuillenSuslin` until flint 2.6 is packaged
   - `SumOfSquares`, strange "protected global variable" error I can't
     reproduce
 
