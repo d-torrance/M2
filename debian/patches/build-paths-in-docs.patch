@@ -1,15 +1,16 @@
-From d0c91d0eab1e4e77abb3a99eedc103e7cc8a4360 Mon Sep 17 00:00:00 2001
+From 9711e390047062cbac2f89845761a90ee1a1db0a Mon Sep 17 00:00:00 2001
 From: Doug Torrance <dtorrance@piedmont.edu>
-Date: Wed, 17 Jun 2020 22:28:21 -0400
+Date: Mon, 22 Jun 2020 15:16:20 -0400
 Subject: [PATCH] foo
 
 ---
  M2/Macaulay2/d/actors2.dd                     |  9 ++--
  M2/Macaulay2/d/actors4.d                      |  4 +-
  M2/Macaulay2/d/stdiop.d                       |  2 +-
- M2/Macaulay2/m2/installPackage.m2             | 41 ++++++++++++++++++-
+ M2/Macaulay2/m2/debugging.m2                  |  2 +-
+ M2/Macaulay2/m2/installPackage.m2             | 45 +++++++++++++++++--
  M2/Macaulay2/m2/startup.m2.in                 |  5 ++-
- M2/Macaulay2/packages/Macaulay2Doc/doc.m2     |  4 +-
+ M2/Macaulay2/packages/Macaulay2Doc/doc.m2     |  3 +-
  M2/Macaulay2/packages/Macaulay2Doc/doc2.m2    |  5 ++-
  M2/Macaulay2/packages/Macaulay2Doc/doc3.m2    |  5 ++-
  .../Macaulay2Doc/functions/endPackage-doc.m2  |  1 +
@@ -17,8 +18,8 @@ Subject: [PATCH] foo
  .../packages/Macaulay2Doc/overview3.m2        | 15 ++-----
  M2/Macaulay2/packages/ReflexivePolytopesDB.m2 |  2 +-
  M2/Macaulay2/packages/RunExternalM2.m2        |  2 +-
- M2/Macaulay2/packages/gfanInterface.m2        | 14 +++++++
- 14 files changed, 80 insertions(+), 38 deletions(-)
+ M2/Macaulay2/packages/gfanInterface.m2        | 14 ++++++
+ 15 files changed, 84 insertions(+), 39 deletions(-)
 
 --- a/M2/Macaulay2/d/actors2.dd
 +++ b/M2/Macaulay2/d/actors2.dd
@@ -82,8 +83,28 @@ Subject: [PATCH] foo
  export (o:file) << (w:Position) : file := o << tostring(w);
  export (o:BasicFile) << (w:Position) : BasicFile := o << tostring(w);
  threadLocal export SuppressErrors := false;
+--- a/M2/Macaulay2/m2/debugging.m2
++++ b/M2/Macaulay2/m2/debugging.m2
+@@ -186,7 +186,7 @@
+ 
+ robust := y -> silentRobustNet(55,4,3,y)
+ abbreviate := x -> (
+-     if instance(x, Function) and match("^--Function.*--$", toString x) then "..."
++     if instance(x, Function) and match("^-\\*Function.*\\*-$", toString x) then "..."
+      else robust x)
+ listSymbols = method()
+ listSymbols Dictionary := d -> listSymbols values d
 --- a/M2/Macaulay2/m2/installPackage.m2
 +++ b/M2/Macaulay2/m2/installPackage.m2
+@@ -436,7 +436,7 @@
+ ArgNotify      := 1 << 11 -* add --notify *-
+ ArgSilent      := 1 << 12 -* add --silent *-
+ ArgStop        := 1 << 13 -* add --stop *-
+-ArgPrintWidth  := 1 << 14 -* add --print-width 77 *-
++ArgPrintWidth  := 1 << 14 -* add --print-width 0 *-
+ -- suffixes
+ SetInputFile   := 1 << 30 -* add <inf *-
+ SetOutputFile  := 1 << 31 -* add >>tmpf *-
 @@ -483,7 +483,7 @@
       cmd = cmd | readmode(ArgNotify,      "--notify");
       cmd = cmd | readmode(ArgSilent,      "--silent");
@@ -93,48 +114,57 @@ Subject: [PATCH] foo
       cmd = cmd | concatenate apply(srcdirs, d -> (" --srcdir",format d));
       needsline := concatenate(" -e 'needsPackage(\"",pkgname,"\", Reload => true, FileName => \"",pkg#"source file","\")'");
       cmd = cmd | if pkgname != "Macaulay2Doc" then needsline else "";
-@@ -822,7 +822,44 @@
+@@ -630,6 +630,42 @@
+      f := lookup m;
+      any(dispatcherFunctions, g -> functionBody f === functionBody g))
+ 
++reproduciblePaths = outf -> (
++     outstr := get outf;
++     srcdir := regexQuote toAbsolutePath topSrcdir;
++     builddir := regexQuote prefixDirectory;
++     homedir := regexQuote homeDirectory;
++     if any({srcdir, builddir, homedir}, dir -> match(dir, outstr))
++     then (
++	 print(" ======================");
++	 print(" == ORIGINAL VERSION == ");
++	 print(" ======================");
++	 print(outstr);
++	 print("");
++	 outstr = replace(srcdir | "Macaulay2/m2/startup.m2.in",
++	     "/path/to/source/Macaulay2/m2/startup.m2.in", outstr);
++	 outstr = replace(srcdir | "Macaulay2/m2",
++	     finalPrefix | Layout#1#"packages" | "Core", outstr);
++	 outstr = replace(srcdir | "Macaulay2/packages/",
++	     finalPrefix | Layout#1#"packages", outstr);
++	 outstr = replace(builddir | Layout#2#"bin",
++	     finalPrefix | Layout#1#"bin", outstr);
++	 outstr = replace(builddir | Layout#2#"data",
++	     finalPrefix | Layout#1#"data", outstr);
++	 outstr = replace(builddir | Layout#2#"lib",
++	     finalPrefix | Layout#1#"lib", outstr);
++	 outstr = replace(homedir, "/home/m2user/", outstr);
++	 outstr = replace(builddir, finalPrefix, outstr);
++	 print(" =================");
++	 print(" == NEW VERSION == ");
++	 print(" =================");
++	 print(outstr);
++	 print("");
++	 outf << outstr << close;
++	 );
++     outstr
++    )
++
+ installPackage Package := opts -> pkg -> (
+      tallyInstalledPackages();
+      verbose := opts.Verbose or debugLevel > 0;
+@@ -822,7 +858,10 @@
  			      )
  			 );
  		    -- read, separate, and store example output
 -		    if fileExists outf then pkg#"example results"#fkey = drop(separateM2output get outf,-1)
 +		    if fileExists outf then (
-+			 outstr := get outf;
-+			 srcdir := regexQuote toAbsolutePath topSrcdir;
-+			 builddir := regexQuote prefixDirectory;
-+			 if any({srcdir, builddir}, dir -> match(dir, outstr))
-+			 then (
-+			      print(" ======================");
-+			      print(" == ORIGINAL VERSION == ");
-+			      print(" ======================");
-+			      print(outstr);
-+			      print("");
-+			      -- replace some absolute paths for
-+			      -- reproducible documentation
-+			      outstr = replace(srcdir |
-+				   "Macaulay2/m2/startup.m2.in",
-+				   "/path/to/source/Macaulay2/m2/startup.m2.in",
-+				   outstr);
-+			      outstr = replace(srcdir | "Macaulay2/m2",
-+				   finalPrefix | Layout#1#"packages" | "Core",
-+				   outstr);
-+			      outstr = replace(srcdir | "Macaulay2/packages/",
-+				   finalPrefix | Layout#1#"packages", outstr);
-+			      outstr = replace(builddir | Layout#2#"bin",
-+				   finalPrefix | Layout#1#"bin", outstr);
-+			      outstr = replace(builddir | Layout#2#"data",
-+				   finalPrefix | Layout#1#"data", outstr);
-+			      outstr = replace(builddir | Layout#2#"lib",
-+				   finalPrefix | Layout#1#"lib", outstr);
-+			      outstr = replace(builddir, finalPrefix, outstr);
-+			      print(" =================");
-+			      print(" == NEW VERSION == ");
-+			      print(" =================");
-+			      print(outstr);
-+			      print("");
-+			      outf << outstr << close;
-+			 );
-+		    pkg#"example results"#fkey = drop(separateM2output outstr,-1)
++			 outstr := reproduciblePaths outf;
++			 pkg#"example results"#fkey = drop(separateM2output outstr,-1)
 +		    )
  		    else (
  			 if debugLevel > 1 then stderr << "--warning: missing file " << outf << endl;
@@ -169,17 +199,16 @@ Subject: [PATCH] foo
       )
 --- a/M2/Macaulay2/packages/Macaulay2Doc/doc.m2
 +++ b/M2/Macaulay2/packages/Macaulay2Doc/doc.m2
-@@ -276,8 +276,8 @@
+@@ -274,7 +274,8 @@
+ 	  prepended to the path, based on the value of the ", TO "applicationDirectory", "
+ 	  for your system."
  	  },
-      PRE concatenate between_"\n" apply(value Core#"private dictionary"#"userpath",s -> (5,s)),
+-     PRE concatenate between_"\n" apply(value Core#"private dictionary"#"userpath",s -> (5,s)),
++     PRE replace(regexQuote homeDirectory, "/home/m2user/",
++	   concatenate between_"\n" apply(value Core#"private dictionary"#"userpath",s -> (5,s))),
       EXAMPLE {
--	  "path",
--	  ///path = append(path, "~/resolutions/")///
-+	  "stack path",
-+	  ///path = append(path, "~/resolutions/"); stack path///
- 	  }
-      }
- 
+ 	  "path",
+ 	  ///path = append(path, "~/resolutions/")///
 --- a/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
 +++ b/M2/Macaulay2/packages/Macaulay2Doc/doc2.m2
 @@ -1090,8 +1090,9 @@
