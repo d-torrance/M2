@@ -7,7 +7,9 @@ Visualize
   - BootSideMenu ([#960097](https://bugs.debian.org/960097))
   - noUiSlider ([#960618](https://bugs.debian.org/960618))
 * Packaging complete, waiting for sponsor
-* Once they arrive in Debian, add to `Recommends`
+* Once they arrive in Debian, remove them, add to `Files-Excluded` in
+  `d/copyright`, remove stanzas from `d/copyright`, remove
+  `d/missing-sources`, and add to `Recommends`
 
 mpsolve
 -------
@@ -15,44 +17,19 @@ mpsolve
 * Once it arrives in Debian, we can remove `skip-mpsolve-for-now.patch`
   and use `roots` again.
 
-TOPCOM
-------
-* In NEW queue!
-* Once it arrives in Debian, we can remove `skip-topcom-for-now.patch`
-  and build all the examples for `Polyhedra` and `ToricInvariants`.
-
-html-check-links
-----------------
-* Once mpsolve/topcom issues resolved, we shouldn't
-  have any more broken links and we can run this check again.
-
 reproducible builds
 -------------------
-* At one point, we were down to 0 build paths in the documentation, but
-  there are two big issues:
-  - One of the changes (building examples inside the build directory instead
-    of /tmp) was causing build failures, so that commit has been reverted.
-  - We're using a few canned examples, which is not ideal.
-* New idea: Replace the build paths that appear in the output file right
-  after the example is run.
-  - Early drafts are working pretty well.
-  - We'll probably want to revert most of the relative build path commits,
-    since now we're getting a bunch of "../../../usr/share/Macaulay2"'s.
-  - Big issue: sometimes the build path has been split over multiple lines.
-  - Many of the build paths that still appear are inside *Function[...].
-    Let's switch that to relative paths (or actually, minimizeFilename)
-    to match the behavior of locate, etc.
-  - Perhaps just increase the line width for examples?  Many of them
-    ignore it anyways.
-  - Use "stack" for "path" example to match "prefixPath" and help with
-    wrapping if we increase line width.
-  - Instead of setting HOME, just swap it.  Otherwise we get errors in
-    runExternalM2 docs.
+* Build paths in documentation have been fixed!  Mahrud has an
+  outstanding pull request which also deals with building examples, so
+  refactor/submit upstream once that goes through.
+* My changes involved turning off wrapping of examples, so we should wrap
+  them later, when they're displayed (or when generating html/info files).
+* There are almost certainly more reproducibility issues which don't involve
+  build paths which I'll find with reprotest.
 
 autopkgtest
 -----------
 * Package testing is working except for
-  - `Topcom`, et. al, while we wait for topcom
   - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
   - `PHCpack`, et. al, until phcpack is packaged
   - `SumOfSquares`, strange "protected global variable" error I can't
