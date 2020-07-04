@@ -942,7 +942,9 @@ fi
 
 AC_MSG_CHECKING(whether the package csdp is installed)
 if test "`type -t csdp`" = file
-then AC_MSG_RESULT(yes)
+then AC_MSG_RESULT([yes, will build anyway])
+     dnl because the package SemidefiniteProgramming doesn't look for it on the PATH
+     BUILD_csdp=yes
 else AC_MSG_RESULT([no, will build])
      BUILD_csdp=yes
 fi
@@ -961,7 +963,9 @@ dnl fi
 
 AC_MSG_CHECKING(whether the package nauty is installed)
 if test "`type -t nauty-complg`" = file
-then AC_MSG_RESULT(yes)
+then AC_MSG_RESULT([yes, will build anyway])
+     dnl because the package Nauty doesn't look for it on the PATH
+     BUILD_nauty=yes
 else AC_MSG_RESULT([no, will build])
      BUILD_nauty=yes
 fi
@@ -1132,7 +1136,24 @@ then AC_LANG(C)
 fi
 
 AC_LANG(C++)
-AC_CHECK_HEADER(boost/version.hpp,,AC_MSG_ERROR([[boost library not installed, but required]]))
+AC_CHECK_HEADER(boost/version.hpp,
+	[
+	AC_CHECK_HEADER(boost/stacktrace.hpp,,
+	    [
+	    AC_MSG_ERROR([[boost library installed, but not modern enough to contain 'boost/stacktrace.hpp']])
+	    dnl As of July, 2020:
+	    dnl These do not contain the file:
+	    dnl   Ubuntu 16.04 comes with boost 1.58
+	    dnl These do contain the file:
+	    dnl   Ubuntu 18.04 comes with boost 1.65
+	    dnl   Debian 10    comes with boost 1.67
+	    dnl   Ubuntu 20.04 comes with boost 1.71
+	    dnl   Homebrew on the Mac provides boost 1.72
+	    ])
+	],
+	[
+	AC_MSG_ERROR([boost library not installed, but required])
+	])
 
 AC_SUBST(ULIMIT_T,yes)
 AC_SUBST(ULIMIT_M,yes)
