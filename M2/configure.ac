@@ -671,7 +671,7 @@ AC_SUBST(BUILTLIBS)
 #    (Programs linked by this configure script are linked with the options in LIBS.  This allows libraries
 #    dependent on previously detected libraries to be detected by tests that involve linking.
 
-AC_SUBST(LIBLIST, " atomic_ops gc gdbm gmp mpir mpfr readline ntl flint factory lapack mpsolve frobby glpk cddlib fplll linbox gtest ")
+AC_SUBST(LIBLIST, " atomic_ops gc gdbm gmp mpir mpfr readline ntl flint factory lapack frobby glpk cddlib fplll linbox gtest ")
 # The list LIBLIST is the list of libraries that might be used and linked into M2.
 
 AC_SUBST(PROGLIST, "4ti2 gfan normaliz csdp nauty cddplus lrslib gftables topcom cohomcalg")
@@ -865,14 +865,6 @@ else if test $SHARED = no -a $TRY_STATIC = yes
      fi
 fi
 
-# including mpsolve (requires gmp or mpir) 
-AC_LANG(C)
-AC_CHECK_HEADER(mps/mps.h,LIBS="-lmps $LIBS",BUILD_mpsolve=yes)
-if test $BUILD_mpsolve = yes
-then BUILTLIBS="-lmps $BUILTLIBS"
-fi
-
-AC_SUBST(LIBS_GLPK)
 AC_LANG(C)
 AC_CHECK_HEADER(glpk.h,,BUILD_glpk=yes)
 if test $BUILD_glpk = yes

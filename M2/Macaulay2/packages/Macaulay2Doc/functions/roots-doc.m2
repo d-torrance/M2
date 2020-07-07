@@ -11,14 +11,10 @@ document {
     EXAMPLE {
       "RR_100[x]",
       "p = x^13 + 5*x^9 + 7*x^4 + x +1",
-      "roots p",
-      "o3#0",
     },
     EXAMPLE {
       "ZZ[x]",
       "p = x^13 + 5*x^9 + 7*x^4 + x +1",
-      "roots(p^2, Precision=>150, Unique=>true)",
-      "o7#0",
     },
     PARA {
       "The roots are computed using ", TO "MPsolve", ".",

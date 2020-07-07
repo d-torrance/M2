@@ -12,7 +12,8 @@ newPackage(
 	Configuration => {"gfan command" => "gfan"},
     	DebuggingMode => false,
 	AuxiliaryFiles => true,
-	CacheExampleOutput => true
+	CacheExampleOutput => true,
+	PackageImports => {"gfanInterface"}
     	)
 
 export { 
