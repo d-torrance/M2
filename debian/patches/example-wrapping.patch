@@ -1,0 +1,57 @@
+--- a/M2/Macaulay2/m2/document.m2
++++ b/M2/Macaulay2/m2/document.m2
+@@ -537,19 +537,12 @@
+ 
+ M2outputRE := "(\n+)i+[1-9][0-9]* : "
+ M2outputREindex := 1
+--- if called during installation (and thus generating html and info docs)
+--- then wrap examples to 77 characters.  otherwise, compute the width from
+--- printWidth, allowing space for the output prompt and box boundary
+-separateM2output = method(Options => {"Install" => false})
+-separateM2output String := o -> r -> (
++separateM2output = method()
++separateM2output String := r -> (
+      m := regex("^i1 : ",r);
+      if m#?0 then r = substring(m#0#0,r);
+      while r#?-1 and r#-1 == "\n" do r = substring(0,#r-1,r);
+-     wrapWidth := if o#"Install" then 77
+-	  else printWidth - interpreterDepth - length toString lineNumber - 5;
+-     apply(separateRegexp(M2outputRE,M2outputREindex,r), ex ->
+-	  toString stack apply(lines ex, line -> wrap(wrapWidth, line)))
+-     )
++     separateRegexp(M2outputRE,M2outputREindex,r))
+ 
+ makeExampleOutputFileName := (fkey,pkg) -> (			 -- may return 'null'
+      if pkg#?"package prefix" and pkg#"package prefix" =!= null 
+--- a/M2/Macaulay2/m2/installPackage.m2
++++ b/M2/Macaulay2/m2/installPackage.m2
+@@ -656,8 +656,7 @@
+ 		    -- read, separate, and store example output
+ 		    if fileExists outf then (
+ 			 outstr := reproduciblePaths outf;
+-			 pkg#"example results"#fkey = drop(
+-			      separateM2output(outstr, "Install" => true), -1)
++			 pkg#"example results"#fkey = drop(separateM2output outstr,-1)
+ 		    )
+ 		    else (
+ 			 if debugLevel > 1 then stderr << "--warning: missing file " << outf << endl;
+--- a/M2/Macaulay2/m2/run.m2
++++ b/M2/Macaulay2/m2/run.m2
+@@ -53,7 +53,7 @@
+ ArgNotify      := 1 << 11 -* add --notify *-
+ ArgSilent      := 1 << 12 -* add --silent *-
+ ArgStop        := 1 << 13 -* add --stop *-
+-ArgPrintWidth  := 1 << 14 -* add --print-width 0 *-
++ArgPrintWidth  := 1 << 14 -* add --print-width 77 *-
+ -- suffixes
+ SetInputFile   := 1 << 30 -* add <inf *-
+ SetOutputFile  := 1 << 31 -* add >>tmpf *-
+@@ -110,7 +110,7 @@
+      cmd = cmd | readmode(ArgNotify,      "--notify");
+      cmd = cmd | readmode(ArgSilent,      "--silent");
+      cmd = cmd | readmode(ArgStop,        "--stop");
+-     cmd = cmd | readmode(ArgPrintWidth,  "--print-width 0");
++     cmd = cmd | readmode(ArgPrintWidth,  "--print-width 77");
+      cmd = cmd | concatenate apply(srcdirs, d -> (" --srcdir",format d));
+      needsline := concatenate(" -e 'needsPackage(\"",pkgname,"\", Reload => true, FileName => \"",pkg#"source file","\")'");
+      cmd = cmd | if pkgname != "Macaulay2Doc" then needsline else "";
