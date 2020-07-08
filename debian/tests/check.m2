@@ -31,9 +31,7 @@ scan(dirs, dir -> (
 		)
 	)
 
-skip = {-- https://github.com/Macaulay2/M2/issues/1173
-	"StatePolytope",
-	-- waiting for phcpack (#820848)
+skip = {-- waiting for phcpack (#820848)
 	"PHCpack", "MonodromySolver",
 	-- bertini is non-free, so we will always skip this
 	"Bertini",
