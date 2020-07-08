@@ -17,6 +17,7 @@ m4_include(config/ax_func_accept_argtypes.m4)
 m4_include(config/relpaths.m4)
 m4_include(config/gtest.m4)
 m4_include(config/openmp.m4)
+m4_include(config/search-libraries.m4)
 
 dnl define(TO_UPPER,[translit($1, [a-z], [A-Z])])
 
@@ -56,8 +57,8 @@ do case $i in
 done
 
 dnl: homebrew-provided compilers don't look here:
-CPPFLAGS="-I/usr/include -I/usr/local/include $CPPFLAGS"
-LDFLAGS="-L/usr/lib -L/usr/local/lib $LDFLAGS"
+CPPFLAGS="$CPPFLAGS -I/usr/include -I/usr/local/include"
+LDFLAGS="$LDFLAGS -L/usr/lib -L/usr/local/lib"
 
 dnl AC_MSG_CHECKING(whether $FIND is GNU find)
 dnl if "$FIND" --version | head -1 | grep "GNU find" >/dev/null 2>&1
@@ -608,6 +609,10 @@ then if test "$OPTIMIZE" = no
      if test "$DEBUG" = yes
      then AC_MSG_ERROR([--enable-debug and --enable-dmg both specified])
      fi
+     if test $SHARED = yes
+     then SHARED=no
+          AC_MSG_WARN([--enable-dmg specified, so disabling the building of shared libraries])
+     fi
 fi
 
 AC_SUBST(M2SUFFIX)
@@ -746,14 +751,20 @@ AC_ARG_ENABLE(build-libraries, AS_HELP_STRING(--enable-build-libraries=...,[list
 
 #############################################################################
 
+AC_SUBST(LIBS_GDBM)
 AC_LANG(C)
 AC_CHECK_HEADER(gdbm.h,
-	test $BUILD_gdbm = yes && AC_MSG_WARN([[library gdbm exists, but we are asked to build it]])
-	LIBS="-lgdbm $LIBS"
-	,
+	test $BUILD_gdbm = yes && AC_MSG_WARN([[library gdbm exists, but we are asked to build it]]),
 	BUILD_gdbm=yes)
 if test $BUILD_gdbm = yes
-then BUILTLIBS="-lgdbm $BUILTLIBS"
+then LIBS_GDBM="-lgdbm"
+     BUILTLIBS="$LIBS_GDBM $BUILTLIBS"
+else if test $SHARED = no
+     then SEARCH_LIBRARIES(gdbm_close,"/usr/lib/libgdbm.a" "/usr/local/lib/libgdbm.a",,[AC_MSG_ERROR([libgdbm.a not found])])
+     else AC_SEARCH_LIBS(gdbm_close,"gdbm",,[AC_MSG_ERROR([libgdbm not found])])
+     fi
+     LIBS_GDBM=$ac_cv_search_gdbm_close
+     LIBS="$LIBS_GDBM $LIBS"
 fi
 
 AC_MSG_CHECKING(whether package bdw-gc is provided)
@@ -762,16 +773,21 @@ if [ pkg-config --exists bdw-gc ]
 then AC_MSG_RESULT(yes)
      CPPFLAGS="`pkg-config --cflags-only-I bdw-gc | sed -e 's=^-I/=-isystem /=g' -e 's= -I/= -isystem /=g'` $CPPFLAGS"
      dnl should probably use `pkg-config --libs bdw-gc` here instead
-     LIBS="`pkg-config --libs bdw-gc` $LIBS"
      FOUND_gc=yes
 else AC_MSG_RESULT(no)
      BUILD_gc=yes
 fi
 if test $BUILD_gc = yes
 then BUILTLIBS="-lgc -lpthread $BUILTLIBS"
+else if test $SHARED = no
+     then SEARCH_LIBRARIES(GC_malloc,"/usr/lib/libgc.a" "/usr/local/lib/libgc.a",,
+          [AC_MSG_ERROR([libgc.a not found])])
+     else AC_SEARCH_LIBS(GC_malloc,"gc",,[AC_MSG_ERROR([libgc not found])])
+     fi
 fi
 
 # mpir and gmp serve the same purpose
+AC_SUBST(LIBS_GMP)
 AC_LANG(C)
 AC_CHECK_HEADER(gmp.h, FOUND_gmp=yes ,FOUND_gmp=no )
 AC_CHECK_HEADER(mpir.h,FOUND_mpir=yes,FOUND_mpir=no)
@@ -790,19 +806,38 @@ AC_ARG_WITH(integer-package,
 if test $BUILD_gmp = yes -a $BUILD_mpir = yes
 then AC_MSG_ERROR([refusing to build both mpir and gmp, since the are interchangeable])
 fi
-AC_MSG_CHECKING([to use gmp or mpir])
+AC_MSG_CHECKING([whether to use gmp or mpir])
 if test "$PREFERRED_INTEGER_PACKAGE" = mpir
 then USING_MPIR=1
+     AC_MSG_RESULT([using mpir])
+     AC_DEFINE(USING_MPIR,1,[Whether we use MPIR (instead of GMP)])
      if test "$FOUND_mpir" = no
      then BUILD_mpir=yes
-          BUILTLIBS="-lmpirxx -lmpir $BUILTLIBS"
-     else LIBS="-lmpirxx -lmpir $LIBS"
+          LIBS_GMP="-lmpirxx -lmpir"
+          BUILTLIBS="$LIBS_GMP $BUILTLIBS"
+     else if test $SHARED = no
+          then SEARCH_LIBRARIES(__gmpz_init,"/usr/lib/libmpirxx.a /usr/lib/libmpir.a" "/usr/local/lib/libmpirxx.a /usr/local/lib/libmpir.a",,
+					    [AC_MSG_ERROR([libmpir.a not found])])
+	  else SEARCH_LIBRARIES(__gmpz_init,"-lmpirxx -lmpir",,[AC_MSG_ERROR([libmpir not found])])
+	  fi
+	  LIBS_GMP=$ac_cv_search___gmpz_init
+	  LIBS="$LIBS_GMP $LIBS"
      fi
 else USING_MPIR=0		# i.e., using gmp
+     AC_MSG_RESULT([using gmp])
+     AC_DEFINE(USING_MPIR,0,[Whether we use MPIR (instead of GMP)])
      if test "$FOUND_gmp" = no
      then BUILD_gmp=yes
-          BUILTLIBS="-lgmpxx -lgmp $BUILTLIBS"
-     else LIBS="-lgmpxx -lgmp $LIBS"
+     	  LIBS_GMP="-lgmpxx -lgmp"
+          BUILTLIBS="$LIBS_GMP $BUILTLIBS"
+     else AC_LANG(C)
+	  if test $SHARED = no
+          then SEARCH_LIBRARIES(__gmpz_init,"/usr/lib/libgmpxx.a /usr/lib/libgmp.a" "/usr/local/lib/libgmpxx.a /usr/local/lib/libgmp.a",,
+					    [AC_MSG_ERROR([libgmp.a not found])])
+	  else SEARCH_LIBRARIES(__gmpz_init,"-lgmpxx -lgmp",,[AC_MSG_ERROR([libgmp not found])])
+	  fi
+     	  LIBS_GMP=$ac_cv_search___gmpz_init
+	  LIBS="$LIBS_GMP $LIBS"
 	  dnl By the way: with Hombebrew on the Mac gmp comes with package configuration:
 	  dnl $ pkg-config gmp --cflags
 	  dnl -I/usr/local/Cellar/gmp/6.2.0/include
@@ -810,18 +845,17 @@ else USING_MPIR=0		# i.e., using gmp
 	  dnl -L/usr/local/Cellar/gmp/6.2.0/lib -lgmp
      fi
 fi
-if test "$USING_MPIR" = 0
-then AC_MSG_RESULT([using gmp])
-     AC_DEFINE(USING_MPIR,0,[Whether we use MPIR (instead of GMP)])
-else AC_MSG_RESULT([using mpir])
-     AC_DEFINE(USING_MPIR,1,[Whether we use MPIR (instead of GMP)])
-fi
 AC_SUBST(USING_MPIR)
 
 AC_LANG(C)
-AC_CHECK_HEADER(mpfr.h,LIBS="-lmpfr $LIBS",BUILD_mpfr=yes)
+AC_CHECK_HEADER(mpfr.h,,BUILD_mpfr=yes)
 if test $BUILD_mpfr = yes
 then BUILTLIBS="-lmpfr $BUILTLIBS"
+else if test $SHARED = no
+     then SEARCH_LIBRARIES(mpfr_digamma,"/usr/lib/libmpfr.a" "/usr/local/lib/libmpfr.a",,
+				        [AC_MSG_ERROR([libmpfr.a not found])])
+     else AC_SEARCH_LIBS(mpfr_digamma,"mpfr",,[AC_MSG_ERROR([libmpfr not found])])
+     fi
 fi
 
 # including mpsolve (requires gmp or mpir) 
@@ -831,10 +865,17 @@ if test $BUILD_mpsolve = yes
 then BUILTLIBS="-lmps $BUILTLIBS"
 fi
 
+AC_SUBST(LIBS_GLPK)
 AC_LANG(C)
-AC_CHECK_HEADER(glpk.h,LIBS="-lglpk $LIBS",BUILD_glpk=yes)
+AC_CHECK_HEADER(glpk.h,,BUILD_glpk=yes)
 if test $BUILD_glpk = yes
 then BUILTLIBS="-lglpk $BUILTLIBS"
+else if test $SHARED = no
+     then SEARCH_LIBRARIES(glp_free,"/usr/lib/libglpk.a" "/usr/local/lib/libglpk.a",,[AC_MSG_ERROR([libglpk.a not found])])
+     else AC_SEARCH_LIBS(glp_free,"glpk",,[AC_MSG_ERROR([libglpk not found])])
+     fi
+     LIBS_GLPK=$ac_cv_search_glp_free
+     LIBS="$LIBS_GLPK $LIBS"
 fi
 
 AC_MSG_CHECKING([whether givaro library is installed])
@@ -875,7 +916,11 @@ AC_CHECK_HEADER(cdd.h,,[
     [#include <setoper.h>])
 if test $BUILD_cddlib = yes
 then BUILTLIBS="-lcdd $BUILTLIBS"
-else LIBS="-lcdd $LIBS"
+else if test $SHARED = no
+     then SEARCH_LIBRARIES(dd_Equal,"/usr/lib/libcdd.a" "/usr/local/lib/libcdd.a",,
+				    [AC_MSG_ERROR([libcdd.a not found])])
+     else AC_SEARCH_LIBS(dd_Equal,"cdd",,[AC_MSG_ERROR([libcdd not found])])
+     fi
 fi
 
 dnl factory needs to know:
@@ -893,7 +938,11 @@ then AC_LANG(C)
 #endif
 	  ])],
 	  AC_MSG_RESULT([yes])
-	  LIBS="-lflint -lgmp $LIBS",
+	  if test $SHARED = no
+	  then SEARCH_LIBRARIES(_fmpz_mod_mul1,/usr/lib/libflint.a /usr/local/lib/libflint.a,,
+					       [AC_MSG_ERROR([libflint.a not found])])
+	  else AC_SEARCH_LIBS(_fmpz_mod_mul1,"flint",,[AC_MSG_ERROR([libflint not found])])
+	  fi,
 	  AC_MSG_RESULT([no])
 	  BUILD_flint=yes)
 fi
@@ -992,7 +1041,15 @@ AC_CHECK_HEADER(NTL/version.h,,BUILD_ntl=yes)
 if test $BUILD_ntl = yes
 then BUILTLIBS="-lntl $BUILTLIBS"
 else AC_MSG_CHECKING([whether libntl is present and usable])
-     LIBS="-lntl $LIBS"
+     if test $SHARED = no
+     then if test -f /usr/lib/libntl.a
+     	  then LIBS="/usr/lib/libntl.a $LIBS"
+	  elif test -f /usr/local/lib/libntl.a
+	  then LIBS="/usr/local/lib/libntl.a $LIBS"
+	  else AC_MSG_ERROR([libntl.a not found])
+	  fi
+     else LIBS="-lntl $LIBS"
+     fi
      AC_LINK_IFELSE(
 	[AC_LANG_PROGRAM(
 	    [
@@ -1008,7 +1065,7 @@ dnl factory needs to know:
 AC_SUBST(BUILD_ntl)
 
 AC_LANG(C++)
-AC_CHECK_HEADER(frobby.h,LIBS="-lfrobby -lgmpxx -lgmp $LIBS",BUILD_frobby=yes)
+AC_CHECK_HEADER(frobby.h,LIBS="-lfrobby $LIBS",BUILD_frobby=yes)
 if test $BUILD_frobby = yes
 then BUILTLIBS="-lfrobby $BUILTLIBS"
 fi
@@ -1148,7 +1205,10 @@ AC_CHECK_HEADER(boost/version.hpp,
 	    dnl   Ubuntu 18.04 comes with boost 1.65
 	    dnl   Debian 10    comes with boost 1.67
 	    dnl   Ubuntu 20.04 comes with boost 1.71
-	    dnl   Homebrew on the Mac provides boost 1.72
+	    dnl   Homebrew Mac comes with boost 1.72
+	    ],
+	    [
+	    #define _GNU_SOURCE
 	    ])
 	],
 	[
@@ -1691,6 +1751,9 @@ AC_MSG_NOTICE([using FC                = $FC])
 AC_MSG_NOTICE([using AR                = $AR])
 AC_MSG_NOTICE([using RANLIB            = $RANLIB])
 AC_MSG_NOTICE([using LDFLAGS           = $LDFLAGS])
+AC_MSG_NOTICE([using LIBS_GDBM         = $LIBS_GDBM])
+AC_MSG_NOTICE([using LIBS_GLPK         = $LIBS_GLPK])
+AC_MSG_NOTICE([using LIBS_GMP          = $LIBS_GMP])
 AC_MSG_NOTICE([using CC_FOR_BUILD      = $CC_FOR_BUILD])
 AC_MSG_NOTICE([using LDFLAGS_FOR_BUILD = $LDFLAGS_FOR_BUILD])
 AC_MSG_NOTICE([with  ISSUE             = $ISSUE])
