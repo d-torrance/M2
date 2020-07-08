@@ -32,7 +32,7 @@ scan(dirs, dir -> (
 	)
 
 skip = {-- waiting for phcpack (#820848)
-	"PHCpack", "MonodromySolver",
+	"PHCpack", "MonodromySolver", "DecomposableSparseSystems",
 	-- bertini is non-free, so we will always skip this
 	"Bertini",
 	-- getting "assignment to protected global variable 'MaxRoundTol'"
