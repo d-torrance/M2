@@ -3,6 +3,7 @@ print "running basic tests..."
 print "====================================================="
 cmd = "M2 --silent --check 1 -q --stop -E \"exit 0\""
 print cmd
+sleep 1
 if run cmd == 0 then print "basic tests passed" else error "basic tests failed"
 
 rootDir = "M2/Macaulay2/tests/"
