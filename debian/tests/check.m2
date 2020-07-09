@@ -39,11 +39,7 @@ skip = {-- https://github.com/Macaulay2/M2/issues/1173
 	-- waiting for phcpack (#820848)
 	"PHCpack", "MonodromySolver", "DecomposableSparseSystems",
 	-- bertini is non-free, so we will always skip this
-	"Bertini",
-	-- getting "assignment to protected global variable 'MaxRoundTol'"
-	-- error which I can't seem to reproduce.  skip for now
-	"SumsOfSquares"
-	}
+	"Bertini"}
 pkgs = separate_" " version#"packages"
 scan(pkgs, pkg -> if not member(pkg, skip) then (
 		print("=====================================================");
