@@ -38,10 +38,7 @@ autopkgtest
   ( = 256 * (128 + 9)) instead of 9.  It works find during 'make check',
   though.
 * Package testing is working except for
-  - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
   - `PHCpack`, et. al, until phcpack is packaged
-  - `SumOfSquares`, strange "protected global variable" error I can't
-    reproduce
 
 CMake build
 -----------
