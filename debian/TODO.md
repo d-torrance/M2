@@ -19,24 +19,40 @@ mpsolve
 
 reproducible builds
 -------------------
-* Build paths in documentation have been fixed!  Mahrud has an
-  outstanding pull request which also deals with building examples, so
-  refactor/submit upstream once that goes through.
-* My changes involved turning off wrapping of examples, so we should wrap
-  them later, when they're displayed (or when generating html/info files).
+* Build paths almost completely fixed after
+  [#1337](https://github.com/Macaulay2/M2/pull/1337).
+* One of the commits was reverted, causing two examples to still contain
+  the build path.  Fix in [#1381](https://github.com/Macaulay2/M2/pull/1381).
 * There are almost certainly more reproducibility issues which don't involve
   build paths which I'll find with reprotest.
 
+dh_auto_test
+------------
+* We aren't doing html validation.
+* RunExternalM2 tests sometimes fail, so we're skipping it
+  ([#1330](https://github.com/Macaulay2/M2/issues/1330).
+
 autopkgtest
 -----------
+* interrupt-handling.m2 is failing -- we get a return value of 35072
+  ( = 256 * (128 + 9)) instead of 9.  It works find during 'make check',
+  though.
 * Package testing is working except for
   - `StatePolytope` ([#1173](https://github.com/Macaulay2/M2/issues/1173))
   - `PHCpack`, et. al, until phcpack is packaged
   - `SumOfSquares`, strange "protected global variable" error I can't
     reproduce
 
+CMake build
+-----------
+* Work has begun:
+  https://salsa.debian.org/science-team/macaulay2/-/tree/debian-cmake
+
 3rd-party applications
 ----------------------
+* Try to get rid of all `use-debian-*.patch`'s by improving Macaulay2's
+  support for external programs
+  ([#407](https://github.com/Macaulay2/M2/issues/407)).
 * Not necessary for building/running Macaulay2, but used by some
   packages so would be nice to have
   - qepcad ([#951553](https://bugs.debian.org/951553))
@@ -47,3 +63,5 @@ autopkgtest
     + PHCpack
   - bergman (no ITP bug)
     + NCAlgebra
+* Reverse dependencies for the future:
+  - [m2r](https://cran.r-project.org/web/packages/m2r/index.html)
