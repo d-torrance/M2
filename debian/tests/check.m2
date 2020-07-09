@@ -32,7 +32,11 @@ scan(dirs, dir -> (
 		)
 	)
 
-skip = {-- waiting for phcpack (#820848)
+skip = {-- https://github.com/Macaulay2/M2/issues/1173
+	-- even though this has a fix, it needs polymake < 4.0,
+	-- but 4.0 is in sid
+	"StatePolytope",
+	-- waiting for phcpack (#820848)
 	"PHCpack", "MonodromySolver", "DecomposableSparseSystems",
 	-- bertini is non-free, so we will always skip this
 	"Bertini",
