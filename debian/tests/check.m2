@@ -3,6 +3,7 @@ print "running basic tests..."
 print "====================================================="
 cmd = "M2 --silent --check 1 -q --stop -E \"exit 0\""
 print cmd
+sleep 1
 if run cmd == 0 then print "basic tests passed" else error "basic tests failed"
 
 rootDir = "M2/Macaulay2/tests/"
@@ -31,16 +32,10 @@ scan(dirs, dir -> (
 		)
 	)
 
-skip = {-- https://github.com/Macaulay2/M2/issues/1173
-	"StatePolytope",
-	-- waiting for phcpack (#820848)
-	"PHCpack", "MonodromySolver",
+skip = {-- waiting for phcpack (#820848)
+	"PHCpack", "MonodromySolver", "DecomposableSparseSystems",
 	-- bertini is non-free, so we will always skip this
-	"Bertini",
-	-- getting "assignment to protected global variable 'MaxRoundTol'"
-	-- error which I can't seem to reproduce.  skip for now
-	"SumsOfSquares"
-	}
+	"Bertini"}
 pkgs = separate_" " version#"packages"
 scan(pkgs, pkg -> if not member(pkg, skip) then (
 		print("=====================================================");
