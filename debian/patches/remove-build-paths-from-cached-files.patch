@@ -1,28 +1,75 @@
 Description: Remove build path from cached files.
- Not accepted upstream because having the build paths is useful for
- debugging, but this shouldn't be a problem for a user of the Debian
- package.  Perhaps re-submit as a command line option?
-Origin: https://github.com/Macaulay2/M2/pull/1285
+Origin: https://github.com/Macaulay2/M2/pull/1391
 Last-Update: 2020-07-09
 
+--- a/M2/Macaulay2/m2/code.m2
++++ b/M2/Macaulay2/m2/code.m2
+@@ -6,8 +6,11 @@
+      (filename,start,startcol,stop,stopcol,pos,poscol) -> if filename =!= "stdio" then (
+ 	  wp := set characters " \t\r);";
+ 	  file := (
+-	       if match("startup.m2.in$", filename) then startupString
+-	       else if filename === "currentString" then currentString
++	       if match("startup\\.m2\\.in$", filename) or match("basictests/.*\\.m2$", filename) then (
++		   -- if running M2 from a build directory, open the copy in the source directory
++		   filename = if topSrcdir =!= null then topSrcdir | filename
++		   else prefixDirectory | currentLayout#"data" | replace("\\.in$", "", filename));
++	       if filename === "currentString" then currentString
+ 	       else (
+ 		    if not fileExists filename then error ("couldn't find file ", filename);
+ 		    get filename
+--- a/M2/Macaulay2/m2/startup.m2.in
++++ b/M2/Macaulay2/m2/startup.m2.in
+@@ -1,7 +1,8 @@
+ -- -*- coding: utf-8 -*-
+ --		Copyright 1993-2009 by Daniel R. Grayson
+--- layout.m2, includes the former contents of ../m2/startup.m2
+--- this file gets incorporated into the executable file bin/M2 as the string 'startupString'
++-- The generated contents of Core/startup.m2.in are incorporated into the executable file bin/M2-binary
++-- as the string 'startupString' and, for convenience, distributed as startup.m2. Therefore, changing
++-- startup.m2 has no effect on the system; instead, modify startup.m2.in and recompile M2-binary.
+ -- we want to ignore the --datarootdir setting, whatever that means, so here we we mention it: @datarootdir@
+ 
+ interpreterDepth = loadDepth = errorDepth = 0
+@@ -508,7 +509,7 @@
+      "--srcdir" => arg -> if phase == 2 then (
+ 	  if not match("/$",arg) then arg = arg|"/";
+ 	  srcdirs = append(srcdirs,arg);
+-	  initialPath = join(initialPath,select({arg|"Macaulay2/m2/",arg|"Macaulay2/packages/"},isDirectory));
++	  initialPath = join(initialPath,select({arg|"Macaulay2/Core/",arg|"Macaulay2/packages/"},isDirectory));
+ 	  ),
+      "-E" => arg -> if phase == 3 then valueNotify arg,
+      "-e" => arg -> if phase == 4 then valueNotify arg,
+@@ -624,10 +625,10 @@
+ 	  if prefixDirectory =!= null then (
+ 	       if topBuilddir =!= null then (
+ 		    if topSrcdir =!= null then (
+-		    	 topSrcdir|"Macaulay2/m2/",
++			 topSrcdir|"Macaulay2/Core/",
+ 		    	 topSrcdir|"Macaulay2/packages/"
+ 			 ),
+-		    topBuilddir|"Macaulay2/m2/"
++		    topBuilddir|"Macaulay2/Core/"
+ 		    -- topBuilddir|"Macaulay2/packages/"
+ 		    ),
+ 	       prefixDirectory | replaceStrings("PKG","Core",currentLayout#"package"),
 --- a/M2/Macaulay2/d/Makefile.in
 +++ b/M2/Macaulay2/d/Makefile.in
-@@ -224,13 +224,16 @@
+@@ -224,13 +224,15 @@
  	@(\
  	 cat @srcdir@/startup-header.h; \
  	 echo 'cached_file startupFile = {' ; \
 -	     echo @abs_top_srcdir@/Macaulay2/m2/startup.m2.in | sed $(BSTRING) ; \
-+	     echo /path/to/source/Macaulay2/m2/startup.m2.in | sed $(BSTRING) ; \
++	     echo Macaulay2/Core/startup.m2.in | sed $(BSTRING) ; \
  	     echo  ',' ; \
  	     cat ../m2/startup.m2 | sed $(SSTRING) ; \
  	 echo  '};' ; \
  	 echo 'cached_file testStrings[] = {' ; \
  	 for i in @abs_top_srcdir@/Macaulay2/m2/basictests/*.m2 ; \
 -	 do echo '{' ; echo $$i | sed $(BSTRING) ; echo  ',' ; cat $$i | sed $(SSTRING) ; echo  '},' ; \
-+	 do echo '{' ; \
-+		echo "/path/to/source/Macaulay2/m2/basictests/`basename $$i`" | \
-+		sed $(BSTRING) ; echo  ',' ; cat $$i | sed $(SSTRING) ; \
-+		echo  '},' ; \
++	 do echo '{' ; echo Macaulay2/Core/basictests/`basename $$i` | \
++	     sed $(BSTRING) ; echo  ',' ; cat $$i | sed $(SSTRING) ; \
++	     echo  '},' ; \
  	 done ; \
  	 echo '};' ; \
  	 cat @srcdir@/startup-trailer.h; \
