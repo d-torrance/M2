@@ -8,8 +8,12 @@ export VERBOSE=1
 # needed for reproducible-config-args.patch
 export CURDIR
 
+include /usr/share/dpkg/pkg-info.mk
+VERSION := $(shell echo $(DEB_VERSION_UPSTREAM) | \
+	sed -E 's|\+git[0-9]+\.[0-9a-f]+\+ds||')
+
 %:
-	dh $@ --sourcedirectory=M2
+	dh $@ --sourcedirectory=M2 --with elpa
 
 # use exec_prefix instead of prefix in libdir, as that's what's needed
 # to properly substitute paths in Layout#2,
@@ -36,3 +40,9 @@ override_dh_link:
 # example output files must be plain text
 override_dh_compress:
 	dh_compress -Xexample-output
+
+override_dh_elpa: debian/macaulay2-pkg.el
+	dh_elpa
+
+debian/macaulay2-pkg.el: debian/macaulay2-pkg.el.in
+	sed -e 's|@VERSION[@]|$(VERSION)|g' $< > $@
