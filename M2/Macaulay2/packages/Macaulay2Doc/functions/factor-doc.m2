@@ -35,7 +35,6 @@ document {
 	  exponent is an integer.",
 	  },
      EXAMPLE {
-         "factor 124744878111332355674003415153753485211381849014286981744945",
          "y = (2^15-4)/(2^15-5)",
       	 "x = factor y",
       	 "value x"

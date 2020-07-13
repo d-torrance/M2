@@ -32,7 +32,6 @@ doc ///
    	    isPseudoprime n
             isPrime n
             n1 = nextPrime(n+1)
-            factor(n1^2*n)
         Text
             These functions handle numbers larger than this.  For example,
         Example
@@ -40,7 +39,6 @@ doc ///
             isPseudoprime m
             isPrime m
             isPrime m^2
-            factor m^2
         Example
             ndigits = 30
             m = nextPrime(10^30)
@@ -50,9 +48,6 @@ doc ///
             isPrime m1
             isPrime (m*m1)
             isPrime(m*m*m1*m1*m2^6)
-            elapsedTime facs = factor(m*m1)
-            facs = facs//toList/toList
-            assert(set facs === set {{m,1}, {m1,1}})
             m3 = nextPrime (m^3)
             elapsedTime isPrime m3
             elapsedTime isPseudoprime m3
@@ -91,12 +86,6 @@ document {
 	  "Since ", TO "factor", " returns factors guaranteed only to be pseudoprimes, it
 	  may be useful to check their primality, as follows."
 	  },
-     EXAMPLE lines ///
-     f = factor 28752093487520394720397634653456
-     peek'_2 f
-     first \ toList f
-     isPrime \ oo
-     ///,
      "This function can be used also to determine whether an ideal in a polynomial ring is prime.",
      EXAMPLE lines ///
      R = QQ[a..d];

@@ -935,12 +935,7 @@ then AC_LANG(C)
 #error old flint
 #endif
 	  ])],
-	  AC_MSG_RESULT([yes])
-	  if test $SHARED = no -a $TRY_STATIC = yes
-	  then SEARCH_LIBRARIES(_fmpz_mod_mul1,/usr/lib/libflint.a /usr/local/lib/libflint.a,,
-					       [AC_MSG_ERROR([libflint.a not found])])
-	  else AC_SEARCH_LIBS(_fmpz_mod_mul1,"flint",,[AC_MSG_ERROR([libflint not found])])
-	  fi,
+	  AC_MSG_RESULT([yes]),
 	  AC_MSG_RESULT([no])
 	  BUILD_flint=yes)
 fi
