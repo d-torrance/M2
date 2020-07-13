@@ -959,9 +959,7 @@ then if test "$OS" = Darwin -a "$DMG" = yes
      	  # Also, the package CohomCalg looks only in the directory where Macaulay2's binaries are
 	  AC_MSG_RESULT([yes, will build anyway])
           BUILD_cohomcalg=yes
-     else AC_MSG_RESULT([yes, will build anyway])
-     	  # the package CohomCalg looks only in the directory where Macaulay2's binaries are
-          BUILD_cohomcalg=yes
+     else AC_MSG_RESULT([yes])
      fi
 else AC_MSG_RESULT([no, will build])
      BUILD_cohomcalg=yes
@@ -991,9 +989,7 @@ fi
 
 AC_MSG_CHECKING(whether the package csdp is installed)
 if test "`type -t csdp`" = file
-then AC_MSG_RESULT([yes, will build anyway])
-     dnl because the package SemidefiniteProgramming doesn't look for it on the PATH
-     BUILD_csdp=yes
+then AC_MSG_RESULT([yes])
 else AC_MSG_RESULT([no, will build])
      BUILD_csdp=yes
 fi
@@ -1007,9 +1003,7 @@ dnl fi
 
 AC_MSG_CHECKING(whether the package nauty is installed)
 if test "`type -t nauty-complg`" = file
-then AC_MSG_RESULT([yes, will build anyway])
-     dnl because the package Nauty doesn't look for it on the PATH
-     BUILD_nauty=yes
+then AC_MSG_RESULT([yes])
 else AC_MSG_RESULT([no, will build])
      BUILD_nauty=yes
 fi
