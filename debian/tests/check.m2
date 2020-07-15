@@ -35,9 +35,7 @@ scan(dirs, dir -> (
 skip = {-- waiting for phcpack (#820848)
 	"PHCpack", "MonodromySolver", "DecomposableSparseSystems",
 	-- bertini is non-free, so we will always skip this
-	"Bertini",
-	-- https://github.com/Macaulay2/M2/issues/1330
-	"RunExternalM2"}
+	"Bertini"}
 pkgs = separate_" " version#"packages"
 scan(pkgs, pkg -> if not member(pkg, skip) then (
 		print("=====================================================");
