@@ -953,27 +953,16 @@ if test $BUILD_flint = yes
 then BUILTLIBS="-lflint $BUILTLIBS -lm"
 fi
 
-dnl debian: 4ti2-
-dnl suse: 4ti2_
-dnl fedora: /usr/lib/4ti2/bin or /usr/lib64/4ti2/bin
-AC_MSG_CHECKING(whether the package 4ti2 is installed)
-SAVE=$PATH
-PATH="/usr/lib/4ti2/bin:/usr/lib64/4ti2/bin:$PATH"
-FOUND_4ti2=no
-for fourti2_prefix in "" "4ti2-" "4ti2_"
-do
-    if test "`type -t ${fourti2_prefix}circuits`" = file
-    then AC_MSG_RESULT([yes, using prefix "$fourti2_prefix"])
-         FILE_PREREQS="$FILE_PREREQS `type -p ${fourti2_prefix}circuits`"
-         FOUND_4ti2=yes
-         break
-    fi
-done
-if test $FOUND_4ti2 = no
-then AC_MSG_RESULT([no, will build])
-     BUILD_4ti2=yes
-fi
-PATH=$SAVE
+dnl we can't use the test below for the presence of 4ti2 until the package FourTiTwo knows
+dnl how to find programs such as "markov" under the name "4ti2-markov", and until our *.dmg and
+dnl *.deb making procedures know how to include them or set the dependencies appropriately
+BUILD_4ti2=yes
+dnl AC_MSG_CHECKING(whether the package 4ti2 is installed)
+dnl if test "`type -t 4ti2-circuits`" = file
+dnl then AC_MSG_RESULT(yes)
+dnl else AC_MSG_RESULT([no, will build])
+dnl      BUILD_4ti2=yes
+dnl fi
 
 AC_MSG_CHECKING(whether the package cohomcalg is installed)
 if test "`type -t cohomcalg`" = file
@@ -1043,13 +1032,12 @@ for nauty_prefix in "" "nauty-"
 do
     if test "`type -t ${nauty_prefix}complg`" = file
     then nauty_version=`${nauty_prefix}complg --version | cut -d " " -f 3`
-         if test `echo "$nauty_version >= 2.7000" | bc -l` = 1
-         then AC_MSG_RESULT([yes, using prefix "$nauty_prefix"])
-             FILE_PREREQS="$FILE_PREREQS `type -p ${nauty_prefix}complg`"
-             FOUND_nauty=yes
-             break
-         else FOUND_nauty=old
-         fi
+	AX_COMPARE_VERSION([$nauty_version], [ge], [2.7000],
+	    [AC_MSG_RESULT([yes, using prefix "$nauty_prefix"])
+	     FILE_PREREQS="$FILE_PREREQS `type -p ${nauty_prefix}complg`"
+	     FOUND_nauty=yes
+	     break],
+	    [FOUND_nauty=old])
     fi
 done
 if test $FOUND_nauty != yes
@@ -1273,7 +1261,8 @@ AC_CHECK_HEADER(boost/version.hpp,
 	AC_MSG_ERROR([boost library not installed, but required])
 	])
 
-AC_MSG_CHECKING([if we can link against Boost.Stacktrace library])
+AC_MSG_CHECKING([whether the Boost::Stacktrace library is available])
+AC_LANG(C++)
 SAVECPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS -DBOOST_STACKTRACE_LINK"
 SAVELIBS=$LIBS
@@ -1284,7 +1273,7 @@ do
     AC_LINK_IFELSE(
         [AC_LANG_PROGRAM([#include <boost/stacktrace.hpp>
          ], [boost::stacktrace::stacktrace();])],
-        [AC_MSG_RESULT([yes, ${stacktrace_library}])
+        [AC_MSG_RESULT([yes, boost_stacktrace_${stacktrace_library}])
          FOUND_stacktrace_library=yes
          break],)
 done
