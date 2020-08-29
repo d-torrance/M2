@@ -318,12 +318,13 @@ setupButtons := () -> (
 separateExampleOutput = r -> (
      while r#0 == "\n" do r = substring(1,r);
      while r#-1 == "\n" do r = substring(0,#r-1,r);
-     separateRegexp("(\n\n)i+[1-9][0-9]* : ",1,r))
+     separate("(\n\n)i+[1-9][0-9]* : ",1,r))
 
 capture = method()
 capture String := s -> (
      (err,out) := internalCapture s;
-     (err,out,separateExampleOutput out))
+     (err,out,separateExampleOutput out)		    -- provisional
+     )
 
 -----------------------------------------------------------------------------
 -- installing packages -- eventually to be merged with 
