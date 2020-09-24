@@ -27,6 +27,87 @@ Last-Update: 2016-04-11
  );
  
  
+@@ -323,33 +311,9 @@
+     if member(nmzSuffix, {"inv", "in", "out", "cst"}) then
+         error("readNmzData: To read .inv use getNumInvs(), to read .cst use readMultipleNmzData, to read .out or .in there is no function provided");
+ 
+-    if(nmzSuffix=="sup") then ( -- for backward compatibility, should only appear if nmzUserCalled
+-          L:=readMultipleNmzData "cst";
+-          return L#0;
+-    );
+-
+-    checkNmzFile("readNmzData");
+-
+-    if not fileExists(nmzFile|"."|nmzSuffix) then
+-        error("readNmzData: No file "|nmzFile|"."|nmzSuffix|" found. Perhaps you need to activate another option.");
+-
+-
+-    if debugLevel > 0 then << "--reading " << nmzFile << "." << nmzSuffix << endl;
+-    inf:=get(nmzFile|"."|nmzSuffix);
+-    s:=lines(inf);
+-    nmzGen:={};
+-    numRows:=value s#0;
+-    numCols:=value s#1;
+-    t:="";
+-    for i from 2 to numRows+1
+-    do(
+-       t = select("[0-9-]+",s#i);
+-       gen:=apply(t,value);
+-       nmzGen=append(nmzGen,gen);
+-    );
+-    if(nmzGen!={})
+-    then  return(matrix(nmzGen))
+-    else return;   -- should not appear unless the user calls it
++    L := readMultipleNmzData if nmzSuffix=="sup" then "cst" -- for backward compatibility, should only appear if nmzUserCalled
++        else nmzSuffix;
++    return L#0;
+ );
+ 
+ -- reads several matrices from one output file and returns them as list
+@@ -370,29 +334,20 @@
+     s:=lines(inf);
+ 
+     L:={};
+-    t:="";
+-    b:=0;
+-
+-    while(b<#s)
+-    do(
+-      nmzGen:={};
+-      numRows:=value s#b;
+-      numCols:=value s#(b+1);
+-      if(numRows==0)
+-        then L=append(L,matrix(for j from 0 to numCols-1 list {}))
+-      else(
+-        for i from b+2 to b+1+numRows
+-        do(
+-          t = select("[0-9-]+",s#i);
+-          gen:=apply(t,value);
+-          nmzGen=append(nmzGen,gen);
+-        );
+-        -- function matrix expects nonempty list
+-        if(nmzGen!={})
+-        then  L=append(L,matrix(nmzGen));
+-        --else  L=append(L,{{}});  -- better {{},{},...,{}};
+-      );
+-      b=b+numRows+3;
++    i := 0;
++    j := 0;
++    while i < #s do (
++        while j < #s and match("[0-9-]+", s#j) do j = j + 1;
++        nmzGen := if i == j then {{}}
++            else apply(take(s, {i, j - 1}), t -> value \ select("[0-9-]+", t));
++        -- versions between 3.4.0 and 3.5.1 did not print row/column data
++        -- we remove it if present
++        if #nmzGen > 2 and
++            nmzGen#0#0 == #nmzGen - 2 and -- number of rows
++            nmzGen#1#0 == #nmzGen#2 -- number of columns
++        then nmzGen = drop(nmzGen, 2);
++        L = append(L, matrix nmzGen);
++        i = j = j + 1;
+     );
+     return L;
+ );
 --- a/M2/configure.ac
 +++ b/M2/configure.ac
 @@ -1034,11 +1034,6 @@
