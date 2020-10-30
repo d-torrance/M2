@@ -1,0 +1,103 @@
+Description: Used canned example for ThreadedGB that occasionally fails
+Author: Doug Torrance <dtorrance@piedmont.edu>
+Bug: https://github.com/Macaulay2/M2/issues/1463
+Last-Update: 2020-10-30
+
+--- a/M2/Macaulay2/packages/ThreadedGB.m2
++++ b/M2/Macaulay2/packages/ThreadedGB.m2
+@@ -363,10 +363,41 @@
+     Text
+       Threaded Groebner basis uses  @TO Task@s to compute a Groebner basis of {\tt I} or {\tt ideal L}
+       using $n$ threads.
+-    Example
+-      R = ZZ/101[x,y,z, MonomialOrder=>Lex];
+-      I = ideal {2*x + 10*y^2*z, 8*x^2*y + 10*x*y*z^3, 5*x*y^3*z^2 + 9*x*z^3, 9*x*y^3*z + 10*x*y^3};
+-      H = tgb(I,4)
++    CannedExample
++      i1 : R = ZZ/101[x,y,z, MonomialOrder=>Lex];
++      
++      i2 : I = ideal {2*x + 10*y^2*z, 8*x^2*y + 10*x*y*z^3, 5*x*y^3*z^2 + 9*x*z^3, 9*x*y^3*z + 10*x*y^3};
++      
++      o2 : Ideal of R
++      
++      i3 : H = tgb(I,4)
++      
++                                       2 7      2 6
++      o3 = HashTable{((0-2)-1) => - 27y z  - 30y z }
++                                    2 6
++                     ((0-2)-2) => 8y z
++                                         2 4
++                     ((1-2)-(0-2)) => 13y z
++                                   5 2      3 4
++                     (0-1) => - 25y z  - 19y z
++                                   3 5     2 4
++                     (0-2) => - 24y z  + 9y z
++                                 5       3 4
++                     (0-3) => 28y z - 24y z
++                                 3 4      2 8
++                     (1-2) => 21y z  - 48y z
++                                 2 9     2 4
++                     (2-3) => 26y z  - 9y z
++                                  2
++                     0 => 2x + 10y z
++                            2           3
++                     1 => 8x y + 10x*y*z
++                              3 2       3
++                     2 => 5x*y z  + 9x*z
++                              3         3
++                     3 => 9x*y z + 10x*y
++      
++      o3 : HashTable
+     Text
+       The keys of the hashtable are meaningful; for example, the polynomial with key
+       {\tt ((0-2)-1)} in the hashtable {\tt tgb(L,n)} is the remainder upon division of the S-polynomial $(g, I_1)$,
+@@ -375,8 +406,13 @@
+       (See @TO ThreadedGB@.)
+ 
+       Note that the keys in the hash table are strings, and the keys of input polynomials are 0..#L, as in the following example.
+-    Example
+-      H#"(0-1)"
++    CannedExample
++      i4 : H#"(0-1)"
++      
++                5 2      3 4
++      o4 = - 25y z  - 19y z
++      
++      o4 : R
+     Text
+       Some may be curious with respect to how tgb works.
+ 
+@@ -389,11 +425,28 @@
+       The process is done when there are no remaining tasks.
+ 
+       There is a way to track the tasks being created by turning on the option {\tt Verbose}.
+-    Example
+-      QQ[a..d];
+-      f0 = a*b-c^2;
+-      f1 = b*c-d^2;
+-      tgb({f0,f1},2,Verbose=>true)
++    CannedExample
++      i5 : QQ[a..d];
++      
++      i6 : f0 = a*b-c^2;
++      
++      i7 : f1 = b*c-d^2;
++      
++      i8 : tgb({f0,f1},2,Verbose=>true)
++      You turned on Verbose! You will be notified of each new S-polynomial task created and each new GB element added to the HashTable as we go.
++      Scheduling a task for lineage (0-1)
++      Scheduling task for lineage ((0-1)-0)
++      Scheduling task for lineage ((0-1)-1)
++      Adding the following remainder to GB: -c^3+a*d^2 from lineage (0-1)
++      
++                                 3      2
++      o8 = HashTable{(0-1) => - c  + a*d }
++                                 2
++                     0 => a*b - c
++                                 2
++                     1 => b*c - d
++      
++      o8 : HashTable
+     Text
+       In the above example, the S-polynomial S(f0,f1) didn't reduce to zero hence the remainder was added to the
+       output with key "(0-1)". The additional two S-polynomials reduced and the process ended.
