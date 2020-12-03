@@ -25,6 +25,19 @@ override_dh_auto_configure:
 # needed for remove-build-paths-from-cached-files.patch
 	cd M2/Macaulay2 && ln -s m2 Core
 
+# prevent html-check-links from failing to find KaTeX files before
+# they get added by dh_linktree
+KATEX_DIR := $(CURDIR)/M2/Macaulay2/packages/Style/katex
+KATEX_FILES := $(patsubst %, $(KATEX_DIR)/%, \
+	katex.min.css katex.min.js contrib/auto-render.min.js \
+	contrib/copy-tex.min.css contrib/copy-tex.min.js)
+
+override_dh_auto_build: $(KATEX_FILES)
+	dh_auto_build
+
+$(KATEX_DIR)/%:
+	touch $@
+
 # since a "test" target exists, dh_auto_test defaults to using that, but
 # it just prints the values of some variables.  we want the "check" target
 # instead to run the test suite
