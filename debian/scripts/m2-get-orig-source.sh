@@ -56,7 +56,7 @@ echo $M2_EMACS_COMMIT
 echo -n "generating M2-emacs tarball ... "
 git submodule update --quiet --init $M2_EMACS_PATH
 cd $M2_EMACS_PATH
-git archive -o "../../../../../M2-emacs.tar" --prefix $M2_EMACS_PATH \
+git archive -o "../../../../../M2-emacs.tar" --prefix $M2_EMACS_PATH/ \
     $M2_EMACS_COMMIT
 cd ../../../..
 git submodule deinit --quiet $M2_EMACS_PATH
@@ -67,7 +67,7 @@ tar --concatenate --file ../macaulay2_$VERSION.orig.tar ../M2-emacs.tar
 rm ../M2-emacs.tar
 echo "done"
 
-echo -n "removing embedded Javascript libraries/fonts ... "
+echo -n "removing Files-Excluded from debian/copyright ... "
 FILES_EXCLUDED=$(awk '/^Files-Excluded:/ {print $2; flag = 1; next} \
     /^\S/ {flag = 0} flag {print $1}' debian/copyright)
 for FILE in $FILES_EXCLUDED
