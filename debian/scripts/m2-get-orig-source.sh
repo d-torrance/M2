@@ -39,8 +39,14 @@ git fetch --tags https://github.com/Macaulay2/M2 $REF 2> /dev/null
 if [ -z $VERSION ]
 then
     echo -n "determining version number ... "
-    VERSION=$(git describe --tags --match=version-* --abbrev=7 FETCH_HEAD | \
-        sed -e 's/version-//' -e 's/-\([[:digit:]]\+\)-g/+git\1./')
+    VERSION=$(cat M2/VERSION)
+    NEW_COMMITS=$(git rev-list \
+	$(git rev-list -1 FETCH_HEAD M2/VERSION)..FETCH_HEAD --count)
+    if [ $NEW_COMMITS != "0" ]
+    then
+	GIT_COMMIT=$(git rev-parse FETCH_HEAD | cut -c 1-7)
+	VERSION=$VERSION+git$NEW_COMMITS.$GIT_COMMIT
+    fi
     echo $VERSION
 fi
 
