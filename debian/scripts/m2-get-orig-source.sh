@@ -34,7 +34,7 @@ else
 fi
 echo "making tarball for ref '$REF'"
 
-git fetch --tags https://github.com/Macaulay2/M2 $REF 2> /dev/null
+git fetch https://github.com/Macaulay2/M2 $REF 2> /dev/null
 
 if [ -z $VERSION ]
 then
