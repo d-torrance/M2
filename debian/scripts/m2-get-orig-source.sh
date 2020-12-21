@@ -36,19 +36,29 @@ echo "making tarball for ref '$REF'"
 
 git fetch https://github.com/Macaulay2/M2 $REF 2> /dev/null
 
+echo -n "determining version number ... "
+GIT_VERSION=$(git show FETCH_HEAD:M2/VERSION)
+NEW_COMMITS=$(git rev-list \
+		  $(git rev-list -1 FETCH_HEAD M2/VERSION)..FETCH_HEAD --count)
+GIT_COMMIT=$(git rev-parse FETCH_HEAD) # cut -c 1-7 (or 9)
+
 if [ -z $VERSION ]
 then
-    echo -n "determining version number ... "
-    VERSION=$(cat M2/VERSION)
-    NEW_COMMITS=$(git rev-list \
-	$(git rev-list -1 FETCH_HEAD M2/VERSION)..FETCH_HEAD --count)
-    if [ $NEW_COMMITS != "0" ]
-    then
-	GIT_COMMIT=$(git rev-parse FETCH_HEAD | cut -c 1-7)
-	VERSION=$VERSION+git$NEW_COMMITS.$GIT_COMMIT
-    fi
-    echo $VERSION
+    VERSION=$GIT_VERSION+git$NEW_COMMITS.$(echo $GIT_COMMIT | cut -c 1-7)
 fi
+echo $VERSION
+
+GIT_DESCRIPTION=version-$GIT_VERSION-$NEW_COMMITS-$(echo $GIT_COMMIT | \
+							cut -c 1-9)
+echo "using git description ... $GIT_DESCRIPTION"
+
+echo -n "updating debian/patches/git-description.patch ... "
+quilt push debian/patches/git-description.patch > /dev/null
+sed -i "s/^then GIT_DESCRIPTION=.*/then GIT_DESCRIPTION=$GIT_DESCRIPTION/" \
+    M2/configure.ac
+quilt refresh > /dev/null
+quilt pop -a > /dev/null
+echo "done"
 
 echo -n "generating M2 tarball ... "
 git archive -o ../macaulay2_$VERSION.orig.tar FETCH_HEAD

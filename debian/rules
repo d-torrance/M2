@@ -60,20 +60,3 @@ debian/macaulay2-pkg.el: debian/macaulay2-pkg.el.in
 # so use this target instead of uscan directly
 get-orig-source:
 	debian/scripts/m2-get-orig-source.sh
-
-# update debian/patches/git-description.patch with the proper commit
-# in the upstream git repository.  we make an assumption that the upstream
-# branch we're working from has been merged into development so the common
-# ancestor is exactly the commit we want.  double-check to make sure that
-# this does the correct thing.
-update-git-description-patch:
-	git fetch https://github.com/Macaulay2/M2 development;                 \
-	GIT_COMMIT=$$(git merge-base HEAD FETCH_HEAD | cut -c 1-9);            \
-	NEW_COMMITS=$$(git rev-list $$(git rev-list -1 $$GIT_COMMIT            \
-		M2/VERSION)..$$GIT_COMMIT --count);                            \
-	GIT_DESCRIPTION=version-$$(cat M2/VERSION)-$$NEW_COMMITS-$$GIT_COMMIT; \
-	quilt push debian/patches/git-description.patch ;                      \
-	sed -i "s/^then GIT_DESCRIPTION=.*/then GIT_DESCRIPTION=$$GIT_DESCRIPTION/"      \
-		M2/configure.ac;                                               \
-	quilt refresh;                                                         \
-	quilt pop
