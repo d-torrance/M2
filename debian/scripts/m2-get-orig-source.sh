@@ -60,6 +60,10 @@ quilt refresh > /dev/null
 quilt pop -a > /dev/null
 echo "done"
 
+echo -n "updating debian/changelog ... "
+dch -m -v $VERSION+ds-1 ""
+echo "done"
+
 echo -n "generating M2 tarball ... "
 git archive -o ../macaulay2_$VERSION.orig.tar FETCH_HEAD
 echo "done"
