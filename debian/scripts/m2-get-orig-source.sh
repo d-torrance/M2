@@ -4,6 +4,9 @@
 # combines contents of M2 and M2-emacs git repositories and removes
 # any files specified by Files-Excluded in debian/copyright
 #
+# also updates git-description.patch and d/changelog with the corresponding
+# git description/version number
+#
 # options:
 #   -u, --uscan
 #     use uscan to determine newest stable version (default)
