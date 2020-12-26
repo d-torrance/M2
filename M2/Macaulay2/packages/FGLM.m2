@@ -6,6 +6,7 @@ newPackage(
         { Name => "Dylan Peifer",   Email => "djp282@cornell.edu", HomePage => "https://math.cornell.edu/~djp282" },
         { Name => "Mahrud Sayrafi", Email => "mahrud@umn.edu",     HomePage => "https://math.umn.edu/~mahrud" }
         },
+    Keywords => {"Groebner Basis Algorithms"},
     Headline => "Groebner bases via the FGLM algorithm"
     )
 
@@ -28,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 export {"fglm"}
 
-debug Core
+importFrom_Core { "RawMutableMatrix", "raw", "rawLUincremental", "rawTriangularSolve" }
 
 -------------------------------------------------------------------------------
 --- top level functions

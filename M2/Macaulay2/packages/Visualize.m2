@@ -31,6 +31,7 @@ newPackage(
 -- Contributing Author	     {Name => "Julio Urenda", Email => "jcurenda@nmsu.edu"},	     
 	     },
     	Headline => "interactive visualization and manipulation of combinatorial objects in a browser",
+	Keywords => {"Graphics"},
 	PackageExports => {"Graphs", "Posets", "SimplicialComplexes"},
 	AuxiliaryFiles => true,
 	Configuration => {"DefaultPath" => null } 

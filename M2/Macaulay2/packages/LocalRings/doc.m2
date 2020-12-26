@@ -1,6 +1,7 @@
 doc ///
 Key
   LocalRings
+   localRing
   (localRing, Ring, Ideal)
 Headline
   Localizing polynomial rings at a prime ideal
@@ -179,7 +180,7 @@ Description
 Caveat
   Hilbert-Samuel function with respect to a parameter ideal other than the maximal ideal can be slower.
 SeeAlso
-  (length, Module)
+  "Macaulay2Doc :: length(Module)"
 ///
 
 -- See (length, Module) in packages/Macaulay2Doc/functions/degree-doc.m2.

@@ -12,37 +12,45 @@ include /usr/share/dpkg/pkg-info.mk
 VERSION := $(shell echo $(DEB_VERSION_UPSTREAM) | sed 's|\(^[0-9\.]*\).*|\1|')
 
 %:
-	dh $@ --sourcedirectory=M2 --with elpa
+	dh $@ --sourcedirectory=M2 --with elpa,linktree
 
 # use exec_prefix instead of prefix in libdir, as that's what's needed
 # to properly substitute paths in Layout#2,
 override_dh_auto_configure:
 	dh_auto_configure -- \
 		--libdir=\$${exec_prefix}/lib/$(DEB_HOST_MULTIARCH)
-# needed for remove-build-paths-from-cached-files.patch
-	cd M2/Macaulay2 && ln -s m2 Core
+
+# prevent html-check-links from failing to find KaTeX files before
+# they get added by dh_linktree
+KATEX_DIR := $(CURDIR)/M2/Macaulay2/packages/Style/katex
+KATEX_FILES := $(patsubst %, $(KATEX_DIR)/%, \
+	katex.min.css katex.min.js contrib/auto-render.min.js \
+	contrib/copy-tex.min.css contrib/copy-tex.min.js)
+
+execute_before_dh_auto_build: $(KATEX_FILES)
+
+$(KATEX_DIR)/%:
+	touch $@
 
 # since a "test" target exists, dh_auto_test defaults to using that, but
 # it just prints the values of some variables.  we want the "check" target
 # instead to run the test suite
 # related: https://bugs.debian.org/924052
-override_dh_auto_test:
-ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-	cd M2 && make -j4 check VERBOSE=1
-	cd M2 && make -j4 validate-html VERBOSE=1
-endif
+override_dh_auto_test-arch:
+	cd M2 && make check
+
+override_dh_auto_test-indep:
+	cd M2 && make validate-html
 
 # https://github.com/Macaulay2/M2/issues/1144
-override_dh_link:
+execute_before_dh_link-indep:
 	jdupes -rl debian/macaulay2-common/usr/share/doc/Macaulay2
-	dh_link
 
 # example output files must be plain text
 override_dh_compress:
 	dh_compress -Xexample-output
 
-override_dh_elpa: debian/macaulay2-pkg.el
-	dh_elpa
+execute_before_dh_elpa: debian/macaulay2-pkg.el
 
 debian/macaulay2-pkg.el: debian/macaulay2-pkg.el.in
 	sed -e 's|@VERSION[@]|$(VERSION)|g' $< > $@
