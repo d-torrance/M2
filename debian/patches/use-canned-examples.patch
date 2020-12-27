@@ -3,6 +3,7 @@ Description: Used canned versions of examples that have been known to
 Bug: https://github.com/Macaulay2/M2/issues/1429
 Bug: https://github.com/Macaulay2/M2/issues/1463
 Bug: https://github.com/Macaulay2/M2/issues/1539
+Bug: https://github.com/Macaulay2/M2/issues/1557
 Bug: https://github.com/Macaulay2/M2/issues/1676
 Bug: https://github.com/Macaulay2/M2/issues/1707
 Author: Doug Torrance <dtorrance@piedmont.edu>
@@ -244,3 +245,421 @@ Last-Update: 2020-12-27
    Text
      Setting debugLevel to either 1,2, or 5 will give more detail about
      what files are written to Topcom, and what the executable is.
+--- a/M2/Macaulay2/packages/TateOnProducts.m2
++++ b/M2/Macaulay2/packages/TateOnProducts.m2
+@@ -5947,22 +5947,44 @@
+       huge rank and presentation matrices. In particular, the method directImageComplex becomes slow down.
+       
+       The following is an example of direct images of the structure sheaf on a twisted cubic.
+-  Example
+-      kk=ZZ/101; d=6;
+-      needsPackage "Resultants";
+-      vd=veronese(1,d,kk);
+-      R=target vd; S=source vd;
+-      
+-      M=R^{1:-1}; I=ann M; J=ker vd;
+-      
+-      RM=time directImageComplex(I,M,matrix vd);
+-      
+-      for i from min RM to max RM list (rank RM_i)
++  CannedExample
++      i1 : kk=ZZ/101; d=6;
++
++      i3 : needsPackage "Resultants";
++
++      i4 : vd=veronese(1,d,kk);
++
++      o4 : RingMap kk[t ..t ] <--- kk[x ..x ]
++                       0   1           0   6
++
++      i5 : R=target vd; S=source vd;
++
++      i7 : M=R^{1:-1}; I=ann M; J=ker vd;
++
++      o8 : Ideal of R
++
++      o9 : Ideal of S
++
++      i10 : RM=time directImageComplex(I,M,matrix vd);
++           -- used 46.0364 seconds
++
++      i11 : for i from min RM to max RM list (rank RM_i)
++
++      o11 = {36, 180, 360, 360, 180, 36}
++
++      o11 : List
+   Text
+       RM looks complicated since it is consisted of universal bundles on P^6, which are of high rank.
+-  Example
+-      retTable=time actionOnDirectImage(I,M,matrix vd);
+-      keys retTable
++  CannedExample
++      i12 : retTable=time actionOnDirectImage(I,M,matrix vd);
++      We take a finite projection from P^n to P^d as {x   , x   }     -- used 47.1632 seconds
++                                                       0,0   0,6
++
++      i13 : keys retTable
++
++      o13 = {0}
++
++      o13 : List
+   Text
+       We see that 0 is the only key, in other words, there is no other R^i vd_{*} except i=0.
+       To see whether it gives an action on S/J, we can use the test function isAction.
+@@ -5970,95 +5992,292 @@
+       Note that list retTable#i is consisted of maps of chain complexes R^i(\pi \cdot phi)_{*}(y_j) : C\to C(1) where 
+       C represents the direct image R^i(\pi \cdot phi)_{*}F. In general, it does not give a right action on C itself. 
+       The induced maps on cohomology groups provide a right action.
+-  Example
+-      isAction(J, apply(dim S, i->prune HH^0 retTable#0#i))
++  CannedExample
++      i14 : isAction(J, apply(dim S, i->prune HH^0 retTable#0#i))
++
++      o14 = true
+   Text
+       The following is a little more complicated example with nontrivial higher direct images. 
+       Let X be the product of two quartic curves C, and f : X \to C be the second projection. 
+       Let P, Q be two distinct points of C, and let L = O(P\times C + Q\times C + D) be a line bundle 
+       on X where D is the diagonal. We want to compute the higher direct images R^i f_{*}L. 
+       We choose C as the Fermat quartic, and choose P, Q as points on the intersection of C and the line V(x_2).
+-  Example
+-      kk=ZZ/1009;
+-      (S,E)=productOfProjectiveSpaces({2,2},CoefficientField=>kk);
+-      f1=S_0^4+S_1^4+S_2^4; f2=S_3^4+S_4^4+S_5^4;
+-      IX=ideal (f1,f2);
+-      -- 2 points on C. Note that the line passing through P and Q is V(x_2).
+-      P=matrix{{1,192,0}}; Q=matrix{{192,1,0}};
+-      varX=matrix{{S_0,S_1,S_2}}; varY=matrix{{S_3,S_4,S_5}};
+-      PX=P||varX; QX=Q||varX;
+-      
+-      I1=ideal(f2, minors(2,PX)); -- ideal for P*C
+-      I2=ideal(f2, minors(2,QX)); -- ideal for Q*C
+-      I3=ideal(f1,f2, minors(2, varX||varY)); -- ideal for the diagonal D
+-      I=intersect(I1,I2,I3); -- ideal for P*C+Q*C+D
+-      SX=S/IX; Ldual=I/IX;
+-      
+-      betti (LX=Hom(Ldual, SX^1))
++  CannedExample
++      i15 : kk=ZZ/1009;
++
++      i16 : (S,E)=productOfProjectiveSpaces({2,2},CoefficientField=>kk);
++
++      i17 : f1=S_0^4+S_1^4+S_2^4; f2=S_3^4+S_4^4+S_5^4;
++
++      i19 : IX=ideal (f1,f2);
++
++      o19 : Ideal of S
++
++      i20 : P=matrix{{1,192,0}}; Q=matrix{{192,1,0}};
++
++                     1        3
++      o20 : Matrix ZZ  <--- ZZ
++
++                     1        3
++      o21 : Matrix ZZ  <--- ZZ
++
++      i22 : varX=matrix{{S_0,S_1,S_2}}; varY=matrix{{S_3,S_4,S_5}};
++
++                    1       3
++      o22 : Matrix S  <--- S
++
++                    1       3
++      o23 : Matrix S  <--- S
++
++      i24 : PX=P||varX; QX=Q||varX;
++
++                    2       3
++      o24 : Matrix S  <--- S
++
++                    2       3
++      o25 : Matrix S  <--- S
++
++      i26 : I1=ideal(f2, minors(2,PX)); -- ideal for P*C
++
++      o26 : Ideal of S
++
++      i27 : I2=ideal(f2, minors(2,QX)); -- ideal for Q*C
++
++      o27 : Ideal of S
++
++      i28 : I3=ideal(f1,f2, minors(2, varX||varY)); -- ideal for the diagonal D
++
++      o28 : Ideal of S
++
++      i29 : I=intersect(I1,I2,I3); -- ideal for P*C+Q*C+D
++
++      o29 : Ideal of S
++
++      i30 : SX=S/IX; Ldual=I/IX;
++
++      i32 : betti (LX=Hom(Ldual, SX^1))
++
++                    0  1
++      o32 = total: 10 26
++                0:  1  .
++                1:  1  1
++                2:  .  1
++                3:  8 24
++
++      o32 : BettiTally
+   Text
+       To compute its Tate resolution on the ambient space P^2 \times P^2, we first consider it as a sheaf on P^2 \times P^2,
+       and then take a linear presentation matrix via a truncation.
+-  Example
+-      phi = map(SX,S,vars SX);
+-      betti (L=prune pushForward(phi,LX))
+-      Ltr = (truncate ({2,2},L))**S^{{2,2}};
+-      betti res Ltr
++  CannedExample
++      i33 : phi = map(SX,S,vars SX);
++
++      o33 : RingMap SX <--- S
++
++      i34 : betti (L=prune pushForward(phi,LX))
++
++                    0  1
++      o34 = total: 10 27
++                0:  1  .
++                1:  1  1
++                2:  .  1
++                3:  8 25
++
++      o34 : BettiTally
++
++      i35 : Ltr = (truncate ({2,2},L))**S^{{2,2}};
++
++      i36 : betti res Ltr
++
++                    0   1   2  3  4
++      o36 = total: 60 176 184 80 12
++                0: 60 176 184 80 12
++
++      o36 : BettiTally
+   Text
+       We read off (a finite subquotient of) the Tate resolution of Rf_{*}L as follows.
+-  Example
+-      Q=symExt(presentation Ltr, E);
+-      T=(res (coker Q,LengthLimit=>12))**E^{{2,2}}[4];
+-      cohomologyMatrix (T, -{5,5},{3,3})
+-      sT=strand(T,{0,0},{0});
+-
+-      sTFull=new ChainComplex;
+-      sTFull.ring = ring sT;
+-      ma=6;
+-      sTFull=(dual res (coker transpose (sT[ma]).dd_0, LengthLimit=>2*ma))[-ma];
+-      (S',E')=productOfProjectiveSpaces({2},CoefficientField=>kk);
+-      projOnE=map(E', E, toList(3:0)|(gens E'));
+-      mi=min sTFull; ma=max sTFull;
+-      W=new ChainComplex; W.ring = E';
+-      apply(toList(mi..ma),i-> W_i = E'^(-apply(degrees sTFull_i,d->d_{1})));
+-      apply(toList(mi+1..ma),i->W.dd_i = map(W_(i-1),W_i,projOnE sTFull.dd_i));
+-      betti W
++  CannedExample
++      i37 : Q=symExt(presentation Ltr, E);
++
++                    184       60
++      o37 : Matrix E    <--- E
++
++      i38 : T=(res (coker Q,LengthLimit=>12))**E^{{2,2}}[4];
++
++      i39 : cohomologyMatrix (T, -{5,5},{3,3})
++
++      o39 = | 0        0        0        0       0      0    0     96k 0   |
++            | 0        0        0        0       0      0    0     60k 88k |
++            | 60h      48h      36h      24h     12h    3h+3 12    0   0   |
++            | 36h2+20h 28h2+16h 20h2+12h 12h2+8h 4h2+4h 5h+1 12h+4 0   0   |
++            | 92h2     72h2     52h2     32h2    12h2   8h   28h   0   0   |
++            | 168h2    132h2    96h2     60h2    24h2   12h  48h   0   0   |
++            | 244h2    192h2    140h2    88h2    36h2   16h  68h   0   0   |
++            | 320h2    252h2    184h2    116h2   48h2   20h  88h   0   0   |
++            | 396h2    312h2    228h2    144h2   60h2   24h  108h  0   0   |
++
++                             9                9
++      o39 : Matrix (ZZ[h, k])  <--- (ZZ[h, k])
++
++      i40 : sT=strand(T,{0,0},{0});
++
++      i41 : sTFull=new ChainComplex;
++
++      i42 : sTFull.ring = ring sT;
++
++      i43 : ma=6;
++
++      i44 : sTFull=(dual res (coker transpose (sT[ma]).dd_0, LengthLimit=>2*ma))[-ma];
++
++      i45 : (S',E')=productOfProjectiveSpaces({2},CoefficientField=>kk);
++
++      i46 : projOnE=map(E', E, toList(3:0)|(gens E'));
++
++      o46 : RingMap E' <--- E
++
++      i47 : mi=min sTFull; ma=max sTFull;
++
++      i49 : W=new ChainComplex; W.ring = E';
++
++      i51 : apply(toList(mi..ma),i-> W_i = E'^(-apply(degrees sTFull_i,d->d_{1})));
++
++      i52 : apply(toList(mi+1..ma),i->W.dd_i = map(W_(i-1),W_i,projOnE sTFull.dd_i));
++
++      i53 : betti W
++
++                   -6 -5 -4 -3 -2 -1 0  1  2  3  4  5  6
++      o53 = total: 24 20 16 12  9  8 9 12 16 20 24 28 32
++                0: 22 18 14 10  6  3 1  .  .  .  .  .  .
++                1:  2  2  2  2  3  5 8 12 16 20 24 28 32
++
++      o53 : BettiTally
+   Text
+       One can check that W has two strands (corresponding to R^0f_{*}L and R^1f_{*}L, respectively).
+       By taking the Beilinson functor, one can check that R^0f_{*}L is the structure sheaf on C,
+       and R^1f_{*}L is a torsion sheaf supported on two points lying on the intersection of C and
+       the line V(x_2) other than P, Q.
+-  Example
+-    R0fL = prune HH^0 beilinson W
+-    R1fL = prune HH^1 beilinson W
+-    
+-    degree R0fL
+-    primaryDecomposition ann R0fL
+-    
+-    degree R1fL
+-    primaryDecomposition ann R1fL
++  CannedExample
++      i54 : R0fL = prune HH^0 beilinson W
++
++      o54 = cokernel | x_(0,0)^4+x_(0,1)^4+x_(0,2)^4 |
++
++                                     1
++      o54 : S'-module, quotient of S'
++
++      i55 : R1fL = prune HH^1 beilinson W
++
++      o55 = cokernel | -131x_(0,2) 0       0       0       x_(0,0)  x_(0,1)            0       0       -131x_(0,2) 0       -131x_(0,2) 0       |
++                     | x_(0,2)     x_(0,1) x_(0,0) 0       0        0                  0       0       0           0       0           0       |
++                     | 0           0       0       x_(0,2) -x_(0,1) x_(0,0)+439x_(0,1) 0       0       0           0       0           0       |
++                     | 0           0       0       0       0        0                  x_(0,2) x_(0,1) x_(0,0)     0       0           0       |
++                     | 0           0       0       0       0        0                  0       0       0           x_(0,2) x_(0,1)     x_(0,0) |
++
++                                     5
++      o55 : S'-module, quotient of S'
++
++      i56 : degree R0fL
++
++      o56 = 4
++
++      i57 : primaryDecomposition ann R0fL
++
++                    4      4      4
++      o57 = {ideal(x    + x    + x   )}
++                    0,0    0,1    0,2
++
++      o57 : List
++
++      i58 : degree R1fL
++
++      o58 = 2
++
++      i59 : primaryDecomposition ann R1fL
++
++                                                                                             2
++      o59 = {ideal (x   , x    + 247x   ), ideal (x   , x    + 192x   ), ideal (x   , x   , x   )}
++                     0,2   0,0       0,1           0,2   0,0       0,1           0,1   0,0   0,2
++
++      o59 : List
+   Text
+       These module also can be seen as in the following way via a finite linear projection. 
+       We take a further projection \pi:C\to  P^1, and check whether these modules induce an action
+       on the direct image under \pi, in other words, provide {O_C}-module structures. As results,
+       these actions make (the sheafification of) M0 and M1 into {O_C}-modules which are identical to 
+       R^0f_{*}L and R^1f_{*}L. 
+-  Example
+-      J=ideal (S'_0^4+S'_1^4+S'_2^4);
+-      retTable=actionOnDirectImage(J,W);
+-      keys retTable
++  CannedExample
++      i60 : J=ideal (S'_0^4+S'_1^4+S'_2^4);
++
++      o60 : Ideal of S'
++
++      i61 : retTable=actionOnDirectImage(J,W);
++      We take a finite projection from P^n to P^d as {x   , x   }
++                                                       0,1   0,2
++      i62 : keys retTable
++
++      o62 = {0, 1}
++
++      o62 : List
+   Text
+       We see that 0, 1 appear as keys, in other words, both R^0f_{*}L and R^1f_{*}L survives.
+-  Example
+-      prunedActionList = i->apply(dim S',j->prune HH^i retTable#i#j);
+-      apply(keys retTable, i->isAction(J,prunedActionList(i)))
+-	        
+-      M0=source (prunedActionList(0))_0
+-      (rank M0, degree M0, betti res M0)
+-      isIsomorphic(truncate(regularity M0, M0), truncate(regularity M0, dual dual M0))
+-      dual dual M0
++  CannedExample
++      i63 : prunedActionList = i->apply(dim S',j->prune HH^i retTable#i#j);
++
++      i64 : apply(keys retTable, i->isAction(J,prunedActionList(i)))
++
++      o64 = {true, true}
++
++      o64 : List
++
++      i65 : M0=source (prunedActionList(0))_0
++
++      o65 = cokernel {2} | 0        -x_(0,1) 0        |
++                     {2} | x_(0,0)  0        0        |
++                     {2} | -x_(0,1) x_(0,0)  0        |
++                     {2} | 0        0        0        |
++                     {2} | 0        0        x_(0,0)  |
++                     {2} | 0        0        -x_(0,1) |
++                     {3} | 0        0        0        |
++                                                               7
++      o65 : kk[x   ..x   ]-module, quotient of (kk[x   ..x   ])
++                0,0   0,1                           0,0   0,1
++
++      i66 : (rank M0, degree M0, betti res M0)
++
++                          0 1
++      o66 = (4, 4, total: 7 3)
++                       2: 6 3
++                       3: 1 .
++
++      o66 : Sequence
++
++      i67 : isIsomorphic(truncate(regularity M0, M0), truncate(regularity M0, dual dual M0))
++
++      o67 = true
++
++      i68 : dual dual M0
++
++                            4
++      o68 = (kk[x   ..x   ])
++                 0,0   0,1
++
++      o68 : kk[x   ..x   ]-module, free, degrees {3, 2, 1, 0}
++                0,0   0,1
++
++      i69 : M1=source (prunedActionList(1))_0
++
++      o69 = cokernel {2} | x_(0,1) 0       |
++                     {2} | 0       x_(0,1) |
++
++                                                               2
++      o69 : kk[x   ..x   ]-module, quotient of (kk[x   ..x   ])
++                0,0   0,1                           0,0   0,1
++
++      i70 : (rank M1, degree M1, betti res M1)
++
++                          0 1
++      o70 = (0, 2, total: 2 2)
++                       2: 2 2
+ 
+-      M1=source (prunedActionList(1))_0
+-      (rank M1, degree M1, betti res M1)
++      o70 : Sequence
+   Text
+       Note that the sheafification of M0 (=R^0(\pi \cdot f)_{*}L) is a rank 4 vector bundle O \oplus O(-1) \oplus O(-2) \oplus O(-3) on P^1,
+       and the sheafification of M1 (= R^1(\pi \cdot f)_{*} L) is a torsion sheaf on P^1 supported on the double point at [1:0].
