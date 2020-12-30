@@ -64,7 +64,7 @@ quilt pop -a > /dev/null
 echo "done"
 
 echo -n "updating debian/changelog ... "
-dch -m -v $VERSION+ds-1 ""
+dch -m -b -v $VERSION+ds-1 "" 2> /dev/null
 echo "done"
 
 echo -n "generating M2 tarball ... "
