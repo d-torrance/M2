@@ -28,7 +28,7 @@ getSourceLines Sequence := x -> (
 	  if #file < stop then error("line number ",toString stop, " not found in file ", filename);
 	  while stop >= start and file#(stop-1) === "" do stop = stop-1;
 	  stack prepend(
-	       concatenate(filename, ":", 
+	       concatenate("-- ", filename, ":",
 		    toString start, ":", toString (startcol+1),
 		    "-",
 		    toString stop, ":", toString (stopcol+1),
