@@ -192,8 +192,8 @@ listSymbols = method()
 listSymbols Dictionary := d -> listSymbols values d
 listSymbols List := x -> (
      netList(Boxes=>false, HorizontalSpace => 1, prepend(
-	  {"symbol" || "------","", "class" || "-----", "", "value" || "-----", "location of symbol" || "------------------"},
-	  apply (x, s -> {toString s,":", robust class value s, "--", abbreviate value s, symbolLocation s}))))
+	  {"symbol" || "------","", "class" || "-----", "value" || "-----", "location of symbol" || "------------------"},
+	  apply (x, s -> {toString s,":", robust class value s, abbreviate value s, "-- " | symbolLocation s | ":"}))))
 
 listLocalSymbols = Command(f -> listSymbols localSymbols f)
 
