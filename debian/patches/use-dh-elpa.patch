@@ -1,0 +1,75 @@
+Description: Modifications to work with dh_elpa.
+ * Strip down setupEmacs() function.  We only set f12 as a global key
+   to start Macaulay2 inside Emacs.  This also strips (load "M2-init")
+   from a user's existing .emacs-Macaulay2 file, which would cause
+   errors if they haven't installed elpa-macaulay2.  We also warn the
+   user if elpa-macaulay2 isn't installed.
+ * Set the correct installation directory for the Emacs files in the
+   configure script.
+Author: Doug Torrance <dtorrance@piedmont.edu>
+Forwarded: not-needed
+Last-Update: 2021-01-01
+
+--- a/M2/Macaulay2/m2/files.m2
++++ b/M2/Macaulay2/m2/files.m2
+@@ -385,12 +385,6 @@
+ ///
+ 
+ dotemacsFix0 = ///
+-;; this version will give an error if M2-init.el is not found:
+-(load "M2-init")
+-
+-;; this version will not give an error if M2-init.el is not found:
+-;(load "M2-init" t)
+-
+ ; You may comment out the following line with an initial semicolon if you 
+ ; want to use your f12 key for something else.  However, this action
+ ; will be undone the next time you run setup() or setupEmacs().
+@@ -468,10 +462,15 @@
+ setupEmacs = method()
+ setup = method()
+ mungeEmacs = () -> (
+-     dotemacsFix = concatenate(emacsHeader, apply(emacsfixes, (var,dir,templ) -> fix(var,dir,"",templ)), dotemacsFix0);
++     dotemacsFix = concatenate(emacsHeader, dotemacsFix0);
+      supplantStringFile(dotemacsFix,"~/"|M2emacs,false);
+-     mungeFile("~/"|".emacs", ";; Macaulay 2 start", ";; Macaulay 2 end", M2emacsRead )
+-     )
++     ret := mungeFile("~/"|".emacs", ";; Macaulay 2 start", ";; Macaulay 2 end", M2emacsRead );
++     if run("dpkg -s elpa-macaulay2 2> /dev/null | " |
++	  "grep -q \"^Status:.* installed\"") != 0 then
++	  stderr << "--warning: you must run \"apt install elpa-macaulay2\" "
++	       << "as root in order to use" << endl
++	       <<  "  Macaulay2 with Emacs." << endl;
++     ret)
+ prelim := () -> (
+      promptUser = true;
+      if prefixDirectory === null then error "can't determine Macaulay 2 prefix (prefixDirectory not set)";
+--- a/M2/configure.ac
++++ b/M2/configure.ac
+@@ -2026,7 +2026,7 @@
+ 
+ AC_SUBST(packagesdir,$datadir/Macaulay2)
+ AC_SUBST(libm2dir,$libdir/Macaulay2)
+-AC_SUBST(emacsdir,$datadir/emacs/site-lisp/Macaulay2)
++AC_SUBST(emacsdir,$datadir/emacs/site-lisp/elpa/macaulay2-$PACKAGE_VERSION)
+ AC_SUBST(librariesdir,$libm2dir/lib)
+ AC_SUBST(programsdir,$libexecdir/Macaulay2/bin)
+ AC_SUBST(licensesdir,$libexecdir/Macaulay2/program-licenses)
+@@ -2034,7 +2034,7 @@
+ 
+ AC_SUBST(tail_packagesdir,$tail_datadir/Macaulay2)
+ AC_SUBST(tail_libm2dir,$tail_libdir/Macaulay2)
+-AC_SUBST(tail_emacsdir,$tail_datadir/emacs/site-lisp/Macaulay2)
++AC_SUBST(tail_emacsdir,$tail_datadir/emacs/site-lisp/elpa/macaulay2-$PACKAGE_VERSION)
+ AC_SUBST(tail_librariesdir,$tail_libm2dir/lib)
+ AC_SUBST(tail_programsdir,$tail_libexecdir/Macaulay2/bin)
+ AC_SUBST(tail_licensesdir,$tail_libexecdir/Macaulay2/program-licenses)
+@@ -2042,7 +2042,7 @@
+ 
+ AC_SUBST(pre_packagesdir,$pre_datadir/Macaulay2)
+ AC_SUBST(pre_libm2dir,$pre_libdir/Macaulay2)
+-AC_SUBST(pre_emacsdir,$pre_datadir/emacs/site-lisp/Macaulay2)
++AC_SUBST(pre_emacsdir,$pre_datadir/emacs/site-lisp/elpa/macaulay2-$PACKAGE_VERSION)
+ AC_SUBST(pre_librariesdir,$pre_libm2dir/lib)
+ AC_SUBST(pre_programsdir,$pre_libexecdir/Macaulay2/bin)
+ AC_SUBST(pre_licensesdir,$pre_libexecdir/Macaulay2/program-licenses)
