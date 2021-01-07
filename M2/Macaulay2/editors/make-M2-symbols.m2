@@ -60,6 +60,12 @@ CONSTANTS = CONSTANTS | {"Node", "Item", "Example", "CannedExample", "Pre", "Cod
 CONSTANTS = sort CONSTANTS
 STRINGS   = format "///\\\\(/?/?[^/]\\\\|\\\\(//\\\\)*////[^/]\\\\)*\\\\(//\\\\)*///"
 
+importFrom_Core {"topSrcdir"}
+if topSrcdir === null then error "must be running Macaulay2 from source directory"
+
+DKEYWORDS = sort select("registerkeyword\\((\".*),", "$1",
+    get(topSrcdir | "Macaulay2/c/grammar.y"))
+
 -------------------------------------------------------------------------------
 -- Substitute symbols, keywords, types, functions, and constants
 
