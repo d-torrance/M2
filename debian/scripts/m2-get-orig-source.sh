@@ -24,7 +24,7 @@ then
     echo -n "finding newest version using uscan ... "
     VERSION=$(uscan --report-status | grep newversion | awk '{print $3}')
     echo $VERSION
-    REF="stable-release-$VERSION"
+    REF="release-$VERSION"
 elif [ $1 = "-r" -o $1 = "--ref" ]
 then
     REF=$2
