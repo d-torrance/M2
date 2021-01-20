@@ -937,7 +937,7 @@ dnl factory needs to know:
 AC_SUBST(BUILD_flint)
 if test $BUILD_flint = no
 then AC_LANG(C)
-     AC_MSG_CHECKING([for flint >= 2.7.0])
+     AC_MSG_CHECKING([for flint >= 2.6.3])
      AC_COMPILE_IFELSE(
         [AC_LANG_PROGRAM(
 	  [#include <flint/flint.h>
@@ -1358,7 +1358,7 @@ SINGULARLIBS="-lfactory  "
 if test $BUILD_factory = no
 then
     AC_MSG_CHECKING([whether factory library is installed])
-    FACTORY_MINVERSION=4.2.0
+    FACTORY_MINVERSION=4.1.0
     if $PKG_CONFIG --exists "factory >= $FACTORY_MINVERSION"
     then
 	FACTORY_NAME=factory
