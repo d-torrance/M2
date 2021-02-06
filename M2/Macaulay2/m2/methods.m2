@@ -273,13 +273,19 @@ length = method(TypicalValue => ZZ, Dispatch => Thing)
 codim = method( Options => true )
 regularity = method( TypicalValue => ZZ, Options => { Weights => null } )
 
+-- exported by CalendarTimes package, but needed for format
+CalendarTime = new Type of HashTable
+
 -- defined in d/actors4.d
 format' := format
 format = method(Dispatch => Thing, TypicalValue => String)
 format RR :=
 format CC :=
 format String   := String => x -> format' x
-format Sequence := String => s -> format' s
+format Sequence := String => s ->
+    if class \ s === (String, CalendarTime) then strftime s else
+    if class \ s === (CalendarTime, String) then strftime reverse s else
+    format' s
 protect symbol format
 
 toString = method(Dispatch => Thing, TypicalValue => String)
