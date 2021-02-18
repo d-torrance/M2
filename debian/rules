@@ -31,10 +31,27 @@ KATEX_FILES := $(patsubst %, $(KATEX_DIR)/%, \
 	katex.min.css katex.min.js contrib/auto-render.min.js \
 	contrib/copy-tex.min.css contrib/copy-tex.min.js)
 
-execute_before_dh_auto_build: $(KATEX_FILES)
-
 $(KATEX_DIR)/%:
 	touch $@
+
+# copy cached example output files (for examples known to fail on
+# various architectures) to source directory
+# see debian/scripts/generate-examples.m2
+EXAMPLE_SRC := $(wildcard $(CURDIR)/debian/examples/*)
+EXAMPLE_DEST := $(patsubst $(CURDIR)/debian/examples/%, \
+	$(CURDIR)/M2/Macaulay2/packages/%/examples, $(EXAMPLE_SRC))
+
+$(CURDIR)/M2/Macaulay2/packages/%/examples: $(CURDIR)/debian/examples/%
+	mkdir -p $@
+	cp $</*.out $@
+
+execute_before_dh_auto_build: $(KATEX_FILES) $(EXAMPLE_DEST)
+
+execute_after_dh_auto_build:
+	rm -rf $(EXAMPLE_DEST)
+	for DIR in $(subst /examples,,$(EXAMPLE_DEST)); \
+	do if [ -z "$$(ls -A $$DIR)" ]; then rm -rf $$DIR; fi; \
+	done
 
 # since a "test" target exists, dh_auto_test defaults to using that, but
 # it just prints the values of some variables.  we want the "check" target
