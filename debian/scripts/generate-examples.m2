@@ -47,6 +47,7 @@ generateExample = (pkgname, fkey, dir) -> (
 problemExamples = {
     ("AlgebraicSplines", "splineComplex"),                      -- #1429
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
+    ("FastLinAlg", "regularInCodimension"),                     -- #1967
     ("MonodromySolver", "potentialE"),                          -- #1962
     ("MultiplicitySequence", "monjMult"),                       -- #1676
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
