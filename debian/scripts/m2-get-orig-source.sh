@@ -91,7 +91,7 @@ rm ../M2-emacs.tar
 echo "done"
 
 echo -n "removing Files-Excluded from debian/copyright ... "
-FILES_EXCLUDED=$(awk '/^Files-Excluded:/ {print $2; flag = 1; next} \
+FILES_EXCLUDED=$(gawk '/^Files-Excluded:/ {print $2; flag = 1; next} \
     /^\S/ {flag = 0} flag {print $1}' debian/copyright)
 for FILE in $FILES_EXCLUDED
 do
