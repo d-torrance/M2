@@ -51,6 +51,7 @@ problemExamples = {
     ("MultiplicitySequence", "monjMult"),                       -- #1676
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
     ("QthPower", "minimization"),                               -- #1884
+    ("SimplicialDecomposability", "isVertexDecomposable"),      -- #1992
     ("SpecialFanoFourfolds", "detectCongruence"),               -- #1539
     ("ThreadedGB", "tgb"),                                      -- #1463
     ("TestIdeals", "compatibleIdeals"),                         -- #1742
