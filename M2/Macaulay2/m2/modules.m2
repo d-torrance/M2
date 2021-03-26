@@ -76,6 +76,11 @@ Vector.synonym = "vector"
 Vector _ ZZ := (v,i) -> (ambient v#0)_(i,0)
 entries Vector := v -> entries ambient v#0 / first
 norm Vector := v -> norm v#0
+norm(InfiniteNumber, Vector) := (inf, v) -> norm v
+norm(RR, Vector) := (p, v) -> if p < 1 then
+    error "expected p >= 1" else (sum(entries v, x -> abs(x)^p))^(1/p)
+norm(Number, Vector) := (p, v) -> if not isReal p then
+    error "expected p to be real" else norm(numeric p, v)
 expression Vector := v -> VectorExpression apply(flatten entries super v#0,expression)
 net Vector := v -> net expression v
 toExternalString Vector :=
