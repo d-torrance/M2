@@ -517,7 +517,7 @@ norm(RR,Matrix) := (p,M) -> new RR from norm(p,raw M)
 norm(InfiniteNumber,Matrix) := (p,M) -> (
      prec := precision M;
      if prec === infinity then (
-	  error "expected a matrix over RR or CC";
+	  norm(p, numeric M)
 	  )
      else (
      	  norm(numeric(prec,p), M)
@@ -526,7 +526,7 @@ norm(InfiniteNumber,Matrix) := (p,M) -> (
 norm(Matrix) := (M) -> (
      prec := precision M;
      if prec === infinity then (
-	  error "expected a matrix over RR or CC";
+	  norm(infinity, numeric M)
 	  )
      else (
      	  norm(numeric(prec,infinity), M)
