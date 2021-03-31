@@ -29,6 +29,8 @@ generateExample = (pkgname, fkey, dir) -> (
     rawdoc := fetchAnyRawDocumentation currentDocumentTag;
     extractExamples rawdoc.Description;
     inputs := currentPackage#"example inputs"#(format currentDocumentTag);
+    tmp := ArgPrintWidthN;
+    ArgPrintWidthN = 129; -- match the other examples; see d/rules
     elapsedTime captureExampleOutput(
 	"example result for " | format fkey,
 	demark_newline inputs,
@@ -42,6 +44,7 @@ generateExample = (pkgname, fkey, dir) -> (
 	() -> null,
 	false);
     storeExampleOutput(pkg, fkey, outf, printerr);
+    ArgPrintWidthN = tmp;
     )
 
 problemExamples = {
