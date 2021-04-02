@@ -49,6 +49,8 @@ generateExample = (pkgname, fkey, dir) -> (
 
 problemExamples = {
     ("AlgebraicSplines", "splineComplex"),                      -- #1429
+    ("CoincidentRootLoci", "CoincidentRootLocus * CoincidentRootLocus"),
+                                                                -- #1539
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastLinAlg", "regularInCodimension"),                     -- #1967
     ("MultiplicitySequence", "monjMult"),                       -- #1676
