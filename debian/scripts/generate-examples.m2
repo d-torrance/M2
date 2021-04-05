@@ -61,6 +61,7 @@ problemExamples = {
     ("SpecialFanoFourfolds", "toGrass"),                        -- #1539
     ("SpecialFanoFourfolds", "toGrass(Ideal)"),                 -- #1539
     ("ThreadedGB", "tgb"),                                      -- #1463
+    ("ThreadedGB", "ThreadedGB"),                               -- #1463
     ("TestIdeals", "compatibleIdeals"),                         -- #1742
     ("Topcom", "isRegularTriangulation")                        -- #1707
 }
