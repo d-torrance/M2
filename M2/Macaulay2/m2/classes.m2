@@ -74,6 +74,7 @@ codeHelper#(functionBody(identity _ null)) = h -> {
 
 Function and Function := (f, g) -> s -> f s and g s
 Function or  Function := (f, g) -> s -> f s or  g s
+not Function := f -> s -> not f s
 
 -----------------------------------------------------------------------------
 
