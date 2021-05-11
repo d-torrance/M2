@@ -244,7 +244,8 @@ toString EngineRing := toString @@ expression
 net EngineRing := net @@ expression
 
 ZZ _ EngineRing := 
-RR _ EngineRing := RingElement => (i,R) -> new R from i_(R.RawRing)
+RR _ EngineRing :=
+RRi _ EngineRing := RingElement => (i,R) -> new R from i_(R.RawRing)
 
 new RingElement from RawRingElement := (R, f) -> (
      -- this might take too much time:
@@ -301,6 +302,7 @@ frac EngineRing := R -> if isField R then R else if R.?frac then R.frac else (
      F.frac = F;
      F.isCommutative = true;
      F.baseRings = append(R.baseRings,R);
+     F.isHomogeneous = isHomogeneous R and all (degrees R, deg -> all (deg, i -> i === 0));
      commonEngineRingInitializations F;
      factor F := options -> f -> factor numerator f / factor denominator f;
      toString F := x -> toString expression x;
