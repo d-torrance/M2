@@ -53,6 +53,7 @@ problemExamples = {
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastLinAlg", "regularInCodimension"),                     -- #1967
     ("MultiplicitySequence", "monjMult"),                       -- #1676
+    ("MultiprojectiveVarieties", "MultirationalMap ** Ring"),   -- #1742
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
     ("QthPower", "minimization"),                               -- #1884
     ("SimplicialDecomposability", "isVertexDecomposable"),      -- #1992
