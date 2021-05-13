@@ -53,6 +53,7 @@ problemExamples = {
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastLinAlg", "regularInCodimension"),                     -- #1967
     ("MultiplicitySequence", "monjMult"),                       -- #1676
+    ("MultiprojectiveVarieties", "baseLocus"),                  -- #1742
     ("MultiprojectiveVarieties", "dim(MultiprojectiveVariety)"),-- #1742
     ("MultiprojectiveVarieties", "MultirationalMap ** Ring"),   -- #1742
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
