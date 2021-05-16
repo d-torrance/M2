@@ -55,6 +55,8 @@ problemExamples = {
     ("MultiplicitySequence", "monjMult"),                       -- #1676
     ("MultiprojectiveVarieties", "baseLocus"),                  -- #1742
     ("MultiprojectiveVarieties", "dim(MultiprojectiveVariety)"),-- #1742
+    ("MultiprojectiveVarieties", "MultirationalMap * MultirationalMap"),
+                                                                -- #1742
     ("MultiprojectiveVarieties", "MultirationalMap ** Ring"),   -- #1742
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
     ("QthPower", "minimization"),                               -- #1884
