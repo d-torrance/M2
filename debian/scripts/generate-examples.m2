@@ -28,7 +28,9 @@ generateExample = (pkgname, fkey, dir) -> (
     currentDocumentTag = makeDocumentTag fkey;
     rawdoc := fetchAnyRawDocumentation currentDocumentTag;
     extractExamples rawdoc.Description;
-    inputs := pkg#"example inputs"#(format currentDocumentTag);
+    -- extractExamples extracts the example inputs into currentPackage
+    -- (which should be User)
+    inputs := currentPackage#"example inputs"#(format currentDocumentTag);
     tmp := ArgPrintWidthN;
     ArgPrintWidthN = 129; -- match the other examples; see d/rules
     elapsedTime captureExampleOutput(
