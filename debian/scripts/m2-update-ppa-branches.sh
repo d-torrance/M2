@@ -2,6 +2,24 @@
 
 set -e
 
+echo -n "fetching salsa ... "
+git fetch -q salsa
+echo "done"
+
+echo -n "checking if local branches are up to date ... "
+git merge-base --is-ancestor salsa/debian/development debian/development
+DEBIAN_DEVELOPMENT_UPDATED=$?
+git merge-base --is-ancestor salsa/ppa/bionic ppa/bionic
+PPA_BIONIC_UPDATED=$?
+
+if [ $DEBIAN_DEVELOPMENT_UPDATED -eq 0 -a $PPA_BIONIC_UPDATED -eq 0 ]
+then
+    echo "yes"
+else
+    echo "no, update them and try again"
+    exit 1
+fi
+
 CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
 if [ $CURRENT_BRANCH != "debian/development" ]
 then
