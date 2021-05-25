@@ -23,14 +23,8 @@ generateExample = (pkgname, fkey, dir) -> (
     inf := tmpdir | "/" | toFilename fkey | ".m2";
     outf := installdir | "/" | toFilename fkey | ".out";
     errf := installdir | "/" | toFilename fkey | ".errors";
-    pkg := needsPackage pkgname;
-    -- global variable; needed by extractExamples
-    currentDocumentTag = makeDocumentTag fkey;
-    rawdoc := fetchAnyRawDocumentation currentDocumentTag;
-    extractExamples rawdoc.Description;
-    -- extractExamples extracts the example inputs into currentPackage
-    -- (which should be User)
-    inputs := currentPackage#"example inputs"#(format currentDocumentTag);
+    pkg := loadPackage(pkgname, LoadDocumentation => true, Reload => true);
+    inputs := pkg#"example inputs"#(format makeDocumentTag fkey);
     tmp := ArgPrintWidthN;
     ArgPrintWidthN = 129; -- match the other examples; see d/rules
     elapsedTime captureExampleOutput(
