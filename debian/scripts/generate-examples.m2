@@ -15,6 +15,13 @@
 
 debug Core
 
+-- from installPackage.m2
+gethash := outf -> (
+    f := get outf;
+    -- this regular expression detects the format used in runFile
+    m := regex("\\`.* hash: *(-?[0-9]+)", f);
+    if m =!= null then value substring(m#1, f));
+
 generateExample = (pkgname, fkey, dir) -> (
     tmpdir := temporaryFileName();
     makeDirectory tmpdir;
@@ -25,6 +32,10 @@ generateExample = (pkgname, fkey, dir) -> (
     errf := installdir | "/" | toFilename fkey | ".errors";
     pkg := loadPackage(pkgname, LoadDocumentation => true, Reload => true);
     inputs := pkg#"example inputs"#(format makeDocumentTag fkey);
+    if fileExists outf and gethash outf == hash inputs then (
+	printerr("example result for ", format fkey,
+	    " already exists; skipping");
+	return);
     tmp := ArgPrintWidthN;
     ArgPrintWidthN = 129; -- match the other examples; see d/rules
     elapsedTime captureExampleOutput(
