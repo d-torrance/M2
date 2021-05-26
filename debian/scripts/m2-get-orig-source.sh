@@ -24,7 +24,7 @@ then
     echo -n "finding newest version using uscan ... "
     VERSION=$(uscan --report-status | grep newversion | awk '{print $3}')
     echo $VERSION
-    REF="release-$VERSION"
+    REF="release-$(echo $VERSION | sed 's/~rc/-rc/')"
 elif [ $1 = "-r" -o $1 = "--ref" ]
 then
     REF=$2
