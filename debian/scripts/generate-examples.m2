@@ -70,6 +70,7 @@ problemExamples = {
     ("SimplicialDecomposability", "isVertexDecomposable"),      -- #1992
     ("SpecialFanoFourfolds", "detectCongruence(SpecialGushelMukaiFourfold,ZZ)"),
                                                                 -- #1539
+    ("SpecialFanoFourfolds", "toGrass"),                        -- #1742
     ("ThreadedGB", "tgb"),                                      -- #1463
     ("ThreadedGB", "ThreadedGB"),                               -- #1463
     ("TestIdeals", "compatibleIdeals"),                         -- #1742
