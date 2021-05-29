@@ -5,12 +5,17 @@ use util;
 WrongArgPythonObject():Expr := WrongArg("a python object");
 WrongArgPythonObject(n:int):Expr := WrongArg(n,"a python object");
 
+import ErrPrint():void;
+buildPythonErrorPacket():Expr := (
+    ErrPrint();
+    buildErrorPacket("python error"));
+
 pythonObjectOrNull := pythonObject or null;
-toExpr(r:pythonObjectOrNull):Expr := when r is null do buildErrorPacket("python error") is po:pythonObject do Expr(pythonObjectCell(po));
+toExpr(r:pythonObjectOrNull):Expr := when r is null do buildPythonErrorPacket() is po:pythonObject do Expr(pythonObjectCell(po));
 
 import RunSimpleString(s:string):int;
 PyRunSimpleString(e:Expr):Expr := (
-     when e is s:stringCell do if 0 == RunSimpleString(s.v) then nullE else buildErrorPacket("python error")
+     when e is s:stringCell do if 0 == RunSimpleString(s.v) then nullE else buildPythonErrorPacket()
      else WrongArgString());
 setupfun("runSimpleString",PyRunSimpleString);
 

@@ -24,27 +24,16 @@ static void init() {
   }
 }
 
+void python_ErrPrint(void) {
+	if (PyErr_Occurred())
+		PyErr_Print();
+}
+
 PyObject *python_RunString(M2_string s) {
   char *t = M2_tocharstar(s);
   init();
   PyObject *ret = PyRun_String(t,Py_eval_input,globals,locals);
   GC_FREE(t);
-  if (PyErr_Occurred()) {
-#if 1
-    PyErr_Print();
-    return NULL;
-#else
-    PyObject *type, *value, *traceback;
-    PyErr_Fetch(&type,&value,&traceback);
-    return value;		/* this is not such a great thing to do */
-#endif
-  }
-#if 0
-  if (ret) {
-    PyObject *str = PyObject_Str(ret);
-    fprintf(stderr, "runString: %s\n", PyString_AS_STRING(str));
-  }
-#endif
   return ret;
 }
 
