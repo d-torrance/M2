@@ -109,6 +109,14 @@ PyObject *python_NumberTrueDivide(PyObject *o1, PyObject *o2) {
 	return PyNumber_TrueDivide(o1, o2);
 }
 
+long python_LongAsLong(PyObject *o) {
+	return PyLong_AsLong(o);
+}
+
+PyObject *python_LongFromLong(long v) {
+	return PyLong_FromLong(v);
+}
+
 double python_FloatAsDouble(PyObject *o) {
 	return PyFloat_AsDouble(o);
 }
