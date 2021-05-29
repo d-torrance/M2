@@ -30,7 +30,8 @@ importFrom_Core {
 
 export { "pythonHelp", "context", "rs", "Preprocessor", "toPython", "toZZ",
     "isFloat",
-    "isInt"}
+    "isInt",
+    "toMacaulay2"}
 
 exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr" }
 
@@ -106,6 +107,11 @@ isInt PythonObject := pythonLongCheck
 
 isFloat = method()
 isFloat PythonObject := pythonFloatCheck
+
+toMacaulay2 = method()
+toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
+    if isFloat x then toRR x else
+    error "unable to convert python object"
 
 PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
 PythonObject - PythonObject := (x, y) -> pythonNumberSubtract(x, y)
