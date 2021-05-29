@@ -19,10 +19,12 @@ importFrom_Core {
     "pythonNumberAdd",
     "pythonNumberSubtract",
     "pythonNumberMultiply",
-    "pythonNumberTrueDivide"
+    "pythonNumberTrueDivide",
+    "pythonFloatAsDouble",
+    "pythonFloatFromDouble"
 }
 
-export { "pythonHelp", "context", "rs", "Preprocessor" }
+export { "pythonHelp", "context", "rs", "Preprocessor", "toPython"}
 
 exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr" }
 
@@ -97,6 +99,13 @@ PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
 PythonObject - PythonObject := (x, y) -> pythonNumberSubtract(x, y)
 PythonObject * PythonObject := (x, y) -> pythonNumberMultiply(x, y)
 PythonObject / PythonObject := (x, y) -> pythonNumberTrueDivide(x, y)
+
+toRR PythonObject := pythonFloatAsDouble
+
+toPython = method()
+toPython RR := pythonFloatFromDouble
+-- TODO: maybe use fractions module instead
+toPython QQ := toPython @@ toRR
 
 end --------------------------------------------------------
 

@@ -95,6 +95,22 @@ PyNumberTrueDivide(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("pythonNumberTrueDivide",PyNumberTrueDivide);
 
+-- TODO: improve error handling
+-- PyFloat_AsDouble just returns -1.0 when it can't convert to a float
+import FloatAsDouble(o:pythonObject):double;
+PyFloatAsDouble(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(FloatAsDouble(x.v))
+    else WrongArg("a python object");
+setupfun("pythonFloatAsDouble",PyFloatAsDouble);
+
+import FloatFromDouble(v:double):pythonObjectOrNull;
+PyFloatFromDouble(e:Expr):Expr :=
+    when e
+    is x:RRcell do toExpr(FloatFromDouble(toDouble(x)))
+    else WrongArgRR();
+setupfun("pythonFloatFromDouble",PyFloatFromDouble);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "
 -- End:

@@ -109,6 +109,14 @@ PyObject *python_NumberTrueDivide(PyObject *o1, PyObject *o2) {
 	return PyNumber_TrueDivide(o1, o2);
 }
 
+double python_FloatAsDouble(PyObject *o) {
+	return PyFloat_AsDouble(o);
+}
+
+PyObject *python_FloatFromDouble(double v) {
+	return PyFloat_FromDouble(v);
+}
+
 #if 0
 Local Variables:
 compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python-c.o "
