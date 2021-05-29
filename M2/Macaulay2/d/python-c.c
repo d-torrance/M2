@@ -145,6 +145,10 @@ PyObject *python_UnicodeFromString(char *u) {
 	return PyUnicode_FromString(u);
 }
 
+PyObject *python_UnicodeConcat(PyObject *o1, PyObject *o2) {
+	return PyUnicode_Concat(o1, o2);
+}
+
 #if 0
 Local Variables:
 compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python-c.o "

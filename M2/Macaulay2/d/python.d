@@ -165,6 +165,22 @@ PyUnicodeFromString(e:Expr):Expr :=
     else WrongArgString();
 setupfun("pythonUnicodeFromString",PyUnicodeFromString);
 
+import UnicodeConcat(o1:pythonObject,o2:pythonObject):pythonObjectOrNull;
+PyUnicodeConcat(lhs:Expr,rhs:Expr):Expr :=
+    when lhs
+    is x:pythonObjectCell do
+	when rhs
+	is y:pythonObjectCell do toExpr(UnicodeConcat(x.v, y.v))
+	else WrongArgPythonObject(2)
+    else WrongArgPythonObject(1);
+PyUnicodeConcat(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 2 then PyUnicodeConcat(a.0, a.1)
+	else WrongNumArgs(2)
+    else WrongNumArgs(2);
+setupfun("pythonUnicodeConcat",PyUnicodeConcat);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "
 -- End:

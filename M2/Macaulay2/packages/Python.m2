@@ -27,6 +27,7 @@ importFrom_Core {
     "pythonFloatAsDouble",
     "pythonFloatFromDouble",
     "pythonUnicodeCheck",
+    "pythonUnicodeConcat",
     "pythonUnicodeFromString"
 }
 
@@ -135,6 +136,10 @@ Number * PythonObject := (x, y) -> x * toMacaulay2 y
 PythonObject / PythonObject := (x, y) -> pythonNumberTrueDivide(x, y)
 PythonObject / Number := (x, y) -> toMacaulay2 x / y
 Number / PythonObject := (x, y) -> x / toMacaulay2 y
+
+PythonObject | PythonObject := (x, y) -> pythonUnicodeConcat(x, y)
+PythonObject | String := (x, y) -> toString x | y
+String | PythonObject := (x, y) -> x | toString y
 
 toZZ PythonObject := pythonLongAsLong
 toRR PythonObject := pythonFloatAsDouble
