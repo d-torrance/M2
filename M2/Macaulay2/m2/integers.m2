@@ -64,6 +64,9 @@ isUnit ZZ := x -> x == 1 or x == -1
 
 ZZ & ZZ := ZZ => lookup(symbol &, ZZ, ZZ)
 
+toZZ = method()
+toZZ Number:= toZZ RingElement := x -> lift(x, ZZ)
+
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/m2 "
 -- End:

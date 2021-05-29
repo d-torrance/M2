@@ -1166,6 +1166,7 @@ export {
 	"toSequence",
 	"toString",
 	"toUpper",
+	"toZZ",
 	"topCoefficients",
 	"trace",
 	"transpose",

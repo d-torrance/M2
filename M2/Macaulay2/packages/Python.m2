@@ -30,7 +30,7 @@ importFrom_Core {
     "pythonUnicodeFromString"
 }
 
-export { "pythonHelp", "context", "rs", "Preprocessor", "toPython", "toZZ",
+export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "isFloat",
     "isInt",
     "isString",
@@ -136,9 +136,7 @@ PythonObject / PythonObject := (x, y) -> pythonNumberTrueDivide(x, y)
 PythonObject / Number := (x, y) -> toMacaulay2 x / y
 Number / PythonObject := (x, y) -> x / toMacaulay2 y
 
-toZZ = method()
 toZZ PythonObject := pythonLongAsLong
-
 toRR PythonObject := pythonFloatAsDouble
 
 toPython = method()
