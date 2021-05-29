@@ -2,6 +2,9 @@
 use common;
 use util;
 
+WrongArgPythonObject():Expr := WrongArg("a python object");
+WrongArgPythonObject(n:int):Expr := WrongArg(n,"a python object");
+
 pythonObjectOrNull := pythonObject or null;
 toExpr(r:pythonObjectOrNull):Expr := when r is null do buildErrorPacket("python error") is po:pythonObject do Expr(pythonObjectCell(po));
 
@@ -24,7 +27,7 @@ PySysGetObject(e:Expr):Expr := when e is s:stringCell do toExpr(SysGetObject(s.v
 setupfun("sysGetObject",PySysGetObject);
 
 import ObjectType(o:pythonObject):pythonObjectOrNull;
-PyObjectType(e:Expr):Expr := when e is o:pythonObjectCell do toExpr(ObjectType(o.v)) else WrongArg("a python object");
+PyObjectType(e:Expr):Expr := when e is o:pythonObjectCell do toExpr(ObjectType(o.v)) else WrongArgPythonObject();
 setupfun("objectType",PyObjectType);
 
 import initspam():void;
@@ -37,8 +40,8 @@ PyNumberAdd(lhs:Expr,rhs:Expr):Expr :=
     is x:pythonObjectCell do
 	when rhs
 	is y:pythonObjectCell do toExpr(NumberAdd(x.v, y.v))
-	else WrongArg(2, "a python object")
-    else WrongArg(1, "a python object");
+	else WrongArgPythonObject(2)
+    else WrongArgPythonObject(1);
 PyNumberAdd(e:Expr):Expr :=
     when e
     is a:Sequence do
@@ -53,8 +56,8 @@ PyNumberSubtract(lhs:Expr,rhs:Expr):Expr :=
     is x:pythonObjectCell do
 	when rhs
 	is y:pythonObjectCell do toExpr(NumberSubtract(x.v, y.v))
-	else WrongArg(2, "a python object")
-    else WrongArg(1, "a python object");
+	else WrongArgPythonObject(2)
+    else WrongArgPythonObject(1);
 PyNumberSubtract(e:Expr):Expr :=
     when e
     is a:Sequence do
@@ -69,8 +72,8 @@ PyNumberMultiply(lhs:Expr,rhs:Expr):Expr :=
     is x:pythonObjectCell do
 	when rhs
 	is y:pythonObjectCell do toExpr(NumberMultiply(x.v, y.v))
-	else WrongArg(2, "a python object")
-    else WrongArg(1, "a python object");
+	else WrongArgPythonObject(2)
+    else WrongArgPythonObject(1);
 PyNumberMultiply(e:Expr):Expr :=
     when e
     is a:Sequence do
@@ -85,8 +88,8 @@ PyNumberTrueDivide(lhs:Expr,rhs:Expr):Expr :=
     is x:pythonObjectCell do
 	when rhs
 	is y:pythonObjectCell do toExpr(NumberTrueDivide(x.v, y.v))
-	else WrongArg(2, "a python object")
-    else WrongArg(1, "a python object");
+	else WrongArgPythonObject(2)
+    else WrongArgPythonObject(1);
 PyNumberTrueDivide(e:Expr):Expr :=
     when e
     is a:Sequence do
@@ -99,7 +102,7 @@ import LongCheck(o:pythonObject):int;
 PyLongCheck(e:Expr):Expr :=
     when e
     is x:pythonObjectCell do toExpr(LongCheck(x.v) == 1)
-    else WrongArg("a python object");
+    else WrongArgPythonObject();
 setupfun("pythonLongCheck",PyLongCheck);
 
 -- TODO: improve error handling
@@ -108,21 +111,21 @@ import LongAsLong(o:pythonObject):long;
 PyLongAsLong(e:Expr):Expr :=
     when e
     is x:pythonObjectCell do toExpr(LongAsLong(x.v))
-    else WrongArg("a python object");
+    else WrongArgPythonObject();
 setupfun("pythonLongAsLong",PyLongAsLong);
 
 import LongFromLong(v:long):pythonObjectOrNull;
 PyLongFromLong(e:Expr):Expr :=
     when e
     is x:ZZcell do toExpr(LongFromLong(toLong(x)))
-    else WrongArg("a python object");
+    else WrongArgPythonObject();
 setupfun("pythonLongFromLong",PyLongFromLong);
 
 import FloatCheck(o:pythonObject):int;
 PyFloatCheck(e:Expr):Expr :=
     when e
     is x:pythonObjectCell do toExpr(FloatCheck(x.v) == 1)
-    else WrongArg("a python object");
+    else WrongArgPythonObject();
 setupfun("pythonFloatCheck",PyFloatCheck);
 
 -- TODO: improve error handling
@@ -131,7 +134,7 @@ import FloatAsDouble(o:pythonObject):double;
 PyFloatAsDouble(e:Expr):Expr :=
     when e
     is x:pythonObjectCell do toExpr(FloatAsDouble(x.v))
-    else WrongArg("a python object");
+    else WrongArgPythonObject();
 setupfun("pythonFloatAsDouble",PyFloatAsDouble);
 
 import FloatFromDouble(v:double):pythonObjectOrNull;
