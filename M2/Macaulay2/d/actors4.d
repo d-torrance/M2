@@ -1290,7 +1290,7 @@ toRR(e:Expr):Expr := (
 	  else WrongArgZZ(1)
 	  )
      else WrongArg("an integral, rational, or real number, or a pair"));
-setupfun("toRR",toRR);
+setupfun("toRR",toRR).Protected = false;
                                                      
 toRRi(e:Expr):Expr := (
     when e
