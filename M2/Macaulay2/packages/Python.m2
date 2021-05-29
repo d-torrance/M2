@@ -114,9 +114,20 @@ toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
     error "unable to convert python object"
 
 PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
+PythonObject + Number := (x, y) -> toMacaulay2 x + y
+Number + PythonObject := (x, y) -> x + toMacaulay2 y
+
 PythonObject - PythonObject := (x, y) -> pythonNumberSubtract(x, y)
+PythonObject - Number := (x, y) -> toMacaulay2 x - y
+Number - PythonObject := (x, y) -> x - toMacaulay2 y
+
 PythonObject * PythonObject := (x, y) -> pythonNumberMultiply(x, y)
+PythonObject * Number := (x, y) -> toMacaulay2 x * y
+Number * PythonObject := (x, y) -> x * toMacaulay2 y
+
 PythonObject / PythonObject := (x, y) -> pythonNumberTrueDivide(x, y)
+PythonObject / Number := (x, y) -> toMacaulay2 x / y
+Number / PythonObject := (x, y) -> x / toMacaulay2 y
 
 toZZ = method()
 toZZ PythonObject := pythonLongAsLong
