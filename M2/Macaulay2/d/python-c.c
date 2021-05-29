@@ -109,12 +109,20 @@ PyObject *python_NumberTrueDivide(PyObject *o1, PyObject *o2) {
 	return PyNumber_TrueDivide(o1, o2);
 }
 
+int python_LongCheck(PyObject *p) {
+	return PyLong_Check(p);
+}
+
 long python_LongAsLong(PyObject *o) {
 	return PyLong_AsLong(o);
 }
 
 PyObject *python_LongFromLong(long v) {
 	return PyLong_FromLong(v);
+}
+
+int python_FloatCheck(PyObject *p) {
+	return PyFloat_Check(p);
 }
 
 double python_FloatAsDouble(PyObject *o) {

@@ -95,6 +95,13 @@ PyNumberTrueDivide(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("pythonNumberTrueDivide",PyNumberTrueDivide);
 
+import LongCheck(o:pythonObject):int;
+PyLongCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(LongCheck(x.v) == 1)
+    else WrongArg("a python object");
+setupfun("pythonLongCheck",PyLongCheck);
+
 -- TODO: improve error handling
 -- PyLong_AsLong just returns -1 when it can't convert to an int
 import LongAsLong(o:pythonObject):long;
@@ -110,6 +117,13 @@ PyLongFromLong(e:Expr):Expr :=
     is x:ZZcell do toExpr(LongFromLong(toLong(x)))
     else WrongArg("a python object");
 setupfun("pythonLongFromLong",PyLongFromLong);
+
+import FloatCheck(o:pythonObject):int;
+PyFloatCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(FloatCheck(x.v) == 1)
+    else WrongArg("a python object");
+setupfun("pythonFloatCheck",PyFloatCheck);
 
 -- TODO: improve error handling
 -- PyFloat_AsDouble just returns -1.0 when it can't convert to a float

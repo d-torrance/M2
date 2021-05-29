@@ -16,6 +16,8 @@ try exportFrom_Core {
      )
 
 importFrom_Core {
+    "pythonLongCheck",
+    "pythonFloatCheck",
     "pythonNumberAdd",
     "pythonNumberSubtract",
     "pythonNumberMultiply",
@@ -26,7 +28,9 @@ importFrom_Core {
     "pythonFloatFromDouble"
 }
 
-export { "pythonHelp", "context", "rs", "Preprocessor", "toPython", "toZZ"}
+export { "pythonHelp", "context", "rs", "Preprocessor", "toPython", "toZZ",
+    "isFloat",
+    "isInt"}
 
 exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr" }
 
@@ -96,6 +100,12 @@ context String := opts -> init -> (
 	  global symbols => symbols
 	  })
 Context String := (c,s) -> c.stmtexpr s
+
+isInt = method()
+isInt PythonObject := pythonLongCheck
+
+isFloat = method()
+isFloat PythonObject := pythonFloatCheck
 
 PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
 PythonObject - PythonObject := (x, y) -> pythonNumberSubtract(x, y)
