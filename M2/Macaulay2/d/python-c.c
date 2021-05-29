@@ -133,6 +133,18 @@ PyObject *python_FloatFromDouble(double v) {
 	return PyFloat_FromDouble(v);
 }
 
+int python_UnicodeCheck(PyObject *o) {
+	return PyUnicode_Check(o);
+}
+
+const char *python_UnicodeAsUTF8(PyObject *o) {
+	return PyUnicode_AsUTF8(o);
+}
+
+PyObject *python_UnicodeFromString(char *u) {
+	return PyUnicode_FromString(u);
+}
+
 #if 0
 Local Variables:
 compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python-c.o "

@@ -144,6 +144,27 @@ PyFloatFromDouble(e:Expr):Expr :=
     else WrongArgRR();
 setupfun("pythonFloatFromDouble",PyFloatFromDouble);
 
+import UnicodeCheck(o:pythonObject):int;
+PyUnicodeCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(UnicodeCheck(x.v) == 1)
+    else WrongArgPythonObject();
+setupfun("pythonUnicodeCheck",PyUnicodeCheck);
+
+import UnicodeAsUTF8(o:pythonObject):constcharstar;
+PyUnicodeAsUTF8(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(UnicodeAsUTF8(x.v))
+    else WrongArgPythonObject();
+setupfun("pythonUnicodeAsUTF8",PyUnicodeAsUTF8);
+
+import UnicodeFromString(u:charstar):pythonObjectOrNull;
+PyUnicodeFromString(e:Expr):Expr :=
+    when e
+    is x:stringCell do toExpr(UnicodeFromString(tocharstar(x.v)))
+    else WrongArgString();
+setupfun("pythonUnicodeFromString",PyUnicodeFromString);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "
 -- End:

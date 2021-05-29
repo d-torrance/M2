@@ -25,12 +25,15 @@ importFrom_Core {
     "pythonLongAsLong",
     "pythonLongFromLong",
     "pythonFloatAsDouble",
-    "pythonFloatFromDouble"
+    "pythonFloatFromDouble",
+    "pythonUnicodeCheck",
+    "pythonUnicodeFromString"
 }
 
 export { "pythonHelp", "context", "rs", "Preprocessor", "toPython", "toZZ",
     "isFloat",
     "isInt",
+    "isString",
     "toMacaulay2"}
 
 exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr" }
@@ -108,9 +111,13 @@ isInt PythonObject := pythonLongCheck
 isFloat = method()
 isFloat PythonObject := pythonFloatCheck
 
+isString = method()
+isString PythonObject := pythonUnicodeCheck
+
 toMacaulay2 = method()
 toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
     if isFloat x then toRR x else
+    if isString x then toString x else
     error "unable to convert python object"
 
 PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
@@ -139,6 +146,7 @@ toPython RR := pythonFloatFromDouble
 -- TODO: maybe use fractions module instead
 toPython QQ := toPython @@ toRR
 toPython ZZ := pythonLongFromLong
+toPython String := pythonUnicodeFromString
 
 end --------------------------------------------------------
 
