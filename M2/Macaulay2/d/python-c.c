@@ -82,6 +82,10 @@ void python_initspam() {
   PyModule_AddObject(m, "error", SpamError);
 }
 
+/***********
+ * numbers *
+ ***********/
+
 PyObject *python_NumberAdd(PyObject *o1, PyObject *o2) {
 	return PyNumber_Add(o1, o2);
 }
@@ -98,6 +102,10 @@ PyObject *python_NumberTrueDivide(PyObject *o1, PyObject *o2) {
 	return PyNumber_TrueDivide(o1, o2);
 }
 
+/********
+ * ints *
+ ********/
+
 int python_LongCheck(PyObject *p) {
 	return PyLong_Check(p);
 }
@@ -110,6 +118,10 @@ PyObject *python_LongFromLong(long v) {
 	return PyLong_FromLong(v);
 }
 
+/**********
+ * floats *
+ **********/
+
 int python_FloatCheck(PyObject *p) {
 	return PyFloat_Check(p);
 }
@@ -121,6 +133,10 @@ double python_FloatAsDouble(PyObject *o) {
 PyObject *python_FloatFromDouble(double v) {
 	return PyFloat_FromDouble(v);
 }
+
+/***********
+ * strings *
+ ***********/
 
 int python_UnicodeCheck(PyObject *o) {
 	return PyUnicode_Check(o);
@@ -137,6 +153,10 @@ PyObject *python_UnicodeFromString(char *u) {
 PyObject *python_UnicodeConcat(PyObject *o1, PyObject *o2) {
 	return PyUnicode_Concat(o1, o2);
 }
+
+/*********
+ * lists *
+ *********/
 
 int python_ListCheck(PyObject *o) {
 	return PyList_Check(o);
@@ -157,6 +177,10 @@ PyObject *python_ListNew(int n) {
 int python_ListSetItem(PyObject *L, int i, PyObject *item) {
 	return PyList_SetItem(L, i, item);
 }
+
+/****************
+ * dictionaries *
+ ****************/
 
 int python_DictCheck(PyObject *o) {
 	return PyDict_Check(o);

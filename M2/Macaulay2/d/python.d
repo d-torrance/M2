@@ -39,6 +39,10 @@ import initspam():void;
 runinitspam(e:Expr):Expr := (initspam(); nullE);
 setupfun("initspam",runinitspam);
 
+-------------
+-- numbers --
+-------------
+
 import NumberAdd(o1:pythonObject,o2:pythonObject):pythonObjectOrNull;
 PyNumberAdd(lhs:Expr,rhs:Expr):Expr :=
     when lhs
@@ -103,6 +107,10 @@ PyNumberTrueDivide(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("pythonNumberTrueDivide",PyNumberTrueDivide);
 
+----------
+-- ints --
+----------
+
 import LongCheck(o:pythonObject):int;
 PyLongCheck(e:Expr):Expr :=
     when e
@@ -126,6 +134,10 @@ PyLongFromLong(e:Expr):Expr :=
     else WrongArgPythonObject();
 setupfun("pythonLongFromLong",PyLongFromLong);
 
+------------
+-- floats --
+------------
+
 import FloatCheck(o:pythonObject):int;
 PyFloatCheck(e:Expr):Expr :=
     when e
@@ -148,6 +160,10 @@ PyFloatFromDouble(e:Expr):Expr :=
     is x:RRcell do toExpr(FloatFromDouble(toDouble(x)))
     else WrongArgRR();
 setupfun("pythonFloatFromDouble",PyFloatFromDouble);
+
+-------------
+-- strings --
+-------------
 
 import UnicodeCheck(o:pythonObject):int;
 PyUnicodeCheck(e:Expr):Expr :=
@@ -185,6 +201,10 @@ PyUnicodeConcat(e:Expr):Expr :=
 	else WrongNumArgs(2)
     else WrongNumArgs(2);
 setupfun("pythonUnicodeConcat",PyUnicodeConcat);
+
+-----------
+-- lists --
+-----------
 
 import ListCheck(o:pythonObject):int;
 PyListCheck(e:Expr):Expr :=
@@ -244,6 +264,10 @@ PyListSetItem(e:Expr):Expr :=
 	else WrongNumArgs(3)
     else WrongNumArgs(3);
 setupfun("pythonListSetItem",PyListSetItem);
+
+------------------
+-- dictionaries --
+------------------
 
 import DictCheck(o:pythonObject):int;
 PyDictCheck(e:Expr):Expr :=
