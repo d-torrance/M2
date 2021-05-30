@@ -24,9 +24,13 @@ static void init() {
   }
 }
 
+/* simplified to return 1 or 0 rather than a PyObject or NULL */
+int python_ErrOccurred(void) {
+	return (PyErr_Occurred() != NULL);
+}
+
 void python_ErrPrint(void) {
-	if (PyErr_Occurred())
-		PyErr_Print();
+	PyErr_Print();
 }
 
 PyObject *python_RunString(M2_string s) {

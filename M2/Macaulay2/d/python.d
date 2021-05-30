@@ -5,9 +5,10 @@ use util;
 WrongArgPythonObject():Expr := WrongArg("a python object");
 WrongArgPythonObject(n:int):Expr := WrongArg(n,"a python object");
 
+import ErrOccurred():int;
 import ErrPrint():void;
 buildPythonErrorPacket():Expr := (
-    ErrPrint();
+    if ErrOccurred() == 1 then ErrPrint();
     buildErrorPacket("python error"));
 
 pythonObjectOrNull := pythonObject or null;
@@ -118,12 +119,13 @@ PyLongCheck(e:Expr):Expr :=
     else WrongArgPythonObject();
 setupfun("pythonLongCheck",PyLongCheck);
 
--- TODO: improve error handling
--- PyLong_AsLong just returns -1 when it can't convert to an int
 import LongAsLong(o:pythonObject):long;
 PyLongAsLong(e:Expr):Expr :=
     when e
-    is x:pythonObjectCell do toExpr(LongAsLong(x.v))
+    is x:pythonObjectCell do (
+	y := LongAsLong(x.v);
+	if ErrOccurred() == 1 then buildPythonErrorPacket()
+	else toExpr(y))
     else WrongArgPythonObject();
 setupfun("pythonLongAsLong",PyLongAsLong);
 
@@ -145,12 +147,13 @@ PyFloatCheck(e:Expr):Expr :=
     else WrongArgPythonObject();
 setupfun("pythonFloatCheck",PyFloatCheck);
 
--- TODO: improve error handling
--- PyFloat_AsDouble just returns -1.0 when it can't convert to a float
 import FloatAsDouble(o:pythonObject):double;
 PyFloatAsDouble(e:Expr):Expr :=
     when e
-    is x:pythonObjectCell do toExpr(FloatAsDouble(x.v))
+    is x:pythonObjectCell do (
+	y := FloatAsDouble(x.v);
+	if ErrOccurred() == 1 then buildPythonErrorPacket()
+	else toExpr(y))
     else WrongArgPythonObject();
 setupfun("pythonFloatAsDouble",PyFloatAsDouble);
 
