@@ -157,6 +157,25 @@ PyObject *python_ListNew(int n) {
 int python_ListSetItem(PyObject *L, int i, PyObject *item) {
 	return PyList_SetItem(L, i, item);
 }
+
+int python_DictCheck(PyObject *o) {
+	return PyDict_Check(o);
+}
+
+PyObject *python_DictKeys(PyObject *o) {
+	return PyDict_Keys(o);
+}
+
+PyObject *python_DictGetItem(PyObject *p, PyObject *key) {
+	return PyDict_GetItemWithError(p, key);
+}
+
+PyObject *python_DictNew(void) {
+	return PyDict_New();
+}
+
+int python_DictSetItem(PyObject *p, PyObject *key, PyObject *val) {
+	return PyDict_SetItem(p, key, val);
 }
 
 #if 0

@@ -16,6 +16,11 @@ try exportFrom_Core {
      )
 
 importFrom_Core {
+    "pythonDictCheck",
+    "pythonDictKeys",
+    "pythonDictGetItem",
+    "pythonDictNew",
+    "pythonDictSetItem",
     "pythonLongCheck",
     "pythonFloatCheck",
     "pythonNumberAdd",
@@ -37,6 +42,7 @@ importFrom_Core {
 }
 
 export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
+    "isDictionary",
     "isFloat",
     "isInt",
     "isList",
@@ -124,11 +130,18 @@ isString PythonObject := pythonUnicodeCheck
 isList = method()
 isList PythonObject := pythonListCheck
 
+isDictionary = method()
+isDictionary PythonObject := pythonDictCheck
+
 toMacaulay2 = method()
 toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
     if isFloat x then toRR x else
     if isString x then toString x else
     if isList x then toMacaulay2 \ apply(length x, i -> x_i) else
+    if isDictionary x then (
+	K := pythonDictKeys x;
+	hashTable apply(length K, i ->
+	    toMacaulay2 K_i => toMacaulay2 pythonDictGetItem(x, K_i))) else
     error "unable to convert python object"
 
 PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
@@ -167,6 +180,11 @@ toPython List := L -> (
     n := #L;
     result := pythonListNew n;
     for i to n - 1 do pythonListSetItem(result, i, toPython L_i);
+    result)
+toPython HashTable := x -> (
+    result := pythonDictNew();
+    for key in keys x do
+	pythonDictSetItem(result, toPython key, toPython x#key);
     result)
 
 end --------------------------------------------------------

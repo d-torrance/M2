@@ -245,6 +245,67 @@ PyListSetItem(e:Expr):Expr :=
     else WrongNumArgs(3);
 setupfun("pythonListSetItem",PyListSetItem);
 
+import DictCheck(o:pythonObject):int;
+PyDictCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(DictCheck(x.v) == 1)
+    else WrongArgPythonObject();
+setupfun("pythonDictCheck",PyDictCheck);
+
+import DictKeys(o:pythonObject):pythonObjectOrNull;
+PyDictKeys(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(DictKeys(x.v))
+    else WrongArgPythonObject();
+setupfun("pythonDictKeys",PyDictKeys);
+
+import DictGetItem(p:pythonObject,key:pythonObject):pythonObjectOrNull;
+PyDictGetItem(e1:Expr,e2:Expr):Expr :=
+    when e1
+    is x:pythonObjectCell do
+	when e2
+	is y:pythonObjectCell do toExpr(DictGetItem(x.v, y.v))
+	else WrongArgPythonObject(2)
+    else WrongArgPythonObject(1);
+PyDictGetItem(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 2 then PyDictGetItem(a.0, a.1)
+	else WrongNumArgs(2)
+    else WrongNumArgs(2);
+setupfun("pythonDictGetItem",PyDictGetItem);
+
+import DictNew():pythonObjectOrNull;
+PyDictNew(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 0 then toExpr(DictNew())
+	else WrongNumArgs(0)
+    else WrongNumArgs(0);
+setupfun("pythonDictNew",PyDictNew);
+
+import DictSetItem(p:pythonObject,key:pythonObject,val:pythonObject):int;
+PyDictSetItem(e1:Expr,e2:Expr,e3:Expr):Expr :=
+    when e1
+    is x:pythonObjectCell do
+	when e2
+	is y:pythonObjectCell do
+	    when e3
+	    is z:pythonObjectCell do (
+		if DictSetItem(x.v, y.v, z.v) == -1 then
+		    buildPythonErrorPacket()
+		else nullE)
+	    else WrongArgPythonObject(3)
+	else WrongArgPythonObject(2)
+    else WrongArgPythonObject(1);
+PyDictSetItem(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 3 then PyDictSetItem(a.0, a.1, a.2)
+	else WrongNumArgs(3)
+    else WrongNumArgs(3);
+setupfun("pythonDictSetItem",PyDictSetItem);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "
 -- End:
