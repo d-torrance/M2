@@ -22,6 +22,11 @@ importFrom_Core {
     "pythonNumberSubtract",
     "pythonNumberMultiply",
     "pythonNumberTrueDivide",
+    "pythonListCheck",
+    "pythonListGetItem",
+    "pythonListNew",
+    "pythonListSetItem",
+    "pythonListSize",
     "pythonLongAsLong",
     "pythonLongFromLong",
     "pythonFloatAsDouble",
@@ -34,6 +39,7 @@ importFrom_Core {
 export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "isFloat",
     "isInt",
+    "isList",
     "isString",
     "toMacaulay2"}
 
@@ -115,10 +121,14 @@ isFloat PythonObject := pythonFloatCheck
 isString = method()
 isString PythonObject := pythonUnicodeCheck
 
+isList = method()
+isList PythonObject := pythonListCheck
+
 toMacaulay2 = method()
 toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
     if isFloat x then toRR x else
     if isString x then toString x else
+    if isList x then toMacaulay2 \ apply(length x, i -> x_i) else
     error "unable to convert python object"
 
 PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
@@ -144,12 +154,20 @@ String | PythonObject := (x, y) -> x | toString y
 toZZ PythonObject := pythonLongAsLong
 toRR PythonObject := pythonFloatAsDouble
 
+length PythonObject := pythonListSize
+PythonObject_ZZ := (x, i) -> pythonListGetItem(x, i)
+
 toPython = method()
 toPython RR := pythonFloatFromDouble
 -- TODO: maybe use fractions module instead
 toPython QQ := toPython @@ toRR
 toPython ZZ := pythonLongFromLong
 toPython String := pythonUnicodeFromString
+toPython List := L -> (
+    n := #L;
+    result := pythonListNew n;
+    for i to n - 1 do pythonListSetItem(result, i, toPython L_i);
+    result)
 
 end --------------------------------------------------------
 

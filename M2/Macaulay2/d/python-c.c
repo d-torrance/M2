@@ -138,6 +138,27 @@ PyObject *python_UnicodeConcat(PyObject *o1, PyObject *o2) {
 	return PyUnicode_Concat(o1, o2);
 }
 
+int python_ListCheck(PyObject *o) {
+	return PyList_Check(o);
+}
+
+int python_ListSize(PyObject *o) {
+	return PyList_Size(o);
+}
+
+PyObject *python_ListGetItem(PyObject *o, int i) {
+	return PyList_GetItem(o, i);
+}
+
+PyObject *python_ListNew(int n) {
+	return PyList_New(n);
+}
+
+int python_ListSetItem(PyObject *L, int i, PyObject *item) {
+	return PyList_SetItem(L, i, item);
+}
+}
+
 #if 0
 Local Variables:
 compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python-c.o "

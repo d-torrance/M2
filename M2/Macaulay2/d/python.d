@@ -186,6 +186,65 @@ PyUnicodeConcat(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("pythonUnicodeConcat",PyUnicodeConcat);
 
+import ListCheck(o:pythonObject):int;
+PyListCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(ListCheck(x.v) == 1)
+    else WrongArgPythonObject();
+setupfun("pythonListCheck",PyListCheck);
+
+import ListSize(o:pythonObject):int;
+PyListSize(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(ListSize(x.v))
+    else WrongArgPythonObject();
+setupfun("pythonListSize",PyListSize);
+
+import ListGetItem(o:pythonObject,i:int):pythonObjectOrNull;
+PyListGetItem(e1:Expr,e2:Expr):Expr :=
+    when e1
+    is x:pythonObjectCell do
+	when e2
+	is n:ZZcell do toExpr(ListGetItem(x.v, toInt(n)))
+	else WrongArgZZ(2)
+    else WrongArgPythonObject(1);
+PyListGetItem(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 2 then PyListGetItem(a.0, a.1)
+	else WrongNumArgs(2)
+    else WrongNumArgs(2);
+setupfun("pythonListGetItem",PyListGetItem);
+
+import ListNew(n:int):pythonObjectOrNull;
+PyListNew(e:Expr):Expr :=
+    when e
+    is n:ZZcell do toExpr(ListNew(toInt(n)))
+    else WrongArgZZ();
+setupfun("pythonListNew",PyListNew);
+
+import ListSetItem(L:pythonObject,i:int,item:pythonObject):int;
+PyListSetItem(e1:Expr,e2:Expr,e3:Expr):Expr :=
+    when e1
+    is x:pythonObjectCell do
+	when e2
+	is y:ZZcell do
+	    when e3
+	    is z:pythonObjectCell do (
+		if ListSetItem(x.v, toInt(y), z.v) == -1 then
+		    buildPythonErrorPacket()
+		else nullE)
+	    else WrongArgPythonObject(3)
+	else WrongArgZZ(2)
+    else WrongArgPythonObject(1);
+PyListSetItem(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 3 then PyListSetItem(a.0, a.1, a.2)
+	else WrongNumArgs(3)
+    else WrongNumArgs(3);
+setupfun("pythonListSetItem",PyListSetItem);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "
 -- End:
