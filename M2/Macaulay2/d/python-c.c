@@ -55,8 +55,16 @@ PyObject *python_SysGetObject(M2_string s) {
   return ret;
 }
 
+/***********
+ * objects *
+ ***********/
+
 PyObject *python_ObjectType(PyObject *o) {
   return PyObject_Type(o);
+}
+
+int python_ObjectRichCompareBool(PyObject *o1, PyObject *o2, int opid) {
+	return PyObject_RichCompareBool(o1, o2, opid);
 }
 
 /* see http://docs.python.org/extending/extending.html for this example */

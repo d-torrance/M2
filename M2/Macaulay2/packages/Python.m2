@@ -36,6 +36,7 @@ importFrom_Core {
     "pythonLongFromLong",
     "pythonFloatAsDouble",
     "pythonFloatFromDouble",
+    "pythonObjectRichCompareBool",
     "pythonTupleCheck",
     "pythonTupleGetItem",
     "pythonTupleNew",
@@ -153,6 +154,13 @@ toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
 	hashTable apply(length K, i ->
 	    toMacaulay2 K_i => toMacaulay2 pythonDictGetItem(x, K_i))) else
     error "unable to convert python object"
+
+-- Py_LT, Py_GT, and Py_EQ are #defines from /usr/include/python3.9/object.h
+PythonObject ? PythonObject := (x, y) ->
+    if pythonObjectRichCompareBool(x, y, -* Py_LT *- 0) then symbol < else
+    if pythonObjectRichCompareBool(x, y, -* Py_GT *- 4) then symbol > else
+    if pythonObjectRichCompareBool(x, y, -* Py_EQ *- 2) then symbol == else
+    incomparable
 
 PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
 PythonObject + Number := (x, y) -> toMacaulay2 x + y

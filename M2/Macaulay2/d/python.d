@@ -32,9 +32,35 @@ import SysGetObject(s:string):pythonObjectOrNull;
 PySysGetObject(e:Expr):Expr := when e is s:stringCell do toExpr(SysGetObject(s.v)) else WrongArgString();
 setupfun("sysGetObject",PySysGetObject);
 
+-------------
+-- objects --
+-------------
+
 import ObjectType(o:pythonObject):pythonObjectOrNull;
 PyObjectType(e:Expr):Expr := when e is o:pythonObjectCell do toExpr(ObjectType(o.v)) else WrongArgPythonObject();
 setupfun("objectType",PyObjectType);
+
+import ObjectRichCompareBool(o1:pythonObject,o2:pythonObject,opid:int):int;
+PyObjectRichCompareBool(e1:Expr,e2:Expr,e3:Expr):Expr :=
+    when e1
+    is x:pythonObjectCell do
+	when e2
+	is y:pythonObjectCell do
+	    when e3
+	    is z:ZZcell do (
+		r := ObjectRichCompareBool(x.v, y.v, toInt(z));
+		if r == -1 then buildPythonErrorPacket()
+		else toExpr(r == 1))
+	    else WrongArgZZ(3)
+	else WrongArgPythonObject(2)
+    else WrongArgPythonObject(1);
+PyObjectRichCompareBool(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 3 then PyObjectRichCompareBool(a.0, a.1, a.2)
+	else WrongNumArgs(3)
+    else WrongNumArgs(3);
+setupfun("pythonObjectRichCompareBool",PyObjectRichCompareBool);
 
 import initspam():void;
 runinitspam(e:Expr):Expr := (initspam(); nullE);
