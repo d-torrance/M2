@@ -190,6 +190,7 @@ toPython RR := pythonFloatFromDouble
 -- TODO: maybe use fractions module instead
 toPython QQ := toPython @@ toRR
 toPython ZZ := pythonLongFromLong
+toPython Constant := x -> toPython(x + 0)
 toPython String := pythonUnicodeFromString
 toPython Sequence := L -> (
     n := #L;
