@@ -154,6 +154,30 @@ PyObject *python_UnicodeConcat(PyObject *o1, PyObject *o2) {
 	return PyUnicode_Concat(o1, o2);
 }
 
+/**********
+ * tuples *
+ **********/
+
+int python_TupleCheck(PyObject *o) {
+	return PyTuple_Check(o);
+}
+
+int python_TupleSize(PyObject *o) {
+	return PyTuple_Size(o);
+}
+
+PyObject *python_TupleGetItem(PyObject *o, int i) {
+	return PyTuple_GetItem(o, i);
+}
+
+PyObject *python_TupleNew(int n) {
+	return PyTuple_New(n);
+}
+
+int python_TupleSetItem(PyObject *L, int i, PyObject *item) {
+	return PyTuple_SetItem(L, i, item);
+}
+
 /*********
  * lists *
  *********/

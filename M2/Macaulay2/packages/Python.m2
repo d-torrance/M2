@@ -36,6 +36,11 @@ importFrom_Core {
     "pythonLongFromLong",
     "pythonFloatAsDouble",
     "pythonFloatFromDouble",
+    "pythonTupleCheck",
+    "pythonTupleGetItem",
+    "pythonTupleNew",
+    "pythonTupleSetItem",
+    "pythonTupleSize",
     "pythonUnicodeCheck",
     "pythonUnicodeConcat",
     "pythonUnicodeFromString"
@@ -47,6 +52,7 @@ export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "isInt",
     "isList",
     "isString",
+    "isTuple",
     "toMacaulay2"}
 
 exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr" }
@@ -133,10 +139,14 @@ isList PythonObject := pythonListCheck
 isDictionary = method()
 isDictionary PythonObject := pythonDictCheck
 
+isTuple = method()
+isTuple PythonObject := pythonTupleCheck
+
 toMacaulay2 = method()
 toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
     if isFloat x then toRR x else
     if isString x then toString x else
+    if isTuple x then toMacaulay2 \ apply(0..(length x - 1), i -> x_i) else
     if isList x then toMacaulay2 \ apply(length x, i -> x_i) else
     if isDictionary x then (
 	K := pythonDictKeys x;
@@ -167,15 +177,25 @@ String | PythonObject := (x, y) -> x | toString y
 toZZ PythonObject := pythonLongAsLong
 toRR PythonObject := pythonFloatAsDouble
 
-length PythonObject := pythonListSize
-PythonObject_ZZ := (x, i) -> pythonListGetItem(x, i)
+length PythonObject := x -> if isList x then pythonListSize x else
+    if isTuple x then pythonTupleSize x else
+    error "unable to determine length of python object"
 
-toPython = method()
+PythonObject_ZZ := (x, i) -> if isList x then pythonListGetItem(x, i) else
+    if isTuple x then pythonTupleGetItem(x, i) else
+    error "unable to subscript python object"
+
+toPython = method(Dispatch => Thing)
 toPython RR := pythonFloatFromDouble
 -- TODO: maybe use fractions module instead
 toPython QQ := toPython @@ toRR
 toPython ZZ := pythonLongFromLong
 toPython String := pythonUnicodeFromString
+toPython Sequence := L -> (
+    n := #L;
+    result := pythonTupleNew n;
+    for i to n - 1 do pythonTupleSetItem(result, i, toPython L_i);
+    result)
 toPython List := L -> (
     n := #L;
     result := pythonListNew n;

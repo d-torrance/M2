@@ -202,6 +202,69 @@ PyUnicodeConcat(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("pythonUnicodeConcat",PyUnicodeConcat);
 
+------------
+-- tuples --
+------------
+
+import TupleCheck(o:pythonObject):int;
+PyTupleCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(TupleCheck(x.v) == 1)
+    else WrongArgPythonObject();
+setupfun("pythonTupleCheck",PyTupleCheck);
+
+import TupleSize(o:pythonObject):int;
+PyTupleSize(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(TupleSize(x.v))
+    else WrongArgPythonObject();
+setupfun("pythonTupleSize",PyTupleSize);
+
+import TupleGetItem(o:pythonObject,i:int):pythonObjectOrNull;
+PyTupleGetItem(e1:Expr,e2:Expr):Expr :=
+    when e1
+    is x:pythonObjectCell do
+	when e2
+	is n:ZZcell do toExpr(TupleGetItem(x.v, toInt(n)))
+	else WrongArgZZ(2)
+    else WrongArgPythonObject(1);
+PyTupleGetItem(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 2 then PyTupleGetItem(a.0, a.1)
+	else WrongNumArgs(2)
+    else WrongNumArgs(2);
+setupfun("pythonTupleGetItem",PyTupleGetItem);
+
+import TupleNew(n:int):pythonObjectOrNull;
+PyTupleNew(e:Expr):Expr :=
+    when e
+    is n:ZZcell do toExpr(TupleNew(toInt(n)))
+    else WrongArgZZ();
+setupfun("pythonTupleNew",PyTupleNew);
+
+import TupleSetItem(L:pythonObject,i:int,item:pythonObject):int;
+PyTupleSetItem(e1:Expr,e2:Expr,e3:Expr):Expr :=
+    when e1
+    is x:pythonObjectCell do
+	when e2
+	is y:ZZcell do
+	    when e3
+	    is z:pythonObjectCell do (
+		if TupleSetItem(x.v, toInt(y), z.v) == -1 then
+		    buildPythonErrorPacket()
+		else nullE)
+	    else WrongArgPythonObject(3)
+	else WrongArgZZ(2)
+    else WrongArgPythonObject(1);
+PyTupleSetItem(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 3 then PyTupleSetItem(a.0, a.1, a.2)
+	else WrongNumArgs(3)
+    else WrongNumArgs(3);
+setupfun("pythonTupleSetItem",PyTupleSetItem);
+
 -----------
 -- lists --
 -----------
