@@ -2,21 +2,32 @@
 this does not work uless M2 is compiled --with-python
 *-
 
+pythonPresent := Core#"private dictionary"#?"runPythonString"
+
 newPackage("Python",
-    Headline => "interface to Python"
+    Headline => "interface to Python",
+    OptionalComponentsPresent => pythonPresent
     )
-try exportFrom_Core {
-     "runSimpleString", "PythonObject", "runPythonString", "sysGetObject", "objectType", "initspam"
-     } then print " -- success: python is present" else (
-	 stderr << " -- warning: python is not present" << endl;
-	 stderr <<
-	     " -- specify --with-python in `configure` options and recompile M2"
-	      << endl;
-	 end
-     )
+
+importFrom_Core {"printerr"}
+
+-- TODO: how will we deal with documentation/cached examples
+-- when we haven't compiled w/ --with-python?
+
+if pythonPresent then printerr "success: python is present" else (
+    printerr "warning: python is not present";
+    printerr "specify --with-python in `configure` options and recompile M2";
+    end)
+
+exportFrom_Core {
+    "runSimpleString",
+    "PythonObject",
+    "runPythonString",
+    "sysGetObject",
+    "objectType",
+    "initspam"}
 
 importFrom_Core {
-    "printerr",
     "pythonCallableCheck",
     "pythonDictCheck",
     "pythonDictKeys",
