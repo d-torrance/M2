@@ -251,6 +251,12 @@ PyObject *python_ObjectCall(PyObject *o, PyObject *args, PyObject *kwargs) {
 	return PyObject_Call(o, args, kwargs);
 }
 
+/********
+ * none *
+ ********/
+
+PyObject *python_None = Py_None;
+
 #if 0
 Local Variables:
 compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python-c.o "

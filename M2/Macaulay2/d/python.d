@@ -453,6 +453,20 @@ PyObjectCall(e:Expr):Expr :=
     else WrongNumArgs(3);
 setupfun("pythonObjectCall",PyObjectCall);
 
+----------
+-- none --
+----------
+
+import None:pythonObjectOrNull;
+setupconst("pythonNone", toExpr(None));
+
+-- there is no C Py_NoneCheck to import since Py_None is a single object
+PyNoneCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(x.v == None)
+    else WrongArgPythonObject();
+setupfun("pythonNoneCheck",PyNoneCheck);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "
 -- End:
