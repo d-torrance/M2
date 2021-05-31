@@ -62,6 +62,22 @@ PyObjectRichCompareBool(e:Expr):Expr :=
     else WrongNumArgs(3);
 setupfun("pythonObjectRichCompareBool",PyObjectRichCompareBool);
 
+import ObjectGetAttrString(o:pythonObject,attr:charstar):pythonObjectOrNull;
+PyObjectGetAttrString(lhs:Expr,rhs:Expr):Expr :=
+    when lhs
+    is x:pythonObjectCell do
+	when rhs
+	is y:stringCell do toExpr(ObjectGetAttrString(x.v, tocharstar(y.v)))
+	else WrongArgString(2)
+    else WrongArgPythonObject(1);
+PyObjectGetAttrString(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 2 then PyObjectGetAttrString(a.0, a.1)
+	else WrongNumArgs(2)
+    else WrongNumArgs(2);
+setupfun("pythonObjectGetAttrString",PyObjectGetAttrString);
+
 import initspam():void;
 runinitspam(e:Expr):Expr := (initspam(); nullE);
 setupfun("initspam",runinitspam);

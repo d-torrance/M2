@@ -67,6 +67,10 @@ int python_ObjectRichCompareBool(PyObject *o1, PyObject *o2, int opid) {
 	return PyObject_RichCompareBool(o1, o2, opid);
 }
 
+PyObject *python_ObjectGetAttrString(PyObject *o, char *attr) {
+	return PyObject_GetAttrString(o, attr);
+}
+
 /* see http://docs.python.org/extending/extending.html for this example */
 
 static PyObject * spam_system(PyObject *self, PyObject *args) {
