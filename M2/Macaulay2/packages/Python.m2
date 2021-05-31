@@ -16,6 +16,7 @@ try exportFrom_Core {
      )
 
 importFrom_Core {
+    "printerr",
     "pythonCallableCheck",
     "pythonDictCheck",
     "pythonDictKeys",
@@ -167,8 +168,10 @@ toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
 	hashTable apply(length K, i ->
 	    toMacaulay2 K_i => toMacaulay2 pythonDictGetItem(x, K_i))) else
     if isCallable x then toFunction x else
-    if isNone x then null else
-    error "unable to convert python object"
+    if isNone x then null else (
+	if debugLevel > 0 then printerr(
+	    "warning: unable to convert ", format toString x);
+	x)
 
 -- Py_LT, Py_GT, and Py_EQ are #defines from /usr/include/python3.9/object.h
 PythonObject ? PythonObject := (x, y) ->
