@@ -16,6 +16,7 @@ try exportFrom_Core {
      )
 
 importFrom_Core {
+    "pythonCallableCheck",
     "pythonDictCheck",
     "pythonDictKeys",
     "pythonDictGetItem",
@@ -37,6 +38,7 @@ importFrom_Core {
     "pythonFloatAsDouble",
     "pythonFloatFromDouble",
     "pythonObjectRichCompareBool",
+    "pythonObjectCall",
     "pythonTupleCheck",
     "pythonTupleGetItem",
     "pythonTupleNew",
@@ -48,12 +50,14 @@ importFrom_Core {
 }
 
 export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
+    "isCallable",
     "isDictionary",
     "isFloat",
     "isInt",
     "isList",
     "isString",
     "isTuple",
+    "toFunction",
     "toMacaulay2"}
 
 exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr" }
@@ -125,6 +129,9 @@ context String := opts -> init -> (
 	  })
 Context String := (c,s) -> c.stmtexpr s
 
+isCallable = method()
+isCallable PythonObject := pythonCallableCheck
+
 isInt = method()
 isInt PythonObject := pythonLongCheck
 
@@ -153,6 +160,7 @@ toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
 	K := pythonDictKeys x;
 	hashTable apply(length K, i ->
 	    toMacaulay2 K_i => toMacaulay2 pythonDictGetItem(x, K_i))) else
+    if isCallable x then toFunction x else
     error "unable to convert python object"
 
 -- Py_LT, Py_GT, and Py_EQ are #defines from /usr/include/python3.9/object.h
@@ -184,6 +192,14 @@ String | PythonObject := (x, y) -> x | toString y
 
 toZZ PythonObject := pythonLongAsLong
 toRR PythonObject := pythonFloatAsDouble
+
+toFunction = method()
+toFunction PythonObject := x -> y -> (
+    p := partition(a -> instance(a, Option),
+	if instance(y, VisibleList) then y else {y});
+    args := toPython if p#?false then toSequence p#false else ();
+    kwargs := toPython hashTable if p#?true then toList p#true else {};
+    toMacaulay2 pythonObjectCall(x, args, kwargs))
 
 length PythonObject := x -> if isList x then pythonListSize x else
     if isTuple x then pythonTupleSize x else

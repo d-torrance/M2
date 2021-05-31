@@ -422,6 +422,37 @@ PyDictSetItem(e:Expr):Expr :=
     else WrongNumArgs(3);
 setupfun("pythonDictSetItem",PyDictSetItem);
 
+---------------
+-- callables --
+---------------
+
+import CallableCheck(o:pythonObject):int;
+PyCallableCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(CallableCheck(x.v) == 1)
+    else WrongArgPythonObject();
+setupfun("pythonCallableCheck",PyCallableCheck);
+
+import ObjectCall(
+    o:pythonObject,args:pythonObject,kwargs:pythonObject):pythonObjectOrNull;
+PyObjectCall(e1:Expr,e2:Expr,e3:Expr):Expr :=
+    when e1
+    is x:pythonObjectCell do
+	when e2
+	is y:pythonObjectCell do
+	    when e3
+	    is z:pythonObjectCell do toExpr(ObjectCall(x.v, y.v, z.v))
+	    else WrongArgPythonObject(3)
+	else WrongArgPythonObject(2)
+    else WrongArgPythonObject(1);
+PyObjectCall(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 3 then PyObjectCall(a.0, a.1, a.2)
+	else WrongNumArgs(3)
+    else WrongNumArgs(3);
+setupfun("pythonObjectCall",PyObjectCall);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "
 -- End:

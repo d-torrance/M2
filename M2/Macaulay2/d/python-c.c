@@ -238,6 +238,19 @@ int python_DictSetItem(PyObject *p, PyObject *key, PyObject *val) {
 	return PyDict_SetItem(p, key, val);
 }
 
+/*************
+ * callables *
+ *************/
+
+int python_CallableCheck(PyObject *o) {
+	return PyCallable_Check(o);
+}
+
+
+PyObject *python_ObjectCall(PyObject *o, PyObject *args, PyObject *kwargs) {
+	return PyObject_Call(o, args, kwargs);
+}
+
 #if 0
 Local Variables:
 compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python-c.o "
