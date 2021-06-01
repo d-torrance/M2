@@ -54,6 +54,7 @@ importFrom_Core {
     "pythonFloatFromDouble",
     "pythonObjectGetAttrString",
     "pythonObjectRichCompareBool",
+    "pythonObjectSetAttrString",
     "pythonObjectCall",
     "pythonTupleCheck",
     "pythonTupleGetItem",
@@ -234,7 +235,10 @@ length PythonObject := x -> if isList x then pythonListSize x else
 PythonObject_ZZ := (x, i) -> if isList x then pythonListGetItem(x, i) else
     if isTuple x then pythonTupleGetItem(x, i) else
     error "unable to subscript python object"
-PythonObject_String := (x, y) -> toMacaulay2 pythonObjectGetAttrString(x, y)
+
+PythonObject @@ String := (x, y) -> toMacaulay2 pythonObjectGetAttrString(x, y)
+PythonObject @@ String = (x, y, e) ->
+    pythonObjectSetAttrString(x, y, toPython e)
 
 toPython = method(Dispatch => Thing)
 toPython RR := pythonFloatFromDouble

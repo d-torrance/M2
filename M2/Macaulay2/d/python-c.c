@@ -71,6 +71,10 @@ PyObject *python_ObjectGetAttrString(PyObject *o, char *attr) {
 	return PyObject_GetAttrString(o, attr);
 }
 
+int python_ObjectSetAttrString(PyObject *o, char *attr_name, PyObject *v) {
+	return PyObject_SetAttrString(o, attr_name, v);
+}
+
 /* see http://docs.python.org/extending/extending.html for this example */
 
 static PyObject * spam_system(PyObject *self, PyObject *args) {

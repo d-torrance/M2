@@ -78,6 +78,28 @@ PyObjectGetAttrString(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("pythonObjectGetAttrString",PyObjectGetAttrString);
 
+import ObjectSetAttrString(o:pythonObject,attr:charstar,v:pythonObject):int;
+PyObjectSetAttrString(e1:Expr,e2:Expr,e3:Expr):Expr :=
+    when e1
+    is x:pythonObjectCell do
+	when e2
+	is y:stringCell do
+	    when e3
+	    is z:pythonObjectCell do (
+		if ObjectSetAttrString(x.v, tocharstar(y.v), z.v) == -1 then
+		    buildPythonErrorPacket()
+		else nullE)
+	    else WrongArgPythonObject(3)
+	else WrongArgString(2)
+    else WrongArgPythonObject(1);
+PyObjectSetAttrString(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 3 then PyObjectSetAttrString(a.0, a.1, a.2)
+	else WrongNumArgs(3)
+    else WrongNumArgs(3);
+setupfun("pythonObjectSetAttrString",PyObjectSetAttrString);
+
 import initspam():void;
 runinitspam(e:Expr):Expr := (initspam(); nullE);
 setupfun("initspam",runinitspam);
