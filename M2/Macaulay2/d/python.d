@@ -563,6 +563,17 @@ PyImportImportModule(e:Expr):Expr :=
     else WrongArgPythonObject();
 setupfun("pythonImportImportModule",PyImportImportModule);
 
+-----------
+-- types --
+-----------
+
+import TypeCheck(o:pythonObject):int;
+PyTypeCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(TypeCheck(x.v) == 1)
+    else WrongArgPythonObject();
+setupfun("pythonTypeCheck",PyTypeCheck);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "
 -- End:

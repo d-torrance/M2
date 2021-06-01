@@ -293,6 +293,13 @@ PyObject *python_ImportImportModule(char *name) {
 	return PyImport_ImportModule(name);
 }
 
+/*********
+ * types *
+ *********/
+
+int python_TypeCheck(PyObject *o) {
+	return PyType_Check(o);
+}
 
 #if 0
 Local Variables:

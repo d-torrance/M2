@@ -65,6 +65,7 @@ importFrom_Core {
     "pythonTupleNew",
     "pythonTupleSetItem",
     "pythonTupleSize",
+    "pythonTypeCheck",
     "pythonUnicodeCheck",
     "pythonUnicodeConcat",
     "pythonUnicodeFromString"
@@ -81,6 +82,7 @@ export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "isList",
     "isString",
     "isTuple",
+    "isType",
     "iter",
     "next",
     "toFunction",
@@ -184,6 +186,9 @@ isIterator PythonObject := pythonIterCheck
 
 isIterable = method()
 isIterable PythonObject := x -> x@@?"__iter__"
+
+isType = method()
+isType PythonObject := pythonTypeCheck
 
 isNone = method()
 isNone PythonObject := pythonNoneCheck
