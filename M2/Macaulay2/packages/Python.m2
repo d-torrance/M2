@@ -55,6 +55,7 @@ importFrom_Core {
     "pythonFloatAsDouble",
     "pythonFloatFromDouble",
     "pythonObjectGetAttrString",
+    "pythonObjectGetIter",
     "pythonObjectRichCompareBool",
     "pythonObjectSetAttrString",
     "pythonObjectCall",
@@ -74,10 +75,12 @@ export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "isDictionary",
     "isFloat",
     "isInt",
-    "isIter",
+    "isIterator",
+    "isIterable",
     "isList",
     "isString",
     "isTuple",
+    "iter",
     "next",
     "toFunction",
     "toMacaulay2"}
@@ -175,8 +178,11 @@ isDictionary PythonObject := pythonDictCheck
 isTuple = method()
 isTuple PythonObject := pythonTupleCheck
 
-isIter = method()
-isIter PythonObject := pythonIterCheck
+isIterator = method()
+isIterator PythonObject := pythonIterCheck
+
+isIterable = method()
+isIterable PythonObject := x -> try pythonObjectGetIter x then true else false
 
 isNone = method()
 isNone PythonObject := pythonNoneCheck
@@ -191,6 +197,9 @@ toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
 	K := pythonDictKeys x;
 	hashTable apply(length K, i ->
 	    toMacaulay2 K_i => toMacaulay2 pythonDictGetItem(x, K_i))) else
+    if isIterable x then (
+	i := iter x;
+	while (y := next i; y =!= null) list y) else
     if isCallable x then toFunction x else
     if isNone x then null else (
 	if debugLevel > 0 then printerr(
@@ -242,8 +251,11 @@ length PythonObject := x -> if isList x then pythonListSize x else
 
 next = method()
 -- we need to do the error handling or we get a segfault
-next PythonObject := x -> if not isIter x then error "not an iterator" else
+next PythonObject := x -> if not isIterator x then error "not an iterator" else
 	toMacaulay2 pythonIterNext x
+
+iter = method()
+iter PythonObject := pythonObjectGetIter
 
 PythonObject_Thing := (x, i) ->
     if isList x then pythonListGetItem(x, i) else
