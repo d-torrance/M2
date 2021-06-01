@@ -56,6 +56,7 @@ importFrom_Core {
     "pythonFloatFromDouble",
     "pythonObjectGetAttrString",
     "pythonObjectGetIter",
+    "pythonObjectHasAttrString",
     "pythonObjectRichCompareBool",
     "pythonObjectSetAttrString",
     "pythonObjectCall",
@@ -182,7 +183,7 @@ isIterator = method()
 isIterator PythonObject := pythonIterCheck
 
 isIterable = method()
-isIterable PythonObject := x -> try pythonObjectGetIter x then true else false
+isIterable PythonObject := x -> x@@?"__iter__"
 
 isNone = method()
 isNone PythonObject := pythonNoneCheck
@@ -269,8 +270,10 @@ PythonObject_Thing = (x, i, e) ->
     x@@"__setitem__"(i, toPython e)
 
 PythonObject @@ String := (x, y) -> toMacaulay2 pythonObjectGetAttrString(x, y)
+PythonObject @@? String := pythonObjectHasAttrString
 PythonObject @@ String = (x, y, e) ->
     pythonObjectSetAttrString(x, y, toPython e)
+
 
 toPython = method(Dispatch => Thing)
 toPython RR := pythonFloatFromDouble

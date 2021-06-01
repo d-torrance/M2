@@ -62,6 +62,23 @@ PyObjectRichCompareBool(e:Expr):Expr :=
     else WrongNumArgs(3);
 setupfun("pythonObjectRichCompareBool",PyObjectRichCompareBool);
 
+import ObjectHasAttrString(o:pythonObject,attr:charstar):int;
+PyObjectHasAttrString(lhs:Expr,rhs:Expr):Expr :=
+    when lhs
+    is x:pythonObjectCell do
+	when rhs
+	is y:stringCell do
+	    toExpr(ObjectHasAttrString(x.v, tocharstar(y.v)) == 1)
+	else WrongArgString(2)
+    else WrongArgPythonObject(1);
+PyObjectHasAttrString(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 2 then PyObjectHasAttrString(a.0, a.1)
+	else WrongNumArgs(2)
+    else WrongNumArgs(2);
+setupfun("pythonObjectHasAttrString",PyObjectHasAttrString);
+
 import ObjectGetAttrString(o:pythonObject,attr:charstar):pythonObjectOrNull;
 PyObjectGetAttrString(lhs:Expr,rhs:Expr):Expr :=
     when lhs

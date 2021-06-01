@@ -324,6 +324,7 @@ bumpPrecedence();
      export ParenStarParenS := makeKeyword(postfix("(*)"));
 bumpPrecedence();
      export AtAtS := makeKeyword(binaryleft("@@"));
+     export AtAtQuestionS := makeKeyword(binaryleft("@@?"));
 bumpPrecedence();
      export TildeS := makeKeyword(postfix("~"));
      export UnderscoreStarS := makeKeyword(postfix("_*"));
@@ -469,7 +470,7 @@ export opsWithBinaryMethod := array(SymbolClosure)(
      LongDoubleRightArrowS, LongLongDoubleRightArrowS,
      LongDoubleLeftArrowS, LongLongDoubleLeftArrowS,
      ColonS, BarS, HatHatS, AmpersandS, DotDotS, DotDotLessS, MinusS, PlusS, PlusPlusS, StarStarS, StarS, BackslashBackslashS, DivideS, LeftDivideS, PercentS, SlashSlashS, AtS, 
-     AdjacentS, AtAtS, PowerS, UnderscoreS, PowerStarStarS, orS, andS);
+     AdjacentS, AtAtS, AtAtQuestionS, PowerS, UnderscoreS, PowerStarStarS, orS, andS);
 export opsWithUnaryMethod := array(SymbolClosure)(
      StarS, MinusS, PlusS, LessLessS, 
      LongDoubleLeftArrowS, LongLongDoubleLeftArrowS, 

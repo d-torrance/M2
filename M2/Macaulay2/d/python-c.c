@@ -67,6 +67,10 @@ int python_ObjectRichCompareBool(PyObject *o1, PyObject *o2, int opid) {
 	return PyObject_RichCompareBool(o1, o2, opid);
 }
 
+int python_ObjectHasAttrString(PyObject *o, char *attr) {
+	return PyObject_HasAttrString(o, attr);
+}
+
 PyObject *python_ObjectGetAttrString(PyObject *o, char *attr) {
 	return PyObject_GetAttrString(o, attr);
 }
