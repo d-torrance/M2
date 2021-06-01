@@ -230,11 +230,18 @@ toFunction PythonObject := x -> y -> (
 
 length PythonObject := x -> if isList x then pythonListSize x else
     if isTuple x then pythonTupleSize x else
-    error "unable to determine length of python object"
+    x@@"__len__"()
 
-PythonObject_ZZ := (x, i) -> if isList x then pythonListGetItem(x, i) else
+PythonObject_Thing := (x, i) ->
+    if isList x then pythonListGetItem(x, i) else
     if isTuple x then pythonTupleGetItem(x, i) else
-    error "unable to subscript python object"
+    if isDictionary x then pythonDictGetItem(x, toPython i) else
+    x@@"__getitem__" i
+PythonObject_Thing = (x, i, e) ->
+    if isList x then pythonListSetItem(x, i, toPython e) else
+    if isTuple x then pythonTupleSetItem(x, i, toPython e) else
+    if isDictionary x then pythonDictSetItem(x, toPython i, toPython e) else
+    x@@"__setitem__"(i, toPython e)
 
 PythonObject @@ String := (x, y) -> toMacaulay2 pythonObjectGetAttrString(x, y)
 PythonObject @@ String = (x, y, e) ->
