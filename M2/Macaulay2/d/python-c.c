@@ -259,6 +259,18 @@ PyObject *python_ObjectCall(PyObject *o, PyObject *args, PyObject *kwargs) {
 	return PyObject_Call(o, args, kwargs);
 }
 
+/*************
+ * iterators *
+ *************/
+
+int python_IterCheck(PyObject *o) {
+	return PyIter_Check(o);
+}
+
+PyObject * python_IterNext(PyObject *o) {
+	return PyIter_Next(o);
+}
+
 /********
  * none *
  ********/

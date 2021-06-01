@@ -37,6 +37,8 @@ importFrom_Core {
     "pythonLongCheck",
     "pythonFloatCheck",
     "pythonImportImportModule",
+    "pythonIterCheck",
+    "pythonIterNext",
     "pythonNone",
     "pythonNoneCheck",
     "pythonNumberAdd",
@@ -72,9 +74,11 @@ export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "isDictionary",
     "isFloat",
     "isInt",
+    "isIter",
     "isList",
     "isString",
     "isTuple",
+    "next",
     "toFunction",
     "toMacaulay2"}
 
@@ -171,6 +175,9 @@ isDictionary PythonObject := pythonDictCheck
 isTuple = method()
 isTuple PythonObject := pythonTupleCheck
 
+isIter = method()
+isIter PythonObject := pythonIterCheck
+
 isNone = method()
 isNone PythonObject := pythonNoneCheck
 
@@ -189,6 +196,7 @@ toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
 	if debugLevel > 0 then printerr(
 	    "warning: unable to convert ", format toString x);
 	x)
+toMacaulay2 Nothing := identity
 
 -- Py_LT, Py_GT, and Py_EQ are #defines from /usr/include/python3.9/object.h
 PythonObject ? PythonObject := (x, y) ->
@@ -231,6 +239,11 @@ toFunction PythonObject := x -> y -> (
 length PythonObject := x -> if isList x then pythonListSize x else
     if isTuple x then pythonTupleSize x else
     x@@"__len__"()
+
+next = method()
+-- we need to do the error handling or we get a segfault
+next PythonObject := x -> if not isIter x then error "not an iterator" else
+	toMacaulay2 pythonIterNext x
 
 PythonObject_Thing := (x, i) ->
     if isList x then pythonListGetItem(x, i) else

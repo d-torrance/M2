@@ -491,6 +491,30 @@ PyObjectCall(e:Expr):Expr :=
     else WrongNumArgs(3);
 setupfun("pythonObjectCall",PyObjectCall);
 
+---------------
+-- iterators --
+---------------
+
+import IterCheck(o:pythonObject):int;
+PyIterCheck(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(IterCheck(x.v) == 1)
+    else WrongArgPythonObject();
+setupfun("pythonIterCheck",PyIterCheck);
+
+import IterNext(o:pythonObject):pythonObjectOrNull;
+PyIterNext(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do (
+	next := IterNext(x.v);
+	when next
+	is null do
+	    if ErrOccurred() == 1 then buildPythonErrorPacket()
+	    else nullE
+	else toExpr(next))
+    else WrongArgPythonObject();
+setupfun("pythonIterNext",PyIterNext);
+
 ----------
 -- none --
 ----------
