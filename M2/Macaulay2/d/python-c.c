@@ -261,6 +261,15 @@ PyObject *python_ObjectCall(PyObject *o, PyObject *args, PyObject *kwargs) {
 
 PyObject *python_None = Py_None;
 
+/*************
+ * importing *
+ *************/
+
+PyObject *python_ImportImportModule(char *name) {
+	return PyImport_ImportModule(name);
+}
+
+
 #if 0
 Local Variables:
 compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python-c.o "

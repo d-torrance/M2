@@ -483,6 +483,16 @@ PyNoneCheck(e:Expr):Expr :=
     else WrongArgPythonObject();
 setupfun("pythonNoneCheck",PyNoneCheck);
 
+---------------
+-- importing --
+---------------
+import ImportImportModule(name:charstar):pythonObjectOrNull;
+PyImportImportModule(e:Expr):Expr :=
+    when e
+    is x:stringCell do toExpr(ImportImportModule(tocharstar(x.v)))
+    else WrongArgPythonObject();
+setupfun("pythonImportImportModule",PyImportImportModule);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "
 -- End:

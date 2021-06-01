@@ -36,6 +36,7 @@ importFrom_Core {
     "pythonDictSetItem",
     "pythonLongCheck",
     "pythonFloatCheck",
+    "pythonImportImportModule",
     "pythonNone",
     "pythonNoneCheck",
     "pythonNumberAdd",
@@ -65,6 +66,7 @@ importFrom_Core {
 }
 
 export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
+    "import",
     "isCallable",
     "isDictionary",
     "isFloat",
@@ -143,6 +145,9 @@ context String := opts -> init -> (
 	  global symbols => symbols
 	  })
 Context String := (c,s) -> c.stmtexpr s
+
+import = method()
+import(String) := pythonImportImportModule
 
 isCallable = method()
 isCallable PythonObject := pythonCallableCheck
