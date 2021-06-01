@@ -23,8 +23,15 @@ new NetworkXGraph from VisibleList := (G, L) -> (
 )
 
 callnx = (G, f, args) -> G#"python object"@@f args
+tolist = toFunction rs "list"
 
 net NetworkXGraph := G -> callnx(G, "__repr__", ())
+
+vertexSet NetworkXGraph := G -> tolist callnx(G, "nodes", ())
+
+addVertex(NetworkXGraph, Thing) := (G, v) -> addVertex(G, v, ())
+addVertex(NetworkXGraph, Thing, VisibleList) := (G, v, attr) ->
+    callnx(G, "add_Node", (1:v) | toSequence attr)
 
 addEdge(NetworkXGraph, Thing, Thing) := (G, u, v) -> addEdge(G, u, v, ())
 addEdge(NetworkXGraph, Thing, Thing, VisibleList) := (G, u, v, attr) ->
