@@ -73,6 +73,7 @@ importFrom_Core {
 
 export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "import",
+    "init",
     "isCallable",
     "isDictionary",
     "isFloat",
@@ -86,7 +87,8 @@ export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "iter",
     "next",
     "toFunction",
-    "toMacaulay2"}
+    "toMacaulay2",
+    "PythonClass"}
 
 exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr" }
 
@@ -193,8 +195,14 @@ isType PythonObject := pythonTypeCheck
 isNone = method()
 isNone PythonObject := pythonNoneCheck
 
+PythonClass = new SelfInitializingType of BasicList
+net PythonClass := x -> (toPython x)@@"__module__" | "." |
+    (toPython x)@@"__name__"
+
 toMacaulay2 = method()
-toMacaulay2 PythonObject := x -> if isInt x then toZZ x else
+toMacaulay2 PythonObject := x ->
+    if isType x then PythonClass {x} else
+    if isInt x then toZZ x else
     if isFloat x then toRR x else
     if isString x then toString x else
     if isTuple x then toMacaulay2 \ apply(0..(length x - 1), i -> x_i) else
@@ -243,13 +251,20 @@ String | PythonObject := (x, y) -> x | toString y
 toZZ PythonObject := pythonLongAsLong
 toRR PythonObject := pythonFloatAsDouble
 
-toFunction = method()
-toFunction PythonObject := x -> y -> (
+toFunction = method(Options => {AfterEval => toMacaulay2})
+toFunction PythonObject := o -> x -> y -> (
     p := partition(a -> instance(a, Option),
 	if instance(y, VisibleList) then y else {y});
     args := toPython if p#?false then toSequence p#false else ();
     kwargs := toPython hashTable if p#?true then toList p#true else {};
-    toMacaulay2 pythonObjectCall(x, args, kwargs))
+    o.AfterEval pythonObjectCall(x, args, kwargs))
+
+init = method(Dispatch => Thing)
+init PythonClass := x -> init(1:x)
+init Sequence := s ->
+    if not instance(x := first s, PythonClass) then
+	error "expected argument 1 to be a python class" else
+    (toFunction(toPython x, AfterEval => identity)) drop(s, 1)
 
 length PythonObject := x -> if isList x then pythonListSize x else
     if isTuple x then pythonTupleSize x else
@@ -303,6 +318,8 @@ toPython HashTable := x -> (
 	pythonDictSetItem(result, toPython key, toPython x#key);
     result)
 toPython Nothing := x -> pythonNone
+toPython PythonObject := identity
+toPython PythonClass := first
 
 end --------------------------------------------------------
 
