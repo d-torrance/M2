@@ -236,7 +236,8 @@ PythonObject_Thing = (x, i, e) ->
     if pythonDictCheck x then pythonDictSetItem(x, toPython i, toPython e) else
     x@@"__setitem__"(i, toPython e)
 
-PythonObject @@ String := (x, y) -> toM2 pythonObjectGetAttrString(x, y)
+PythonObject @@@ String := (x, y) -> pythonObjectGetAttrString(x, y)
+PythonObject @@ String := (x, y) -> toM2 x@@@y
 PythonObject @@? String := pythonObjectHasAttrString
 PythonObject @@ String = (x, y, e) ->
     pythonObjectSetAttrString(x, y, toPython e)
