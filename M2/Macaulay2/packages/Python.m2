@@ -164,13 +164,13 @@ dictToHashTable(PythonObject) := x -> (
     hashTable apply(length K, i ->
 	toM2 K_i => toM2 pythonDictGetItem(x, toPython K_i)))
 
-toFunction = method()
-toFunction PythonObject := x -> y -> (
+toFunction = method(Options => {AfterEval => toM2})
+toFunction PythonObject := o -> x -> y -> (
     p := partition(a -> instance(a, Option),
 	if instance(y, VisibleList) then y else {y});
     args := toPython if p#?false then toSequence p#false else ();
     kwargs := toPython hashTable if p#?true then toList p#true else {};
-    toM2 pythonObjectCall(x, args, kwargs))
+    o.AfterEval pythonObjectCall(x, args, kwargs))
 
 objectTypeName = method()
 objectTypeName PythonObject := x ->
@@ -211,7 +211,7 @@ PythonObject * PythonObject := (x, y) -> pythonNumberMultiply(x, y)
 PythonObject / PythonObject := (x, y) -> pythonNumberTrueDivide(x, y)
 PythonObject | PythonObject := (x, y) -> pythonUnicodeConcat(x, y)
 
-PythonObject Thing := (o, x) -> (toFunction o) x
+PythonObject Thing := (o, x) -> (toFunction(o, AfterEval => identity)) x
 
 length PythonObject := x -> if pythonListCheck x then pythonListSize x else
     if pythonTupleCheck x then pythonTupleSize x else
