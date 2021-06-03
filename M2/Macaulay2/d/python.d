@@ -262,6 +262,46 @@ PyFloatFromDouble(e:Expr):Expr :=
     else WrongArgRR();
 setupfun("pythonFloatFromDouble",PyFloatFromDouble);
 
+---------------
+-- complexes --
+---------------
+
+import ComplexFromDoubles(real:double,imag:double):pythonObjectOrNull;
+PyComplexFromDoubles(lhs:Expr,rhs:Expr):Expr :=
+    when lhs
+    is x:RRcell do
+	when rhs
+	is y:RRcell do toExpr(ComplexFromDoubles(toDouble(x), toDouble(y)))
+	else WrongArgRR(2)
+    else WrongArgRR(1);
+PyComplexFromDoubles(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) == 2 then PyComplexFromDoubles(a.0, a.1)
+	else WrongNumArgs(2)
+    else WrongNumArgs(2);
+setupfun("pythonComplexFromDoubles",PyComplexFromDoubles);
+
+import ComplexRealAsDouble(o:pythonObject):double;
+PyComplexRealAsDouble(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(ComplexRealAsDouble(x.v)) -- (
+	-- y := ComplexRealAsDouble(x.v);
+	-- if ErrOccurred() == 1 then buildPythonErrorPacket()
+	-- else toExpr(y))
+    else WrongArgPythonObject();
+setupfun("pythonComplexRealAsDouble",PyComplexRealAsDouble);
+
+import ComplexImagAsDouble(o:pythonObject):double;
+PyComplexImagAsDouble(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(ComplexImagAsDouble(x.v)) -- (
+	-- y := ComplexImagAsDouble(x.v);
+	-- if ErrOccurred() == 1 then buildPythonErrorPacket()
+	-- else toExpr(y))
+    else WrongArgPythonObject();
+setupfun("pythonComplexImagAsDouble",PyComplexImagAsDouble);
+
 -------------
 -- strings --
 -------------

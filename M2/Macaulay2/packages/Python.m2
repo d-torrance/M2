@@ -28,6 +28,9 @@ exportFrom_Core {
     "initspam"}
 
 importFrom_Core {
+    "pythonComplexFromDoubles",
+    "pythonComplexImagAsDouble",
+    "pythonComplexRealAsDouble",
     "pythonDictCheck",
     "pythonDictKeys",
     "pythonDictGetItem",
@@ -195,6 +198,9 @@ addPyToM2Function("dict", dictToHashTable, "dict -> HashTable")
 addPyToM2Function("list", iterableToList, "list -> List")
 addPyToM2Function("tuple", toSequence @@ iterableToList, "tuple -> Sequence")
 addPyToM2Function("str", toString, "str -> String")
+addPyToM2Function("complex", -- TODO: allow overloading of toCC
+    x ->  pythonComplexRealAsDouble x + ii * pythonComplexImagAsDouble x,
+    "complex -> CC")
 addPyToM2Function("float", toRR, "float -> RR")
 addPyToM2Function("int", toZZ, "int -> ZZ")
 addPyToM2Function("bool", x -> toString x == "True", "bool -> Boolean")
@@ -250,6 +256,7 @@ toPython = method(Dispatch => Thing)
 toPython RR := pythonFloatFromDouble
 -- TODO: maybe use fractions module instead
 toPython QQ := toPython @@ toRR
+toPython CC := x -> pythonComplexFromDoubles(realPart x, imaginaryPart x)
 toPython ZZ := pythonLongFromLong
 toPython Boolean := x -> if x then pythonTrue else pythonFalse
 toPython Constant := x -> toPython(x + 0)
