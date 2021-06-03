@@ -196,7 +196,8 @@ addPyToM2Function({"function", "builtin_function_or_method"},
     toFunction, "function -> FunctionClosure")
 addPyToM2Function("dict", dictToHashTable, "dict -> HashTable")
 addPyToM2Function("list", iterableToList, "list -> List")
-addPyToM2Function("tuple", toSequence @@ iterableToList, "tuple -> Sequence")
+addPyToM2Function({"tuple", "range"}, toSequence @@ iterableToList,
+    "tuple -> Sequence")
 addPyToM2Function("str", toString, "str -> String")
 addPyToM2Function("complex", -- TODO: allow overloading of toCC
     x ->  pythonComplexRealAsDouble x + ii * pythonComplexImagAsDouble x,
