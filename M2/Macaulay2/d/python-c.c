@@ -130,6 +130,13 @@ PyObject *python_NumberTrueDivide(PyObject *o1, PyObject *o2) {
 	return PyNumber_TrueDivide(o1, o2);
 }
 
+/*********
+ * bools *
+ *********/
+
+PyObject *python_True = Py_True;
+PyObject *python_False = Py_False;
+
 /********
  * ints *
  ********/

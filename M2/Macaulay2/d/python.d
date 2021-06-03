@@ -197,6 +197,16 @@ PyNumberTrueDivide(e:Expr):Expr :=
 setupfun("pythonNumberTrueDivide",PyNumberTrueDivide);
 
 ----------
+-- bools -
+----------
+
+import True:pythonObjectOrNull;
+setupconst("pythonTrue", toExpr(True));
+
+import False:pythonObjectOrNull;
+setupconst("pythonFalse", toExpr(False));
+
+----------
 -- ints --
 ----------
 

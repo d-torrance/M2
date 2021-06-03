@@ -33,6 +33,7 @@ importFrom_Core {
     "pythonDictGetItem",
     "pythonDictNew",
     "pythonDictSetItem",
+    "pythonFalse",
     "pythonImportImportModule",
     "pythonIterCheck",
     "pythonIterNext",
@@ -56,6 +57,7 @@ importFrom_Core {
     "pythonObjectRichCompareBool",
     "pythonObjectSetAttrString",
     "pythonObjectCall",
+    "pythonTrue",
     "pythonTupleCheck",
     "pythonTupleGetItem",
     "pythonTupleNew",
@@ -195,6 +197,7 @@ addPyToM2Function("tuple", toSequence @@ iterableToList, "tuple -> Sequence")
 addPyToM2Function("str", toString, "str -> String")
 addPyToM2Function("float", toRR, "float -> RR")
 addPyToM2Function("int", toZZ, "int -> ZZ")
+addPyToM2Function("bool", x -> toString x == "True", "bool -> Boolean")
 toM2 PythonObject := x -> runHooks((toM2, PythonObject), x)
 toM2 Thing := identity
 
@@ -248,6 +251,7 @@ toPython RR := pythonFloatFromDouble
 -- TODO: maybe use fractions module instead
 toPython QQ := toPython @@ toRR
 toPython ZZ := pythonLongFromLong
+toPython Boolean := x -> if x then pythonTrue else pythonFalse
 toPython Constant := x -> toPython(x + 0)
 toPython String := pythonUnicodeFromString
 toPython Sequence := L -> (
