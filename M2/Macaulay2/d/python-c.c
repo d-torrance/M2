@@ -277,6 +277,14 @@ int python_DictSetItem(PyObject *p, PyObject *key, PyObject *val) {
 	return PyDict_SetItem(p, key, val);
 }
 
+/********
+ * sets *
+ ********/
+
+PyObject *python_SetNew(PyObject *o) {
+	return PySet_New(o);
+}
+
 /*************
  * callables *
  *************/

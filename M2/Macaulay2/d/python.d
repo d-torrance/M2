@@ -534,6 +534,17 @@ PyDictSetItem(e:Expr):Expr :=
     else WrongNumArgs(3);
 setupfun("pythonDictSetItem",PyDictSetItem);
 
+----------
+-- sets --
+----------
+
+import SetNew(o:pythonObject):pythonObjectOrNull;
+PySetNew(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(SetNew(x.v))
+    else WrongArgPythonObject();
+setupfun("pythonSetNew",PySetNew);
+
 ---------------
 -- callables --
 ---------------

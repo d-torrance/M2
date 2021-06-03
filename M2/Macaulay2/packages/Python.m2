@@ -60,6 +60,7 @@ importFrom_Core {
     "pythonObjectRichCompareBool",
     "pythonObjectSetAttrString",
     "pythonObjectCall",
+    "pythonSetNew",
     "pythonTrue",
     "pythonTupleCheck",
     "pythonTupleGetItem",
@@ -195,6 +196,7 @@ addHook((toM2, PythonObject),
 addPyToM2Function({"function", "builtin_function_or_method"},
     toFunction, "function -> FunctionClosure")
 addPyToM2Function("dict", dictToHashTable, "dict -> HashTable")
+addPyToM2Function({"set", "frozenset"}, set @@ iterableToList, "set -> Set")
 addPyToM2Function("list", iterableToList, "list -> List")
 addPyToM2Function({"tuple", "range"}, toSequence @@ iterableToList,
     "tuple -> Sequence")
@@ -277,6 +279,7 @@ toPython HashTable := x -> (
     for key in keys x do
 	pythonDictSetItem(result, toPython key, toPython x#key);
     result)
+toPython Set := pythonSetNew @@ toPython @@ toList
 toPython Nothing := x -> pythonNone
 toPython PythonObject := identity
 
