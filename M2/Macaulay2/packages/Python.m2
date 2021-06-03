@@ -28,19 +28,15 @@ exportFrom_Core {
     "initspam"}
 
 importFrom_Core {
-    "pythonCallableCheck",
     "pythonDictCheck",
     "pythonDictKeys",
     "pythonDictGetItem",
     "pythonDictNew",
     "pythonDictSetItem",
-    "pythonLongCheck",
-    "pythonFloatCheck",
     "pythonImportImportModule",
     "pythonIterCheck",
     "pythonIterNext",
     "pythonNone",
-    "pythonNoneCheck",
     "pythonNumberAdd",
     "pythonNumberSubtract",
     "pythonNumberMultiply",
@@ -65,32 +61,22 @@ importFrom_Core {
     "pythonTupleNew",
     "pythonTupleSetItem",
     "pythonTupleSize",
-    "pythonTypeCheck",
-    "pythonUnicodeCheck",
     "pythonUnicodeConcat",
     "pythonUnicodeFromString"
 }
 
 export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
+    "addPyToM2Function",
     "import",
-    "init",
-    "isCallable",
-    "isDictionary",
-    "isFloat",
-    "isInt",
-    "isIterator",
-    "isIterable",
-    "isList",
-    "isString",
-    "isTuple",
-    "isType",
     "iter",
+    "iterableToList",
     "next",
+    "objectTypeName",
     "toFunction",
-    "toMacaulay2",
-    "PythonClass"}
+    "toM2"
+}
 
-exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr" }
+exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr"}
 
 pythonHelp = Command (() -> runPythonString ///help()///)
 
@@ -162,64 +148,55 @@ Context String := (c,s) -> c.stmtexpr s
 import = method()
 import(String) := pythonImportImportModule
 
-isCallable = method()
-isCallable PythonObject := pythonCallableCheck
+toM2 = method(Dispatch => Thing)
 
-isInt = method()
-isInt PythonObject := pythonLongCheck
+toZZ PythonObject := pythonLongAsLong
+toRR PythonObject := pythonFloatAsDouble
 
-isFloat = method()
-isFloat PythonObject := pythonFloatCheck
-
-isString = method()
-isString PythonObject := pythonUnicodeCheck
-
-isList = method()
-isList PythonObject := pythonListCheck
-
-isDictionary = method()
-isDictionary PythonObject := pythonDictCheck
-
-isTuple = method()
-isTuple PythonObject := pythonTupleCheck
-
-isIterator = method()
-isIterator PythonObject := pythonIterCheck
-
-isIterable = method()
-isIterable PythonObject := x -> x@@?"__iter__"
-
-isType = method()
-isType PythonObject := pythonTypeCheck
-
-isNone = method()
-isNone PythonObject := pythonNoneCheck
-
-PythonClass = new SelfInitializingType of BasicList
-net PythonClass := x -> (toPython x)@@"__module__" | "." |
-    (toPython x)@@"__name__"
-
-toMacaulay2 = method()
-toMacaulay2 PythonObject := x ->
-    if isType x then PythonClass {x} else
-    if isInt x then toZZ x else
-    if isFloat x then toRR x else
-    if isString x then toString x else
-    if isTuple x then toMacaulay2 \ apply(0..(length x - 1), i -> x_i) else
-    if isList x then toMacaulay2 \ apply(length x, i -> x_i) else
-    if isDictionary x then (
-	K := pythonDictKeys x;
-	hashTable apply(length K, i ->
-	    toMacaulay2 K_i => toMacaulay2 pythonDictGetItem(x, K_i))) else
-    if isIterable x then (
+iterableToList = method()
+iterableToList(PythonObject) := x -> (
 	i := iter x;
-	while (y := next i; y =!= null) list y) else
-    if isCallable x then toFunction x else
-    if isNone x then null else (
-	if debugLevel > 0 then printerr(
-	    "warning: unable to convert ", format toString x);
-	x)
-toMacaulay2 Nothing := identity
+	while (y := next i; y =!= null) list y)
+
+dictToHashTable = method()
+dictToHashTable(PythonObject) := x -> (
+    K := pythonDictKeys x;
+    hashTable apply(length K, i ->
+	toM2 K_i => toM2 pythonDictGetItem(x, toPython K_i)))
+
+toFunction = method()
+toFunction PythonObject := x -> y -> (
+    p := partition(a -> instance(a, Option),
+	if instance(y, VisibleList) then y else {y});
+    args := toPython if p#?false then toSequence p#false else ();
+    kwargs := toPython hashTable if p#?true then toList p#true else {};
+    toM2 pythonObjectCall(x, args, kwargs))
+
+objectTypeName = method()
+objectTypeName PythonObject := x ->
+    toString pythonObjectGetAttrString(objectType x, "__name__");
+
+addPyToM2Function = method()
+addPyToM2Function(String, Function, String) := (type, f, desc) ->
+    addPyToM2Function({type}, f, desc)
+addPyToM2Function(List, Function, String) := (types, f, desc) ->
+    addHook((toM2, PythonObject),
+	x -> if member(objectTypeName x, types) then f x,
+	Strategy => desc)
+
+addHook((toM2, PythonObject),
+    x -> if objectTypeName x != "NoneType" then x,
+    Strategy => "unknown -> PythonObject")
+addPyToM2Function({"function", "builtin_function_or_method"},
+    toFunction, "function -> FunctionClosure")
+addPyToM2Function("dict", dictToHashTable, "dict -> HashTable")
+addPyToM2Function("list", iterableToList, "list -> List")
+addPyToM2Function("tuple", toSequence @@ iterableToList, "tuple -> Sequence")
+addPyToM2Function("str", toString, "str -> String")
+addPyToM2Function("float", toRR, "float -> RR")
+addPyToM2Function("int", toZZ, "int -> ZZ")
+toM2 PythonObject := x -> runHooks((toM2, PythonObject), x)
+toM2 Thing := identity
 
 -- Py_LT, Py_GT, and Py_EQ are #defines from /usr/include/python3.9/object.h
 PythonObject ? PythonObject := (x, y) ->
@@ -229,67 +206,37 @@ PythonObject ? PythonObject := (x, y) ->
     incomparable
 
 PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
-PythonObject + Number := (x, y) -> toMacaulay2 x + y
-Number + PythonObject := (x, y) -> x + toMacaulay2 y
-
 PythonObject - PythonObject := (x, y) -> pythonNumberSubtract(x, y)
-PythonObject - Number := (x, y) -> toMacaulay2 x - y
-Number - PythonObject := (x, y) -> x - toMacaulay2 y
-
 PythonObject * PythonObject := (x, y) -> pythonNumberMultiply(x, y)
-PythonObject * Number := (x, y) -> toMacaulay2 x * y
-Number * PythonObject := (x, y) -> x * toMacaulay2 y
-
 PythonObject / PythonObject := (x, y) -> pythonNumberTrueDivide(x, y)
-PythonObject / Number := (x, y) -> toMacaulay2 x / y
-Number / PythonObject := (x, y) -> x / toMacaulay2 y
-
 PythonObject | PythonObject := (x, y) -> pythonUnicodeConcat(x, y)
-PythonObject | String := (x, y) -> toString x | y
-String | PythonObject := (x, y) -> x | toString y
 
-toZZ PythonObject := pythonLongAsLong
-toRR PythonObject := pythonFloatAsDouble
+PythonObject Thing := (o, x) -> (toFunction o) x
 
-toFunction = method(Options => {AfterEval => toMacaulay2})
-toFunction PythonObject := o -> x -> y -> (
-    p := partition(a -> instance(a, Option),
-	if instance(y, VisibleList) then y else {y});
-    args := toPython if p#?false then toSequence p#false else ();
-    kwargs := toPython hashTable if p#?true then toList p#true else {};
-    o.AfterEval pythonObjectCall(x, args, kwargs))
-
-init = method(Dispatch => Thing)
-init PythonClass := x -> init(1:x)
-init Sequence := s ->
-    if not instance(x := first s, PythonClass) then
-	error "expected argument 1 to be a python class" else
-    (toFunction(toPython x, AfterEval => identity)) drop(s, 1)
-
-length PythonObject := x -> if isList x then pythonListSize x else
-    if isTuple x then pythonTupleSize x else
+length PythonObject := x -> if pythonListCheck x then pythonListSize x else
+    if pythonTupleCheck x then pythonTupleSize x else
     x@@"__len__"()
 
 next = method()
 -- we need to do the error handling or we get a segfault
-next PythonObject := x -> if not isIterator x then error "not an iterator" else
-	toMacaulay2 pythonIterNext x
+next PythonObject := x -> if not pythonIterCheck x then error "not an iterator" else
+	toM2 pythonIterNext x
 
 iter = method()
 iter PythonObject := pythonObjectGetIter
 
 PythonObject_Thing := (x, i) ->
-    if isList x then pythonListGetItem(x, i) else
-    if isTuple x then pythonTupleGetItem(x, i) else
-    if isDictionary x then pythonDictGetItem(x, toPython i) else
+    toM2 if pythonListCheck x then pythonListGetItem(x, i) else
+    if pythonTupleCheck x then pythonTupleGetItem(x, i) else
+    if pythonDictCheck x then pythonDictGetItem(x, toPython i) else
     x@@"__getitem__" i
 PythonObject_Thing = (x, i, e) ->
-    if isList x then pythonListSetItem(x, i, toPython e) else
-    if isTuple x then pythonTupleSetItem(x, i, toPython e) else
-    if isDictionary x then pythonDictSetItem(x, toPython i, toPython e) else
+    if pythonListCheck x then pythonListSetItem(x, i, toPython e) else
+    if pythonTupleCheck x then pythonTupleSetItem(x, i, toPython e) else
+    if pythonDictCheck x then pythonDictSetItem(x, toPython i, toPython e) else
     x@@"__setitem__"(i, toPython e)
 
-PythonObject @@ String := (x, y) -> toMacaulay2 pythonObjectGetAttrString(x, y)
+PythonObject @@ String := (x, y) -> toM2 pythonObjectGetAttrString(x, y)
 PythonObject @@? String := pythonObjectHasAttrString
 PythonObject @@ String = (x, y, e) ->
     pythonObjectSetAttrString(x, y, toPython e)
@@ -319,7 +266,6 @@ toPython HashTable := x -> (
     result)
 toPython Nothing := x -> pythonNone
 toPython PythonObject := identity
-toPython PythonClass := first
 
 end --------------------------------------------------------
 
