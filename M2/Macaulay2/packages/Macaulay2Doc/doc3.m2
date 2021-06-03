@@ -75,6 +75,16 @@ document {
      }
 
 document {
+     Key => symbol @@@,
+     Headline => "a binary operator"
+     }
+
+document {
+     Key => symbol @@?,
+     Headline => "a binary operator"
+     }
+
+document {
      Key => symbol @,
      Headline => "a binary operator",
      "This operator is right associative."
