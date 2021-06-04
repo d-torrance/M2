@@ -158,10 +158,12 @@ toM2 = method(Dispatch => Thing)
 toZZ PythonObject := pythonLongAsLong
 toRR PythonObject := pythonFloatAsDouble
 
-iterableToList = method(Options => {AfterEval => toM2})
-iterableToList(PythonObject) := o -> x -> (
+iterableToList = method()
+iterableToList(PythonObject) :=  x -> (
 	i := iter x;
-	while (y := next(i, AfterEval => o.AfterEval); y =!= null) list y)
+	-- don't convert to M2 until after we've constructed the list
+	-- otherwise any None objects will become nulls, stopping iteration
+	toM2 \ while (y := next(i, AfterEval => identity); y =!= null) list y)
 
 dictToHashTable = method()
 dictToHashTable(PythonObject) := x -> (
@@ -469,36 +471,23 @@ doc ///
   Key
     iterableToList
     (iterableToList, PythonObject)
-    [iterableToList, AfterEval]
   Headline
     convert an iterable python object to a Macaulay2 list
   Usage
     iterableToList x
   Inputs
-    x:PythonObject -- iterable
-    AfterEval => Function -- to call on the elements
+    x:PythonObject -- must be iterable
   Outputs
     :List
   Description
     Text
       A list is constructed containing each element of the iterable.
-      By default, this item is converted to a Macaulay2 object (if
+      The elements are converted to Macaulay2 objects (if
       possible) using @TO "toM2"@.
     Example
       x = rs "range(3)"
       iterableToList x
       class \ oo
-    Text
-      This behavior can be changed using the @TT "AfterEval"@ option.
-    Example
-      iterableToList(x, AfterEval => identity)
-      class \ oo
-      iterableToList(x, AfterEval => x -> if x =!= null then x + x)
-  Caveat
-    If the iterable contains the python object @TT "None"@, then the
-    default behavior will give unexpected results since @TO "toM2"@
-    converts @TT "None"@ to @TO "null"@, which signals that the
-    iteration is complete.
   SeeAlso
     iter
     next
