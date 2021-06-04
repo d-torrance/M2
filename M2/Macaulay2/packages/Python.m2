@@ -250,16 +250,8 @@ next PythonObject := o -> x -> if not pythonIterCheck x then error "not an itera
 iter = method()
 iter PythonObject := pythonObjectGetIter
 
-PythonObject_Thing := (x, i) ->
-    toM2 if pythonListCheck x then pythonListGetItem(x, i) else
-    if pythonTupleCheck x then pythonTupleGetItem(x, i) else
-    if pythonDictCheck x then pythonDictGetItem(x, toPython i) else
-    x@@"__getitem__" i
-PythonObject_Thing = (x, i, e) ->
-    if pythonListCheck x then pythonListSetItem(x, i, toPython e) else
-    if pythonTupleCheck x then pythonTupleSetItem(x, i, toPython e) else
-    if pythonDictCheck x then pythonDictSetItem(x, toPython i, toPython e) else
-    x@@"__setitem__"(i, toPython e)
+PythonObject_Thing := (x, i) -> x@@"__getitem__" i
+PythonObject_Thing = (x, i, e) ->  x@@"__setitem__"(i, toPython e)
 
 PythonObject @@@ String := (x, y) -> pythonObjectGetAttrString(x, y)
 PythonObject @@ String := (x, y) -> toM2 x@@@y
