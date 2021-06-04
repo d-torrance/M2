@@ -210,13 +210,6 @@ setupconst("pythonFalse", toExpr(False));
 -- ints --
 ----------
 
-import LongCheck(o:pythonObject):int;
-PyLongCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(LongCheck(x.v) == 1)
-    else WrongArgPythonObject();
-setupfun("pythonLongCheck",PyLongCheck);
-
 import LongAsLong(o:pythonObject):long;
 PyLongAsLong(e:Expr):Expr :=
     when e
@@ -237,13 +230,6 @@ setupfun("pythonLongFromLong",PyLongFromLong);
 ------------
 -- floats --
 ------------
-
-import FloatCheck(o:pythonObject):int;
-PyFloatCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(FloatCheck(x.v) == 1)
-    else WrongArgPythonObject();
-setupfun("pythonFloatCheck",PyFloatCheck);
 
 import FloatAsDouble(o:pythonObject):double;
 PyFloatAsDouble(e:Expr):Expr :=
@@ -286,13 +272,6 @@ setupfun("pythonComplexFromDoubles",PyComplexFromDoubles);
 -- strings --
 -------------
 
-import UnicodeCheck(o:pythonObject):int;
-PyUnicodeCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(UnicodeCheck(x.v) == 1)
-    else WrongArgPythonObject();
-setupfun("pythonUnicodeCheck",PyUnicodeCheck);
-
 import UnicodeAsUTF8(o:pythonObject):constcharstar;
 PyUnicodeAsUTF8(e:Expr):Expr :=
     when e
@@ -326,13 +305,6 @@ setupfun("pythonUnicodeConcat",PyUnicodeConcat);
 ------------
 -- tuples --
 ------------
-
-import TupleCheck(o:pythonObject):int;
-PyTupleCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(TupleCheck(x.v) == 1)
-    else WrongArgPythonObject();
-setupfun("pythonTupleCheck",PyTupleCheck);
 
 import TupleSize(o:pythonObject):int;
 PyTupleSize(e:Expr):Expr :=
@@ -390,13 +362,6 @@ setupfun("pythonTupleSetItem",PyTupleSetItem);
 -- lists --
 -----------
 
-import ListCheck(o:pythonObject):int;
-PyListCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(ListCheck(x.v) == 1)
-    else WrongArgPythonObject();
-setupfun("pythonListCheck",PyListCheck);
-
 import ListSize(o:pythonObject):int;
 PyListSize(e:Expr):Expr :=
     when e
@@ -452,13 +417,6 @@ setupfun("pythonListSetItem",PyListSetItem);
 ------------------
 -- dictionaries --
 ------------------
-
-import DictCheck(o:pythonObject):int;
-PyDictCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(DictCheck(x.v) == 1)
-    else WrongArgPythonObject();
-setupfun("pythonDictCheck",PyDictCheck);
 
 import DictKeys(o:pythonObject):pythonObjectOrNull;
 PyDictKeys(e:Expr):Expr :=
@@ -529,13 +487,6 @@ setupfun("pythonSetNew",PySetNew);
 -- callables --
 ---------------
 
-import CallableCheck(o:pythonObject):int;
-PyCallableCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(CallableCheck(x.v) == 1)
-    else WrongArgPythonObject();
-setupfun("pythonCallableCheck",PyCallableCheck);
-
 import ObjectCall(
     o:pythonObject,args:pythonObject,kwargs:pythonObject):pythonObjectOrNull;
 PyObjectCall(e1:Expr,e2:Expr,e3:Expr):Expr :=
@@ -587,13 +538,6 @@ setupfun("pythonIterNext",PyIterNext);
 import None:pythonObjectOrNull;
 setupconst("pythonNone", toExpr(None));
 
--- there is no C Py_NoneCheck to import since Py_None is a single object
-PyNoneCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(x.v == None)
-    else WrongArgPythonObject();
-setupfun("pythonNoneCheck",PyNoneCheck);
-
 ---------------
 -- importing --
 ---------------
@@ -603,17 +547,6 @@ PyImportImportModule(e:Expr):Expr :=
     is x:stringCell do toExpr(ImportImportModule(tocharstar(x.v)))
     else WrongArgPythonObject();
 setupfun("pythonImportImportModule",PyImportImportModule);
-
------------
--- types --
------------
-
-import TypeCheck(o:pythonObject):int;
-PyTypeCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(TypeCheck(x.v) == 1)
-    else WrongArgPythonObject();
-setupfun("pythonTypeCheck",PyTypeCheck);
 
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d python.o "

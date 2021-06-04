@@ -38,7 +38,6 @@ exportFrom_Core {
 
 importFrom_Core {
     "pythonComplexFromDoubles",
-    "pythonDictCheck",
     "pythonDictKeys",
     "pythonDictGetItem",
     "pythonDictNew",
@@ -52,7 +51,6 @@ importFrom_Core {
     "pythonNumberSubtract",
     "pythonNumberMultiply",
     "pythonNumberTrueDivide",
-    "pythonListCheck",
     "pythonListGetItem",
     "pythonListNew",
     "pythonListSetItem",
@@ -69,7 +67,6 @@ importFrom_Core {
     "pythonObjectCall",
     "pythonSetNew",
     "pythonTrue",
-    "pythonTupleCheck",
     "pythonTupleGetItem",
     "pythonTupleNew",
     "pythonTupleSetItem",

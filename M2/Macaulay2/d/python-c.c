@@ -141,10 +141,6 @@ PyObject *python_False = Py_False;
  * ints *
  ********/
 
-int python_LongCheck(PyObject *p) {
-	return PyLong_Check(p);
-}
-
 long python_LongAsLong(PyObject *o) {
 	return PyLong_AsLong(o);
 }
@@ -156,10 +152,6 @@ PyObject *python_LongFromLong(long v) {
 /**********
  * floats *
  **********/
-
-int python_FloatCheck(PyObject *p) {
-	return PyFloat_Check(p);
-}
 
 double python_FloatAsDouble(PyObject *o) {
 	return PyFloat_AsDouble(o);
@@ -181,10 +173,6 @@ PyObject* python_ComplexFromDoubles(double real, double imag) {
  * strings *
  ***********/
 
-int python_UnicodeCheck(PyObject *o) {
-	return PyUnicode_Check(o);
-}
-
 const char *python_UnicodeAsUTF8(PyObject *o) {
 	return PyUnicode_AsUTF8(o);
 }
@@ -200,10 +188,6 @@ PyObject *python_UnicodeConcat(PyObject *o1, PyObject *o2) {
 /**********
  * tuples *
  **********/
-
-int python_TupleCheck(PyObject *o) {
-	return PyTuple_Check(o);
-}
 
 int python_TupleSize(PyObject *o) {
 	return PyTuple_Size(o);
@@ -225,10 +209,6 @@ int python_TupleSetItem(PyObject *L, int i, PyObject *item) {
  * lists *
  *********/
 
-int python_ListCheck(PyObject *o) {
-	return PyList_Check(o);
-}
-
 int python_ListSize(PyObject *o) {
 	return PyList_Size(o);
 }
@@ -248,10 +228,6 @@ int python_ListSetItem(PyObject *L, int i, PyObject *item) {
 /****************
  * dictionaries *
  ****************/
-
-int python_DictCheck(PyObject *o) {
-	return PyDict_Check(o);
-}
 
 PyObject *python_DictKeys(PyObject *o) {
 	return PyDict_Keys(o);
@@ -281,11 +257,6 @@ PyObject *python_SetNew(PyObject *o) {
  * callables *
  *************/
 
-int python_CallableCheck(PyObject *o) {
-	return PyCallable_Check(o);
-}
-
-
 PyObject *python_ObjectCall(PyObject *o, PyObject *args, PyObject *kwargs) {
 	return PyObject_Call(o, args, kwargs);
 }
@@ -314,14 +285,6 @@ PyObject *python_None = Py_None;
 
 PyObject *python_ImportImportModule(char *name) {
 	return PyImport_ImportModule(name);
-}
-
-/*********
- * types *
- *********/
-
-int python_TypeCheck(PyObject *o) {
-	return PyType_Check(o);
 }
 
 #if 0
