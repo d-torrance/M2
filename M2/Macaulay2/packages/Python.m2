@@ -95,6 +95,7 @@ exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols",
 
 pythonHelp = Command (() -> runPythonString ///help()///)
 
+PythonObject.synonym = "python object"
 PythonObject#{Standard,AfterPrint} = x -> (
      << endl;
      t := toString objectType x;
