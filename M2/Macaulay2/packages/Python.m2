@@ -547,7 +547,7 @@ doc ///
       Most of the hooks used by @TO "toM2"@ have the same general format:
       if the python object has a particular type, then use a particular
       function to convert it to a corresponding Macaulay2 thing.  This function
-      simplifies this process.
+      simplifies the process of adding such a hook.
     Text
       For example, suppose we would like to convert @TT "Fraction"@
       objects from the Python @HREF
