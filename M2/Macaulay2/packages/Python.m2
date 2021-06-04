@@ -296,6 +296,284 @@ toPython Set := pythonSetNew @@ toPython @@ toList
 toPython Nothing := x -> pythonNone
 toPython PythonObject := identity
 
+beginDocumentation()
+
+doc ///
+  Key
+    Python
+  Headline
+    interface to Python
+///
+
+doc ///
+  Key
+    PythonObject
+    (symbol +, PythonObject, PythonObject)
+    (symbol -, PythonObject, PythonObject)
+    (symbol *, PythonObject, PythonObject)
+    (symbol /, PythonObject, PythonObject)
+    (symbol ?, PythonObject, PythonObject)
+    (symbol ==, PythonObject, PythonObject)
+  Headline
+    a python object
+  Description
+    Text
+      This type corresponds to all objects of the @TT
+      HREF{"https://docs.python.org/3/c-api/structures.html#c.PyObject",
+      "PyObject"}@ type in the Python C API, and in particular all of the
+      types that users are familiar with from the Python language itself.
+    Text
+      You can perform basic arithmetic on python objects.
+    Example
+      x = rs "5"
+      y = rs "2"
+      x + y
+      x - y
+      x * y
+      x / y
+    Text
+      You can also compare them.
+    Example
+      x > y
+      x == y
+///
+
+doc ///
+  Key
+    (symbol _, PythonObject, Thing)
+    ((symbol _, symbol =), PythonObject, Thing)
+  Headline
+    get and set elements of subscriptable python objects
+  Usage
+    x_y
+    x_y = z
+  Inputs
+    x:PythonObject
+    y:Thing
+  Description
+    Text
+      You may access elements of subscriptable objects using @TT "_"@.
+      For example, this works for lists.
+    Example
+      x = rs "[1,2,3,4]"
+      x_2
+      x_2 = 5
+      x
+    Text
+      It also works for dictionaries.
+    Example
+      x = rs "{'spam':1,'eggs':2}"
+      x_"spam"
+      x_"ham" = 3
+      x
+///
+
+doc ///
+  Key
+    rs
+    runPythonString
+  Headline
+    execute Python source code from a string
+  Usage
+    rs s
+    runPythonString s
+  Inputs
+    s:String -- containing Python source code
+  Outputs
+    :PythonObject -- the return value of the given code
+  Description
+    Text
+      This function a is wrapper around the function @TT
+      HREF{"https://docs.python.org/3/c-api/veryhigh.html#c.PyRun_String",
+      "PyRun_String"}@ from the Python C API.  It is also available
+      as @TT "runPythonString"@.
+    Example
+      rs "print('Hello, world!')"
+      runPythonString "2 + 2"
+///
+
+doc ///
+  Key
+    iter
+    (iter, PythonObject)
+  Headline
+    get iterator of iterable python object
+  Usage
+    i = iter x
+  Inputs
+    x:PythonObject -- an iterable
+  Outputs
+    i:PythonObject -- an iterator
+  Description
+    Text
+      This function works just like its
+      @HREF{"https://docs.python.org/3/library/functions.html#iter",
+      "Python counterpart"}@.  In particular, @TT "i"@ is an iterator
+      for the iterable object @TT "x"@.
+    Example
+      x = rs "range(3)"
+      i = iter x
+  SeeAlso
+    next
+    iterableToList
+///
+
+doc ///
+  Key
+    next
+    (next, PythonObject)
+    [next, AfterEval]
+  Headline
+    retrieve the next item from a python iterator
+  Usage
+    next i
+  Inputs
+    i:PythonObject -- an iterator
+    AfterEval => Function -- to call on the output
+  Description
+    Text
+      This function works just like its
+      @HREF{"https://docs.python.org/3/library/functions.html#next",
+      "Python counterpart"}@.  In particular, it retrieves the next item
+      from an iterator.  By default, this item is converted to a Macaulay2
+      object (if possible) using @TO "toM2"@.
+    Example
+      x = rs "range(3)"
+      i = iter x
+      next i
+    Text
+      This behavior can be changed using the @TT "AfterEval"@ option.
+    Example
+      next(i, AfterEval => identity)
+      next(i, AfterEval => x -> x + x)
+    Text
+      When the iterator is exhausted, @TO "null"@ is returned.
+    Example
+      next i === null
+  Caveat
+    If the iterable contains the python object @TT "None"@, then the
+    default behavior will give unexpected results since @TO "toM2"@
+    converts @TT "None"@ to @TO "null"@.
+  SeeAlso
+    iter
+    iterableToList
+///
+
+doc ///
+  Key
+    iterableToList
+    (iterableToList, PythonObject)
+    [iterableToList, AfterEval]
+  Headline
+    convert an iterable python object to a Macaulay2 list
+  Usage
+    iterableToList x
+  Inputs
+    x:PythonObject -- iterable
+    AfterEval => Function -- to call on the elements
+  Outputs
+    :List
+  Description
+    Text
+      A list is constructed containing each element of the iterable.
+      By default, this item is converted to a Macaulay2 object (if
+      possible) using @TO "toM2"@.
+    Example
+      x = rs "range(3)"
+      iterableToList x
+      class \ oo
+    Text
+      This behavior can be changed using the @TT "AfterEval"@ option.
+    Example
+      iterableToList(x, AfterEval => identity)
+      class \ oo
+      iterableToList(x, AfterEval => x -> if x =!= null then x + x)
+  Caveat
+    If the iterable contains the python object @TT "None"@, then the
+    default behavior will give unexpected results since @TO "toM2"@
+    converts @TT "None"@ to @TO "null"@, which signals that the
+    iteration is complete.
+  SeeAlso
+    iter
+    next
+    iterableToList
+///
+
+doc ///
+  Key
+    toM2
+    (toM2,PythonObject)
+    (toM2,Thing)
+  Headline
+    convert python objects to Macaulay2 things
+  Usage
+    toM2 x
+  Inputs
+    x:PythonObject
+  Outputs
+    :Thing -- the Macaulay2 equivalent of @TT "x"@
+  Description
+    Text
+      This function attempts to convert @TT "x"@ to its corresponding
+      Macaulay2 equivalent.
+    Example
+      toM2 rs "[1, 3.14159, 'foo', (1,2,3), {'foo':'bar'}]"
+      class \ oo
+    Text
+      Since the type of @TT "x"@ is not initially known, a sequence of
+      @TO2 {"using hooks", "hooks"}@ are used to determine its type
+      and then convert it.
+    Example
+      hooks toM2
+    Text
+      If no conversion can be done, then @TT "x"@ is returned.
+    Example
+      rs "int"
+      toM2 oo
+    Text
+      Users may add additional hooks using @TO "addHook"@ or the
+      convenience function @TO "addPyToM2Function"@.
+///
+
+doc ///
+  Key
+    addPyToM2Function
+    (addPyToM2Function, String, Function, String)
+    (addPyToM2Function, List, Function, String)
+  Headline
+    convenience function for adding toM2 hooks
+  Usage
+    addPyToM2Function(type, f, desc)
+  Inputs
+    type:{String,List} -- the type(s) to convert
+    f:Function -- the function that will do the converting
+    desc:String -- passed to the @TT "Strategy"@ option of @TO "addHook"@
+  Description
+    Text
+      Most of the hooks used by @TO "toM2"@ have the same general format:
+      if the python object has a particular type, then use a particular
+      function to convert it to a corresponding Macaulay2 thing.  This function
+      simplifies this process.
+    Text
+      For example, suppose we would like to convert @TT "Fraction"@
+      objects from the Python @HREF
+      {"https://docs.python.org/3/library/fractions.html",
+      "fractions"}@ module to @TO "QQ"@ objects.  Without adding a hook,
+      @TO "toM2"@ will do nothing with these objects.
+    Example
+      fractions = import "fractions"
+      x = fractions@@"Fraction"(2, 3)
+      toM2 x
+    Text
+      So we write a function to do the conversion and then install the hook
+      using @TT "addPyToM2Function"@.
+    Example
+      toQQ = x -> x@@"numerator" / x@@"denominator";
+      addPyToM2Function("Fraction", toQQ, "Fraction -> QQ");
+      toM2 x
+      hooks toM2
+///
+
 end --------------------------------------------------------
 
 
