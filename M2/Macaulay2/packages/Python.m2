@@ -240,8 +240,10 @@ length PythonObject := x -> x@@"__len__"()
 
 next = method(Options => {AfterEval => toM2})
 -- we need to do the error handling or we get a segfault
-next PythonObject := o -> x -> if not pythonIterCheck x then error "not an iterator" else
-	o.AfterEval pythonIterNext x
+-- note that doing x@@@"__next__"() doesn't work because the StopIteration
+-- will raise an error
+next PythonObject := o -> x -> if not pythonIterCheck x then
+    error "not an iterator" else o.AfterEval pythonIterNext x
 
 iter = method()
 iter PythonObject := pythonObjectGetIter
