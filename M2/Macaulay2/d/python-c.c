@@ -110,26 +110,6 @@ void python_initspam() {
   PyModule_AddObject(m, "error", SpamError);
 }
 
-/***********
- * numbers *
- ***********/
-
-PyObject *python_NumberAdd(PyObject *o1, PyObject *o2) {
-	return PyNumber_Add(o1, o2);
-}
-
-PyObject *python_NumberSubtract(PyObject *o1, PyObject *o2) {
-	return PyNumber_Subtract(o1, o2);
-}
-
-PyObject *python_NumberMultiply(PyObject *o1, PyObject *o2) {
-	return PyNumber_Multiply(o1, o2);
-}
-
-PyObject *python_NumberTrueDivide(PyObject *o1, PyObject *o2) {
-	return PyNumber_TrueDivide(o1, o2);
-}
-
 /*********
  * bools *
  *********/

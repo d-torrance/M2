@@ -45,10 +45,6 @@ importFrom_Core {
     "pythonIterCheck",
     "pythonIterNext",
     "pythonNone",
-    "pythonNumberAdd",
-    "pythonNumberSubtract",
-    "pythonNumberMultiply",
-    "pythonNumberTrueDivide",
     "pythonListGetItem",
     "pythonListNew",
     "pythonListSetItem",
@@ -195,7 +191,7 @@ addPyToM2Function(List, Function, String) := (types, f, desc) ->
 addHook((toM2, PythonObject),
     x -> if objectTypeName x != "NoneType" then x,
     Strategy => "unknown -> PythonObject")
-addPyToM2Function({"function", "builtin_function_or_method"},
+addPyToM2Function({"function", "builtin_function_or_method", "method-wrapper"},
     toFunction, "function -> FunctionClosure")
 addPyToM2Function("dict", dictToHashTable, "dict -> HashTable")
 addPyToM2Function({"set", "frozenset"}, set @@ iterableToList, "set -> Set")
@@ -222,11 +218,29 @@ PythonObject ? PythonObject := (x, y) ->
 PythonObject == PythonObject := (x, y) ->
     pythonObjectRichCompareBool(x, y, -* Py_EQ *- 2)
 
-PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
-PythonObject - PythonObject := (x, y) -> pythonNumberSubtract(x, y)
-PythonObject * PythonObject := (x, y) -> pythonNumberMultiply(x, y)
-PythonObject / PythonObject := (x, y) -> pythonNumberTrueDivide(x, y)
-PythonObject | PythonObject := (x, y) -> pythonUnicodeConcat(x, y)
+isimplemented = x -> x@@@"__class__"@@"__name__" != "NotImplementedType"
+scan({(symbol +, "add"), (symbol -, "sub"), (symbol *, "mul"),
+	(symbol /, "truediv"), (symbol //, "floordiv"), (symbol %, "mod"),
+	(symbol ^, "pow"), (symbol <<, "lshift"), (symbol >>, "rshift"),
+	(symbol &, "and"), (symbol |, "or")},
+    (op, name) -> (
+	m := "__" | name | "__";
+	rm := "__r" | name | "__";
+	local r;
+	installMethod(op, PythonObject, PythonObject, (x, y) ->
+	    if x@@?m and isimplemented(r = x@@@m y) then r else
+	    if y@@?rm and isimplemented(r = y@@@rm x) then r else
+	    error("no method for ", format toString op));
+	-- first try the operation in python
+	-- if that fails, then try it in M2
+	installMethod(op, PythonObject, Thing, (x, y) ->
+	    try (r = value BinaryOperation(op, x, toPython y)) then toM2 r else
+	    value BinaryOperation(op, toM2 x, y));
+	installMethod(op, Thing, PythonObject, (x, y) ->
+	    try (r = value BinaryOperation(op, toPython x, y)) then toM2 r else
+	    value BinaryOperation(op, x, toM2 y));
+	)
+    );
 
 PythonObject Thing := (o, x) -> (toFunction(o, AfterEval => identity)) x
 
