@@ -166,7 +166,8 @@ iterableToList(PythonObject) :=  x -> (
 dictToHashTable = method()
 dictToHashTable(PythonObject) := x -> (
     i := iter x;
-    hashTable while (y := next i; y =!= null) list y => x_y)
+    hashTable while (y := next(i, AfterEval => identity); y =!= null)
+	list toM2 y => x_y)
 
 toFunction = method(Options => {AfterEval => toM2})
 toFunction PythonObject := o -> x -> y -> (
