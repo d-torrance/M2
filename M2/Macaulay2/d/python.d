@@ -418,29 +418,6 @@ setupfun("pythonListSetItem",PyListSetItem);
 -- dictionaries --
 ------------------
 
-import DictKeys(o:pythonObject):pythonObjectOrNull;
-PyDictKeys(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(DictKeys(x.v))
-    else WrongArgPythonObject();
-setupfun("pythonDictKeys",PyDictKeys);
-
-import DictGetItem(p:pythonObject,key:pythonObject):pythonObjectOrNull;
-PyDictGetItem(e1:Expr,e2:Expr):Expr :=
-    when e1
-    is x:pythonObjectCell do
-	when e2
-	is y:pythonObjectCell do toExpr(DictGetItem(x.v, y.v))
-	else WrongArgPythonObject(2)
-    else WrongArgPythonObject(1);
-PyDictGetItem(e:Expr):Expr :=
-    when e
-    is a:Sequence do
-	if length(a) == 2 then PyDictGetItem(a.0, a.1)
-	else WrongNumArgs(2)
-    else WrongNumArgs(2);
-setupfun("pythonDictGetItem",PyDictGetItem);
-
 import DictNew():pythonObjectOrNull;
 PyDictNew(e:Expr):Expr :=
     when e

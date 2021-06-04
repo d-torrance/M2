@@ -229,14 +229,6 @@ int python_ListSetItem(PyObject *L, int i, PyObject *item) {
  * dictionaries *
  ****************/
 
-PyObject *python_DictKeys(PyObject *o) {
-	return PyDict_Keys(o);
-}
-
-PyObject *python_DictGetItem(PyObject *p, PyObject *key) {
-	return PyDict_GetItemWithError(p, key);
-}
-
 PyObject *python_DictNew(void) {
 	return PyDict_New();
 }

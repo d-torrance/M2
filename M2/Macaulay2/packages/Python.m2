@@ -38,8 +38,6 @@ exportFrom_Core {
 
 importFrom_Core {
     "pythonComplexFromDoubles",
-    "pythonDictKeys",
-    "pythonDictGetItem",
     "pythonDictNew",
     "pythonDictSetItem",
     "pythonFalse",
