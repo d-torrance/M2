@@ -169,10 +169,10 @@ toM2 = method(Dispatch => Thing)
 toZZ PythonObject := pythonLongAsLong
 toRR PythonObject := pythonFloatAsDouble
 
-iterableToList = method()
-iterableToList(PythonObject) := x -> (
+iterableToList = method(Options => {AfterEval => toM2})
+iterableToList(PythonObject) := o -> x -> (
 	i := iter x;
-	while (y := next i; y =!= null) list y)
+	while (y := next(i, AfterEval => o.AfterEval); y =!= null) list y)
 
 dictToHashTable = method()
 dictToHashTable(PythonObject) := x -> (
@@ -242,10 +242,10 @@ length PythonObject := x -> if pythonListCheck x then pythonListSize x else
     if pythonTupleCheck x then pythonTupleSize x else
     x@@"__len__"()
 
-next = method()
+next = method(Options => {AfterEval => toM2})
 -- we need to do the error handling or we get a segfault
-next PythonObject := x -> if not pythonIterCheck x then error "not an iterator" else
-	toM2 pythonIterNext x
+next PythonObject := o -> x -> if not pythonIterCheck x then error "not an iterator" else
+	o.AfterEval pythonIterNext x
 
 iter = method()
 iter PythonObject := pythonObjectGetIter
