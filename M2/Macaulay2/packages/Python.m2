@@ -5,7 +5,16 @@ this does not work uless M2 is compiled --with-python
 pythonPresent := Core#"private dictionary"#?"runPythonString"
 
 newPackage("Python",
+    Version => "0.2",
+    Date => "June 2021",
     Headline => "interface to Python",
+    Authors => {
+	{Name => "Daniel R. Grayson",
+	    Email => "danielrichardgrayson@gmail.com",
+	    HomePage => "https://faculty.math.illinois.edu/~dan/"},
+	{Name => "Douglas A. Torrance",
+	    Email => "dtorrance@piedmont.edu",
+	    HomePage => "https://webwork.piedmont.edu/~dtorrance"}},
     OptionalComponentsPresent => pythonPresent
     )
 
