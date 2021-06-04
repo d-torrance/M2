@@ -568,6 +568,36 @@ doc ///
       hooks toM2
 ///
 
+doc ///
+  Key
+    import
+    (import, String)
+  Headline
+    import a Python module
+  Usage
+    import s
+  Inputs
+    s:String -- the name of a python module
+  Outputs
+    :PythonObject -- the imported module
+  Description
+    Text
+      This is a wrapper around the Python C API function @HREF{
+      "https://docs.python.org/3/c-api/import.html#c.PyImport_ImportModule",
+      "PyImport_ImportModule"}@ and returns an imported Python module.
+    Text
+      Once imported, the statements and definitions from the module are available
+      using the @TO "\@\@"@ and @TO "\@\@\@"@ operators, depending on whether
+      the return values will be converted to Macaulay2 objects using
+      @TO "toM2"@ or not.
+    Example
+      math = import "math"
+      math@@"pi"
+      math@@@"pi"
+      math@@"sqrt" 2
+      math@@@"sqrt" 2
+///
+
 end --------------------------------------------------------
 
 
