@@ -254,7 +254,7 @@ next PythonObject := o -> x -> if not pythonIterCheck x then
     error "not an iterator" else o.AfterEval pythonIterNext x
 
 iter = method()
-iter PythonObject := pythonObjectGetIter
+iter PythonObject := x -> x@@@"__iter__"()
 
 PythonObject_Thing := (x, i) -> x@@"__getitem__" i
 PythonObject_Thing = (x, i, e) ->  x@@"__setitem__"(i, toPython e)
