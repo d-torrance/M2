@@ -236,9 +236,7 @@ PythonObject | PythonObject := (x, y) -> pythonUnicodeConcat(x, y)
 
 PythonObject Thing := (o, x) -> (toFunction(o, AfterEval => identity)) x
 
-length PythonObject := x -> if pythonListCheck x then pythonListSize x else
-    if pythonTupleCheck x then pythonTupleSize x else
-    x@@"__len__"()
+length PythonObject := x -> x@@"__len__"()
 
 next = method(Options => {AfterEval => toM2})
 -- we need to do the error handling or we get a segfault
