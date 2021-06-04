@@ -177,14 +177,6 @@ PyObject* python_ComplexFromDoubles(double real, double imag) {
 	return PyComplex_FromDoubles(real, imag);
 }
 
-double python_ComplexRealAsDouble(PyObject *o) {
-	return PyComplex_RealAsDouble(o);
-}
-
-double python_ComplexImagAsDouble(PyObject *o) {
-	return PyComplex_ImagAsDouble(o);
-}
-
 /***********
  * strings *
  ***********/

@@ -282,26 +282,6 @@ PyComplexFromDoubles(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("pythonComplexFromDoubles",PyComplexFromDoubles);
 
-import ComplexRealAsDouble(o:pythonObject):double;
-PyComplexRealAsDouble(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(ComplexRealAsDouble(x.v)) -- (
-	-- y := ComplexRealAsDouble(x.v);
-	-- if ErrOccurred() == 1 then buildPythonErrorPacket()
-	-- else toExpr(y))
-    else WrongArgPythonObject();
-setupfun("pythonComplexRealAsDouble",PyComplexRealAsDouble);
-
-import ComplexImagAsDouble(o:pythonObject):double;
-PyComplexImagAsDouble(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(ComplexImagAsDouble(x.v)) -- (
-	-- y := ComplexImagAsDouble(x.v);
-	-- if ErrOccurred() == 1 then buildPythonErrorPacket()
-	-- else toExpr(y))
-    else WrongArgPythonObject();
-setupfun("pythonComplexImagAsDouble",PyComplexImagAsDouble);
-
 -------------
 -- strings --
 -------------

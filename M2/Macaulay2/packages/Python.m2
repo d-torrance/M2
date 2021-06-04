@@ -38,8 +38,6 @@ exportFrom_Core {
 
 importFrom_Core {
     "pythonComplexFromDoubles",
-    "pythonComplexImagAsDouble",
-    "pythonComplexRealAsDouble",
     "pythonDictCheck",
     "pythonDictKeys",
     "pythonDictGetItem",
@@ -212,7 +210,7 @@ addPyToM2Function({"tuple", "range"}, toSequence @@ iterableToList,
     "tuple -> Sequence")
 addPyToM2Function("str", toString, "str -> String")
 addPyToM2Function("complex", -- TODO: allow overloading of toCC
-    x ->  pythonComplexRealAsDouble x + ii * pythonComplexImagAsDouble x,
+    x ->  x@@"real" + ii * x@@"imag",
     "complex -> CC")
 addPyToM2Function("float", toRR, "float -> RR")
 addPyToM2Function("int", toZZ, "int -> ZZ")
