@@ -227,6 +227,9 @@ PythonObject ? PythonObject := (x, y) ->
     if pythonObjectRichCompareBool(x, y, -* Py_EQ *- 2) then symbol == else
     incomparable
 
+PythonObject == PythonObject := (x, y) ->
+    pythonObjectRichCompareBool(x, y, -* Py_EQ *- 2)
+
 PythonObject + PythonObject := (x, y) -> pythonNumberAdd(x, y)
 PythonObject - PythonObject := (x, y) -> pythonNumberSubtract(x, y)
 PythonObject * PythonObject := (x, y) -> pythonNumberMultiply(x, y)
