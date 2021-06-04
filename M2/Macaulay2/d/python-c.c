@@ -185,14 +185,6 @@ int python_TupleSetItem(PyObject *L, int i, PyObject *item) {
  * lists *
  *********/
 
-int python_ListSize(PyObject *o) {
-	return PyList_Size(o);
-}
-
-PyObject *python_ListGetItem(PyObject *o, int i) {
-	return PyList_GetItem(o, i);
-}
-
 PyObject *python_ListNew(int n) {
 	return PyList_New(n);
 }

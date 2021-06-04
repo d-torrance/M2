@@ -287,29 +287,6 @@ setupfun("pythonTupleSetItem",PyTupleSetItem);
 -- lists --
 -----------
 
-import ListSize(o:pythonObject):int;
-PyListSize(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(ListSize(x.v))
-    else WrongArgPythonObject();
-setupfun("pythonListSize",PyListSize);
-
-import ListGetItem(o:pythonObject,i:int):pythonObjectOrNull;
-PyListGetItem(e1:Expr,e2:Expr):Expr :=
-    when e1
-    is x:pythonObjectCell do
-	when e2
-	is n:ZZcell do toExpr(ListGetItem(x.v, toInt(n)))
-	else WrongArgZZ(2)
-    else WrongArgPythonObject(1);
-PyListGetItem(e:Expr):Expr :=
-    when e
-    is a:Sequence do
-	if length(a) == 2 then PyListGetItem(a.0, a.1)
-	else WrongNumArgs(2)
-    else WrongNumArgs(2);
-setupfun("pythonListGetItem",PyListGetItem);
-
 import ListNew(n:int):pythonObjectOrNull;
 PyListNew(e:Expr):Expr :=
     when e
