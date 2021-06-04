@@ -358,6 +358,14 @@ doc ///
       x_"spam"
       x_"ham" = 3
       x
+    Text
+      Note that @TO "toM2"@ is always run after getting an element.
+      To avoid this and just get the original python object, use @TO
+      "\@\@\@"@ to call the object's @TT HREF{
+       "https://docs.python.org/3/reference/datamodel.html#object.__getitem__",
+      "__getitem__"}@ method.
+    Example
+      x@@@"__getitem__" "spam"
 ///
 
 doc ///
