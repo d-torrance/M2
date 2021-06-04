@@ -171,9 +171,8 @@ iterableToList(PythonObject) := o -> x -> (
 
 dictToHashTable = method()
 dictToHashTable(PythonObject) := x -> (
-    K := pythonDictKeys x;
-    hashTable apply(length K, i ->
-	toM2 K_i => toM2 pythonDictGetItem(x, toPython K_i)))
+    i := iter x;
+    hashTable while (y := next i; y =!= null) list y => x_y)
 
 toFunction = method(Options => {AfterEval => toM2})
 toFunction PythonObject := o -> x -> y -> (
