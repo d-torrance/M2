@@ -73,8 +73,7 @@ export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "iterableToList",
     "next",
     "objectTypeName",
-    "toFunction",
-    "toM2"
+    "toFunction"
 }
 
 exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr"}
@@ -150,21 +149,19 @@ Context String := (c,s) -> c.stmtexpr s
 import = method()
 import(String) := pythonImportImportModule
 
-toM2 = method(Dispatch => Thing)
-
 toZZ PythonObject := pythonLongAsLong
 toRR PythonObject := pythonFloatAsDouble
 
 iterableToList = method()
 iterableToList(PythonObject) :=  x -> (
 	i := iter x;
-	toM2 \ while (y := next i; y =!= null) list y)
+	value \ while (y := next i; y =!= null) list y)
 
 dictToHashTable = method()
 dictToHashTable(PythonObject) := x -> (
     i := iter x;
     hashTable while (y := next i; y =!= null)
-	list toM2 y => toM2 x_y)
+	list value y => value x_y)
 
 toFunction = method()
 toFunction PythonObject := x -> y -> (
@@ -182,11 +179,11 @@ addPyToM2Function = method()
 addPyToM2Function(String, Function, String) := (type, f, desc) ->
     addPyToM2Function({type}, f, desc)
 addPyToM2Function(List, Function, String) := (types, f, desc) ->
-    addHook((toM2, PythonObject),
+    addHook((value, PythonObject),
 	x -> if member(objectTypeName x, types) then f x,
 	Strategy => desc)
 
-addHook((toM2, PythonObject),
+addHook((value, PythonObject),
     x -> if objectTypeName x != "NoneType" then x,
     Strategy => "unknown -> PythonObject")
 addPyToM2Function({"function", "builtin_function_or_method", "method-wrapper"},
@@ -203,8 +200,7 @@ addPyToM2Function("complex", -- TODO: allow overloading of toCC
 addPyToM2Function("float", toRR, "float -> RR")
 addPyToM2Function("int", toZZ, "int -> ZZ")
 addPyToM2Function("bool", x -> toString x == "True", "bool -> Boolean")
-toM2 PythonObject := x -> runHooks((toM2, PythonObject), x)
-toM2 Thing := identity
+value PythonObject := x -> runHooks((value, PythonObject), x)
 
 -- Py_LT, Py_GT, and Py_EQ are #defines from /usr/include/python3.9/object.h
 PythonObject ? PythonObject := (x, y) ->
@@ -233,11 +229,11 @@ scan({(symbol +, "add"), (symbol -, "sub"), (symbol *, "mul"),
 	-- first try the operation in python
 	-- if that fails, then try it in M2
 	installMethod(op, PythonObject, Thing, (x, y) ->
-	    try (r = value BinaryOperation(op, x, toPython y)) then toM2 r else
-	    value BinaryOperation(op, toM2 x, y));
+	    try (r = value BinaryOperation(op, x, toPython y)) then value r else
+	    value BinaryOperation(op, value x, y));
 	installMethod(op, Thing, PythonObject, (x, y) ->
-	    try (r = value BinaryOperation(op, toPython x, y)) then toM2 r else
-	    value BinaryOperation(op, x, toM2 y));
+	    try (r = value BinaryOperation(op, toPython x, y)) then value r else
+	    value BinaryOperation(op, x, value y));
 	)
     );
 
@@ -465,7 +461,7 @@ doc ///
     Text
       A list is constructed containing each element of the iterable.
       The elements are converted to Macaulay2 objects (if
-      possible) using @TO "toM2"@.
+      possible) using @TO "value"@.
     Example
       x = rs "range(3)"
       iterableToList x
@@ -478,13 +474,11 @@ doc ///
 
 doc ///
   Key
-    toM2
-    (toM2,PythonObject)
-    (toM2,Thing)
+    (value,PythonObject)
   Headline
     convert python objects to Macaulay2 things
   Usage
-    toM2 x
+    value x
   Inputs
     x:PythonObject
   Outputs
@@ -494,19 +488,19 @@ doc ///
       This function attempts to convert @TT "x"@ to its corresponding
       Macaulay2 equivalent.
     Example
-      toM2 rs "[1, 3.14159, 'foo', (1,2,3), {'foo':'bar'}]"
+      value rs "[1, 3.14159, 'foo', (1,2,3), {'foo':'bar'}]"
       class \ oo
     Text
       Since the type of @TT "x"@ is not initially known, a sequence of
       @TO2 {"using hooks", "hooks"}@ are used to determine its type
       and then convert it.
     Example
-      hooks toM2
+      hooks value
     Text
       If no conversion can be done, then @TT "x"@ is returned.
     Example
       rs "int"
-      toM2 oo
+      value oo
     Text
       Users may add additional hooks using @TO "addHook"@ or the
       convenience function @TO "addPyToM2Function"@.
@@ -518,7 +512,7 @@ doc ///
     (addPyToM2Function, String, Function, String)
     (addPyToM2Function, List, Function, String)
   Headline
-    convenience function for adding toM2 hooks
+    convenience function for adding value hooks
   Usage
     addPyToM2Function(type, f, desc)
   Inputs
@@ -527,7 +521,7 @@ doc ///
     desc:String -- passed to the @TT "Strategy"@ option of @TO "addHook"@
   Description
     Text
-      Most of the hooks used by @TO "toM2"@ have the same general format:
+      Most of the hooks used by @TO "value"@ have the same general format:
       if the python object has a particular type, then use a particular
       function to convert it to a corresponding Macaulay2 thing.  This function
       simplifies the process of adding such a hook.
@@ -536,19 +530,19 @@ doc ///
       objects from the Python @HREF
       {"https://docs.python.org/3/library/fractions.html",
       "fractions"}@ module to @TO "QQ"@ objects.  Without adding a hook,
-      @TO "toM2"@ will do nothing with these objects.
+      @TO "value"@ will do nothing with these objects.
     Example
       fractions = import "fractions"
       x = fractions@@"Fraction"(2, 3)
-      toM2 x
+      value x
     Text
       So we write a function to do the conversion and then install the hook
       using @TT "addPyToM2Function"@.
     Example
       toQQ = x -> toZZ x@@"numerator" / toZZ x@@"denominator";
       addPyToM2Function("Fraction", toQQ, "Fraction -> QQ");
-      toM2 x
-      hooks toM2
+      value x
+      hooks value
 ///
 
 doc ///
