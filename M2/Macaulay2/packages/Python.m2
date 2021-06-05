@@ -52,7 +52,6 @@ importFrom_Core {
     "pythonFloatAsDouble",
     "pythonFloatFromDouble",
     "pythonObjectGetAttrString",
-    "pythonObjectGetIter",
     "pythonObjectHasAttrString",
     "pythonObjectRichCompareBool",
     "pythonObjectSetAttrString",
@@ -159,23 +158,21 @@ toRR PythonObject := pythonFloatAsDouble
 iterableToList = method()
 iterableToList(PythonObject) :=  x -> (
 	i := iter x;
-	-- don't convert to M2 until after we've constructed the list
-	-- otherwise any None objects will become nulls, stopping iteration
-	toM2 \ while (y := next(i, AfterEval => identity); y =!= null) list y)
+	toM2 \ while (y := next i; y =!= null) list y)
 
 dictToHashTable = method()
 dictToHashTable(PythonObject) := x -> (
     i := iter x;
-    hashTable while (y := next(i, AfterEval => identity); y =!= null)
-	list toM2 y => x_y)
+    hashTable while (y := next i; y =!= null)
+	list toM2 y => toM2 x_y)
 
-toFunction = method(Options => {AfterEval => toM2})
-toFunction PythonObject := o -> x -> y -> (
+toFunction = method()
+toFunction PythonObject := x -> y -> (
     p := partition(a -> instance(a, Option),
 	if instance(y, VisibleList) then y else {y});
     args := toPython if p#?false then toSequence p#false else ();
     kwargs := toPython hashTable if p#?true then toList p#true else {};
-    o.AfterEval pythonObjectCall(x, args, kwargs))
+    pythonObjectCall(x, args, kwargs))
 
 objectTypeName = method()
 objectTypeName PythonObject := x ->
@@ -201,7 +198,7 @@ addPyToM2Function({"tuple", "range"}, toSequence @@ iterableToList,
     "tuple -> Sequence")
 addPyToM2Function("str", toString, "str -> String")
 addPyToM2Function("complex", -- TODO: allow overloading of toCC
-    x ->  x@@"real" + ii * x@@"imag",
+    x ->  toRR x@@"real" + ii * toRR x@@"imag",
     "complex -> CC")
 addPyToM2Function("float", toRR, "float -> RR")
 addPyToM2Function("int", toZZ, "int -> ZZ")
@@ -219,7 +216,7 @@ PythonObject ? PythonObject := (x, y) ->
 PythonObject == PythonObject := (x, y) ->
     pythonObjectRichCompareBool(x, y, -* Py_EQ *- 2)
 
-isimplemented = x -> x@@@"__class__"@@"__name__" != "NotImplementedType"
+isimplemented = x -> toString x@@"__class__"@@"__name__" != "NotImplementedType"
 scan({(symbol +, "add"), (symbol -, "sub"), (symbol *, "mul"),
 	(symbol /, "truediv"), (symbol //, "floordiv"), (symbol %, "mod"),
 	(symbol ^, "pow"), (symbol <<, "lshift"), (symbol >>, "rshift"),
@@ -230,8 +227,8 @@ scan({(symbol +, "add"), (symbol -, "sub"), (symbol *, "mul"),
 	rm := "__r" | name | "__";
 	local r;
 	installMethod(op, PythonObject, PythonObject, (x, y) ->
-	    if x@@?m and isimplemented(r = x@@@m y) then r else
-	    if y@@?rm and isimplemented(r = y@@@rm x) then r else
+	    if x@@?m and isimplemented(r = x@@m y) then r else
+	    if y@@?rm and isimplemented(r = y@@rm x) then r else
 	    error("no method for ", format toString op));
 	-- first try the operation in python
 	-- if that fails, then try it in M2
@@ -244,26 +241,28 @@ scan({(symbol +, "add"), (symbol -, "sub"), (symbol *, "mul"),
 	)
     );
 
-PythonObject Thing := (o, x) -> (toFunction(o, AfterEval => identity)) x
+PythonObject Thing := (o, x) -> (toFunction o) x
 
 length PythonObject := x -> x@@"__len__"()
 
-next = method(Options => {AfterEval => toM2})
+next = method()
 -- we need to do the error handling or we get a segfault
--- note that doing x@@@"__next__"() doesn't work because the StopIteration
+-- note that doing x@@"__next__"() doesn't work because the StopIteration
 -- will raise an error
-next PythonObject := o -> x -> if not pythonIterCheck x then
-    error "not an iterator" else o.AfterEval pythonIterNext x
+next PythonObject := x -> if not pythonIterCheck x then
+    error "not an iterator" else pythonIterNext x
 
 iter = method()
-iter PythonObject := x -> x@@@"__iter__"()
+iter PythonObject := x -> x@@"__iter__"()
 
 PythonObject_Thing := (x, i) -> x@@"__getitem__" i
 PythonObject_Thing = (x, i, e) ->  x@@"__setitem__"(i, toPython e)
 
-PythonObject @@@ String := (x, y) -> pythonObjectGetAttrString(x, y)
-PythonObject @@ String := (x, y) -> toM2 x@@@y
+PythonObject @@ Thing := (x, y) -> x@@(toString y)
+PythonObject @@ String := (x, y) -> pythonObjectGetAttrString(x, y)
+PythonObject @@? Thing := (x, y) -> x@@?(toString y)
 PythonObject @@? String := pythonObjectHasAttrString
+PythonObject @@ Thing = (x, y, e) -> x@@(toString y) = e
 PythonObject @@ String = (x, y, e) ->
     pythonObjectSetAttrString(x, y, toPython e)
 
@@ -276,6 +275,7 @@ toPython CC := x -> pythonComplexFromDoubles(realPart x, imaginaryPart x)
 toPython ZZ := pythonLongFromLong
 toPython Boolean := x -> if x then pythonTrue else pythonFalse
 toPython Constant := x -> toPython(x + 0)
+toPython Symbol := toPython @@ toString
 toPython String := pythonUnicodeFromString
 toPython Sequence := L -> (
     n := #L;
@@ -366,14 +366,6 @@ doc ///
       x_"spam"
       x_"ham" = 3
       x
-    Text
-      Note that @TO "toM2"@ is always run after getting an element.
-      To avoid this and just get the original python object, use @TO
-      "\@\@\@"@ to call the object's @TT HREF{
-       "https://docs.python.org/3/reference/datamodel.html#object.__getitem__",
-      "__getitem__"}@ method.
-    Example
-      x@@@"__getitem__" "spam"
 ///
 
 doc ///
@@ -430,38 +422,28 @@ doc ///
   Key
     next
     (next, PythonObject)
-    [next, AfterEval]
   Headline
     retrieve the next item from a python iterator
   Usage
     next i
   Inputs
     i:PythonObject -- an iterator
-    AfterEval => Function -- to call on the output
   Description
     Text
       This function works just like its
       @HREF{"https://docs.python.org/3/library/functions.html#next",
       "Python counterpart"}@.  In particular, it retrieves the next item
-      from an iterator.  By default, this item is converted to a Macaulay2
-      object (if possible) using @TO "toM2"@.
+      from an iterator.
     Example
       x = rs "range(3)"
       i = iter x
       next i
-    Text
-      This behavior can be changed using the @TT "AfterEval"@ option.
-    Example
-      next(i, AfterEval => identity)
-      next(i, AfterEval => x -> x + x)
+      next i
+      next i
     Text
       When the iterator is exhausted, @TO "null"@ is returned.
     Example
       next i === null
-  Caveat
-    If the iterable contains the python object @TT "None"@, then the
-    default behavior will give unexpected results since @TO "toM2"@
-    converts @TT "None"@ to @TO "null"@.
   SeeAlso
     iter
     iterableToList
@@ -563,7 +545,7 @@ doc ///
       So we write a function to do the conversion and then install the hook
       using @TT "addPyToM2Function"@.
     Example
-      toQQ = x -> x@@"numerator" / x@@"denominator";
+      toQQ = x -> toZZ x@@"numerator" / toZZ x@@"denominator";
       addPyToM2Function("Fraction", toQQ, "Fraction -> QQ");
       toM2 x
       hooks toM2
@@ -588,15 +570,11 @@ doc ///
       "PyImport_ImportModule"}@ and returns an imported Python module.
     Text
       Once imported, the statements and definitions from the module are available
-      using the @TO "\@\@"@ and @TO "\@\@\@"@ operators, depending on whether
-      the return values will be converted to Macaulay2 objects using
-      @TO "toM2"@ or not.
+      using the @TO "\@\@"@ operator.
     Example
       math = import "math"
       math@@"pi"
-      math@@@"pi"
       math@@"sqrt" 2
-      math@@@"sqrt" 2
 ///
 
 end --------------------------------------------------------

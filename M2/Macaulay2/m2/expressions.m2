@@ -458,7 +458,6 @@ binaryOperatorFunctions := new HashTable from {
      symbol |- => ((x,y) -> x|-y),
      symbol \ => ((x,y) -> x\y),
      symbol @@ => ((x,y) -> x@@y),
-     symbol @@@ => ((x,y) -> x@@@y),
      symbol @@? => ((x,y) -> x@@?y),
      symbol & => ((x,y) -> x&y),
      symbol ? => ((x,y) -> x?y),
@@ -489,7 +488,7 @@ expressionBinaryOperators =
     symbol ==, symbol ++, symbol <===, symbol <==>, symbol or,
     symbol %, symbol SPACE, symbol &, symbol *, symbol +,
     symbol -, symbol |-, symbol :, symbol !=, symbol |, symbol ..<,
-    symbol @@, symbol @@@, symbol @@?, symbol @, symbol **, symbol .., symbol ^^,
+    symbol @@, symbol @@?, symbol @, symbol **, symbol .., symbol ^^,
     symbol ||, symbol ===>, symbol /}
 
 scan(expressionBinaryOperators, op -> (

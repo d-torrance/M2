@@ -75,11 +75,6 @@ document {
      }
 
 document {
-     Key => symbol @@@,
-     Headline => "a binary operator"
-     }
-
-document {
      Key => symbol @@?,
      Headline => "a binary operator"
      }
