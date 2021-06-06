@@ -1011,10 +1011,18 @@ tostringfun(e:Expr):Expr := (
      is c:RawComputationCell do toExpr(Ccode(string, "IM2_GB_to_string(",c.p,")" ))
      is po:pythonObjectCell do (
 	  -- Expr("<<a python object>>")
-	  str := Ccode(pythonObject,"PyObject_Str(",po.v,")");
-	  r := toExpr(tostring(Ccode(constcharstarOrNull,"PyUnicode_AsUTF8(",str,")")));
-	  Ccode(void,"Py_DECREF(",str,")");
-	  r)
+	  str := Ccode(pythonObject or null,"PyObject_Str(",po.v,")");
+	  when str is null do (
+	      Ccode(void, "PyErr_Print()");
+	      buildErrorPacket("python error")
+	  ) else (
+	      r := Ccode(constcharstarOrNull,"PyUnicode_AsUTF8(",str,")");
+	      when r is null do (
+	      	  Ccode(void, "PyErr_Print()");
+		  buildErrorPacket("python error")
+	      ) else (
+		  Ccode(void,"Py_DECREF(",str,")");
+		  toExpr(tostring(r)))))
      is x:xmlNodeCell do toExpr(toString(x.v))
      is xmlAttrCell do toExpr("<<libxml attribute>>")
      is x:TaskCell do (
