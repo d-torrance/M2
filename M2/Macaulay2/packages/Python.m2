@@ -171,7 +171,13 @@ toFunction PythonObject := x -> y -> (
 	if instance(y, VisibleList) then y else {y});
     args := toPython if p#?false then toSequence p#false else ();
     kwargs := toPython hashTable if p#?true then toList p#true else {};
-    pythonObjectCall(x, args, kwargs))
+    if debugLevel > 0 then printerr(
+	"callable: " | toString x    ||
+	"args: "     | toString args ||
+	"kwargs: "   | toString kwargs);
+    r := pythonObjectCall(x, args, kwargs);
+    if debugLevel > 0 then printerr("output: ", toString r);
+    r)
 
 objectTypeName = method()
 objectTypeName PythonObject := x ->
