@@ -117,6 +117,13 @@ PyObjectSetAttrString(e:Expr):Expr :=
     else WrongNumArgs(3);
 setupfun("pythonObjectSetAttrString",PyObjectSetAttrString);
 
+import ObjectStr(o:pythonObject):pythonObjectOrNull;
+PyObjectStr(e:Expr):Expr :=
+    when e
+    is x:pythonObjectCell do toExpr(ObjectStr(x.v))
+    else WrongArgPythonObject();
+setupfun("pythonObjectStr",PyObjectStr);
+
 import initspam():void;
 runinitspam(e:Expr):Expr := (initspam(); nullE);
 setupfun("initspam",runinitspam);

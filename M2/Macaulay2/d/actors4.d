@@ -20,15 +20,6 @@ header "// required for toString routines
 #include <interface/ringelement.h>          // for IM2_RingElement_to_string
 #include <interface/ringmap.h>              // for IM2_RingMap_to_string";
 
-header "
-#ifndef WITH_PYTHON
-#  define PyObject_Str(o)       0
-#  define PyUnicode_AsUTF8(o)   0
-#  define Py_DECREF(o)          0
-#else
-#  include <Python.h>
-#endif";
-
 internalName(s:string):string := (
      -- was "$" + s in 0.9.2
      s
@@ -1009,20 +1000,6 @@ tostringfun(e:Expr):Expr := (
 	  -- Ccode(string, "IM2_MonomialIdeal_to_string(",x.p,")" )
 	  )
      is c:RawComputationCell do toExpr(Ccode(string, "IM2_GB_to_string(",c.p,")" ))
-     is po:pythonObjectCell do (
-	  -- Expr("<<a python object>>")
-	  str := Ccode(pythonObject or null,"PyObject_Str(",po.v,")");
-	  when str is null do (
-	      Ccode(void, "PyErr_Print()");
-	      buildErrorPacket("python error")
-	  ) else (
-	      r := Ccode(constcharstarOrNull,"PyUnicode_AsUTF8(",str,")");
-	      when r is null do (
-	      	  Ccode(void, "PyErr_Print()");
-		  buildErrorPacket("python error")
-	      ) else (
-		  Ccode(void,"Py_DECREF(",str,")");
-		  toExpr(tostring(r)))))
      is x:xmlNodeCell do toExpr(toString(x.v))
      is xmlAttrCell do toExpr("<<libxml attribute>>")
      is x:TaskCell do (
@@ -1040,6 +1017,7 @@ tostringfun(e:Expr):Expr := (
 	       + ">>"
 	       ))
     is x:fileOutputSyncState do toExpr("File Output Sync State")
+    else buildErrorPacket("unable to convert to string")
 );
 setupfun("simpleToString",tostringfun);
 

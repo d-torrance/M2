@@ -56,12 +56,14 @@ importFrom_Core {
     "pythonObjectRichCompareBool",
     "pythonObjectSetAttrString",
     "pythonObjectCall",
+    "pythonObjectStr",
     "pythonSetNew",
     "pythonTrue",
     "pythonTupleGetItem",
     "pythonTupleNew",
     "pythonTupleSetItem",
     "pythonTupleSize",
+    "pythonUnicodeAsUTF8",
     "pythonUnicodeConcat",
     "pythonUnicodeFromString"
 }
@@ -79,6 +81,8 @@ export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
 exportMutable { "val", "eval", "valuestring", "stmt", "expr", "dict", "symbols", "stmtexpr"}
 
 pythonHelp = Command (() -> runPythonString ///help()///)
+
+toString PythonObject := pythonUnicodeAsUTF8 @@ pythonObjectStr
 
 PythonObject.synonym = "python object"
 PythonObject#{Standard,AfterPrint} = x -> (
