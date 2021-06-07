@@ -7,9 +7,12 @@ WrongArgPythonObject(n:int):Expr := WrongArg(n,"a python object");
 
 import ErrOccurred():int;
 import ErrPrint():void;
-buildPythonErrorPacket():Expr := (
-    if ErrOccurred() == 1 then ErrPrint();
-    buildErrorPacket("python error"));
+
+buildPythonErrorPacket():Expr :=
+    if ErrOccurred() == 1 then (
+	ErrPrint();
+	buildErrorPacket("python error")
+    ) else nullE;
 
 pythonObjectOrNull := pythonObject or null;
 toExpr(r:pythonObjectOrNull):Expr := when r is null do buildPythonErrorPacket() is po:pythonObject do Expr(pythonObjectCell(po));
@@ -392,30 +395,6 @@ PyObjectCall(e:Expr):Expr :=
 	else WrongNumArgs(3)
     else WrongNumArgs(3);
 setupfun("pythonObjectCall",PyObjectCall);
-
----------------
--- iterators --
----------------
-
-import IterCheck(o:pythonObject):int;
-PyIterCheck(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do toExpr(IterCheck(x.v) == 1)
-    else WrongArgPythonObject();
-setupfun("pythonIterCheck",PyIterCheck);
-
-import IterNext(o:pythonObject):pythonObjectOrNull;
-PyIterNext(e:Expr):Expr :=
-    when e
-    is x:pythonObjectCell do (
-	next := IterNext(x.v);
-	when next
-	is null do
-	    if ErrOccurred() == 1 then buildPythonErrorPacket()
-	    else nullE
-	else toExpr(next))
-    else WrongArgPythonObject();
-setupfun("pythonIterNext",PyIterNext);
 
 ----------
 -- none --

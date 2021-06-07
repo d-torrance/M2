@@ -42,8 +42,6 @@ importFrom_Core {
     "pythonDictSetItem",
     "pythonFalse",
     "pythonImportImportModule",
-    "pythonIterCheck",
-    "pythonIterNext",
     "pythonNone",
     "pythonListNew",
     "pythonListSetItem",
@@ -246,11 +244,7 @@ PythonObject Thing := (o, x) -> (toFunction o) x
 length PythonObject := x -> x@@"__len__"()
 
 next = method()
--- we need to do the error handling or we get a segfault
--- note that doing x@@"__next__"() doesn't work because the StopIteration
--- will raise an error
-next PythonObject := x -> if not pythonIterCheck x then
-    error "not an iterator" else pythonIterNext x
+next PythonObject := x -> x@@"__next__"();
 
 iter = method()
 iter PythonObject := x -> x@@"__iter__"()

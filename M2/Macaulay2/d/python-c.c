@@ -24,9 +24,17 @@ static void init() {
   }
 }
 
+/**************
+ * exceptions *
+ **************/
+
 /* simplified to return 1 or 0 rather than a PyObject or NULL */
 int python_ErrOccurred(void) {
-	return (PyErr_Occurred() != NULL);
+	if (PyErr_ExceptionMatches(PyExc_StopIteration)) {
+		PyErr_Clear();
+		return 0;
+	} else
+		return (PyErr_Occurred() != NULL);
 }
 
 void python_ErrPrint(void) {
@@ -223,18 +231,6 @@ PyObject *python_SetNew(PyObject *o) {
 
 PyObject *python_ObjectCall(PyObject *o, PyObject *args, PyObject *kwargs) {
 	return PyObject_Call(o, args, kwargs);
-}
-
-/*************
- * iterators *
- *************/
-
-int python_IterCheck(PyObject *o) {
-	return PyIter_Check(o);
-}
-
-PyObject * python_IterNext(PyObject *o) {
-	return PyIter_Next(o);
 }
 
 /********
