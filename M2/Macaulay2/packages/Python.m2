@@ -258,6 +258,14 @@ iter PythonObject := x -> x@@"__iter__"()
 PythonObject_Thing := (x, i) -> x@@"__getitem__" i
 PythonObject_Thing = (x, i, e) ->  x@@"__setitem__"(i, toPython e)
 
+PythonObject Array := (x, y) -> x_(
+    if #y == 1 then first y else
+    -- let python do error handling
+    toSequence y)
+PythonObject Array = (x, y, e) ->  x_(
+    if #y == 1 then first y else
+    toSequence y) = e
+
 PythonObject @@ Thing := (x, y) -> x@@(toString y)
 PythonObject @@ String := (x, y) -> pythonObjectGetAttrString(x, y)
 PythonObject @@? Thing := (x, y) -> x@@?(toString y)
