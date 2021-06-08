@@ -36,8 +36,6 @@ generateExample = (pkgname, fkey, dir) -> (
 	printerr("example result for ", format fkey,
 	    " already exists; skipping");
 	return);
-    tmp := ArgPrintWidthN;
-    ArgPrintWidthN = 129; -- match the other examples; see d/rules
     elapsedTime captureExampleOutput(
 	"example result for " | format fkey,
 	demark_newline inputs,
@@ -50,8 +48,8 @@ generateExample = (pkgname, fkey, dir) -> (
 	hash inputs,
 	() -> null,
 	false);
+    topSrcdir = "/top/src/dir/"; -- trick reproduciblePaths
     storeExampleOutput(pkg, fkey, outf, printerr);
-    ArgPrintWidthN = tmp;
     )
 
 problemExamples = {
