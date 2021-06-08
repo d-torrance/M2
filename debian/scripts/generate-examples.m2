@@ -48,7 +48,7 @@ generateExample = (pkgname, fkey, dir) -> (
 	hash inputs,
 	() -> null,
 	false);
-    topSrcdir = "/top/src/dir/"; -- trick reproduciblePaths
+    topSrcdir = "/top/src/dir/"; -- for reproduciblePaths
     storeExampleOutput(pkg, fkey, outf, printerr);
     )
 
@@ -57,6 +57,10 @@ problemExamples = {
                                                                 -- #1539
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastLinAlg", "regularInCodimension"),                     -- #1967
+    ("Macaulay2Doc", "applicationDirectory"),                   -- #1149
+    ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
+    ("Macaulay2Doc", "getenv"),                                 -- #1149
+    ("Macaulay2Doc", "homeDirectory"),                          -- #1149
     ("MultiplicitySequence", "monjMult"),                       -- #1676
     ("MultiprojectiveVarieties", "baseLocus"),                  -- #1742
     ("MultiprojectiveVarieties", "dim(MultiprojectiveVariety)"),-- #1742
@@ -65,6 +69,7 @@ problemExamples = {
     ("MultiprojectiveVarieties", "MultirationalMap ** Ring"),   -- #1742
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
     ("QthPower", "minimization"),                               -- #1884
+    ("SemidefiniteProgramming", "Solver"),                      -- #1149
     ("SimplicialDecomposability", "isVertexDecomposable"),      -- #1992
     ("SpecialFanoFourfolds", "detectCongruence(SpecialGushelMukaiFourfold,ZZ)"),
                                                                 -- #1539
