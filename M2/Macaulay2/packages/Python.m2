@@ -584,6 +584,28 @@ doc ///
 ///
 
 TEST ///
+-----------
+-- value --
+-----------
+assert Equation(value rs "True", true)
+assert Equation(value rs "5", 5)
+assert Equation(value rs "3.14159", 3.14159)
+assert Equation(value rs "complex(1, 2)", 1 + 2*ii)
+assert Equation(value rs "'foo'", "foo")
+assert Equation(value rs "(1, 3, 5, 7, 9)", (1, 3, 5, 7, 9))
+assert Equation(value rs "range(5)", (0, 1, 2, 3, 4))
+assert Equation(value rs "[1, 3, 5, 7, 9]", {1, 3, 5, 7, 9})
+assert BinaryOperation(symbol ===,
+    value rs "{1, 3, 5, 7, 9}", set {1, 3, 5, 7, 9})
+assert BinaryOperation(symbol ===, value rs "frozenset([1, 3, 5, 7, 9])",
+    set {1, 3, 5, 7, 9})
+assert BinaryOperation(symbol ===, value rs "{'a':1, 'b':2, 'c':3}",
+    hashTable{"a" => 1, "b" => 2, "c" => 3})
+assert Equation((value rs "abs")(-1), rs "1")
+assert Equation(value rs "None", null)
+///
+
+TEST ///
 -----------------------
 -- binary operations --
 -----------------------
