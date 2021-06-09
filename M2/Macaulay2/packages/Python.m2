@@ -225,7 +225,7 @@ scan({(symbol +, "add"), (symbol -, "sub"), (symbol *, "mul"),
 	(symbol /, "truediv"), (symbol //, "floordiv"), (symbol %, "mod"),
 	(symbol ^, "pow"), (symbol <<, "lshift"), (symbol >>, "rshift"),
 	(symbol &, "and"), (symbol |, "or"), (symbol and, "and"),
-	(symbol or, "or")},
+	(symbol or, "or"), (symbol ^^, "xor"), (symbol xor, "xor")},
     (op, name) -> (
 	m := "__" | name | "__";
 	rm := "__r" | name | "__";
