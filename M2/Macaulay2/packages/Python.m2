@@ -583,6 +583,83 @@ doc ///
       math@@"sqrt" 2
 ///
 
+TEST ///
+-----------------------
+-- binary operations --
+-----------------------
+x = rs "5"
+y = rs "2"
+
+-- addition
+assert Equation(x + y, rs "7")
+assert Equation(x + 2, 7)
+assert Equation(5 + y, 7)
+
+-- subtraction
+assert Equation(x - y, rs "3")
+assert Equation(x - 2, 3)
+assert Equation(5 - y, 3)
+
+-- multiplication
+assert Equation(x * y, rs "10")
+assert Equation(x * 2, 10)
+assert Equation(5 * y, 10)
+
+-- true division
+assert Equation(x / y, rs "2.5")
+assert Equation(x / 2, 2.5)
+assert Equation(5 / y, 2.5)
+
+-- floor division
+assert Equation(x // y, rs "2")
+assert Equation(x // 2, 2)
+assert Equation(5 // y, 2)
+
+-- modulo
+assert Equation(x % y, rs "1")
+assert Equation(x % 2, 1)
+assert Equation(5 % y, 1)
+
+-- power
+assert Equation(x ^ y, rs "25")
+assert Equation(x ^ 2, 25)
+assert Equation(5 ^ y, 25)
+
+-- left shift
+assert Equation(x << y, rs "20")
+assert Equation(x << 2, 20)
+assert Equation(5 << y, 20)
+
+-- right shift
+assert Equation(x >> y, rs "1")
+assert Equation(x >> 2, 1)
+assert Equation(5 >> y, 1)
+
+-- and
+assert Equation(x & y, rs "0")
+assert Equation(x & 2, 0)
+assert Equation(5 & y, 0)
+assert Equation(x and y, rs "0")
+assert Equation(x and 2, 0)
+assert Equation(5 and y, 0)
+
+-- or
+assert Equation(x | y, rs "7")
+assert Equation(x | 2, 7)
+assert Equation(5 | y, 7)
+assert Equation(x or y, rs "7")
+assert Equation(x or 2, 7)
+assert Equation(5 or y, 7)
+
+-- xor
+-- assert Equation(x ^^ y, rs "7")  (skipping until #2135 merged)
+-- assert Equation(x ^^ 2, 7)
+-- assert Equation(5 ^^ y, 7)
+assert Equation(x xor y, rs "7")
+assert Equation(x xor 2, 7)
+assert Equation(5 xor y, 7)
+///
+
 end --------------------------------------------------------
 
 
