@@ -216,9 +216,13 @@ PythonObject ? PythonObject := (x, y) ->
     if pythonObjectRichCompareBool(x, y, -* Py_GT *- 4) then symbol > else
     if pythonObjectRichCompareBool(x, y, -* Py_EQ *- 2) then symbol == else
     incomparable
+PythonObject ? Thing := (x, y) -> x ? toPython y
+Thing ? PythonObject := (x, y) -> toPython x ? y
 
 PythonObject == PythonObject := (x, y) ->
     pythonObjectRichCompareBool(x, y, -* Py_EQ *- 2)
+PythonObject == Thing := (x, y) -> x == toPython y
+Thing == PythonObject := (x, y) -> toPython x == y
 
 isimplemented = x -> toString x@@"__class__"@@"__name__" != "NotImplementedType"
 scan({(symbol +, "add"), (symbol -, "sub"), (symbol *, "mul"),
