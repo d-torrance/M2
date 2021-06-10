@@ -682,6 +682,35 @@ assert Equation(x xor 2, 7)
 assert Equation(5 xor y, 7)
 ///
 
+TEST ///
+-----------------------
+-- string operations --
+-----------------------
+foo = rs "'foo'"
+bar = rs "'bar'"
+
+-- concatenation
+assert Equation(foo + bar, rs "'foobar'")
+assert Equation(foo + "bar", "foobar")
+assert Equation("foo" + bar, "foobar")
+
+-- repetition
+assert Equation(foo * rs "2", rs "'foofoo'")
+assert Equation(foo * 2, "foofoo")
+assert Equation("foo" * rs "2", "foofoo")
+assert Equation(rs "2" * foo, rs "'foofoo'")
+assert Equation(2 * foo, "foofoo")
+assert Equation(rs "2" * "foo", "foofoo")
+
+-- check a few methods
+assert Equation(foo@@capitalize(), rs "'Foo'")
+assert Equation(foo@@center(5, "x"), rs "'xfoox'")
+assert Equation((rs "'{0}, {1}!'")@@format("Hello", "world"),
+    rs "'Hello, world!'")
+assert Equation(foo@@replace("f", "F"), rs "'Foo'")
+assert Equation(foo@@upper(), rs "'FOO'")
+///
+
 end --------------------------------------------------------
 
 
