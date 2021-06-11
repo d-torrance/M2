@@ -49,8 +49,9 @@ export{
   }
 
 
-polymakeCommand = (options Tropical)#Configuration#"polymakeCommand"
-polymakeOK = polymakeCommand != ""
+polymakeCommand = findProgram("polymake", "polymake --version",
+    RaiseError => false)
+polymakeOK = polymakeCommand =!= null
 
 --Do we want to keep this?
 if polymakeOK then << "-- polymake is installed\n" else << "-- polymake not present\n";
@@ -132,10 +133,7 @@ visualizeHypersurface (RingElement) := o-> (polyn)->(
     print polynomial;
     filename := temporaryFileName();
     filename << "use application 'tropical';" << endl << "visualize_in_surface(new Hypersurface<"|minmax()|">(POLYNOMIAL=>toTropicalPolynomial(\""|polynomial|"\")));" << close;
-    runstring := polymakeCommand | " " |filename | " > "|filename|".out  2> "|filename|".err";
-    run runstring;
-    removeFile (filename|".err");
-    removeFile (filename|".out");
+    runProgram(polymakeCommand, filename);
     removeFile (filename);
 )
 
@@ -237,11 +235,7 @@ isBalanced (TropicalCycle):= T->(
 	filename<<close;
 --	filename << "use strict;" << endl << "my $filename = '" << filename << "';" << endl << "open(my $fh, '>', $filename);" << endl;
 --	filename << "print $fh is_balanced($c);" << endl << "close $fh;" << endl << close;
-	runstring := polymakeCommand | " "|filename | " > "|filename|".out  2> "|filename|".err";
-	run runstring;
-	removeFile (filename|".err");
-	result := get (filename|".out");
-	removeFile (filename|".out");
+	result := (runProgram(polymakeCommand, filename))#"output";
 	removeFile (filename);
 	if (substring(-4,result)=="true") then return true
 	else if  (substring(-5,result)=="false")  then return false
@@ -562,12 +556,8 @@ stableIntersection (TropicalCycle, TropicalCycle) := o -> (T1,T2) -> (
 	maxConeStr := "\"MAXIMAL_CONES\\n\";";
 	weightStr := "\"\\nMULTIPLICITIES\\n\";";
 	filename << "use application 'tropical';" << "my $c = "|convertToPolymake(C1) << "my $d = "|convertToPolymake(C2) << "my $i = intersect($c,$d);" << "use strict;" << "my $filename = '" << filename << "';" << "open(my $fh, '>', $filename);" << "print $fh " << openingStr << "print $fh $i->AMBIENT_DIM;" << "print $fh " << dimStr << "print $fh $i->DIM;" << "print $fh " << linDimStr << "print $fh $i->LINEALITY_DIM;" << "print $fh " << raysStr << "print $fh $i->RAYS;" << "print $fh " << nRaysStr << "print $fh $i->N_RAYS;" << "print $fh " << linSpaceStr << "print $fh $i->LINEALITY_SPACE;" << "print $fh " << orthLinStr << "print $fh $i->ORTH_LINEALITY_SPACE;" << "print $fh " << fStr << "print $fh $i->F_VECTOR;" << "print $fh " << simpStr << "print $fh $i->SIMPLICIAL;" << "print $fh " << pureStr << "print $fh $i->PURE;" << "print $fh " << coneStr << "my $cones = $i->CONES;" << "$cones =~ s/['\\>','\\<']//g;" << "print $fh $cones;" << "print $fh " << maxConeStr << "print $fh $i->MAXIMAL_CONES;" << "print $fh " << weightStr << "print $fh $i->WEIGHTS;" << "close $fh;" << close;
-
-	runstring := polymakeCommand | " "|filename | " > "|filename|".out  2> "|filename|".err";
-	run runstring;
+	runProgram(polymakeCommand, filename);
 	result := get filename;
-	removeFile (filename|".out");
-	removeFile (filename|".err");
 	removeFile (filename);
 	parsedResult := gfanParsePolyhedralFan(result);
 	if instance(parsedResult, String) then return parsedResult;
