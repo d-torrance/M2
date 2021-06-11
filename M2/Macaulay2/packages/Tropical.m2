@@ -48,6 +48,10 @@ export{
   "BergmanFan"
   }
 
+if (options Tropical)#Configuration#"polymakeCommand" != "" then printerr(
+///warning: The "polymakeCommand" configuration option has been deprecated.
+If polymake has been installed in a non-standard location, then specify it
+by setting programPaths#"polymake".///)
 
 polymakeCommand = findProgram("polymake", "polymake --version",
     RaiseError => false)
