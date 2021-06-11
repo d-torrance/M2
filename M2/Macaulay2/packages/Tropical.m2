@@ -1504,24 +1504,15 @@ doc///
        	   The software program Polymake is not distributed with
        	   Macaulay2, so to use the Polymake commands the user needs
        	   to install Polymake on their own machine, and tell
-       	   Macaulay2 where to find it.  This is done with the
-       	   Configuration option "polymakeCommand".  The default is
-       	   that this is empty, which means that Polymake options will
-       	   not be used.  To tell the package where your copy of Polymake is installed, use either
-	   loadPackage("Tropical",Configuration=>\{"polymakeCommand"=>"YOUR COMMAND"\}), or
-	   edit the init-Tropical.m2 file (created after you install the package)
-	   by changing "polymakeCommand" => "", into "polymakeCommand" => "YOUR COMMAND"
+       	   Macaulay2 where to find it.
 
-	   On a Mac, the default value for YOUR COMMAND is
-	   /Applications/polymake.app/Contents/MacOS/polymake.start
-	   and the init-Tropical.m2 file is usually in ~/Library/Application Support/Macaulay2.
-
-	   On Unix, the default value for YOUR COMMAND is
-           /usr/bin/polymake
-	   and the init-Tropical.m2 file is usually in ~/.Macaulay2.
-	   If polymake is installed in a nonstandard location, you can
-	   find YOUR COMMAND with the terminal command "which polymake".
-
+    	   If Polymake is installed in one of the directories indicated
+	   by your PATH environment variable, then it should be
+	   located automatically.  Otherwise, you may specify the path
+	   to Polymake using @TO "programPaths"@.
+       Example
+	   programPaths#"polymake" = "/path/to/polymake/"
+       Text
 	   This package should work with Polymake versions > 3.2, and has been tested up to 4.2.
 ///
 
