@@ -57,10 +57,8 @@ importFrom_Core {
     "pythonObjectStr",
     "pythonSetNew",
     "pythonTrue",
-    "pythonTupleGetItem",
     "pythonTupleNew",
     "pythonTupleSetItem",
-    "pythonTupleSize",
     "pythonUnicodeAsUTF8",
     "pythonUnicodeConcat",
     "pythonUnicodeFromString"

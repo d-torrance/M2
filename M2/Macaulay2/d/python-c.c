@@ -177,14 +177,6 @@ PyObject *python_UnicodeConcat(PyObject *o1, PyObject *o2) {
  * tuples *
  **********/
 
-int python_TupleSize(PyObject *o) {
-	return PyTuple_Size(o);
-}
-
-PyObject *python_TupleGetItem(PyObject *o, int i) {
-	return PyTuple_GetItem(o, i);
-}
-
 PyObject *python_TupleNew(int n) {
 	return PyTuple_New(n);
 }
