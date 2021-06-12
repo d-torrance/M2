@@ -610,6 +610,29 @@ assert Equation(value rs "None", null)
 ///
 
 TEST ///
+----------------------
+-- nested iterators --
+----------------------
+assert Equation(value rs "[[1,2]]", {{1,2}})
+assert Equation(value rs "[(1,2)]", {(1,2)})
+assert BinaryOperation(symbol ===, value rs "[{1,2}]", {set {1,2}})
+assert BinaryOperation(symbol ===, value rs "[{1:2}]", {hashTable {1 => 2}})
+assert Equation(value rs "([1,2],)", 1:{1,2})
+assert Equation(value rs "((1,2),)", 1:(1,2))
+assert BinaryOperation(symbol ===, value rs "({1,2},)", 1:set {1,2})
+assert BinaryOperation(symbol ===, value rs "({1:2},)", 1:hashTable {1 => 2})
+assert BinaryOperation(symbol ===, value rs "{(1,2)}", set {(1,2)})
+assert BinaryOperation(symbol ===, value rs "{(1,2):[3,4]}",
+    hashTable {(1,2) => {3,4}})
+assert BinaryOperation(symbol ===, value rs "{(1,2):(3,4)}",
+    hashTable {(1,2) => (3,4)})
+assert BinaryOperation(symbol ===, value rs "{(1,2):{3,4}}",
+    hashTable {(1,2) => set {3,4}})
+assert BinaryOperation(symbol ===, value rs "{(1,2):{3:4}}",
+    hashTable {(1,2) => hashTable {3 => 4}})
+///
+
+TEST ///
 -----------------------
 -- binary operations --
 -----------------------
