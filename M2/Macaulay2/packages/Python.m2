@@ -398,8 +398,30 @@ doc ///
       "PyRun_String"}@ from the Python C API.  It is also available
       as @TT "runPythonString"@.
     Example
-      rs "print('Hello, world!')"
-      runPythonString "2 + 2"
+      rs "2 + 2"
+  SeeAlso
+    runSimpleString
+///
+
+doc ///
+  Key
+    runSimpleString
+  Headline
+    execute Python source code from a string in __main__
+  Usage
+    runSimpleString s
+  Inputs
+    s:String -- containing Python source code
+  Description
+    Text
+      This function a is wrapper around the function @TT
+      HREF{"https://docs.python.org/3/c-api/veryhigh.html#c.PyRun_SimpleString",
+      "PyRun_SimpleString"}@ from the Python C API.  Note that, unlike
+      @TO "rs"@, it has no return value.
+    Example
+      runSimpleString "2 + 2"
+  SeeAlso
+    rs
 ///
 
 doc ///
