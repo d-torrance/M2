@@ -157,7 +157,7 @@ toRR PythonObject := pythonFloatAsDouble
 iterableToList = method()
 iterableToList(PythonObject) :=  x -> (
 	i := iter x;
-	value \ while (y := next i; y =!= null) list y)
+	while (y := next i; y =!= null) list value y)
 
 dictToHashTable = method()
 dictToHashTable(PythonObject) := x -> (
