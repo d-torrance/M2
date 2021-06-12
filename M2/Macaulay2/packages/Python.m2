@@ -678,9 +678,9 @@ assert Equation(x or 2, 7)
 assert Equation(5 or y, 7)
 
 -- xor
--- assert Equation(x ^^ y, rs "7")  (skipping until #2135 merged)
--- assert Equation(x ^^ 2, 7)
--- assert Equation(5 ^^ y, 7)
+assert Equation(x ^^ y, rs "7")
+assert Equation(x ^^ 2, 7)
+assert Equation(5 ^^ y, 7)
 assert Equation(x xor y, rs "7")
 assert Equation(x xor 2, 7)
 assert Equation(5 xor y, 7)
