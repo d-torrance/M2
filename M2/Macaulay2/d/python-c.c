@@ -56,13 +56,6 @@ int python_Main() {
   return Py_Main(argc,argv);
 }
 
-PyObject *python_SysGetObject(M2_string s) {
-  char *t = M2_tocharstar(s);
-  PyObject *ret = PySys_GetObject(t);
-  GC_FREE(t);
-  return ret;
-}
-
 /***********
  * objects *
  ***********/

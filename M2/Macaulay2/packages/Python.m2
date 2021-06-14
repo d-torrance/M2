@@ -32,7 +32,6 @@ exportFrom_Core {
     "runSimpleString",
     "PythonObject",
     "runPythonString",
-    "sysGetObject",
     "objectType",
     "initspam"}
 
@@ -778,10 +777,6 @@ rs "range(2,100)"
 
 -- module sys
 -- http://docs.python.org/library/sys.html#module-sys
-sysGetObject "subversion"
-sysGetObject "builtin_module_names"
-sysGetObject "copyright"
-
 sys = context "import sys";
 expr "sys.version"
 

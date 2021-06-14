@@ -31,10 +31,6 @@ import Main():int;
 PyMain(e:Expr):Expr := toExpr(Main());
 setupfun("pythonMain",PyMain);
 
-import SysGetObject(s:string):pythonObjectOrNull;
-PySysGetObject(e:Expr):Expr := when e is s:stringCell do toExpr(SysGetObject(s.v)) else WrongArgString();
-setupfun("sysGetObject",PySysGetObject);
-
 -------------
 -- objects --
 -------------
