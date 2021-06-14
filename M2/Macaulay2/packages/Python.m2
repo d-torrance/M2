@@ -69,7 +69,6 @@ export { "pythonHelp", "context", "rs", "Preprocessor", "toPython",
     "iter",
     "iterableToList",
     "next",
-    "objectTypeName",
     "toFunction"
 }
 
@@ -176,20 +175,16 @@ toFunction PythonObject := x -> y -> (
     if debugLevel > 0 then printerr("output: ", toString r);
     r)
 
-objectTypeName = method()
-objectTypeName PythonObject := x ->
-    toString pythonObjectGetAttrString(objectType x, "__name__");
-
 addPyToM2Function = method()
 addPyToM2Function(String, Function, String) := (type, f, desc) ->
     addPyToM2Function({type}, f, desc)
 addPyToM2Function(List, Function, String) := (types, f, desc) ->
     addHook((value, PythonObject),
-	x -> if member(objectTypeName x, types) then f x,
+	x -> if member((objectType x)@@"__name__", types) then f x,
 	Strategy => desc)
 
 addHook((value, PythonObject),
-    x -> if objectTypeName x != "NoneType" then x,
+    x -> if (objectType x)@@"__name__"  != "NoneType" then x,
     Strategy => "unknown -> PythonObject")
 addPyToM2Function({"function", "builtin_function_or_method", "method-wrapper"},
     toFunction, "function -> FunctionClosure")
