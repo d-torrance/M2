@@ -18,8 +18,6 @@ newPackage("Python",
     OptionalComponentsPresent => pythonPresent
     )
 
-importFrom_Core {"printerr"}
-
 -- TODO: how will we deal with documentation/cached examples
 -- when we haven't compiled w/ --with-python?
 
