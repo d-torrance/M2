@@ -21,9 +21,11 @@ newPackage("Python",
 -- TODO: how will we deal with documentation/cached examples
 -- when we haven't compiled w/ --with-python?
 
-if pythonPresent then printerr "success: python is present" else (
-    printerr "warning: python is not present";
-    printerr "specify --with-python in `configure` options and recompile M2";
+verboseLog = if debugLevel > 0 then printerr else identity
+
+if pythonPresent then verboseLog "success: python is present" else (
+    verboseLog "warning: python is not present";
+    verboseLog "specify --with-python in `configure` options and recompile M2";
     end)
 
 exportFrom_Core {
