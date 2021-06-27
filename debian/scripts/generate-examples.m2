@@ -40,7 +40,6 @@ generateExample = (pkgname, fkey, dir) -> (
 	"example result for " | format fkey,
 	demark_newline inputs,
 	pkg,
-	() -> null,
 	inf,
 	outf,
 	errf,
