@@ -60,6 +60,7 @@ problemExamples = {
     ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
     ("Macaulay2Doc", "getenv"),                                 -- #1149
     ("Macaulay2Doc", "homeDirectory"),                          -- #1149
+    ("Macaulay2Doc", "randomKRationalPoint"),                   -- #2162
     ("MultiplicitySequence", "monjMult"),                       -- #1676
     ("MultiprojectiveVarieties", "baseLocus"),                  -- #1742
     ("MultiprojectiveVarieties", "dim(MultiprojectiveVariety)"),-- #1742
