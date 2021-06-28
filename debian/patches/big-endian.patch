@@ -1,0 +1,51 @@
+Description: Fix mathicgb on big-endian architectures.
+Author: Jerry James <loganjerry@gmail.com>
+Origin: https://github.com/Macaulay2/mathicgb/pull/9/commits/b19bc2f
+Bug: https://github.com/Macaulay2/mathicgb/issues/3
+Bug: https://github.com/Macaulay2/mathicgb/issues/11
+Bug: https://github.com/Macaulay2/M2/issues/2162
+Last-Update: 2021-06-28
+
+--- a/M2/Macaulay2/e/mathicgb/MonoMonoid.hpp
++++ b/M2/Macaulay2/e/mathicgb/MonoMonoid.hpp
+@@ -18,6 +18,18 @@
+ #include <cstring>
+ #include <cctype>
+ 
++#ifdef _MSC_VER
++// So far as I am aware, Windows runs on little endian CPUs only
++#define le64toh(x) (x)
++#elif defined(__APPLE__)
++#include <libkern/OSByteOrder.h>
++#define le64toh(x) OSSwapLittleToHostInt64(x)
++#elif defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
++#include <sys/endian.h>
++#else
++#include <endian.h>
++#endif
++
+ MATHICGB_NAMESPACE_BEGIN
+ 
+ /// Implements the monoid of (monic) monomials with integer
+@@ -589,6 +601,9 @@
+       std::memcpy(&A, ptr(a, i*2), 8);
+       std::memcpy(&B, ptr(b, i*2), 8);
+       std::memcpy(&AB, ptr(ab, i*2), 8);
++      A = le64toh(A);
++      B = le64toh(B);
++      AB = le64toh(AB);
+       orOfXor |= AB ^ (A + B);
+     }
+     MATHICGB_ASSERT((orOfXor == 0) == isProductOf(a, b, ab));
+@@ -613,6 +628,11 @@
+       std::memcpy(&B, ptr(b, i*2), 8);
+       std::memcpy(&A1B, ptr(a1b, i*2), 8);
+       std::memcpy(&A2B, ptr(a2b, i*2), 8);
++      A1 = le64toh(A1);
++      A2 = le64toh(A2);
++      B = le64toh(B);
++      A1B = le64toh(A1B);
++      A2B = le64toh(A2B);
+       orOfXor |= (A1B ^ (A1 + B)) | (A2B ^ (A2 + B));
+     }
+     MATHICGB_ASSERT
