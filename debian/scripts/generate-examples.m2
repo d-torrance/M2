@@ -30,7 +30,9 @@ generateExample = (pkgname, fkey, dir) -> (
     inf := tmpdir | "/" | toFilename fkey | ".m2";
     outf := installdir | "/" | toFilename fkey | ".out";
     errf := installdir | "/" | toFilename fkey | ".errors";
-    pkg := loadPackage(pkgname, LoadDocumentation => true, Reload => true);
+    pkg := needsPackage(pkgname, LoadDocumentation => true);
+    if pkg#?"documentation not loaded" then pkg = loadPackage(
+	pkgname, LoadDocumentation => true, Reload => true);
     inputs := pkg#"example inputs"#(format makeDocumentTag fkey);
     if fileExists outf and gethash outf == hash inputs then (
 	printerr("example result for ", format fkey,
