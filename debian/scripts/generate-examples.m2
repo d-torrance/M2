@@ -71,6 +71,7 @@ problemExamples = {
     ("SegreClasses", "isComponentContained"),                   -- #2136
     ("SemidefiniteProgramming", "Solver"),                      -- #1149
     ("SimplicialDecomposability", "isVertexDecomposable"),      -- #1992
+    ("SparseResultants", "char(SparseResultant)"),              -- #2162
     ("SpecialFanoFourfolds", "detectCongruence(SpecialGushelMukaiFourfold,ZZ)"),
                                                                 -- #1539
     ("SpecialFanoFourfolds", "specialGushelMukaiFourfold"),     -- #1742
