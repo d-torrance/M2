@@ -65,6 +65,7 @@ problemExamples = {
     ("MultiplicitySequence", "monjMult"),                       -- #1676
     ("MultiprojectiveVarieties", "baseLocus"),                  -- #1742
     ("MultiprojectiveVarieties", "dim(MultiprojectiveVariety)"),-- #1742
+    ("MultiprojectiveVarieties", "image(MultirationalMap)"),    -- #2162
     ("MultiprojectiveVarieties", "MultirationalMap * MultirationalMap"),
                                                                 -- #1742
     ("MultiprojectiveVarieties", "MultirationalMap ** Ring"),   -- #1742
