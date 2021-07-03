@@ -180,11 +180,11 @@ addPyToM2Function(String, Function, String) := (type, f, desc) ->
     addPyToM2Function({type}, f, desc)
 addPyToM2Function(List, Function, String) := (types, f, desc) ->
     addHook((value, PythonObject),
-	x -> if member((objectType x)@@"__name__", types) then f x,
+	x -> if member(toString (objectType x)@@"__name__", types) then f x,
 	Strategy => desc)
 
 addHook((value, PythonObject),
-    x -> if (objectType x)@@"__name__"  != "NoneType" then x,
+    x -> if toString (objectType x)@@"__name__"  != "NoneType" then x,
     Strategy => "unknown -> PythonObject")
 addPyToM2Function({"function", "builtin_function_or_method", "method-wrapper"},
     toFunction, "function -> FunctionClosure")
