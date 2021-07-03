@@ -273,7 +273,6 @@ PythonObject @@ String = (x, y, e) ->
 
 toPython = method(Dispatch => Thing)
 toPython RR := pythonFloatFromDouble
--- TODO: maybe use fractions module instead
 toPython QQ := toPython @@ toRR
 toPython CC := x -> pythonComplexFromDoubles(realPart x, imaginaryPart x)
 toPython ZZ := pythonLongFromLong
