@@ -83,6 +83,7 @@ problemExamples = {
                                                                 -- #1539
     ("SpecialFanoFourfolds", "specialGushelMukaiFourfold"),     -- #1742
     ("SpecialFanoFourfolds", "toGrass"),                        -- #1742
+    ("SRdeformations", "complement(Complex)"),                  -- #2181
     ("ThreadedGB", "tgb"),                                      -- #1463
     ("ThreadedGB", "ThreadedGB"),                               -- #1463
     ("TestIdeals", "compatibleIdeals"),                         -- #1742
