@@ -57,6 +57,7 @@ problemExamples = {
                                                                 -- #1539
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastLinAlg", "regularInCodimension"),                     -- #1967
+    ("GraphicalModelsMLE", "solverMLE(...,RealPrecision=>...)"),-- #2182
     ("Macaulay2Doc", "applicationDirectory"),                   -- #1149
     ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
     ("Macaulay2Doc", "getenv"),                                 -- #1149
