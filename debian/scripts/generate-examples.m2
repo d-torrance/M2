@@ -72,6 +72,7 @@ problemExamples = {
     ("QthPower", "minimization"),                               -- #1884
     ("SegreClasses", "isComponentContained"),                   -- #2136
     ("SemidefiniteProgramming", "Solver"),                      -- #1149
+    ("SimplicialDecomposability", "isSheddingVertex"),          -- #1742
     ("SimplicialDecomposability", "isVertexDecomposable"),      -- #1992
     ("SpecialFanoFourfolds", "detectCongruence(SpecialGushelMukaiFourfold,ZZ)"),
                                                                 -- #1539
