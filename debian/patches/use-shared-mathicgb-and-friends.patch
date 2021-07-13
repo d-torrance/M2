@@ -1,0 +1,201 @@
+Description: Link against mathicgb and friends as shared libraries again.
+Author: Doug Torrance <dtorrance@piedmont.edu>
+Forwarded: TODO
+Last-Update: 2021-07-13
+
+--- a/M2/Macaulay2/e/Makefile.files
++++ b/M2/Macaulay2/e/Makefile.files
+@@ -26,40 +26,6 @@
+ 	NCResolutions/nc-res-computation \
+ 	Polynomial \
+ 	monomial-collection \
+-	mathicgb/CFile \
+-	mathicgb/LogDomain \
+-	mathicgb/LogDomainSet \
+-	mathicgb/PolyRing \
+-	mathicgb/Basis \
+-	mathicgb/MonoLookup \
+-	mathicgb/PolyBasis \
+-	mathicgb/SparseMatrix \
+-	mathicgb/QuadMatrix \
+-	mathicgb/QuadMatrixBuilder \
+-	mathicgb/Scanner \
+-	mathicgb/ClassicGBAlg \
+-	mathicgb/F4MatrixBuilder \
+-	mathicgb/F4MatrixBuilder2 \
+-	mathicgb/F4MatrixProjection \
+-	mathicgb/F4MatrixReducer \
+-	mathicgb/F4ProtoMatrix \
+-	mathicgb/F4Reducer \
+-	mathicgb/Reducer \
+-	mathicgb/TypicalReducer \
+-	mathicgb/ReducerDedup \
+-	mathicgb/ReducerHash \
+-	mathicgb/ReducerHashPack \
+-	mathicgb/ReducerNoDedup \
+-	mathicgb/ReducerPack \
+-	mathicgb/ReducerPackDedup \
+-	mathicgb/ModuleMonoSet \
+-	mathicgb/PolyHashTable \
+-	mathicgb/SPairs \
+-	mathicgb/SigPolyBasis \
+-	mathicgb/SigSPairQueue \
+-	mathicgb/SigSPairs \
+-	mathicgb/SignatureGB \
+-	mathicgb/io-util \
+ 	eigen \
+ 	monomial-sets \
+ 	mutablecomplex \
+@@ -212,16 +178,6 @@
+ 	weylalg
+ 
+ COMMANDS = \
+-	memtailor/Arena \
+-	memtailor/BufferPool \
+-	memtailor/MemoryBlocks \
+-	mathic/BitTriangle \
+-	mathic/ColumnPrinter \
+-	mathic/DivMask \
+-	mathic/Timer \
+-	mathic/display \
+-	mathic/error \
+-	mathicgb/mathicgb \
+ 	ntl-internal \
+ 	ntl-debugio \
+ 	matrix-kbasis \
+@@ -250,26 +206,6 @@
+ 	franzi-interface
+ 
+ NAMES_H = \
+-	mathicgb/Atomic \
+-	mathicgb/PrimeField \
+-	mathicgb/MonoMonoid \
+-	mathicgb/Range \
+-	mathicgb/Poly \
+-	mathicgb/FixedSizeMonomialMap \
+-	mathicgb/KoszulQueue \
+-	mathicgb/MathicIO \
+-	mathicgb/MonoArena \
+-	mathicgb/MonoOrder \
+-	mathicgb/MonoProcessor \
+-	mathicgb/MonomialMap \
+-	mathicgb/NonCopyable \
+-	mathicgb/RawVector \
+-	mathicgb/ReducerHelper \
+-	mathicgb/ScopeExit \
+-	mathicgb/StaticMonoMap \
+-	mathicgb/Unchar \
+-	mathicgb/mtbb \
+-	mathicgb/stdinc \
+ 	f4/f4-types \
+ 	f4/memblock \
+ 	VectorArithmetic \
+--- a/M2/Macaulay2/e/interface/groebner.cpp
++++ b/M2/Macaulay2/e/interface/groebner.cpp
+@@ -27,7 +27,7 @@
+ #include "interrupted.hpp"
+ #include "schreyer-resolution/res-f4-computation.hpp"
+ 
+-#include "mathicgb/mathicgb.h"
++#include <mathicgb.h>
+ #include "matrix-stream.hpp"
+ 
+ class FreeModule;
+--- a/M2/Macaulay2/e/monomial-sets.hpp
++++ b/M2/Macaulay2/e/monomial-sets.hpp
+@@ -16,7 +16,7 @@
+ // Features of these classes:
+ 
+ 
+-#include "memtailor/memtailor.h"
++#include <memtailor.h>
+ #include <unordered_set>
+ #include <unordered_map>
+ #include <utility>
+--- a/M2/Macaulay2/e/schreyer-resolution/res-f4.cpp
++++ b/M2/Macaulay2/e/schreyer-resolution/res-f4.cpp
+@@ -8,7 +8,7 @@
+ 
+ #include "monoid.hpp"
+ #include "ntuple.hpp"
+-#include "memtailor/memtailor.h"
++#include <memtailor.h>
+ #include "text-io.hpp"
+ 
+ #include <iostream>
+--- a/M2/configure.ac
++++ b/M2/configure.ac
+@@ -652,7 +652,7 @@
+ #     Initially, we offer no option for not compiling some of them.
+ 
+ # AC_SUBST(SUBLIST, " memtailor mathic mathicgb fflas_ffpack givaro ")
+-AC_SUBST(SUBLIST, " fflas_ffpack givaro ")
++AC_SUBST(SUBLIST, "memtailor mathic mathicgb fflas_ffpack givaro ")
+ 
+ # The list SUBLIST is the list of submodules that might be used and linked into M2.
+ 
+@@ -1210,35 +1210,35 @@
+      BUILTLIBS="-lreadline -lhistory $BUILTLIBS"
+ fi
+ 
+-dnl if test $BUILD_memtailor = no
+-dnl then AC_LANG(C++)
+-dnl      SAVE_CXXFLAGS="$CXXFLAGS"
+-dnl      CXXFLAGS="$CXXFLAGS"
+-dnl      AC_SEARCH_LIBS(MEMTAILOR_VERSION_STRING,memtailor,,BUILD_memtailor=yes)
+-dnl      AC_CHECK_HEADER(memtailor.h,,BUILD_memtailor=yes)
+-dnl      CXXFLAGS="$SAVE_CXXFLAGS"
+-dnl fi
+-dnl test $BUILD_memtailor = yes && BUILTLIBS="-lmemtailor $BUILTLIBS"
+-
+-dnl if test $BUILD_mathic = no
+-dnl then AC_LANG(C++)
+-dnl      SAVE_CXXFLAGS="$CXXFLAGS"
+-dnl      CXXFLAGS="$CXXFLAGS"
+-dnl      AC_SEARCH_LIBS(MATHIC_VERSION_STRING,mathic,,BUILD_mathic=yes)
+-dnl      AC_CHECK_HEADER(mathic.h,,BUILD_mathic=yes)
+-dnl      CXXFLAGS="$SAVE_CXXFLAGS"
+-dnl fi
+-dnl test $BUILD_mathic = yes && BUILTLIBS="-lmathic $BUILTLIBS"
+-
+-dnl if test $BUILD_mathicgb = no
+-dnl then AC_LANG(C++)
+-dnl      SAVE_CXXFLAGS="$CXXFLAGS"
+-dnl      CXXFLAGS="$CXXFLAGS"
+-dnl      AC_CHECK_HEADER(mathicgb.h,,BUILD_mathicgb=yes; AC_MSG_NOTICE(will build mathicgb))
+-dnl      AC_SEARCH_LIBS(MATHICGB_VERSION_STRING,mathicgb,,BUILD_mathicgb=yes; AC_MSG_NOTICE(will build mathicgb))
+-dnl      CXXFLAGS="$SAVE_CXXFLAGS"
+-dnl fi
+-dnl test $BUILD_mathicgb = yes && BUILTLIBS="-lmathicgb $BUILTLIBS"
++if test $BUILD_memtailor = no
++then AC_LANG(C++)
++     SAVE_CXXFLAGS="$CXXFLAGS"
++     CXXFLAGS="$CXXFLAGS"
++     AC_SEARCH_LIBS(MEMTAILOR_VERSION_STRING,memtailor,,BUILD_memtailor=yes)
++     AC_CHECK_HEADER(memtailor.h,,BUILD_memtailor=yes)
++     CXXFLAGS="$SAVE_CXXFLAGS"
++fi
++test $BUILD_memtailor = yes && BUILTLIBS="-lmemtailor $BUILTLIBS"
++
++if test $BUILD_mathic = no
++then AC_LANG(C++)
++     SAVE_CXXFLAGS="$CXXFLAGS"
++     CXXFLAGS="$CXXFLAGS"
++     AC_SEARCH_LIBS(MATHIC_VERSION_STRING,mathic,,BUILD_mathic=yes)
++     AC_CHECK_HEADER(mathic.h,,BUILD_mathic=yes)
++     CXXFLAGS="$SAVE_CXXFLAGS"
++fi
++test $BUILD_mathic = yes && BUILTLIBS="-lmathic $BUILTLIBS"
++
++if test $BUILD_mathicgb = no
++then AC_LANG(C++)
++     SAVE_CXXFLAGS="$CXXFLAGS"
++     CXXFLAGS="$CXXFLAGS"
++     AC_CHECK_HEADER(mathicgb.h,,BUILD_mathicgb=yes; AC_MSG_NOTICE(will build mathicgb))
++     AC_SEARCH_LIBS(MATHICGB_VERSION_STRING,mathicgb,,BUILD_mathicgb=yes; AC_MSG_NOTICE(will build mathicgb))
++     CXXFLAGS="$SAVE_CXXFLAGS"
++fi
++test $BUILD_mathicgb = yes && BUILTLIBS="-lmathicgb $BUILTLIBS"
+ 
+ if test $BUILD_gtest = no
+ then
