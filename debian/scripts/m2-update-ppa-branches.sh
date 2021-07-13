@@ -6,19 +6,29 @@ echo -n "fetching salsa ... "
 git fetch -q salsa
 echo "done"
 
-echo -n "checking if local branches are up to date ... "
-git merge-base --is-ancestor salsa/debian/development debian/development
-DEBIAN_DEVELOPMENT_UPDATED=$?
-git merge-base --is-ancestor salsa/ppa/bionic ppa/bionic
-PPA_BIONIC_UPDATED=$?
+BRANCHES="debian/development ppa/bionic"
 
-if [ $DEBIAN_DEVELOPMENT_UPDATED -eq 0 -a $PPA_BIONIC_UPDATED -eq 0 ]
-then
-    echo "yes"
-else
-    echo "no, update them and try again"
-    exit 1
-fi
+for BRANCH in $BRANCHES
+do
+    echo -n "checking if $BRANCH is up to date ... "
+    if git merge-base --is-ancestor salsa/$BRANCH $BRANCH
+    then
+	echo "yes"
+    else
+	echo "no"
+	echo -n "checking if $BRANCH can be fast-forwarded ... "
+	if git merge-base --is-ancestor $BRANCH salsa/$BRANCH
+	then
+	    echo -n "yes\nfast-forwarding ... "
+	    git checkout -q $BRANCH
+	    git merge -q --ff-only salsa/$BRANCH
+	    echo "done"
+	else
+	    echo -n "no\nupdate $BRANCH and try again"
+	    exit 1
+	fi
+    fi
+done
 
 CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
 if [ $CURRENT_BRANCH != "debian/development" ]
