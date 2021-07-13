@@ -94,10 +94,11 @@ generateExamples = dir -> (
     scan(problemExamples, (pkg, fkey) -> generateExample(pkg, fkey, dir));
     ls := d -> select(readDirectory d, file -> last file != ".");
     exdir := dir | "/examples/";
-    extraExamples := set flatten apply(ls exdir,
-	pkg -> apply(ls(exdir |  pkg), outf -> (pkg, outf))) -
-	    set apply(problemExamples,
-		(pkg, fkey) -> (pkg, toFilename fkey | ".out"));
+    extraExamples := set flatten apply(ls exdir, pkg ->
+	for outf in ls(exdir |  pkg) list if match ("\\.out$", outf)
+	    then (pkg, outf) else continue) -
+	set apply(problemExamples, (pkg, fkey) ->
+	    (pkg, toFilename fkey | ".out"));
     if #extraExamples > 0 then error("extra cached examples: " | newline |
 	toString \\ stack \\ apply(toList extraExamples, extra ->
 	    extra_0 | "::" | replace("\\.out$", "", extra_1)));
