@@ -24,7 +24,7 @@ do
 	    git merge -q --ff-only salsa/$BRANCH
 	    echo "done"
 	else
-	    echo -n "no\nupdate $BRANCH and try again"
+	    echo "no\nupdate $BRANCH and try again"
 	    exit 1
 	fi
     fi
