@@ -678,10 +678,14 @@ installPackage Package := opts -> pkg -> (
 	rawdbnametmp := rawdbname | ".tmp";
 	verboseLog("storing raw documentation in ", minimizeFilename rawdbname);
 	makeDirectory databaseDirectory(installLayout, pkg#"package prefix", pkg#"pkgname");
-	if fileExists rawdbnametmp then removeFile rawdbnametmp;
+	if fileExists rawdbnametmp then (
+	    for file in readDirectory rawdbnametmp do
+	    	if file != "." and file != ".." then removeFile(rawdbnametmp |
+		    "/" | file);
+	    	removeDirectory rawdbnametmp;);
 	if fileExists rawdbname then (
 	    tmp := openDatabase rawdbname;   -- just to make sure the database file isn't open for writing
-	    copyFile(rawdbname, rawdbnametmp);
+--	    copyDirectory(rawdbname, rawdbnametmp);
 	    close tmp);
 	rawdocDatabase := openDatabaseOut rawdbnametmp;
 	rawDoc := pkg#"raw documentation";
@@ -746,7 +750,12 @@ installPackage Package := opts -> pkg -> (
 
 	if pkg#?rawKeyDB and isOpen pkg#rawKeyDB then close pkg#rawKeyDB;
 
-	shield ( moveFile(rawdbnametmp, rawdbname, Verbose => debugLevel > 1); );
+--	shield ( moveFile(rawdbnametmp, rawdbname, Verbose => debugLevel > 1); );
+    	copyDirectory(rawdbnametmp, rawdbname);
+	for file in readDirectory rawdbnametmp do
+	if file != "." and file != ".." then removeFile(rawdbnametmp |
+	    "/" | file);
+	removeDirectory rawdbnametmp;
 
 	pkg#rawKeyDB = openDatabase rawdbname;
 	addEndFunction(() -> if pkg#?rawKeyDB and isOpen pkg#rawKeyDB then close pkg#rawKeyDB);
