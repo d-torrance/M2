@@ -122,8 +122,31 @@ readlineversion():constcharstar := Ccode(returns,"
      sprintf(buf, \"%d.%d\", (rl_readline_version>>8)&0xff, rl_readline_version&0xff );
      return buf");
 
-header "#include <gdbm.h>";
-gdbmversion():constcharstar := Ccode(returns, "return gdbm_version");
+header "
+    #if USING_LEVELDB
+    #include <leveldb/db.h>
+    #else
+    #include <gdbm.h>
+    #endif
+    ";
+
+gdbmversion():constcharstar := Ccode(returns, "
+    #if USING_LEVELDB
+    return \"not present\";
+    #else
+    return gdbm_version;
+    #endif
+    ");
+
+leveldbversion():constcharstar := Ccode(returns,"
+    #if USING_LEVELDB
+    static char buf[8];
+    sprintf(buf, \"%d.%d\", leveldb::kMajorVersion, leveldb::kMinorVersion);
+    return buf;
+    #else
+    return \"not present\";
+    #endif
+    ");
 
 header "extern \"C\" void ilaver_(int *major, int *minor, int *patch);";
 lapackversion():constcharstar := Ccode(returns, "
@@ -194,6 +217,7 @@ setupconst("version", Expr(toHashTable(Sequence(
 	#endif
 	"),
    "gdbm version" => gdbmversion(),
+   "leveldb version" => leveldbversion(),
    "gmp version" => Ccode(constcharstar,"
 	  #if USING_MPIR
 	       \"not present\"
