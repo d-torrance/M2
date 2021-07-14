@@ -644,7 +644,7 @@ AC_SUBST(BUILTLIBS)
 #    (Programs linked by this configure script are linked with the options in LIBS.  This allows libraries
 #    dependent on previously detected libraries to be detected by tests that involve linking.
 
-AC_SUBST(LIBLIST, " atomic_ops gc gdbm gmp mpir mpfr mpfi readline ntl flint factory lapack mpsolve frobby glpk cddlib fplll linbox gtest ")
+AC_SUBST(LIBLIST, " atomic_ops gc gmp mpir mpfr mpfi readline ntl flint factory lapack mpsolve frobby glpk cddlib fplll linbox gtest ")
 # The list LIBLIST is the list of libraries that might be used and linked into M2.
 
 AC_SUBST(PROGLIST, "4ti2 gfan normaliz csdp nauty cddplus lrslib gftables topcom cohomcalg")
@@ -719,7 +719,7 @@ PKGNAME_fflas_ffpack=fflas-ffpack
 #############################################################################
 
 LIBLIST=" $LIBLIST "
-AC_ARG_ENABLE(build-libraries, AS_HELP_STRING(--enable-build-libraries=...,[list of libraries, submodules, and programs to build from downloaded source code (e.g., gc gdbm mpir mpfr mpfi readline ntl gftables factory lapack mpsolve frobby glpk cddlib givaro fflas_ffpack linbox 4ti2 gfan normaliz csdp nauty cddplus lrslib)]),
+AC_ARG_ENABLE(build-libraries, AS_HELP_STRING(--enable-build-libraries=...,[list of libraries, submodules, and programs to build from downloaded source code (e.g., gc mpir mpfr mpfi readline ntl gftables factory lapack mpsolve frobby glpk cddlib givaro fflas_ffpack linbox 4ti2 gfan normaliz csdp nauty cddplus lrslib)]),
     [for i in $enableval
      do case " $LIBLIST $SUBLIST $PROGLIST " in
 	    *" $i "*) 
@@ -737,22 +737,9 @@ dnl as libflint.a, into LIBS, then mathicgb, mathic, and memtailor get confused 
 dnl of the file in their *.a file.
 TRY_STATIC=no
 
-AC_SUBST(LIBS_GDBM)
-AC_LANG(C)
-AC_CHECK_HEADER(gdbm.h,
-	test $BUILD_gdbm = yes && AC_MSG_WARN([[library gdbm exists, but we are asked to build it]]),
-	BUILD_gdbm=yes)
-if test $BUILD_gdbm = yes
-then LIBS_GDBM="-lgdbm"
-     BUILTLIBS="$LIBS_GDBM $BUILTLIBS"
-else if test $SHARED = no -a $TRY_STATIC = yes
-     then SEARCH_LIBRARIES(gdbm_close,"/usr/lib/libgdbm.a" "/usr/local/lib/libgdbm.a",,[AC_MSG_ERROR([libgdbm.a not found])])
-     else AC_SEARCH_LIBS(gdbm_close,"gdbm",,[AC_MSG_ERROR([libgdbm not found])])
-     fi
-     if test "none required" != "$ac_cv_search_gdbm_close"
-     then LIBS_GDBM=$ac_cv_search_gdbm_close
-     fi
-fi
+AC_LANG([C++])
+AC_CHECK_HEADER([leveldb/db.h],, AC_MSG_ERROR([leveldb/db.h not found]))
+AC_SEARCH_LIBS([leveldb_open], [leveldb],, AC_MSG_ERROR([leveldb not found]))
 
 AC_MSG_CHECKING(whether package bdw-gc is provided)
 dnl Note: we don't include -lgccpp below, because linking with that library is what replaces ::new and friends with GC_MALLOC_UNCOLLECTABLE and friends:
@@ -1819,7 +1806,6 @@ AC_MSG_NOTICE([using RANLIB            = $RANLIB])
 AC_MSG_NOTICE([using LDFLAGS           = $LDFLAGS])
 AC_MSG_NOTICE([using BLASLIBS          = $BLASLIBS])
 AC_MSG_NOTICE([using LAPACKLIBS        = $LAPACKLIBS])
-AC_MSG_NOTICE([using LIBS_GDBM         = $LIBS_GDBM])
 AC_MSG_NOTICE([using LIBS_GLPK         = $LIBS_GLPK])
 AC_MSG_NOTICE([using LIBS_GMP          = $LIBS_GMP])
 AC_MSG_NOTICE([using CC_FOR_BUILD      = $CC_FOR_BUILD])
