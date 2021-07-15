@@ -324,7 +324,8 @@ tallyInstalledPackages = () -> for prefix in prefixPath do (
 -- gdbm makes architecture dependent files, so we try to distinguish them, in case
 -- they get mixed.  Yes, that's in addition to installing them in directories that
 -- are specified to be suitable for machine dependent data.
-databaseSuffix := "-" | version#"endianness" | "-" | version#"pointer size" | ".db"
+databaseSuffix := if databaseLibrary == "leveldb" then "-leveldb" else
+    "-" | version#"endianness" | "-" | version#"pointer size" | ".db"
 
 databaseDirectory = (layout, pre, pkg) -> pre | replace("PKG", pkg, layout#"packagecache")
 databaseFilename  = (layout, pre, pkg) -> databaseDirectory(layout, pre, pkg) | "rawdocumentation" | databaseSuffix

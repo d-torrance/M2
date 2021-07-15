@@ -563,6 +563,24 @@ getErrors = fn -> (
     if m =!= null then substring(m#0, err) else get("!tail " | fn)
     )
 
+removeFileOrDirectory = fn ->
+    if not isDirectory fn then removeFile fn else (
+	files := select(readDirectory fn, file -> file != "." and file != "..");
+	for file in files do removeFileOrDirectory(fn | "/" | file);
+	removeDirectory fn)
+
+copyFileOrDirectory = (src, dst) ->
+    if not isDirectory src then copyFile(src, dst) else (
+	makeDirectory dst;
+	files := select(readDirectory src, file ->
+	    file != "." and file != "..");
+	for file in files do copyFileOrDirectory(src | "/" | file,
+	    dst | "/" | file))
+
+moveFileOrDirectory = (src, dst) -> (
+    copyFileOrDirectory(src, dst);
+    removeFileOrDirectory src)
+
 -----------------------------------------------------------------------------
 -- installPackage
 -----------------------------------------------------------------------------
@@ -676,10 +694,10 @@ installPackage Package := opts -> pkg -> (
 	rawdbnametmp := rawdbname | ".tmp";
 	verboseLog("storing raw documentation in ", minimizeFilename rawdbname);
 	makeDirectory databaseDirectory(installLayout, pkg#"package prefix", pkg#"pkgname");
-	if fileExists rawdbnametmp then removeFile rawdbnametmp;
+	if fileExists rawdbnametmp then removeFileOrDirectory rawdbnametmp;
 	if fileExists rawdbname then (
 	    tmp := openDatabase rawdbname;   -- just to make sure the database file isn't open for writing
-	    copyFile(rawdbname, rawdbnametmp);
+	    copyFileOrDirectory(rawdbname, rawdbnametmp);
 	    close tmp);
 	rawdocDatabase := openDatabaseOut rawdbnametmp;
 	rawDoc := pkg#"raw documentation";
@@ -747,7 +765,7 @@ installPackage Package := opts -> pkg -> (
 
 	if pkg#?rawKeyDB and isOpen pkg#rawKeyDB then close pkg#rawKeyDB;
 
-	shield ( moveFile(rawdbnametmp, rawdbname, Verbose => debugLevel > 1); );
+	shield ( moveFileOrDirectory(rawdbnametmp, rawdbname); );
 
 	pkg#rawKeyDB = openDatabase rawdbname;
 	addEndFunction(() -> if pkg#?rawKeyDB and isOpen pkg#rawKeyDB then close pkg#rawKeyDB);
