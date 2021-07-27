@@ -73,6 +73,7 @@ problemExamples = {
     ("MultiprojectiveVarieties", "MultirationalMap ** Ring"),   -- #1742
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
     ("QthPower", "minimization"),                               -- #1884
+    ("PrimaryDecomposition", "primaryDecomposition"),           -- #2202
     ("SegreClasses", "isComponentContained"),                   -- #2136
     ("SemidefiniteProgramming", "Solver"),                      -- #1149
     ("SimplicialDecomposability", "isSheddingVertex"),          -- #1742
