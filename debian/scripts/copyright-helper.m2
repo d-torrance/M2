@@ -21,7 +21,8 @@ copyrightHelper = pkgName -> (
 
 -- function to check that all packages are mentioned in d/copyright
 -- unless only authors are Dan and/or Mike (or Jane Doe for FirstPackage)
-missingPackages = pathToDCopyright -> (
+pathToDCopyright := minimizeFilename(currentFileDirectory | "../copyright")
+missingPackages = () -> (
     dCopyright := get pathToDCopyright;
     missing := select(separate(" ", version#"packages"), pkg ->
 	not match("M2/Macaulay2/packages/" | pkg | "(\\.m2|\\*)", dCopyright));
