@@ -29,15 +29,27 @@ dbmopenin(e:Expr):Expr := (
      is a:stringCell do (
 	  if notify then stderr << " -- opening database " << minimizeFilename(a.v) << endl;
 	  dbmopenin(a.v))
-     else buildErrorPacket("expected a string as filename"));
-setupfun("openDatabase",dbmopenin);
+     is f:Database do
+	  if f.isopen then buildErrorPacket("database already open")
+	  else (
+	       ret := dbmopenin(toExpr(f.filename));
+	       f.isopen = true;
+	       ret)
+     else buildErrorPacket("expected a database or a string as filename"));
+setupfun("openDatabase", dbmopenin);
 dbmopenout(e:Expr):Expr := (
      when e
      is a:stringCell do (
 	  if notify then stderr << " -- opening database for output " << minimizeFilename(a.v) << endl;
 	  dbmopenout(a.v))
-     else buildErrorPacket("expected a string as filename"));
-setupfun("openDatabaseOut",dbmopenout);
+     is f:Database do
+	  if f.isopen then buildErrorPacket("database already open")
+	  else (
+	       ret := dbmopenout(toExpr(f.filename));
+	       f.isopen = true;
+	       ret)
+     else buildErrorPacket("expected a database or a string as filename"));
+setupfun("openDatabaseOut", dbmopenout);
 
 keys(e:Expr):Expr := (
      when e
