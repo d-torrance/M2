@@ -93,8 +93,8 @@ problemExamples = {
     ("Topcom", "isRegularTriangulation")                        -- #1707
 }
 
--- give path to debian directory
-generateExamples = dir -> (
+dir := minimizeFilename(currentFileDirectory | "../")
+generateExamples = () -> (
     scan(problemExamples, (pkg, fkey) -> generateExample(pkg, fkey, dir));
     ls := d -> select(readDirectory d, file -> last file != ".");
     exdir := dir | "/examples/";
