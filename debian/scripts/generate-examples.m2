@@ -59,6 +59,8 @@ problemExamples = {
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastMinors", "regularInCodimension"),                     -- #1967
     ("GraphicalModelsMLE", "solverMLE(...,RealPrecision=>...)"),-- #2182
+    ("M0nbar", "writeCurveInSingletonSpineBasis"),              -- #2203
+    ("M0nbar", "writeCurveInSingletonSpineBasis(ZZ,List)"),     -- #2203
     ("Macaulay2Doc", "applicationDirectory"),                   -- #1149
     ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
     ("Macaulay2Doc", "getenv"),                                 -- #1149
