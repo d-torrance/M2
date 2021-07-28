@@ -24,7 +24,7 @@ copyrightHelper = pkgName -> (
 missingPackages = pathToDCopyright -> (
     dCopyright := get pathToDCopyright;
     missing := select(separate(" ", version#"packages"), pkg ->
-	not match(pkg, dCopyright));
+	not match("M2/Macaulay2/packages/" | pkg | "(\\.m2|\\*)", dCopyright));
     select(missing, pkg ->
 	not all(hashTable \ (readPackage pkg)#Authors, author ->
 	    match({"Doe", "Grayson", "Stillman"}, author#Name)))
