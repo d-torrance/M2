@@ -108,4 +108,14 @@ generateExamples = () -> (
     if #extraExamples > 0 then error("extra cached examples: " | newline |
 	toString \\ stack \\ apply(toList extraExamples, extra ->
 	    extra_0 | "::" | replace("\\.out$", "", extra_1)));
+    cachepatch := get(dir | "patches/use-cached-examples.patch");
+    missingFromPatch := select(unique \\ first \ problemExamples, pkg -> (
+	    opts = readPackage(pkg, FileName => dir |
+		"../M2/Macaulay2/packages/" | pkg | ".m2");
+	    not (opts.AuxiliaryFiles and
+		opts.OptionalComponentsPresent =!= null or
+		match("M2/Macaulay2/packages/" | pkg | "\\.m2", cachepatch))));
+    if #missingFromPatch > 0 then error(
+	"add these packages to d/patches/use-cached-examples.patch:" | newline |
+	toString stack missingFromPatch);
     )
