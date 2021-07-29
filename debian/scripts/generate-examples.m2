@@ -56,6 +56,7 @@ generateExample = (pkgname, fkey, dir) -> (
 problemExamples = {
     ("CoincidentRootLoci", "CoincidentRootLocus * CoincidentRootLocus"),
                                                                 -- #1539
+    ("Elimination", "discriminant(RingElement,RingElement)"),   -- #2202
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastMinors", "regularInCodimension"),                     -- #1967
     ("GraphicalModelsMLE", "solverMLE(...,RealPrecision=>...)"),-- #2182
