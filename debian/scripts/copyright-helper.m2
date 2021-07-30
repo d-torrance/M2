@@ -15,13 +15,14 @@ danMikeRegex := {"^Jane Doe$", -- "author" of FirstPackage/SecondPackage
 -- manually check each file to ensure the license information is correct
 copyrightHelper = pkgName -> (
     pkg := readpkg pkgName;
-    filename := replace(regexQuote srcdir | "(.*)\\.m2$", "\\1",
-	getfilename pkgName) | if pkg#AuxiliaryFiles then "*" else ".m2";
+    filename := getfilename pkgName;
+    files := replace(regexQuote srcdir | "(.*)\\.m2$", "\\1", filename) |
+	if pkg#AuxiliaryFiles then "*" else ".m2";
     year := if pkg#Date =!= null then
 	(first select(///[\d]{4}///, pkg#Date)) | " " else "";
     danOrMike := any(apply(pkg#Authors, author ->
 	    last first author), name -> match(danMikeRegex, name));
-    stdio << "Files: " | filename | newline |
+    print("Files: " | files | newline |
 	"Copyright: " |
 	demark(newline | "	   ",
 	    apply(hashTable \ pkg#Authors, author ->
@@ -29,7 +30,9 @@ copyrightHelper = pkgName -> (
 	    (if author#?Email then " <" | author#Email | ">" else ""))) |
 	newline | "Comment: See Comment at the top of this file." | newline |
 	"License: " | (if danOrMike then "GPL-2+ and " else "") |
-	"public-domain" << endl;
+	"public-domain" | newline);
+    printerr "warning: confirm that this copyright information is correct:";
+    print(filename | ":1:1:");
 )
 
 -- function to check that all packages are mentioned in d/copyright
