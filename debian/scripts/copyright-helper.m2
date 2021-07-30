@@ -6,6 +6,11 @@ getfilename := pkg -> (
     error "file not found")
 readpkg := pkg -> readPackage(pkg, FileName => getfilename pkg)
 
+-- no need to list packages written only by Dan and/or Mike
+danMikeRegex := {"^Jane Doe$", -- "author" of FirstPackage/SecondPackage
+    "^Daniel R\\. Grayson$",
+    "^Mi(ke|chael E\\.) Stillman$"}
+
 -- function to help generate d/copyright paragraphs for Macaulay2 packages
 -- manually check each file to ensure the license information is correct
 copyrightHelper = pkgName -> (
@@ -15,7 +20,7 @@ copyrightHelper = pkgName -> (
     year := if pkg#Date =!= null then
 	(first select(///[\d]{4}///, pkg#Date)) | " " else "";
     danOrMike := any(apply(pkg#Authors, author ->
-	    last first author), name -> match({"Grayson", "Stillman"}, name));
+	    last first author), name -> match(danMikeRegex, name));
     stdio << "Files: " | filename | newline |
 	"Copyright: " |
 	demark(newline | "	   ",
@@ -53,5 +58,5 @@ missingPackages = () -> (
 	    "(\\.m2|\\*)", dCopyright));
     select(missing, pkg ->
 	not all(hashTable \ (readpkg pkg)#Authors, author ->
-	    match({"Doe", "Grayson", "Stillman"}, author#Name)))
+	    match(danMikeRegex, author#Name)))
 )
