@@ -87,6 +87,10 @@ problemExamples = {
     ("SpecialFanoFourfolds", "toGrass"),                        -- #1742
     ("SpecialFanoFourfolds",                                    -- #1742
 	"toGrass(EmbeddedProjectiveVariety)"),
+    ("SpectralSequences",                                       -- #2206
+	"Examples of change of rings Spectral Sequences"),
+    ("SpectralSequences", "PageMap"),                           -- #2206
+    ("SpectralSequences", "pruningMaps"),                       -- #2206
     ("SRdeformations", "complement(Complex)"),                  -- #2181
     ("ThreadedGB", "tgb"),                                      -- #1463
     ("ThreadedGB", "ThreadedGB"),                               -- #1463
