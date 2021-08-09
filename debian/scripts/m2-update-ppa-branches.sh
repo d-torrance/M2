@@ -6,6 +6,8 @@ echo -n "fetching salsa ... "
 git fetch -q salsa
 echo "done"
 
+ORIGINAL_BRANCH=$(git symbolic-ref --short HEAD)
+
 BRANCHES="debian/development ppa/bionic"
 
 for BRANCH in $BRANCHES
@@ -30,30 +32,33 @@ do
     fi
 done
 
-CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
-if [ $CURRENT_BRANCH != "debian/development" ]
-then
-    echo -n "checking out debian/development ... "
-    git checkout -q debian/development
-    echo "done"
-fi
+checkout() {
+    CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+    if [ $CURRENT_BRANCH != $1 ]
+    then
+	echo -n "checking out $1 ... "
+	git checkout -q $1
+	echo "done"
+    fi
+}
 
-echo -n "pushing debian/development to salsa ... "
-git push -q salsa debian/development
-echo "done"
+push() {
+    if [ $(git rev-parse $1) != $(git rev-parse salsa/$1) ]
+    then
+	echo -n "pushing $1 to salsa ... "
+	git push -q salsa $1
+	echo "done"
+    fi
+}
 
-echo -n "checking out ppa/bionic ... "
-git checkout -q ppa/bionic
-echo "done"
+checkout "debian/development"
+push "debian/development"
+
+checkout "ppa/bionic"
 
 echo -n "merging debian/development into ppa/bionic ... "
 git merge -q --no-edit debian/development
 echo "done"
 
-echo -n "pushing ppa/bionic to salsa ... "
-git push -q salsa ppa/bionic
-echo "done"
-
-echo -n "checking out debian/development ... "
-git checkout -q debian/development
-echo "done"
+push "ppa/bionic"
+checkout $ORIGINAL_BRANCH
