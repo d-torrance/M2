@@ -54,11 +54,14 @@ push() {
 checkout "debian/development"
 push "debian/development"
 
-checkout "ppa/bionic"
+if [ $(git rev-parse debian/development) != \
+     $(git merge-base debian/development ppa/bionic) ]
+then
+    checkout "ppa/bionic"
+    echo -n "merging debian/development into ppa/bionic ... "
+    git merge -q --no-edit debian/development
+    echo "done"
+    push "ppa/bionic"
+fi
 
-echo -n "merging debian/development into ppa/bionic ... "
-git merge -q --no-edit debian/development
-echo "done"
-
-push "ppa/bionic"
 checkout $ORIGINAL_BRANCH
