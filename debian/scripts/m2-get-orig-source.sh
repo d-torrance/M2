@@ -19,7 +19,8 @@
 
 set -e
 
-TEMP=$(getopt -o 'udr:' -l 'uscan,dev,ref' -n "m2-get-orig-source"  -- "$@")
+TEMP=$(getopt -o 'udr:n' -l 'uscan,dev,ref,no-tarball' -n "m2-get-orig-source" \
+	      -- "$@")
 
 if [ $? -ne 0 ]; then
         echo 'Terminating...' >&2
@@ -54,6 +55,11 @@ while true; do
 	    shift 2
 	    continue
 	    ;;
+	'-n'|'--no-tarball')
+	    NOTARBALL=1
+	    shift
+	    continue
+	    ;;
 	'--')
 	    shift
 	    break
@@ -70,7 +76,12 @@ then
     call_uscan
 fi
 
-echo "making tarball for ref '$REF'"
+if [ -z $NOTARBALL ]
+then
+    echo "making tarball for ref '$REF'"
+else
+    echo "getting version number for ref '$REF'"
+fi
 
 git fetch https://github.com/Macaulay2/M2 $REF 2> /dev/null
 
@@ -101,6 +112,11 @@ echo "done"
 echo -n "updating debian/changelog ... "
 dch -m -b -v $VERSION+ds-1 "" 2> /dev/null
 echo "done"
+
+if [ $NOTARBALL ]
+then
+   exit
+fi
 
 echo -n "generating M2 tarball ... "
 git archive -o ../macaulay2_$VERSION.orig.tar FETCH_HEAD
