@@ -19,22 +19,57 @@
 
 set -e
 
-if [ "x$1" = "x" -o "x$1" = "x-u" -o "x$1" = "x--uscan" ]
-then
+TEMP=$(getopt -o 'udr:' -l 'uscan,dev,ref' -n "m2-get-orig-source"  -- "$@")
+
+if [ $? -ne 0 ]; then
+        echo 'Terminating...' >&2
+        exit 1
+fi
+
+eval set -- "$TEMP"
+unset TEMP
+
+call_uscan() {
     echo -n "finding newest version using uscan ... "
-    VERSION=$(uscan --report-status | grep newversion | awk '{print $3}')
+    VERSION=$(uscan --report-status | grep newversion | \
+		  awk '{print $3}')
     echo $VERSION
     REF="release-$(echo $VERSION | sed 's/~rc/-rc/')"
-elif [ $1 = "-r" -o $1 = "--ref" ]
+}
+
+while true; do
+    case "$1" in
+        '-u'|'--uscan')
+	    call_uscan
+	    shift
+	    continue
+	    ;;
+	'-d'|'--dev')
+	    REF="development"
+	    shift
+	    continue
+	    ;;
+	'-r'|'--ref')
+	    REF=$2
+	    shift 2
+	    continue
+	    ;;
+	'--')
+	    shift
+	    break
+	    ;;
+	*)
+	    echo 'Internal error!' >&2
+	    exit 1
+	    ;;
+    esac
+done
+
+if [ "x$REF" = "x" ]
 then
-    REF=$2
-elif [ $1 = "-d"  -o $1 = "--dev" ]
-then
-    REF="development"
-else
-    echo "error: unknown command line argument"
-    exit 1
+    call_uscan
 fi
+
 echo "making tarball for ref '$REF'"
 
 git fetch https://github.com/Macaulay2/M2 $REF 2> /dev/null
