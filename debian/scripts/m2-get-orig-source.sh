@@ -6,20 +6,11 @@
 #
 # also updates git-description.patch and d/changelog with the corresponding
 # git description/version number
-#
-# options:
-#   -u, --uscan
-#     use uscan to determine newest stable version (default)
-#
-#   -d, --dev
-#     use 'development' branch
-#
-#   -r, --ref <ref>
-#     use branch or tag specificed by <ref>
 
 set -e
 
-TEMP=$(getopt -o 'udr:n' -l 'uscan,dev,ref,no-tarball' -n "m2-get-orig-source" \
+TEMP=$(getopt -o 'udr:nh' -l 'uscan,dev,ref,no-tarball,help' \
+	      -n "m2-get-orig-source" \
 	      -- "$@")
 
 if [ $? -ne 0 ]; then
@@ -59,6 +50,24 @@ while true; do
 	    NOTARBALL=1
 	    shift
 	    continue
+	    ;;
+	'-h'|'--help')
+	    echo "debian/scripts/m2-get-orig-source.sh:"
+	    echo " create orig tarball and update" \
+		 "d/changelog (and d/p/git-description.patch) with"
+	    echo " version number\n"
+	    echo "options:"
+	    echo "  -u, --uscan"
+	    echo "    use uscan to determine newest stable version (default)"
+	    echo "  -d, --dev"
+	    echo "    use 'development' branch"
+	    echo "  -r, --ref <ref>"
+	    echo "    use branch or tag specificed by <ref>"
+	    echo "  -n, --no-tarball"
+	    echo "    don't generate tarball; only update d/changelog"
+	    echo "  -h, --help"
+	    echo "    display this help and exit"
+	    exit 0
 	    ;;
 	'--')
 	    shift
