@@ -66,11 +66,13 @@ problemExamples = {
     ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
     ("Macaulay2Doc", "getenv"),                                 -- #1149
     ("Macaulay2Doc", "homeDirectory"),                          -- #1149
+    ("Macaulay2Doc", "MinimalGenerators"),                      -- #2162
     ("MultiplicitySequence", "monjMult"),                       -- #1676
     ("MultiprojectiveVarieties", "baseLocus"),                  -- #1742
     ("MultiprojectiveVarieties", "dim(MultiprojectiveVariety)"),-- #1742
     ("MultiprojectiveVarieties",                                -- #1742
 	"EmbeddedProjectiveVariety ===> EmbeddedProjectiveVariety"),
+    ("MultiprojectiveVarieties", "image(MultirationalMap)"),    -- #2162
     ("MultiprojectiveVarieties", "MultirationalMap * MultirationalMap"),
                                                                 -- #1742
     ("MultiprojectiveVarieties", "MultirationalMap ** Ring"),   -- #1742
@@ -81,6 +83,7 @@ problemExamples = {
     ("SemidefiniteProgramming", "Solver"),                      -- #1149
     ("SimplicialDecomposability", "isSheddingVertex"),          -- #1742
     ("SimplicialDecomposability", "isVertexDecomposable"),      -- #1992
+    ("SparseResultants", "char(SparseResultant)"),              -- #2162
     ("SpecialFanoFourfolds", "detectCongruence(SpecialGushelMukaiFourfold,ZZ)"),
                                                                 -- #1539
     ("SpecialFanoFourfolds", "specialGushelMukaiFourfold"),     -- #1742
