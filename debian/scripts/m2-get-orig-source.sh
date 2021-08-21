@@ -135,6 +135,12 @@ then
    exit
 fi
 
+if [ -e ../macaulay2_$VERSION+ds.orig.tar.xz ]
+then
+    echo "../macaulay2_$VERSION+ds.orig.tar.xz already exists; exiting"
+    exit
+fi
+
 echo -n "generating M2 tarball ... "
 git archive -o ../macaulay2_$VERSION.orig.tar FETCH_HEAD
 echo "done"
