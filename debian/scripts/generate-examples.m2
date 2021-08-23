@@ -66,6 +66,7 @@ problemExamples = {
     ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
     ("Macaulay2Doc", "getenv"),                                 -- #1149
     ("Macaulay2Doc", "homeDirectory"),                          -- #1149
+    ("MixedMultiplicity", "mixedVolume"),                       -- #2206
     ("Macaulay2Doc", "MinimalGenerators"),                      -- #2162
     ("MultiplicitySequence", "monjMult"),                       -- #1676
     ("MultiprojectiveVarieties", "baseLocus"),                  -- #1742
