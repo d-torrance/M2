@@ -126,6 +126,7 @@ else
     echo "done"
 
     echo -n "updating debian/changelog ... "
+    rm -f debian/changelog.dch # dch raises an error if backup file present
     dch -m -b -v "$VERSION$DEBIAN_SUFFIX" "" 2> /dev/null
     echo "done"
 fi
