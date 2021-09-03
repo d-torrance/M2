@@ -22,7 +22,8 @@ gethash := outf -> (
     m := regex("\\`.* hash: *(-?[0-9]+)", f);
     if m =!= null then value substring(m#1, f));
 
-generateExample = (pkgname, fkey, dir) -> (
+dir := minimizeFilename(currentFileDirectory | "../")
+generateExample = (pkgname, fkey) -> (
     tmpdir := temporaryFileName();
     makeDirectory tmpdir;
     installdir := replace("^~", getenv "HOME", dir) | "/examples/" | pkgname;
@@ -102,9 +103,8 @@ problemExamples = {
     ("Topcom", "isRegularTriangulation")                        -- #1707
 }
 
-dir := minimizeFilename(currentFileDirectory | "../")
 generateExamples = () -> (
-    scan(problemExamples, (pkg, fkey) -> generateExample(pkg, fkey, dir));
+    scan(problemExamples, (pkg, fkey) -> generateExample(pkg, fkey));
     ls := d -> select(readDirectory d, file -> last file != ".");
     exdir := dir | "/examples/";
     extraExamples := set flatten apply(ls exdir, pkg ->
