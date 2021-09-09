@@ -61,6 +61,8 @@ problemExamples = {
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastMinors", "regularInCodimension"),                     -- #1967
     ("GraphicalModelsMLE", "solverMLE(...,RealPrecision=>...)"),-- #2182
+    ("HyperplaneArrangements",                                  -- #2202
+	"arrangement(String,PolynomialRing)"),
     ("M0nbar", "writeCurveInSingletonSpineBasis"),              -- #2203
     ("M0nbar", "writeCurveInSingletonSpineBasis(ZZ,List)"),     -- #2203
     ("Macaulay2Doc", "applicationDirectory"),                   -- #1149
