@@ -1,5 +1,10 @@
+srcdir := minimizeFilename(currentFileDirectory | "../../")
+if not fileExists(srcdir | "debian/copyright") then
+    error "package must be loaded from the debian source directory"
+
 newPackage("Debian",
-    Version => "0.1",
+    Version => get("!cd " | srcdir |
+	" && dpkg-parsechangelog -S Version | tr -d '\n'"),
     Date => "2021-09-22",
     Headline => "helper functions for packaging Macaulay2 for Debian",
     Authors => {{
@@ -22,11 +27,6 @@ importFrom_Core {
     "toFilename",
     "topSrcdir"
     }
-
-srcdir := minimizeFilename(currentFileDirectory | "../../")
-
-if not fileExists(srcdir | "debian/copyright") then
-    error "package must be loaded from the debian source directory"
 
 getfilename := pkg -> (
     for file in apply({"", "undistributed-packages/"}, dir ->
