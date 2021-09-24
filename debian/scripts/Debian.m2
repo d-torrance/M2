@@ -150,6 +150,7 @@ problemExamples = {
     ("Macaulay2Doc", "MinimalGenerators"),                      -- #2162
     ("MixedMultiplicity", "mixedVolume"),                       -- #2206
     ("MultiplicitySequence", "monjMult"),                       -- #1676
+    ("MultiprojectiveVarieties", "∏"),                          -- #2206
     ("MultiprojectiveVarieties", "baseLocus"),                  -- #1742
     ("MultiprojectiveVarieties", "dim(MultiprojectiveVariety)"),-- #1742
     ("MultiprojectiveVarieties",                                -- #1742
