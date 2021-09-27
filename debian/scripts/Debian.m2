@@ -159,6 +159,8 @@ problemExamples = {
     ("MultiprojectiveVarieties", "MultirationalMap * MultirationalMap"),
                                                                 -- #1742
     ("MultiprojectiveVarieties", "MultirationalMap ** Ring"),   -- #1742
+    ("MultiprojectiveVarieties",                                -- #2206
+	"segre(MultiprojectiveVariety)"),
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
     ("QthPower", "minimization"),                               -- #1884
     ("PrimaryDecomposition", "primaryDecomposition"),           -- #2202
