@@ -186,6 +186,7 @@ problemExamples = {
     ("ThreadedGB", "ThreadedGB"),                               -- #1463
     ("TestIdeals", "compatibleIdeals"),                         -- #1742
     ("Topcom", "isRegularTriangulation")                        -- #1707
+--  ("Tropical", "tropicalCycle"),  -- already cached upstream  -- #2202
 }
 
 generateExamples = () -> (
