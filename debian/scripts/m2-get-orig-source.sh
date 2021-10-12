@@ -9,7 +9,7 @@
 
 set -e
 
-TEMP=$(getopt -o 'udr:nh' -l 'uscan,dev,ref,no-tarball,help' \
+TEMP=$(getopt -o 'udr:ngh' -l 'uscan,dev,ref,no-tarball,help' \
 	      -n "m2-get-orig-source" \
 	      -- "$@")
 
@@ -51,6 +51,11 @@ while true; do
 	    shift
 	    continue
 	    ;;
+	'-g'|'--git-commit')
+	    GIT_COMMIT=1
+	    shift
+	    continue
+	    ;;
 	'-h'|'--help')
 	    echo "debian/scripts/m2-get-orig-source.sh:"
 	    echo " create orig tarball and update" \
@@ -65,6 +70,8 @@ while true; do
 	    echo "    use branch or tag specificed by <ref>"
 	    echo "  -n, --no-tarball"
 	    echo "    don't generate tarball; only update d/changelog"
+	    echo "  -g, --git-commit"
+	    echo "    commit version bump to git"
 	    echo "  -h, --help"
 	    echo "    display this help and exit"
 	    exit 0
@@ -129,6 +136,12 @@ else
     rm -f debian/changelog.dch # dch raises an error if backup file present
     dch -m -b -v "$VERSION$DEBIAN_SUFFIX" "" 2> /dev/null
     echo "done"
+fi
+
+if [ $GIT_COMMIT ]
+then
+    git add debian/changelog debian/patches/git-description.patch
+    git commit -m "Bump to version $VERSION$DEBIAN_SUFFIX"
 fi
 
 if [ $NOTARBALL ]
