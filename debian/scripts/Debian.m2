@@ -164,6 +164,7 @@ problemExamples = {
     ("QthPower", "minimization"),                               -- #1884
     ("PrimaryDecomposition", "primaryDecomposition"),           -- #2202
     ("RandomMonomialIdeals", "VariableName"),                   -- #2202
+    ("RationalMaps", "inverseOfMap"),                           -- #1742
     ("SegreClasses", "isComponentContained"),                   -- #2136
     ("SemidefiniteProgramming", "Solver"),                      -- #1149
     ("SimplicialDecomposability", "isSheddingVertex"),          -- #1742
