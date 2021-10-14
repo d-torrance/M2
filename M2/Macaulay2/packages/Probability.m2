@@ -34,6 +34,8 @@ export {
 ProbabilityDistribution = new Type of HashTable
 
 net ProbabilityDistribution := d -> d#"description"
+random ProbabilityDistribution := o -> d -> d#"sample"()
+random(ZZ, ProbabilityDistribution) := o -> (n, d) -> apply(n, i -> random d)
 
 ContinuousProbabilityDistribution = new SelfInitializingType of
 	ProbabilityDistribution
@@ -49,9 +51,18 @@ discreteProbabilityDistribution Function := o -> f -> (
     b := last o.Support;
     pmf := x -> if x >= a and x <= b then f x else 0;
     cdf := x -> sum(a..x, pmf);
+    quantile := p -> (
+	x := a;
+	q := pmf x;
+	while q < p do (
+	    x = x + 1;
+	    q = q + pmf x);
+	x);
     DiscreteProbabilityDistribution hashTable {
 	"pmf" =>  pmf,
 	"cdf" => cdf,
+	"quantile" => quantile,
+	"sample" => () -> quantile random 1.,
 	"description" => o.Description
 	})
 
