@@ -3,46 +3,86 @@ newPackage("Probability",
     )
 
 export {
+-- classes
     "ProbabilityDistribution",
-    "ContinuousProbabilityDistribution",
     "DiscreteProbabilityDistribution",
-    "BinomialDistribution",
-    "NormalDistribution",
-    "probabilityDensityFunction",
-    "probabilityMassFunction",
-    "cumulativeDistributionFunction",
+    "ContinuousProbabilityDistribution",
+
+-- generic constructor methods
+    "discreteProbabilityDistribution",
+    "continuousProbabilityDistribution",
+
+-- discrete distributions
+    "binomialDistribution",
+    "bernoulliDistribution",
+    "poissonDistribution",
+    "negativeBinomialDistribution",
+
+-- continuous distributions
+    "normalDistribution",
+
+-- functions
+    "probabilityDensityFunction", "pdf",
+    "probabilityMassFunction", "pmf",
+    "cumulativeDistributionFunction", "cdf",
     "quantileFunction",
-    "Support",
-    "pmf",
-    "pdf",
-    "cdf"
+
+-- options
+    "Support"
     }
 
 ProbabilityDistribution = new Type of HashTable
-ContinuousProbabilityDistribution = new Type of ProbabilityDistribution
-DiscreteProbabilityDistribution = new Type of ProbabilityDistribution
 
-new DiscreteProbabilityDistribution from Sequence := (d, S) -> (
-    if #S == 3 then (f, a, b) := S else
-    if #S == 1 then (
-	f = first S;
-	a = 0;
-	b = infinity) else error "expected 1 or 3 arguments";
-    new DiscreteProbabilityDistribution from hashTable {
-	"pmf" => x -> if x >= a and x <= b then f x else 0})
+net ProbabilityDistribution := d -> d#"description"
 
-BinomialDistribution = new SelfInitializingType of DiscreteProbabilityDistribution
+ContinuousProbabilityDistribution = new SelfInitializingType of
+	ProbabilityDistribution
+DiscreteProbabilityDistribution = new SelfInitializingType of
+	ProbabilityDistribution
 
-new BinomialDistribution from Sequence := (d, S) -> (
-    if #S == 2 then (n, p) := S else error "expected 2 arguments";
-    new DiscreteProbabilityDistribution from (
-	x -> binomial(n, x) * p^x * (1 - p)^(n - x), 0, n))
+discreteProbabilityDistribution = method(Options => {
+	Support => (0, infinity),
+	Description => "a discrete probability distribution"})
 
-NormalDistribution = new Type of ContinuousProbabilityDistribution
+discreteProbabilityDistribution Function := o -> f -> (
+    a := first o.Support;
+    b := last o.Support;
+    pmf := x -> if x >= a and x <= b then f x else 0;
+    cdf := x -> sum(a..x, pmf);
+    DiscreteProbabilityDistribution hashTable {
+	"pmf" =>  pmf,
+	"cdf" => cdf,
+	"description" => o.Description
+	})
+
+binomialDistribution = method()
+binomialDistribution(ZZ, Number) := (n, p) -> (
+    if n < 1 then error "expected n > 0";
+    if p < 0 or p > 1 or not isReal p then error "expected 0 <= p <= 1";
+    discreteProbabilityDistribution(
+	x -> binomial(n, x) * p^x * (1 - p)^(n - x),
+	Support => (0, n),
+	Description => "B" | toString (n, p)))
+
+bernoulliDistribution = method()
+bernoulliDistribution Number := p -> binomialDistribution(1, p)
+
+poissonDistribution = method()
+poissonDistribution Number := lambda ->
+    discreteProbabilityDistribution(x -> lambda^x / x! * exp(-lambda),
+	Description => "Pois(" | toString lambda | ")")
+
+negativeBinomialDistribution = method()
+negativeBinomialDistribution(ZZ, Number) := (r, p) ->
+    discreteProbabilityDistribution(
+	x -> binomial(x + r - 1, x) * (1 - p)^r * p^x,
+	Description => "NB" | toString(r, p))
 
 probabilityDensityFunction = method()
 probabilityDensityFunction(Number, ContinuousProbabilityDistribution) :=
 	(x, d) -> (d#"pdf") x
+
+pdf = probabilityDensityFunction
 
 probabilityMassFunction = method()
 probabilityMassFunction(Number, DiscreteProbabilityDistribution) :=
@@ -51,8 +91,10 @@ probabilityMassFunction(Number, DiscreteProbabilityDistribution) :=
 pmf = probabilityMassFunction
 
 cumulativeDistributionFunction = method()
-probabilityMassFunction(Number, ProbabilityDistribution) :=
+cumulativeDistributionFunction(Number, ProbabilityDistribution) :=
 	(x, d) -> (d#"cdf") x
+
+cdf = cumulativeDistributionFunction
 
 quantileFunction = method()
 quantileFunction(Number, ProbabilityDistribution) := (x, d) -> (d#"quantile") x
@@ -62,5 +104,16 @@ end
 installPackage("Probability",
     FileName => "~/src/macaulay2/M2/M2/Macaulay2/packages/Probability.m2")
 
-d = BinomialDistribution(10, 0.5)
-sum apply(11, x -> probabilityMassFunction(x, d))
+d = binomialDistribution(10, 0.5)
+apply(11, x -> probabilityMassFunction(x, d))
+
+bernoulliDistribution(1/3)
+
+cumulativeDistributionFunction(5, d)
+
+d = poissonDistribution 5
+probabilityMassFunction(3, d)
+
+d = negativeBinomialDistribution(7, 0.35)
+cdf(12, d)
+pmf(0, d)
