@@ -210,6 +210,7 @@ uniformDistribution(Number, Number) := (a, b) -> (
 	x -> 1/(b - a),
 	Support => (a, b),
 	CumulativeDistributionFunction => x -> (x - a) / (b - a),
+	QuantileFunction => p -> a + p * (b - a),
 	Description => "U" | toString (a, b)))
 installMethod(uniformDistribution, () -> uniformDistribution(0, 1))
 
