@@ -36,6 +36,7 @@ export {
 -- options
     "CumulativeDistributionFunction",
     "QuantileFunction",
+    "SamplingMethod",
     "Support"
     }
 
@@ -165,6 +166,7 @@ continuousProbabilityDistribution = method(Options => {
 	Support => (0, infinity),
 	CumulativeDistributionFunction => null,
 	QuantileFunction => null,
+	SamplingMethod => null,
 	Description => "a continuous probability distribution"})
 
 bisectionMethod = (f, a, b, epsilon) -> (
@@ -190,11 +192,14 @@ continuousProbabilityDistribution Function := o -> f -> (
 	    d := if b < infinity then b else 0;
 	    while cdf d < p do d = d + 1;
 	    bisectionMethod(x -> cdf x - p, c, d, 1e-14));
+    sample := if o.SamplingMethod =!= null
+	then o.SamplingMethod
+	else () -> quantile random 1.;
     ContinuousProbabilityDistribution hashTable {
 	"pdf" =>  pdf,
 	"cdf" => cdf,
 	"quantile" => quantile,
-	"sample" => () -> quantile random 1.,
+	"sample" => sample,
 	"description" => o.Description
 	})
 
@@ -246,8 +251,12 @@ gammaDistribution = method()
 gammaDistribution(Number, Number) := (alpha, lambda) -> (
     checkPositive alpha;
     checkPositive lambda;
+    sample := if instance(alpha, ZZ)
+	then () -> sum random(alpha, exponentialDistribution lambda)
+	else null;
     continuousProbabilityDistribution(
 	x -> lambda^alpha / Gamma(alpha) * x^(alpha - 1) * exp(-lambda * x),
+	SamplingMethod => sample,
 	Description => "Gamma" | toString (alpha, lambda)))
 
 chiSquaredDistribution = method()
@@ -255,6 +264,7 @@ chiSquaredDistribution ZZ := n -> (
     checkPositive n;
     continuousProbabilityDistribution(
 	x -> 1/(2^(n/2) * Gamma(n/2)) * x^(n/2 - 1) * exp(-x / 2),
+	SamplingMethod => () -> sum(random(n, normalDistribution()), z -> z^2),
 	Description => "χ²(" | toString n | ")"))
 
 beginDocumentation()
