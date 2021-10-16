@@ -24,6 +24,8 @@ export {
     "uniformDistribution",
     "exponentialDistribution",
     "normalDistribution",
+    "gammaDistribution",
+    "chiSquaredDistribution",
 
 -- functions
     "probabilityDensityFunction", "pdf",
@@ -54,7 +56,9 @@ cumulativeDistributionFunction(Number, ProbabilityDistribution) :=
 cdf = cumulativeDistributionFunction
 
 quantileFunction = method()
-quantileFunction(Number, ProbabilityDistribution) := (x, d) -> (d#"quantile") x
+quantileFunction(Number, ProbabilityDistribution) := (p, d) -> (
+    if p < 0 or p > 1 or not isReal p then error("expected a probability");
+    (d#"quantile") p)
 
 random ProbabilityDistribution := o -> d -> d#"sample"()
 random(ZZ, ProbabilityDistribution) := o -> (n, d) -> apply(n, i -> random d)
@@ -237,6 +241,21 @@ normalDistribution(Number, Number) := (mu, sigma) -> (
 
 -- standard normal distribution
 installMethod(normalDistribution, () -> normalDistribution(0, 1))
+
+gammaDistribution = method()
+gammaDistribution(Number, Number) := (alpha, lambda) -> (
+    checkPositive alpha;
+    checkPositive lambda;
+    continuousProbabilityDistribution(
+	x -> lambda^alpha / Gamma(alpha) * x^(alpha - 1) * exp(-lambda * x),
+	Description => "Gamma" | toString (alpha, lambda)))
+
+chiSquaredDistribution = method()
+chiSquaredDistribution ZZ := n -> (
+    checkPositive n;
+    continuousProbabilityDistribution(
+	x -> 1/(2^(n/2) * Gamma(n/2)) * x^(n/2 - 1) * exp(-x / 2),
+	Description => "χ²(" | toString n | ")"))
 
 beginDocumentation()
 
