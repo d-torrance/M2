@@ -242,6 +242,9 @@ normalDistribution(Number, Number) := (mu, sigma) -> (
 	CumulativeDistributionFunction => x -> (
 	    z := (x - mu) / sigma;
 	    1/2 * (1 + erf(z / sqrt 2))),
+	-- box muller transform
+	SamplingMethod => () ->
+	    mu + sigma * sqrt(-2 * log random 1.) * cos (2 * pi * random 1.),
 	Description => "N" | toString (mu, sigma)))
 
 -- standard normal distribution
