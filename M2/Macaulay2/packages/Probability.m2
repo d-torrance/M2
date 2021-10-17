@@ -26,6 +26,7 @@ export {
     "normalDistribution",
     "gammaDistribution",
     "chiSquaredDistribution",
+    "tDistribution",
 
 -- functions
     "probabilityDensityFunction", "pdf",
@@ -269,6 +270,17 @@ chiSquaredDistribution ZZ := n -> (
 	x -> 1/(2^(n/2) * Gamma(n/2)) * x^(n/2 - 1) * exp(-x / 2),
 	SamplingMethod => () -> sum(random(n, normalDistribution()), z -> z^2),
 	Description => "χ²(" | toString n | ")"))
+
+tDistribution = method()
+tDistribution Number := df -> (
+    checkPositive df;
+    continuousProbabilityDistribution(
+	x -> Gamma((df + 1)/2) / (sqrt(df * pi) * Gamma(df / 2)) *
+	    (1 + x^2/df)^(-(df + 1) / 2),
+	Support => (-infinity, infinity),
+	SamplingMethod => () -> random normalDistribution() / sqrt(
+	    random chiSquaredDistribution df / df),
+	Description => "t(" | toString df | ")"))
 
 beginDocumentation()
 
