@@ -119,6 +119,7 @@ DEBIAN_SUFFIX="+ds-1"
 if [ "$VERSION$DEBIAN_SUFFIX" = $CURRENT_VERSION ]
 then
     echo "debian/changelog already up to date"
+    DO_GIT_COMMIT=
 else
     GIT_DESCRIPTION=version-$GIT_VERSION-$NEW_COMMITS-$(echo $GIT_COMMIT | \
 							cut -c 1-9)
