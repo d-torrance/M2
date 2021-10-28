@@ -52,7 +52,7 @@ while true; do
 	    continue
 	    ;;
 	'-g'|'--git-commit')
-	    GIT_COMMIT=1
+	    DO_GIT_COMMIT=1
 	    shift
 	    continue
 	    ;;
@@ -138,7 +138,7 @@ else
     echo "done"
 fi
 
-if [ $GIT_COMMIT ]
+if [ $DO_GIT_COMMIT ]
 then
     git add debian/changelog debian/patches/git-description.patch
     git commit -m "Bump to version $VERSION$DEBIAN_SUFFIX"
