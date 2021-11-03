@@ -9,7 +9,7 @@
 
 set -e
 
-TEMP=$(getopt -o 'udr:ngh' -l 'uscan,dev,ref,no-tarball,help' \
+TEMP=$(getopt -o 'udr:ngmh' -l 'uscan,dev,ref,no-tarball,merge,help' \
 	      -n "m2-get-orig-source" \
 	      -- "$@")
 
@@ -56,6 +56,11 @@ while true; do
 	    shift
 	    continue
 	    ;;
+	'-m'|'--merge')
+	    MERGE=1
+	    shift
+	    continue
+	    ;;
 	'-h'|'--help')
 	    echo "debian/scripts/m2-get-orig-source.sh:"
 	    echo " create orig tarball and update" \
@@ -72,6 +77,8 @@ while true; do
 	    echo "    don't generate tarball; only update d/changelog"
 	    echo "  -g, --git-commit"
 	    echo "    commit version bump to git"
+	    echo "  -m, --merge"
+	    echo "    merge branch"
 	    echo "  -h, --help"
 	    echo "    display this help and exit"
 	    exit 0
@@ -100,6 +107,11 @@ else
 fi
 
 git fetch https://github.com/Macaulay2/M2 $REF 2> /dev/null
+
+if [ $MERGE ]
+then
+    git merge --no-edit FETCH_HEAD
+fi
 
 echo -n "determining version number ... "
 GIT_VERSION=$(git show FETCH_HEAD:M2/VERSION)
