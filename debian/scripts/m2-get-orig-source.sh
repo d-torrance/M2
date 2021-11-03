@@ -9,7 +9,8 @@
 
 set -e
 
-TEMP=$(getopt -o 'udr:ngmh' -l 'uscan,dev,ref,no-tarball,merge,help' \
+TEMP=$(getopt -o 'udr:ngmh' \
+	      -l 'uscan,dev,ref,no-tarball,git-commit,merge,help' \
 	      -n "m2-get-orig-source" \
 	      -- "$@")
 
