@@ -173,6 +173,7 @@ problemExamples = {
     ("SparseResultants", "char(SparseResultant)"),              -- #2162
     ("SpecialFanoFourfolds", "detectCongruence(SpecialGushelMukaiFourfold,ZZ)"),
                                                                 -- #1539
+    ("SpecialFanoFourfolds", "grassmannianHull"),               -- #1742
     ("SpecialFanoFourfolds", "specialGushelMukaiFourfold"),     -- #1742
     ("SpecialFanoFourfolds", "toGrass"),                        -- #1742
     ("SpecialFanoFourfolds",                                    -- #1742
