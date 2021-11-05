@@ -162,6 +162,7 @@ problemExamples = {
 	"segre(MultiprojectiveVariety)"),
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
     ("QthPower", "minimization"),                               -- #1884
+    ("Quasidegrees", "exceptionalSet"),                         -- #1742
     ("PrimaryDecomposition", "primaryDecomposition"),           -- #2202
     ("RandomMonomialIdeals", "VariableName"),                   -- #2202
     ("RationalMaps", "inverseOfMap"),                           -- #1742
