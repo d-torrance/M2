@@ -111,6 +111,7 @@ git fetch https://github.com/Macaulay2/M2 $REF 2> /dev/null
 
 if [ $MERGE ]
 then
+    echo "merging '$REF' ..."
     git merge --no-edit FETCH_HEAD
 fi
 
