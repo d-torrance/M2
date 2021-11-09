@@ -113,6 +113,32 @@ if [ $MERGE ]
 then
     echo "merging '$REF' ..."
     git merge --no-edit FETCH_HEAD
+
+    echo "refreshing patches ..."
+
+    REFRESH_PATCHES=
+    quilt pop -a > /dev/null 2>&1 || true
+
+    while true
+    do
+	QUILT_PUSH=$(quilt push 2> /dev/null || true)
+	if echo $QUILT_PUSH | grep offset > /dev/null
+	then
+	    quilt refresh
+	    REFRESH_PATCHES=1
+	elif [ -z "$QUILT_PUSH" ]
+	then
+	    break
+	fi
+    done
+
+    quilt pop -a > /dev/null 2>&1 || true
+
+    if [ $REFRESH_PATCHES ]
+    then
+	git add debian/patches
+	git commit -m "Refresh patches"
+    fi
 fi
 
 echo -n "determining version number ... "
