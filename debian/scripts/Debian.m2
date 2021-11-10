@@ -137,6 +137,7 @@ problemExamples = {
     ("Elimination", "discriminant(RingElement,RingElement)"),   -- #2202
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastMinors", "regularInCodimension"),                     -- #1967
+    ("FourTiTwo", "toricGraverDegrees"),                        -- #2297
     ("GraphicalModelsMLE", "solverMLE(...,RealPrecision=>...)"),-- #2182
     ("HyperplaneArrangements",                                  -- #2202
 	"arrangement(String,PolynomialRing)"),
