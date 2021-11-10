@@ -122,7 +122,11 @@ then
     while true
     do
 	QUILT_PUSH=$(quilt push 2> /dev/null || true)
-	if echo $QUILT_PUSH | grep offset > /dev/null
+	if echo $QUILT_PUSH | grep "does not apply" > /dev/null
+	then
+	    echo "can't apply patch; refresh manually"
+	    exit 1
+	elif echo $QUILT_PUSH | grep offset > /dev/null
 	then
 	    quilt refresh
 	    REFRESH_PATCHES=1
