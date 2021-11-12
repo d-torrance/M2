@@ -9,8 +9,8 @@
 
 set -e
 
-TEMP=$(getopt -o 'udr:ngmh' \
-	      -l 'uscan,dev,ref,no-tarball,git-commit,merge,help' \
+TEMP=$(getopt -o 'udr:ngmhR:' \
+	      -l 'uscan,dev,ref,no-tarball,git-commit,merge,help,remote' \
 	      -n "m2-get-orig-source" \
 	      -- "$@")
 
@@ -29,6 +29,8 @@ call_uscan() {
     echo $VERSION
     REF="release-$(echo $VERSION | sed 's/~rc/-rc/')"
 }
+
+REMOTE=Macaulay2
 
 while true; do
     case "$1" in
@@ -62,6 +64,11 @@ while true; do
 	    shift
 	    continue
 	    ;;
+	'-R'|'--remote')
+	    REMOTE=$2
+	    shift 2
+	    continue
+	    ;;
 	'-h'|'--help')
 	    echo "debian/scripts/m2-get-orig-source.sh:"
 	    echo " create orig tarball and update" \
@@ -80,6 +87,8 @@ while true; do
 	    echo "    commit version bump to git"
 	    echo "  -m, --merge"
 	    echo "    merge branch"
+	    echo "  -R, --remote"
+	    echo "    set remote (default 'Macaulay2')"
 	    echo "  -h, --help"
 	    echo "    display this help and exit"
 	    exit 0
@@ -107,7 +116,7 @@ else
     echo "getting version number for ref '$REF'"
 fi
 
-git fetch https://github.com/Macaulay2/M2 $REF 2> /dev/null
+git fetch https://github.com/$REMOTE/M2 $REF 2> /dev/null
 
 echo -n "determining version number ... "
 GIT_VERSION=$(git show FETCH_HEAD:M2/VERSION)
