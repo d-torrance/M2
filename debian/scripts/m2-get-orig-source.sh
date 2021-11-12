@@ -171,7 +171,7 @@ then
 		exit 1
 	    elif echo $QUILT_PUSH | grep offset > /dev/null
 	    then
-		quilt refresh
+		quilt refresh > /dev/null
 		REFRESH_PATCHES=1
 	    elif [ -z "$QUILT_PUSH" ]
 	    then
