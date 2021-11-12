@@ -114,7 +114,7 @@ then
     echo "merging '$REF' ..."
     git merge --no-edit FETCH_HEAD
 
-    echo "refreshing patches ..."
+    echo -n "refreshing patches ... "
 
     REFRESH_PATCHES=
     quilt pop -a > /dev/null 2>&1 || true
@@ -124,7 +124,7 @@ then
 	QUILT_PUSH=$(quilt push 2> /dev/null || true)
 	if echo $QUILT_PUSH | grep "does not apply" > /dev/null
 	then
-	    echo "can't apply patch; refresh manually"
+	    echo "\ncan't apply patch; refresh manually"
 	    exit 1
 	elif echo $QUILT_PUSH | grep offset > /dev/null
 	then
@@ -140,8 +140,11 @@ then
 
     if [ $REFRESH_PATCHES ]
     then
+	echo "done"
 	git add debian/patches
 	git commit -m "Refresh patches"
+    else
+	echo "not needed"
     fi
 fi
 
