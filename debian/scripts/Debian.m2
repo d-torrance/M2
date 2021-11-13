@@ -176,6 +176,8 @@ problemExamples = {
                                                                 -- #1539
     ("SpecialFanoFourfolds", "grassmannianHull"),               -- #1742
     ("SpecialFanoFourfolds", "specialGushelMukaiFourfold"),     -- #1742
+    ("SpecialFanoFourfolds",                                    -- #1742
+	"specialGushelMukaiFourfold(Array,Array,String,Thing)"),
     ("SpecialFanoFourfolds", "toGrass"),                        -- #1742
     ("SpecialFanoFourfolds",                                    -- #1742
 	"toGrass(EmbeddedProjectiveVariety)"),
