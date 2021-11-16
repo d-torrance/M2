@@ -130,32 +130,6 @@ then
 fi
 echo $VERSION
 
-CURRENT_VERSION=$(dpkg-parsechangelog | awk '/^Version:/ {print $2}')
-DEBIAN_SUFFIX="+ds-1"
-
-if [ "$VERSION$DEBIAN_SUFFIX" = $CURRENT_VERSION ]
-then
-    echo "debian/changelog already up to date"
-    DO_GIT_COMMIT=
-else
-    GIT_DESCRIPTION=version-$GIT_VERSION-$NEW_COMMITS-$(echo $GIT_COMMIT | \
-							cut -c 1-9)
-    echo "using git description ... $GIT_DESCRIPTION"
-
-    echo -n "updating debian/patches/git-description.patch ... "
-    quilt push debian/patches/git-description.patch > /dev/null
-    sed -i "s/^then GIT_DESCRIPTION=.*/then GIT_DESCRIPTION=$GIT_DESCRIPTION/" \
-	M2/configure.ac
-    quilt refresh > /dev/null
-    quilt pop -a > /dev/null
-    echo "done"
-
-    echo -n "updating debian/changelog ... "
-    rm -f debian/changelog.dch # dch raises an error if backup file present
-    dch -m -b -v "$VERSION$DEBIAN_SUFFIX" "" 2> /dev/null
-    echo "done"
-fi
-
 if [ $MERGE ]
 then
     echo -n "merging '$REF' ... "
@@ -199,6 +173,32 @@ then
 	    echo "not needed"
 	fi
     fi
+fi
+
+CURRENT_VERSION=$(dpkg-parsechangelog | awk '/^Version:/ {print $2}')
+DEBIAN_SUFFIX="+ds-1"
+
+if [ "$VERSION$DEBIAN_SUFFIX" = $CURRENT_VERSION ]
+then
+    echo "debian/changelog already up to date"
+    DO_GIT_COMMIT=
+else
+    GIT_DESCRIPTION=version-$GIT_VERSION-$NEW_COMMITS-$(echo $GIT_COMMIT | \
+							cut -c 1-9)
+    echo "using git description ... $GIT_DESCRIPTION"
+
+    echo -n "updating debian/patches/git-description.patch ... "
+    quilt push debian/patches/git-description.patch > /dev/null
+    sed -i "s/^then GIT_DESCRIPTION=.*/then GIT_DESCRIPTION=$GIT_DESCRIPTION/" \
+	M2/configure.ac
+    quilt refresh > /dev/null
+    quilt pop -a > /dev/null
+    echo "done"
+
+    echo -n "updating debian/changelog ... "
+    rm -f debian/changelog.dch # dch raises an error if backup file present
+    dch -m -b -v "$VERSION$DEBIAN_SUFFIX" "" 2> /dev/null
+    echo "done"
 fi
 
 if [ $DO_GIT_COMMIT ]
