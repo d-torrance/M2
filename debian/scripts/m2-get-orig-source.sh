@@ -172,6 +172,20 @@ then
 	else
 	    echo "not needed"
 	fi
+
+	echo -n "regenerating examples ... "
+	NUM_EXAMPLES=$(
+	    M2 --srcdir M2 --silent -e \
+	       'loadPackage("Debian", FileName => "debian/scripts/Debian.m2");
+		print generateExamples();
+		exit 0' 2> /dev/null)
+	echo "$NUM_EXAMPLES change(s)"
+	if [ $NUM_EXAMPLES -gt 0 ]
+	then
+	    git add debian/examples
+	    git commit -m "Regenerating examples for $VERSION"
+	fi
+
     fi
 fi
 
