@@ -195,9 +195,11 @@ problemExamples = {
 }
 
 generateExamples = () -> (
+    n := 0;
     tmp := path;
     path = {srcdir | "/M2/Macaulay2/packages/"};
-    scan(problemExamples, (pkg, fkey) -> generateExample(pkg, fkey));
+    scan(problemExamples, (pkg, fkey) ->
+	if generateExample(pkg, fkey) then n = n + 1);
     path = tmp;
     ls := d -> select(readDirectory d, file -> last file != ".");
     exdir := dir | "/examples/";
@@ -219,7 +221,7 @@ generateExamples = () -> (
     if #missingFromPatch > 0 then error(
 	"add these packages to d/patches/use-cached-examples.patch:" | newline |
 	toString stack missingFromPatch);
-    )
+    n)
 
 skipTest = (i, pkgname, issue) -> (
     tmp := path;
