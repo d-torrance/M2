@@ -115,7 +115,7 @@ generateExample = (pkgname, fkey) -> (
     if fileExists outf and gethash outf == hash inputs then (
 	printerr("example result for ", format fkey,
 	    " already exists; skipping");
-	return);
+	return false);
     elapsedTime captureExampleOutput(
 	"example result for " | format fkey,
 	demark_newline inputs,
@@ -129,7 +129,7 @@ generateExample = (pkgname, fkey) -> (
 	false);
     topSrcdir = "/top/src/dir/"; -- for reproduciblePaths
     storeExampleOutput(pkg, fkey, outf, printerr);
-    )
+    true)
 
 problemExamples = {
     ("CoincidentRootLoci", "CoincidentRootLocus * CoincidentRootLocus"),
