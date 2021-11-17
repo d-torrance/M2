@@ -1,5 +1,12 @@
 --		Copyright 1994-2006 by Daniel R. Grayson
 
+needs "code.m2"
+needs "hypertext.m2"
+needs "methods.m2"
+needs "packages.m2"
+needs "reals.m2" -- for ImmutableType
+needs "validate.m2" -- for fixup
+
 -- TODO: deprecate
 rootPath = "";
 rootURI = "file://";
@@ -189,8 +196,8 @@ makeDocumentTag String      := opts -> key -> (
 -- correct its package, if it is incorrect (e.g. truncate, quotient)
 -- TODO: can this be modified to fix the tag in-place? then we would only need to
 -- fix the tag in (validate, TO), rather than also in (info, TO) and (html, TO).
-fixup DocumentTag := DocumentTag => tag -> makeDocumentTag(
-    if instance(key := tag.Key, String) then return tag else key, Package => package key)
+fixup DocumentTag := DocumentTag => tag -> (
+    if (rawdoc := fetchAnyRawDocumentation tag) =!= null then rawdoc.DocumentTag else tag)
 
 -----------------------------------------------------------------------------
 -- formatting document tags
@@ -680,6 +687,7 @@ undocumented Thing := key -> if key =!= null then (
 	    }))
 
 -- TODO: what does this do?
+-- somehow, this is the very first method called by the Core!!
 undocumented keys undocumentedkeys
 undocumentedkeys = null
 undocumented' = x -> error "late use of function undocumented'"
@@ -755,9 +763,6 @@ tutorial = x -> (
 	  sublist -> EXAMPLE sublist,
 	  identity);
      x )
-
--- TODO: make this TT toString X
-synonym = X -> if X.?synonym then X.synonym else "object of class " | toString X
 
 findSynonyms = method()
 findSynonyms Symbol := x -> (

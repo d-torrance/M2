@@ -115,12 +115,11 @@ generateExample = (pkgname, fkey) -> (
     if fileExists outf and gethash outf == hash inputs then (
 	printerr("example result for ", format fkey,
 	    " already exists; skipping");
-	return);
+	return false);
     elapsedTime captureExampleOutput(
 	"example result for " | format fkey,
 	demark_newline inputs,
 	pkg,
-	() -> null,
 	inf,
 	outf,
 	errf,
@@ -130,14 +129,15 @@ generateExample = (pkgname, fkey) -> (
 	false);
     topSrcdir = "/top/src/dir/"; -- for reproduciblePaths
     storeExampleOutput(pkg, fkey, outf, printerr);
-    )
+    true)
 
 problemExamples = {
     ("CoincidentRootLoci", "CoincidentRootLocus * CoincidentRootLocus"),
                                                                 -- #1539
     ("Elimination", "discriminant(RingElement,RingElement)"),   -- #2202
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
-    ("FastLinAlg", "regularInCodimension"),                     -- #1967
+    ("FastMinors", "regularInCodimension"),                     -- #1967
+    ("FourTiTwo", "toricGraverDegrees"),                        -- #2297
     ("GraphicalModelsMLE", "solverMLE(...,RealPrecision=>...)"),-- #2182
     ("HyperplaneArrangements",                                  -- #2202
 	"arrangement(String,PolynomialRing)"),
@@ -163,6 +163,7 @@ problemExamples = {
 	"segre(MultiprojectiveVariety)"),
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
     ("QthPower", "minimization"),                               -- #1884
+    ("Quasidegrees", "exceptionalSet"),                         -- #1742
     ("PrimaryDecomposition", "primaryDecomposition"),           -- #2202
     ("RandomMonomialIdeals", "VariableName"),                   -- #2202
     ("RationalMaps", "inverseOfMap"),                           -- #1742
@@ -175,6 +176,8 @@ problemExamples = {
                                                                 -- #1539
     ("SpecialFanoFourfolds", "grassmannianHull"),               -- #1742
     ("SpecialFanoFourfolds", "specialGushelMukaiFourfold"),     -- #1742
+    ("SpecialFanoFourfolds",                                    -- #1742
+	"specialGushelMukaiFourfold(Array,Array,String,Thing)"),
     ("SpecialFanoFourfolds", "toGrass"),                        -- #1742
     ("SpecialFanoFourfolds",                                    -- #1742
 	"toGrass(EmbeddedProjectiveVariety)"),
@@ -192,9 +195,11 @@ problemExamples = {
 }
 
 generateExamples = () -> (
+    n := 0;
     tmp := path;
     path = {srcdir | "/M2/Macaulay2/packages/"};
-    scan(problemExamples, (pkg, fkey) -> generateExample(pkg, fkey));
+    scan(problemExamples, (pkg, fkey) ->
+	if generateExample(pkg, fkey) then n = n + 1);
     path = tmp;
     ls := d -> select(readDirectory d, file -> last file != ".");
     exdir := dir | "/examples/";
@@ -216,7 +221,7 @@ generateExamples = () -> (
     if #missingFromPatch > 0 then error(
 	"add these packages to d/patches/use-cached-examples.patch:" | newline |
 	toString stack missingFromPatch);
-    )
+    n)
 
 skipTest = (i, pkgname, issue) -> (
     tmp := path;

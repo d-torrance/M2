@@ -1,5 +1,12 @@
 --		Copyright 1993-1999, 2008 by Daniel R. Grayson
 
+-- TODO: needs "document.m2" for formatDocumentTag, but this casues a loop
+needs "gateway.m2"
+needs "lists.m2"
+needs "methods.m2"
+needs "nets.m2"
+needs "packages.m2"
+
 -----------------------------------------------------------------------------
 -- code
 -----------------------------------------------------------------------------
@@ -84,18 +91,18 @@ code ZZ         := i -> code previousMethodsFound#i
 -----------------------------------------------------------------------------
 -- edit
 -----------------------------------------------------------------------------
+-- TODO: update this
 
-EDITOR := () -> if getenv "EDITOR" != "" then getenv "EDITOR" else "vi"
 editMethod = method(Dispatch => Thing)
 editMethod String := filename -> (
-     editor := EDITOR();
+     editor := getViewer("EDITOR", "emacs");
      chkrun concatenate(
 	  if getenv "DISPLAY" != "" and editor != "emacs" then "xterm -e ",
 	  editor, " ", filename))
 EDIT = method(Dispatch => Thing)
 EDIT Nothing := arg -> (stderr << "--warning: source code not available" << endl;)
 EDIT Sequence := x -> ((filename,start,startcol,stop,stopcol,pos,poscol) -> (
-     editor := EDITOR();
+     editor := getViewer("EDITOR", "emacs");
      if 0 != chkrun concatenate(
 	  if getenv "DISPLAY" != "" and editor != "emacs" then "xterm -e ",
 	  editor,
@@ -103,21 +110,23 @@ EDIT Sequence := x -> ((filename,start,startcol,stop,stopcol,pos,poscol) -> (
 	  " ",
 	  filename
 	  ) then error "command returned error code")) x
-editMethod Function := args -> EDIT locate args
 editMethod Command := c -> editMethod c#0
+editMethod Function := args -> EDIT locate args
 editMethod Sequence := args -> (
-     editor := EDITOR();
+     editor := getViewer("EDITOR", "emacs");
      if args === () 
      then chkrun concatenate(
 	  if getenv "DISPLAY" != "" and editor != "emacs" then "xterm -e ",
 	  editor)
      else EDIT locate args
      )
+editMethod ZZ := i -> editMethod previousMethodsFound#i
 edit = Command editMethod
 
 -----------------------------------------------------------------------------
 -- methods
 -----------------------------------------------------------------------------
+-- TODO: https://github.com/Macaulay2/M2/issues/1331
 
 searchAllDictionaries := (T, f) -> (
     seen := new MutableHashTable;
@@ -144,6 +153,7 @@ sequenceMethods := (T, F, tallyF) -> nonnull apply(pairs T, (key, func) -> if in
     if instance(key, Sequence)        and tallyF <= tally         key     then  key)
 
 methods = method(Dispatch => Thing, TypicalValue => NumberedVerticalList)
+methods Manipulator := M -> methods class M
 methods Command  := c -> methods c#0
 methods Type     := F -> methods sequence F
 methods Sequence := F -> (
@@ -162,6 +172,12 @@ methods Thing  := F -> (
     if nullaryMethods#?(1:F) then found#(1:F) = true;
     searchAllDictionaries(Type, T -> scan(thingMethods(T, F), key -> found#key = true));
     previousMethodsFound = new NumberedVerticalList from sortByName keys found)
+
+methods Package := P -> select(methods(), m -> package m === P)
+
+-- this one is here because it needs previousMethodsFound
+options ZZ := i -> options previousMethodsFound#i
+locate  ZZ := i -> locate  previousMethodsFound#i
 
 -----------------------------------------------------------------------------
 -- hooks

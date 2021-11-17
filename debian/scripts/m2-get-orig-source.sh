@@ -9,8 +9,8 @@
 
 set -e
 
-TEMP=$(getopt -o 'udr:ngmh' \
-	      -l 'uscan,dev,ref,no-tarball,git-commit,merge,help' \
+TEMP=$(getopt -o 'udr:ngmhR:' \
+	      -l 'uscan,dev,ref,no-tarball,git-commit,merge,help,remote' \
 	      -n "m2-get-orig-source" \
 	      -- "$@")
 
@@ -29,6 +29,8 @@ call_uscan() {
     echo $VERSION
     REF="release-$(echo $VERSION | sed 's/~rc/-rc/')"
 }
+
+REMOTE=Macaulay2
 
 while true; do
     case "$1" in
@@ -62,6 +64,11 @@ while true; do
 	    shift
 	    continue
 	    ;;
+	'-R'|'--remote')
+	    REMOTE=$2
+	    shift 2
+	    continue
+	    ;;
 	'-h'|'--help')
 	    echo "debian/scripts/m2-get-orig-source.sh:"
 	    echo " create orig tarball and update" \
@@ -80,6 +87,8 @@ while true; do
 	    echo "    commit version bump to git"
 	    echo "  -m, --merge"
 	    echo "    merge branch"
+	    echo "  -R, --remote"
+	    echo "    set remote (default 'Macaulay2')"
 	    echo "  -h, --help"
 	    echo "    display this help and exit"
 	    exit 0
@@ -107,12 +116,7 @@ else
     echo "getting version number for ref '$REF'"
 fi
 
-git fetch https://github.com/Macaulay2/M2 $REF 2> /dev/null
-
-if [ $MERGE ]
-then
-    git merge --no-edit FETCH_HEAD
-fi
+git fetch https://github.com/$REMOTE/M2 $REF 2> /dev/null
 
 echo -n "determining version number ... "
 GIT_VERSION=$(git show FETCH_HEAD:M2/VERSION)
@@ -125,6 +129,65 @@ then
     VERSION=$GIT_VERSION+git$NEW_COMMITS.$(echo $GIT_COMMIT | cut -c 1-7)
 fi
 echo $VERSION
+
+if [ $MERGE ]
+then
+    echo -n "merging '$REF' ... "
+    if git merge-base --is-ancestor FETCH_HEAD HEAD
+    then
+	echo "not needed"
+    else
+	echo
+	git merge --no-edit FETCH_HEAD
+
+	echo -n "refreshing patches ... "
+
+	REFRESH_PATCHES=
+	quilt pop -a > /dev/null 2>&1 || true
+
+	while true
+	do
+	    QUILT_PUSH=$(quilt push 2> /dev/null || true)
+	    if echo $QUILT_PUSH | grep "does not apply" > /dev/null
+	    then
+		echo "\ncan't apply patch; refresh manually"
+		exit 1
+	    elif echo $QUILT_PUSH | grep offset > /dev/null
+	    then
+		quilt refresh > /dev/null
+		REFRESH_PATCHES=1
+	    elif [ -z "$QUILT_PUSH" ]
+	    then
+		break
+	    fi
+	done
+
+	quilt pop -a > /dev/null 2>&1 || true
+
+	if [ $REFRESH_PATCHES ]
+	then
+	    echo "done"
+	    git add debian/patches
+	    git commit -m "Refresh patches for $VERSION"
+	else
+	    echo "not needed"
+	fi
+
+	echo -n "regenerating examples ... "
+	NUM_EXAMPLES=$(
+	    M2 --srcdir M2 --silent -e \
+	       'loadPackage("Debian", FileName => "debian/scripts/Debian.m2");
+		print generateExamples();
+		exit 0' 2> /dev/null)
+	echo "$NUM_EXAMPLES change(s)"
+	if [ $NUM_EXAMPLES -gt 0 ]
+	then
+	    git add debian/examples
+	    git commit -m "Regenerating examples for $VERSION"
+	fi
+
+    fi
+fi
 
 CURRENT_VERSION=$(dpkg-parsechangelog | awk '/^Version:/ {print $2}')
 DEBIAN_SUFFIX="+ds-1"
