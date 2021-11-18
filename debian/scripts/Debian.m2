@@ -161,6 +161,7 @@ problemExamples = {
     ("MultiprojectiveVarieties", "MultirationalMap ** Ring"),   -- #1742
     ("MultiprojectiveVarieties",                                -- #2206
 	"segre(MultiprojectiveVariety)"),
+    ("NoetherianOperators", "gCorners"),                        -- #2317
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
     ("QthPower", "minimization"),                               -- #1884
     ("Quasidegrees", "exceptionalSet"),                         -- #1742
