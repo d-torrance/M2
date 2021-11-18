@@ -167,6 +167,7 @@ problemExamples = {
     ("Quasidegrees", "exceptionalSet"),                         -- #1742
     ("PrimaryDecomposition", "primaryDecomposition"),           -- #2202
     ("RandomMonomialIdeals", "VariableName"),                   -- #2202
+    ("ReesAlgebra", "PlaneCurveSingularities"),                 -- #2318
     ("RationalMaps", "inverseOfMap"),                           -- #1742
     ("SegreClasses", "isComponentContained"),                   -- #2136
     ("SemidefiniteProgramming", "Solver"),                      -- #1149
