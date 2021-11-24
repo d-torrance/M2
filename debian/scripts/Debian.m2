@@ -132,6 +132,7 @@ generateExample = (pkgname, fkey) -> (
     true)
 
 problemExamples = {
+    ("CharacteristicClasses", "IndsOfSmooth"),                  -- #2318
     ("CoincidentRootLoci", "CoincidentRootLocus * CoincidentRootLocus"),
                                                                 -- #1539
     ("Elimination", "discriminant(RingElement,RingElement)"),   -- #2202
