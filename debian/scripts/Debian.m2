@@ -132,6 +132,7 @@ generateExample = (pkgname, fkey) -> (
     true)
 
 problemExamples = {
+    ("BettiCharacters", "Example 3"),                           -- #2329
     ("CharacteristicClasses", "IndsOfSmooth"),                  -- #2318
     ("CoincidentRootLoci", "CoincidentRootLocus * CoincidentRootLocus"),
                                                                 -- #1539
