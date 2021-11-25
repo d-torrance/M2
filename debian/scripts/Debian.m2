@@ -132,6 +132,12 @@ generateExample = (pkgname, fkey) -> (
     true)
 
 problemExamples = {
+    -- load Macaulay2Doc first to avoid #2328
+    ("Macaulay2Doc", "applicationDirectory"),                   -- #1149
+    ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
+    ("Macaulay2Doc", "getenv"),                                 -- #1149
+    ("Macaulay2Doc", "homeDirectory"),                          -- #1149
+    ("Macaulay2Doc", "MinimalGenerators"),                      -- #2162
     ("BettiCharacters", "Example 3"),                           -- #2329
     ("CharacteristicClasses", "IndsOfSmooth"),                  -- #2318
     ("CoincidentRootLoci", "CoincidentRootLocus * CoincidentRootLocus"),
@@ -145,11 +151,6 @@ problemExamples = {
 	"arrangement(String,PolynomialRing)"),
     ("M0nbar", "writeCurveInSingletonSpineBasis"),              -- #2203
     ("M0nbar", "writeCurveInSingletonSpineBasis(ZZ,List)"),     -- #2203
-    ("Macaulay2Doc", "applicationDirectory"),                   -- #1149
-    ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
-    ("Macaulay2Doc", "getenv"),                                 -- #1149
-    ("Macaulay2Doc", "homeDirectory"),                          -- #1149
-    ("Macaulay2Doc", "MinimalGenerators"),                      -- #2162
     ("MixedMultiplicity", "mixedVolume"),                       -- #2206
     ("MultiplicitySequence", "monjMult"),                       -- #1676
     ("MultiprojectiveVarieties", "∏"),                          -- #2206
