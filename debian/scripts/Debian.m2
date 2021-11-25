@@ -142,6 +142,7 @@ problemExamples = {
     ("CharacteristicClasses", "IndsOfSmooth"),                  -- #2318
     ("CoincidentRootLoci", "CoincidentRootLocus * CoincidentRootLocus"),
                                                                 -- #1539
+    ("Cremona", "rationalMap(Ring,Tally)"),                     -- #2318
     ("Elimination", "discriminant(RingElement,RingElement)"),   -- #2202
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastMinors", "regularInCodimension"),                     -- #1967
