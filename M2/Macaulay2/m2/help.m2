@@ -384,12 +384,11 @@ getBody := (key, tag, rawdoc) -> (
 -- View help within Macaulay2
 -----------------------------------------------------------------------------
 
--- TODO: help symbol% before Macaulay2Doc is installed doesn't work
 help = method(Dispatch => Thing)
 help DocumentTag := tag -> (
     rawdoc := fetchAnyRawDocumentation tag;
-    tag = if rawdoc =!= null then rawdoc.DocumentTag else tag;
-    getBody(tag.Key, tag, rawdoc))
+    rawtag := if rawdoc =!= null then rawdoc.DocumentTag else tag;
+    getBody(tag.Key, rawtag, rawdoc))
 
 help Sequence := key -> (
     if key =!= () then help makeDocumentTag key else
