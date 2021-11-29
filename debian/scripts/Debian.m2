@@ -179,6 +179,8 @@ problemExamples = {
     ("SimplicialDecomposability", "isSheddingVertex"),          -- #1742
     ("SimplicialDecomposability", "isVertexDecomposable"),      -- #1992
     ("SparseResultants", "char(SparseResultant)"),              -- #2162
+    ("SpecialFanoFourfolds",                                    -- #2318
+	"CongruenceOfCurves EmbeddedProjectiveVariety"),
     ("SpecialFanoFourfolds", "detectCongruence(SpecialGushelMukaiFourfold,ZZ)"),
                                                                 -- #1539
     ("SpecialFanoFourfolds", "grassmannianHull"),               -- #1742
