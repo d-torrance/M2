@@ -173,6 +173,7 @@ problemExamples = {
     ("NormalToricVarieties", "isNef(ToricDivisor)"),            -- #1886
     ("QthPower", "minimization"),                               -- #1884
     ("Quasidegrees", "exceptionalSet"),                         -- #1742
+    ("QuaternaryQuartics", "Half canonical degree 20"),           -- #2162
     ("PrimaryDecomposition", "primaryDecomposition"),           -- #2202
     ("RandomMonomialIdeals", "VariableName"),                   -- #2202
     ("ReesAlgebra", "PlaneCurveSingularities"),                 -- #2318
