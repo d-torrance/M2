@@ -184,6 +184,7 @@ problemExamples = {
     ("SpecialFanoFourfolds", "detectCongruence(SpecialGushelMukaiFourfold,ZZ)"),
                                                                 -- #1539
     ("SpecialFanoFourfolds", "grassmannianHull"),               -- #1742
+    ("SpecialFanoFourfolds", "map(CongruenceOfCurves)"),        -- #2318
     ("SpecialFanoFourfolds", "specialGushelMukaiFourfold"),     -- #1742
     ("SpecialFanoFourfolds",                                    -- #1742
 	"specialGushelMukaiFourfold(Array,Array,String,Thing)"),
