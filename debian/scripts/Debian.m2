@@ -9,7 +9,7 @@ newPackage("Debian",
     Headline => "helper functions for packaging Macaulay2 for Debian",
     Authors => {{
 	    Name => "Doug Torrance",
-	    Email => "dtorrance@piedmont.edu",
+	    Email => "dtorrance@debian.org",
 	    HomePage => "https://webwork.piedmont.edu/~dtorrance"}}
     )
 
