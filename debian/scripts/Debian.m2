@@ -146,6 +146,7 @@ problemExamples = {
     ("Elimination", "discriminant(RingElement,RingElement)"),   -- #2202
     ("EnumerationCurves", "rationalCurve"),                     -- #1886
     ("FastMinors", "regularInCodimension"),                     -- #1967
+    ("FrobeniusThresholds", "GuessStrategy"),                   -- #2202
     ("FourTiTwo", "toricGraverDegrees"),                        -- #2297
     ("GraphicalModelsMLE", "solverMLE(...,RealPrecision=>...)"),-- #2182
     ("K3Surfaces", "K3(String)"),                               -- #2162
