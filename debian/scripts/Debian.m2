@@ -148,6 +148,9 @@ problemExamples = {
     ("FastMinors", "regularInCodimension"),                     -- #1967
     ("FourTiTwo", "toricGraverDegrees"),                        -- #2297
     ("GraphicalModelsMLE", "solverMLE(...,RealPrecision=>...)"),-- #2182
+    ("K3Surfaces", "K3(String)"),                               -- #2162
+    ("K3Surfaces", "LatticePolarizedK3surface Sequence"),       -- #2162
+    ("K3Surfaces", "project"),                                  -- #2162
     ("HyperplaneArrangements",                                  -- #2202
 	"arrangement(String,PolynomialRing)"),
     ("M0nbar", "writeCurveInSingletonSpineBasis"),              -- #2203
