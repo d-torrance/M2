@@ -170,6 +170,7 @@ problemExamples = {
 	"segre(MultiprojectiveVariety)"),
     ("NoetherianOperators", "gCorners"),                        -- #2317
     ("NoetherianOperators", "getIdealFromNoetherianOperators"), -- #1742
+    ("NoetherianOperators", "truncate(DualSpace,List,ZZ)"),     -- #2317
     ("NormalToricVarieties", "isNef(ToricDivisor)"),            -- #1886
     ("QthPower", "minimization"),                               -- #1884
     ("Quasidegrees", "exceptionalSet"),                         -- #1742
