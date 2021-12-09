@@ -752,6 +752,18 @@ else if test $SHARED = no -a $TRY_STATIC = yes
      fi
 fi
 
+AC_SUBST([RECUTILS], [no])
+AC_LANG([C])
+AC_ARG_WITH([recutils],
+    AS_HELP_STRING(
+	[--with-recutils],
+	[link with recutils (plain text databases)]),
+    [RECUTILS=$withval])
+AS_IF([test "x$RECUTILS" = xyes],
+    [AC_DEFINE([WITH_RECUTILS], [1], [whether we are linking with recutils])
+     AC_CHECK_HEADER([rec.h], , AC_MSG_ERROR([rec.h not found]))
+     AC_SEARCH_LIBS([rec_db_new], [rec], , AC_MSG_ERROR([librec not found]))])
+
 AC_MSG_CHECKING(whether package bdw-gc is provided)
 dnl Note: we don't include -lgccpp below, because linking with that library is what replaces ::new and friends with GC_MALLOC_UNCOLLECTABLE and friends:
 if [ pkg-config --exists bdw-gc ]
