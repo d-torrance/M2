@@ -1,0 +1,33 @@
+Description: Skip package tests that have been known to fail on
+ various architectures.
+Author: Doug Torrance <dtorrance@debian.org>
+Bug: https://github.com/Macaulay2/M2/issues/1579
+Last-Update: 2021-12-09
+
+--- a/M2/Macaulay2/m2/testing.m2
++++ b/M2/Macaulay2/m2/testing.m2
+@@ -60,6 +60,14 @@
+     if match("no-check-flag", teststring) then (
+ 	checkmsg("skipping", desc);
+ 	return true);
++    if (m := regex("(?<=no-check-architecture:)[^(\\n]*", teststring)) =!= null
++    then (
++	badarchs := apply(separate(", ", substring(m#0, teststring)),
++	    s -> replace("^\\s*|\\s*$", "", s));
++	if member(version#"architecture", badarchs) then (
++	    checkmsg("skipping", desc);
++	    return true));
++
+     -- TODO: remove this when capture uses ArgQ
+     if usermode === not noinitfile then
+     -- try capturing in the same process
+--- a/M2/Macaulay2/packages/SumsOfSquares.m2
++++ b/M2/Macaulay2/packages/SumsOfSquares.m2
+@@ -1437,6 +1437,7 @@
+ 
+ --11
+ TEST /// --lowerBound
++-- no-check-architecture: i686 (#1579)
+     debug needsPackage "SumsOfSquares"
+     results := checkLowerBound("CSDP")
+     assert all(results,t->t=!=false);
