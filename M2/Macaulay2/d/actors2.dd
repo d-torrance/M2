@@ -26,11 +26,18 @@ dbmreorganize(e:Expr):Expr := (
 setupfun("reorganize",dbmreorganize);
 dbmopenin(e:Expr):Expr := (
      when e
-     is a:stringCell do (
-	  if notify then stderr << " -- opening database " << minimizeFilename(a.v) << endl;
-	  dbmopenin(a.v))
-     else buildErrorPacket("expected a string as filename"));
-setupfun("openDatabase",dbmopenin);
+     is s:Sequence do if length(s) == 2 then
+	  when s.1
+	  is i:ZZcell do
+	      when s.0
+	      is a:stringCell do (
+		  if notify then stderr << " -- opening database " << minimizeFilename(a.v) << endl;
+		  if toInt(i) == 0 then dbmopenin(a.v)
+		  else buildErrorPacket("unknown database library"))
+	      else buildErrorPacket("expected a string as filename")
+	  else WrongArgZZ(2) else WrongNumArgs(2)
+     else WrongNumArgs(2));
+setupfun("dbmopenin",dbmopenin);
 dbmopenout(e:Expr):Expr := (
      when e
      is a:stringCell do (

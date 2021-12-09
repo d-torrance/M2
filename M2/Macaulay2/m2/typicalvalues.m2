@@ -83,7 +83,6 @@ values HashTable := List => values
 merge(HashTable,HashTable,Function) := HashTable => merge
 mergePairs(BasicList,BasicList,Function) := BasicList => mergePairs
 mingle BasicList := List => mingle
-openDatabase String := Database => openDatabase
 openDatabaseOut String := Database => openDatabaseOut
 openIn String := File => openIn
 openOut String := File => openOut
