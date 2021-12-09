@@ -137,6 +137,8 @@ problemExamples = {
     ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
     ("Macaulay2Doc", "getenv"),                                 -- #1149
     ("Macaulay2Doc", "homeDirectory"),                          -- #1149
+    ("SpecialFanoFourfolds",                                    -- #1539
+	"detectCongruence(SpecialGushelMukaiFourfold,ZZ)")
 }
 
 generateExamples = () -> (
