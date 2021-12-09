@@ -252,14 +252,14 @@ export dbmopenin(filename:string):Expr := (
      handle := dbmopen(filename,mutable);
      if handle == -1 
      then buildErrorPacket(dbmstrerror() + " : " + filename)
-     else Expr(Database(filename,nextHash(),handle,true,mutable)));
+     else Expr(Database(filename,0,nextHash(),handle,true,mutable)));
 export dbmopenout(filename:string):Expr := (
      mutable := true;
      filename = expandFileName(filename);
      handle := dbmopen(filename,mutable);
      if handle == -1 
      then buildErrorPacket(dbmstrerror() + " : " + filename)
-     else Expr(Database(filename,nextHash(),handle,true,mutable)));
+     else Expr(Database(filename,0,nextHash(),handle,true,mutable)));
 export dbmclose(f:Database):Expr := (
      if !f.isopen then return buildErrorPacket("database already closed");
      dbmclose(f.handle);

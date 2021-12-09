@@ -332,6 +332,7 @@ export Error := {+
 
 export Database := {+
      filename:string,
+     library:int, -- 0: gdbm, 1: recutils
      hash:int,
      handle:int,
      isopen:bool,
