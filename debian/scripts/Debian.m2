@@ -18,7 +18,8 @@ export {
     "generateExample",
     "generateExamples",
     "missingPackages",
-    "skipTest"
+    "skipTest",
+    "skipTestArch"
     }
 
 importFrom_Core {
@@ -170,7 +171,8 @@ generateExamples = () -> (
 	toString stack missingFromPatch);
     n)
 
-skipTest = (i, pkgname, issue) -> (
+
+skipTestHelper = (i, pkgname, str) -> (
     tmp := path;
     path = {srcdir | "/M2/Macaulay2/packages/"};
     run("cd " | srcdir | " && " |
@@ -181,9 +183,17 @@ skipTest = (i, pkgname, issue) -> (
     test := locate (tests pkg)#i;
     testfile := relativizeFilename(realpath srcdir, realpath first test);
     run("cd " | srcdir | " && quilt add " | testfile | "; " |
-	"sed -i '" | test_1 + 1 | "i \\-\\- no\\-check\\-flag #" | issue |
-	"' " | testfile | " && quilt refresh && quilt pop -aq");
+	"sed -i '" | test_1 + 1 | "i " | str | "' " | testfile |
+	" && quilt refresh && quilt pop -aq");
     )
+
+skipTest = (i, pkgname, issue) ->
+    skipTestHelper(i, pkgname, "\\-\\- no\\-check\\-flag #" | issue)
+
+skipTestArch = (i, pkgname, arch, issue) ->
+    skipTestHelper(i, pkgname, "\\-\\- no\\-check\\-architecture: " | arch |
+	" (#" | issue | ")")
+
 
 beginDocumentation()
 
@@ -277,4 +287,25 @@ doc ///
       it to @TT "d/patches/skip-failing-package-tests.patch"@ using
       @TT "no-check-flag"@ with an appropriate comment, indicated by
       @TT "issue"@, the upstream issue number.
+///
+
+doc ///
+  Key
+    skipTestArch
+  Headline
+    skip a failing test on a specific architecture
+  Usage
+    skipTest(i, pkg, arch, issue)
+  Inputs
+    i:ZZ
+    pkg:String
+    arch:String -- matching @TO2 {"version", "version#\"architecture\""}@
+    issue:ZZ
+  Description
+    Text
+      Skip @TT "check(i, pkg)"@ when running package tests on a
+      specificic architecture by adding it to @TT
+      "d/patches/skip-failing-package-tests.patch"@ using @TT
+      "no-check-architecture"@ with an appropriate comment, indicated
+      by @TT "issue"@, the upstream issue number.
 ///
