@@ -61,6 +61,30 @@ $(CURDIR)/M2/Macaulay2/packages/%/examples: $(CURDIR)/debian/examples/%
 
 execute_before_dh_auto_build: $(KATEX_FILES) $(EXAMPLE_DEST)
 
+# create dumps of package documentation databases to ship with macaulay2-common
+# and then load during postinst
+MACHINE := $(DEB_HOST_GNU_CPU)-$(shell uname -s)-$(shell \
+	lsb_release -s --id)-$(shell lsb_release -s --release)
+DISTLIBDIR := M2/usr-dist/$(MACHINE)/lib/Macaulay2
+DISTDOCDIR := M2/usr-dist/common/share/doc/Macaulay2
+DB_FILENAME := rawdocumentation-$(if \
+	$(filter little, $(DEB_HOST_ARCH_ENDIAN)),dcba,abcd)-$(if \
+	$(filter 64, $(DEB_HOST_ARCH_BITS)),8,4).db
+
+DB_FILES = $(wildcard $(DISTLIBDIR)/*/cache/$(DB_FILENAME))
+DUMP_FILES = $(DB_FILES:$(DISTLIBDIR)/%/cache/$(DB_FILENAME)=\
+	$(DISTDOCDIR)/%/dump/rawdocumentation.dump)
+
+$(DISTDOCDIR)/%/dump:
+	mkdir -p $@
+
+$(DISTDOCDIR)/%/dump/rawdocumentation.dump: \
+	$(DISTLIBDIR)/%/cache/$(DB_FILENAME) $(DISTDOCDIR)/%/dump
+	gdbm_dump $< $@
+
+execute_after_dh_auto_build-indep: $(DUMP_FILES)
+	rm -rf $(DISTLIBDIR)
+
 # since a "test" target exists, dh_auto_test defaults to using that, but
 # it just prints the values of some variables.  we want the "check" target
 # instead to run the test suite
