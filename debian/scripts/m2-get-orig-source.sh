@@ -148,7 +148,7 @@ then
 	while true
 	do
 	    QUILT_PUSH=$(quilt push 2> /dev/null || true)
-	    if echo $QUILT_PUSH | grep "does not apply" > /dev/null
+	    if echo $QUILT_PUSH | grep "FAILED" > /dev/null
 	    then
 		echo "\ncan't apply patch; refresh manually"
 		exit 1
