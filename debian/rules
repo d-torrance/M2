@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
 include /usr/share/dpkg/architecture.mk
+include /usr/share/dpkg/pkg-info.mk # for SOURCE_DATE_EPOCH
 
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
@@ -89,7 +90,11 @@ $(PKGDOCDIR)/%/dump:
 
 $(PKGDOCDIR)/%/dump/rawdocumentation.dump: \
 	$(PKGLIBDIR)/%/cache/$(DB_FILENAME) $(PKGDOCDIR)/%/dump
-	gdbm_dump $< $@
+# gdbm_load records the path of the database file and the timestamp in the
+# dump file, so use a relative path and faketime for reproducibility
+	cd $(dir $<) && \
+		faketime '@$(SOURCE_DATE_EPOCH)' \
+		gdbm_dump $(notdir $<) $(CURDIR)/$@
 
 execute_after_dh_auto_install-indep: $(DUMP_FILES)
 	rm -rf $(EXAMPLE_DEST)
