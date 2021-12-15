@@ -49,12 +49,11 @@ push() {
     if [ $(git rev-parse $1) != $(git rev-parse salsa/$1) ]
     then
 	echo -n "pushing $1 to salsa ... "
-	git push -q salsa $1
+	git push -q salsa $1:$1
 	echo "done"
     fi
 }
 
-checkout "debian/development"
 push "debian/development"
 
 if [ $(git rev-parse debian/development) != \
@@ -64,7 +63,8 @@ then
     echo -n "merging debian/development into ppa/bionic ... "
     git merge -q --no-edit debian/development
     echo "done"
-    push "ppa/bionic"
 fi
+
+push "ppa/bionic"
 
 checkout $ORIGINAL_BRANCH
