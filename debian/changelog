@@ -4,6 +4,66 @@ macaulay2 (1.19.1.1+git28.854afd6+ds-1) UNRELEASED; urgency=medium
 
  -- Doug Torrance <dtorrance@piedmont.edu>  Tue, 14 Dec 2021 14:16:12 -0500
 
+macaulay2 (1.19.1+ds-3) unstable; urgency=medium
+
+  * debian/control
+    - Add versioned dependency on libsingular4-dev; configure script will
+      fail if < 4.2.0 is found.  For this reason, we can't depend on
+      the virtual package libsingular-dev any more.
+    - Add gdbmtool and faketime to Build-Depends-Indep; needed for
+      generating reproducible dumps of the documentation database files.
+    - Add gdbmtool to Depends for macaulay2; needed for new postinst
+      script.
+  * debian/macaulay2.install
+    - Stop installing files in /usr/lib; no longer necessary now that we
+      will generate package documentation databases during postinst.
+  * debian/macaulay2.postinst
+    - New file; load package documentation databases from dump files after
+      installation.
+  * debian/macaulay2.prerem
+    - New file; remove directories containing package documentation
+      databases that were created during postinst.
+  * debian/patches/allow-older-factory.patch
+    - Remove patch; no longer necessary as singular 4.2.1 is now in Debian.
+  * debian/patches/skip-failing-core-tests.patch
+    - Fix ComputationsBook::varieties test instead of skipping it.
+  * debian/rules
+    - Append -indep to execute_before_dh_auto_build target; we only need
+      the dummy KaTeX files and cached examples when building the
+      documentation.
+    - New override_dh_auto_build target; only build documentation when
+      building macaulay2-common.
+    - Append -indep to execute_after_dh_auto_install target; the cached
+      example directories will only exist and need to be removed when
+      building the documentation.
+    - Also in execute_after_dh_auto_install, create dumps of package
+      documentation to ship with macaulay2-common and then load during
+      postinst and then remove the database files.
+    - Remove execute_after_dh_install-arch target; empty directory is now
+      removed with the package documentation database after they're dumped.
+    - Exclude database dump files from dh_compress.
+    - Add override_dh_installdeb target to substitute variables in new
+      maintainer scripts.
+  * debian/salsa-ci.yml
+    - Stop allowing reprotest to fail; the parts of the package that are
+      built on Salsa are now reproducible.
+    - Allow autopkgtest to fail; the new test requires the documentation to
+      be built, which doesn't happen on Salsa.
+  * debian/scripts/Debian.m2
+    - Stop caching almost all examples; since we won't be building them on
+      non-amd64 architectures, we should see far fewer failures.
+    - Add new "skipTestArch" function to skip tests only on a particular
+      architecture.
+  * debian/scripts/m2-get-orig-source.sh
+    - Update string to grep for when "quilt push" fails.
+  * debian/tests/check-doc-db.m2
+    - New CI test for autopkgtest; test that the documentation database can
+      be loaded.
+  * debian/upstream/metadata
+    - Add "---" to signal document start.
+
+ -- Doug Torrance <dtorrance@debian.org>  Tue, 14 Dec 2021 21:24:21 -0500
+
 macaulay2 (1.19.1+ds-2) unstable; urgency=medium
 
   * debian/*
