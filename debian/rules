@@ -7,6 +7,9 @@ export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
 ifeq (,$(filter terse,$(DEB_BUILD_OPTIONS)))
 export VERBOSE=1
+RM = rm -rfv
+else
+RM = rm -rf
 endif
 
 # needed for reproducible-version.patch
@@ -96,11 +99,11 @@ $(PKGDOCDIR)/%/dump/rawdocumentation.dump: \
 		gdbm_dump $(notdir $<) $(CURDIR)/$@
 
 execute_after_dh_auto_install-indep: $(DUMP_FILES)
-	rm -rf $(EXAMPLE_DEST)
+	$(RM) $(EXAMPLE_DEST)
 	for DIR in $(subst /examples,,$(EXAMPLE_DEST)); \
-	do if [ -z "$$(ls -A $$DIR)" ]; then rm -rf $$DIR; fi; \
+	do if [ -z "$$(ls -A $$DIR)" ]; then $(RM) $$DIR; fi; \
 	done
-	rm -rf $(PKGLIBDIR) # remove package documentation database files
+	$(RM) $(PKGLIBDIR) # remove package documentation database files
 
 # https://github.com/Macaulay2/M2/issues/1144
 execute_before_dh_link-indep:
@@ -119,7 +122,7 @@ debian/macaulay2-pkg.el: debian/macaulay2-pkg.el.in
 execute_before_dh_missing:
 	if [ ! -f debian/macaulay2-pkg.el ]; \
 	then \
-		rm -rf debian/tmp/usr/share/emacs; \
+		$(RM) debian/tmp/usr/share/emacs; \
 	fi
 
 override_dh_installdeb:
