@@ -190,9 +190,11 @@ then
 fi
 
 CURRENT_VERSION=$(dpkg-parsechangelog | awk '/^Version:/ {print $2}')
-DEBIAN_SUFFIX="+ds-1"
+REPACK_SUFFIX=+ds
+DEBIAN_REVISION=-1
+FULL_VERSION=$VERSION$REPACK_SUFFIX$DEBIAN_REVISION
 
-if [ "$VERSION$DEBIAN_SUFFIX" = $CURRENT_VERSION ]
+if [ $FULL_VERSION = $CURRENT_VERSION ]
 then
     echo "debian/changelog already up to date"
     DO_GIT_COMMIT=
@@ -211,7 +213,7 @@ else
 
     echo -n "updating debian/changelog ... "
     rm -f debian/changelog.dch # dch raises an error if backup file present
-    dch -m -b -v "$VERSION$DEBIAN_SUFFIX" "" 2> /dev/null
+    dch -m -b -v "$FULL_VERSION" "" 2> /dev/null
     echo "done"
 fi
 
@@ -226,9 +228,11 @@ then
    exit
 fi
 
-if [ -e ../macaulay2_$VERSION+ds.orig.tar.xz ]
+TARBALL=macaulay2_$VERSION$REPACK_SUFFIX.orig.tar.xz
+
+if [ -e ../$TARBALL ]
 then
-    echo "../macaulay2_$VERSION+ds.orig.tar.xz already exists; exiting"
+    echo "../$TARBALL already exists; exiting"
     exit
 fi
 
@@ -267,7 +271,7 @@ do
 	MISSING_FILES="$MISSING_FILES $FILE"
     fi
 done
-mv ../macaulay2_$VERSION.orig.tar ../macaulay2_$VERSION+ds.orig.tar
+mv ../macaulay2_$VERSION.orig.tar ../macaulay2_$VERSION$REPACK_SUFFIX.orig.tar
 echo "done"
 
 if [ ! -z "$MISSING_FILES" ]
@@ -280,7 +284,7 @@ then
 fi
 
 echo -n "compressing ... "
-xz -fz ../macaulay2_$VERSION+ds.orig.tar
+xz -fz ../macaulay2_$VERSION$REPACK_SUFFIX.orig.tar
 echo "done"
 
-echo "orig tarball: ../macaulay2_$VERSION+ds.orig.tar.xz"
+echo "orig tarball: ../$TARBALL"
