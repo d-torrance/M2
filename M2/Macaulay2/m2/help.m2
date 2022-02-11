@@ -568,3 +568,8 @@ about String   := o -> re -> lastabout = (
 -- TODO: should this go to system?
 pager = x -> if height stdio > 0
     then "!" | (if getenv "PAGER" == "" then "more" else getenv "PAGER") << x << close else << x << endl
+
+eldocHelper = key -> try (
+    rawdoc := fetchAnyRawDocumentation makeDocumentTag key;
+    demark_", " apply(select(toList rawdoc.Usage, x -> instance(x, DD)),
+	usage -> replace("^[ ]+", "", toString net usage))) else ""
