@@ -6,5 +6,13 @@ module.exports = {
   output: {
     filename: 'highlight.js',
     path: path.resolve(__dirname, '')
+  },
+  module: {
+    rules: [
+      {
+	test: /\.css$/i,
+	use: ['style-loader', 'css-loader']
+      }
+    ]
   }
 };
