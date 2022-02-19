@@ -56,10 +56,6 @@ defaultStylesheet := () -> LINK {
 defaultCharset := () -> META { "http-equiv" => "Content-Type", "content" => "text/html; charset=utf-8" }
 
 defaultHEAD = title -> HEAD splice { TITLE title, defaultCharset(), defaultStylesheet(), KaTeX(),
-    LINK {
-	"rel" => "stylesheet",
-	"href" => getStyleFile "highlight.css"
-	},
     SCRIPT {
 	"type" => "text/javascript",
 	"src" => getStyleFile "highlight.js",
