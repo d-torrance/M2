@@ -705,6 +705,8 @@ document { Key => DD,
      Headline => "hypertext DD element" }
 document { Key => STYLE,
      Headline => "hypertext STYLE element" }
+document { Key => SCRIPT,
+     Headline => "hypertext SCRIPT element" }
 document { Key => COMMENT,
      Headline => "hypertext COMMENT element", EXAMPLE lines ///
      html COMMENT "hi there"
