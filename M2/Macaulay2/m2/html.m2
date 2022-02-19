@@ -64,10 +64,6 @@ defaultHEAD = title -> HEAD splice { TITLE title, defaultCharset(), defaultStyle
 	"type" => "text/javascript",
 	"src" => getStyleFile "highlight.js",
 	""
-	},
-    SCRIPT {
-	"type" => "text/javascript",
-	"hljs.highlightAll();"
 	}
     }
 
