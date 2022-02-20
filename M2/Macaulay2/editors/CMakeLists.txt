@@ -65,16 +65,16 @@ add_custom_command(OUTPUT ${EMACS_FILES}
 
 add_custom_target(M2-highlightjs ALL DEPENDS highlightjs/highlight.js)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/highlightjs)
-if(NPM STREQUAL "NPM-NOTFOUND")
+if(NOT NPM STREQUAL "NPM-NOTFOUND")
   foreach(FILE IN ITEMS package.json webpack.config.js index.js
       highlight-override.css)
     configure_file(highlightjs/${FILE} highlightjs COPYONLY)
   endforeach()
   add_custom_command(OUTPUT highlightjs/highlight.js
-    COMMENT "warning: html docs will not have syntax highlighting"
-    COMMAND touch highlightjs/highlight.js)
-else()
-  add_custom_command(OUTPUT highlightjs/highlight.js
     COMMAND cd highlightjs && ${NPM} install && ${NPM} run build
     DEPENDS highlightjs/macaulay2.js)
+else()
+  add_custom_command(OUTPUT highlightjs/highlight.js
+    COMMENT "warning: html docs will not have syntax highlighting"
+    COMMAND touch highlightjs/highlight.js)
 endif()
