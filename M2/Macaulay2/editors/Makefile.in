@@ -22,12 +22,18 @@ emacs/M2-emacs.m2 emacs/M2-emacs-help.txt: emacs/make-M2-emacs-help.m2 @pre_exec
 $(CURDIR)/highlightjs/%: @srcdir@/highlightjs/%
 	cp $< $@
 
+ifeq (@NPM@,false)
+highlightjs/highlight.js:
+	@echo "warning: html docs will not have syntax highlighting"
+	touch $@
+else
 highlightjs/highlight.js: highlightjs/macaulay2.js \
 	$(CURDIR)/highlightjs/package.json         \
 	$(CURDIR)/highlightjs/webpack.config.js    \
 	$(CURDIR)/highlightjs/index.js             \
 	$(CURDIR)/highlightjs/highlight-override.css
 	cd $(dir $@) && $ @NPM@ install && @NPM@ run build
+endif
 
 clean::; rm -rf @pre_emacsdir@/* atom emacs highlightjs prism pygments vim
 distclean:: clean; rm -f Makefile
