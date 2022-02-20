@@ -59,3 +59,16 @@ add_custom_command(OUTPUT ${EMACS_FILES}
   MAIN_DEPENDENCY emacs/make-M2-emacs-help.m2
   WORKING_DIRECTORY ${M2_INSTALL_EMACSDIR}
   DEPENDS emacs/M2-symbols.el make-M2-symbols.m2)
+
+################################################################################
+## Generating highlight.js for syntax highlighting in the html documentation
+
+add_custom_target(M2-highlightjs ALL DEPENDS highlightjs/highlight.js)
+foreach(FILE IN ITEMS package.json webpack.config.js index.js
+    highlight-override.css)
+  configure_file(highlightjs/${FILE} highlightjs COPYONLY)
+endforeach()
+add_custom_command(OUTPUT highlightjs/highlight.js
+  COMMAND ${CMAKE_COMMAND} 
+  COMMAND cd highlightjs && npm install && npm run build
+  DEPENDS highlightjs/macaulay2.js)
