@@ -70,5 +70,5 @@ foreach(FILE IN ITEMS package.json webpack.config.js index.js
 endforeach()
 add_custom_command(OUTPUT highlightjs/highlight.js
   COMMAND ${CMAKE_COMMAND} 
-  COMMAND cd highlightjs && npm install && npm run build
+  COMMAND cd highlightjs && ${NPM} install && ${NPM} run build
   DEPENDS highlightjs/macaulay2.js)
