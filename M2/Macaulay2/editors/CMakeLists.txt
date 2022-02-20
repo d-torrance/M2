@@ -64,6 +64,7 @@ add_custom_command(OUTPUT ${EMACS_FILES}
 ## Generating highlight.js for syntax highlighting in the html documentation
 
 add_custom_target(M2-highlightjs ALL DEPENDS highlightjs/highlight.js)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/highlightjs)
 foreach(FILE IN ITEMS package.json webpack.config.js index.js
     highlight-override.css)
   configure_file(highlightjs/${FILE} highlightjs COPYONLY)
