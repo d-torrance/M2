@@ -69,6 +69,12 @@ foreach(FILE IN ITEMS package.json webpack.config.js index.js
     highlight-override.css)
   configure_file(highlightjs/${FILE} highlightjs COPYONLY)
 endforeach()
-add_custom_command(OUTPUT highlightjs/highlight.js
-  COMMAND cd highlightjs && ${NPM} install && ${NPM} run build
-  DEPENDS highlightjs/macaulay2.js)
+if(NPM STREQUAL "NPM-NOTFOUND")
+  add_custom_command(OUTPUT highlightjs/highlight.js
+    COMMENT "warning: html docs will not have syntax highlighting"
+    COMMAND touch highlightjs/highlight.js)
+else()
+  add_custom_command(OUTPUT highlightjs/highlight.js
+    COMMAND cd highlightjs && ${NPM} install && ${NPM} run build
+    DEPENDS highlightjs/macaulay2.js)
+endif()
