@@ -24,10 +24,19 @@ VERSION := $(shell cat M2/VERSION)
 EMACSDIR := \
 	\$${prefix}/share/emacs/site-lisp/elpa/macaulay2-$(VERSION)
 WITH_PYTHON := $(if $(filter nopython, $(DEB_BUILD_PROFILES)),, --with-python)
+
+ifneq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
+WITH_DOCUMENTATION = --without-documentation
+else
+WITH_DOCUMENTATION := $(if $(shell dh_listpackages -i),,\
+	--without-documentation)
+endif
+
 override_dh_auto_configure:
 	dh_auto_configure -- \
 		--libdir=\$${exec_prefix}/lib/$(DEB_HOST_MULTIARCH) \
-		--with-emacsdir=$(EMACSDIR) $(WITH_PYTHON)
+		--with-emacsdir=$(EMACSDIR) $(WITH_PYTHON) \
+		$(WITH_DOCUMENTATION)
 
 # prevent html-check-links from failing to find KaTeX files before
 # they get added by dh_linktree
@@ -51,15 +60,6 @@ $(CURDIR)/M2/Macaulay2/packages/%/examples: $(CURDIR)/debian/examples/%
 	cp -v $</*.out $@
 
 execute_before_dh_auto_build-indep: $(KATEX_FILES) $(EXAMPLE_DEST)
-
-ifneq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
-MakeDocumentation = false
-else
-MakeDocumentation := $(if $(shell dh_listpackages -i),true,false)
-endif
-
-override_dh_auto_build:
-	dh_auto_build -- MakeDocumentation=$(MakeDocumentation)
 
 # since a "test" target exists, dh_auto_test defaults to using that, but
 # it just prints the values of some variables.  we want the "check" target
