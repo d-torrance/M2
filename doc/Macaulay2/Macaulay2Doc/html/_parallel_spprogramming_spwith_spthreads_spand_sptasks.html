@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>parallel programming with threads and tasks</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_system_spfacilities.html">next</a> | <a href="_writing_spdocumentation.html">previous</a> | <a href="_create__Task.html">forward</a> | <a href="___Document__Tag.html">backward</a> | <a href="___The_sp__Macaulay2_splanguage.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> > <a href="_parallel_spprogramming_spwith_spthreads_spand_sptasks.html">parallel programming with threads and tasks</a>    </div>
+    <hr/>
+    <div>
+      <h1>parallel programming with threads and tasks</h1>
+      <div>
+        <div>
+          <p>The task system schedules functions and inputs to run on a preset number of threads. The number of threads to be used is given by the variable <a title="the current maximum number of simultaneously running tasks" href="_allowable__Threads.html">allowableThreads</a>, and may be examined and changed as follows.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : allowableThreads
+
+o1 = 2</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : allowableThreads = 4
+
+o2 = 4</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>To run a function in another thread use <a title="schedule a task for execution" href="_schedule.html">schedule</a>, as in the following example.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : R = ZZ/101[x,y,z];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : I = (ideal vars R)^2
+
+             2             2        2
+o4 = ideal (x , x*y, x*z, y , y*z, z )
+
+o4 : Ideal of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : dogb = I -> () -> res quotient module I
+
+o5 = dogb
+
+o5 : FunctionClosure</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : f = dogb I
+
+o6 = f
+
+o6 : FunctionClosure</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : t = schedule f
+
+o7 = &lt;&lt;task, created>>
+
+o7 : Task</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Note that <a title="schedule a task for execution" href="_schedule.html">schedule</a> returns a task, not the result of the computation, which will be accessible only after the task has completed the computation.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : t
+
+o8 = &lt;&lt;task, created>>
+
+o8 : Task</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Use <a title="whether a file has data available for reading" href="_is__Ready_lp__File_rp.html">isReady</a> to check whether the result is available yet.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : isReady t
+
+o9 = false</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : while not isReady t do sleep 1</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>To retrieve the result, use <a title="retrieve the value returned by a task" href="_task__Result_lp__Task_rp.html">taskResult</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : taskResult t
+
+       1      6      8      3
+o11 = R  &lt;-- R  &lt;-- R  &lt;-- R  &lt;-- 0
+                                   
+      0      1      2      3      4
+
+o11 : ChainComplex</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : assert instance(oo,ChainComplex)</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>It is possible to make a task without starting it running, using <a title="create a task" href="_create__Task.html">createTask</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : t' = createTask f
+
+o13 = &lt;&lt;task, created>>
+
+o13 : Task</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : t'
+
+o14 = &lt;&lt;task, created>>
+
+o14 : Task</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Start it running with <a title="schedule a task for execution" href="_schedule.html">schedule</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : schedule t';</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : t'
+
+o16 = &lt;&lt;task, created>>
+
+o16 : Task</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i17 : while not isReady t' do sleep 1</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i18 : taskResult t'
+
+       1      6      8      3
+o18 = R  &lt;-- R  &lt;-- R  &lt;-- R  &lt;-- 0
+                                   
+      0      1      2      3      4
+
+o18 : ChainComplex</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>One may use <a title="schedule a task upon completion of another" href="_add__Start__Task_lp__Task_cm__Task_rp.html">addStartTask</a> to specify that one task is to be started after another one finishes.  In the following example, <tt>G</tt> will start after <tt>F</tt> finishes.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i19 : F = createTask(() -> &quot;result of F&quot;)
+
+o19 = &lt;&lt;task, created>>
+
+o19 : Task</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i20 : G = createTask(() -> &quot;result of G&quot;)
+
+o20 = &lt;&lt;task, created>>
+
+o20 : Task</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i21 : addStartTask(F,G)</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i22 : schedule F
+
+o22 = &lt;&lt;task, created>>
+
+o22 : Task</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i23 : while not isReady F do sleep 1</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i24 : taskResult F
+
+o24 = result of F</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i25 : while not isReady G do sleep 1</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i26 : taskResult G
+
+o26 = result of G</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Use <a title="specify that the completion of one task triggers the cancellation of another" href="_add__Cancel__Task_lp__Task_cm__Task_rp.html">addCancelTask</a> to specify that the completion of one task triggers the cancellation of another, by means of an interrupt exception.</p>
+          <p>Use <a title="schedule a task, but ensure that it will not run until another task finishes" href="_add__Dependency__Task_lp__Task_cm__Task_rp.html">addDependencyTask</a> to schedule a task, but to ensure that it will not run until one or more other tasks finish running.</p>
+          <p>Using the functions above, essentially any parallel functionality needed can be created.</p>
+          <p>Low level C API functionality using the same scheduler also exists in the Macaulay2/system directory. It works essentially the same way as the Macaulay2 interface.</p>
+          <p>Warning: Access to external libraries such as singular, etc., may not currently be thread safe.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li>
+<span><a title="create a task" href="_create__Task.html">createTask</a> -- create a task</span>          </li>
+          <li>
+<span><tt>&quot;addCancelTask&quot;</tt> -- see <span><a title="specify that the completion of one task triggers the cancellation of another" href="_add__Cancel__Task_lp__Task_cm__Task_rp.html">addCancelTask(Task,Task)</a> -- specify that the completion of one task triggers the cancellation of another</span></span>          </li>
+          <li>
+<span><tt>&quot;addDependencyTask&quot;</tt> -- see <span><a title="schedule a task, but ensure that it will not run until another task finishes" href="_add__Dependency__Task_lp__Task_cm__Task_rp.html">addDependencyTask(Task,Task)</a> -- schedule a task, but ensure that it will not run until another task finishes</span></span>          </li>
+          <li>
+<span><tt>&quot;addStartTask&quot;</tt> -- see <span><a title="schedule a task upon completion of another" href="_add__Start__Task_lp__Task_cm__Task_rp.html">addStartTask(Task,Task)</a> -- schedule a task upon completion of another</span></span>          </li>
+          <li>
+<span><a title="whether a task is finished" href="_is__Ready_lp__Task_rp.html">isReady(Task)</a> -- whether a task is finished</span>          </li>
+          <li>
+<span><a title="schedule a task for execution" href="_schedule.html">schedule</a> -- schedule a task for execution</span>          </li>
+          <li>
+<span><tt>&quot;taskResult&quot;</tt> -- see <span><a title="retrieve the value returned by a task" href="_task__Result_lp__Task_rp.html">taskResult(Task)</a> -- retrieve the value returned by a task</span></span>          </li>
+          <li>
+<span><tt>&quot;cancelTask&quot;</tt> -- see <span><a title="stop a task" href="_cancel__Task_lp__Task_rp.html">cancelTask(Task)</a> -- stop a task</span></span>          </li>
+          <li>
+<span><tt>&quot;isCanceled&quot;</tt> -- see <span><a title="whether a task has been canceled" href="_is__Canceled_lp__Task_rp.html">isCanceled(Task)</a> -- whether a task has been canceled</span></span>          </li>
+          <li>
+<span><a title="exclusive I/O for the current thread" href="_set__I__O__Exclusive.html">setIOExclusive</a> -- exclusive I/O for the current thread</span>          </li>
+          <li>
+<span><a title="synchronized I/O for threads" href="_set__I__O__Synchronized.html">setIOSynchronized</a> -- synchronized I/O for threads</span>          </li>
+          <li>
+<span><a title="unsynchronized I/O for threads" href="_set__I__O__Un__Synchronized.html">setIOUnSynchronized</a> -- unsynchronized I/O for threads</span>          </li>
+          <li>
+<span><a title="the current maximum number of simultaneously running tasks" href="_allowable__Threads.html">allowableThreads</a> -- the current maximum number of simultaneously running tasks</span>          </li>
+          <li>
+<span><a title="create a symbol whose value in one thread is not shared with others" href="_thread__Variable.html">threadVariable</a> -- create a symbol whose value in one thread is not shared with others</span>          </li>
+          <li>
+<span><a title="the maximum possibl number of simultaneously running tasks" href="_max__Allowable__Threads.html">maxAllowableThreads</a> -- the maximum possibl number of simultaneously running tasks</span>          </li>
+          <li>
+<span><a title="the class of all tasks" href="___Task.html">Task</a> -- the class of all tasks</span>          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+
+</html>

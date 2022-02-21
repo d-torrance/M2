@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>specifying typical values</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="___Method__Function.html">next</a> | previous | <a href="___Method__Function.html">forward</a> | <a href="_method.html">backward</a> | <a href="_method.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> > <a href="_making_spa_spnew_spmethod_spfunction.html">making a new method function</a> > <a title="make a new method function" href="_method.html">method</a> > <a href="_specifying_sptypical_spvalues.html">specifying typical values</a>    </div>
+    <hr/>
+    <div>
+      <h1>specifying typical values</h1>
+      <div>
+For the purpose of constructing good documentation automatically, it is useful to specify the type of value typically returned by a function or method.  For example, the function <a title="whether something is a module" href="_is__Module.html">isModule</a> returns a boolean value, and this is specified when creating the method function with the option <a title="make a new method function" href="_method.html">TypicalValue</a> as follows.        <pre>isModule = method(TypicalValue => Boolean)</pre>
+        <p/>
+Other functions, such as <a title="prune, e.g., compute a minimal presentation" href="_prune.html">prune</a>, return values of various types, depending on the type of the arguments provided.  To install a function <tt>f</tt> as the handler for <tt>prune</tt> applied to a matrix, we would normally use the following statement.        <pre>prune Matrix := f</pre>
+To specify that the value typically returned is a matrix (of class <tt>Matrix</tt>), we replace <tt>f</tt> by <tt>Matrix => f</tt>, as follows.        <pre>prune Matrix := Matrix => f</pre>
+Here is the way our code looks.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : code(prune, Matrix)
+
+o1 = -- code for method: prune(Matrix)
+     ../../../../../Macaulay2/m2/modules2.m2:228:64-233:6: --source code:
+     minimalPresentation(Matrix) := prune(Matrix) := Matrix => opts -> (m) -> (
+          M := source m;
+          if not M.cache.?pruningMap then m = m * (minimalPresentation M).cache.pruningMap;
+          N := target m;
+          if not N.cache.?pruningMap then m = (minimalPresentation N).cache.pruningMap^-1 * m;
+          m)</code></pre>
+</td>          </tr>
+        </table>
+The information is stored in the hash table <a title="types of values returned by functions" href="_typical__Values.html">typicalValues</a>, and can be recovered like this.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : typicalValues#(prune,Matrix)
+
+o2 = Matrix
+
+o2 : Type</code></pre>
+</td>          </tr>
+        </table>
+        <p/>
+Warning: don't imagine that a definition of the form         <pre>f = t -> (...)</pre>
+can be replaced with a declaration of the following form.        <pre>f = X => t -> (...)</pre>
+The difference here is that here we are using simple assignment, rather than installing a method.  To document the return type is <tt>X</tt> in this case, make an entry in <tt>typicalValues</tt> directly.        <pre>f = t -> (...)
+typicalValues#f = X</pre>
+      </div>
+    </div>
+  </body>
+
+</html>

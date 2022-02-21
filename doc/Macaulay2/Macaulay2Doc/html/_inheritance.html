@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>inheritance</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_making_spnew_spclasses.html">next</a> | <a href="_binary_spmethods.html">previous</a> | <a href="_making_spnew_spclasses.html">forward</a> | <a href="_binary_spmethods.html">backward</a> | <a href="___The_sp__Macaulay2_splanguage.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> > <a href="_inheritance.html">inheritance</a>    </div>
+    <hr/>
+    <div>
+      <h1>inheritance</h1>
+      <div>
+Each class has a parent class that can be used as a container for bits of code that apply to a more general class of objects. In this section we show how this mechanism works in detail.        <p/>
+We begin by creating a new type of basic list.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : X = new Type of BasicList
+
+o1 = X
+
+o1 : Type</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : parent X
+
+o2 = BasicList
+
+o2 : Type</code></pre>
+</td>          </tr>
+        </table>
+The parent of <tt>X</tt> is <a title="the class of all basic lists" href="___Basic__List.html">BasicList</a>, as desired, thus methods applicable to basic lists will also apply also to instances of <tt>X</tt>.  One such method is the method for creating a net from a basic list; here is its code:        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : code(net,BasicList)
+
+o3 = -- code for method: net(BasicList)
+     /usr/local/share/Macaulay2/Core/nets.m2:180:20-183:47: --source code:
+     net BasicList := x -> horizontalJoin deepSplice (
+           net class x, 
+           &quot;{&quot;,
+           toSequence between(comma,apply(toList x,netn)),</code></pre>
+</td>          </tr>
+        </table>
+This code is run automatically to display an instance of <tt>X</tt>, so if we make one, we'll be able to see what it is:        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : x = new X from {2,3,4}
+
+o4 = X{2, 3, 4}
+
+o4 : X</code></pre>
+</td>          </tr>
+        </table>
+Now let's imagine we wish to treat instances of <tt>X</tt> as vectors, and to negate one by negating its entries.  As it happens, no method for this has been installed for basic lists, so trying to negate <tt>x</tt> results in an error.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : stopIfError = false;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : - x
+stdio:6:1:(3): error: no method for prefix operator - applied to object:
+--            X{2, 3, 4} (of class X)</code></pre>
+</td>          </tr>
+        </table>
+We install and test a new method as described in <a href="_installing_spmethods.html">installing methods</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : - X := t -> apply(t,i -> -i);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : - x
+
+o8 = X{-2, -3, -4}
+
+o8 : X</code></pre>
+</td>          </tr>
+        </table>
+This method will apply automatically to subclasses of <tt>X</tt>, as we see now.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : Y = new Type of X;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : y = new Y from {4,5,6}
+
+o10 = Y{4, 5, 6}
+
+o10 : Y</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : - y
+
+o11 = Y{-4, -5, -6}
+
+o11 : Y</code></pre>
+</td>          </tr>
+        </table>
+For <tt>binary methods</tt>, there is an apparent ambiguity in deciding exactly how inheritance will work.  Let's illustrate by making a new subclass <tt>Z</tt> of <tt>X</tt>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : Z = new Type of X;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : z = new Z from {7,8,9}
+
+o13 = Z{7, 8, 9}
+
+o13 : Z</code></pre>
+</td>          </tr>
+        </table>
+Now let's install two methods, either of which might conceivably be applied to evaluate the expression <tt>y+z</tt>, and see what happens.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : Y + X := (a,b) -> &quot;Y + X&quot;;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : X + Z := (a,b) -> &quot;X + Z&quot;;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : y + z
+
+o16 = Y + X</code></pre>
+</td>          </tr>
+        </table>
+The result is the string <tt>Y + X</tt>.  The reason is that after finding that no method applies directly for adding an instance of <tt>Y</tt> to an instance of <tt>Z</tt>, the search continues: <tt>Z</tt> is replaced by its parent <tt>X</tt>, and so on.  (After enough unsuccessful iterations of this, the second type is reset to <tt>Z</tt>, the first type is replaced by its parent, and the search continues.)        <p/>
+The same search order applies to method functions defined with <a title="make a new method function" href="_method.html">method</a>.      </div>
+    </div>
+  </body>
+
+</html>

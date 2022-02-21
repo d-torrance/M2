@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>elimination of variables</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_combinatorial_spfunctions.html">next</a> | <a href="_normal_spforms.html">previous</a> | <a href="_combinatorial_spfunctions.html">forward</a> | <a href="_normal_spforms.html">backward</a> | <a href="index.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="_elimination_spof_spvariables.html">elimination of variables</a>    </div>
+    <hr/>
+    <div>
+      <h1>elimination of variables</h1>
+      <div>
+Let's consider the problem of finding the polynomial relation of the three polynomials $x = s^3+st+1$, $y = t^3+3t^2+t$, and $z = st^3$. The first method we use is to compute a Groebner basis using an elimination order which eliminates the variables s,t, and then select those Groebner basis elements that do not involve the variables s and t.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : R = QQ[s,t,x,y,z, MonomialOrder=>Eliminate 2];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : I = ideal(x-s^3-s*t-1, y-t^3-3*t^2-t, z-s*t^3)
+
+               3                   3     2               3
+o2 = ideal (- s  - s*t + x - 1, - t  - 3t  - t + y, - s*t  + z)
+
+o2 : Ideal of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : time leadTerm gens gb I
+     -- used 0.25263 seconds
+
+o3 = | x3y9 5148txy3 108729sxy2z2 sy4z 46644741sxy3z 143sy5 6sxy4
+     ------------------------------------------------------------------------
+     563515116021sx2y3 4374txy2z3 612704350498473090tx2yz3 217458ty4z2
+     ------------------------------------------------------------------------
+     267076255345488270sy3z4 5256861933965245618410txyz6
+     ------------------------------------------------------------------------
+     259806064190048723110954950tx2z6 281231296878799148310ty3z5
+     ------------------------------------------------------------------------
+     178193459663956600213275sx2yz5 2019525876191508135750450sy2z7
+     ------------------------------------------------------------------------
+     3470026149887950992631901569317758202349494375sx2z8 4004st 12012t2z
+     ------------------------------------------------------------------------
+     3003s2z 9009t2x 14s2y3 t3 4004s3 |
+
+             1       25
+o3 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : G = selectInSubring(1,gens gb I)
+
+o4 = | x3y9-3x2y9-6x2y8z-3x2y6z3+3xy9-x2y7z+12xy8z+7xy7z2-324x2y5z3+6xy6z3-
+     ------------------------------------------------------------------------
+     y7z3-15xy5z4+3xy3z6-y9+2xy7z-6y8z-7y7z2-1233x2y4z3+648xy5z3-3y6z3+
+     ------------------------------------------------------------------------
+     440xy4z4+15y5z4-70y4z5-405xy2z6-3y3z6+21y2z7-z9-y7z-945x2y3z3+2466xy4z3-
+     ------------------------------------------------------------------------
+     324y5z3+1749xy3z4-440y4z4-252y3z5+3393xyz6+405y2z6-385yz7-252x2y2z3+
+     ------------------------------------------------------------------------
+     1890xy3z3-1233y4z3+930xy2z4-1749y3z4-133y2z5-5778xz6-3393yz6+843z7-
+     ------------------------------------------------------------------------
+     27x2yz3+504xy2z3-945y3z3+147xyz4-930y2z4-21yz5+5778z6-x2z3+54xyz3-
+     ------------------------------------------------------------------------
+     252y2z3+7xz4-147yz4-z5+2xz3-27yz3-7z4-z3 |
+
+             1       1
+o4 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : ans1 = G_(0,0)
+
+      3 9     2 9     2 8      2 6 3       9    2 7         8        7 2  
+o5 = x y  - 3x y  - 6x y z - 3x y z  + 3x*y  - x y z + 12x*y z + 7x*y z  -
+     ------------------------------------------------------------------------
+         2 5 3       6 3    7 3        5 4       3 6    9       7      8   
+     324x y z  + 6x*y z  - y z  - 15x*y z  + 3x*y z  - y  + 2x*y z - 6y z -
+     ------------------------------------------------------------------------
+       7 2        2 4 3         5 3     6 3         4 4      5 4      4 5  
+     7y z  - 1233x y z  + 648x*y z  - 3y z  + 440x*y z  + 15y z  - 70y z  -
+     ------------------------------------------------------------------------
+           2 6     3 6      2 7    9    7        2 3 3          4 3       5 3
+     405x*y z  - 3y z  + 21y z  - z  - y z - 945x y z  + 2466x*y z  - 324y z 
+     ------------------------------------------------------------------------
+              3 4       4 4       3 5            6       2 6         7  
+     + 1749x*y z  - 440y z  - 252y z  + 3393x*y*z  + 405y z  - 385y*z  -
+     ------------------------------------------------------------------------
+         2 2 3          3 3        4 3         2 4        3 4       2 5  
+     252x y z  + 1890x*y z  - 1233y z  + 930x*y z  - 1749y z  - 133y z  -
+     ------------------------------------------------------------------------
+            6          6       7      2   3         2 3       3 3           4
+     5778x*z  - 3393y*z  + 843z  - 27x y*z  + 504x*y z  - 945y z  + 147x*y*z 
+     ------------------------------------------------------------------------
+           2 4        5        6    2 3          3       2 3       4  
+     - 930y z  - 21y*z  + 5778z  - x z  + 54x*y*z  - 252y z  + 7x*z  -
+     ------------------------------------------------------------------------
+           4    5       3        3     4    3
+     147y*z  - z  + 2x*z  - 27y*z  - 7z  - z
+
+o5 : R</code></pre>
+</td>          </tr>
+        </table>
+        <p/>
+This method (with some optimizations incorporated) is provided by the <a href="../../Elimination/html/_eliminate.html">eliminate</a> function.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : R = QQ[x,y,z,s,t];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : I = ideal(x-s^3-s*t-1, y-t^3-3*t^2-t, z-s*t^3)
+
+               3                   3     2               3
+o7 = ideal (- s  - s*t + x - 1, - t  - 3t  + y - t, - s*t  + z)
+
+o7 : Ideal of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : time G = eliminate(I,{s,t})
+     -- used 0.253493 seconds
+
+            3 9     2 9     2 8      2 6 3       9    2 7         8   
+o8 = ideal(x y  - 3x y  - 6x y z - 3x y z  + 3x*y  - x y z + 12x*y z +
+     ------------------------------------------------------------------------
+         7 2       2 5 3       6 3    7 3        5 4       3 6    9       7 
+     7x*y z  - 324x y z  + 6x*y z  - y z  - 15x*y z  + 3x*y z  - y  + 2x*y z
+     ------------------------------------------------------------------------
+         8      7 2        2 4 3         5 3     6 3         4 4      5 4  
+     - 6y z - 7y z  - 1233x y z  + 648x*y z  - 3y z  + 440x*y z  + 15y z  -
+     ------------------------------------------------------------------------
+        4 5         2 6     3 6      2 7    9    7        2 3 3          4 3
+     70y z  - 405x*y z  - 3y z  + 21y z  - z  - y z - 945x y z  + 2466x*y z 
+     ------------------------------------------------------------------------
+           5 3          3 4       4 4       3 5            6       2 6  
+     - 324y z  + 1749x*y z  - 440y z  - 252y z  + 3393x*y*z  + 405y z  -
+     ------------------------------------------------------------------------
+           7       2 2 3          3 3        4 3         2 4        3 4  
+     385y*z  - 252x y z  + 1890x*y z  - 1233y z  + 930x*y z  - 1749y z  -
+     ------------------------------------------------------------------------
+         2 5          6          6       7      2   3         2 3       3 3  
+     133y z  - 5778x*z  - 3393y*z  + 843z  - 27x y*z  + 504x*y z  - 945y z  +
+     ------------------------------------------------------------------------
+             4       2 4        5        6    2 3          3       2 3  
+     147x*y*z  - 930y z  - 21y*z  + 5778z  - x z  + 54x*y*z  - 252y z  +
+     ------------------------------------------------------------------------
+         4         4    5       3        3     4    3
+     7x*z  - 147y*z  - z  + 2x*z  - 27y*z  - 7z  - z )
+
+o8 : Ideal of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : ans2 = G_0
+
+      3 9     2 9     2 8      2 6 3       9    2 7         8        7 2  
+o9 = x y  - 3x y  - 6x y z - 3x y z  + 3x*y  - x y z + 12x*y z + 7x*y z  -
+     ------------------------------------------------------------------------
+         2 5 3       6 3    7 3        5 4       3 6    9       7      8   
+     324x y z  + 6x*y z  - y z  - 15x*y z  + 3x*y z  - y  + 2x*y z - 6y z -
+     ------------------------------------------------------------------------
+       7 2        2 4 3         5 3     6 3         4 4      5 4      4 5  
+     7y z  - 1233x y z  + 648x*y z  - 3y z  + 440x*y z  + 15y z  - 70y z  -
+     ------------------------------------------------------------------------
+           2 6     3 6      2 7    9    7        2 3 3          4 3       5 3
+     405x*y z  - 3y z  + 21y z  - z  - y z - 945x y z  + 2466x*y z  - 324y z 
+     ------------------------------------------------------------------------
+              3 4       4 4       3 5            6       2 6         7  
+     + 1749x*y z  - 440y z  - 252y z  + 3393x*y*z  + 405y z  - 385y*z  -
+     ------------------------------------------------------------------------
+         2 2 3          3 3        4 3         2 4        3 4       2 5  
+     252x y z  + 1890x*y z  - 1233y z  + 930x*y z  - 1749y z  - 133y z  -
+     ------------------------------------------------------------------------
+            6          6       7      2   3         2 3       3 3           4
+     5778x*z  - 3393y*z  + 843z  - 27x y*z  + 504x*y z  - 945y z  + 147x*y*z 
+     ------------------------------------------------------------------------
+           2 4        5        6    2 3          3       2 3       4  
+     - 930y z  - 21y*z  + 5778z  - x z  + 54x*y*z  - 252y z  + 7x*z  -
+     ------------------------------------------------------------------------
+           4    5       3        3     4    3
+     147y*z  - z  + 2x*z  - 27y*z  - 7z  - z
+
+o9 : R</code></pre>
+</td>          </tr>
+        </table>
+Sometimes giving the variables different degrees will speed up the computations.  Here, we set the degrees of x, y, and z to be the total degrees.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : R1 = QQ[x,y,z,s,t, Degrees=>{3,3,4,1,1}];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : I1 = substitute(I,R1);
+
+o11 : Ideal of R1</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : time G = eliminate(I1,{s,t})
+     -- used 0.083315 seconds
+
+             3 9     2 6 3       3 6    9     2 8         5 4      2 7  
+o12 = ideal(x y  - 3x y z  + 3x*y z  - z  - 6x y z - 15x*y z  + 21y z  -
+      -----------------------------------------------------------------------
+        2 9       2 5 3       6 3    7 3         2 6     3 6       7 2  
+      3x y  - 324x y z  + 6x*y z  - y z  - 405x*y z  - 3y z  + 7x*y z  -
+      -----------------------------------------------------------------------
+         4 5    2 7         8          4 4      5 4         7       9  
+      70y z  - x y z + 12x*y z + 440x*y z  + 15y z  - 385y*z  + 3x*y  -
+      -----------------------------------------------------------------------
+           2 4 3         5 3     6 3            6       2 6     7 2       3 5
+      1233x y z  + 648x*y z  - 3y z  + 3393x*y*z  + 405y z  - 7y z  - 252y z 
+      -----------------------------------------------------------------------
+            7      8           3 4       4 4       7    9       2 3 3  
+      + 2x*y z - 6y z + 1749x*y z  - 440y z  + 843z  - y  - 945x y z  +
+      -----------------------------------------------------------------------
+             4 3       5 3          6          6       2 5    7          2 4
+      2466x*y z  - 324y z  - 5778x*z  - 3393y*z  - 133y z  - y z + 930x*y z 
+      -----------------------------------------------------------------------
+             3 4       2 2 3          3 3        4 3        6        5  
+      - 1749y z  - 252x y z  + 1890x*y z  - 1233y z  + 5778z  - 21y*z  +
+      -----------------------------------------------------------------------
+              4       2 4      2   3         2 3       3 3    5       4  
+      147x*y*z  - 930y z  - 27x y*z  + 504x*y z  - 945y z  - z  + 7x*z  -
+      -----------------------------------------------------------------------
+            4    2 3          3       2 3     4       3        3    3
+      147y*z  - x z  + 54x*y*z  - 252y z  - 7z  + 2x*z  - 27y*z  - z )
+
+o12 : Ideal of R1</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : ans3 = G_0
+
+       3 9     2 6 3       3 6    9     2 8         5 4      2 7     2 9  
+o13 = x y  - 3x y z  + 3x*y z  - z  - 6x y z - 15x*y z  + 21y z  - 3x y  -
+      -----------------------------------------------------------------------
+          2 5 3       6 3    7 3         2 6     3 6       7 2      4 5  
+      324x y z  + 6x*y z  - y z  - 405x*y z  - 3y z  + 7x*y z  - 70y z  -
+      -----------------------------------------------------------------------
+       2 7         8          4 4      5 4         7       9        2 4 3  
+      x y z + 12x*y z + 440x*y z  + 15y z  - 385y*z  + 3x*y  - 1233x y z  +
+      -----------------------------------------------------------------------
+            5 3     6 3            6       2 6     7 2       3 5       7   
+      648x*y z  - 3y z  + 3393x*y*z  + 405y z  - 7y z  - 252y z  + 2x*y z -
+      -----------------------------------------------------------------------
+        8           3 4       4 4       7    9       2 3 3          4 3  
+      6y z + 1749x*y z  - 440y z  + 843z  - y  - 945x y z  + 2466x*y z  -
+      -----------------------------------------------------------------------
+          5 3          6          6       2 5    7          2 4        3 4  
+      324y z  - 5778x*z  - 3393y*z  - 133y z  - y z + 930x*y z  - 1749y z  -
+      -----------------------------------------------------------------------
+          2 2 3          3 3        4 3        6        5           4  
+      252x y z  + 1890x*y z  - 1233y z  + 5778z  - 21y*z  + 147x*y*z  -
+      -----------------------------------------------------------------------
+          2 4      2   3         2 3       3 3    5       4         4    2 3
+      930y z  - 27x y*z  + 504x*y z  - 945y z  - z  + 7x*z  - 147y*z  - x z 
+      -----------------------------------------------------------------------
+               3       2 3     4       3        3    3
+      + 54x*y*z  - 252y z  - 7z  + 2x*z  - 27y*z  - z
+
+o13 : R1</code></pre>
+</td>          </tr>
+        </table>
+        <p/>
+Another approach is to create the ring map $F : k[x,y,z] \rightarrow{} k[s,t]$, and find its kernel.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : A = QQ[s,t];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : B = QQ[x,y,z];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : F = map(A,B,{s^3+s*t+1, t^3+3*t^2+t, s*t^3})
+
+                   3             3     2         3
+o16 = map (A, B, {s  + s*t + 1, t  + 3t  + t, s*t })
+
+o16 : RingMap A &lt;--- B</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i17 : time G = kernel F
+     -- used 0.256893 seconds
+
+             3 9     2 9     2 8      2 6 3       9    2 7         8   
+o17 = ideal(x y  - 3x y  - 6x y z - 3x y z  + 3x*y  - x y z + 12x*y z +
+      -----------------------------------------------------------------------
+          7 2       2 5 3       6 3    7 3        5 4       3 6    9       7 
+      7x*y z  - 324x y z  + 6x*y z  - y z  - 15x*y z  + 3x*y z  - y  + 2x*y z
+      -----------------------------------------------------------------------
+          8      7 2        2 4 3         5 3     6 3         4 4      5 4  
+      - 6y z - 7y z  - 1233x y z  + 648x*y z  - 3y z  + 440x*y z  + 15y z  -
+      -----------------------------------------------------------------------
+         4 5         2 6     3 6      2 7    9    7        2 3 3          4 3
+      70y z  - 405x*y z  - 3y z  + 21y z  - z  - y z - 945x y z  + 2466x*y z 
+      -----------------------------------------------------------------------
+            5 3          3 4       4 4       3 5            6       2 6  
+      - 324y z  + 1749x*y z  - 440y z  - 252y z  + 3393x*y*z  + 405y z  -
+      -----------------------------------------------------------------------
+            7       2 2 3          3 3        4 3         2 4        3 4  
+      385y*z  - 252x y z  + 1890x*y z  - 1233y z  + 930x*y z  - 1749y z  -
+      -----------------------------------------------------------------------
+          2 5          6          6       7      2   3         2 3       3 3
+      133y z  - 5778x*z  - 3393y*z  + 843z  - 27x y*z  + 504x*y z  - 945y z 
+      -----------------------------------------------------------------------
+                4       2 4        5        6    2 3          3       2 3  
+      + 147x*y*z  - 930y z  - 21y*z  + 5778z  - x z  + 54x*y*z  - 252y z  +
+      -----------------------------------------------------------------------
+          4         4    5       3        3     4    3
+      7x*z  - 147y*z  - z  + 2x*z  - 27y*z  - 7z  - z )
+
+o17 : Ideal of B</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i18 : ans4 = G_0
+
+       3 9     2 9     2 8      2 6 3       9    2 7         8        7 2  
+o18 = x y  - 3x y  - 6x y z - 3x y z  + 3x*y  - x y z + 12x*y z + 7x*y z  -
+      -----------------------------------------------------------------------
+          2 5 3       6 3    7 3        5 4       3 6    9       7      8   
+      324x y z  + 6x*y z  - y z  - 15x*y z  + 3x*y z  - y  + 2x*y z - 6y z -
+      -----------------------------------------------------------------------
+        7 2        2 4 3         5 3     6 3         4 4      5 4      4 5  
+      7y z  - 1233x y z  + 648x*y z  - 3y z  + 440x*y z  + 15y z  - 70y z  -
+      -----------------------------------------------------------------------
+            2 6     3 6      2 7    9    7        2 3 3          4 3  
+      405x*y z  - 3y z  + 21y z  - z  - y z - 945x y z  + 2466x*y z  -
+      -----------------------------------------------------------------------
+          5 3          3 4       4 4       3 5            6       2 6  
+      324y z  + 1749x*y z  - 440y z  - 252y z  + 3393x*y*z  + 405y z  -
+      -----------------------------------------------------------------------
+            7       2 2 3          3 3        4 3         2 4        3 4  
+      385y*z  - 252x y z  + 1890x*y z  - 1233y z  + 930x*y z  - 1749y z  -
+      -----------------------------------------------------------------------
+          2 5          6          6       7      2   3         2 3       3 3
+      133y z  - 5778x*z  - 3393y*z  + 843z  - 27x y*z  + 504x*y z  - 945y z 
+      -----------------------------------------------------------------------
+                4       2 4        5        6    2 3          3       2 3  
+      + 147x*y*z  - 930y z  - 21y*z  + 5778z  - x z  + 54x*y*z  - 252y z  +
+      -----------------------------------------------------------------------
+          4         4    5       3        3     4    3
+      7x*z  - 147y*z  - z  + 2x*z  - 27y*z  - 7z  - z
+
+o18 : B</code></pre>
+</td>          </tr>
+        </table>
+This appears to be much faster than the first two methods.        <p/>
+Finally, we may use resultants to find elements of the ideal I which do not involve the variables s and t.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i19 : use ring I
+
+o19 = R
+
+o19 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i20 : time f1 = resultant(I_0,I_2,s)
+     -- used 0.00137027 seconds
+
+         9    9      7    3
+o20 = x*t  - t  - z*t  - z
+
+o20 : R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i21 : time f2 = resultant(I_1,f1,t)
+     -- used 0.0913653 seconds
+
+         3 9     2 9     2 8      2 6 3       9    2 7         8        7 2  
+o21 = - x y  + 3x y  + 6x y z + 3x y z  - 3x*y  + x y z - 12x*y z - 7x*y z  +
+      -----------------------------------------------------------------------
+          2 5 3       6 3    7 3        5 4       3 6    9       7      8   
+      324x y z  - 6x*y z  + y z  + 15x*y z  - 3x*y z  + y  - 2x*y z + 6y z +
+      -----------------------------------------------------------------------
+        7 2        2 4 3         5 3     6 3         4 4      5 4      4 5  
+      7y z  + 1233x y z  - 648x*y z  + 3y z  - 440x*y z  - 15y z  + 70y z  +
+      -----------------------------------------------------------------------
+            2 6     3 6      2 7    9    7        2 3 3          4 3  
+      405x*y z  + 3y z  - 21y z  + z  + y z + 945x y z  - 2466x*y z  +
+      -----------------------------------------------------------------------
+          5 3          3 4       4 4       3 5            6       2 6  
+      324y z  - 1749x*y z  + 440y z  + 252y z  - 3393x*y*z  - 405y z  +
+      -----------------------------------------------------------------------
+            7       2 2 3          3 3        4 3         2 4        3 4  
+      385y*z  + 252x y z  - 1890x*y z  + 1233y z  - 930x*y z  + 1749y z  +
+      -----------------------------------------------------------------------
+          2 5          6          6       7      2   3         2 3       3 3
+      133y z  + 5778x*z  + 3393y*z  - 843z  + 27x y*z  - 504x*y z  + 945y z 
+      -----------------------------------------------------------------------
+                4       2 4        5        6    2 3          3       2 3  
+      - 147x*y*z  + 930y z  + 21y*z  - 5778z  + x z  - 54x*y*z  + 252y z  -
+      -----------------------------------------------------------------------
+          4         4    5       3        3     4    3
+      7x*z  + 147y*z  + z  - 2x*z  + 27y*z  + 7z  + z
+
+o21 : R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i22 : ans5 = -f2
+
+       3 9     2 9     2 8      2 6 3       9    2 7         8        7 2  
+o22 = x y  - 3x y  - 6x y z - 3x y z  + 3x*y  - x y z + 12x*y z + 7x*y z  -
+      -----------------------------------------------------------------------
+          2 5 3       6 3    7 3        5 4       3 6    9       7      8   
+      324x y z  + 6x*y z  - y z  - 15x*y z  + 3x*y z  - y  + 2x*y z - 6y z -
+      -----------------------------------------------------------------------
+        7 2        2 4 3         5 3     6 3         4 4      5 4      4 5  
+      7y z  - 1233x y z  + 648x*y z  - 3y z  + 440x*y z  + 15y z  - 70y z  -
+      -----------------------------------------------------------------------
+            2 6     3 6      2 7    9    7        2 3 3          4 3  
+      405x*y z  - 3y z  + 21y z  - z  - y z - 945x y z  + 2466x*y z  -
+      -----------------------------------------------------------------------
+          5 3          3 4       4 4       3 5            6       2 6  
+      324y z  + 1749x*y z  - 440y z  - 252y z  + 3393x*y*z  + 405y z  -
+      -----------------------------------------------------------------------
+            7       2 2 3          3 3        4 3         2 4        3 4  
+      385y*z  - 252x y z  + 1890x*y z  - 1233y z  + 930x*y z  - 1749y z  -
+      -----------------------------------------------------------------------
+          2 5          6          6       7      2   3         2 3       3 3
+      133y z  - 5778x*z  - 3393y*z  + 843z  - 27x y*z  + 504x*y z  - 945y z 
+      -----------------------------------------------------------------------
+                4       2 4        5        6    2 3          3       2 3  
+      + 147x*y*z  - 930y z  - 21y*z  + 5778z  - x z  + 54x*y*z  - 252y z  +
+      -----------------------------------------------------------------------
+          4         4    5       3        3     4    3
+      7x*z  - 147y*z  - z  + 2x*z  - 27y*z  - 7z  - z
+
+o22 : R</code></pre>
+</td>          </tr>
+        </table>
+This is the fastest method in this case.        <p/>
+These answers should all be the same (with the possible exception of the last), but are they?  They live in different rings, so we cannot compare them directly.  Instead, let's move them to the ring B, and then remove duplicates.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i23 : L = {ans1,ans2,ans3,ans4,ans5};</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i24 : L = apply(L, f -> substitute(f,B));</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i25 : length unique L
+
+o25 = 1</code></pre>
+</td>          </tr>
+        </table>
+They are all the same!      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li>
+<span><a title="select columns in a subring" href="_select__In__Subring.html">selectInSubring</a> -- select columns in a subring</span>          </li>
+          <li>
+<span><a title="the class of all ring maps" href="___Ring__Map.html">RingMap</a> -- the class of all ring maps</span>          </li>
+          <li>
+<span><a href="../../Elimination/html/_eliminate.html">eliminate</a></span>          </li>
+          <li>
+<span><a href="../../Elimination/html/_resultant_lp__Ring__Element_cm__Ring__Element_cm__Ring__Element_rp.html">resultant</a></span>          </li>
+          <li>
+<span><a title="apply a function to each element" href="_apply.html">apply</a> -- apply a function to each element</span>          </li>
+          <li>
+<span><a title="eliminate duplicates from a list" href="_unique.html">unique</a> -- eliminate duplicates from a list</span>          </li>
+          <li>
+<span><a title="length of an object" href="_length.html">length</a> -- length of an object</span>          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+
+</html>

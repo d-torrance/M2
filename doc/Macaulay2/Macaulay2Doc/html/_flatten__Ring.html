@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>flattenRing -- write a ring as a (quotient of a) polynomial ring</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_flatten__Ring_lp..._cm__Coefficient__Ring_eq_gt..._rp.html">next</a> | <a href="_flatten.html">previous</a> | <a href="_flatten__Ring_lp..._cm__Coefficient__Ring_eq_gt..._rp.html">forward</a> | <a href="_flatten.html">backward</a> | up | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> :: <a title="write a ring as a (quotient of a) polynomial ring" href="_flatten__Ring.html">flattenRing</a>    </div>
+    <hr/>
+    <div>
+      <h1>flattenRing -- write a ring as a (quotient of a) polynomial ring</h1>
+      <div>
+        <h2>Synopsis</h2>
+        <ul>
+          <li>
+            <dl class="element">
+              <dt>Usage: </dt>
+              <dd><code class="language-macaulay2">flattenRing R</code></dd>
+              <dd><code class="language-macaulay2">flattenRing I</code></dd>
+              <dd><code class="language-macaulay2">flattenRing G</code></dd>
+            </dl>
+          </li>
+          <li>
+Inputs:            <ul>
+              <li>
+<span><tt>R</tt>, <span>a <a title="the class of all rings" href="___Ring.html">ring</a></span>, OR</span>              </li>
+              <li>
+<span><tt>I</tt>, <span>an <a title="the class of all ideals" href="___Ideal.html">ideal</a></span>, OR</span>              </li>
+              <li>
+<span><tt>G</tt>, <span>a <a title="the class of all Galois fields" href="___Galois__Field.html">Galois field</a></span>, </span>              </li>
+            </ul>
+          </li>
+          <li>
+<a href="_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:            <ul>
+              <li>
+<span><a title="optionally specify the desired coefficient ring of the flattened ring" href="_flatten__Ring_lp..._cm__Coefficient__Ring_eq_gt..._rp.html">CoefficientRing</a><tt> => </tt><tt>...</tt>, <span>default value null</span>, optionally specify the desired coefficient ring of the flattened ring</span>              </li>
+              <li>
+<span><a title="optionally specify which output(s) to return (see Description for details)" href="_flatten__Ring_lp..._cm__Result_eq_gt..._rp.html">Result</a><tt> => </tt><tt>...</tt>, <span>default value (Thing,RingMap)</span>, optionally specify which output(s) to return (see Description for details)</span>              </li>
+            </ul>
+          </li>
+          <li>
+Outputs:            <ul>
+              <li>
+<span><tt>S</tt>, <span>a <a title="the class of all rings" href="___Ring.html">ring</a></span>, a ring isomorphic to <tt>R</tt>, but represented as a (quotient of a) polynomial ring, or</span>              </li>
+              <li>
+<span><tt>J</tt>, <span>an <a title="the class of all ideals" href="___Ideal.html">ideal</a></span>, the ideal of <tt>S</tt> corresponding to (isomorphic to) <tt>I</tt></span>              </li>
+              <li>
+<span><tt>F</tt>, <span>a <a title="the class of all ring maps" href="___Ring__Map.html">ring map</a></span>, the isomorphism from <tt>R</tt> to <tt>S</tt></span>              </li>
+              <li>
+<span><tt>G</tt>, <span>a <a title="the class of all ring maps" href="___Ring__Map.html">ring map</a></span>, the isomorphism from <tt>S</tt> to <tt>R</tt></span>              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>Use <tt>flattenRing</tt> to get an isomorphic representation of a ring over a different coefficient ring.</p>
+          <p>For instance the following ring $R$ is defined to have indeterminates $y,z$, and coefficients in the quotient ring $\mathbb{Z}[x]/(x^2-3)$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : A = ZZ[x] / (x^2-3);  R = A[y,z] / (x*y^2-z^2, y^3);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : describe R
+
+         A[y..z]
+o3 = ---------------
+         2    2   3
+     (x*y  - z , y )</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>To work with the isomorphic ring $S = \mathbb{Z}[x,y,z]/(x^2-3,x*y^2-z^2,y^3)$ instead, use <tt>flattenRing</tt>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : flattenRing R
+
+            ZZ[y..z, x]                  ZZ[y..z, x]
+o4 = (----------------------, map (----------------------, R, {y, z, x}))
+        2       2     2   3          2       2     2   3
+      (x  - 3, y x - z , y )       (x  - 3, y x - z , y )
+
+o4 : Sequence</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>The default output is the sequence $(S, F)$, where $S$ is the flattened ring, and $F$ is the <a title="the class of all ring maps" href="___Ring__Map.html">RingMap</a> from $R$ to $S$. Here we demonstrate how to store and use the map $F$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : I = ideal(y^2 - 3*x*z)
+
+            2
+o5 = ideal(y  - 3x*z)
+
+o5 : Ideal of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : (S, F) = flattenRing R;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : F(I)
+
+            2
+o7 = ideal(y  - 3z*x)
+
+o7 : Ideal of S</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Flattening an ideal instead of a quotient ring can save a lot of time spent computing the Gröbner basis of the resulting ideal, if the flattened quotient is not needed. Notice that the ring map in the following example is <em>not</em> the same as the previous example; the following ring map is from $R$ to $\mathbb{Z}[x,y,z]$, while the previous map was from $R$ to $\mathbb{Z}[x,y,z]/(x^2-3,x*y^2-z^2,y^3)$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : A = ZZ[x] / (x^2-3);  R = A[y,z] / (x*y^2-z^2, y^3);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : I = ideal(y^2 - 3*x*z);
+
+o10 : Ideal of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : (J, F) = flattenRing I
+
+               2       2     2   3   2
+o11 = (ideal (x  - 3, y x - z , y , y  - 3z*x), map (ZZ[y..z, x], R, {y, z,
+      -----------------------------------------------------------------------
+      x}))
+
+o11 : Sequence</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p><tt>flattenRing</tt> can also be used to represent <a title="the class of all Galois fields" href="___Galois__Field.html">GaloisField</a>s as quotients of polynomial rings. If $K$ is the Galois field of order $p^n$, <tt>flattenRing(K)</tt> will represent $K$ as a quotient of $\mathbb{Z}_p[a]$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : K = GF(5^3)
+
+o12 = K
+
+o12 : GaloisField</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : flattenRing K
+
+          ZZ                ZZ
+          --[a]             --[a]
+           5                 5
+o13 = (-----------, map (-----------, K, {a}))
+        3                 3
+       a  - 2a - 2       a  - 2a - 2
+
+o13 : Sequence</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Or, if a different variable was specified in the construction of $K$, <tt>flattenRing K</tt> will follow suit.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : L = GF(7, 5, Variable => z);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : flattenRing L
+
+          ZZ               ZZ
+          --[z]            --[z]
+           7                7
+o15 = (----------, map (----------, L, {z}))
+        5                5
+       z  + z - 3       z  + z - 3
+
+o15 : Sequence</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Use <tt>Result => 1</tt> to return the ring only. The default behavior is equivalent to <tt>Return => 2</tt>. Use <tt>Result => 3</tt> to return the ring, the isomorphism $F:R\to S$, and the inverse map $F^{-1}:R\to S$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : flattenRing(R, Result => 1)
+
+            ZZ[y..z, x]
+o16 = ----------------------
+        2       2     2   3
+      (x  - 3, y x - z , y )
+
+o16 : QuotientRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i17 : flattenRing(R, Result => 2)
+
+             ZZ[y..z, x]                  ZZ[y..z, x]
+o17 = (----------------------, map (----------------------, R, {y, z, x}))
+         2       2     2   3          2       2     2   3
+       (x  - 3, y x - z , y )       (x  - 3, y x - z , y )
+
+o17 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i18 : flattenRing(R, Result => 3)
+
+             ZZ[y..z, x]                  ZZ[y..z, x]                     
+o18 = (----------------------, map (----------------------, R, {y, z, x}),
+         2       2     2   3          2       2     2   3                 
+       (x  - 3, y x - z , y )       (x  - 3, y x - z , y )                
+      -----------------------------------------------------------------------
+                    ZZ[y..z, x]
+      map (R, ----------------------, {y, z, x}))
+                2       2     2   3
+              (x  - 3, y x - z , y )
+
+o18 : Sequence</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>These are the only numeric options for <tt>Result</tt>. However, we can also specify the output(s) desired with a sequence of length 1, 2, or 3. The elements of the sequence correspond to the <tt>Result => 1</tt>, <tt>Result => 2</tt>, and <tt>Result => 3</tt> output sequences, respectively. Any element of the sequence can be suppressed by asking for <tt>Nothing</tt> instead. For example, to return the map $F$ only, we ask for the sequence of length 2, $(S, F)$, but suppress $S$:</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i19 : flattenRing(R, Result => (Nothing, RingMap))
+
+o19 = (, map (ZZ[y..z, x], R, {y, z, x}))
+
+o19 : Sequence</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Note that <tt>Result => RingMap</tt> is NOT a valid way to return $F$ only, because an output of length 1 can only have a ring or an ideal.</p>
+          <p>Similarly, to return $S$ and $F^{-1}$ only:</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i20 : flattenRing(R, Result => (Ring, Nothing, RingMap))
+
+             ZZ[y..z, x]                       ZZ[y..z, x]
+o20 = (----------------------, , map (R, ----------------------, {y, z, x}))
+         2       2     2   3               2       2     2   3
+       (x  - 3, y x - z , y )            (x  - 3, y x - z , y )
+
+o20 : Sequence</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Omitting an element of the sequence is equivalent to asking for it to be returned.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i21 : flattenRing(R, Result => (Nothing, ))
+
+o21 = (, map (ZZ[y..z, x], R, {y, z, x}))
+
+o21 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i22 : flattenRing(R, Result => ( , Nothing, ) )
+
+             ZZ[y..z, x]                       ZZ[y..z, x]
+o22 = (----------------------, , map (R, ----------------------, {y, z, x}))
+         2       2     2   3               2       2     2   3
+       (x  - 3, y x - z , y )            (x  - 3, y x - z , y )
+
+o22 : Sequence</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>When running <tt>flattenRing(Ideal)</tt>, there are additional choices for the <tt>Result</tt> option: the first element of the sequence, which is always the ring in the <tt>flattenRing(Ring)</tt> case, can now be either the new ring or the corresponding new ideal. The default is to return the ideal, including when using numeric options for <tt>Result</tt> or omitting an object type in the sequence.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i23 : flattenRing(I, Result => 1)
+
+              2       2     2   3   2
+o23 = ideal (x  - 3, y x - z , y , y  - 3z*x)
+
+o23 : Ideal of ZZ[y..z, x]</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i24 : flattenRing(I, Result => 3)
+
+               2       2     2   3   2
+o24 = (ideal (x  - 3, y x - z , y , y  - 3z*x), map (ZZ[y..z, x], R, {y, z,
+      -----------------------------------------------------------------------
+      x}), map (R, ZZ[y..z, x], {y, z, x}))
+
+o24 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i25 : flattenRing(R, Result => ( , Nothing, ) )
+
+             ZZ[y..z, x]                       ZZ[y..z, x]
+o25 = (----------------------, , map (R, ----------------------, {y, z, x}))
+         2       2     2   3               2       2     2   3
+       (x  - 3, y x - z , y )            (x  - 3, y x - z , y )
+
+o25 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i26 : flattenRing(I, Result => (Ring, Nothing, RingMap))
+
+                  ZZ[y..z, x]                      
+o26 = (---------------------------------, , map (R,
+         2       2     2   3   2                   
+       (x  - 3, y x - z , y , y  - 3z*x)           
+      -----------------------------------------------------------------------
+                 ZZ[y..z, x]
+      ---------------------------------, {y, z, x}))
+        2       2     2   3   2
+      (x  - 3, y x - z , y , y  - 3z*x)
+
+o26 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i27 : flattenRing(I, Result => (Ring, RingMap))
+
+                  ZZ[y..z, x]                
+o27 = (---------------------------------, map
+         2       2     2   3   2             
+       (x  - 3, y x - z , y , y  - 3z*x)     
+      -----------------------------------------------------------------------
+                  ZZ[y..z, x]
+      (---------------------------------, R, {y, z, x}))
+         2       2     2   3   2
+       (x  - 3, y x - z , y , y  - 3z*x)
+
+o27 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i28 : flattenRing(I, Result => Ideal)
+
+              2       2     2   3   2
+o28 = ideal (x  - 3, y x - z , y , y  - 3z*x)
+
+o28 : Ideal of ZZ[y..z, x]</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>By default <tt>flattenRing</tt> attempts to define a new ring over either <tt>ZZ</tt> or a base field.</p>
+          <p>In the following example, the coefficient ring of the result is the fraction field $K$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i29 : K = frac(ZZ[a])
+
+o29 = K
+
+o29 : FractionField</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i30 : B = K[x,y,z]/(a*x^2-y^2-z^2, y^3, z^3)
+
+o30 = B
+
+o30 : QuotientRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i31 : (D, F) = flattenRing B
+
+o31 = (B, map (B, B, {x, y, z, a}))
+
+o31 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i32 : describe D
+
+               K[x..z]
+o32 = ------------------------
+          2    2    2   3   3
+      (a*x  - y  - z , y , z )</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Once a ring has been declared to be a field with <a title="declare that a ring is a field" href="_to__Field_lp__Ring_rp.html">toField</a> then it will be used as the coefficient ring.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i33 : A = QQ[a]/(a^2-3);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i34 : L = toField A
+
+o34 = L
+
+o34 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i35 : B = L[x,y,z]/(a*x^2-y^2-z^2, y^3, z^3)
+
+o35 = B
+
+o35 : QuotientRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i36 : (D, F) = flattenRing(B[s,t])
+
+o36 = (D, map (D, B[s..t], {s, t, x, y, z, a}))
+
+o36 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i37 : describe D
+
+            L[s..t, x..z]
+o37 = ------------------------
+          2    2    2   3   3
+      (a*x  - y  - z , y , z )</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Use the <tt>CoefficientRing</tt> option to specify a different base field or ring.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i38 : (D, F) = flattenRing(B[s,t], CoefficientRing => QQ)
+
+o38 = (D, map (D, B[s..t], {s, t, x, y, z, a}))
+
+o38 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i39 : describe D
+
+             QQ[s..t, x..z, a]
+o39 = -------------------------------
+        2       2     2    2   3   3
+      (a  - 3, x a - y  - z , y , z )</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Here is a more complicated example.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i40 : use L
+
+o40 = L
+
+o40 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i41 : C1 = L[s,t];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i42 : C2 = C1/(a*s-t^2);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i43 : C3 = C2[p_0..p_4]/(a*s*p_0)[q]/(q^2-a*p_1);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i44 : (D, F) = flattenRing(C3, CoefficientRing=>C2)
+
+o44 = (D, map (D, C3, {q, p , p , p , p , p , s, t, a}))
+                           0   1   2   3   4
+
+o44 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i45 : describe D
+
+         C2[q, p ..p ]
+                0   4
+o45 = -------------------
+                2
+      (a*s*p , q  - a*p )
+            0          1</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i46 : (D, F) = flattenRing(C3, CoefficientRing=>QQ)
+
+o46 = (D, map (D, C3, {q, p , p , p , p , p , s, t, a}))
+                           0   1   2   3   4
+
+o46 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i47 : describe D
+
+              QQ[q, p ..p , s..t, a]
+                     0   4
+o47 = -------------------------------------
+        2         2                2
+      (a  - 3, - t  + s*a, p s*a, q  - p a)
+                            0           1</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Multiple calls to <tt>flattenRing</tt> may result in defining multiple rings that are regarded as different objects by <tt>Macaulay2</tt>. (See <a href="_rings.html">rings</a> or <a href="_working_spwith_spmultiple_springs.html">working with multiple rings</a> for more information.)</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i48 : flattenRing(B[s,t]) === flattenRing(B[s,t])
+
+o48 = false</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li>
+<span><a title="get the coefficient ring" href="_coefficient__Ring.html">coefficientRing</a> -- get the coefficient ring</span>          </li>
+          <li>
+<span><a title="real description" href="_describe.html">describe</a> -- real description</span>          </li>
+          <li>
+<span><a title="make a finite field" href="___G__F.html">GF</a> -- make a finite field</span>          </li>
+          <li>
+<span><a title="lift to another ring" href="_lift.html">lift</a> -- lift to another ring</span>          </li>
+          <li>
+<span><a title="presentation of a module or ring" href="_presentation.html">presentation</a> -- presentation of a module or ring</span>          </li>
+          <li>
+<span><a title="promote to another ring" href="_promote.html">promote</a> -- promote to another ring</span>          </li>
+          <li>
+<span><a title="declare that a ring is a field" href="_to__Field_lp__Ring_rp.html">toField</a> -- declare that a ring is a field</span>          </li>
+          <li>
+<span><a title="minimize generators and relations" href="_trim.html">trim</a> -- minimize generators and relations</span>          </li>
+          <li>
+<span><a href="_finite_spfields.html">finite fields</a></span>          </li>
+          <li>
+<span><a href="_rings.html">rings</a></span>          </li>
+          <li>
+<span><a href="_working_spwith_spmultiple_springs.html">working with multiple rings</a></span>          </li>
+        </ul>
+      </div>
+      <div class="waystouse">
+        <h2>Ways to use <tt>flattenRing</tt> :</h2>
+        <ul>
+          <li>
+<tt>&quot;flattenRing(GaloisField)&quot;</tt>          </li>
+          <li>
+<tt>&quot;flattenRing(Ideal)&quot;</tt>          </li>
+          <li>
+<tt>&quot;flattenRing(PolynomialRing)&quot;</tt>          </li>
+          <li>
+<tt>&quot;flattenRing(QuotientRing)&quot;</tt>          </li>
+          <li>
+<tt>&quot;flattenRing(Ring)&quot;</tt>          </li>
+        </ul>
+      </div>
+      <div class="waystouse">
+        <h2>For the programmer</h2>
+        <p>The object <a title="write a ring as a (quotient of a) polynomial ring" href="_flatten__Ring.html">flattenRing</a> is <span>a <a title="a type of method function" href="___Method__Function__With__Options.html">method function with options</a></span>.</p>
+      </div>
+    </div>
+  </body>
+
+</html>

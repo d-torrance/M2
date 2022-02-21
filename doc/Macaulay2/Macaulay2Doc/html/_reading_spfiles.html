@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>reading files</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_getting_spinput_spfrom_spthe_spuser.html">next</a> | <a href="_printing_spto_spthe_spscreen.html">previous</a> | <a href="_getting_spinput_spfrom_spthe_spuser.html">forward</a> | <a href="_printing_spto_spthe_spscreen.html">backward</a> | <a href="___The_sp__Macaulay2_splanguage.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> > <a href="_reading_spfiles.html">reading files</a>    </div>
+    <hr/>
+    <div>
+      <h1>reading files</h1>
+      <div>
+Sometimes a file will contain a single expression whose value you wish to have access to.  For example, it might be a polynomial produced by another program.  The function <a title="get the contents of a file" href="_get.html">get</a> can be used to obtain the entire contents of a file as a single string.  We illustrate this here with a file whose name is <tt>expression</tt>.        <p/>
+First we create the file by writing the desired text to it.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : fn = temporaryFileName()
+
+o1 = /tmp/M2-3146070-0/0</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : fn &lt;&lt; &quot;z^6+3*x*z^4+6*y*z^4+3*x^2*z^2+12*x*y*z^2+12*y^2*z^2+x^3+6*x^2*y+12*x*y^2+8*y^3&quot; &lt;&lt; endl &lt;&lt; close
+
+o2 = /tmp/M2-3146070-0/0
+
+o2 : File</code></pre>
+</td>          </tr>
+        </table>
+Now we get the contents of the file, as a single string.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : get fn
+
+o3 = z^6+3*x*z^4+6*y*z^4+3*x^2*z^2+12*x*y*z^2+12*y^2*z^2+x^3+6*x^2*y+12*x*y^2
+     +8*y^3</code></pre>
+</td>          </tr>
+        </table>
+This isn't quite what you want, because a string containing a description of a polynomial is not the same as a polynomial.  We may use <a title="evaluate" href="_value.html">value</a> to evaluate the string and produce the corresponding polynomial, after first setting up a polynomial ring to contain it.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : R = ZZ/101[x,y,z]
+
+o4 = R
+
+o4 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : f = value get fn
+
+      6       4       4     2 2          2      2 2    3     2         2  
+o5 = z  + 3x*z  + 6y*z  + 3x z  + 12x*y*z  + 12y z  + x  + 6x y + 12x*y  +
+     ------------------------------------------------------------------------
+       3
+     8y
+
+o5 : R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : factor f
+
+       2          3
+o6 = (z  + x + 2y)
+
+o6 : Expression of class Product</code></pre>
+</td>          </tr>
+        </table>
+Often a file will contain code written in the Macaulay2 language. Let's create such a file.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : fn &lt;&lt; &quot;sample = 2^100
+     print sample
+     &quot; &lt;&lt; close
+
+o7 = /tmp/M2-3146070-0/0
+
+o7 : File</code></pre>
+</td>          </tr>
+        </table>
+Now verify that it contains the desired text with <a title="get the contents of a file" href="_get.html">get</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : get fn
+
+o8 = sample = 2^100
+     print sample</code></pre>
+</td>          </tr>
+        </table>
+To load and execute that code, use <a title="read Macaulay2 commands" href="_load.html">load</a>.  This is the function you will use most often for using bits of code you have previously written, unless you have incorporated them into a package, in which case you would use <a title="load a package" href="_load__Package.html">loadPackage</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : load fn
+1267650600228229401496703205376</code></pre>
+</td>          </tr>
+        </table>
+The command <a title="read Macaulay2 commands if necessary" href="_needs.html">needs</a> can be used to load a file only if it hasn't already been loaded.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : needs fn</code></pre>
+</td>          </tr>
+        </table>
+        <p>For debugging or display purposes, it is sometimes useful to be able to simulate entering the lines of a file one by one, so they appear on the screen along with prompts and output lines.  One may use <a title="read Macaulay2 commands and echo" href="_input.html">input</a> for that.</p>
+        <p>There are other ways to manipulate the contents of a file with multiple lines.  First, let's use <a title="examine contents of an object" href="_peek.html">peek</a> to observe the extent of this string returned by <a title="get the contents of a file" href="_get.html">get</a>.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : peek get fn
+
+o11 = &quot;sample = 2^100
+      print sample
+      &quot;</code></pre>
+</td>          </tr>
+        </table>
+The resulting string has newlines in it; we can use <a title="split a string into lines" href="_lines.html">lines</a> to break it apart into a list of strings, with one row in each string.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : lines get fn
+
+o12 = {sample = 2^100, print sample}
+
+o12 : List</code></pre>
+</td>          </tr>
+        </table>
+We may use <a title="examine contents of an object" href="_peek.html">peek</a> to observe the extent of these strings.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : peek lines get fn
+
+o13 = {&quot;sample = 2^100&quot;, &quot;print sample&quot;}</code></pre>
+</td>          </tr>
+        </table>
+We could even use <a title="join nets or string vertically" href="_stack.html">stack</a> to assemble the lines of the file into a net.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : stack lines get fn
+
+o14 = sample = 2^100
+      print sample</code></pre>
+</td>          </tr>
+        </table>
+Now let's remove that file.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : removeFile fn</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+
+</html>

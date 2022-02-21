@@ -1,0 +1,833 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>Tutorial: Divisors</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+next | <a href="___Tutorial_co_sp__Fano_spvarieties.html">previous</a> | <a href="_basic_spcommutative_spalgebra.html">forward</a> | <a href="___Tutorial_co_sp__Fano_spvarieties.html">backward</a> | <a href="_mathematical_spexamples.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="_mathematical_spexamples.html">mathematical examples</a> > <a href="___Tutorial_co_sp__Divisors.html">Tutorial: Divisors</a>    </div>
+    <hr/>
+    <div>
+      <h1>Tutorial: Divisors</h1>
+      <div>
+        <p>In this tutorial we describe one way to represent divisors on a smooth projective subvariety $X$ of $\PP^r$, and show methods for computing the group operations, computing the vector space of sections, and determining whether two divisors are linearly equivalent.  We also construct the canonical divisor on $X$.</p>
+        <p/>
+        <p>We consider smooth varieties only, although most of this can be extended to normal varieties. Cartier and Weil divisors on normal varieties might be the subject of a further tutorial.</p>
+        <p/>
+        <p>Other possible future topics would be: intersection numbers, determining whether a divisor is very ample, and finding the base point locus of the divisor class.</p>
+        <p/>
+        <p>The simplest case is when the homogeneous coordinate ring $S_X$ of $X$ satisfies the $S_2$ condition of Serre: We say that a domain $R$ is $S_2$ if every proper nonzero principal ideal has pure codimension 1 (all associated primes of the ideal are of codimension 1).</p>
+        <p/>
+        <p>In this tutorial, we consider the case when this holds (e.g., this holds for complete intersections). In a further tutorial, we will make the necessary extensions to handle the non $S_2$-case.</p>
+        <p/>
+        <p>An example that we will use throughout is the plane cubic curve $E$, whose homogenoeus coordinate ring is <tt>SE</tt>:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : KK = ZZ/31991
+
+o1 = KK
+
+o1 : QuotientRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : SE = KK[x,y,z]/(y^2*z - x*(x-z)*(x+3*z))
+
+o2 = SE
+
+o2 : QuotientRing</code></pre>
+</td>          </tr>
+        </table>
+        <p>The sections in this tutorial are  A. Representation of divisors</p>
+        <p/>
+        <p>B. Group operations on divisors</p>
+        <p/>
+        <p>C. Global Sections</p>
+        <p/>
+        <p>D. Linear Equivalence</p>
+        <p/>
+        <p>E. The canonical divisor</p>
+        <h4>A. Representation of divisors</h4>
+        <p>Let $X$ be a smooth irreducible variety.  A (Weil) divisor on $X$ is an integral linear combination of irreducible subvarieties of $X$ of codimension $1$. The divisor is called effective if all the coefficients are non-negative.  To any ideal $I$ in the homogeneous coordinate ring $S_X$ of $X$ we associate the effective divisor that is the sum of the pure codimension $1$ components of $I$, each taken with the multiplicity it has in the primary decomposition of $I$.</p>
+        <p/>
+        <p>Let $D = E - F$ be a divisor, where $E$ and $F$ are effective. Because $X$ is normal, there is a unique homogeneous ideal $I$ in $S_X$ such that $V(I) = E$, and $I$ is either $(1)$, or has pure codimension one.  Similarly, there is a unique such ideal $J$ with $V(J) = F$. Our plan is to represent the divisor $D$ by the pair of ideals $(I,J)$.</p>
+        <p/>
+        <p>This representation is not unique.  If $(I,J)$ and $(I',J')$ are two pairs of ideals (such that each ideal is either $(1)$ or has pure codimension one), then $(I,J)$ and $(I',J')$ represent the same divisor iff $$sat(I J') = sat(I' J),$$ where $sat(K)$ is the saturation of $K$ (the largest ideal $L$ such that a power of the irrelevant ideal times $L$ is in $K$) Write $(I,J) \equiv (I',J')$ if $sat(I J') = sat(I' J)$.</p>
+        <p/>
+        <p>This correspondence defines a bijection between $Div(X)$ and $\{(I,J) \mid I,J$ are homogeneous ideals in $S_X$ either trivial, or pure codim one$\}/\equiv$.</p>
+        <p/>
+        <p>As we will often have to saturate ideals of codimension 1, we give here the most efficient method we know, which has the additional advantage of throwing away all components not of codimension 1.  That is, we define <tt>purify1S2(I)</tt>, a function that takes an arbitrary ideal $I$ in a ring satisfying $S_2$, and returns the ideal which is the intersection of the codimension 1 primary components of $I$. In the next divisor tutorial (not yet written), we will write a routine <tt>purify1(I)</tt> which does not require the ring to be $S_2$.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : purify1S2 = I -> (
+         -- Assuming ring I is S2, and I is not 0, returns the 
+         -- pure codimension 1 part of I.
+         -- Find a nonzero element of I:
+         M := compress gens I;
+         -- Explanation: gens I is 
+         -- the matrix of generators of I; compress
+         -- removes the entries that are 0
+         -- and := makes M a local variable.
+         if numgens source M == 0 
+         then error &quot;purify1S2: expected nonzero ideal&quot;;
+         f := ideal M_(0,0);
+         -- f is the ideal generated by the first entry.
+         -- Since ring I is S2, the ideal f is 
+         -- pure codimension 1.  Thus
+         f:(f:I)
+         -- is the pure codimension 1 part. (The last 
+         -- expression given in a function is the returned
+         -- value, provided the semicolon is left off.)
+         )
+
+o3 = purify1S2
+
+o3 : FunctionClosure</code></pre>
+</td>          </tr>
+        </table>
+        <p>For example, in the ring</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : R = ZZ/5[a,b]
+
+o4 = R
+
+o4 : PolynomialRing</code></pre>
+</td>          </tr>
+        </table>
+        <p>we have</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : purify1S2 ideal(a^2,a*b)
+
+o5 = ideal a
+
+o5 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+        <p>B Unfortunately at this moment the quotient code B makes this slow.  Another possibility is B purify1S2 = saturation B which is (9/23/96) slightly faster (88 vs 106 sec).</p>
+        <p/>
+        <p>Throughout this tutorial, we will treat divisors as equivalence classes of pairs, and our operations will operate on pairs.  So let's define a divisor type in Macaulay2. The following declaration provides a new data type, the <tt>Divisor</tt>.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : Divisor = new Type of BasicList
+
+o6 = Divisor
+
+o6 : Type</code></pre>
+</td>          </tr>
+        </table>
+        <p>Let's write a routine to create a divisor, from either a single ideal, or a pair of ideals. (This routine should check that its arguments are pure codimension one, or trivial, and in the same ring, but we will ignore that).</p>
+        <p/>
+        <p>Defining <tt>divisor</tt> to be a method allows us to define different versions of this routine which take different arguments.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : divisor = method()
+
+o7 = divisor
+
+o7 : MethodFunction</code></pre>
+</td>          </tr>
+        </table>
+        <p>The following allows us to define an object of class <tt>Divisor</tt> from a pair of ideals.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : divisor(Ideal,Ideal) := (I,J) -> new Divisor from {purify1S2 I,purify1S2 J};</code></pre>
+</td>          </tr>
+        </table>
+        <p>The following routine defines an (effective) divisor from a single ideal.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : divisor Ideal := I -> divisor(I, ideal 1_(ring I));</code></pre>
+</td>          </tr>
+        </table>
+        <p>The divisors of some rational points on the elliptic curve $E$ include</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : P = divisor ideal(x,z)
+
+o10 = Divisor{ideal (z, x), ideal 1}
+
+o10 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : R = divisor ideal(x,y)
+
+o11 = Divisor{ideal (y, x), ideal 1}
+
+o11 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : R1 = divisor ideal(x-z,y)
+
+o12 = Divisor{ideal (y, x - z), ideal 1}
+
+o12 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : R2 = divisor ideal(x+3*z,y)
+
+o13 = Divisor{ideal (y, x + 3z), ideal 1}
+
+o13 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : Q1 = divisor ideal(y-6*z, x-3*z)
+
+o14 = Divisor{ideal (y - 6z, x - 3z), ideal 1}
+
+o14 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>Testing equality of divisors is often made simpler by having a ``normal form'' for divisors. The normal form of a divisor $D$ is $E - F$ where $E$ and $F$ are both effective and have disjoint support. It is easy to see that the normal form of $(I,J)$ is $(I:J, J:I)$.</p>
+        <p/>
+        <p>In the following code, the expressions <tt>D\#0</tt> and <tt>D\#1</tt> refer to the first and second ideals in the list representing $D$. (<tt>D\#0</tt> is the first because Macaulay2 counts everything starting from 0.)</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : normalForm = method()
+
+o15 = normalForm
+
+o15 : MethodFunction</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : normalForm Divisor := D -> new Divisor from {D#0 : D#1, D#1 : D#0};</code></pre>
+</td>          </tr>
+        </table>
+        <p>Two pairs $(I,J), (I',J')$ define the same divisor exactly when their normal forms are equal. The following code establishes a method for testing the equality of divisors.  The function &quot;toList&quot; converts a divisor to a list of ideals, and then we let the built in method for comparing lists take over: it compares corresponding elements.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i17 : Divisor == Divisor := (D,E) -> toList normalForm D == toList normalForm E;</code></pre>
+</td>          </tr>
+        </table>
+        <p>An important point here is that the built in method for comparing two ideals used by the operator &quot;==&quot; succeeds even if the given generators differ. We shall later show that with <tt>R1</tt> and {\tt R2} as above, the divisor <tt>(R1 + R2) - R1</tt> is represented by</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i18 : D = divisor(ideal(y, x^2+2*x*z-3*z^2), ideal(x-z, y))
+
+                         2            2
+o18 = Divisor{ideal (y, x  + 2x*z - 3z ), ideal (y, x - z)}
+
+o18 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>so that the normal form of $D$ is {\tt R2}:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i19 : normalForm D
+
+o19 = Divisor{ideal (y, x + 3z), ideal 1}
+
+o19 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>and we can directly test equality by</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i20 : D == R2
+
+o20 = true</code></pre>
+</td>          </tr>
+        </table>
+        <h4>B. Group operations on divisors</h4>
+        <p>To add divisors we multiply the corresponding ideals and then saturate. This may be coded as follows (the products are saturated in the <tt>divisor</tt> routine):</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i21 : Divisor + Divisor := (D,E) -> divisor(D#0 * E#0, D#1 * E#1);</code></pre>
+</td>          </tr>
+        </table>
+        <p>Negation is even simpler, since all we need do is exchange the two ideals.  We don't use the <tt>divisor</tt> routine, since our ideals are already saturated.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i22 : - Divisor := (D) -> new Divisor from {D#1, D#0};</code></pre>
+</td>          </tr>
+        </table>
+        <p>Let's also include functions to compute differences and to multiply by integers.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i23 : Divisor - Divisor := (D,E) -> D + (-E);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i24 : ZZ Divisor := ZZ * Divisor := (n,D) -> divisor((D#0)^n, (D#1)^n);</code></pre>
+</td>          </tr>
+        </table>
+        <p>Some arithmetic of divisors on our elliptic curve</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i25 : 2 P
+
+                         2
+o25 = Divisor{ideal (z, x ), ideal 1}
+
+o25 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i26 : 3 P
+
+o26 = Divisor{ideal z, ideal 1}
+
+o26 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>Notice that $3P$ is the hyperplane section $z=0$, which is the equation of the flex line to the cubic at the point $P$.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i27 : D = P-R1
+
+o27 = Divisor{ideal (z, x), ideal (y, x - z)}
+
+o27 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i28 : D2 = 2 P - 2 R1
+
+                         2                  2
+o28 = Divisor{ideal (z, x ), ideal (x - z, y )}
+
+o28 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <h4>C. Global Sections</h4>
+        <p>Since we have assumed $X$ smooth, Weil divisors can all be represented by Cartier divisors, that is, by sections of an invertible sheaf.  If $D = (I,J)$ is a divisor, and $sheaf(I)$ denotes the sheaf of $O_X$-modules corresponding to $I$, then we put $$O_X(D) = sheaf(I)^{-1} \otimes sheaf(J).$$</p>
+        <p/>
+        <p>We define $L(D)$ to be the space of global sections of the sheaf $O_X(D)$. Note that a global section is the same as a sheaf homomorphism $O_X \rightarrow{} O_X(D)$. If we write $D = E-F$, where $E$ and $F$ are effective, then global sections of $O_X(E-F)$ can be identified with homomorphisms $O_X(-E) \rightarrow{} O_X(-F)$.</p>
+        <p/>
+        <p>If we write $D = (I,J)$, then $L(D)$ and $Hom(I,J)$ can be identified with subsets of the field of fractions of $S_X$. Since $S_X$ satisfies $S_2$, these sets are equal. The following proposition allows us to compute $Hom(I,J)$:  <b>Proposition</b>. Suppose $X$ is a smooth projective variety whose homogeneous coordinate ring $S_X$ is $S_2$. If $D$ is the divisor $(I,J)$ and $f$ is any non-zero element of $I$, then $L(D)$ is the degree zero part of $${sat((f*J) : I) \over f}.$$</p>
+        <p/>
+        <p/>
+        <p><b>Proposition</b>. If $s = g/f$ is section of the divisor $D = (I,J)$ as above, then the zero scheme of $s$ is defined by the ideal $$ sat(f I : g) : J.$$</p>
+        <p/>
+        <p/>
+        <p>Consider the divisor $2P$ on our curve $E$:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i29 : D = 2 P
+
+                         2
+o29 = Divisor{ideal (z, x ), ideal 1}
+
+o29 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>In this case, $I = (x^2, z)$, and $J = (1)$. Compute the vector space of sections $L(2P)$:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i30 : I = D#0
+
+                 2
+o30 = ideal (z, x )
+
+o30 : Ideal of SE</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i31 : J = D#1
+
+o31 = ideal 1
+
+o31 : Ideal of SE</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i32 : f = z
+
+o32 = z
+
+o32 : SE</code></pre>
+</td>          </tr>
+        </table>
+        <p>The degree 0 part in the proposition is the degree $d$ part of $sat((fJ) : I)$, divided by $f$, where $d = deg f$.</p>
+        <p/>
+        <p>We can use the command <tt>basis</tt> to obtain a vector space basis of a module or ideal in a given degree and thus compute the global sections (For an explanation of this use of the <tt>basis</tt> routine, see the tutorial on canonical embeddings of plane curves and gonality)</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i33 : LD = basis(degree f, purify1S2((f*J) : I))
+
+o33 = {1} | 1 0 |
+      {1} | 0 1 |
+
+o33 : Matrix</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i34 : LD = super (LD ** (ring target LD))
+
+o34 = | z x |
+
+               1        2
+o34 : Matrix SE  &lt;--- SE</code></pre>
+</td>          </tr>
+        </table>
+        <p>so the vector space $L(2P)$ is generated by $1=z/z$, and $x/z$. Since $J = (1)$, the zero locus of the section $(z+x)/z$ is defined by the ideal</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i35 : imI = purify1S2(((z+x)*I) : z)
+
+                     2     2
+o35 = ideal (x + z, y  - 4z )
+
+o35 : Ideal of SE</code></pre>
+</td>          </tr>
+        </table>
+        <p>and its degree is:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i36 : degree imI
+
+o36 = 2</code></pre>
+</td>          </tr>
+        </table>
+        <p>Let's now package this into a routine <tt>globalSections</tt> which takes an argument <tt>D</tt> of class <tt>Divisor</tt>, and computes a basis of $L(D)$, represented as fractions with a common denominator. The output is a row vector of the numerators, followed by the denominator.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i37 : globalSections = method()
+
+o37 = globalSections
+
+o37 : MethodFunction</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i38 : globalSections Divisor := (D) -> (
+          -- First let's grab the parts (I,J) of D.
+          I := D#0;
+          J := D#1;
+          -- Let 'f' be the first element of the 
+          -- matrix of generators of the ideal I.
+          f := (gens I)_(0,0);
+          -- Now compute the basis of global sections
+          -- just as above
+          LD := basis(degree f, purify1S2((f*J) : I));
+          LD = super (LD ** (ring target LD));
+          -- Return both this vector space and the denominator
+          {LD, f});</code></pre>
+</td>          </tr>
+        </table>
+        <p>Another important task is to find the ideal of zeros of a section $s = f/g$ of a divisor $D$.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i39 : sectionIdeal = (f,g,D) -> (
+          I := D#0;
+          J := D#1;
+          purify1S2((f*I):g) : J
+          );</code></pre>
+</td>          </tr>
+        </table>
+        <p>Let's find the image of the elliptic curve $E$ under the linear system $4P$. To do this we define a ring homomorphism from the global sections with the command map. Its kernel defines the image of $E$.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i40 : D = 4 P
+
+                      2
+o40 = Divisor{ideal (z , x*z), ideal 1}
+
+o40 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i41 : L = globalSections D
+
+                         2
+o41 = {| xz yz z2 x2 |, z }
+
+o41 : List</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i42 : phi = map(SE, ZZ/31991[a..d], L#0)
+
+                                     2   2
+o42 = map (SE, KK[a..d], {x*z, y*z, z , x })
+
+o42 : RingMap SE &lt;--- KK[a..d]</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i43 : ker phi
+
+              2                       2
+o43 = ideal (b  + 3a*c - a*d - 2c*d, a  - c*d)
+
+o43 : Ideal of KK[a..d]</code></pre>
+</td>          </tr>
+        </table>
+        <p>The image in $\PP^3$ is a complete intersection of two quadrics: the elliptic normal curve in $\PP^3$.</p>
+        <p/>
+        <p>For a less obvious example, consider the divisor $4P - R$, which is not effective. Since it has degree 3 as a divisor on an elliptic curve, the Riemann Roch theorem tells us that it is equivalent to an effective divisor; in fact that it has  three sections. We can check this as follows:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i44 : D = 4 P - R
+
+                      2
+o44 = Divisor{ideal (z , x*z), ideal (y, x)}
+
+o44 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i45 : L = globalSections D
+
+                      2
+o45 = {| yz xz x2 |, z }
+
+o45 : List</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i46 : II = sectionIdeal(y*z+x*z+x^2, z^2, D)
+
+              2                  2                2   2
+o46 = ideal (y  + 3x*z + y*z + 3z , x*y + x*z - 3z , x  + x*z + y*z)
+
+o46 : Ideal of SE</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i47 : degree II
+
+o47 = 3</code></pre>
+</td>          </tr>
+        </table>
+        <h4>D. Linear Equivalence</h4>
+        <p>Testing whether two divisors $E$ and $F$ are linearly equivalent boils down to testing whether $D = E-F$ is principal and thus linearly equivalent to 0.</p>
+        <p/>
+        <p>One method to determine whether $D$ is principal is to compute the global sections of $D$. A divisor $D$ is principal iff $L(D)$ has dimension one, and the zero locus of its generator is the empty set.</p>
+        <p/>
+        <p>For example, on the elliptic curve $E$, consider $P - R$:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i48 : globalSections (P-R)
+
+o48 = {0, z}
+
+o48 : List</code></pre>
+</td>          </tr>
+        </table>
+        <p>$P-R$ has no global sections, so it is not equivalent to 0. Now consider $2 P - 2 R$</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i49 : D = 2 P - 2 R
+
+                         2              2
+o49 = Divisor{ideal (z, x ), ideal (x, y )}
+
+o49 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i50 : LB = globalSections D
+
+o50 = {| x |, z}
+
+o50 : List</code></pre>
+</td>          </tr>
+        </table>
+        <p>Since the divisor $D = 2P-2R$ has degree 0 and has a section, $D$ is linearly equivalent to 0. The result shows that the rational function $x/z$ has divisor $2P-2R$.</p>
+        <p/>
+        <p>To check that a divisor of unknown degree is equivalent to 0, we attempt to find a section and show it does not vanish anywhere. We include this in the routine below.</p>
+        <p/>
+        <p>Remember that in this tutorial we are assuming that $S_X$ is $S_2$ and that $X$ is smooth.  These computations are easily modified in the non-$S_2$ case.  See the corresponding tutorial, once it is written!</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i51 : linearlyEquivalent = (D,E) -> (
+          F := normalForm(D-E);
+          LB := globalSections F;
+          L := LB#0;
+          -- L is the matrix of numerators. Thus numgens source L
+          -- is the dimension of the space of global sections.
+          if numgens source L != 1 
+          then false
+          else (
+              R := ring L;
+              V := sectionIdeal(L_(0,0), LB#1, F);
+              if V == ideal(1_R) 
+                then L_(0,0)/LB#1
+                else false)
+          );</code></pre>
+</td>          </tr>
+        </table>
+        <p>We get the same answers as before:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i52 : linearlyEquivalent(P,R)
+
+o52 = false</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i53 : linearlyEquivalent(2 P, 2 R)
+
+      x
+o53 = -
+      z
+
+o53 : frac SE</code></pre>
+</td>          </tr>
+        </table>
+        <p>We now look at the group law on the cubic: We take the point $P$ to be 0; we can then identify the natural group of divisor classes of degree 0 with the set of points on the curve. With this identification, the group law $++$ on points of the curve is defined by: $R ++ S =$ the unique point $T$ for which the divisor $(R-P)+(S-P)$ is linearly equivalent to $(T-P)$. i.e. $R ++ S := $ unique effective divisor in $R+S-P$.</p>
+        <p/>
+        <p>What we need to do is: given a divisor $R+S-P$, find an effective divisor equivalent to it.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i54 : effective = (D) -> (
+          LB := globalSections D;
+          L := LB#0;  -- the matrix of numerators
+          if numgens source L == 0 
+          then error(toString D + &quot; is not effective&quot;)
+          else divisor sectionIdeal(L_(0,0), LB#1, D));</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i55 : effective(2 R - P)
+
+o55 = Divisor{ideal (z, x), ideal 1}
+
+o55 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i56 : addition = (R,S) -> effective(R + S - P);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i57 : addition(R1,R2)
+
+o57 = Divisor{ideal (y, x), ideal 1}
+
+o57 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>Some points are in the torsion subgroup:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i58 : Q2 = addition(Q1, Q1)
+
+o58 = Divisor{ideal (y, x - z), ideal 1}
+
+o58 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i59 : Q3 = addition(Q2, Q1)
+
+o59 = Divisor{ideal (y + 6z, x - 3z), ideal 1}
+
+o59 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i60 : Q4 = addition(Q3, Q1)
+
+o60 = Divisor{ideal (z, x), ideal 1}
+
+o60 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i61 : Q4a = addition(Q2,Q2)
+
+o61 = Divisor{ideal (z, x), ideal 1}
+
+o61 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>So the point $Q_1 = (3,6,1)$ is a point of order 4 in the group.</p>
+        <p/>
+        <p>Exercise:  Write a routine that computes $n$ times a point in this group law.</p>
+        <h4>E. The canonical divisor</h4>
+        <p/>
+        <p>The most important divisor class on a variety is the canonical class. For example, consider the twisted cubic curve whose ideal is the ideal of $2\times 2$ minors of the ``catalecticant'' matrix </p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i62 : S = ZZ/31991[a,b,c,d];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i63 : catalect = map(S^2, 3, (i,j)->S_(i+j))
+
+o63 = | a b c |
+      | b c d |
+
+              2       3
+o63 : Matrix S  &lt;--- S</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i64 : IC = minors(2, catalect)
+
+                2                        2
+o64 = ideal (- b  + a*c, - b*c + a*d, - c  + b*d)
+
+o64 : Ideal of S</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i65 : SX = S/IC
+
+o65 = SX
+
+o65 : QuotientRing</code></pre>
+</td>          </tr>
+        </table>
+        <p>As a graded module, the canonical class is given as $K_X = Ext^c(S_X, S(-r-1))$, where $c = codim X$, $X \subset \PP^r$, and $S = k[x_0,\ldots,x_r]$ is the polynomial ring.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i66 : KX = Ext^2(coker gens IC,S^{-4})
+
+o66 = cokernel {1} | c  b  a  |
+               {1} | -d -c -b |
+
+                             2
+o66 : S-module, quotient of S</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i67 : canpres = substitute(presentation(KX), SX)
+
+o67 = {1} | c  b  a  |
+      {1} | -d -c -b |
+
+               2        3
+o67 : Matrix SX  &lt;--- SX</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i68 : betti canpres
+
+             0 1
+o68 = total: 2 3
+          1: 2 3
+
+o68 : BettiTally</code></pre>
+</td>          </tr>
+        </table>
+        <p>Thus we need a routine that takes a rank 1 torsion free module over a domain and finds an ideal isomorphic to it. We wish to compute homomorphisms from the canonical module into $S_X$, and take the divisor whose first ideal is the image of a homomorphism of non-negative degree, and whose second ideal is an arbitrary nonzero element of $S_X$ whose degree is equal to the degree of the homomorphism. First we find a homomorphism of lowest degree:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i69 : I1 = transpose (syz transpose canpres)_{0}
+
+o69 = | d c |
+
+               1        2
+o69 : Matrix SX  &lt;--- SX</code></pre>
+</td>          </tr>
+        </table>
+        <p>The degree is</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i70 : dg = (degrees (target I1))_0_0
+
+o70 = 0</code></pre>
+</td>          </tr>
+        </table>
+        <p>We need to balance the degree <tt>dg</tt> with a power of the first nonzero generator of the ring. This is done in the following packaged version.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i71 : divisorFromModule = M -> (
+        -- given a module M, returns the divisor of the image
+        -- of a nonzero homomorphism to R, suitably twisted.
+        -- first get the presentation of M
+          I1 := transpose (syz transpose presentation M)_{0};
+        -- The degree is
+          d := (degrees target I1)_0_0;
+        -- We need to balance the degree d with a power
+        -- of the first nonzero generator of the ring.
+          var1 := (compress vars ring M)_{0};
+        -- Now fix up the degrees.
+          if d==0 then divisor ideal I1
+          else if d>0 then divisor(
+                        ideal (I1**dual(target I1)),
+                        ideal var1^d
+                       )                          
+          else divisor ideal( 
+                     var1^(-d)**I1**dual target I1
+                     )
+      );</code></pre>
+</td>          </tr>
+        </table>
+        <p>We start from a module over the ring <tt>SX</tt>:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i72 : M = coker canpres
+
+o72 = cokernel {1} | c  b  a  |
+               {1} | -d -c -b |
+
+                               2
+o72 : SX-module, quotient of SX</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i73 : divisorFromModule M
+
+o73 = Divisor{ideal (d, c), ideal 1}
+
+o73 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>Some tests: </p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i74 : use SX
+
+o74 = SX
+
+o74 : QuotientRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i75 : divisorFromModule image matrix{{d^2}}
+
+                              2
+o75 = Divisor{ideal 1, ideal a }
+
+o75 : Divisor</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i76 : divisorFromModule SX^{1}
+
+o76 = Divisor{ideal a, ideal 1}
+
+o76 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>Here is the canonical divisor routine in packaged form:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i77 : canonicalDivisor= SX ->(
+        -- Given a ring SX, computes a canonical divisor for SX
+        I := ideal presentation SX;
+        S := ring I;
+        embcodim := codim I;
+        M := Ext^embcodim(coker gens I,S^{-numgens S});
+        M = coker substitute(presentation M, SX);
+        divisorFromModule M
+        );</code></pre>
+</td>          </tr>
+        </table>
+        <p/>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i78 : canonicalDivisor SX
+
+o78 = Divisor{ideal (d, c), ideal 1}
+
+o78 : Divisor</code></pre>
+</td>          </tr>
+        </table>
+        <p>There are other ways of computing the canonical class. Perhaps we have already written a tutorial on this subject.</p>
+      </div>
+    </div>
+  </body>
+
+</html>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>making chain complexes by hand</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_manipulating_spchain_spcomplexes.html">next</a> | <a href="_extracting_spinformation_spfrom_spchain_spcomplexes.html">previous</a> | <a href="_manipulating_spchain_spcomplexes.html">forward</a> | <a href="_extracting_spinformation_spfrom_spchain_spcomplexes.html">backward</a> | <a href="_chain_spcomplexes.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="_chain_spcomplexes.html">chain complexes</a> > <a href="_making_spchain_spcomplexes_spby_sphand.html">making chain complexes by hand</a>    </div>
+    <hr/>
+    <div>
+      <h1>making chain complexes by hand</h1>
+      <div>
+A new chain complex can be made with <tt>C = new ChainComplex</tt>.  This will automatically initialize <tt>C.dd</tt>, in which the differentials are stored. The modules can be installed with statements like <tt>C#i=M</tt> and the differentials can be installed with statements like <tt>C.dd#i=d</tt>. The ring is installed with <tt>C.ring = R</tt>.  It's up to the user to ensure that the composite of consecutive differential maps is zero.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : R = QQ[x,y,z];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : d1 = matrix {{x,y}};
+
+             1       2
+o2 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+We take care to use <a title="make a map" href="_map.html">map</a> to ensure that the target of <tt>d2</tt> is exactly the same as the source of <tt>d1</tt>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : d2 = map(source d1, ,{{y*z},{-x*z}});
+
+             2       1
+o3 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : d1 * d2 == 0
+
+o4 = true</code></pre>
+</td>          </tr>
+        </table>
+Now we make the chain complex, as explained above.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : C = new ChainComplex; C.ring = R;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : C#0 = target d1; C#1 = source d1; C#2 = source d2;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : C.dd#1 = d1; C.dd#2 = d2;
+
+              1       2
+o10 : Matrix R  &lt;--- R
+
+              2       1
+o11 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+Our complex is ready to use.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : C
+
+       1      2      1
+o12 = R  &lt;-- R  &lt;-- R
+                     
+      0      1      2
+
+o12 : ChainComplex</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : HH_0 C
+
+o13 = cokernel | x y |
+
+                             1
+o13 : R-module, quotient of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : prune HH_1 C
+
+o14 = cokernel {2} | z |
+
+                             1
+o14 : R-module, quotient of R</code></pre>
+</td>          </tr>
+        </table>
+The chain complex we've just made is simple, in the sense that it's a homological chain complex with nonzero modules in degrees 0, 1, ..., n.  Such a chain complex can be made also with <a title="make a chain complex" href="_chain__Complex.html">chainComplex</a>.  It goes to a bit of extra trouble to adjust the differentials to match the degrees of the basis elements.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : D = chainComplex(matrix{{x,y}}, matrix {{y*z},{-x*z}})
+
+       1      2      1
+o15 = R  &lt;-- R  &lt;-- R
+                     
+      0      1      2
+
+o15 : ChainComplex</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : degrees source D.dd_2
+
+o16 = {{3}}
+
+o16 : List</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+
+</html>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>communicating with programs</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_using_spsockets.html">next</a> | <a href="_file_spmanipulation.html">previous</a> | <a href="_using_spsockets.html">forward</a> | <a href="_temporary__File__Name.html">backward</a> | <a href="___The_sp__Macaulay2_splanguage.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> > <a href="_communicating_spwith_spprograms.html">communicating with programs</a>    </div>
+    <hr/>
+    <div>
+      <h1>communicating with programs</h1>
+      <div>
+The most naive way to interact with another program is simply to run it, let it communicate directly with the user, and wait for it to finish.  This is done with the <a title="run an external command" href="_run.html">run</a> command.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : run &quot;uname -a&quot;
+Linux peg-amy 5.13.0-25-generic #26-Ubuntu SMP Fri Jan 7 15:48:31 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+
+o1 = 0</code></pre>
+</td>          </tr>
+        </table>
+To run a program and provide it with input, one way is use the operator <a title="a binary operator (file output, ...)" href="__lt_lt.html">&lt;&lt;</a>, with a file name whose first character is an exclamation point; the rest of the file name will be taken as the command to run, as in the following example.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : &quot;!grep a&quot; &lt;&lt; &quot; ba \n bc \n ad \n ef \n&quot; &lt;&lt; close
+ ba 
+ ad 
+
+o2 = !grep a
+
+o2 : File</code></pre>
+</td>          </tr>
+        </table>
+More often, one wants to write Macaulay2 code to obtain and manipulate the output from the other program.  If the program requires no input data, then we can use <a title="get the contents of a file" href="_get.html">get</a> with a file name whose first character is an exclamation point.  In the following example, we also peek at the string to see whether it includes a newline character.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : peek get &quot;!uname -a&quot;
+
+o3 = &quot;Linux peg-amy 5.13.0-25-generic #26-Ubuntu SMP Fri Jan 7 15:48:31 UTC
+     &quot;
+     2022 x86_64 x86_64 x86_64 GNU/Linux</code></pre>
+</td>          </tr>
+        </table>
+Bidirectional communication with a program is also possible.  We use <a title="open an input output file" href="_open__In__Out.html">openInOut</a> to create a file that serves as a bidirectional connection to a program.  That file is called an input output file.  In this example we open a connection to the unix utility <tt>egrep</tt> and use it to locate the symbol names in Macaulay2 that begin with <tt>in</tt>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : f = openInOut &quot;!egrep '^in'&quot;
+
+o4 = !egrep '^in'
+
+o4 : File</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : scan(keys Core.Dictionary, key -> f &lt;&lt; key &lt;&lt; endl)</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : f &lt;&lt; closeOut
+
+o6 = !egrep '^in'
+
+o6 : File</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : get f
+
+o7 = interpreterDepth
+     infoHelp
+     integrate
+     inducedMap
+     installPackage
+     installMethod
+     insert
+     instance
+     info
+     interval
+     intersect
+     inversePermutation
+     installedPackages
+     input
+     index
+     indexComponents
+     installAssignmentMethod
+     infinity
+     intersection
+     inducesWellDefinedMap
+     inverse
+     indices
+     incomparable
+     installHilbertFunction
+     indeterminate
+     in
+     instances
+     independentSets</code></pre>
+</td>          </tr>
+        </table>
+With this form of bidirectional communication there is always a danger of blocking, because the buffers associated with the communication channels (pipes) typically hold only 4096 bytes.  In this example we succeeded because the entire output from <tt>egrep</tt> was smaller than 4096 bytes.  In general, one should be careful to arrange things so that the two programs take turns using the communication channel, so that when one is writing data, the other is reading it.        <p/>
+A useful function in this connection is <a title="whether a file has data available for reading" href="_is__Ready_lp__File_rp.html">isReady</a>, which will tell you whether an input file has any input available for reading, or whether it has arrived at the end.  We illustrate it in the following example by simulating a computation that takes 5 seconds to complete, printing one dot per second while waiting.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : f = openIn &quot;!sleep 5; echo -n the answer is 4&quot;
+
+o8 = !sleep 5; echo -n the answer is 4
+
+o8 : File</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : isReady f
+
+o9 = false</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : while not isReady f do (sleep 1; &lt;&lt; &quot;.&quot; &lt;&lt; flush)
+......</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : read f
+
+o11 = the answer is 4</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : isReady f
+
+o12 = true</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : atEndOfFile f
+
+o13 = true</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : close f
+
+o14 = !sleep 5; echo -n the answer is 4
+
+o14 : File</code></pre>
+</td>          </tr>
+        </table>
+We also allow for bidirectional communication through sockets over the internet.  See <a title="open an input output file" href="_open__In__Out.html">openInOut</a> and <a title="open a port for listening" href="_open__Listener_lp__String_rp.html">openListener</a>, or the next section.        <p/>
+Another useful function is <a title="wait for child process" href="_wait.html">wait</a>, which can be used to wait for input to be available from any of a list of input files.      </div>
+    </div>
+  </body>
+
+</html>

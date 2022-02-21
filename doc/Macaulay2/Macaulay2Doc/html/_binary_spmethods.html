@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>binary methods</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_inheritance.html">next</a> | <a href="_installing_spmethods.html">previous</a> | <a href="_inheritance.html">forward</a> | <a href="_installing_spmethods.html">backward</a> | <a href="___The_sp__Macaulay2_splanguage.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> > <a href="_binary_spmethods.html">binary methods</a>    </div>
+    <hr/>
+    <div>
+      <h1>binary methods</h1>
+      <div>
+The method for computing a sum <tt>x+y</tt> depends on the types of <tt>x</tt> and <tt>y</tt>. For example, the method for adding an integer <tt>x</tt> and a polynomial <tt>y</tt> differs from the method for adding two integers modulo 111.  Because both the type of <tt>x</tt> and the type of <tt>y</tt> must enter into the selection of the method, we refer to these methods as binary methods.  Each binary method is a function of two variables, and is stored either in the class of <tt>x</tt> or in the class of <tt>y</tt>.        <p/>
+Let's assume that <tt>X</tt> is the class (or type) of <tt>x</tt>, and that <tt>Y</tt> is the class of <tt>y</tt>.  The way to install a method for the addition of an instance <tt>x</tt> of class <tt>X</tt> to an instance <tt>y</tt> of class <tt>Y</tt> is with a statement of the form         <pre>X + Y := (x,y) -> ( ... )</pre>
+where <tt>( ... )</tt> represents the body of the function, consisting of suitable code for the operation at hand.        <p/>
+The method installed by the code above is automatically inherited by subclasses of <tt>X</tt> and <tt>Y</tt>.  Here is a brief description of the way this works.  Suppose <tt>X</tt> is the <a title="parent type of an object" href="_parent.html">parent</a> of <tt>P</tt> and <tt>Y</tt> is the parent of <tt>X</tt>.  When a sum <tt>p+q</tt> is evaluated where the class of <tt>p</tt> is <tt>P</tt> and the class of <tt>q</tt> is <tt>Q</tt>, then the binary method for <tt>P+Q</tt> is applied, unless there isn't one, in which case the binary method for <tt>P+Y</tt> is applied, unless there isn't one, in which case the binary method for <tt>X+Q</tt> is applied, unless there isn't one, in which case the binary method for <tt>P+Q</tt> is applied.  In general this search for a binary method continues all the way up the chain of parents to the topmost ancestor of everything, which is called <a title="the class of all things" href="___Thing.html">Thing</a>.  (See also <a title="look up methods" href="_lookup.html">lookup</a>.)        <p/>
+As an extreme example of inheritance, the code         <pre>Thing + Thing := (x,y) -> ( ... )</pre>
+will install a binary method for adding any two things, which will take effect as a last resort whenever more a specifically defined method isn't found.        <p/>
+The <a title="new objects and new types" href="_new.html">new</a> function also uses a ternary lookup table to find the initialization function for the new thing, and should be thought of as a ternary operator.  The initialization function for a new expression created by        <pre>new Z of x from y</pre>
+is obtained as        <pre>lookup(NewMethod,Z,X,Y)</pre>
+Here <tt>X</tt> is <tt>class x</tt>, and <tt>Y</tt> is <tt>class y</tt>.  The initialization function can be installed with        <pre>new Z of X from Y := (z,y) -> ...</pre>
+where <tt>z</tt> denotes the new hash table of class <tt>Z</tt> and parent <tt>x</tt> provided to the routine by the system.      </div>
+    </div>
+  </body>
+
+</html>

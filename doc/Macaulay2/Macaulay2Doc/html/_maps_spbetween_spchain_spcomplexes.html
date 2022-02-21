@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>maps between chain complexes</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+next | <a href="_manipulating_spchain_spcomplexes.html">previous</a> | <a href="_varieties.html">forward</a> | <a href="_manipulating_spchain_spcomplexes.html">backward</a> | <a href="_chain_spcomplexes.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="_chain_spcomplexes.html">chain complexes</a> > <a href="_maps_spbetween_spchain_spcomplexes.html">maps between chain complexes</a>    </div>
+    <hr/>
+    <div>
+      <h1>maps between chain complexes</h1>
+      <div>
+One way to make maps between chain complexes is by lifting maps between modules to resolutions of those modules.  First we make some modules.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : R = QQ[x,y];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : M = coker vars R
+
+o2 = cokernel | x y |
+
+                            1
+o2 : R-module, quotient of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : N = coker matrix {{x}}
+
+o3 = cokernel | x |
+
+                            1
+o3 : R-module, quotient of R</code></pre>
+</td>          </tr>
+        </table>
+Let's construct the natural map from <tt>N</tt> to <tt>M</tt>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : f = inducedMap(M,N)
+
+o4 = | 1 |
+
+o4 : Matrix</code></pre>
+</td>          </tr>
+        </table>
+Let's lift the map to a map of free resolutions.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : g = res f
+
+          1             1
+o5 = 0 : R  &lt;--------- R  : 0
+               | 1 |
+
+          2                 1
+     1 : R  &lt;------------- R  : 1
+               {1} | 1 |
+               {1} | 0 |
+
+          1
+     2 : R  &lt;----- 0 : 2
+               0
+
+o5 : ChainComplexMap</code></pre>
+</td>          </tr>
+        </table>
+We can check that it's a map of chain complexes this way.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : g * (source g).dd == (target g).dd * g
+
+o6 = true</code></pre>
+</td>          </tr>
+        </table>
+We can form the mapping cone of <tt>g</tt>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : F = cone g
+
+      1      3      2
+o7 = R  &lt;-- R  &lt;-- R  &lt;-- 0
+                           
+     0      1      2      3
+
+o7 : ChainComplex</code></pre>
+</td>          </tr>
+        </table>
+Since <tt>f</tt> is surjective, we know that <tt>F</tt> is quasi-isomorphic to <tt>(kernel f)[-1]</tt>.  Let's check that.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : prune HH_0 F
+
+o8 = 0
+
+o8 : R-module</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : prune HH_1 F
+
+o9 = cokernel {1} | x |
+
+                            1
+o9 : R-module, quotient of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : prune kernel f
+
+o10 = cokernel {1} | x |
+
+                             1
+o10 : R-module, quotient of R</code></pre>
+</td>          </tr>
+        </table>
+There are more elementary ways to make maps between chain complexes.  The identity map is available from <a title="identity map" href="_id.html">id</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : C = res M
+
+       1      2      1
+o11 = R  &lt;-- R  &lt;-- R  &lt;-- 0
+                            
+      0      1      2      3
+
+o11 : ChainComplex</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : id_C
+
+           1             1
+o12 = 0 : R  &lt;--------- R  : 0
+                | 1 |
+
+           2                   2
+      1 : R  &lt;--------------- R  : 1
+                {1} | 1 0 |
+                {1} | 0 1 |
+
+           1                 1
+      2 : R  &lt;------------- R  : 2
+                {2} | 1 |
+
+      3 : 0 &lt;----- 0 : 3
+               0
+
+o12 : ChainComplexMap</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : x * id_C
+
+           1             1
+o13 = 0 : R  &lt;--------- R  : 0
+                | x |
+
+           2                   2
+      1 : R  &lt;--------------- R  : 1
+                {1} | x 0 |
+                {1} | 0 x |
+
+           1                 1
+      2 : R  &lt;------------- R  : 2
+                {2} | x |
+
+      3 : 0 &lt;----- 0 : 3
+               0
+
+o13 : ChainComplexMap</code></pre>
+</td>          </tr>
+        </table>
+We can use <a title="compute an induced map" href="_induced__Map.html">inducedMap</a> or <tt>**</tt> to construct natural maps between chain complexes.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : inducedMap(C ** R^1/x,C)
+
+                                     1
+o14 = 0 : cokernel | x | &lt;--------- R  : 0
+                            | 1 |
+
+                                                 2
+      1 : cokernel {1} | x 0 | &lt;--------------- R  : 1
+                   {1} | 0 x |    {1} | 1 0 |
+                                  {1} | 0 1 |
+
+                                             1
+      2 : cokernel {2} | x | &lt;------------- R  : 2
+                                {2} | 1 |
+
+o14 : ChainComplexMap</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : g ** R^1/x
+
+o15 = 0 : cokernel | x | &lt;--------- cokernel | x | : 0
+                            | 1 |
+
+      1 : cokernel {1} | x 0 | &lt;------------- cokernel {1} | x | : 1
+                   {1} | 0 x |    {1} | 1 |
+                                  {1} | 0 |
+
+o15 : ChainComplexMap</code></pre>
+</td>          </tr>
+        </table>
+There is a way to make a chain complex map by calling a function for each spot that needs a map.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : q = map(C,C,i -> (i+1) * id_(C_i))
+
+           1             1
+o16 = 0 : R  &lt;--------- R  : 0
+                | 1 |
+
+           2                   2
+      1 : R  &lt;--------------- R  : 1
+                {1} | 2 0 |
+                {1} | 0 2 |
+
+           1                 1
+      2 : R  &lt;------------- R  : 2
+                {2} | 3 |
+
+      3 : 0 &lt;----- 0 : 3
+               0
+
+o16 : ChainComplexMap</code></pre>
+</td>          </tr>
+        </table>
+Of course, the formula we used doesn't yield a map of chain complexes.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i17 : C.dd * q == q * C.dd
+
+o17 = false</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+
+</html>

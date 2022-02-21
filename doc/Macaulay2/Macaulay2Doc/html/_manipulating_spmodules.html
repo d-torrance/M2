@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>manipulating modules</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="___Manipulator.html">next</a> | <a href="_making_spmodules_spfrom_spmatrices.html">previous</a> | <a href="___Manipulator.html">forward</a> | <a href="_making_spmodules_spfrom_spmatrices.html">backward</a> | up | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> :: <a href="_manipulating_spmodules.html">manipulating modules</a>    </div>
+    <hr/>
+    <div>
+      <h1>manipulating modules</h1>
+      <div>
+Suppose we have a module that is represented as an image of a matrix, and we want to represent it as a cokernel of a matrix. This task may be accomplished with <a title="prune, e.g., compute a minimal presentation" href="_prune.html">prune</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : R = QQ[x,y];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : I = ideal vars R
+
+o2 = ideal (x, y)
+
+o2 : Ideal of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : M = image vars R
+
+o3 = image | x y |
+
+                             1
+o3 : R-module, submodule of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : N = prune M
+
+o4 = cokernel {1} | -y |
+              {1} | x  |
+
+                            2
+o4 : R-module, quotient of R</code></pre>
+</td>          </tr>
+        </table>
+The isomorphism between them may be found under the key <tt>pruningMap</tt>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : f = N.cache.pruningMap
+
+o5 = {1} | 1 0 |
+     {1} | 0 1 |
+
+o5 : Matrix</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : isIsomorphism f
+
+o6 = true</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : f^-1
+
+o7 = {1} | 1 0 |
+     {1} | 0 1 |
+
+o7 : Matrix</code></pre>
+</td>          </tr>
+        </table>
+The matrix form of <tt>f</tt> looks nondescript, but the map knows its source and target        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : source f
+
+o8 = cokernel {1} | -y |
+              {1} | x  |
+
+                            2
+o8 : R-module, quotient of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : target f
+
+o9 = image | x y |
+
+                             1
+o9 : R-module, submodule of R</code></pre>
+</td>          </tr>
+        </table>
+It's a 2 by 2 matrix because <tt>M</tt> and <tt>N</tt> are both represented as modules with two generators.        <p/>
+Functions for finding related modules:        <ul>
+          <li>
+<span><a title="ambient free module of a subquotient, or ambient ring" href="_ambient.html">ambient</a> -- ambient free module of a subquotient, or ambient ring</span>          </li>
+          <li>
+<span><a title="get the covering free module" href="_cover.html">cover</a> -- get the covering free module</span>          </li>
+          <li>
+<span><a title="get the ambient module" href="_super.html">super</a> -- get the ambient module</span>          </li>
+        </ul>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : super M
+
+       1
+o10 = R
+
+o10 : R-module, free</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : cover N
+
+       2
+o11 = R
+
+o11 : R-module, free, degrees {2:1}</code></pre>
+</td>          </tr>
+        </table>
+Some simple operations on modules:        <ul>
+          <li>
+<span><a title="direct sum" href="___Module_sp^_sp__Z__Z.html">Module ^ ZZ</a> -- direct sum</span>          </li>
+          <li>
+<span><a title="direct sum of modules" href="___Module_sp_pl_pl_sp__Module.html">Module ++ Module</a> -- direct sum of modules</span>          </li>
+          <li>
+<span><a title="tensor product" href="___Module_sp_st_st_sp__Module.html">Module ** Module</a> -- tensor product</span>          </li>
+        </ul>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : M ++ N
+
+o12 = subquotient ({0} | x y 0 0 |, {0} | 0  |)
+                   {1} | 0 0 1 0 |  {1} | -y |
+                   {1} | 0 0 0 1 |  {1} | x  |
+
+                                3
+o12 : R-module, subquotient of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : M ** N
+
+o13 = cokernel {2} | -y 0  -y 0  |
+               {2} | x  0  0  -y |
+               {2} | 0  -y x  0  |
+               {2} | 0  x  0  x  |
+
+                             4
+o13 : R-module, quotient of R</code></pre>
+</td>          </tr>
+        </table>
+Ideals and modules behave differently when making powers:        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : M^3
+
+o14 = image | x y 0 0 0 0 |
+            | 0 0 x y 0 0 |
+            | 0 0 0 0 x y |
+
+                              3
+o14 : R-module, submodule of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : I^3
+
+              3   2      2   3
+o15 = ideal (x , x y, x*y , y )
+
+o15 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+
+</html>

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>the debugger</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_then.html">next</a> | <a href="_tex__Math.html">previous</a> | <a href="_then.html">forward</a> | <a href="_tex__Math.html">backward</a> | up | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> :: <a href="_the_spdebugger.html">the debugger</a>    </div>
+    <hr/>
+    <div>
+      <h1>the debugger</h1>
+      <div>
+We have a Macaulay2 source file with a pair of functions in it that we can use for demonstrating the debugger.  Let's load it so we can run the functions in it.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : load &quot;Macaulay2Doc/demo1.m2&quot;</code></pre>
+</td>          </tr>
+        </table>
+We can see what functions were provided to us with <a title="display the user's symbols" href="_list__User__Symbols.html">listUserSymbols</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : listUserSymbols
+
+o2 = symbol   class              value
+     ------   -----              -----
+     g      : FunctionClosure -- g    
+     ------------------------------------------------------------------------
+     location of symbol
+     ------------------                                                 
+     /usr/local/share/Macaulay2/Macaulay2Doc/
+     ------------------------------------------------------------------------
+                       
+     demo1.m2:11:1-11:2</code></pre>
+</td>          </tr>
+        </table>
+Let's peek at the code of the function <tt>g</tt>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : code g
+
+o3 = /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:11:7-14:8: --source code:
+     g = y -> (
+          c := f(y-1);
+          d := f(y-2);
+          c+d)</code></pre>
+</td>          </tr>
+        </table>
+We see that the function g calls a function <tt>f</tt>, but <tt>f</tt> is not visible to us (because <tt>f</tt> is a local variable).  In emacs' <em>Macaulay2 Interaction Mode</em>, pressing return (<tt>RET</tt> or <tt>enter</tt>) after positioning the cursor on the output line displaying the file name and line number will bring up the source code in a new buffer.        <p>The first few times we use <tt>g</tt>, it seems to work.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : g 4
+
+     17
+o4 = --
+      6
+
+o4 : QQ</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : g 3
+
+     7
+o5 = -
+     2
+
+o5 : QQ</code></pre>
+</td>          </tr>
+        </table>
+However, the following attempt results in an error, and the debugger starts up automatically.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : g 2
+/usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:8:12:(3):[2]: error: division by zero
+/usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:8:12:(3):[2]: --entering debugger (type help to see debugger commands)
+/usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:8:11-8:13: --source code:
+     b := 1/x;</code></pre>
+</td>          </tr>
+        </table>
+You may use <a title="view documentation nodes" href="_help.html">help</a>, as instructed, to view the commands available in the debugger. As suggested by the help display, we can use <a title="display of local symbols and their values" href="_list__Local__Symbols.html">listLocalSymbols</a> to list the local symbols and their values.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">ii7 : listLocalSymbols
+
+oo7 = symbol   class              value      location of symbol
+      ------   -----              -----      ------------------                                                                 
+      a      : String          -- &quot;hi there&quot; /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:7:6-7:7
+      b      : Nothing         -- null       /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:8:6-8:7
+      x      : ZZ              -- 0          /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:6:6-6:7
+      f      : FunctionClosure -- ...        /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:6:1-6:2</code></pre>
+</td>          </tr>
+        </table>
+We see the the value of <tt>x</tt> is 0, and that explains the error message about division by zero. The other local symbols are the ones defined in the body of the function <tt>f</tt>, whose code can now be displayed with <a title="display source code" href="_code.html">code</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">ii8 : code f
+
+oo8 = /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:6:8-9:8: --source code:
+      f := x -> (
+           a := &quot;hi there&quot;;
+           b := 1/x;
+           b+1)</code></pre>
+</td>          </tr>
+        </table>
+We can use <a title="step by single lines in the debugger" href="_step.html">step</a> with argument 0 to bypass the current expression.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">ii9 : step 0
+/usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:8:12:(3):[2]: --stepping limit reached
+/usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:8:12:(3):[2]: --entering debugger (type help to see debugger commands)
+/usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:8:11-8:13: --source code:
+     b := 1/x;</code></pre>
+</td>          </tr>
+        </table>
+If we decide the problem is one level up, we can use <tt>end</tt> or the end-of-file character (which often is CTRL-D) to quit this instance of the debugger.  In this case, the debugger will be entered again (triggered by the same error indication that caused it to be entered originally) at the point inside the function <tt>g</tt> from which the function <tt>f</tt> was called.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">ii10 : end
+/usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:13:11:(3):[1]: --entering debugger (type help to see debugger commands)
+/usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:13:11-13:15: --source code:
+     d := f(y-2);</code></pre>
+</td>          </tr>
+        </table>
+We can use <a title="display of local symbols and their values" href="_list__Local__Symbols.html">listLocalSymbols</a> again to see the local variables of <tt>g</tt>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">ii11 : listLocalSymbols
+
+oo11 = symbol   class              value location of symbol
+       ------   -----              ----- ------------------                                                                   
+       c      : QQ              -- 2     /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:12:6-12:7
+       d      : Nothing         -- null  /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:13:6-13:7
+       y      : ZZ              -- 2     /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:11:5-11:6
+       f      : FunctionClosure -- ...   /usr/local/share/Macaulay2/Macaulay2Doc/demo1.m2:6:1-6:2  </code></pre>
+</td>          </tr>
+        </table>
+After we are done debugging, we can quit the debugger entirely and return to top level with <a title="break from a loop" href="_break.html">break</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">ii12 : break</code></pre>
+</td>          </tr>
+        </table>
+The variable <a title="set the error printing depth" href="_error__Depth.html">errorDepth</a> can be used to control how deep inside the code the debugger should be activated.      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li>
+<span><a title="break from a loop" href="_break.html">break</a> -- break from a loop</span>          </li>
+          <li>
+<span><a title="stop loading a file" href="_end.html">end</a> -- stop loading a file</span>          </li>
+          <li>
+<span><a title="step by single lines in the debugger" href="_step.html">step</a> -- step by single lines in the debugger</span>          </li>
+          <li>
+<span><a title="continue with the next iteration of a loop" href="_continue.html">continue</a> -- continue with the next iteration of a loop</span>          </li>
+          <li>
+<span><a title="return from a function" href="_return.html">return</a> -- return from a function</span>          </li>
+          <li>
+<span><a title="display of local symbols and their values" href="_list__Local__Symbols.html">listLocalSymbols</a> -- display of local symbols and their values</span>          </li>
+          <li>
+<span><a title="display the user's symbols" href="_list__User__Symbols.html">listUserSymbols</a> -- display the user's symbols</span>          </li>
+          <li>
+<span><a title="display source code" href="_code.html">code</a> -- display source code</span>          </li>
+          <li>
+<span><a title="evaluate" href="_value.html">value</a> -- evaluate</span>          </li>
+          <li>
+<span><a title="disassemble pseudocode or a function" href="_disassemble.html">disassemble</a> -- disassemble pseudocode or a function</span>          </li>
+          <li>
+<span><a title="set the error printing depth" href="_error__Depth.html">errorDepth</a> -- set the error printing depth</span>          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+
+</html>

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>using hooks</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_code.html">next</a> | <a href="_making_spnew_spfunctions_spwith_spoptional_sparguments.html">previous</a> | <a href="_hooks.html">forward</a> | <a href="_making_spnew_spfunctions_spwith_spoptional_sparguments.html">backward</a> | <a href="___The_sp__Macaulay2_splanguage.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> > <a href="_using_sphooks.html">using hooks</a>    </div>
+    <hr/>
+    <div>
+      <h1>using hooks</h1>
+      <div>
+        <div>
+          <p>Hooks in Macaulay2 are a type of <a href="https://en.wikipedia.org/wiki/dynamic dispatch">dynamic dispatch</a>, that is, a way to provide different implementations of methods and events and select which implementation to use depending on characteristics of the input arguments.</p>
+          <p>The <a title="add a hook function to an object for later processing" href="_add__Hook.html">addHook</a> method allows the user to attach multiple hooks, or strategies, for computing a method key such as <tt>(intersect, Ideal, Ideal)</tt>, or a symbol.</p>
+          <p>Hooks can be functions or methods, and they can accept optional arguments.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : f = {a=>3, c=>12} >> opts -> val -> if val == 1 then opts.a + opts.c;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : g = method(Options => {b => 5});</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : g ZZ := opts -> val -> if val == 2 then opts.b + 1;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : h = val -> if val == 3 then 24;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : foo = method(Options => true);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : addHook((foo, ZZ), f)
+
+o6 = f
+
+o6 : FunctionClosure</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : addHook((foo, ZZ), g, Strategy => &quot;G&quot;)
+
+o7 = g
+
+o7 : MethodFunctionWithOptions</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : addHook((foo, ZZ), h)
+
+o8 = h
+
+o8 : FunctionClosure</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>The method <a title="run the hook functions stored in an object" href="_run__Hooks.html">runHooks</a> runs all the hooks until one of them returns a non-<a title="the unique member of the empty class" href="_null.html">null</a> value. Hooks are run in order starting from the most recently added hook. Because of this, each hook should be able to decide quickly whether it is the right implementation for the input, and if not should return <a title="the unique member of the empty class" href="_null.html">null</a>.</p>
+          <p>Any optional argument passed to <tt>runHooks</tt> that matches a key in the <a title="the class of hash tables for optional arguments" href="___Option__Table.html">OptionTable</a> of a hook will be passed on to it. Otherwise it will be ignored.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : foo ZZ := true >> opts -> args -> runHooks((foo, ZZ), args, opts);</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : debugLevel = 1
+
+o10 = 1</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : assert( foo 1 == 15 )
+ -- (foo,ZZ) with Strategy => 2 from h
+ -- (foo,ZZ) with Strategy => G from g
+ -- (foo,ZZ) with Strategy => 0 from f</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : assert( foo(2, b => 9) == 10 )
+ -- (foo,ZZ) with Strategy => 2 from h
+ -- (foo,ZZ) with Strategy => G from g</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : assert( foo 3 == 24 )
+ -- (foo,ZZ) with Strategy => 2 from h</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>The function <a title="list hooks attached to a key" href="_hooks.html">hooks</a> lists all hooks attached to a method key or symbol, in the order in which they were added, that is, the <i>opposite</i> order in which they are run.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : hooks(foo, ZZ)
+
+o14 = {0 => (foo, ZZ, Strategy => 0)}
+      {1 => (foo, ZZ, Strategy => G)}
+      {2 => (foo, ZZ, Strategy => 2)}
+
+o14 : NumberedVerticalList</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Hooks are automatically assigned an integer which can be used as the value of the <tt>Strategy</tt> option to specify only one strategy to run.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : assert( foo(3, Strategy => 2) == 24 )
+ -- (foo,ZZ) with Strategy => 2 from h</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : assert( foo(2, Strategy => &quot;G&quot;) == 6 )
+ -- (foo,ZZ) with Strategy => G from g</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>If the code for a hook was read from a file, then it can be retrieved with the <a title="display source code" href="_code.html">code</a> function.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i17 : hooks(quotient, Ideal, Ideal)
+
+o17 = {0 => (quotient, Ideal, Ideal, Strategy => Quotient)}
+      {1 => (quotient, Ideal, Ideal, Strategy => Iterate) }
+      {2 => (quotient, Ideal, Ideal, Strategy => Monomial)}
+
+o17 : NumberedVerticalList</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i18 : code 1
+
+o18 = -- code for method: quotient(Ideal,Ideal)
+      /usr/local/share/Macaulay2/Saturation.m2:218:29-224:71: --source code:
+          Iterate => (opts, I, J) -> (
+              R := ring I;
+              -- TODO: extend this into a strategy for any PID
+              if R === ZZ then return ideal sub(gcd I_* / gcd flatten(I_*, J_*), ZZ);
+              fold(first entries mingens J, ideal 1_R, (f, M1) ->
+                  if generators(f * M1) % generators I == 0 then M1
+                  else intersect(M1, quotient(I, ideal f, opts, Strategy => Quotient)))),</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li>
+<span><a title="display source code" href="_code.html">code</a> -- display source code</span>          </li>
+          <li>
+<span><a title="make a new method function" href="_method.html">method</a> -- make a new method function</span>          </li>
+          <li>
+<span><a title="list methods" href="_methods.html">methods</a> -- list methods</span>          </li>
+          <li>
+<span><a href="_making_spa_spnew_spmethod_spfunction.html">making a new method function</a></span>          </li>
+        </ul>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li>
+<span><a title="list hooks attached to a key" href="_hooks.html">hooks</a> -- list hooks attached to a key</span>          </li>
+          <li>
+<span><a title="add a hook function to an object for later processing" href="_add__Hook.html">addHook</a> -- add a hook function to an object for later processing</span>          </li>
+          <li>
+<span><a title="run the hook functions stored in an object" href="_run__Hooks.html">runHooks</a> -- run the hook functions stored in an object</span>          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+
+</html>

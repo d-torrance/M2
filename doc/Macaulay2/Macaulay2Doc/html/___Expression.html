@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>Expression -- the class of all expressions</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="_expression.html">next</a> | <a href="_exponents.html">previous</a> | <a href="_expression.html">forward</a> | <a href="_exponents.html">backward</a> | up | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> :: <a title="the class of all expressions" href="___Expression.html">Expression</a>    </div>
+    <hr/>
+    <div>
+      <h1>Expression -- the class of all expressions</h1>
+      <div>
+        <h2>Description</h2>
+An <em>expression</em> is a symbolic representation of a mathematical expression.  It retains some of the semantics of the mathematical expression, as well as enough information to print the expression nicely.  In Macaulay2 expressions have two main functions: they are an intermediate phase in the conversion of a mathematical object to a <a title="format for printing, as a net" href="_net.html">net</a> that can be printed; and they are a way of holding and displaying a mathematical expression in an unevaluated form that can be both printed and evaluated.        <p/>
+Internally, each expression is a basic list whose elements may also be expressions.  The elements that are not expressions are interpreted as themselves, and may be strings, symbols, numbers, etc.  There are several types of expression that correspond to various sorts of mathematical entities, such as sums of class <a title="the class of all sum expressions" href="___Sum.html">Sum</a>, products, of class <a title="the class of all product expressions" href="___Product.html">Product</a>, fractions of class <a title="the class of all divide expressions" href="___Divide.html">Divide</a>, etc.        <p/>
+Expressions are produced with the function <a title="convert to an expression" href="_expression.html">expression</a>.  The various methods installed for it try to bring as much of the semantic structure of the mathematical object to light.  The following examples illustrate that, using <a title="examine contents of an object" href="_peek.html">peek</a> and <a title="examine contents of an object" href="_peek_sq.html">peek'</a> to display the internal structure.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : expression 4
+
+o1 = 4
+
+o1 : Expression of class Holder</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : peek oo
+
+o2 = Holder{4}</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : d = expression (-4)
+
+o3 = -4
+
+o3 : Expression of class Minus</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : peek oo
+
+o4 = Minus{4}</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : QQ[x];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : f = (x+1)^5
+
+      5     4      3      2
+o6 = x  + 5x  + 10x  + 10x  + 5x + 1
+
+o6 : QQ[x]</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : peek f
+
+o7 = QQ[x]{x5+5x4+10x3+10x2+5x+1}</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : e = expression f
+
+      5     4      3      2
+o8 = x  + 5x  + 10x  + 10x  + 5x + 1
+
+o8 : Expression of class Sum</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : peek e
+
+          5    4     3     2
+o9 = Sum{x , 5x , 10x , 10x , 5x, 1}</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : peek'_2 e
+
+                                   4                3                2
+o10 = Sum{Power{x, 5}, Product{5, x }, Product{10, x }, Product{10, x },
+      -----------------------------------------------------------------------
+      Product{5, x}, OneExpression{1}}</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : peek'_11 e
+
+o11 = Sum{Power{x, 5}, Product{5, Power{x, 4}}, Product{10, Power{x, 3}},
+      -----------------------------------------------------------------------
+      Product{10, Power{x, 2}}, Product{5, x}, OneExpression{1}}</code></pre>
+</td>          </tr>
+        </table>
+The function <a title="factor a ring element or a ZZ-module" href="_factor.html">factor</a> returns an expression.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : c = factor f
+
+             5
+o12 = (x + 1)
+
+o12 : Expression of class Product</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : peek'_2 c
+
+o13 = Product{Power{x + 1, 5}}</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : factor 240012
+
+       2 2
+o14 = 2 3 59*113
+
+o14 : Expression of class Product</code></pre>
+</td>          </tr>
+        </table>
+Expressions can be evaluated using <a title="evaluate" href="_value.html">value</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : value e
+
+       5     4      3      2
+o15 = x  + 5x  + 10x  + 10x  + 5x + 1
+
+o15 : QQ[x]</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : value e == f
+
+o16 = true</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i17 : value c
+
+       5     4      3      2
+o17 = x  + 5x  + 10x  + 10x  + 5x + 1
+
+o17 : QQ[x]</code></pre>
+</td>          </tr>
+        </table>
+The following operators can be applied to expressions: <a title="blank operator; often used for function application, making polynomial rings" href="___S__P__A__C__E.html">SPACE</a>, <a title="a binary operator, usually used for multiplication" href="__st.html">*</a>, <a title="a binary operator, usually used for tensor product or Cartesian product" href="__st_st.html">**</a>, <a title="a unary or binary operator, usually used for addition" href="__pl.html">+</a>, <a title="a unary or binary operator, usually used for negation or subtraction" href="_-.html">-</a>, <a title="a binary operator, usually used for division" href="__sl.html">/</a>, <a title="equality" href="__eq_eq.html">==</a>, <a title="a binary operator, usually used for powers" href="_^.html">^</a>, and <a title="a binary operator, used for subscripting and access to elements" href="__us.html">_</a>.  They are contagious, in the sense that when applied to an expression and a non-expression, the non-expression will be converted to an expression and the operator will be applied.  Only the most trivial algebraic simplications are applied.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i18 : d + e
+
+             5     4      3      2
+o18 = - 4 + x  + 5x  + 10x  + 10x  + 5x + 1
+
+o18 : Expression of class Sum</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i19 : d + 4
+
+o19 = - 4 + 4
+
+o19 : Expression of class Sum</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i20 : d / 4
+
+      -4
+o20 = --
+       4
+
+o20 : Expression of class Divide</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i21 : d / 1
+
+o21 = -4
+
+o21 : Expression of class Minus</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i22 : d == e
+
+             5     4      3      2
+o22 = -4 == x  + 5x  + 10x  + 10x  + 5x + 1
+
+o22 : Expression of class Equation</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+      <div class="waystouse">
+        <h2>Types of <tt>expression</tt> :</h2>
+        <ul>
+          <li>
+<span><a title="the class of all adjacent expression pairs" href="___Adjacent.html">Adjacent</a> -- the class of all adjacent expression pairs</span>          </li>
+          <li>
+<span><a title="the class of associative expressions" href="___Associative__Expression.html">AssociativeExpression</a> -- the class of associative expressions</span>          </li>
+          <li>
+<span><a title="the class of all binary operation expressions" href="___Binary__Operation.html">BinaryOperation</a> -- the class of all binary operation expressions</span>          </li>
+          <li>
+<span><a title="the class of all divide expressions" href="___Divide.html">Divide</a> -- the class of all divide expressions</span>          </li>
+          <li>
+<span><a title="the class of all function application expressions" href="___Function__Application.html">FunctionApplication</a> -- the class of all function application expressions</span>          </li>
+          <li>
+<span><a title="the class of all holder expressions" href="___Holder.html">Holder</a> -- the class of all holder expressions</span>          </li>
+          <li>
+<span><a title="the class of map expressions" href="___Map__Expression.html">MapExpression</a> -- the class of map expressions</span>          </li>
+          <li>
+<span><a title="the class of all matrix expressions" href="___Matrix__Expression.html">MatrixExpression</a> -- the class of all matrix expressions</span>          </li>
+          <li>
+<span><a title="the class of all minus expressions" href="___Minus.html">Minus</a> -- the class of all minus expressions</span>          </li>
+          <li>
+<span><a title="the class of all nonassociative product expressions" href="___Non__Associative__Product.html">NonAssociativeProduct</a> -- the class of all nonassociative product expressions</span>          </li>
+          <li>
+<span><a title="the class of all power expressions" href="___Power.html">Power</a> -- the class of all power expressions</span>          </li>
+          <li>
+<span><a title="the class of all matrix expressions" href="___Row__Expression.html">RowExpression</a> -- the class of all matrix expressions</span>          </li>
+          <li>
+<span><a title="the class of sheaf expressions" href="___Sheaf__Expression.html">SheafExpression</a> -- the class of sheaf expressions</span>          </li>
+          <li>
+<span><a title="the class of all sparse monomial vector expressions" href="___Sparse__Monomial__Vector__Expression.html">SparseMonomialVectorExpression</a> -- the class of all sparse monomial vector expressions</span>          </li>
+          <li>
+<span><a title="the class of all sparse vector expressions" href="___Sparse__Vector__Expression.html">SparseVectorExpression</a> -- the class of all sparse vector expressions</span>          </li>
+          <li>
+<span><a title="the class of all subscript expressions" href="___Subscript.html">Subscript</a> -- the class of all subscript expressions</span>          </li>
+          <li>
+<span><a title="the class of all superscript expressions" href="___Superscript.html">Superscript</a> -- the class of all superscript expressions</span>          </li>
+          <li>
+<span><a title="the class of all table expressions" href="___Table.html">Table</a> -- the class of all table expressions</span>          </li>
+          <li>
+<span><a title="the class of all vector expressions" href="___Vector__Expression.html">VectorExpression</a> -- the class of all vector expressions</span>          </li>
+        </ul>
+        <h2>Functions and methods returning an expression :</h2>
+        <ul>
+          <li>
+<span><a title="convert to an expression" href="_expression.html">expression</a> -- convert to an expression</span>          </li>
+          <li>
+<span><a title="hold something in a holder expression" href="_hold.html">hold</a> -- hold something in a holder expression</span>          </li>
+        </ul>
+        <h2>Methods that use an expression :</h2>
+        <ul>
+          <li>
+<span><tt>&quot;Equation == Expression&quot;</tt> -- see <span><a title="equality" href="__eq_eq.html">==</a> -- equality</span></span>          </li>
+          <li>
+<span><tt>&quot;Expression == Equation&quot;</tt> -- see <span><a title="equality" href="__eq_eq.html">==</a> -- equality</span></span>          </li>
+          <li>
+<span><tt>&quot;assert(Expression)&quot;</tt> -- see <span><a title="assert something is true" href="_assert.html">assert</a> -- assert something is true</span></span>          </li>
+          <li>
+<tt>&quot;- Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression != Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression != Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression != Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression % Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression % Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression % Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &amp; Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &amp; Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &amp; Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression * Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression * Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression * Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ** Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ** Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ** Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression + Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression + Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression + Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ++ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ++ Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ++ Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression - Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression - Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression - Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression .. Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression .. Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression .. Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ..&lt; Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ..&lt; Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ..&lt; Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression / Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression / Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression / Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression : Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression : Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression : Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &lt;== Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &lt;== Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &lt;== Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &lt;=== Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &lt;=== Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &lt;=== Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &lt;==> Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &lt;==> Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression &lt;==> Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression == Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression == Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression == Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ===> Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ===> Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ===> Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ==> Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ==> Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ==> Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression @ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression @ Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression @ Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression @@ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression @@ Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression @@ Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ^ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ^ Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ^ Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ^** Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ^** Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ^** Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ^^ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ^^ Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression ^^ Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression _ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression _ Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression _ Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression | Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression | Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression | Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression |- Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression |- Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression |- Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression || Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression || Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression || Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression and Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression and Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression and Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression or Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression or Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression or Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression xor Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression xor Holder&quot;</tt>          </li>
+          <li>
+<tt>&quot;Expression xor Thing&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder != Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder % Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder &amp; Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder * Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder ** Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder + Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder ++ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder - Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder .. Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder ..&lt; Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder / Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder : Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder &lt;== Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder &lt;=== Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder &lt;==> Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder == Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder ===> Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder ==> Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder @ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder @@ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder ^ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder ^** Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder ^^ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder _ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder | Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder |- Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder || Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder and Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder or Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Holder xor Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing != Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing % Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing &amp; Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing * Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing ** Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing + Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing ++ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing - Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing .. Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing ..&lt; Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing / Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing : Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing &lt;== Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing &lt;=== Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing &lt;==> Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing == Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing ===> Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing ==> Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing @ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing @@ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing ^ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing ^** Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing ^^ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing _ Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing | Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing |- Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing || Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing and Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing or Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;Thing xor Expression&quot;</tt>          </li>
+          <li>
+<tt>&quot;value(Expression)&quot;</tt>          </li>
+        </ul>
+      </div>
+      <div class="waystouse">
+        <h2>For the programmer</h2>
+        <p>The object <a title="the class of all expressions" href="___Expression.html">Expression</a> is <span>a <a title="the class of all types" href="___Type.html">type</a></span>, with ancestor classes <a title="the class of all basic lists" href="___Basic__List.html">BasicList</a> &lt; <a title="the class of all things" href="___Thing.html">Thing</a>.</p>
+      </div>
+    </div>
+  </body>
+
+</html>

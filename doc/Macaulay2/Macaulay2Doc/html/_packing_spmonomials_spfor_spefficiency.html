@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>packing monomials for efficiency</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="___G__Rev__Lex.html">next</a> | <a href="_monomial_sporders_spfor_spfree_spmodules.html">previous</a> | <a href="___G__Rev__Lex.html">forward</a> | <a href="___Schreyer_sporders.html">backward</a> | <a href="_monomial_sporderings.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="_rings.html">rings</a> > <a href="_monomial_sporderings.html">monomial orderings</a> > <a href="_packing_spmonomials_spfor_spefficiency.html">packing monomials for efficiency</a>    </div>
+    <hr/>
+    <div>
+      <h1>packing monomials for efficiency</h1>
+      <div>
+Sometimes for efficiency reasons, it is important to pack exponent vectors several exponents per machine word.  Polynomials take less space, and monomial operations such as comparison and multiplication become faster.        <p/>
+The monomial order keys <a title="lexicographical monomial order." href="___Lex.html">Lex</a> and <a title="graded reverse lexicographical monomial order." href="___G__Rev__Lex.html">GRevLex</a> allow packing.  The <tt>MonomialSize => n</tt> option allows one to set the minimum packing size, in number of bits. Monomials are stored as signed exponent vectors, so maximum exponents of 2^(n-1)-1 are possible for packed variables.  Useful values include 8, 16, 32, and (on 64-bit machines) 64.  The default monomial size is 32.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : A = QQ[a..d,MonomialSize=>8]
+
+o1 = A
+
+o1 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : B = QQ[x,y,z,w,MonomialSize=>16,MonomialOrder=>Lex]	  
+
+o2 = B
+
+o2 : PolynomialRing</code></pre>
+</td>          </tr>
+        </table>
+The maximum degree for monomials in A is 127.  Monomials of higher degree will encounter a monomial overflow.  In the second example, the maximum exponent is 32767 (2^15-1).        <p/>
+It is possible to pack different parts of the monomial with different sizes. For example, the following order has two blocks: a graded reverse lexicographic block of 3 variables, packed into one 32-bit word, and a second lexicographic block for 4 variables, taking 4 32-bit words. Each monomial will be packed into 5 32-bit words (on a computer with a 32-bit word size).        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : C = QQ[a,b,c,x,y,z,w,MonomialOrder=>{MonomialSize=>8,3,MonomialSize=>32,Lex=>4}];</code></pre>
+</td>          </tr>
+        </table>
+        <p/>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : D = QQ[a..d,MonomialOrder=>Lex];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : a^1000000000
+
+      1000000000
+o5 = a
+
+o5 : D</code></pre>
+</td>          </tr>
+        </table>
+        <p/>
+This exponent would give a monomial overflow error in the next two rings.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : E = QQ[a..d,MonomialSize=>16,MonomialOrder=>Lex];</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : F = QQ[a..d,MonomialSize=>8,MonomialOrder=>Lex];</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+
+</html>

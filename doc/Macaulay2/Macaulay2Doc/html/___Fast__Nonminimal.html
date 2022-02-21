@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>FastNonminimal -- compute a non-minimal graded free resolution</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="___File.html">next</a> | <a href="___Fano_lp__Z__Z_cm__Ideal_cm__Ring_rp.html">previous</a> | <a href="___File.html">forward</a> | <a href="___Fano_lp__Z__Z_cm__Ideal_cm__Ring_rp.html">backward</a> | up | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> :: <a title="compute a non-minimal graded free resolution" href="___Fast__Nonminimal.html">FastNonminimal</a>    </div>
+    <hr/>
+    <div>
+      <h1>FastNonminimal -- compute a non-minimal graded free resolution</h1>
+      <div>
+        <h2>Synopsis</h2>
+        <ul>
+          <li>
+            <dl class="element">
+              <dt>Usage: </dt>
+              <dd><code class="language-macaulay2">C = res(I, FastNonminimal => true, ...)</code></dd>
+            </dl>
+          </li>
+          <li>
+Inputs:            <ul>
+              <li>
+<span><tt>I</tt>, <span>an <a title="the class of all ideals" href="___Ideal.html">ideal</a></span>, or <span>a <a title="the class of all matrices" href="___Matrix.html">matrix</a></span> or <span>a <a title="the class of all modules" href="___Module.html">module</a></span>, in a polynomial ring or skew commuting polynomial ring, over a finite prime field</span>              </li>
+            </ul>
+          </li>
+          <li>
+Outputs:            <ul>
+              <li>
+<span><tt>C</tt>, <span>a <a title="the class of all chain complexes" href="___Chain__Complex.html">chain complex</a></span>, </span>              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>Given an inhomogeneous,  singly-graded, or multi-graded ideal or module, this function computes a non-minimal free resolution.  If the input is an ideal $I \subset S$, it computes a non-minimal resolution of $S^1/I$.</p>
+          <p>A key benefit of this function is that it allows a much faster method for computing the betti numbers of the <b>minimal</b> free resolution. If that is your only interest (i.e. you don't need the complex itself), instead use <a title="minimal betti numbers of (the mininimal free resolution of) a homogeneous ideal or module" href="_minimal__Betti.html">minimalBetti</a>.  However, <a title="minimal betti numbers of (the mininimal free resolution of) a homogeneous ideal or module" href="_minimal__Betti.html">minimalBetti</a> currently only works for single gradings, not multi-gradings.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : I = Grassmannian(1,6, CoefficientRing => ZZ/101);
+
+               ZZ
+o1 : Ideal of ---[p   ..p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   , p   ]
+              101  0,1   0,2   1,2   0,3   1,3   2,3   0,4   1,4   2,4   3,4   0,5   1,5   2,5   3,5   4,5   0,6   1,6   2,6   3,6   4,6   5,6</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : S = ring I
+
+o2 = S
+
+o2 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : elapsedTime C = res(I, FastNonminimal => true)
+ -- 1.88245 seconds elapsed
+
+      1      35      241      841      1781      2464      2294      1432      576      135      14
+o3 = S  &lt;-- S   &lt;-- S    &lt;-- S    &lt;-- S     &lt;-- S     &lt;-- S     &lt;-- S     &lt;-- S    &lt;-- S    &lt;-- S   &lt;-- 0
+                                                                                                         
+     0      1       2        3        4         5         6         7         8        9        10      11
+
+o3 : ChainComplex</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : elapsedTime C1 = res ideal(I_*)
+ -- 0.961334 seconds elapsed
+
+      1      35      140      385      819      1080      819      385      140      35      1
+o4 = S  &lt;-- S   &lt;-- S    &lt;-- S    &lt;-- S    &lt;-- S     &lt;-- S    &lt;-- S    &lt;-- S    &lt;-- S   &lt;-- S  &lt;-- 0
+                                                                                                    
+     0      1       2        3        4        5         6        7        8        9       10     11
+
+o4 : ChainComplex</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : betti(C, Minimize => true) == betti C1
+
+o5 = true</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>For a non-minimal resolution, <a title="display or modify a Betti diagram" href="_betti.html">betti</a> gives the actual Betti numbers, and using the <a title="minimal betti numbers of a non-minimal free resolution" href="_betti_lp..._cm__Minimize_eq_gt..._rp.html">betti(...,Minimize=>...)</a> option gives the ranks in a minimal resolution (which is itself not computed).</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : betti C
+
+            0  1   2   3    4    5    6    7   8   9 10
+o6 = total: 1 35 241 841 1781 2464 2294 1432 576 135 14
+         0: 1  .   .   .    .    .    .    .   .   .  .
+         1: . 35 140 290  402  402  293  152  53  11  1
+         2: .  . 101 514 1174 1577 1365  780 287  62  6
+         3: .  .   .  37  204  479  621  480 221  56  6
+         4: .  .   .   .    1    6   15   20  15   6  1
+
+o6 : BettiTally</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : betti(C, Minimize => true)
+
+            0  1   2   3   4    5   6   7   8  9 10
+o7 = total: 1 35 140 385 819 1080 819 385 140 35  1
+         0: 1  .   .   .   .    .   .   .   .  .  .
+         1: . 35 140 189  84    .   .   .   .  .  .
+         2: .  .   . 196 735 1080 735 196   .  .  .
+         3: .  .   .   .   .    .  84 189 140 35  .
+         4: .  .   .   .   .    .   .   .   .  .  1
+
+o7 : BettiTally</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p></p>
+          <p>As mentioned above, if you are just interested in the minimal betti numbers of the ideal or module, then use <a title="minimal betti numbers of (the mininimal free resolution of) a homogeneous ideal or module" href="_minimal__Betti.html">minimalBetti</a>, as it avoids construction of the non-minimal free resolution.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : minimalBetti I
+
+            0  1   2   3   4    5   6   7   8  9 10
+o8 = total: 1 35 140 385 819 1080 819 385 140 35  1
+         0: 1  .   .   .   .    .   .   .   .  .  .
+         1: . 35 140 189  84    .   .   .   .  .  .
+         2: .  .   . 196 735 1080 735 196   .  .  .
+         3: .  .   .   .   .    .  84 189 140 35  .
+         4: .  .   .   .   .    .   .   .   .  .  1
+
+o8 : BettiTally</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p></p>
+          <p>If the resolution is not large, this function can be slower than the usual function <a title="projective resolution" href="_resolution.html">resolution</a>.  But for larger examples, if one is only interested in the betti numbers, this function can be hundreds or thousands of times faster.</p>
+        </div>
+        <div>
+          <p></p>
+          <p>If the input module is not graded, or is multi-graded, this function still works. However, <a title="minimal betti numbers of (the mininimal free resolution of) a homogeneous ideal or module" href="_minimal__Betti.html">minimalBetti</a> does not work in these cases.  In the inhomogeneous case, the returned free resolution is often highly non minimal. Of course, there is no notion of minimal resolution in this case, but one can use <a title="Prunes a chain complex or list of mutable matrices" href="../../PruneComplex/html/_prune__Complex.html">pruneComplex</a> to clean up the returned complex.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : R = ZZ/101[a..f]
+
+o9 = R
+
+o9 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : I = ideal&quot;a3-ab-c2,abc-d2-1, b3-b2-b&quot;
+
+              3          2           2       3    2
+o10 = ideal (a  - a*b - c , a*b*c - d  - 1, b  - b  - b)
+
+o10 : Ideal of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : C = res(I, FastNonminimal => true)
+
+       1      12      28      24      7
+o11 = R  &lt;-- R   &lt;-- R   &lt;-- R   &lt;-- R  &lt;-- 0
+                                             
+      0      1       2       3       4      5
+
+o11 : ChainComplex</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : needsPackage &quot;PruneComplex&quot;
+
+o12 = PruneComplex
+
+o12 : Package</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : pruneComplex C
+
+       1      3      3      1
+o13 = R  &lt;-- R  &lt;-- R  &lt;-- R
+                            
+      0      1      2      3
+
+o13 : ChainComplex</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>If one has a specific Groebner basis on which one wants to base the Schreyer resolution, use Strategy=>5.  This will not check that the input forms a Groebner basis, but if it does not, then the function will either produce non-sensical answers, or fail.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : R = ZZ/101[a..c,x_1..x_9, MonomialOrder=>{3,9}]
+
+o14 = R
+
+o14 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : I = ideal(a^2 - b^2 - x_1 * a*c - x_2 * b*c - x_3 * c^2,
+                 a*b - x_4 * a*c - x_5 * b*c - x_6 *c^2,
+                 b^2 - x_7 * a*c - x_8 * b*c - x_9 *c^2
+                 )
+
+              2    2                      2                             2   
+o15 = ideal (a  - b  - a*c*x  - b*c*x  - c x , a*b - a*c*x  - b*c*x  - c x ,
+                            1        2      3             4        5      6 
+      -----------------------------------------------------------------------
+       2                      2
+      b  - a*c*x  - b*c*x  - c x )
+                7        8      9
+
+o15 : Ideal of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : C = res(I, FastNonminimal => true, Strategy=>5)
+
+       1      3      2
+o16 = R  &lt;-- R  &lt;-- R  &lt;-- 0
+                            
+      0      1      2      3
+
+o16 : ChainComplex</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i17 : C.dd
+
+           1                                                                             3
+o17 = 0 : R  &lt;------------------------------------------------------------------------- R  : 1
+                | a2-b2-acx_1-bcx_2-c2x_3 ab-acx_4-bcx_5-c2x_6 b2-acx_7-bcx_8-c2x_9 |
+
+           3                                              2
+      1 : R  &lt;------------------------------------------ R  : 2
+                {2} | -b+cx_4           cx_7         |
+                {2} | a-cx_1+cx_5-cx_7  -b-cx_4+cx_8 |
+                {2} | -b-cx_2+cx_4-cx_8 a-cx_5+cx_7  |
+
+           2
+      2 : R  &lt;----- 0 : 3
+                0
+
+o17 : ChainComplexMap</code></pre>
+</td>          </tr>
+        </table>
+        <div>
+          <p>Note that <tt>Strategy=>4</tt> or <tt>Strategy=>5</tt> implies FastNonminimal.</p>
+        </div>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i18 : C1 = res(ideal I_*, Strategy=>5)
+
+       1      3      2
+o18 = R  &lt;-- R  &lt;-- R  &lt;-- 0
+                            
+      0      1      2      3
+
+o18 : ChainComplex</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i19 : C1.dd
+
+           1                                                                             3
+o19 = 0 : R  &lt;------------------------------------------------------------------------- R  : 1
+                | a2-b2-acx_1-bcx_2-c2x_3 ab-acx_4-bcx_5-c2x_6 b2-acx_7-bcx_8-c2x_9 |
+
+           3                                              2
+      1 : R  &lt;------------------------------------------ R  : 2
+                {2} | -b+cx_4           cx_7         |
+                {2} | a-cx_1+cx_5-cx_7  -b-cx_4+cx_8 |
+                {2} | -b-cx_2+cx_4-cx_8 a-cx_5+cx_7  |
+
+           2
+      2 : R  &lt;----- 0 : 3
+                0
+
+o19 : ChainComplexMap</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>Released in M2 1.9, still experimental.  Only works over finite prime fields. Uses quite a lot of memory. For inhomogeneous ideals or modules, the monomial order must be a degree order.  For multi-graded ideals or modules, <a title="minimal betti numbers of (the mininimal free resolution of) a homogeneous ideal or module" href="_minimal__Betti.html">minimalBetti</a> is not yet implemented.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li>
+<span><a title="minimal betti numbers of (the mininimal free resolution of) a homogeneous ideal or module" href="_minimal__Betti.html">minimalBetti</a> -- minimal betti numbers of (the mininimal free resolution of) a homogeneous ideal or module</span>          </li>
+          <li>
+<span><a title="display or modify a Betti diagram" href="_betti.html">betti</a> -- display or modify a Betti diagram</span>          </li>
+          <li>
+<span><a title="minimal betti numbers of a non-minimal free resolution" href="_betti_lp..._cm__Minimize_eq_gt..._rp.html">betti(...,Minimize=>...)</a> -- minimal betti numbers of a non-minimal free resolution</span>          </li>
+          <li>
+<span><a title="projective resolution" href="_resolution.html">resolution</a> -- projective resolution</span>          </li>
+          <li>
+<span><a title="Prunes a chain complex or list of mutable matrices" href="../../PruneComplex/html/_prune__Complex.html">pruneComplex</a> -- Prunes a chain complex or list of mutable matrices</span>          </li>
+        </ul>
+      </div>
+      <div>
+        <h2>Functions with optional argument named <tt>FastNonminimal</tt> :</h2>
+        <ul>
+          <li>
+<tt>&quot;resolution(...,FastNonminimal=>...)&quot;</tt>          </li>
+        </ul>
+      </div>
+      <div class="waystouse">
+        <h2>For the programmer</h2>
+        <p>The object <a title="compute a non-minimal graded free resolution" href="___Fast__Nonminimal.html">FastNonminimal</a> is <span>a <a title="the class of all symbols" href="___Symbol.html">symbol</a></span>.</p>
+      </div>
+    </div>
+  </body>
+
+</html>

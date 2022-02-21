@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>globalAssignFunction -- the standard method for the global assignment hook</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="___Global__Assign__Hook.html">next</a> | <a href="_global__Assign.html">previous</a> | <a href="___Global__Assign__Hook.html">forward</a> | <a href="_global__Assign.html">backward</a> | up | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> :: <a title="the standard method for the global assignment hook" href="_global__Assign__Function.html">globalAssignFunction</a>    </div>
+    <hr/>
+    <div>
+      <h1>globalAssignFunction -- the standard method for the global assignment hook</h1>
+      <div>
+        <h2>Description</h2>
+<tt>globalAssignFunction</tt> -- the standard function that can be used as a method for <a title="hook for assignment to global variables" href="___Global__Assign__Hook.html">GlobalAssignHook</a> so that certain types of things, when assigned to a global variable, will acquire the name of the global variable as their name.  The companion function <a title="the standard method for the global variable release hook" href="_global__Release__Function.html">globalReleaseFunction</a> is used to release the name when the global variable gets reassigned.        <p/>
+Another thing done by this function is to apply <a title="install or activate object" href="_use.html">use</a> to the thing. This is used for polynomial rings to assign values to the symbols representing the variables (indeterminates) in the ring.        <p/>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : X = new Type of MutableHashTable
+
+o1 = X
+
+o1 : Type</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : x = new X
+
+o2 = X{}
+
+o2 : X</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : X.GlobalAssignHook = globalAssignFunction
+
+o3 = globalAssignFunction
+
+o3 : FunctionClosure</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : X.GlobalReleaseHook = globalReleaseFunction
+
+o4 = globalReleaseFunction
+
+o4 : FunctionClosure</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : x' = new X
+
+o5 = x'
+
+o5 : X</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : t = {x,x'}
+
+o6 = {X{}, x'}
+
+o6 : List</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : x = x' = 44
+
+o7 = 44</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : t
+
+o8 = {X{}, X{}}
+
+o8 : List</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : code globalAssignFunction
+
+o9 = Macaulay2/Core/startup.m2.in:235:35-239:15: --source code:
+          globalAssignFunction = (X,x) -> (
+               if not instance(X,Symbol) then error(&quot;globalAssignFunction: expected a symbol: &quot;, toString X);
+               if not hasAttribute(x,ReverseDictionary) then setAttribute(x,ReverseDictionary,X);
+               use x;
+               );</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li>
+<span><a title="get a symbol" href="_symbol.html">symbol</a> -- get a symbol</span>          </li>
+          <li>
+<span><a title="the class of all self initializing types" href="___Self__Initializing__Type.html">SelfInitializingType</a> -- the class of all self initializing types</span>          </li>
+        </ul>
+      </div>
+      <div class="waystouse">
+        <h2>For the programmer</h2>
+        <p>The object <a title="the standard method for the global assignment hook" href="_global__Assign__Function.html">globalAssignFunction</a> is <span>a <a title="the class of all function closures" href="___Function__Closure.html">function closure</a></span>.</p>
+      </div>
+    </div>
+  </body>
+
+</html>

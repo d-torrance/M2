@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>Tutorial: Elementary uses of Groebner bases</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="___Tutorial_co_sp__Canonical_sp__Embeddings_spof_sp__Plane_sp__Curves_spand_sp__Gonality.html">next</a> | previous | <a href="___Tutorial_co_sp__Canonical_sp__Embeddings_spof_sp__Plane_sp__Curves_spand_sp__Gonality.html">forward</a> | <a href="_mathematical_spexamples.html">backward</a> | <a href="_mathematical_spexamples.html">up</a> | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> > <a href="_mathematical_spexamples.html">mathematical examples</a> > <a href="___Tutorial_co_sp__Elementary_spuses_spof_sp__Groebner_spbases.html">Tutorial: Elementary uses of Groebner bases</a>    </div>
+    <hr/>
+    <div>
+      <h1>Tutorial: Elementary uses of Groebner bases</h1>
+      <div>
+        <p>-*- coding: utf-8 -*- In this tutorial we introduce a number of basic operations using Gröbner bases, and at the same time become familiar with a range of useful Macaulay2 constructs. The sections are:</p>
+        <p/>
+        <p>A.  First steps; example with a monomial curve</p>
+        <p/>
+        <p>B.  Random regular sequences</p>
+        <p/>
+        <p>C.  Division with remainder</p>
+        <p/>
+        <p>D.  Elimination theory</p>
+        <p/>
+        <p>E.  Quotients and saturation</p>
+        <h4>A. First Steps; example with a monomial curve</h4>
+        <p>To compute the Gröbner basis of an ideal $(x^2y,xy^2+x^3)$ in the polynomial ring in four variables we proceed as follows:</p>
+        <p/>
+        <p>Our favorite field</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : KK = ZZ/31991
+
+o1 = KK
+
+o1 : QuotientRing</code></pre>
+</td>          </tr>
+        </table>
+        <p>The polynomial ring</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : R = KK[x,y,z,w]
+
+o2 = R
+
+o2 : PolynomialRing</code></pre>
+</td>          </tr>
+        </table>
+        <p>and the ideal</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : I = ideal(x^2*y,x*y^2+x^3)
+
+             2    3      2
+o3 = ideal (x y, x  + x*y )
+
+o3 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+        <p>now the punch line:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : J = gens gb I
+
+o4 = | x2y x3+xy2 xy3 |
+
+             1       3
+o4 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+        <p>From this we can for example compute the codimension, dimension, degree, and the whole Hilbert function and polynomial. This will be more fun if we work with an example having some meaning.  We choose to work with the ideal defining the rational quartic curve in $\PP^3$ given parametrically in an affine representation by $$t \mapsto{} (t,t^3,t^4).$$ (The reader who doesn't understand this terminology may ignore it for the moment, and treat the ideal given below as a gift from the gods... .) We obtain the ideal by first making the polynomial ring in 4 variables (the homogeneous coordinate ring of $\PP^3$)</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : R = KK[a..d]
+
+o5 = R
+
+o5 : PolynomialRing</code></pre>
+</td>          </tr>
+        </table>
+        <p>and then using a function <tt>monomialCurveIdeal</tt>, which we shall treat for now as a black box</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : I = monomialCurveIdeal(R,{1,3,4})
+
+                        3      2     2    2    3    2
+o6 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)
+
+o6 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+        <p>From Macaulay2's point of view, $I$ is an ideal, and the codimension of its support is 2, while its dimension is 2:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : codim I
+
+o7 = 2</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : dim I
+
+o8 = 2</code></pre>
+</td>          </tr>
+        </table>
+        <p>This is the codimension of $R/I$ in $R$ and the dimension of $R/I$.  We could work with the module $R/I$ as well. Precision requires writing $R^1$ instead of $R$ ($R$ is a ring, and $R^1$ is the free module of rank 1 over it)</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : codim (R^1/(I*R^1))
+
+o9 = 2</code></pre>
+</td>          </tr>
+        </table>
+        <p>We could also extract the generators of $I$ (as a matrix) and take the cokernel to get the same thing:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : M = coker gens I
+
+o10 = cokernel | bc-ad c3-bd2 ac2-b2d b3-a2c |
+
+                             1
+o10 : R-module, quotient of R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : codim M
+
+o11 = 2</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i12 : dim M
+
+o12 = 2</code></pre>
+</td>          </tr>
+        </table>
+        <p>And similarly for the degree:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i13 : degree I
+
+o13 = 4</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i14 : degree M
+
+o14 = 4</code></pre>
+</td>          </tr>
+        </table>
+        <p>As one might expect, the degree of the quartic is 4 !  The Hilbert polynomial is obtained by</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i15 : hilbertPolynomial M
+
+o15 = - 3*P  + 4*P
+           0      1
+
+o15 : ProjectiveHilbertPolynomial</code></pre>
+</td>          </tr>
+        </table>
+        <p>The term $\PP^i$ represents the Hilbert polynomial of projective $i$-space.  This formula tells us that the Hilbert polynomial of $M$ is $H(m) = 4(m+1) - 3 = 4m + 1$.  Thus the degree is four, the dimension of the projective variety which is the support of $M$ is 1 (and so the affine dimension is 2), and that the (arithmetic) genus is 0 (1 minus the constant term, for curves).</p>
+        <p/>
+        <p>The Hilbert series of $M$ (the generating function for the dimensions of the graded pieces of $M$) is</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i16 : hilbertSeries M
+
+           2     3     4    5
+      1 - T  - 3T  + 4T  - T
+o16 = -----------------------
+                     4
+              (1 - T)
+
+o16 : Expression of class Divide</code></pre>
+</td>          </tr>
+        </table>
+        <p>The indeterminate in this expression is \$T.</p>
+        <p/>
+        <p>Another way to get information about the module $M$ is to see its free resolution</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i17 : Mres = res M
+
+       1      4      4      1
+o17 = R  &lt;-- R  &lt;-- R  &lt;-- R  &lt;-- 0
+                                   
+      0      1      2      3      4
+
+o17 : ChainComplex</code></pre>
+</td>          </tr>
+        </table>
+        <p>To get more precise information about <tt>Mres</tt>, we could do</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i18 : betti Mres
+
+             0 1 2 3
+o18 = total: 1 4 4 1
+          0: 1 . . .
+          1: . 1 . .
+          2: . 3 4 1
+
+o18 : BettiTally</code></pre>
+</td>          </tr>
+        </table>
+        <p>The display is chosen for compactness: B    total: 1 4 4 1 B        0: 1 . . . B        1: . 1 . . B        2: . 3 4 1 the first line gives the total betti numbers, the same information given when we type the resolution.  The remaining lines express the degrees of each of the generators of the free modules in the resolution.  The $j$th column after the colons gives the degrees of generators of the $j$th module(counting from $0$); an $n$ in the $j$th column in the row headed by ``$d$:'' means that the $j$th free module has $n$ generators of degree $n+j$.  Thus for example in our case, the generator of the third (last) free module in the resolution has degree $3+2=5$.</p>
+        <h4>B. Random regular sequences</h4>
+        <p>An interesting and illustrative open problem is to understand the initial ideal (and the Gröbner basis) of a ``generic'' regular sequence.  To study a very simple case we take a matrix of 2 random forms in a polynomial ring in 3 variables:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i19 : R = KK[x,y,z]
+
+o19 = R
+
+o19 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i20 : F = random(R^1, R^{-2,-3})
+
+o20 = | 107x2+4376xy+3187y2-5558xz+3783yz-5295z2
+      -----------------------------------------------------------------------
+      8570x3-15332x2y-10468xy2-8239y3+8444x2z+10359xyz+2653y2z-7452xz2+
+      -----------------------------------------------------------------------
+      5071yz2-6191z3 |
+
+              1       2
+o20 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+        <p>makes $F$ into a $1 \times 2$ matrix whose elements have degrees $2,3$ (that is, $F$ is a random map to the free module $R^1$, which has its one generator in the (default) degree, $0$, from the free module with generators in the listed degrees, $\{2,3\}$).  We now can compute</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i21 : GB = gens gb F
+
+o21 = | x2+14392xy+12587y2+845xz+5716yz-7823z2
+      -----------------------------------------------------------------------
+      xy2+12057y3+3459xyz-9492y2z-3723xz2+1975yz2+10368z3
+      -----------------------------------------------------------------------
+      y4-9513y3z+14408xyz2-3635y2z2+9536xz3-11704yz3-6151z4 |
+
+              1       3
+o21 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i22 : LT = leadTerm gens gb F
+
+o22 = | x2 xy2 y4 |
+
+              1       3
+o22 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i23 : betti LT
+
+             0 1
+o23 = total: 1 3
+          0: 1 .
+          1: . 1
+          2: . 1
+          3: . 1
+
+o23 : BettiTally</code></pre>
+</td>          </tr>
+        </table>
+        <p>shows that there are Gröbner basis elements of degrees 2,3, and 4.  This result is dependent on the monomial order in the ring $R$; for example we could take the lexicographic order</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i24 : R = KK[x,y,z, MonomialOrder => Lex]
+
+o24 = R
+
+o24 : PolynomialRing</code></pre>
+</td>          </tr>
+        </table>
+        <p>(see <tt>help MonomialOrder</tt> for other possibilities). We get </p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i25 : F = random(R^1, R^{-2,-3})
+
+o25 = | 12365x2-13496xy-9468xz-11938y2+8231yz+5864z2
+      -----------------------------------------------------------------------
+      5026x3+10259x2y-7489x2z+9534xy2-7204xyz-10113xz2+7256y3-5309y2z+6230yz2
+      -----------------------------------------------------------------------
+      +9033z3 |
+
+              1       2
+o25 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i26 : GB = gens gb F
+
+o26 = | y6-8008y5z+7794y4z2-5193y3z3-14781y2z4-5196yz5+7619z6
+      -----------------------------------------------------------------------
+      xz4+13855y5-14988y4z+15518y3z2+11760y2z3-15752yz4+15870z5
+      -----------------------------------------------------------------------
+      xyz2-14606xz3-412y4+13343y3z-6269y2z2-10851yz3-13370z4
+      -----------------------------------------------------------------------
+      xy2-10538xyz+5129xz2-4072y3-2528y2z+10043yz2-5766z3
+      -----------------------------------------------------------------------
+      x2+15085xy-14572xz-11778y2+7708yz+4065z2 |
+
+              1       5
+o26 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i27 : LT = leadTerm gens gb F
+
+o27 = | y6 xz4 xyz2 xy2 x2 |
+
+              1       5
+o27 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i28 : betti LT
+
+             0 1
+o28 = total: 1 5
+          0: 1 .
+          1: . 1
+          2: . 1
+          3: . 1
+          4: . 1
+          5: . 1
+
+o28 : BettiTally</code></pre>
+</td>          </tr>
+        </table>
+        <p>and there are Gröbner basis elements of degrees $2,3,4,5,6.$</p>
+        <h4>C. Division With Remainder</h4>
+        <p>A major application of Gröbner bases is to decide whether an element is in a given ideal, and whether two elements reduce to the same thing modulo an ideal.  For example, everyone knows that the trace of a nilpotent matrix is 0. We can produce an ideal $I$ that defines the variety $X$ of nilpotent $3 \times 3$ matrices by taking the cube of a generic matrix and setting the entries equal to zero.  Here's how:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i29 : R = KK[a..i]
+
+o29 = R
+
+o29 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i30 : M = genericMatrix(R,a,3,3)
+
+o30 = | a d g |
+      | b e h |
+      | c f i |
+
+              3       3
+o30 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i31 : N = M^3
+
+o31 = | a3+2abd+bde+2acg+bfg+cdh+cgi       
+      | a2b+b2d+abe+be2+bcg+ach+ceh+bfh+chi
+      | a2c+bcd+abf+bef+c2g+cfh+aci+bfi+ci2
+      -----------------------------------------------------------------------
+      a2d+bd2+ade+de2+cdg+afg+efg+dfh+fgi a2g+bdg+cg2+adh+deh+fgh+agi+dhi+gi2
+      abd+2bde+e3+bfg+cdh+2efh+fhi        abg+beg+bdh+e2h+cgh+fh2+bgi+ehi+hi2
+      acd+cde+bdf+e2f+cfg+f2h+cdi+efi+fi2 acg+bfg+cdh+efh+2cgi+2fhi+i3       
+      -----------------------------------------------------------------------
+      |
+      |
+      |
+
+              3       3
+o31 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i32 : I = flatten N
+
+o32 = | a3+2abd+bde+2acg+bfg+cdh+cgi a2b+b2d+abe+be2+bcg+ach+ceh+bfh+chi
+      -----------------------------------------------------------------------
+      a2c+bcd+abf+bef+c2g+cfh+aci+bfi+ci2 a2d+bd2+ade+de2+cdg+afg+efg+dfh+fgi
+      -----------------------------------------------------------------------
+      abd+2bde+e3+bfg+cdh+2efh+fhi acd+cde+bdf+e2f+cfg+f2h+cdi+efi+fi2
+      -----------------------------------------------------------------------
+      a2g+bdg+cg2+adh+deh+fgh+agi+dhi+gi2 abg+beg+bdh+e2h+cgh+fh2+bgi+ehi+hi2
+      -----------------------------------------------------------------------
+      acg+bfg+cdh+efh+2cgi+2fhi+i3 |
+
+              1       9
+o32 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+        <p>(actually this produces a 1 x 9 matrix of of forms, not the ideal: <tt>J = ideal I</tt>; the matrix will be more useful to us). But the trace is not in $I$!  This is obvious from the fact that the trace has degree $1$, but the polynomials in $I$ are of degree $3$. We could also check by division with remainder:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i33 : Tr = trace M 
+
+o33 = a + e + i
+
+o33 : R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i34 : Tr //I  -- the quotient, which is 0
+
+o34 = 0
+
+              9       1
+o34 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i35 : Tr % I  -- the remainder, which is Tr again
+
+o35 = a + e + i
+
+o35 : R</code></pre>
+</td>          </tr>
+        </table>
+        <p>(Here <tt>Tr</tt> is an element of $R$, not a matrix. We could do the same thing with a $1 \times 1$ matrix with <tt>Tr</tt> as its element.) This is of course because the entries of $I$ do NOT generate the ideal of all forms vanishing on $X$ -- this we may find with <tt>J = radical ideal I</tt>, (but this takes a while: see the documentation for <tt>radical</tt> on a faster way to find this) which shows that the radical is generated by the trace, the determinant, and the sum of the principal $2 \times 2$ minors, that is, by the coefficients of the characteristic polynomial. In particular, we can try the powers of the radical:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i36 : Tr^2 % I
+
+       2           2                  2
+o36 = a  + 2a*e + e  + 2a*i + 2e*i + i
+
+o36 : R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i37 : Tr^3 % I
+
+        2                 2     3                                2          
+o37 = 3a e + 3b*d*e + 3a*e  + 3e  + 3b*f*g + 3c*d*h + 6e*f*h + 3a i + 6a*e*i
+      -----------------------------------------------------------------------
+          2                          2       2     3
+      + 3e i + 3c*g*i + 6f*h*i + 3a*i  + 3e*i  + 3i
+
+o37 : R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i38 : Tr^4 % I
+
+        2 2         2       3     4                                   
+o38 = 6a e  + 6b*d*e  + 6a*e  + 6e  + 6b*e*f*g + 6c*d*e*h - 6b*d*f*h +
+      -----------------------------------------------------------------------
+                    2                   2 2      2                       2   
+      6a*e*f*h + 12e f*h - 6c*f*g*h - 6f h  + 12a e*i + 12b*d*e*i + 12a*e i +
+      -----------------------------------------------------------------------
+         3                                                               2 2
+      12e i + 12c*e*g*i + 6b*f*g*i + 6c*d*h*i + 6a*f*h*i + 36e*f*h*i + 6a i 
+      -----------------------------------------------------------------------
+               2     2 2         2          2       3        3     4
+      + 12a*e*i  + 6e i  + 6c*g*i  + 12f*h*i  + 6a*i  + 12e*i  + 6i
+
+o38 : R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i39 : Tr^5 % I
+
+         2 2           2         3       4         2         2       
+o39 = 30a e i + 30b*d*e i + 30a*e i + 30e i + 30c*e g*i + 30a f*h*i +
+      -----------------------------------------------------------------------
+                                     2                         2 2   
+      30b*d*f*h*i + 60a*e*f*h*i + 90e f*h*i + 30c*f*g*h*i + 30f h i +
+      -----------------------------------------------------------------------
+         2   2            2        2 2      3 2            2            2  
+      30a e*i  + 30b*d*e*i  + 30a*e i  + 30e i  + 30c*e*g*i  + 60a*f*h*i  +
+      -----------------------------------------------------------------------
+                2      2 3          3          3      2 3          3  
+      120e*f*h*i  + 30a i  + 30b*d*i  + 30a*e*i  + 30e i  + 30c*g*i  +
+      -----------------------------------------------------------------------
+             3        4        4      5
+      90f*h*i  + 30a*i  + 30e*i  + 30i
+
+o39 : R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i40 : Tr^6 % I
+
+         2 2 2          2 2        3 2      4 2        2   2      2     2  
+o40 = 90a e i  + 90b*d*e i  + 90a*e i  + 90e i  + 90c*e g*i  + 90a f*h*i  +
+      -----------------------------------------------------------------------
+                 2               2       2     2              2      2 2 2  
+      90b*d*f*h*i  + 180a*e*f*h*i  + 270e f*h*i  + 90c*f*g*h*i  + 90f h i  +
+      -----------------------------------------------------------------------
+         2   3            3        2 3      3 3            3             3  
+      90a e*i  + 90b*d*e*i  + 90a*e i  + 90e i  + 90c*e*g*i  + 180a*f*h*i  +
+      -----------------------------------------------------------------------
+                3      2 4          4          4      2 4          4  
+      360e*f*h*i  + 90a i  + 90b*d*i  + 90a*e*i  + 90e i  + 90c*g*i  +
+      -----------------------------------------------------------------------
+              4        5        5      6
+      270f*h*i  + 90a*i  + 90e*i  + 90i
+
+o40 : R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i41 : Tr^7 % I
+
+o41 = 0
+
+o41 : R</code></pre>
+</td>          </tr>
+        </table>
+        <p>The seventh power is the first one in the ideal!  (Bernard Mourrain has worked out a formula for which power in general.) In this case</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i42 : Tr^6 // I
+
+o42 = {3} | a3+6a2e+3bde+15ae2+22e3+6efh+6a2i+30aei+60e2i+6fhi+15ai2+60ei2+22
+      {3} | 0                                                                
+      {3} | 0                                                                
+      {3} | -27abe-45be2+9ceh+30bfh-72abi-144bei+75chi                       
+      {3} | -2a3+15a2e+21bde+6ae2+e3+33bfg+9cdh-36afh+51efh+60a2i+72bdi+30aei
+      {3} | 18abg+45beg+3a2h+9bdh-21aeh+3e2h+9cgh+36fh2+114bgi-135ahi-39ehi+3
+      {3} | 18ace+6abf-36bef-18cfh+66aci+36cei-57bfi+132ci2                  
+      {3} | -3a2f-39bdf+75aef-12e2f+9cfg-36f2h-66cdi+135afi+51efi+69fi2      
+      {3} | -2a3-18abd-30a2e-60bde-30ae2-44e3-18ceg-33bfg-9cdh+18afh-93efh-75
+      -----------------------------------------------------------------------
+      i3                                                  |
+                                                          |
+                                                          |
+                                                          |
+      +6e2i+66cgi+147fhi-30ai2-75ei2-26i3                 |
+      6hi2                                                |
+                                                          |
+                                                          |
+      a2i-90bdi-60aei-75e2i-66cgi-171fhi-84ai2-84ei2-89i3 |
+
+              9       1
+o42 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+        <p>is not 0.  It is a matrix that makes the following true:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i43 : Tr^6 == I * (Tr^6 // I) + (Tr^6 % I)
+
+o43 = true</code></pre>
+</td>          </tr>
+        </table>
+        <h4>D. Elimination Theory</h4>
+        <p>Consider the problem of projecting the ``twisted cubic'', a curve in $\PP^3$ defined by the three $2 \times 2$ minors of a certain $2 \times 3$ matrix into the plane. Such problems can be solved in a very simple and direct way using Gröbner bases. The technique lends itself to many extensions, and in its developed form can be used to find the closure of the image of any map of affine varieties.  </p>
+        <p/>
+        <p>In this section we shall first give a simple direct treatment of the problem above, and then show how to use Macaulay2's general tool to solve the problem. We first clear the earlier meaning of <tt>x</tt> to make it into a subscripted variable</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i44 : x = global x
+
+o44 = x
+
+o44 : Symbol</code></pre>
+</td>          </tr>
+        </table>
+        <p>and then set</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i45 : R = KK[x_0..x_3] 
+
+o45 = R
+
+o45 : PolynomialRing</code></pre>
+</td>          </tr>
+        </table>
+        <p>the homogeneous coordinate ring of $\PP^3$ and</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i46 : M = map(R^2, 3, (i,j)->x_(i+j))
+
+o46 = | x_0 x_1 x_2 |
+      | x_1 x_2 x_3 |
+
+              2       3
+o46 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i47 : I = gens minors(2,M)
+
+o47 = | -x_1^2+x_0x_2 -x_1x_2+x_0x_3 -x_2^2+x_1x_3 |
+
+              1       3
+o47 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+        <p>a matrix whose image is the ideal of the twisted cubic. As projection center we take the point defined by</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i48 : pideal = ideal(x_0+x_3, x_1, x_2)
+
+o48 = ideal (x  + x , x , x )
+              0    3   1   2
+
+o48 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+        <p>To find the image we must intersect the ideal $I$ with the subring generated by the generators of <tt>pideal</tt>.  We make a change of variable so that these generators become the last three variables in the ring; that is, we write the ring as $KK[y_0..y_3]$ where $$y_0 = x_0, y_1 = x_1, y_2 = x_2, y_3 = x_0+x_3$$ and thus $x_3 = y_3-y_0$, etc. We want the new ring to have an ``elimination order'' for the first variable.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i49 : y = global y
+
+o49 = y
+
+o49 : Symbol</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i50 : S = KK[y_0..y_3,MonomialOrder=> Eliminate 1]
+
+o50 = S
+
+o50 : PolynomialRing</code></pre>
+</td>          </tr>
+        </table>
+        <p>Here is one way to make the substitution</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i51 : I1 = substitute(I, matrix{{y_0,y_1,y_2,y_3-y_0}})
+
+o51 = | y_0y_2-y_1^2 -y_0^2+y_0y_3-y_1y_2 -y_0y_1-y_2^2+y_1y_3 |
+
+              1       3
+o51 : Matrix S  &lt;--- S</code></pre>
+</td>          </tr>
+        </table>
+        <p>The elimination of 1 variable from the matrix of Gröbner basis elements proceeds as follows:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i52 : J = selectInSubring(1,gens gb I1)
+
+o52 = | y_1^3+y_2^3-y_1y_2y_3 |
+
+              1       1
+o52 : Matrix S  &lt;--- S</code></pre>
+</td>          </tr>
+        </table>
+        <p>and gives (a matrix with element) the cubic equation of a rational curve with one double point in the plane. However, we are still in a ring with 4 variables, so if we really want a plane curve (and not the cone over one) we must move to yet another ring:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i53 : S1 = KK[y_1..y_3]
+
+o53 = S1
+
+o53 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i54 : J1 = substitute(J, S1)
+
+o54 = | y_1^3+y_2^3-y_1y_2y_3 |
+
+               1        1
+o54 : Matrix S1  &lt;--- S1</code></pre>
+</td>          </tr>
+        </table>
+        <p>This time we didn't have to give so much detail to the <tt>substitute</tt> command because of the coincidence of the names of the variables.</p>
+        <p/>
+        <p>Having shown the primitive method, we now show a much more flexible and transparent one:  we set up a ring map from the polynomial ring in $3$ variables (representing the plane) to $R/I$, taking the variables $y$ to the three linear forms that define the projection center.  Then we just take the kernel of this map!  (``Under the hood'', Macaulay2 is doing a more refined version of the same computation as before.) Here is the ring map</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i55 : Rbar = R/(ideal I)
+
+o55 = Rbar
+
+o55 : QuotientRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i56 : f = map(Rbar, S1, matrix(Rbar,{{x_0+x_3, x_1,x_2}}))
+
+o56 = map (Rbar, S1, {x  + x , x , x })
+                       0    3   1   2
+
+o56 : RingMap Rbar &lt;--- S1</code></pre>
+</td>          </tr>
+        </table>
+        <p>and the desired ideal</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i57 : J1 = ker f
+
+             3             3
+o57 = ideal(y  - y y y  + y )
+             2    1 2 3    3
+
+o57 : Ideal of S1</code></pre>
+</td>          </tr>
+        </table>
+        <h4>E. Quotients and saturation</h4>
+        <p>Another typical application of Gröbner bases and syzygies is to the computation of ideal quotients and saturations.  Again we give an easy example that we can treat directly, and then introduce the tool used in Macaulay2 to treat the general case.</p>
+        <p/>
+        <p>If $I$ and $J$ are ideals in a ring $R$, we define $(I:J)$, the ideal quotient, by $$(I:J) = \{f \in R \mid fJ \subset I\}.$$</p>
+        <p/>
+        <p>In our first examples we consider the case where $J$ is generated by a single element $g$. This arises in practice, for example, in the problem of homogenizing an ideal.  Suppose we consider the affine space curve parametrized by $t \mapsto{} (t,t^2,t^3)$.  The ideal of polynomials vanishing on the curve is easily seen to be $(b-a^2, c-a^3)$ (where we have taken $a,b,c$ as the coordinates of affine space). To find the projective closure of the curve in $\PP^3$, we must homogenize these equations with respect to a new variable d, getting $db-a^2, d^2c-a^3$.  But these forms do NOT define the projective closure! In general, homogenizing the generators of the ideal $I$ of an affine variety one gets an ideal $I_1$ that defines the projective closure UP TO a component supported on the hyperplane at infinity (the hyperplane $d=0$).  To see the ideal of the closure we must remove any such components, for example by replacing $I_1$ by the union $I_2$ of all the ideals $(I_1:d^n)$, where $n$ ranges over positive integers.  This is not so hard as it seems: First of all, we can successively compute the increasing sequence of ideals $(I_1:d), (I_1:d^2), \ldots $ until we get two that are the same; all succeeding ones will be equal, so we have found the union. A second method involves a special property of the reverse lex order, and is much more efficient in this case.  We shall illustrate both. First we set up the example above:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i58 : R = KK[a,b,c,d]
+
+o58 = R
+
+o58 : PolynomialRing</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i59 : I1 = ideal(d*b-a^2, d^2*c-a^3)
+
+                2           3      2
+o59 = ideal (- a  + b*d, - a  + c*d )
+
+o59 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+        <p>How to compute the ideal quotient: If $I$ is generated by $f_1,\ldots,f_n$, we see that $s\in (I:g)$ iff there are ring elements $r_i$ such that $$\sum_{i=1}^{n} r_i f_i + s g = 0. $$ Thus it suffices to compute the kernel (syzygies) of the $1 \times (n+1)$ matrix $$(f_1, ... ,f_n, g)$$ and collect the coefficients of $g$, that is, the entries of the last row of a matrix representing the kernel. Thus in our case we may compute $(I_1:d)$ by concatenating the matrix for $I_1$ with the single variable $d$</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i60 : I1aug = (gens I1) | matrix{{d}}
+
+o60 = | -a2+bd -a3+cd2 d |
+
+              1       3
+o60 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i61 : augrelations = gens ker I1aug
+
+o61 = {2} | -a    d     |
+      {3} | 1     0     |
+      {1} | ab-cd a2-bd |
+
+              3       2
+o61 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+        <p>There are 3 rows (numbered 0,1,2 !) and 2 columns, so to extract the last row we may do</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i62 : I21 = submatrix(augrelations, {2}, {0,1})
+
+o62 = {1} | ab-cd a2-bd |
+
+              1       2
+o62 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+        <p>But this is not an ``ideal'' properly speaking: first of all, it is a matrix, not an ideal, and second of all its target is not $R^1$ but $R(-1)$, the free module of rank 1 with generator in degree 1.  We can fix both of these problems by</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i63 : I21 = ideal I21
+
+                         2
+o63 = ideal (a*b - c*d, a  - b*d)
+
+o63 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+        <p>This is larger than the original ideal, having two quadratic generators instead of a quadric and a cubic, so we continue.  Instead of doing the same computation again, we introduce the built-in command</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i64 : I22 = I21 : d
+
+              2                    2
+o64 = ideal (b  - a*c, a*b - c*d, a  - b*d)
+
+o64 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+        <p>which is again larger than <tt>I21</tt>, having three quadratic generators. Repeating,</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i65 : I23 = I22 : d
+
+              2                    2
+o65 = ideal (b  - a*c, a*b - c*d, a  - b*d)
+
+o65 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+        <p>we get another ideal with three quadratic generators.  It must be the same as <tt>I21</tt>, but the generators are written differently because of the route taken to get it, so (being suspicious) we might check with</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i66 : (gens I23) % (gens I22)
+
+o66 = 0
+
+              1       3
+o66 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+        <p>which returns 0, showing that <tt>I23</tt> is contained in (gives remainder 0 when divided by) <tt>I22</tt>.  Thus the homogeneous ideal <tt>I2</tt> of the projective closure is equal to <tt>I23</tt> (this is the homogeneous ideal of the twisted cubic, already encountered above).</p>
+        <p/>
+        <p>A more perspicuous way of approaching the computation of the union of the $(I:d^n)$, which is called the saturation of $I$ with respect to $d$, and written $(I:d^\infty)$, is first to compute a reverse lex Gröbner basis.</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i67 : gens gb I1
+
+o67 = | a2-bd abd-cd2 b2d2-acd2 |
+
+              1       3
+o67 : Matrix R  &lt;--- R</code></pre>
+</td>          </tr>
+        </table>
+        <p>This yields <tt>(a2-bd, abd-cd2, b2d2-acd2)</tt>, meaning $$(a^2-bd, abd-cd^2, b^2d^2-acd^2).$$ We see that the second generator is divisible by $d$, and the third is divisible by $d^2$. General theory says that we get the right answer simply by making these divisions, that is, the saturation is $$(a^2-cd, ab-cd, b^2-ac),$$ as previously computed.  The same thing can be accomplished in one line by</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i68 : I2 = divideByVariable(gens gb I1,d)
+
+o68 = (| a2-bd ab-cd b2-ac |, 2)
+
+o68 : Sequence</code></pre>
+</td>          </tr>
+        </table>
+        <p>This saturation may be found directly in Macaulay2:</p>
+        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i69 : saturate(I1, d)
+
+              2                    2
+o69 = ideal (b  - a*c, a*b - c*d, a  - b*d)
+
+o69 : Ideal of R</code></pre>
+</td>          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+
+</html>

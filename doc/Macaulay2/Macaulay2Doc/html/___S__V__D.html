@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN" "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>SVD -- singular value decomposition of a matrix</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css"/>
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script defer="defer" type="text/javascript">
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = ["tt", "script", "noscript", "style", "textarea", "pre", "code", "option"];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style type="text/css">.katex { font-size: 1em; }</style>
+    <link href="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.css" rel="stylesheet" type="text/css" />
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" type="text/javascript" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>    <script type="text/javascript" src="../../../../Macaulay2/Style/highlight.js"></script>
+  </head>
+  <body>
+    <table class="buttons">
+      <tr>
+<td>          <div>
+<a href="___S__V__D_lp..._cm__Divide__Conquer_eq_gt..._rp.html">next</a> | <a href="_support_lp__Ideal_rp.html">previous</a> | <a href="___S__V__D_lp..._cm__Divide__Conquer_eq_gt..._rp.html">forward</a> | <a href="_support_lp__Ideal_rp.html">backward</a> | up | <a href="index.html">top</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a> | <a href="http://macaulay2.com/">Macaulay2 website</a>          </div>
+</td>      </tr>
+    </table>
+    <div>
+<a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> :: <a title="singular value decomposition of a matrix" href="___S__V__D.html">SVD</a>    </div>
+    <hr/>
+    <div>
+      <h1>SVD -- singular value decomposition of a matrix</h1>
+      <div>
+        <h2>Synopsis</h2>
+        <ul>
+          <li>
+            <dl class="element">
+              <dt>Usage: </dt>
+              <dd><code class="language-macaulay2">(S,U,Vt) = SVD M</code></dd>
+            </dl>
+          </li>
+          <li>
+Inputs:            <ul>
+              <li>
+<span><tt>M</tt>, <span>a <a title="the class of all matrices" href="___Matrix.html">matrix</a></span>,  over <a title="the class of all real numbers" href="___R__R.html">RR</a> or <a title="the class of all complex numbers" href="___C__C.html">CC</a>, of size <tt>m</tt> by <tt>n</tt></span>              </li>
+            </ul>
+          </li>
+          <li>
+<a href="_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:            <ul>
+              <li>
+<span><a title="Use the lapack divide and conquer SVD algorithm" href="___S__V__D_lp..._cm__Divide__Conquer_eq_gt..._rp.html">DivideConquer</a><tt> => </tt><tt>...</tt>, <span>default value true</span>, Use the lapack divide and conquer SVD algorithm</span>              </li>
+            </ul>
+          </li>
+          <li>
+Outputs:            <ul>
+              <li>
+<span><tt>S</tt>, <span>a <a title="a type of visible self-initializing list that prints vertically" href="___Vertical__List.html">vertical list</a></span>, the list of singular values</span>              </li>
+              <li>
+<span><tt>U</tt>, <span>a <a title="the class of all matrices" href="___Matrix.html">matrix</a></span>, an orthogonal (unitary) matrix of size <tt>m</tt> by <tt>m</tt></span>              </li>
+              <li>
+<span><tt>Vt</tt>, <span>a <a title="the class of all matrices" href="___Matrix.html">matrix</a></span>, an orthogonal (unitary) matrix of size <tt>n</tt> by <tt>n</tt></span>              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h2>Description</h2>
+If <tt>Sigma</tt> is the diagonal <tt>m</tt> by <tt>n</tt> matrix whose <tt>(i,i)</tt> entry is the <tt>i</tt>-th element of <tt>S</tt>, then <tt>M = U Sigma Vt</tt>.  This is the singular value decomposition of <tt>M</tt>.  The entries of <tt>S</tt> are (up to roundoff error) the eigenvalues of the Hermitian matrix <tt>M * (conjugate transpose M)</tt>        <p/>
+M may also be a <a title="the class of all mutable matrices" href="___Mutable__Matrix.html">MutableMatrix</a> in which case the returned values <tt>U</tt> and <tt>Vt</tt> are also <a title="the class of all mutable matrices" href="___Mutable__Matrix.html">mutable matrices</a>.        <p/>
+If <tt>M</tt> is over <a title="the class of all complex numbers" href="___C__C.html">CC</a>, then <tt>U</tt> and <tt>Vt</tt> are unitary matrices over <a title="the class of all complex numbers" href="___C__C.html">CC</a>. If <tt>M</tt> is over <a title="the class of all real numbers" href="___R__R.html">RR</a>, <tt>U</tt> and <tt>Vt</tt> are orthogonal over <tt>RR</tt>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i1 : printingPrecision=2;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i2 : M = map(RR^3, RR^5, (i,j) -> (i+1)^j * 1.0)
+
+o2 = | 1 1 1 1  1  |
+     | 1 2 4 8  16 |
+     | 1 3 9 27 81 |
+
+                3          5
+o2 : Matrix RR    &lt;--- RR
+              53         53</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i3 : (S,U,V) = SVD(M)
+
+o3 = ({88 }, | -.016 -.4  -.92  |, | -.014 -.038 -.11 -.32 -.94  |)
+      {3.9}  | -.21  -.89 .4    |  | -.28  -.41  -.57 -.59 .29   |
+      {.8 }  | -.98  .2   -.068 |  | -.74  -.41  .066 .51  -.15  |
+                                   | .084  .33   -.81 .47  -.081 |
+                                   | -.61  .74   .077 -.27 .062  |
+
+o3 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i4 : M' = (transpose U) * M * (transpose V)
+
+o4 = | 88      1.1e-14 1.7e-14 -3.1e-15 1e-14    |
+     | 1.2e-14 3.9     -6e-15  8.5e-16  2.2e-15  |
+     | 1.3e-14 2.2e-14 .8      -2.8e-16 -1.4e-15 |
+
+                3          5
+o4 : Matrix RR    &lt;--- RR
+              53         53</code></pre>
+</td>          </tr>
+        </table>
+We can clean the small entries from the result above with <a title="Set to zero elements that are approximately zero" href="_clean.html">clean</a>.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i5 : e = 1e-10;</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i6 : clean_e M'
+
+o6 = | 88 0   0  0 0 |
+     | 0  3.9 0  0 0 |
+     | 0  0   .8 0 0 |
+
+                3          5
+o6 : Matrix RR    &lt;--- RR
+              53         53</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i7 : clean_e norm (1 - U * transpose U)
+
+o7 = 0
+
+o7 : RR (of precision 53)</code></pre>
+</td>          </tr>
+        </table>
+Alternatively, if the only issue is display of the matrix, we may set the printing accuracy.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i8 : printingAccuracy = 2
+
+o8 = 2</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i9 : M'
+
+o9 = | 88 0   0  -0 0  |
+     | 0  3.9 -0 0  0  |
+     | 0  0   .8 -0 -0 |
+
+                3          5
+o9 : Matrix RR    &lt;--- RR
+              53         53</code></pre>
+</td>          </tr>
+        </table>
+Now let's try the divide and conquer algorithm and compare answers.        <table class="examples">
+          <tr>
+<td>              <pre><code class="language-macaulay2">i10 : (S', U', V') = SVD(M, DivideConquer => true)
+
+o10 = ({88 }, | -.02 -.4  -.92 |, | -.01 -.04 -.11 -.32 -.94 |)
+       {3.9}  | -.21 -.89 .4   |  | -.28 -.41 -.57 -.59 .29  |
+       {.8 }  | -.98 .2   -.07 |  | -.74 -.41 .07  .51  -.15 |
+                                  | .08  .33  -.81 .47  -.08 |
+                                  | -.61 .74  .08  -.27 .06  |
+
+o10 : Sequence</code></pre>
+</td>          </tr>
+          <tr>
+<td>              <pre><code class="language-macaulay2">i11 : norm \ ({S', U', V'}-{S, U, V})
+
+o11 = {0, 0, 0}
+
+o11 : List</code></pre>
+</td>          </tr>
+        </table>
+The SVD routine calls on the SVD algorithms in the lapack and eigen libraries.      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li>
+<span><a title="find eigenvalues of a matrix" href="_eigenvalues.html">eigenvalues</a> -- find eigenvalues of a matrix</span>          </li>
+          <li>
+<span><a title="find eigenvectors of a matrix over RR or CC" href="_eigenvectors.html">eigenvectors</a> -- find eigenvectors of a matrix over RR or CC</span>          </li>
+          <li>
+<span><a href="_norm.html">norm</a></span>          </li>
+          <li>
+<span><a title="Set to zero elements that are approximately zero" href="_clean.html">clean</a> -- Set to zero elements that are approximately zero</span>          </li>
+          <li>
+<span><a title="current accuracy for printing numbers" href="_printing__Accuracy.html">printingAccuracy</a> -- current accuracy for printing numbers</span>          </li>
+          <li>
+<span><a title="current precision for printing numbers" href="_printing__Precision.html">printingPrecision</a> -- current precision for printing numbers</span>          </li>
+        </ul>
+      </div>
+      <div class="waystouse">
+        <h2>Ways to use <tt>SVD</tt> :</h2>
+        <ul>
+          <li>
+<tt>&quot;SVD(Matrix)&quot;</tt>          </li>
+          <li>
+<tt>&quot;SVD(MutableMatrix)&quot;</tt>          </li>
+        </ul>
+      </div>
+      <div class="waystouse">
+        <h2>For the programmer</h2>
+        <p>The object <a title="singular value decomposition of a matrix" href="___S__V__D.html">SVD</a> is <span>a <a title="a type of method function" href="___Method__Function__With__Options.html">method function with options</a></span>.</p>
+      </div>
+    </div>
+  </body>
+
+</html>
