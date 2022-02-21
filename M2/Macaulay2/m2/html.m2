@@ -55,7 +55,13 @@ defaultStylesheet := () -> LINK {
 -- character encoding.  Locally-stored documentation does not have an HTTP header.)
 defaultCharset := () -> META { "http-equiv" => "Content-Type", "content" => "text/html; charset=utf-8" }
 
-defaultHEAD = title -> HEAD splice { TITLE title, defaultCharset(), defaultStylesheet(), KaTeX() }
+defaultHEAD = title -> HEAD splice { TITLE title, defaultCharset(), defaultStylesheet(), KaTeX(),
+    SCRIPT {
+	"type" => "text/javascript",
+	"src" => getStyleFile "highlight.js",
+	""
+	}
+    }
 
 -----------------------------------------------------------------------------
 -- Local utilities
