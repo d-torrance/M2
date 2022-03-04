@@ -267,7 +267,7 @@ iter PythonObject := x -> x@@"__iter__"()
 
 getitem = method()
 getitem(PythonObject, Thing) :=
-PythonObject_Thing := (x, i) -> x@@"__getitem__" toPython i
+PythonObject_Thing := (x, i) -> x@@"__getitem__" i
 
 setitem = method()
 setitem(PythonObject, Thing, Thing) := (x, i, e) -> (
