@@ -137,7 +137,8 @@ problemExamples = {
     ("Macaulay2Doc", "applicationDirectory"),                   -- #1149
     ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
     ("Macaulay2Doc", "getenv"),                                 -- #1149
-    ("Macaulay2Doc", "homeDirectory")
+    ("Macaulay2Doc", "homeDirectory"),                          -- #1149
+    ("SimplicialDecomposability", "isSheddingVertex")           -- #1742
 }
 
 generateExamples = () -> (
