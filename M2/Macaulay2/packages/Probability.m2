@@ -114,7 +114,7 @@ discreteProbabilityDistribution Function := o -> f -> (
 	    x);
     rand := if o.RandomGeneration =!= null
 	then o.RandomGeneration
-	else () -> quantile random 1;
+	else () -> quantile random 1.;
     DiscreteProbabilityDistribution hashTable {
 	DensityFunction      => pmf,
 	DistributionFunction => cdf,
