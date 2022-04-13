@@ -29,42 +29,46 @@ export {
     "tDistribution",
 
 -- functions
-    "probabilityDensityFunction", "pdf",
-    "probabilityMassFunction", "pmf",
-    "cumulativeDistributionFunction", "cdf",
+    "densityFunction",
+    "distributionFunction",
     "quantileFunction",
 
--- options
-    "CumulativeDistributionFunction",
+-- symbols
+    "DensityFunction",
+    "DistributionFunction",
     "QuantileFunction",
-    "SamplingMethod",
+    "RandomGeneration",
     "Support"
     }
 
 -- a probability distribution is a hash table containings the following keys:
--- "pmf" (discrete only)
--- "pdf" (continuous only)
--- "cdf"
--- "quantile"
--- "sample"
--- "description"
+-- DensityFunction (function: pdf (continuous) or pmf (discrete))
+-- DistributionFunction
+-- QuantileFunction
+-- RandomGeneration
+-- Support (ordered pair)
+-- Description
 
 ProbabilityDistribution = new Type of HashTable
 
-cumulativeDistributionFunction = method()
-cumulativeDistributionFunction(Number, ProbabilityDistribution) :=
-	(x, d) -> (d#"cdf") x
+densityFunction = method()
+densityFunction(Number,   ProbabilityDistribution) :=
+densityFunction(Constant, ProbabilityDistribution) :=
+    (x, d) -> (d.DensityFunction) x
 
-cdf = cumulativeDistributionFunction
+distributionFunction = method()
+distributionFunction(Number,   ProbabilityDistribution) :=
+distributionFunction(Constant, ProbabilityDistribution) :=
+    (x, d) -> (d.DistributionFunction) x
 
 quantileFunction = method()
-quantileFunction(Number, ProbabilityDistribution) := (p, d) -> (
-    if p < 0 or p > 1 or not isReal p then error("expected a probability");
-    (d#"quantile") p)
+quantileFunction(Number,   ProbabilityDistribution) :=
+quantileFunction(Constant, ProbabilityDistribution) :=
+    (x, d) -> (d.QuantileFunction) x
 
-random ProbabilityDistribution := o -> d -> d#"sample"()
+random ProbabilityDistribution := o -> d -> d.RandomGeneration()
 random(ZZ, ProbabilityDistribution) := o -> (n, d) -> apply(n, i -> random d)
-net ProbabilityDistribution := d -> d#"description"
+net ProbabilityDistribution := d -> d.Description
 
 -- helper functions for checking parameters
 checkReal = n -> if not isReal n then error(
@@ -84,34 +88,38 @@ DiscreteProbabilityDistribution = new SelfInitializingType of
 	ProbabilityDistribution
 
 discreteProbabilityDistribution = method(Options => {
-	Support => (0, infinity),
-	Description => "a discrete probability distribution"})
+	DistributionFunction => null,
+	QuantileFunction     => null,
+	RandomGeneration     => null,
+	Support              => (0, infinity),
+	Description          => "a discrete probability distribution"})
 
 discreteProbabilityDistribution Function := o -> f -> (
     a := first o.Support;
     b := last o.Support;
     pmf := x -> if x >= a and x <= b then f x else 0;
-    cdf := x -> sum(a..x, pmf);
-    quantile := p -> (
-	x := a;
-	q := pmf x;
-	while q < p do (
-	    x = x + 1;
-	    q = q + pmf x);
-	x);
+    cdf := if o.DistributionFunction =!= null
+	then o.DistributionFunction
+	else x -> sum(a..x, pmf);
+    quantile := if o.QuantileFunction =!= null
+	then o.QuantileFunction
+	else p -> (
+	    x := a;
+	    q := pmf x;
+	    while q < p do (
+		x = x + 1;
+		q = q + pmf x);
+	    x);
+    rand := if o.RandomGeneration =!= null
+	then o.RandomGeneration
+	else () -> quantile random 1;
     DiscreteProbabilityDistribution hashTable {
-	"pmf" =>  pmf,
-	"cdf" => cdf,
-	"quantile" => quantile,
-	"sample" => () -> quantile random 1.,
-	"description" => o.Description
-	})
-
-probabilityMassFunction = method()
-probabilityMassFunction(Number, DiscreteProbabilityDistribution) :=
-	(x, d) -> (d#"pmf") x
-
-pmf = probabilityMassFunction
+	DensityFunction      => pmf,
+	DistributionFunction => cdf,
+	QuantileFunction     => quantile,
+	RandomGeneration     => rand,
+	Support              => o.Support,
+	Description          => o.Description})
 
 binomialDistribution = method()
 binomialDistribution(ZZ, Number) := (n, p) -> (
@@ -164,11 +172,11 @@ ContinuousProbabilityDistribution = new SelfInitializingType of
 	ProbabilityDistribution
 
 continuousProbabilityDistribution = method(Options => {
-	Support => (0, infinity),
-	CumulativeDistributionFunction => null,
-	QuantileFunction => null,
-	SamplingMethod => null,
-	Description => "a continuous probability distribution"})
+	DistributionFunction => null,
+	QuantileFunction     => null,
+	RandomGeneration     => null,
+	Support              => (0, infinity),
+	Description          => "a continuous probability distribution"})
 
 bisectionMethod = (f, a, b, epsilon) -> (
     while b - a > epsilon do (
@@ -182,8 +190,8 @@ continuousProbabilityDistribution Function := o -> f -> (
     a := first o.Support;
     b := last o.Support;
     pdf := x -> if x >= a and x <= b then f x else 0;
-    cdf := if o.CumulativeDistributionFunction =!= null
-    	then o.CumulativeDistributionFunction
+    cdf := if o.DistributionFunction =!= null
+    	then o.DistributionFunction
 	else x -> integrate(pdf, a, x);
     quantile := if o.QuantileFunction =!= null
     	then o.QuantileFunction
@@ -193,22 +201,16 @@ continuousProbabilityDistribution Function := o -> f -> (
 	    d := if b < infinity then b else 0;
 	    while cdf d < p do d = d + 1;
 	    bisectionMethod(x -> cdf x - p, c, d, 1e-14));
-    sample := if o.SamplingMethod =!= null
-	then o.SamplingMethod
+    rand := if o.RandomGeneration =!= null
+	then o.RandomGeneration
 	else () -> quantile random 1.;
     ContinuousProbabilityDistribution hashTable {
-	"pdf" =>  pdf,
-	"cdf" => cdf,
-	"quantile" => quantile,
-	"sample" => sample,
-	"description" => o.Description
-	})
-
-probabilityDensityFunction = method()
-probabilityDensityFunction(Number, ContinuousProbabilityDistribution) :=
-	(x, d) -> (d#"pdf") x
-
-pdf = probabilityDensityFunction
+	DensityFunction      => pdf,
+	DistributionFunction => cdf,
+	QuantileFunction     => quantile,
+	RandomGeneration     => rand,
+	Support              => o.Support,
+	Description          => o.Description})
 
 uniformDistribution = method()
 uniformDistribution(Number, Number) := (a, b) -> (
@@ -218,9 +220,9 @@ uniformDistribution(Number, Number) := (a, b) -> (
 	a, ", ", b);
     continuousProbabilityDistribution(
 	x -> 1/(b - a),
-	Support => (a, b),
-	CumulativeDistributionFunction => x -> (x - a) / (b - a),
+	DistributionFunction => x -> (x - a) / (b - a),
 	QuantileFunction => p -> a + p * (b - a),
+	Support => (a, b),
 	Description => "U" | toString (a, b)))
 installMethod(uniformDistribution, () -> uniformDistribution(0, 1))
 
@@ -229,7 +231,7 @@ exponentialDistribution Number := lambda -> (
     checkPositive lambda;
     continuousProbabilityDistribution(
 	x -> lambda * exp(-lambda * x),
-	CumulativeDistributionFunction => x -> 1 - exp(-lambda * x),
+	DistributionFunction => x -> 1 - exp(-lambda * x),
 	QuantileFunction => p -> -log(1 - p) / lambda,
 	Description => "Exp(" | toString lambda | ")"))
 
@@ -239,13 +241,12 @@ normalDistribution(Number, Number) := (mu, sigma) -> (
     checkPositive sigma;
     continuousProbabilityDistribution(
 	x -> 1 / (sigma * sqrt(2 * pi)) * exp(-1/2 * ((x - mu) / sigma)^2),
-	Support => (-infinity, infinity),
-	CumulativeDistributionFunction => x -> (
-	    z := (x - mu) / sigma;
-	    1/2 * (1 + erf(z / sqrt 2))),
+	DistributionFunction => x ->
+	    1/2 * (1 + erf((x - mu) / (sigma * sqrt 2))),
 	-- box muller transform
-	SamplingMethod => () ->
+	RandomGeneration => () ->
 	    mu + sigma * sqrt(-2 * log random 1.) * cos (2 * pi * random 1.),
+	Support => (-infinity, infinity),
 	Description => "N" | toString (mu, sigma)))
 
 -- standard normal distribution
@@ -255,12 +256,12 @@ gammaDistribution = method()
 gammaDistribution(Number, Number) := (alpha, lambda) -> (
     checkPositive alpha;
     checkPositive lambda;
-    sample := if instance(alpha, ZZ)
+    rand := if instance(alpha, ZZ)
 	then () -> sum random(alpha, exponentialDistribution lambda)
 	else null;
     continuousProbabilityDistribution(
 	x -> lambda^alpha / Gamma(alpha) * x^(alpha - 1) * exp(-lambda * x),
-	SamplingMethod => sample,
+	RandomGeneration => rand,
 	Description => "Gamma" | toString (alpha, lambda)))
 
 chiSquaredDistribution = method()
@@ -268,7 +269,8 @@ chiSquaredDistribution ZZ := n -> (
     checkPositive n;
     continuousProbabilityDistribution(
 	x -> 1/(2^(n/2) * Gamma(n/2)) * x^(n/2 - 1) * exp(-x / 2),
-	SamplingMethod => () -> sum(random(n, normalDistribution()), z -> z^2),
+	RandomGeneration =>
+	    () -> sum(random(n, normalDistribution()), z -> z^2),
 	Description => "χ²(" | toString n | ")"))
 
 tDistribution = method()
@@ -277,26 +279,30 @@ tDistribution Number := df -> (
     continuousProbabilityDistribution(
 	x -> Gamma((df + 1)/2) / (sqrt(df * pi) * Gamma(df / 2)) *
 	    (1 + x^2/df)^(-(df + 1) / 2),
-	Support => (-infinity, infinity),
-	SamplingMethod => () -> random normalDistribution() / sqrt(
+	RandomGeneration => () -> random normalDistribution() / sqrt(
 	    random chiSquaredDistribution df / df),
+	Support => (-infinity, infinity),
 	Description => "t(" | toString df | ")"))
 
 beginDocumentation()
 
 TEST ///
 d = binomialDistribution(3, 1/6)
-assert Equation(apply(toList(0..3), x -> pmf(x, d)), {125, 75, 15, 1} / 216)
-assert Equation(apply(toList(0..3), x -> cdf(x, d)), {125, 200, 215, 216} / 216)
+assert Equation(apply(toList(0..3), x -> densityFunction(x, d)),
+    {125, 75, 15, 1} / 216)
+assert Equation(apply(toList(0..3), x -> distributionFunction(x, d)),
+    {125, 200, 215, 216} / 216)
 assert Equation(apply({125, 200, 215, 216} / 216, p -> quantileFunction(p, d)),
     toList(0..3))
 ///
 
 TEST ///
-assert Equation(pmf(0, poissonDistribution(1/2)), exp(-1/2))
+assert Equation(densityFunction(0, poissonDistribution(1/2)), exp(-1/2))
 ///
 
 end
 
 installPackage("Probability",
     FileName => "~/src/macaulay2/M2/M2/Macaulay2/packages/Probability.m2")
+
+check(Probability, Verbose => true)
