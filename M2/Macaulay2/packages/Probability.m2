@@ -28,6 +28,7 @@ export {
     "chiSquaredDistribution",
     "tDistribution",
     "fDistribution",
+    "betaDistribution",
 
 -- functions
     "densityFunction",
@@ -297,6 +298,18 @@ fDistribution(Constant, Constant) := (d1, d2) -> (
 	    (d1 * x)^d1 * d2^d2 / (d1*x + d2)^(d1 + d2)) /
 	    (x * Beta(d1 / 2, d2 / 2)),
 	Description => "F" | toString (d1, d2)))
+
+betaDistribution = method()
+betaDistribution(Number,   Number)   :=
+betaDistribution(Number,   Constant) :=
+betaDistribution(Constant, Number)   :=
+betaDistribution(Constant, Constant) := (alpha, beta) -> (
+    checkPositive alpha;
+    checkPositive beta;
+    continuousProbabilityDistribution(
+	x -> x^(alpha - 1) * (1 - x)^(beta - 1) / Beta(alpha, beta),
+	Support => (0, 1),
+	Description => "Beta" | toString(alpha, beta)))
 
 beginDocumentation()
 
