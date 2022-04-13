@@ -27,6 +27,7 @@ export {
     "gammaDistribution",
     "chiSquaredDistribution",
     "tDistribution",
+    "fDistribution",
 
 -- functions
     "densityFunction",
@@ -283,6 +284,19 @@ tDistribution Number := df -> (
 	    random chiSquaredDistribution df / df),
 	Support => (-infinity, infinity),
 	Description => "t(" | toString df | ")"))
+
+fDistribution = method()
+fDistribution(Number,   Number)   :=
+fDistribution(Number,   Constant) :=
+fDistribution(Constant, Number)   :=
+fDistribution(Constant, Constant) := (d1, d2) -> (
+    checkPositive d1;
+    checkPositive d2;
+    continuousProbabilityDistribution(
+	x -> sqrt(
+	    (d1 * x)^d1 * d2^d2 / (d1*x + d2)^(d1 + d2)) /
+	    (x * Beta(d1 / 2, d2 / 2)),
+	Description => "F" | toString (d1, d2)))
 
 beginDocumentation()
 
