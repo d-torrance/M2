@@ -1,6 +1,10 @@
 newPackage("Probability",
-    Headline => "basic probability functions"
-    )
+    Headline => "basic probability functions",
+    Version => "0.1",
+    Authors => {{
+	    Name     => "Doug Torrance",
+	    Email    => "dtorrance@piedmont.edu",
+	    HomePage => "https://webwork.piedmont.edu/~dtorrance"}})
 
 export {
 -- classes
