@@ -114,7 +114,7 @@ discreteProbabilityDistribution Function := o -> f -> (
     cdf := if o.DistributionFunction =!= null
 	then o.DistributionFunction
 	else x -> sum(a..x, pmf);
-    quantile := if o.QuantileFunction =!= null
+    quant := if o.QuantileFunction =!= null
 	then o.QuantileFunction
 	else p -> (
 	    x := a;
@@ -125,11 +125,11 @@ discreteProbabilityDistribution Function := o -> f -> (
 	    x);
     rand := if o.RandomGeneration =!= null
 	then o.RandomGeneration
-	else () -> quantile random 1.;
+	else () -> quant random 1.;
     DiscreteProbabilityDistribution hashTable {
 	DensityFunction      => pmf,
 	DistributionFunction => cdf,
-	QuantileFunction     => quantile,
+	QuantileFunction     => quant,
 	RandomGeneration     => rand,
 	Support              => o.Support,
 	Description          => o.Description})
@@ -212,7 +212,7 @@ continuousProbabilityDistribution Function := o -> f -> (
     cdf := if o.DistributionFunction =!= null
     	then o.DistributionFunction
 	else x -> integrate(pdf, a, x);
-    quantile := if o.QuantileFunction =!= null
+    quant := if o.QuantileFunction =!= null
     	then o.QuantileFunction
 	else p -> (
 	    c := if a > -infinity then a else 0;
@@ -222,11 +222,11 @@ continuousProbabilityDistribution Function := o -> f -> (
 	    bisectionMethod(x -> cdf x - p, c, d, 1e-14));
     rand := if o.RandomGeneration =!= null
 	then o.RandomGeneration
-	else () -> quantile random 1.;
+	else () -> quant random 1.;
     ContinuousProbabilityDistribution hashTable {
 	DensityFunction      => pdf,
 	DistributionFunction => cdf,
-	QuantileFunction     => quantile,
+	QuantileFunction     => quant,
 	RandomGeneration     => rand,
 	Support              => o.Support,
 	Description          => o.Description})
