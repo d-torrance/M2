@@ -163,6 +163,7 @@ negativeBinomialDistribution(Number, Number) := (r, p) -> (
     checkProbability p;
     discreteProbabilityDistribution(
 	x -> Gamma(x + r) / (Gamma r * x!) * p^r * (1 - p)^x,
+	DistributionFunction => x -> regularizedBeta(p, r, x + 1),
 	Description => "NB" | toString(r, p)))
 
 hypergeometricDistribution = method()
