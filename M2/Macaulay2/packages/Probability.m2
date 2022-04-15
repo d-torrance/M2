@@ -133,6 +133,7 @@ binomialDistribution(ZZ, Number) := (n, p) -> (
     checkProbability p;
     discreteProbabilityDistribution(
 	x -> binomial(n, x) * p^x * (1 - p)^(n - x),
+	DistributionFunction => x -> regularizedBeta(1 - p, n - x, x + 1),
 	Support => (0, n),
 	Description => "B" | toString (n, p)))
 
@@ -368,3 +369,7 @@ quantileFunction(0.3, X)
 F = fDistribution(4, 5)
 distributionFunction(3, F)
 quantileFunction(oo, F)
+
+X = binomialDistribution(100, 0.75)
+elapsedTime distributionFunction(70, X)
+quantileFunction(0.15, X)
