@@ -264,12 +264,10 @@ gammaDistribution = method()
 gammaDistribution(Number, Number) := (alpha, lambda) -> (
     checkPositive alpha;
     checkPositive lambda;
-    rand := if instance(alpha, ZZ)
-	then () -> sum random(alpha, exponentialDistribution lambda)
-	else null;
     continuousProbabilityDistribution(
 	x -> lambda^alpha / Gamma(alpha) * x^(alpha - 1) * exp(-lambda * x),
-	RandomGeneration => rand,
+	DistributionFunction => x -> 1 - regularizedGamma(alpha, lambda * x),
+	QuantileFunction => p -> inverseRegularizedGamma(alpha, 1 - p) / lambda,
 	Description => "Gamma" | toString (alpha, lambda)))
 
 chiSquaredDistribution = method()
@@ -339,3 +337,18 @@ installPackage("Probability",
     FileName => "~/src/macaulay2/M2/M2/Macaulay2/packages/Probability.m2")
 
 check(Probability, Verbose => true)
+
+restart
+loadPackage("Probability", Reload => true,
+    FileName => "~/src/macaulay2/M2/M2/Macaulay2/packages/Probability.m2")
+
+
+Z = normalDistribution()
+quantileFunction(0.95, Z)
+quantileFunction(0.975, Z)
+quantileFunction(0.75, normalDistribution(10, 13))
+
+X = gammaDistribution(3, 5)
+distributionFunction(0.3, X)
+quantileFunction(0.191153, X)
+quantileFunction(0.75, X)
