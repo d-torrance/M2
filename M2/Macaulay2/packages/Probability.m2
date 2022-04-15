@@ -60,21 +60,21 @@ ProbabilityDistribution = new Type of HashTable
 densityFunction = method()
 densityFunction(Number,   ProbabilityDistribution) :=
 densityFunction(Constant, ProbabilityDistribution) :=
-    (x, d) -> (d.DensityFunction) x
+    (x, X) -> (X.DensityFunction) x
 
 distributionFunction = method()
 distributionFunction(Number,   ProbabilityDistribution) :=
 distributionFunction(Constant, ProbabilityDistribution) :=
-    (x, d) -> (d.DistributionFunction) x
+    (x, X) -> (X.DistributionFunction) x
 
 quantileFunction = method()
 quantileFunction(Number,   ProbabilityDistribution) :=
 quantileFunction(Constant, ProbabilityDistribution) :=
-    (x, d) -> (d.QuantileFunction) x
+    (x, X) -> (X.QuantileFunction) x
 
-random ProbabilityDistribution := o -> d -> d.RandomGeneration()
-random(ZZ, ProbabilityDistribution) := o -> (n, d) -> apply(n, i -> random d)
-net ProbabilityDistribution := d -> d.Description
+random ProbabilityDistribution := o -> X -> X.RandomGeneration()
+random(ZZ, ProbabilityDistribution) := o -> (n, X) -> apply(n, i -> random X)
+net ProbabilityDistribution := X -> X.Description
 
 -- helper functions for checking parameters
 checkReal = n -> if not isReal n then error(
