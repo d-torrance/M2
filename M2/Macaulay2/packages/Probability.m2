@@ -316,6 +316,8 @@ betaDistribution(Constant, Constant) := (alpha, beta) -> (
     checkPositive beta;
     continuousProbabilityDistribution(
 	x -> x^(alpha - 1) * (1 - x)^(beta - 1) / Beta(alpha, beta),
+	DistributionFunction => x -> regularizedBeta(x, alpha, beta),
+	QuantileFunction => p -> inverseRegularizedBeta(p, alpha, beta),
 	Support => (0, 1),
 	Description => "Beta" | toString(alpha, beta)))
 
