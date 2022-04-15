@@ -151,6 +151,8 @@ geometricDistribution = method()
 geometricDistribution Number := p -> (
     checkProbability p;
     discreteProbabilityDistribution(x -> p * (1 - p)^x,
+	DistributionFunction => x -> 1 - (1 - p)^(x + 1),
+	QuantileFunction => q -> ceiling(log((1 - q)/(1 - p)) / log(1 - p)),
 	Description => "Geo(" | toString p | ")"))
 
 negativeBinomialDistribution = method()
@@ -377,3 +379,10 @@ quantileFunction(0.15, X)
 
 X = poissonDistribution 10
 distributionFunction(10, X)
+
+X = geometricDistribution 0.1
+distributionFunction(, X)
+elapsedTime quantileFunction(0.99, X)
+
+f = (q, p) -> ceiling(log((1 - q)/(1 - p)) / log(1 - p))
+elapsedTime f(0.99, 0.1)
