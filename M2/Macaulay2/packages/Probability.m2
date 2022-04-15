@@ -144,6 +144,7 @@ poissonDistribution = method()
 poissonDistribution Number := lambda -> (
     checkPositive lambda;
     discreteProbabilityDistribution(x -> lambda^x / x! * exp(-lambda),
+	DistributionFunction => x -> regularizedGamma(floor(x + 1), lambda),
 	Description => "Pois(" | toString lambda | ")"))
 
 geometricDistribution = method()
@@ -373,3 +374,6 @@ quantileFunction(oo, F)
 X = binomialDistribution(100, 0.75)
 elapsedTime distributionFunction(70, X)
 quantileFunction(0.15, X)
+
+X = poissonDistribution 10
+distributionFunction(10, X)
