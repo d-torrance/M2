@@ -275,8 +275,8 @@ chiSquaredDistribution ZZ := n -> (
     checkPositive n;
     continuousProbabilityDistribution(
 	x -> 1/(2^(n/2) * Gamma(n/2)) * x^(n/2 - 1) * exp(-x / 2),
-	RandomGeneration =>
-	    () -> sum(random(n, normalDistribution()), z -> z^2),
+	DistributionFunction => x -> 1 - regularizedGamma(n / 2, x / 2),
+	QuantileFunction => p -> 2 * inverseRegularizedGamma(n / 2, 1 - p),
 	Description => "χ²(" | toString n | ")"))
 
 tDistribution = method()
@@ -352,3 +352,9 @@ X = gammaDistribution(3, 5)
 distributionFunction(0.3, X)
 quantileFunction(0.191153, X)
 quantileFunction(0.75, X)
+random(100, X)
+random_100 X
+
+X = chiSquaredDistribution 10
+distributionFunction(5, X)
+quantileFunction(0.3, X)
