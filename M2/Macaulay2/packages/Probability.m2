@@ -87,6 +87,10 @@ checkNonnegative := n -> if n < 0 or not isReal n then error(
     "expected nonnegative parameter: ", n)
 checkProbability := p -> if p < 0 or p > 1 or not isReal p then error(
     "expected parameter to be between 0 and 1: ", p)
+checkSupport := A -> if not (instance(A, Sequence) and length A == 2 and
+    (isReal first A or isInfinite first A) and
+    (isReal last A or isInfinite last A) and first A < last A) then error(
+    "expected an increasing pair of real or infinite numbers: ", A)
 
 ----------------------------------------
 -- discrete probability distributions --
@@ -103,6 +107,7 @@ discreteProbabilityDistribution = method(Options => {
 	Description          => "a discrete probability distribution"})
 
 discreteProbabilityDistribution Function := o -> f -> (
+    checkSupport o.Support;
     a := first o.Support;
     b := last o.Support;
     pmf := x -> if x >= a and x <= b then f x else 0;
@@ -200,6 +205,7 @@ bisectionMethod = (f, a, b, epsilon) -> (
     0.5 * (a + b))
 
 continuousProbabilityDistribution Function := o -> f -> (
+    checkSupport o.Support;
     a := first o.Support;
     b := last o.Support;
     pdf := x -> if x >= a and x <= b then f x else 0;
