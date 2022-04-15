@@ -388,6 +388,43 @@ doc ///
       @TO continuousProbabilityDistribution@, or any of the various built-in
       methods for common distributions.
 ///
+
+doc ///
+  Key
+    density
+    (density, ProbabilityDistribution, Number)
+    (density, ProbabilityDistribution, Constant)
+  Headline
+    probability density (or mass) function
+  Usage
+    density_X x
+  Inputs
+    X:ProbabilityDistribution
+    x:RR
+  Outputs
+    :RR
+  Description
+    Text
+      For a discrete probability distribution, this returns values of
+      of the @wikipedia "probability mass function"@ of the distribution, i.e.,
+      \(f_X(x) = P(X = x)\).
+    Example
+      X = binomialDistribution(5, 0.25)
+      density_X 2
+      binomial(5, 2) * 0.25^2 * 0.75^3
+    Text
+      For a continuous probability distribution, this returns values of
+      the @wikipedia "probability density function"@ of the distribution, i.e.,
+      the integrand in \(\int_a^b f_X(x)\,dx = P(a\leq X \leq b)\).
+    Example
+      Z = normalDistribution()
+      density_Z 0
+      1/sqrt(2 * pi)
+      integrate(density_Z, -1, 1)
+      integrate(density_Z, -2, 2)
+      integrate(density_Z, -3, 3)
+///
+
 TEST ///
 d = binomialDistribution(3, 1/6)
 assert Equation(apply(toList(0..3), x -> densityFunction(x, d)),
