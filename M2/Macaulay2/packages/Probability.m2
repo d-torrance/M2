@@ -44,7 +44,8 @@ export {
     "DistributionFunction",
     "QuantileFunction",
     "RandomGeneration",
-    "Support"
+    "Support",
+    "LowerTail"
     }
 
 -- a probability distribution is a hash table containings the following keys:
@@ -60,17 +61,19 @@ ProbabilityDistribution = new Type of HashTable
 density = method()
 density(ProbabilityDistribution, Number)   :=
 density(ProbabilityDistribution, Constant) :=
-    (X, x) -> (X.DensityFunction) x
+    (X, x) -> X.DensityFunction x
 
-probability = method()
+probability = method(Options => {LowerTail => true})
 probability(ProbabilityDistribution, Number)   :=
 probability(ProbabilityDistribution, Constant) :=
-    (X, x) -> (X.DistributionFunction) x
+    o -> (X, x) -> (
+	p := X.DistributionFunction x;
+	if o.LowerTail then p else 1 - p)
 
-quantile = method()
+quantile = method(Options => {LowerTail => true})
 quantile(ProbabilityDistribution, Number)   :=
 quantile(ProbabilityDistribution, Constant) :=
-    (X, x) -> (X.QuantileFunction) x
+    o -> (X, p) -> X.QuantileFunction if o.LowerTail then p else 1 - p
 
 random ProbabilityDistribution := o -> X -> X.RandomGeneration()
 net ProbabilityDistribution := X -> X.Description
