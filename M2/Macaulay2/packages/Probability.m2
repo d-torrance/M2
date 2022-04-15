@@ -35,9 +35,9 @@ export {
     "betaDistribution",
 
 -- functions
-    "densityFunction",
-    "distributionFunction",
-    "quantileFunction",
+    "density",
+    "probability",
+    "quantile",
 
 -- symbols
     "DensityFunction",
@@ -57,23 +57,22 @@ export {
 
 ProbabilityDistribution = new Type of HashTable
 
-densityFunction = method()
-densityFunction(Number,   ProbabilityDistribution) :=
-densityFunction(Constant, ProbabilityDistribution) :=
-    (x, X) -> (X.DensityFunction) x
+density = method()
+density(ProbabilityDistribution, Number)   :=
+density(ProbabilityDistribution, Constant) :=
+    (X, x) -> (X.DensityFunction) x
 
-distributionFunction = method()
-distributionFunction(Number,   ProbabilityDistribution) :=
-distributionFunction(Constant, ProbabilityDistribution) :=
-    (x, X) -> (X.DistributionFunction) x
+probability = method()
+probability(ProbabilityDistribution, Number)   :=
+probability(ProbabilityDistribution, Constant) :=
+    (X, x) -> (X.DistributionFunction) x
 
-quantileFunction = method()
-quantileFunction(Number,   ProbabilityDistribution) :=
-quantileFunction(Constant, ProbabilityDistribution) :=
-    (x, X) -> (X.QuantileFunction) x
+quantile = method()
+quantile(ProbabilityDistribution, Number)   :=
+quantile(ProbabilityDistribution, Constant) :=
+    (X, x) -> (X.QuantileFunction) x
 
 random ProbabilityDistribution := o -> X -> X.RandomGeneration()
-random(ZZ, ProbabilityDistribution) := o -> (n, X) -> apply(n, i -> random X)
 net ProbabilityDistribution := X -> X.Description
 
 -- helper functions for checking parameters
