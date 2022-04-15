@@ -79,13 +79,13 @@ random ProbabilityDistribution := o -> X -> X.RandomGeneration()
 net ProbabilityDistribution := X -> X.Description
 
 -- helper functions for checking parameters
-checkReal = n -> if not isReal n then error(
+checkReal := n -> if not isReal n then error(
     "expected real parameter: ", n)
-checkPositive = n -> if n <= 0 or not isReal n then error(
+checkPositive := n -> if n <= 0 or not isReal n then error(
     "expected positive parameter: ", n)
-checkNonnegative = n -> if n < 0 or not isReal n then error(
+checkNonnegative := n -> if n < 0 or not isReal n then error(
     "expected nonnegative parameter: ", n)
-checkProbability = p -> if p < 0 or p > 1 or not isReal p then error(
+checkProbability := p -> if p < 0 or p > 1 or not isReal p then error(
     "expected parameter to be between 0 and 1: ", p)
 
 ----------------------------------------
