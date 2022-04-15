@@ -336,6 +336,58 @@ betaDistribution(Constant, Constant) := (alpha, beta) -> (
 
 beginDocumentation()
 
+doc ///
+  Key
+    ProbabilityDistribution
+    DiscreteProbabilityDistribution
+    ContinuousProbabilityDistribution
+    (net, ProbabilityDistribution)
+  Headline
+    probability distribution class
+  Description
+    Text
+      This is the class of which all probability distribution objects
+      belong.  @TT "ProbabilityDistribution"@ is an abstract class
+      defining the interface and should not be used directly.
+      Instead, its subclasses @TT "DiscreteProbabilityDistribution"@ and
+      @TT "ContinuousProbabilityDistribution"@ should be used.
+
+      @TT "ProbabilityDistribution"@ objects are hash tables containing six
+      key-value pairs:
+
+      @DL{
+	  DT {TT "DensityFunction"},
+	  DD {"The probability mass or density function (for discrete or ",
+	      "continuous distributions, respectively).  Do not use this ",
+	      "directly.  Instead, use ", TO density, "."},
+	  DT {TT "DistributionFunction"},
+	  DD {"The cumulative distribution function.  Do not use this ",
+	      "directly.  Instead, use ", TO probability, "."},
+	  DT {TT "QuantileFunction"},
+	  DD {"The quantile function.  Do not use this directly.  Instead, ",
+	      "use ", TO quantile, "."},
+	  DT {TT "RandomGeneration"},
+	  DD {"A function to generate random samples of the distribution.  ",
+	      "Do not use this directly.  Instead, use ",
+	      TO (random, ProbabilityDistribution), "."},
+	  DT {TT "Support"},
+	  DD {"A sequence of two numbers, the lower and upper bound of the ",
+	      "support of the distribution."},
+	  DT {TT "Description"},
+	  DD {"A string containing a description of the distribution.  This ",
+	      "is the return value when a ", TT "ProbabilityDistribution",
+	      " object is passed to ", TO net, "."}
+	  }@
+    Example
+      Z = normalDistribution()
+      ancestors class Z
+      peek Z
+    Text
+      To create a @TT "ProbablityDistribution"@ object, use one of the
+      constructor methods, @TO discreteProbabilityDistribution@,
+      @TO continuousProbabilityDistribution@, or any of the various built-in
+      methods for common distributions.
+///
 TEST ///
 d = binomialDistribution(3, 1/6)
 assert Equation(apply(toList(0..3), x -> densityFunction(x, d)),
