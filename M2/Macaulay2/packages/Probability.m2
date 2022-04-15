@@ -249,6 +249,8 @@ normalDistribution(Number, Number) := (mu, sigma) -> (
 	x -> 1 / (sigma * sqrt(2 * pi)) * exp(-1/2 * ((x - mu) / sigma)^2),
 	DistributionFunction => x ->
 	    1/2 * (1 + erf((x - mu) / (sigma * sqrt 2))),
+	QuantileFunction => p ->
+	    mu + sigma * sqrt 2 * inverseErf(2 * p - 1),
 	-- box muller transform
 	RandomGeneration => () ->
 	    mu + sigma * sqrt(-2 * log random 1.) * cos (2 * pi * random 1.),
