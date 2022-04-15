@@ -301,6 +301,10 @@ fDistribution(Constant, Constant) := (d1, d2) -> (
 	x -> sqrt(
 	    (d1 * x)^d1 * d2^d2 / (d1*x + d2)^(d1 + d2)) /
 	    (x * Beta(d1 / 2, d2 / 2)),
+	DistributionFunction => x ->
+	    regularizedBeta(d1 * x / (d1 * x + d2), d1 / 2, d2 / 2),
+	QuantileFunction => p ->
+	    d2 / d1 * (1 / (1 - inverseRegularizedBeta(p, d1 / 2, d2 / 2)) - 1),
 	Description => "F" | toString (d1, d2)))
 
 betaDistribution = method()
@@ -358,3 +362,7 @@ random_100 X
 X = chiSquaredDistribution 10
 distributionFunction(5, X)
 quantileFunction(0.3, X)
+
+F = fDistribution(4, 5)
+distributionFunction(3, F)
+quantileFunction(oo, F)
