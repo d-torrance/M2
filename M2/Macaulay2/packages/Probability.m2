@@ -470,6 +470,54 @@ doc ///
       probability_Z(1.96, LowerTail => false)
 ///
 
+doc ///
+  Key
+    quantile
+    (quantile, ProbabilityDistribution, Number)
+    (quantile, ProbabilityDistribution, Constant)
+    [quantile, LowerTail]
+  Headline
+    quantile function
+  Usage
+    quantile_X p
+  Inputs
+    X:ProbabilityDistribution
+    p:RR
+    LowerTail => Boolean
+  Outputs
+    :RR
+  Description
+    Text
+      For continuous probability distributions, the @wikipedia
+      "quantile function"@ is the inverse of the cumulative
+      distribution function, i.e., \(x\) for which \(P(X \leq x) = p\).
+    Example
+      Z = normalDistribution()
+      quantile_Z 0.95
+      probability_Z oo
+    Text
+      For discrete probability distributions, it returns the smallest \(x\)
+      for which \(P(X \leq x) \geq p\).
+    Example
+      X = binomialDistribution(10, 0.25)
+      quantile_X 0.75
+      probability_X 2
+      probability_X 3
+    Text
+      If the @TT "LowerTail"@ option is @TT "false"@, then it instead finds
+      \(x\) for which \(P(X > x) = p\) in the continuous case.
+    Example
+      quantile_Z(0.95, LowerTail => false)
+      probability_Z(oo, LowerTail => false)
+    Text
+      In the discrete case, it finds the smallest \(x\) for which
+      \(P(X > x) \leq p\).
+    Example
+      quantile_X(0.75, LowerTail => false)
+      probability_X(2, LowerTail => false)
+      probability_X(1, LowerTail => false)
+///
+
 TEST ///
 d = binomialDistribution(3, 1/6)
 assert Equation(apply(toList(0..3), x -> densityFunction(x, d)),
