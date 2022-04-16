@@ -429,6 +429,16 @@ doc ///
       integrate(density_Z, -3, 3)
 ///
 
+doc ///
+  Key
+    LowerTail
+  Headline
+    whether to computer lower tail probabilities
+  Description
+    Text
+      This is an option for @TO probability@ and @TO quantile@.
+///
+
 TEST ///
 d = binomialDistribution(3, 1/6)
 assert Equation(apply(toList(0..3), x -> densityFunction(x, d)),
