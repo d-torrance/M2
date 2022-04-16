@@ -537,6 +537,66 @@ doc ///
       for i to 10 list random Z
 ///
 
+doc ///
+  Key
+    discreteProbabilityDistribution
+    (discreteProbabilityDistribution, Function)
+    [discreteProbabilityDistribution, DistributionFunction]
+    [discreteProbabilityDistribution, QuantileFunction]
+    [discreteProbabilityDistribution, RandomGeneration]
+    [discreteProbabilityDistribution, Support]
+    [discreteProbabilityDistribution, Description]
+  Headline
+    construct a discrete probability distribution
+  Usage
+    discreteProbabilityDistribution f
+  Inputs
+    f:Function
+      the probability mass function of @TT "X"@, to be used by
+      @TO density@.
+    DistributionFunction => Function
+      the cumulative distribution function of @TT "X"@, to be used by
+      @TO probability@.  If @TT "null"@, then obtained by adding values of
+      @TT "f"@.
+    QuantileFunction => Function
+      the quantile function of @TT "X"@, to be used by @TO quantile@.
+      If @TT "null"@, then obtained by adding values of @TT "f"@.
+    RandomGeneration => Function
+      a function for generating random samples from @TT "X"@, to be used
+      by @TO (random, ProbabilityDistribution)@.  If @TT "null"@, then obtained
+      using @wikipedia "inverse transform sampling"@.
+    Support => Sequence
+      containing the lower and upper bounds, respectively, of the
+      @wikipedia("Support (mathematics)", "support")@ of @TT "X"@.
+    Description => String
+      describing the probability distribution.
+  Outputs
+    X:DiscreteProbabilityDistribution
+  Description
+    Text
+      To construct a discrete probability distribution, provide the probability
+      mass function and, if different than the default of \([0, \infty\]), the
+      support.
+    Example
+      X = discreteProbabilityDistribution(x -> 1/6, Support => (1, 6))
+    Text
+      At this point, the distribution will be fully functional.
+    Example
+      density_X 3
+      density_X 7
+      probability_X 3
+      quantile_X 0.2
+    Text
+      However, if possible, it is good to provide the cumulative distribution,
+      quantile, and/or random generation functions to improve performance
+      over the naive defaults.  A description may also be provided.
+    Example
+      X = discreteProbabilityDistribution(x -> 1/6, Support => (1, 6),
+	  DistributionFunction => x -> x / 6,
+	  QuantileFunction => p -> floor(6 * p),
+	  Description => "six-sided die")
+///
+
 TEST ///
 d = binomialDistribution(3, 1/6)
 assert Equation(apply(toList(0..3), x -> densityFunction(x, d)),
