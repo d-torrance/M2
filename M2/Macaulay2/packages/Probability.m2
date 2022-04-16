@@ -518,6 +518,25 @@ doc ///
       probability_X(1, LowerTail => false)
 ///
 
+doc ///
+  Key
+    (random, ProbabilityDistribution)
+  Headline
+    randomly generate samples from probability distribution
+  Usage
+    random X
+  Inputs
+    X:ProbabilityDistribution
+  Outputs
+    :RR
+  Description
+    Text
+      Randomly generate samples from the given probability distribution.
+    Example
+      Z = normalDistribution()
+      for i to 10 list random Z
+///
+
 TEST ///
 d = binomialDistribution(3, 1/6)
 assert Equation(apply(toList(0..3), x -> densityFunction(x, d)),
