@@ -57,6 +57,7 @@ export {
 -- Description
 
 ProbabilityDistribution = new Type of HashTable
+ProbabilityDistribution.synonym = "probability distribution"
 
 density = method()
 density(ProbabilityDistribution, Number)   :=
@@ -98,6 +99,7 @@ checkSupport := A -> if not (instance(A, Sequence) and length A == 2 and
 
 DiscreteProbabilityDistribution = new SelfInitializingType of
 	ProbabilityDistribution
+DiscreteProbabilityDistribution.synonym = "discrete probability distribution"
 
 discreteProbabilityDistribution = method(Options => {
 	DistributionFunction => null,
@@ -188,6 +190,8 @@ hypergeometricDistribution(ZZ, ZZ, ZZ) := (m, n, k) -> (
 
 ContinuousProbabilityDistribution = new SelfInitializingType of
 	ProbabilityDistribution
+ContinuousProbabilityDistribution.synonym =
+    "continuous probability distribution"
 
 continuousProbabilityDistribution = method(Options => {
 	DistributionFunction => null,
