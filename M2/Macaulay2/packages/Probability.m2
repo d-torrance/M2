@@ -439,6 +439,37 @@ doc ///
       This is an option for @TO probability@ and @TO quantile@.
 ///
 
+doc ///
+  Key
+    probability
+    (probability, ProbabilityDistribution, Number)
+    (probability, ProbabilityDistribution, Constant)
+    [probability, LowerTail]
+  Headline
+    cumulative distribution function
+  Usage
+    probability_X x
+  Inputs
+    X:ProbabilityDistribution
+    x:RR
+    LowerTail => Boolean
+  Outputs
+    :RR
+  Description
+    Text
+      The @wikipedia "cumulative distribution function"@ of the probability
+      distribution, i.e., the lower tail probability \(F_X(x) = P(X \leq x)\).
+    Example
+      Z = normalDistribution()
+      probability_Z 1.96
+    Text
+      If the @TT "LowerTail"@ option is @TT "false"@, then it instead computes
+      the value of the @wikipedia "survival function"@, i.e., the upper tail
+      probability \(S_X(x) = P(X > x)\).
+    Example
+      probability_Z(1.96, LowerTail => false)
+///
+
 TEST ///
 d = binomialDistribution(3, 1/6)
 assert Equation(apply(toList(0..3), x -> densityFunction(x, d)),
