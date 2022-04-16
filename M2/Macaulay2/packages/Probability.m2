@@ -112,10 +112,10 @@ discreteProbabilityDistribution Function := o -> f -> (
     checkSupport o.Support;
     a := first o.Support;
     b := last o.Support;
-    pmf := x -> if x >= a and x <= b then f x else 0;
+    pmf := x -> if x >= a and x <= b and x == floor x then f x else 0;
     cdf := if o.DistributionFunction =!= null
 	then o.DistributionFunction
-	else x -> sum(a..x, pmf);
+	else x -> sum(a..floor x, pmf);
     quant := if o.QuantileFunction =!= null
 	then o.QuantileFunction
 	else p -> (
