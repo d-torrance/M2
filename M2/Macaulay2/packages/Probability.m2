@@ -579,17 +579,22 @@ doc ///
       support.
     Example
       X = discreteProbabilityDistribution(x -> 1/6, Support => (1, 6))
-    Text
-      At this point, the distribution will be fully functional.
-    Example
       density_X 3
+    Text
+      Non-integers and values outside the support are automatically sent to 0.
+    Example
+      density_X 3.5
       density_X 7
+    Text
+      The cumulative distribution, quantile, and random generation functions
+      are set to defaults based on the probability mass function.
+    Example
       probability_X 3
       quantile_X 0.2
+      random X
     Text
-      However, if possible, it is good to provide the cumulative distribution,
-      quantile, and/or random generation functions to improve performance
-      over the naive defaults.  A description may also be provided.
+      However, if possible, it is good to provide these directly to
+      improve performance.  A description may also be provided.
     Example
       X = discreteProbabilityDistribution(x -> 1/6, Support => (1, 6),
 	  DistributionFunction => x -> x / 6,
