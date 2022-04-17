@@ -61,8 +61,9 @@ ProbabilityDistribution.synonym = "probability distribution"
 
 density = method()
 density(ProbabilityDistribution, Number)   :=
-density(ProbabilityDistribution, Constant) :=
-    (X, x) -> X.DensityFunction x
+density(ProbabilityDistribution, Constant) := (X, x) -> (
+    if x < first X.Support or x > last X.Support then 0
+    else X.DensityFunction x)
 
 probability = method(Options => {LowerTail => true})
 probability(ProbabilityDistribution, Number)   :=
@@ -115,30 +116,33 @@ discreteProbabilityDistribution = method(Options => {
 discreteProbabilityDistribution Function := o -> f -> (
     checkSupport o.Support;
     a := first o.Support;
-    b := last o.Support;
-    pmf := x -> if x >= a and x <= b and x == floor x then f x else 0;
     cdf := if o.DistributionFunction =!= null
 	then o.DistributionFunction
-	else x -> sum(a..floor x, pmf);
+	else x -> sum(a..floor x, f);
     quant := if o.QuantileFunction =!= null
 	then o.QuantileFunction
 	else p -> (
 	    x := a;
-	    q := pmf x;
+	    q := f x;
 	    while q < p do (
 		x = x + 1;
-		q = q + pmf x);
+		q = q + f x);
 	    x);
     rand := if o.RandomGeneration =!= null
 	then o.RandomGeneration
 	else () -> quant random 1.;
     DiscreteProbabilityDistribution hashTable {
-	DensityFunction      => pmf,
+	DensityFunction      => f,
 	DistributionFunction => cdf,
 	QuantileFunction     => quant,
 	RandomGeneration     => rand,
 	Support              => o.Support,
 	Description          => o.Description})
+
+density(DiscreteProbabilityDistribution, Number)   :=
+density(DiscreteProbabilityDistribution, Constant) := (X, x) -> (
+    if x != floor x then 0
+    else (lookup(density, ProbabilityDistribution, Number))_X x)
 
 binomialDistribution = method()
 binomialDistribution(ZZ, Number) := (n, p) -> (
@@ -214,12 +218,10 @@ bisectionMethod = (f, a, b, epsilon) -> (
 
 continuousProbabilityDistribution Function := o -> f -> (
     checkSupport o.Support;
-    a := first o.Support;
-    b := last o.Support;
-    pdf := x -> if x >= a and x <= b then f x else 0;
+    (a, b) := o.Support;
     cdf := if o.DistributionFunction =!= null
     	then o.DistributionFunction
-	else x -> integrate(pdf, a, x);
+	else x -> integrate(f, a, x);
     quant := if o.QuantileFunction =!= null
     	then o.QuantileFunction
 	else p -> (
@@ -232,7 +234,7 @@ continuousProbabilityDistribution Function := o -> f -> (
 	then o.RandomGeneration
 	else () -> quant random 1.;
     ContinuousProbabilityDistribution hashTable {
-	DensityFunction      => pdf,
+	DensityFunction      => f,
 	DistributionFunction => cdf,
 	QuantileFunction     => quant,
 	RandomGeneration     => rand,
