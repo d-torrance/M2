@@ -68,7 +68,9 @@ probability = method(Options => {LowerTail => true})
 probability(ProbabilityDistribution, Number)   :=
 probability(ProbabilityDistribution, Constant) :=
     o -> (X, x) -> (
-	p := X.DistributionFunction x;
+	p := if x < first X.Support then 0
+	    else if x > last X.Support then 1
+	    else X.DistributionFunction x;
 	if o.LowerTail then p else 1 - p)
 
 quantile = method(Options => {LowerTail => true})
