@@ -76,7 +76,9 @@ probability(ProbabilityDistribution, Constant) :=
 quantile = method(Options => {LowerTail => true})
 quantile(ProbabilityDistribution, Number)   :=
 quantile(ProbabilityDistribution, Constant) :=
-    o -> (X, p) -> X.QuantileFunction if o.LowerTail then p else 1 - p
+    o -> (X, p) -> (
+	if p < 0 or p > 1 then error "expected number between 0 and 1"
+	else X.QuantileFunction if o.LowerTail then p else 1 - p)
 
 random ProbabilityDistribution := o -> X -> X.RandomGeneration()
 net ProbabilityDistribution := X -> X.Description
