@@ -669,43 +669,25 @@ assert Equation(quantile_X 0.3, 1)
 assert Equation(quantile_X 1, infinity)
 ///
 
+TEST ///
+X = negativeBinomialDistribution(3, 0.25)
+assert Equation(density_X(-1), 0)
+assert Equation(density_X 3, binomial(5, 3) * 0.25^3 * 0.75^3)
+assert Equation(density_X 3.5, 0)
+
+assert Equation(probability_X(-1), 0)
+assert Equation(probability_X 3,
+     0.25^3 * sum(0..3, x -> binomial(x + 2, 2) * 0.75^x))
+assert Equation(probability_X 3.5,
+     0.25^3 * sum(0..3, x -> binomial(x + 2, 2) * 0.75^x))
+
+assert Equation(quantile_X 0, 0)
+assert Equation(quantile_X 0.3, 5)
+assert Equation(quantile_X 1, infinity)
+///
+
 end
 
-restart
 loadPackage("Probability", Reload => true,
     FileName => "~/src/macaulay2/M2/M2/Macaulay2/packages/Probability.m2")
-
-
-Z = normalDistribution()
-quantileFunction(0.95, Z)
-quantileFunction(0.975, Z)
-quantileFunction(0.75, normalDistribution(10, 13))
-
-X = gammaDistribution(3, 5)
-distributionFunction(0.3, X)
-quantileFunction(0.191153, X)
-quantileFunction(0.75, X)
-random(100, X)
-random_100 X
-
-X = chiSquaredDistribution 10
-distributionFunction(5, X)
-quantileFunction(0.3, X)
-
-F = fDistribution(4, 5)
-distributionFunction(3, F)
-quantileFunction(oo, F)
-
-X = binomialDistribution(100, 0.75)
-elapsedTime distributionFunction(70, X)
-quantileFunction(0.15, X)
-
-X = poissonDistribution 10
-distributionFunction(10, X)
-
-X = geometricDistribution 0.1
-distributionFunction(, X)
-elapsedTime quantileFunction(0.99, X)
-
-f = (q, p) -> ceiling(log((1 - q)/(1 - p)) / log(1 - p))
-elapsedTime f(0.99, 0.1)
+check(Probability, Verbose => true)
