@@ -635,7 +635,20 @@ assert Equation(quantile_X 0.3, 2)
 assert Equation(quantile_X 1, 10)
 ///
 
+TEST ///
+X = poissonDistribution 3
+assert Equation(density_X(-1), 0)
+assert Equation(density_X 3, 3^3/3! * exp(-3))
+assert Equation(density_X 3.5, 0)
 
+assert Equation(probability_X(-1), 0)
+assert Equation(probability_X 3, sum(0..3, x -> 3^x / x! * exp(-3)))
+assert Equation(probability_X 3.5, sum(0..3, x -> 3^x / x! * exp(-3)))
+
+assert Equation(quantile_X 0, 0)
+assert Equation(quantile_X 0.3, 2)
+assert Equation(quantile_X 1, infinity)
+///
 
 end
 
