@@ -148,7 +148,8 @@ probability(DiscreteProbabilityDistribution, Constant) := o -> (X, x) ->
     probability'(X, floor x, o)
 
 binomialDistribution = method()
-binomialDistribution(ZZ, Number) := (n, p) -> (
+binomialDistribution(ZZ, Number)   :=
+binomialDistribution(ZZ, Constant) := (n, p) -> (
     checkPositive n;
     checkProbability p;
     discreteProbabilityDistribution(
@@ -158,7 +159,8 @@ binomialDistribution(ZZ, Number) := (n, p) -> (
 	Description => "B" | toString (n, p)))
 
 bernoulliDistribution = method()
-bernoulliDistribution Number := p -> binomialDistribution(1, p)
+bernoulliDistribution Number   :=
+bernoulliDistribution Constant := p -> binomialDistribution(1, p)
 
 poissonDistribution = method()
 poissonDistribution Number := lambda -> (
