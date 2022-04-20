@@ -165,7 +165,8 @@ bernoulliDistribution Number   :=
 bernoulliDistribution Constant := p -> binomialDistribution(1, p)
 
 poissonDistribution = method()
-poissonDistribution Number := lambda -> (
+poissonDistribution Number   :=
+poissonDistribution Constant := lambda -> (
     checkPositive lambda;
     discreteProbabilityDistribution(x -> lambda^x / x! * exp(-lambda),
 	DistributionFunction => x -> regularizedGamma(floor(x + 1), lambda),
