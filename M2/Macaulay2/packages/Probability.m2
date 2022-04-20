@@ -173,7 +173,8 @@ poissonDistribution Constant := lambda -> (
 	Description => "Pois(" | toString lambda | ")"))
 
 geometricDistribution = method()
-geometricDistribution Number := p -> (
+geometricDistribution Number   :=
+geometricDistribution Constant := p -> (
     checkProbability p;
     discreteProbabilityDistribution(x -> p * (1 - p)^x,
 	DistributionFunction => x -> 1 - (1 - p)^(x + 1),
