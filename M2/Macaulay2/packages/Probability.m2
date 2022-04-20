@@ -616,25 +616,27 @@ doc ///
 ///
 
 TEST ///
-d = binomialDistribution(3, 1/6)
-assert Equation(apply(toList(0..3), x -> densityFunction(x, d)),
-    {125, 75, 15, 1} / 216)
-assert Equation(apply(toList(0..3), x -> distributionFunction(x, d)),
-    {125, 200, 215, 216} / 216)
-assert Equation(apply({125, 200, 215, 216} / 216, p -> quantileFunction(p, d)),
-    toList(0..3))
+X = binomialDistribution(10, 0.25)
+assert Equation(density_X(-1), 0)
+assert Equation(density_X 3, binomial(10, 3) * 0.25^3 * 0.75^7)
+assert Equation(density_X 3.5, 0)
+assert Equation(density_X 11, 0)
+
+assert Equation(probability_X(-1), 0)
+assert Equation(probability_X 3,
+    sum(0..3, x -> binomial(10, x) * 0.25^x * 0.75^(10 - x)))
+assert Equation(probability_X 3.5,
+    sum(0..3, x -> binomial(10, x) * 0.25^x * 0.75^(10 - x)))
+assert Equation(probability_X 11, 1)
+
+assert Equation(quantile_X 0, 0)
+assert Equation(quantile_X 0.3, 2)
+assert Equation(quantile_X 1, 10)
 ///
 
-TEST ///
-assert Equation(densityFunction(0, poissonDistribution(1/2)), exp(-1/2))
-///
+
 
 end
-
-installPackage("Probability",
-    FileName => "~/src/macaulay2/M2/M2/Macaulay2/packages/Probability.m2")
-
-check(Probability, Verbose => true)
 
 restart
 loadPackage("Probability", Reload => true,
