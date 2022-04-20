@@ -650,6 +650,21 @@ assert Equation(quantile_X 0.3, 2)
 assert Equation(quantile_X 1, infinity)
 ///
 
+TEST ///
+X = geometricDistribution 0.25
+assert Equation(density_X(-1), 0)
+assert Equation(density_X 3, 0.25 * 0.75^3)
+assert Equation(density_X 3.5, 0)
+
+assert Equation(probability_X(-1), 0)
+assert Equation(probability_X 3, 1 - 0.75^4)
+assert Equation(probability_X 3.5, 1 - 0.75^4)
+
+assert Equation(quantile_X 0, 0)
+assert Equation(quantile_X 0.3, 1)
+assert Equation(quantile_X 1, infinity)
+///
+
 end
 
 restart
