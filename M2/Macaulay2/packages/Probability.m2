@@ -48,13 +48,9 @@ export {
     "LowerTail"
     }
 
--- a probability distribution is a hash table containings the following keys:
--- DensityFunction (function: pdf (continuous) or pmf (discrete))
--- DistributionFunction
--- QuantileFunction
--- RandomGeneration
--- Support (ordered pair)
--- Description
+---------------------------------------------
+-- abstract probability distribution class --
+---------------------------------------------
 
 ProbabilityDistribution = new Type of HashTable
 ProbabilityDistribution.synonym = "probability distribution"
