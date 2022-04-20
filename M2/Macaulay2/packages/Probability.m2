@@ -79,6 +79,8 @@ quantile(ProbabilityDistribution, Number)   :=
 quantile(ProbabilityDistribution, Constant) :=
     o -> (X, p) -> (
 	if p < 0 or p > 1 then error "expected number between 0 and 1"
+	else if p == 0 and first X.Support == -infinity then -infinity
+	else if p == 1 and last X.Support == infinity then infinity
 	else X.QuantileFunction if o.LowerTail then p else 1 - p)
 
 random ProbabilityDistribution := o -> X -> X.RandomGeneration()
