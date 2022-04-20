@@ -182,7 +182,10 @@ geometricDistribution Constant := p -> (
 	Description => "Geo(" | toString p | ")"))
 
 negativeBinomialDistribution = method()
-negativeBinomialDistribution(Number, Number) := (r, p) -> (
+negativeBinomialDistribution(Number,   Number)   :=
+negativeBinomialDistribution(Number,   Constant) :=
+negativeBinomialDistribution(Constant, Number)   :=
+negativeBinomialDistribution(Constant, Constant) := (r, p) -> (
     checkPositive r;
     checkProbability p;
     discreteProbabilityDistribution(
