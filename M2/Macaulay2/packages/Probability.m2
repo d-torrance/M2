@@ -67,14 +67,16 @@ density = method()
 density(ProbabilityDistribution, Number)   :=
 density(ProbabilityDistribution, Constant) := density'
 
+probability' := true >> o -> (X, x) -> (
+    p := if x < first X.Support then 0
+    else if x > last X.Support then 1
+    else X.DistributionFunction x;
+    if o.LowerTail then p else 1 - p)
+
 probability = method(Options => {LowerTail => true})
 probability(ProbabilityDistribution, Number)   :=
-probability(ProbabilityDistribution, Constant) :=
-    o -> (X, x) -> (
-	p := if x < first X.Support then 0
-	    else if x > last X.Support then 1
-	    else X.DistributionFunction x;
-	if o.LowerTail then p else 1 - p)
+probability(ProbabilityDistribution, Constant) := o -> (X, x) ->
+     probability'(X, x, o)
 
 quantile = method(Options => {LowerTail => true})
 quantile(ProbabilityDistribution, Number)   :=
@@ -144,6 +146,10 @@ discreteProbabilityDistribution Function := o -> f -> (
 density(DiscreteProbabilityDistribution, Number)   :=
 density(DiscreteProbabilityDistribution, Constant) := (X, x) ->
     if x != floor x then 0 else density'(X, x)
+
+probability(DiscreteProbabilityDistribution, Number)   :=
+probability(DiscreteProbabilityDistribution, Constant) := o -> (X, x) ->
+    probability'(X, floor x, o)
 
 binomialDistribution = method()
 binomialDistribution(ZZ, Number) := (n, p) -> (
