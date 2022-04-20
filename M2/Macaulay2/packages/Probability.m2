@@ -59,11 +59,13 @@ export {
 ProbabilityDistribution = new Type of HashTable
 ProbabilityDistribution.synonym = "probability distribution"
 
-density = method()
-density(ProbabilityDistribution, Number)   :=
-density(ProbabilityDistribution, Constant) := (X, x) -> (
+density' := (X, x) -> (
     if x < first X.Support or x > last X.Support then 0
     else X.DensityFunction x)
+
+density = method()
+density(ProbabilityDistribution, Number)   :=
+density(ProbabilityDistribution, Constant) := density'
 
 probability = method(Options => {LowerTail => true})
 probability(ProbabilityDistribution, Number)   :=
@@ -140,9 +142,8 @@ discreteProbabilityDistribution Function := o -> f -> (
 	Description          => o.Description})
 
 density(DiscreteProbabilityDistribution, Number)   :=
-density(DiscreteProbabilityDistribution, Constant) := (X, x) -> (
-    if x != floor x then 0
-    else (lookup(density, ProbabilityDistribution, Number))_X x)
+density(DiscreteProbabilityDistribution, Constant) := (X, x) ->
+    if x != floor x then 0 else density'(X, x)
 
 binomialDistribution = method()
 binomialDistribution(ZZ, Number) := (n, p) -> (
