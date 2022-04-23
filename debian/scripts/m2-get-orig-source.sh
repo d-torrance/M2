@@ -186,6 +186,13 @@ then
 	    git commit -m "Regenerating examples for $VERSION"
 	fi
 
+	echo -n "checking for new packages not in d/copyright ... "
+	M2 --srcdir M2 --silent -e \
+	   'loadPackage("Debian", FileName => "debian/scripts/Debian.m2");
+	    pkgs = missingPackages();
+	    print(#pkgs);
+	    for pkg in pkgs do print("  " | toString pkg);
+	    exit 0'
     fi
 fi
 
