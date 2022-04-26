@@ -710,6 +710,20 @@ assert Equation(quantile_X 0.3, 3)
 assert Equation(quantile_X 1, 5)
 ///
 
+TEST ///
+X = uniformDistribution(1, 7)
+assert Equation(density_X 0, 0)
+assert Equation(density_X 3, 1/6)
+assert Equation(density_X 8, 0)
+
+assert Equation(probability_X 0, 0)
+assert Equation(probability_X 3, 1/3)
+assert Equation(probability_X 8, 1)
+
+assert Equation(quantile_X 0, 1)
+assert Equation(quantile_X(1/3), 3)
+assert Equation(quantile_X 1, 7)
+///
 end
 
 loadPackage("Probability", Reload => true,
