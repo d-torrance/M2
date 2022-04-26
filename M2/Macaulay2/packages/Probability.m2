@@ -844,6 +844,25 @@ assert Equation(quantile_X 0.3, 6)
 assert Equation(quantile_X 1, 12)
 ///
 
+TEST ///
+-- Cauchy distribution w/ location = 3, scale = 2
+X = continuousProbabilityDistribution(
+    x -> 1 / (pi * 2 * (1 + (x - 3)^2/4)),
+    Support => (-infinity, infinity))
+
+assert(abs(density_X 0 - 0.04897075) < 1e-7)   -- R: dcauchy(0, 3, 2)
+assert(abs(probability_X 0 - 0.187167) < 0.01) -- R: pcauchy(0, 3, 2)
+assert(abs(quantile_X 0.3 - 1.546915) < 0.1)   -- R: qcauchy(0.3, 3, 2)
+
+-- try specifying cdf to improve things
+X = continuousProbabilityDistribution(
+    x -> 1 / (pi * 2 * (1 + (x - 3)^2/4)),
+    DistributionFunction => x -> 1/pi * atan((x - 3)/2) + 1/2,
+    Support => (-infinity, infinity))
+assert(abs(probability_X 0 - 0.187167) < 1e-7)
+assert(abs(quantile_X 0.3 - 1.546915) < 1e-7) 
+///
+
 end
 
 loadPackage("Probability", Reload => true,
