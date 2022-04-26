@@ -737,6 +737,18 @@ assert Equation(quantile_X 0, 0)
 assert(abs(quantile_X(1 - exp(-9)) - 3) < 1e-13)
 ///
 
+TEST ///
+X = normalDistribution(3, 2)
+assert Equation(density_X 0, 1/(sqrt(8 * pi)) *  exp(-9/8))
+assert Equation(density_X 3, 1/(sqrt(8 * pi)))
+
+assert(abs(probability_X 0 - 0.0668072) < 1e7) -- R: pnorm(0, 3, 2)
+assert Equation(probability_X 3, 0.5)
+
+assert(abs quantile_X 0.0668072 < 1e7)
+assert Equation(quantile_X 0.5, 3)
+///
+
 end
 
 loadPackage("Probability", Reload => true,
