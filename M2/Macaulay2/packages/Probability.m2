@@ -797,6 +797,18 @@ assert(abs(quantile_T 0.02883444 + 3) < 1e-3)
 assert(abs quantile_T 0.5 < 1e-5)
 ///
 
+TEST ///
+F = fDistribution(3, 2)
+assert Equation(density_F(-1), 0)
+assert(abs(density_F 3 - 0.06727939) < 1e-7) -- R: df(3, 3, 2)
+
+assert Equation(probability_F(-1), 0)
+assert(abs(probability_F 3 - 0.7400733) < 1e-7) -- R: pdf(3, 3, 2)
+
+assert Equation(quantile_F 0, 0)
+assert(abs(quantile_F 0.7400733 - 3) < 1e-7)
+///
+
 end
 
 loadPackage("Probability", Reload => true,
