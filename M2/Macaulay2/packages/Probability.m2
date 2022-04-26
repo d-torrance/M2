@@ -754,11 +754,35 @@ X = normalDistribution(3, 2)
 assert Equation(density_X 0, 1/(sqrt(8 * pi)) *  exp(-9/8))
 assert Equation(density_X 3, 1/(sqrt(8 * pi)))
 
-assert(abs(probability_X 0 - 0.0668072) < 1e7) -- R: pnorm(0, 3, 2)
+assert(abs(probability_X 0 - 0.0668072) < 1e-7) -- R: pnorm(0, 3, 2)
 assert Equation(probability_X 3, 0.5)
 
-assert(abs quantile_X 0.0668072 < 1e7)
+assert(abs quantile_X 0.0668072 < 1e-7)
 assert Equation(quantile_X 0.5, 3)
+///
+
+TEST ///
+X = gammaDistribution(3, 2)
+assert Equation(density_X(-1), 0)
+assert Equation(density_X 3, 36 * exp(-6))
+
+assert Equation(probability_X(-1), 0)
+assert(abs(probability_X 3 - 0.9380312) < 1e-7) -- R: pgamma(3, 3, 2)
+
+assert Equation(quantile_X 0, 0)
+assert(abs(quantile_X 0.9380312 - 3) < 1e-7)
+///
+
+TEST ///
+X = chiSquaredDistribution 3
+assert Equation(density_X(-1), 0)
+assert Equation(density_X 3, 1/(2^1.5 * Gamma(1.5)) * sqrt 3 * exp(-1.5))
+
+assert Equation(probability_X(-1), 0)
+assert(abs(probability_X 3 - 0.6083748) < 1e-7) -- R: pchisq(3, 3)
+
+assert Equation(quantile_X 0, 0)
+assert(abs(quantile_X 0.6083748 - 3) < 1e-6)
 ///
 
 end
