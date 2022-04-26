@@ -74,14 +74,15 @@ probability(ProbabilityDistribution, Number)   :=
 probability(ProbabilityDistribution, Constant) := o -> (X, x) ->
      probability'(X, x, o)
 
+quantile' = true >> o -> (X, p) -> (
+    if p < 0 or p > 1 then error "expected number between 0 and 1"
+    else if p == 0 and first X.Support == -infinity then -infinity
+    else if p == 1 and last X.Support == infinity then infinity
+    else X.QuantileFunction if o.LowerTail then p else 1 - p)
+
 quantile = method(Options => {LowerTail => true})
 quantile(ProbabilityDistribution, Number)   :=
-quantile(ProbabilityDistribution, Constant) :=
-    o -> (X, p) -> (
-	if p < 0 or p > 1 then error "expected number between 0 and 1"
-	else if p == 0 and first X.Support == -infinity then -infinity
-	else if p == 1 and last X.Support == infinity then infinity
-	else X.QuantileFunction if o.LowerTail then p else 1 - p)
+quantile(ProbabilityDistribution, Constant) := o -> (X, p) -> quantile'(X, p, o)
 
 random ProbabilityDistribution := o -> X -> X.RandomGeneration()
 net ProbabilityDistribution := X -> X.Description
@@ -148,6 +149,11 @@ density(DiscreteProbabilityDistribution, Constant) := (X, x) ->
 probability(DiscreteProbabilityDistribution, Number)   :=
 probability(DiscreteProbabilityDistribution, Constant) := o -> (X, x) ->
     probability'(X, floor x, o)
+
+quantile(DiscreteProbabilityDistribution, Number)   :=
+quantile(DiscreteProbabilityDistribution, Constant) := o -> (X, p) -> (
+    maybefloor := x -> if isInfinite x then x else floor x;
+    maybefloor quantile'(X, p, o))
 
 binomialDistribution = method()
 binomialDistribution(ZZ, Number)   :=
@@ -617,7 +623,7 @@ doc ///
     Example
       X = discreteProbabilityDistribution(x -> 1/6, Support => (1, 6),
 	  DistributionFunction => x -> x / 6,
-	  QuantileFunction => p -> floor(6 * p),
+	  QuantileFunction => p -> 6 * p,
 	  Description => "six-sided die")
 ///
 
@@ -709,3 +715,4 @@ end
 loadPackage("Probability", Reload => true,
     FileName => "~/src/macaulay2/M2/M2/Macaulay2/packages/Probability.m2")
 check(Probability, Verbose => true)
+restart
