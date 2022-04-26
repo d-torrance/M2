@@ -785,6 +785,18 @@ assert Equation(quantile_X 0, 0)
 assert(abs(quantile_X 0.6083748 - 3) < 1e-6)
 ///
 
+TEST ///
+T = tDistribution 3
+assert(abs(density_T 0 - 0.3675526) < 1e-7)  -- R: dt(0, 3)
+assert(abs(density_T 3 - 0.02297204) < 1e-7) -- R: dt(3, 3)
+
+assert(abs(probability_T(-3) - 0.02883444) < 1e-5) -- R: pt(-3, 3)
+assert(abs(probability_T 0 -  0.5) < 1e-5)
+
+assert(abs(quantile_T 0.02883444 + 3) < 1e-3)
+assert(abs quantile_T 0.5 < 1e-5)
+///
+
 end
 
 loadPackage("Probability", Reload => true,
