@@ -13,8 +13,10 @@ conjugate Number := identity
 toExternalString Number := simpleToString
 floor Number := x -> floor0(x)
 floor Constant := floor0 @@ numeric
+floor InfiniteNumber := identity
 ceiling Constant :=
 ceiling Number := x -> - floor(-x)
+ceiling InfiniteNumber := identity
 
 -----------------------------------------------------------------------------
 -- ZZ
