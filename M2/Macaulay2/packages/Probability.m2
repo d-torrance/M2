@@ -824,6 +824,26 @@ assert Equation(quantile_X 0.0837, 0.3)
 assert Equation(quantile_X 1, 1)
 ///
 
+TEST ///
+-- sum of two dice
+X = discreteProbabilityDistribution(
+    x -> 1/36 * (if x < 8 then x - 1 else 13 - x),
+    Support => (2, 12))
+assert Equation(density_X 1, 0)
+assert Equation(density_X 3, 1/18)
+assert Equation(density_X 3.5, 0)
+assert Equation(density_X 13, 0)
+
+assert Equation(probability_X 1, 0)
+assert Equation(probability_X 3, 1/12)
+assert Equation(probability_X 3.5, 1/12)
+assert Equation(probability_X 13, 1)
+
+assert Equation(quantile_X 0, 2)
+assert Equation(quantile_X 0.3, 6)
+assert Equation(quantile_X 1, 12)
+///
+
 end
 
 loadPackage("Probability", Reload => true,
