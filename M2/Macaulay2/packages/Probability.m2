@@ -687,6 +687,23 @@ assert Equation(quantile_X 0.3, 5)
 assert Equation(quantile_X 1, infinity)
 ///
 
+TEST ///
+X = hypergeometricDistribution(5, 6, 7)
+assert Equation(density_X(-1), 0)
+assert Equation(density_X 3, 5/11)
+assert Equation(density_X 3.5, 0)
+assert Equation(density_X 6, 0)
+
+assert Equation(probability_X(-1), 0)
+assert Equation(probability_X 3, 43/66)
+assert Equation(probability_X 3.5, 43/66)
+assert Equation(probability_X 6, 1)
+
+assert Equation(quantile_X 0, 0)
+assert Equation(quantile_X 0.3, 3)
+assert Equation(quantile_X 1, 5)
+///
+
 end
 
 loadPackage("Probability", Reload => true,
