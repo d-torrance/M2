@@ -202,6 +202,7 @@ hypergeometricDistribution(ZZ, ZZ, ZZ) := (m, n, k) -> (
 	"expected parameter to be at most ", m + n, ": ", k);
     discreteProbabilityDistribution(
 	x -> binomial(m, x) * binomial(n, k - x) / binomial(m + n, k),
+	Support => (0, m),
 	Description => "HG" | toString(m, n, k)))
 
 ------------------------------------------
