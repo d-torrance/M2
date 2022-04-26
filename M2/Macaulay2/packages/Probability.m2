@@ -809,6 +809,21 @@ assert Equation(quantile_X 0, 0)
 assert(abs(quantile_X 0.7400733 - 3) < 1e-7)
 ///
 
+TEST ///
+X = betaDistribution(3, 2)
+assert Equation(density_X(-1), 0)
+assert Equation(density_X 0.3, 0.756) -- R: dbeta(0.3, 3, 2)
+assert Equation(density_X 2 , 0)
+
+assert Equation(probability_X(-1), 0)
+assert Equation(probability_X 0.3, 0.0837) -- R: pbeta(0.3., 3, 2)
+assert Equation(probability_X 2, 1)
+
+assert Equation(quantile_X 0, 0)
+assert Equation(quantile_X 0.0837, 0.3)
+assert Equation(quantile_X 1, 1)
+///
+
 end
 
 loadPackage("Probability", Reload => true,
