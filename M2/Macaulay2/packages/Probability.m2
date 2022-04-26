@@ -261,7 +261,10 @@ continuousProbabilityDistribution Function := o -> f -> (
 	Description          => o.Description})
 
 uniformDistribution = method()
-uniformDistribution(Number, Number) := (a, b) -> (
+uniformDistribution(Number,   Number)   :=
+uniformDistribution(Number,   Constant) :=
+uniformDistribution(Constant, Number)   :=
+uniformDistribution(Constant, Constant) := (a, b) -> (
     checkReal a;
     checkReal b;
     if a >= b then error("expected parameters to be in increasing order: ",
@@ -275,7 +278,8 @@ uniformDistribution(Number, Number) := (a, b) -> (
 installMethod(uniformDistribution, () -> uniformDistribution(0, 1))
 
 exponentialDistribution = method()
-exponentialDistribution Number := lambda -> (
+exponentialDistribution Number   :=
+exponentialDistribution Constant := lambda -> (
     checkPositive lambda;
     continuousProbabilityDistribution(
 	x -> lambda * exp(-lambda * x),
@@ -284,7 +288,10 @@ exponentialDistribution Number := lambda -> (
 	Description => "Exp(" | toString lambda | ")"))
 
 normalDistribution = method()
-normalDistribution(Number, Number) := (mu, sigma) -> (
+normalDistribution(Number,   Number)   :=
+normalDistribution(Number,   Constant) :=
+normalDistribution(Constant, Number)   :=
+normalDistribution(Constant, Constant) := (mu, sigma) -> (
     checkReal mu;
     checkPositive sigma;
     continuousProbabilityDistribution(
@@ -303,7 +310,10 @@ normalDistribution(Number, Number) := (mu, sigma) -> (
 installMethod(normalDistribution, () -> normalDistribution(0, 1))
 
 gammaDistribution = method()
-gammaDistribution(Number, Number) := (alpha, lambda) -> (
+gammaDistribution(Number,   Number)   :=
+gammaDistribution(Number,   Constant) :=
+gammaDistribution(Constant, Number)   :=
+gammaDistribution(Constant, Constant) := (alpha, lambda) -> (
     checkPositive alpha;
     checkPositive lambda;
     continuousProbabilityDistribution(
@@ -313,7 +323,8 @@ gammaDistribution(Number, Number) := (alpha, lambda) -> (
 	Description => "Gamma" | toString (alpha, lambda)))
 
 chiSquaredDistribution = method()
-chiSquaredDistribution ZZ := n -> (
+chiSquaredDistribution Number   :=
+chiSquaredDistribution Constant := n -> (
     checkPositive n;
     continuousProbabilityDistribution(
 	x -> 1/(2^(n/2) * Gamma(n/2)) * x^(n/2 - 1) * exp(-x / 2),
@@ -322,7 +333,8 @@ chiSquaredDistribution ZZ := n -> (
 	Description => "χ²(" | toString n | ")"))
 
 tDistribution = method()
-tDistribution Number := df -> (
+tDistribution Number :=
+tDistribution Constant := df -> (
     checkPositive df;
     continuousProbabilityDistribution(
 	x -> Gamma((df + 1)/2) / (sqrt(df * pi) * Gamma(df / 2)) *
