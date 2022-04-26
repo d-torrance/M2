@@ -724,6 +724,19 @@ assert Equation(quantile_X 0, 1)
 assert Equation(quantile_X(1/3), 3)
 assert Equation(quantile_X 1, 7)
 ///
+
+TEST ///
+X = exponentialDistribution 3
+assert Equation(density_X(-1), 0)
+assert Equation(density_X 3, 3 * exp(-9))
+
+assert Equation(probability_X(-1), 0)
+assert Equation(probability_X 3, 1 - exp(-9))
+
+assert Equation(quantile_X 0, 0)
+assert(abs(quantile_X(1 - exp(-9)) - 3) < 1e-13)
+///
+
 end
 
 loadPackage("Probability", Reload => true,
