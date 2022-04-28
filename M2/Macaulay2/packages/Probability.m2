@@ -639,6 +639,70 @@ doc ///
 	  Description => "six-sided die")
 ///
 
+doc ///
+  Key
+    continuousProbabilityDistribution
+    (continuousProbabilityDistribution, Function)
+    [continuousProbabilityDistribution, DistributionFunction]
+    [continuousProbabilityDistribution, QuantileFunction]
+    [continuousProbabilityDistribution, RandomGeneration]
+    [continuousProbabilityDistribution, Support]
+    [continuousProbabilityDistribution, Description]
+  Headline
+    construct a continuous probability distribution
+  Usage
+    continuousProbabilityDistribution f
+  Inputs
+    f:Function
+      the probability density function of @TT "X"@, to be used by
+      @TO density@.
+    DistributionFunction => Function
+      the cumulative distribution function of @TT "X"@, to be used by
+      @TO probability@.  If @TT "null"@, then obtained by numerically
+      integrating @TT "f"@.
+    QuantileFunction => Function
+      the quantile function of @TT "X"@, to be used by @TO quantile@.
+      If @TT "null"@, then obtained by using the @wikipedia "bisection method"@.
+    RandomGeneration => Function
+      a function for generating random samples from @TT "X"@, to be used
+      by @TO (random, ProbabilityDistribution)@.  If @TT "null"@, then obtained
+      using @wikipedia "inverse transform sampling"@.
+    Support => Sequence
+      containing the lower and upper bounds, respectively, of the
+      @wikipedia("Support (mathematics)", "support")@ of @TT "X"@.
+    Description => String
+      describing the probability distribution.
+  Outputs
+    X:ContinuousProbabilityDistribution
+  Description
+    Text
+      To construct a continuous probability distribution, provide the
+      probability density function and, if different than the default
+      of \([0, \infty\]), the support.
+    Example
+      X = continuousProbabilityDistribution(x -> 2 * x, Support => (0, 1))
+      density_X 0.75
+    Text
+      Values outside the support are automatically sent to 0.
+    Example
+      density_X 2
+    Text
+      The cumulative distribution, quantile, and random generation functions
+      are set to defaults based on the probability density function.
+    Example
+      probability_X 0.75
+      quantile_X 0.5625
+      random X
+    Text
+      However, if possible, it is good to provide these directly to
+      improve performance.  A description may also be provided.
+    Example
+      X = continuousProbabilityDistribution(x -> 2 * x, Support => (0, 1),
+	  DistributionFunction => x -> x^2,
+	  QuantileFunction => p -> sqrt p,
+	  Description => "triangular distribution")
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
