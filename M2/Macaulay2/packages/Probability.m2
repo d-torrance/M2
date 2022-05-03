@@ -738,6 +738,30 @@ doc ///
       Y = bernoulliDistribution 0.1
 ///
 
+doc ///
+  Key
+    poissonDistribution
+    (poissonDistribution, Number)
+    (poissonDistribution, Constant)
+  Usage
+    poissonDistribution lambda
+  Inputs
+    lambda:Number -- the rate parameter
+  Outputs
+    :DiscreteProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "Poisson distribution"@, the distribution of the number
+      of events to occur during some interval of time when the expected number
+      of events is @TT "lambda"@.
+    Example
+      X = poissonDistribution 10
+      density_X 2
+      probability_X 3
+      quantile_X 0.4
+      random X
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
