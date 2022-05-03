@@ -86,7 +86,7 @@ quantile(ProbabilityDistribution, Constant) := o -> (X, p) -> quantile'(X, p, o)
 
 random ProbabilityDistribution := o -> X -> X.RandomGeneration()
 net ProbabilityDistribution := X -> X.Description
-texMath ProbabilityDistribution := X -> texMath X.Description
+texMath ProbabilityDistribution := texMath @@ net
 
 -- helper functions for checking parameters
 checkReal := n -> if not isReal n then error(
