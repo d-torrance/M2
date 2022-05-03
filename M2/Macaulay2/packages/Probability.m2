@@ -704,6 +704,40 @@ doc ///
 	  Description => "triangular distribution")
 ///
 
+doc ///
+  Key
+    binomialDistribution
+    (binomialDistribution, ZZ, Number)
+    (binomialDistribution, ZZ, Constant)
+    bernoulliDistribution
+    (bernoulliDistribution, Number)
+    (bernoulliDistribution, Constant)
+  Usage
+    binomialDistribution(n, p)
+    bernoulliDistribution p
+  Inputs
+    n:ZZ
+    p:Number -- between 0 and 1
+  Outputs
+    :DiscreteProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "binomial distribution"@, the distribution of the number
+      of successes in a sequence of @TT "n"@ Bernoulli trials, where the
+      probability of success is @TT "p"@.
+    Example
+      X = binomialDistribution(10, 0.1)
+      density_X 2
+      probability_X 3
+      quantile_X 0.4
+      random X
+    Text
+      A special case is the @wikipedia "Bernoulli distribution"@, where
+      @TT "n"@ is 1.
+    Example
+      Y = bernoulliDistribution 0.1
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
