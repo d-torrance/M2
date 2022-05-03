@@ -762,6 +762,34 @@ doc ///
       random X
 ///
 
+doc ///
+  Key
+    geometricDistribution
+    (geometricDistribution, Number)
+    (geometricDistribution, Constant)
+  Usage
+    geometricDistribution p
+  Inputs
+    p:Number -- between 0 and 1
+  Outputs
+    :DiscreteProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "geometric distribution"@, the distribution of the number
+      of a failures in a sequence of Bernoulli trials before the first success,
+      where @TT "p"@ is the probability of a success.
+    Example
+      X = geometricDistribution 0.1
+      density_X 2
+      probability_X 3
+      quantile_X 0.4
+      random X
+  Caveat
+    Some probability texts define the geometric distribution as the number
+    of Bernoulli trials until the first success, and so the values will be
+    one greater than ours.  Our definition is consistent with R.
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
