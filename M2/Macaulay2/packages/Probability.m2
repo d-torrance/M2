@@ -1,6 +1,7 @@
 newPackage("Probability",
     Headline => "basic probability functions",
     Version => "0.1",
+    Date => "May 4, 2022",
     Authors => {{
 	    Name     => "Doug Torrance",
 	    Email    => "dtorrance@piedmont.edu",
