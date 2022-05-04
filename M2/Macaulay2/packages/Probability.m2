@@ -849,6 +849,36 @@ doc ///
    consistent with R.
 ///
 
+doc ///
+  Key
+    uniformDistribution
+    (uniformDistribution, Number, Number)
+    (uniformDistribution, Number, Constant)
+    (uniformDistribution, Constant, Number)
+    (uniformDistribution, Constant, Constant)
+  Usage
+    uniformDistribution(a, b)
+  Inputs
+    a:Number
+    b:Number -- greater than @TT "a"@
+  Outputs
+    :ContinuousProbabilityDistribution
+  Description
+    Text
+      The @TT "continuous uniform distribution"@.
+    Example
+      X = uniformDistribution(3, 7)
+      density_X 4
+      probability_X 5
+      quantile_X 0.6
+      random X
+    Text
+      With no arguments, the standard uniform distribution on [0, 1] is
+      returned.
+    Example
+      uniformDistribution()
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
