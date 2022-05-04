@@ -879,6 +879,30 @@ doc ///
       uniformDistribution()
 ///
 
+doc ///
+  Key
+    exponentialDistribution
+    (exponentialDistribution, Number)
+    (exponentialDistribution, Constant)
+  Usage
+    exponentialDistribution lambda
+  Inputs
+    lambda:Number -- the rate parameter (positive)
+  Outputs
+    :ContinuousProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "exponential distribution"@, the waiting time between
+      events in a Poisson process, where @TT "lambda"@ is the expected number
+      of events in one unit of time.
+    Example
+      X = exponentialDistribution 0.25
+      density_X 2
+      probability_X 3
+      quantile_X 0.4
+      random X
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
