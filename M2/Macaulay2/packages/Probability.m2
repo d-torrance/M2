@@ -433,6 +433,71 @@ doc ///
 
 doc ///
   Key
+    DensityFunction
+  Headline
+    probability density function
+  Description
+    Text
+      A key in @TO ProbabilityDistribution@ objects and an option for
+      @TO discreteProbabilityDistribution@ and
+      @TO continuousProbabilityDistribution@ for setting the probability
+      density/mass function to be used by @TO density@.
+///
+
+doc ///
+  Key
+    DistributionFunction
+  Headline
+    cumulative density function
+  Description
+    Text
+      A key in @TO ProbabilityDistribution@ objects and an option for
+      @TO discreteProbabilityDistribution@ and
+      @TO continuousProbabilityDistribution@ for setting the cumulative
+      distribution function to be used by @TO probability@.
+///
+
+doc ///
+  Key
+    QuantileFunction
+  Headline
+    quantile function
+  Description
+    Text
+      A key in @TO ProbabilityDistribution@ objects and an option for
+      @TO discreteProbabilityDistribution@ and
+      @TO continuousProbabilityDistribution@ for setting the quantile function
+      to be used by @TO quantile@.
+///
+
+doc ///
+  Key
+    RandomGeneration
+  Headline
+    random generation function
+  Description
+    Text
+      A key in @TO ProbabilityDistribution@ objects and an option for
+      @TO discreteProbabilityDistribution@ and
+      @TO continuousProbabilityDistribution@ for setting the random generation
+      function to be used by @TO (random, ProbabilityDistribution)@.
+///
+
+doc ///
+  Key
+    Support
+  Headline
+    support for probability distribution
+  Description
+    Text
+      A key in @TO ProbabilityDistribution@ objects and an option for
+      @TO discreteProbabilityDistribution@ and
+      @TO continuousProbabilityDistribution@ for setting the support of
+      the probability distribution.
+///
+
+doc ///
+  Key
     density
     (density, ProbabilityDistribution, Number)
     (density, ProbabilityDistribution, Constant)
