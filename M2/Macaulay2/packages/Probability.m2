@@ -990,6 +990,33 @@ doc ///
       random X
 ///
 
+doc ///
+  Key
+    tDistribution
+    (tDistribution, Number)
+    (tDistribution, Constant)
+  Usage
+    tDistribution df
+  Inputs
+    df:Number -- the degrees of freedom (positive)
+  Outputs
+    :ContinuousProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "Student's t-distribution"@.
+    Example
+      X = tDistribution 5
+      density_X 2
+      probability_X 3
+      quantile_X 0.4
+      random X
+  Caveat
+    This distribution currently uses numerical integration to approximate
+    values of its cumulative distribution function, and so @TO probability@,
+    @TO quantile@, and @TO (random, ProbabilityDistribution)@ are slow are
+    inaccurate.
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
