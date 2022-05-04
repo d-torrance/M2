@@ -903,6 +903,38 @@ doc ///
       random X
 ///
 
+doc ///
+  Key
+    normalDistribution
+    (normalDistribution, Number, Number)
+    (normalDistribution, Number, Constant)
+    (normalDistribution, Constant, Number)
+    (normalDistribution, Constant, Constant)
+  Usage
+    normalDistribution(mu, sigma)
+  Inputs
+    mu:Number -- the mean
+    sigma:Number -- the standard deviation (positive)
+  Outputs
+    :ContinuousProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "normal distribution"@ with mean @TT "mu"@ and standard
+      deviation @TT "sigma"@.
+    Example
+      X = normalDistribution(30, 5)
+      density_X 25
+      probability_X 35
+      quantile_X 0.75
+      random X
+    Text
+      With no arguments, the standard normal distribution with mean 0 and
+      standard deviation 1 is returned.
+    Example
+      Z = normalDistribution()
+      quantile_Z 0.975
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
