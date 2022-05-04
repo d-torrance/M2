@@ -380,6 +380,52 @@ beginDocumentation()
 
 doc ///
   Key
+    Probability
+  Headline
+    basic probability functions
+  Description
+    Text
+      This package provides a number of basic probability functions.  In
+      particular, for both discrete and continuous probability distributions,
+      there are the following four functions:
+
+      @UL {
+	  LI {TO density, ":  probability density (or mass) function"},
+	  LI {TO probability, ":  cumulative distribution function"},
+	  LI {TO quantile, ":  quantile function"},
+	  LI {TO (random, ProbabilityDistribution),
+	      ":  generate random samples"}}@
+
+      A variety of common probability distributions are supported.
+
+      @HEADER3 "Discrete distributions"@
+
+      @UL {
+	  LI {TO2 {binomialDistribution, "binomial"}},
+	  LI {TO2 {poissonDistribution, "Poisson"}},
+	  LI {TO2 {geometricDistribution, "geometric"}},
+	  LI {TO2 {negativeBinomialDistribution, "negative binomial"}},
+	  LI {TO2 {hypergeometricDistribution, "hypergeometric"}}}@
+
+      @HEADER3 "Continuous distributions"@
+
+      @UL {
+	  LI {TO2 {uniformDistribution, "uniform"}},
+	  LI {TO2 {exponentialDistribution, "exponential"}},
+	  LI {TO2 {normalDistribution, "normal"}},
+	  LI {TO2 {gammaDistribution, "gamma"}},
+	  LI {TO2 {chiSquaredDistribution, "chi-squared"}},
+	  LI {TO2 {tDistribution, "Student's t"}},
+	  LI {TO2 {fDistribution, "F"}},
+	  LI {TO2 {betaDistribution, "beta"}}}@
+
+      You may also define your own probability distributions using
+      @TO discreteProbabilityDistribution@ and
+      @TO continuousProbabilityDistribution@.
+///
+
+doc ///
+  Key
     ProbabilityDistribution
     DiscreteProbabilityDistribution
     ContinuousProbabilityDistribution
