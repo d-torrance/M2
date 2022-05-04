@@ -966,6 +966,30 @@ doc ///
     parameter instead of a rate parameter.  They are reciprocals of one another.
 ///
 
+doc ///
+  Key
+    chiSquaredDistribution
+    (chiSquaredDistribution, Number)
+    (chiSquaredDistribution, Constant)
+  Usage
+    chiSquaredDistribution n
+  Inputs
+    n:Number -- the degrees of freedom (positive)
+  Outputs
+    :ContinuousProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "chi-squared distribution"@, the distribution of the sum
+      of @TT "n"@ squares of independent
+      @TO2 {normalDistribution, "normally distributed"}@ random variables.
+    Example
+      X = chiSquaredDistribution 5
+      density_X 2
+      probability_X 3
+      quantile_X 0.4
+      random X
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
