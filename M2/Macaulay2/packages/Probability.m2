@@ -436,6 +436,8 @@ doc ///
     density
     (density, ProbabilityDistribution, Number)
     (density, ProbabilityDistribution, Constant)
+    (density, DiscreteProbabilityDistribution, Number)
+    (density, DiscreteProbabilityDistribution, Constant)
   Headline
     probability density (or mass) function
   Usage
@@ -482,6 +484,8 @@ doc ///
     probability
     (probability, ProbabilityDistribution, Number)
     (probability, ProbabilityDistribution, Constant)
+    (probability, DiscreteProbabilityDistribution, Number)
+    (probability, DiscreteProbabilityDistribution, Constant)
     [probability, LowerTail]
   Headline
     cumulative distribution function
@@ -513,6 +517,8 @@ doc ///
     quantile
     (quantile, ProbabilityDistribution, Number)
     (quantile, ProbabilityDistribution, Constant)
+    (quantile, DiscreteProbabilityDistribution, Number)
+    (quantile, DiscreteProbabilityDistribution, Constant)
     [quantile, LowerTail]
   Headline
     quantile function
@@ -852,6 +858,7 @@ doc ///
 doc ///
   Key
     uniformDistribution
+    1:uniformDistribution
     (uniformDistribution, Number, Number)
     (uniformDistribution, Number, Constant)
     (uniformDistribution, Constant, Number)
@@ -906,6 +913,7 @@ doc ///
 doc ///
   Key
     normalDistribution
+    1:normalDistribution
     (normalDistribution, Number, Number)
     (normalDistribution, Number, Constant)
     (normalDistribution, Constant, Number)
