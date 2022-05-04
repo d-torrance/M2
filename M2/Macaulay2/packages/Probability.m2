@@ -935,6 +935,37 @@ doc ///
       quantile_Z 0.975
 ///
 
+doc ///
+  Key
+    gammaDistribution
+    (gammaDistribution, Number, Number)
+    (gammaDistribution, Number, Constant)
+    (gammaDistribution, Constant, Number)
+    (gammaDistribution, Constant, Constant)
+  Usage
+    gammaDistribution(alpha, lambda)
+  Inputs
+    alpha:Number -- the shape parameter (positive)
+    lambda:Number -- the rate parameter (positive)
+  Description
+    Text
+      The @wikipedia "gamma distribution"@.  When @TT "alpha"@ is an integer
+      (also known as the @wikipedia "Erlang distribution"@), this is waiting
+      time until the @TT "alpha"@th event in a Poisson process where
+      @TT "lambda"@ is the expected number of events in one unit of time.  In
+      particular, when @TT "alpha"@ is 1, this is the
+      @TO2 {exponentialDistribution, "exponential distribution"}@.
+    Example
+      X = gammaDistribution(5, 0.6)
+      density_X 2
+      probability_X 3
+      quantile_X 0.4
+      random X
+  Caveat
+    Some probability texts define the gamma distribution using a @EM "scale"@
+    parameter instead of a rate parameter.  They are reciprocals of one another.
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
