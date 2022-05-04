@@ -1017,6 +1017,32 @@ doc ///
     inaccurate.
 ///
 
+doc ///
+  Key
+    fDistribution
+    (fDistribution, Number, Number)
+    (fDistribution, Number, Constant)
+    (fDistribution, Constant, Number)
+    (fDistribution, Constant, Constant)
+  Usage
+    fDistribution(d1, d2)
+  Inputs
+    d1:Number -- the numerator degrees of freedom (positive)
+    d2:Number -- the denominator degrees of freedom (positive)
+  Outputs
+    :ContinuousProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "F-distribution"@, widely used in
+      @wikipedia "ANOVA"@.
+    Example
+      X = fDistribution(5, 6)
+      density_X 2
+      probability_X 3
+      quantile_X 0.4
+      random X
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
