@@ -783,6 +783,8 @@ doc ///
     bernoulliDistribution
     (bernoulliDistribution, Number)
     (bernoulliDistribution, Constant)
+  Headline
+    binomial distribution
   Usage
     binomialDistribution(n, p)
     bernoulliDistribution p
@@ -814,6 +816,8 @@ doc ///
     poissonDistribution
     (poissonDistribution, Number)
     (poissonDistribution, Constant)
+  Headline
+    Poisson distribution
   Usage
     poissonDistribution lambda
   Inputs
@@ -838,6 +842,8 @@ doc ///
     geometricDistribution
     (geometricDistribution, Number)
     (geometricDistribution, Constant)
+  Headline
+    geometric distribution
   Usage
     geometricDistribution p
   Inputs
@@ -868,6 +874,8 @@ doc ///
     (negativeBinomialDistribution, Number, Constant)
     (negativeBinomialDistribution, Constant, Number)
     (negativeBinomialDistribution, Constant, Constant)
+  Headline
+    negative binomial distribution
   Usage
     negativeBinomialDistribution(r, p)
   Inputs
@@ -895,6 +903,8 @@ doc ///
   Key
     hypergeometricDistribution
     (hypergeometricDistribution, ZZ, ZZ, ZZ)
+  Headline
+    hypergeometric distribution
   Usage
     hypergeometricDistribution(m, n, k)
   Inputs
@@ -928,6 +938,8 @@ doc ///
     (uniformDistribution, Number, Constant)
     (uniformDistribution, Constant, Number)
     (uniformDistribution, Constant, Constant)
+  Headline
+    continuous uniform distribution
   Usage
     uniformDistribution(a, b)
   Inputs
@@ -956,6 +968,8 @@ doc ///
     exponentialDistribution
     (exponentialDistribution, Number)
     (exponentialDistribution, Constant)
+  Headline
+    exponential distribution
   Usage
     exponentialDistribution lambda
   Inputs
@@ -983,6 +997,8 @@ doc ///
     (normalDistribution, Number, Constant)
     (normalDistribution, Constant, Number)
     (normalDistribution, Constant, Constant)
+  Headline
+    normal distribution
   Usage
     normalDistribution(mu, sigma)
   Inputs
@@ -1015,6 +1031,8 @@ doc ///
     (gammaDistribution, Number, Constant)
     (gammaDistribution, Constant, Number)
     (gammaDistribution, Constant, Constant)
+  Headline
+    gamma distribution
   Usage
     gammaDistribution(alpha, lambda)
   Inputs
@@ -1044,6 +1062,8 @@ doc ///
     chiSquaredDistribution
     (chiSquaredDistribution, Number)
     (chiSquaredDistribution, Constant)
+  Headline
+    chi-squared distribution
   Usage
     chiSquaredDistribution n
   Inputs
@@ -1068,6 +1088,8 @@ doc ///
     tDistribution
     (tDistribution, Number)
     (tDistribution, Constant)
+  Headline
+    Student's t-distribution
   Usage
     tDistribution df
   Inputs
@@ -1097,6 +1119,8 @@ doc ///
     (fDistribution, Number, Constant)
     (fDistribution, Constant, Number)
     (fDistribution, Constant, Constant)
+  Headline
+    F-distribution
   Usage
     fDistribution(d1, d2)
   Inputs
@@ -1123,6 +1147,8 @@ doc ///
     (betaDistribution, Number, Constant)
     (betaDistribution, Constant, Number)
     (betaDistribution, Constant, Constant)
+  Headline
+    beta distribution
   Usage
     betaDistribution(alpha, beta)
   Inputs
