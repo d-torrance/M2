@@ -790,6 +790,36 @@ doc ///
     one greater than ours.  Our definition is consistent with R.
 ///
 
+doc ///
+  Key
+    negativeBinomialDistribution
+    (negativeBinomialDistribution, Number, Number)
+    (negativeBinomialDistribution, Number, Constant)
+    (negativeBinomialDistribution, Constant, Number)
+    (negativeBinomialDistribution, Constant, Constant)
+  Usage
+    negativeBinomialDistribution(r, p)
+  Inputs
+    r:Number -- positive
+    p:Number -- between 0 and 1
+  Outputs
+    :DiscreteProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "negative binomial distribution"@, the distribution of
+      the number of failures in a sequence of Bernoulli trials (with probability
+      of success @TT "p"@) until the @TT "r"@th success.
+    Example
+      X = negativeBinomialDistribution(5, 0.1)
+      density_X 20
+      probability_X 30
+      quantile_X 0.4
+      random X
+  Caveat
+    Probability texts define the negative binomial distribution in a variety
+    of different ways.  Our definition is consistent with R.
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
