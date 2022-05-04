@@ -1167,6 +1167,8 @@ doc ///
       random X
 ///
 
+undocumented {(texMath, ProbabilityDistribution)}
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
