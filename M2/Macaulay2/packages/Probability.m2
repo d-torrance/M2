@@ -1043,6 +1043,31 @@ doc ///
       random X
 ///
 
+doc ///
+  Key
+    betaDistribution
+    (betaDistribution, Number, Number)
+    (betaDistribution, Number, Constant)
+    (betaDistribution, Constant, Number)
+    (betaDistribution, Constant, Constant)
+  Usage
+    betaDistribution(alpha, beta)
+  Inputs
+    alpha:Number -- shape parameter (positive)
+    beta:Number -- shape parameter (positive)
+  Outputs
+    :ContinuousProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "beta distribution"@.
+    Example
+      X = betaDistribution(5, 6)
+      density_X 0.2
+      probability_X 0.3
+      quantile_X 0.4
+      random X
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
