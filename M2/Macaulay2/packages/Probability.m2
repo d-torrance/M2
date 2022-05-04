@@ -820,6 +820,35 @@ doc ///
     of different ways.  Our definition is consistent with R.
 ///
 
+doc ///
+  Key
+    hypergeometricDistribution
+    (hypergeometricDistribution, ZZ, ZZ, ZZ)
+  Usage
+    hypergeometricDistribution(m, n, k)
+  Inputs
+    m:ZZ -- nonnegative
+    n:ZZ -- nonnegative
+    k:ZZ -- between 0 and and @TT "m + n"@
+  Outputs
+    :DiscreteProbabilityDistribution
+  Description
+    Text
+      The @wikipedia "hypergeometric distribution"@, the number of white balls
+      drawn after drawing @TT "k"@ balls from an urn containing @TT "m"@ white
+      and @TT "n"@ black balls.
+    Example
+      X = hypergeometricDistribution(5, 6, 4)
+      density_X 2
+      probability_X 3
+      quantile_X 0.4
+      random X
+ Caveat
+   Probabiltity texts often use the total number of balls (our @TT "m + n"@)
+   as one of the parameters of this distribution.  Our definition is
+   consistent with R.
+///
+
 TEST ///
 X = binomialDistribution(10, 0.25)
 assert Equation(density_X(-1), 0)
