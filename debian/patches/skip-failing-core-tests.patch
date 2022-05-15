@@ -1,20 +1,10 @@
 Description: Skip Core tests that have been known to fail on various
  architectures.
-Bug: https://github.com/Macaulay2/M2/issues/241 (plethysms)
-Bug: https://github.com/Macaulay2/M2/issues/1304 (ComputationsBook/varieties)
-Bug: https://github.com/Macaulay2/M2/issues/1578 (isSubset)
-Bug: https://github.com/Macaulay2/M2/issues/1580 (smith)
-Bug: https://github.com/Macaulay2/M2/issues/1663 (schur-2)
-Bug: https://github.com/Macaulay2/M2/issues/1742 (ComputationsBook/
- monomialIdeals)
-Bug: https://github.com/Macaulay2/M2/issues/2014 (timing-quotient)
 Bug: https://github.com/Macaulay2/M2/issues/2162 (ComputationsBook/
  constructions)
-Bug: https://github.com/Macaulay2/M2/issues/2184 (000-core)
-Bug: https://github.com/Macaulay2/M2/issues/2206 (CSM.test, methods)
-Bug: https://github.com/Macaulay2/M2/issues/2242 (ComputationsBook/geometry)
+Bug: https://github.com/Macaulay2/M2/issues/2242 (ComputationsBook/geometry
+ & ComputationsBook/solving)
 Author: Doug Torrance <dtorrance@debian.org>
-Origin: https://github.com/Macaulay2/M2/pull/2358 (ComputationsBook/varieties)
 Last-Update: 2021-12-13
 
 --- a/M2/Macaulay2/tests/ComputationsBook/Makefile.in
@@ -26,92 +16,7 @@ Last-Update: 2021-12-13
 -CHAPTERS = completeIntersections constructions d-modules exterior-algebra geometry \
 -	   monomialIdeals preface programming schemes solving toricHilbertScheme varieties
 +CHAPTERS = completeIntersections d-modules exterior-algebra \
-+	   preface programming schemes toricHilbertScheme varieties
++	   monomialIdeals preface programming schemes toricHilbertScheme varieties
  .PHONY: changes capture
  all:
  $(CHAPTERS):; $(MKDIR_P) "$@"
---- a/M2/Macaulay2/tests/normal/smith.m2
-+++ b/M2/Macaulay2/tests/normal/smith.m2
-@@ -27,7 +27,6 @@
- 
- R = QQ[x]
- time (g,t,s) = smithNormalForm ( f = random(R^8,R^3,MaximalRank=>true) * matrix "14+x,,;,140-x2,;,,1261+2x" * random(R^3,R^10,MaximalRank=>true) );
--time assert ( t*f*s == g )
- time assert ( # pivots g == 3 )
- 
- S = QQ [x, MonomialOrder => {Position => Down}]
---- a/M2/Macaulay2/tests/slow/isSubset.m2
-+++ b/M2/Macaulay2/tests/slow/isSubset.m2
-@@ -42,10 +42,3 @@
- K = I+J;
- f = J_(numgens J - 1);
- m = a*b*c^6
--assert( m % leadTerm K == 0 )
--assert( m % K != m )
--s = select( flatten entries leadTerm K, n -> m % leadMonomial n == 0 )
--assert( m % ideal s == 0 )
--assert( f % K == 0 )
--assert isSubset(J,K)
--assert ( gens gb gens gb K == gens gb K )
---- a/M2/Macaulay2/tests/threads/schur-2.m2
-+++ b/M2/Macaulay2/tests/threads/schur-2.m2
-@@ -4,4 +4,4 @@
- S = schurRing(s,3);
- rep = s_{5};
- M = {1_S,s_{5},s_{10},s_{15},s_{20},s_{25},s_{30}};
--for i to 15 do ( stderr << i << endl; schurResolution(rep,M,SyzygyLimit => 3) );
-+for i to 7 do ( stderr << i << endl; schurResolution(rep,M,SyzygyLimit => 3) );
---- a/M2/Macaulay2/tests/normal/timing-quotient.m2
-+++ b/M2/Macaulay2/tests/normal/timing-quotient.m2
-@@ -221,10 +221,8 @@
- -- https://github.com/Macaulay2/M2/issues/1804
- -- https://github.com/Macaulay2/M2/pull/1811
- -- https://github.com/Macaulay2/M2/pull/1957
--assert BinaryOperation {symbol <, tim#0, standardSecond}
- 
- P=QQ[x,y,z,MonomialOrder=>Lex];
- d=z^4+z^2*x*y^9+z*x^9*y+x^5*y^5;
- phi=map(P,P,matrix{{x^13*y^4,x^3*y,x^20*y^6*z}});
- tim = timing factor(phi(d));
--assert BinaryOperation {symbol <, tim#0, .05 * standardSecond}
---- a/M2/Macaulay2/tests/Makefile.test.in
-+++ b/M2/Macaulay2/tests/Makefile.test.in
-@@ -33,7 +33,8 @@
- LIMIT += ulimit -s $(SLIMIT) ;
- endif
- 
--TESTFILES := $(wildcard $(SRCDIR)/*.m2)
-+PROBLEM_TESTS := $(patsubst %, $(SRCDIR)/%.m2, 000-core CSM.test methods)
-+TESTFILES := $(filter-out $(PROBLEM_TESTS), $(wildcard $(SRCDIR)/*.m2))
- 
- RESULTS := $(notdir $(patsubst %.m2, %.out, $(TESTFILES))) \
- 	   $(notdir $(patsubst %.m2-input, %.out, $(wildcard $(SRCDIR)/*.m2-input)))
---- a/M2/Macaulay2/tests/slow/plethysms.m2
-+++ b/M2/Macaulay2/tests/slow/plethysms.m2
-@@ -23,8 +23,6 @@
- G = flagBundle {6,4}
- (S,Q) = G.Bundles
- E = exteriorPower_3 S
--time apply(0 .. 20, i -> chi exteriorPower_i E)
--assert( oo == (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) )
- time integral ( chern_20 E * (chern_1 G.TangentBundle)^4 )
- assert( oo == 14520000 )
- 
---- a/M2/Macaulay2/tests/ComputationsBook/varieties/Makefile.in
-+++ b/M2/Macaulay2/tests/ComputationsBook/varieties/Makefile.in
-@@ -1,15 +1,6 @@
- # @configure_input@
- chapter_srcdir = @srcdir@
- 
--# it seems that factory gives a different order of factors, depending on whether
--# we are on a 32 bit machine
--
--ifeq "$(shell uname -m)" "i686"
--EXPECTED = test.out.expected-32
--endif
--
--diff-32:; diff -u @srcdir@/test.out.expected @srcdir@/test.out.expected-32
--
- include ../Makefile.chapter
- 
- Makefile: Makefile.in; cd ../../../..; ./config.status Macaulay2/tests/ComputationsBook/varieties/Makefile

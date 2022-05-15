@@ -1,0 +1,46 @@
+Description: Fixes for building highlight.js.
+ - Backport to webpack 9, which is the version still in Debian.
+Author: Doug Torrance <dtorrance@debian.org>
+Forwarded: not-needed
+Last-Update: 2022-02-27
+
+--- a/M2/Macaulay2/editors/highlightjs/index.js
++++ b/M2/Macaulay2/editors/highlightjs/index.js
+@@ -1,8 +1,11 @@
+-import hljs from 'highlight.js/lib/core';
++import hljs from 'highlight.js/lib/highlight';
+ import macaulay2 from './macaulay2.js';
+ import 'highlight.js/styles/default.css';
+ import './highlight-override.css';
+ 
+ hljs.registerLanguage('macaulay2', macaulay2);
+-hljs.configure({ cssSelector: 'code' });
+-hljs.highlightAll();
++document.addEventListener('DOMContentLoaded', (event) => {
++  document.querySelectorAll('code').forEach((block) => {
++    hljs.highlightBlock(block);
++  });
++});
+--- a/M2/Macaulay2/editors/highlightjs/macaulay2.js.in
++++ b/M2/Macaulay2/editors/highlightjs/macaulay2.js.in
+@@ -28,16 +28,16 @@
+     keywords: {
+       keyword: [
+ 	@M2KEYWORDS@
+-      ],
++      ].join(" "),
+       type: [
+ 	@M2DATATYPES@
+-      ],
++      ].join(" "),
+       built_in: [
+ 	@M2FUNCTIONS@
+-      ],
++      ].join(" "),
+       literal: [
+ 	@M2CONSTANTS@
+-      ]
++      ].join(" ")
+     }
+   }
+ }

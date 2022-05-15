@@ -18,26 +18,38 @@ VERSION := $(shell cat M2/VERSION)
 	dh $@ --sourcedirectory=M2 --with linktree
 
 # use exec_prefix instead of prefix in libdir, as that's what's needed
-# to properly substitute paths in Layout#2, and set emacs lisp file
-# installation directory so that the documentation matches where dh_elpa
-# installs them
+# to properly substitute paths in Layout#2
+LIBDIR := \$${exec_prefix}/lib/$(DEB_HOST_MULTIARCH)
+
+# set emacs lisp file installation directory so that the documentation
+# matches where dh_elpa installs them
 EMACSDIR := \
 	\$${prefix}/share/emacs/site-lisp/elpa/macaulay2-$(VERSION)
+
 WITH_PYTHON := $(if $(filter nopython, $(DEB_BUILD_PROFILES)),, --with-python)
+
+ifneq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
+DISABLE_DOCUMENTATION = --disable-documentation
+else
+DISABLE_DOCUMENTATION := $(if $(shell dh_listpackages -i),,\
+	--disable-documentation)
+endif
+
 override_dh_auto_configure:
-	dh_auto_configure -- \
-		--libdir=\$${exec_prefix}/lib/$(DEB_HOST_MULTIARCH) \
-		--with-emacsdir=$(EMACSDIR) $(WITH_PYTHON)
-
-# prevent html-check-links from failing to find KaTeX files before
-# they get added by dh_linktree
-KATEX_DIR := $(CURDIR)/M2/Macaulay2/packages/Style/katex
-KATEX_FILES := $(patsubst %, $(KATEX_DIR)/%, \
-	katex.min.css katex.min.js contrib/auto-render.min.js \
-	contrib/copy-tex.min.css contrib/copy-tex.min.js)
-
-$(KATEX_DIR)/%:
-	touch $@
+	dh_auto_configure --                \
+		--libdir=$(LIBDIR)          \
+		--with-emacsdir=$(EMACSDIR) \
+		--with-system-memtailor     \
+		--with-system-mathic        \
+		--with-system-mathicgb      \
+		--with-system-gc            \
+		$(WITH_PYTHON)              \
+		$(DISABLE_DOCUMENTATION)    \
+		$(if $(DISABLE_DOCUMENTATION),,--enable-syntax-highlighting)
+ifeq ($(DISABLE_DOCUMENTATION),)
+	dh_auto_configure --buildsystem=nodejs
+	mv node_modules M2/Macaulay2/editors/highlightjs
+endif
 
 # copy cached example output files (for examples known to fail on
 # various architectures) to source directory
@@ -50,23 +62,15 @@ $(CURDIR)/M2/Macaulay2/packages/%/examples: $(CURDIR)/debian/examples/%
 	mkdir -p $@
 	cp -v $</*.out $@
 
-execute_before_dh_auto_build-indep: $(KATEX_FILES) $(EXAMPLE_DEST)
-
-ifneq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
-MakeDocumentation = false
-else
-MakeDocumentation := $(if $(shell dh_listpackages -i),true,false)
-endif
-
-override_dh_auto_build:
-	dh_auto_build -- MakeDocumentation=$(MakeDocumentation)
+execute_before_dh_auto_build: $(EXAMPLE_DEST)
+	mkdir -p M2/Macaulay2/packages/Style/katex
 
 # since a "test" target exists, dh_auto_test defaults to using that, but
 # it just prints the values of some variables.  we want the "check" target
 # instead to run the test suite
 # related: https://bugs.debian.org/924052
 override_dh_auto_test-arch:
-	$(MAKE) -C M2 check
+	$(MAKE) -C M2 check ArgumentMode="defaultMode - SetUlimit" LIMIT=
 
 override_dh_auto_test-indep:
 # uncomment after #994765 is fixed

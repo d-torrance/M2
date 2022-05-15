@@ -66,7 +66,9 @@ info TITLE :=
 net  COMMENT :=
 info COMMENT :=
 net  LITERAL :=
-info LITERAL := x -> ""
+info LITERAL :=
+net  SCRIPT  :=
+info SCRIPT  := x -> ""
 
 info String  := identity
 info Nothing := net
@@ -174,7 +176,8 @@ net CODE  :=
 info TT   :=
 info CODE :=  x -> horizontalJoin apply(noopts x,net)
 
-info PRE  := x -> wrap(printWidth, "-", concatenate apply(noopts x,toString))
+info PRE  := x ->
+    wrap(printWidth, "-", concatenate apply(noopts x,toString @@ info))
 
 net TH := Hop(net, "-")
 
@@ -287,7 +290,7 @@ net TO  := x -> (
      then concatenate( "\"", format x#0, "\"", if x#?1 then x#1)
      else horizontalJoin( "\"", net x#0, "\"", if x#?1 then x#1)
      )
-net TO2 := x -> x#1
+net TO2 := x -> format x#1
 
 -- TODO: move this back from help.m2
 net  MENU := x -> net redoMENU x

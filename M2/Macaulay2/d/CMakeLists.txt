@@ -69,8 +69,8 @@ set(DLIST
   equality.dd
   hashtables.dd
   regex.dd
-  sets.dd
   evaluate.d
+  sets.dd
   mysql.d	# removed unless WITH_SQL
   mysqldummy.d	# removed if WITH_SQL
   pthread.d
@@ -86,6 +86,7 @@ set(DLIST
   python.d	# removed unless WITH_PYTHON
   interface.dd interface2.d
   texmacs.d
+  boostmath.dd
   interp.dd	# this one is last, because it contains the top level interpreter
   version.dd
   )
@@ -139,7 +140,7 @@ add_library(M2-interpreter OBJECT ${CLIST} ${CXXLIST} ${TAGS}
   $<$<BOOL:${WITH_XML}>:xml-c.c xml-c.h>
   $<$<BOOL:${WITH_PYTHON}>:python-c.c>)
 
-target_link_libraries(M2-interpreter PRIVATE M2-supervisor Boost::regex)
+target_link_libraries(M2-interpreter PRIVATE M2-supervisor Boost::regex TBB::tbb)
 
 target_include_directories(M2-interpreter
   PUBLIC
@@ -191,6 +192,7 @@ target_compile_options(M2-interpreter PRIVATE
   -Wno-sign-compare
   -Wno-uninitialized
   -Wno-unused
+  -Wno-array-bounds   # FIXME: caused by scc1's implementation of arrays
 
   # FIXME: mismatched-tags and parentheses-equality errors are caused by scc1
   $<$<COMPILE_LANG_AND_ID:C,AppleClang,Clang>:-Wno-parentheses-equality>

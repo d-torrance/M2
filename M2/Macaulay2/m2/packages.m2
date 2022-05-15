@@ -57,11 +57,12 @@ if notify then stderr << "--loading configuration for package \"PKG\" from file 
 warn0 := (sym, front, behind, syns) -> (
     -- just for debugging:
     -- error("symbol ", format sym, " in ", toString behind, " is shadowed by a symbol in ", toString front);
-    stderr << "--warning: symbol " << format toString sym << " in " << behind << " is shadowed by a symbol in " << front << endl;
+    printerr("warning: symbol ", format toString sym, " in ", toString behind,
+	" is shadowed by a symbol in ", toString front);
     if #syns > 0 then if #syns > 1
-    then stderr << "--  use one of the synonyms " << demark(", ", syns) << endl
-    else stderr << "--  use the synonym " << syns#0 << endl
-    else stderr << "--  no synonym is available" << endl)
+    then printerr("  use one of the synonyms ", demark(", ", syns))
+    else printerr("  use the synonym ", syns#0)
+    else printerr("  no synonym is available"))
 warn := x -> if not seenWarnings#?x and debuggingMode then (warn0 x; seenWarnings#x = true)
 
 checkShadow := () -> (
@@ -187,6 +188,7 @@ needsPackage String  := opts -> pkgname -> (
     and instance(pkg := value PackageDictionary#pkgname, Package)
     and (opts.FileName === null or
 	realpath opts.FileName == realpath pkg#"source file")
+    and pkg.PackageIsLoaded
     then use value PackageDictionary#pkgname
     else loadPackage(pkgname, opts))
 
@@ -249,6 +251,10 @@ newPackage String := opts -> pkgname -> (
 	    (Headline, String),
 	    (HomePage, String)}, (name, type) -> if opts#name =!= null and not instance(opts#name, type) then
 	error("newPackage: expected ", toString name, " option of class ", toString type));
+    if opts.?Keywords then (
+	 if class opts.Keywords =!= List then error "expected Keywords value to be a list";
+	 if not all(opts.Keywords, k -> class k === String) then error "expected Keywords value to be a list of strings";
+	 );
     -- TODO: if #opts.Headline > 100 then error "newPackage: Headline is capped at 100 characters";
     -- the options coming from loadPackage are stored here
     loadOptions := if loadPackageOptions#?pkgname then loadPackageOptions#pkgname else loadPackageOptions#"default";
@@ -346,6 +352,7 @@ newPackage String := opts -> pkgname -> (
 	if packagePrefix =!= null then
 	"package prefix"           => packagePrefix
 	};
+    newpkg.PackageIsLoaded = false;
     --
     if packageLayout =!= null then (
 	rawdbname := databaseFilename(Layout#packageLayout, packagePrefix, pkgname);
@@ -442,6 +449,8 @@ newPackage("Core",
      Headline => "A computer algebra system designed to support algebraic geometry")
 Core#"pre-installed packages" = lines get (currentFileDirectory | "installedpackages")
 
+protect PackageIsLoaded
+
 endPackage = method()
 endPackage String := title -> (
      if currentPackage === null or title =!= currentPackage#"pkgname" then error ("package not current: ", title);
@@ -482,6 +491,7 @@ endPackage String := title -> (
 	  error splice ("mutable unexported unset symbol(s) in package ", pkg#"pkgname", ": ", toSequence between_", " b);
 	  );
      -- TODO: check for hadDocumentationWarning and Error here?
+     pkg.PackageIsLoaded = true;
      pkg)
 
 beginDocumentation = () -> (
