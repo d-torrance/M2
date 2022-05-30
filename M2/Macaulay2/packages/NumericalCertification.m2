@@ -8,7 +8,6 @@ newPackage(
 	     },
     	Headline => "numerical certification",
 	PackageExports => {"NumericalAlgebraicGeometry"},
-	Configuration => {"ALPHACERTIFIEDexec" => "alphaCertified"},
     	DebuggingMode => true,		 -- set to true only during development
     	--DebuggingMode => false,
 	AuxiliaryFiles => true
@@ -52,11 +51,7 @@ export {
     }
 exportMutable {}
 
-
-
-ALPHACERTIFIEDexe=(options NumericalCertification).Configuration#"ALPHACERTIFIEDexec"
-
-
+ALPHACERTIFIEDexe = null
 
 conjugateGaussian = method()
 conjugateGaussian(RingElement) := x -> (
@@ -426,12 +421,16 @@ alphaCertified = method(Options => {
 	}
 	)
 alphaCertified(PolySystem, List) := o -> (P, L) -> (
+    if ALPHACERTIFIEDexe === null
+    then ALPHACERTIFIEDexe = findProgram("alphaCertified",
+	"alphaCertified --help");
     fin1 := toACertifiedPoly P;
     fin2 := toACertifiedPoint L;
     fin3 := temporaryFileName();
     apply(# o, i -> fin3 << toString(keys o)#i | ": "|toString(values o)#i|";" << endl);
     fin3 << close;
-    run("cd " | ALPHACERTIFIEDexe |"; ./alphaCertified " | fin1 |" "| fin2 |" " | fin3);
+    runProgram(ALPHACERTIFIEDexe, demark_" " {fin1, fin2, fin3},
+	Verbose => true);
     )
 alphaCertified(List, List) := (P, L) -> alphaCertified(polySystem P, L)
 alphaCertified(Ideal, List) := (P, L) -> alphaCertified(polySystem P, L)
