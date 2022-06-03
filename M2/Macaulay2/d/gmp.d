@@ -2436,6 +2436,12 @@ export erf(x:RR):RR := (
      Ccode( void, "mpfr_erf(", z, ",", x, ", GMP_RNDN)" );
      moveToRRandclear(z));
 
+export erf(x:RRi):RRi := (
+     z := newRRimutable(precision0(x));
+     Ccode( void, "mpfr_erf(&(", z, "->left), &(", x, "->left), MPFR_RNDD)" );
+     Ccode( void, "mpfr_erf(&(", z, "->right), &(", x, "->right), MPFR_RNDU)" );
+     moveToRRiandclear(z));
+
 export erfc(x:RR):RR := (
      z := newRRmutable(precision0(x));
      Ccode( void, "mpfr_erfc(", z, ",", x, ", GMP_RNDN)" );

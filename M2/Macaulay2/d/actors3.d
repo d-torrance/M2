@@ -874,6 +874,7 @@ setupfun("zeta",zeta).Protected=false;
 erf(e:Expr):Expr := (
      when e
      is x:RRcell do toExpr(erf(x.v))				    -- # typical value: erf, RR, RR
+     is x:RRicell do toExpr(erf(x.v))				    -- # typical value: erf, RRi, RRi
      else buildErrorPacket("expected a number")
      );
 setupfun("erf",erf).Protected=false;
