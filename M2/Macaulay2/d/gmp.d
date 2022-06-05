@@ -2475,6 +2475,17 @@ export sign(x:RR):bool := 0 != Ccode(int,"mpfr_signbit(",x,")");
 
 export sign(x:RRi):bool := 0 != Ccode(int,"mpfi_is_neg(",x,")");
 
+export nextAbove(x:RR):RR := (
+     z := newRRmutable(precision0(x));
+     Ccode(void, "mpfr_set(",  z, ",",  x, ", MPFR_RNDN)" );
+     Ccode(void, "mpfr_nextabove(", z, ")");
+     moveToRRandclear(z));
+export nextBelow(x:RR):RR := (
+     z := newRRmutable(precision0(x));
+     Ccode(void, "mpfr_set(",  z, ",",  x, ", MPFR_RNDN)" );
+     Ccode(void, "mpfr_nextbelow(", z, ")");
+     moveToRRandclear(z));
+
 -- complex transcendental functions
 
 export exp(z:CC):CC := exp(z.re) * toCC(cos(z.im),sin(z.im));

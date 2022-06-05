@@ -1109,6 +1109,18 @@ sqrt(a:Expr):Expr := (
      is Error do a
      else WrongArgRR());
 setupfun("sqrt",sqrt).Protected=false;
+
+export nextAbove(e:Expr):Expr:=
+     when e
+     is x:RRcell do toExpr(nextAbove(x.v))
+     else WrongArgRR();
+setupfun("nextAbove",nextAbove);
+export nextBelow(e:Expr):Expr:=
+     when e
+     is x:RRcell do toExpr(nextBelow(x.v))
+     else WrongArgRR();
+setupfun("nextBelow",nextBelow);
+
 map(a1:Sequence,a2:Sequence,f:Expr):Expr := (
      newlen := length(a1);
      if newlen != length(a2) then return WrongArg("lists of the same length");
