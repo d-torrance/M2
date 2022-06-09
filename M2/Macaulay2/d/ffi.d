@@ -174,3 +174,31 @@ storeInHashTable(foreignFunctionTypes,
     toExpr("complex_longdouble"),
     toExpr(Ccode(voidPointer, "&ffi_type_complex_longdouble")));
 setupconst("foreignFunctionTypes", Expr(foreignFunctionTypes));
+
+addressOfFunctions := newHashTable(mutableHashTableClass, nothingClass);
+
+RRtoDoubleStar(e:Expr):Expr :=
+    when e
+    is x:RRcell do (
+	y := Ccode(voidPointer, "getmem_atomic(sizeof(double))");
+	Ccode(void, "*(double *)", y ," = ", toDouble(x));
+	toExpr(y))
+    else WrongArgRR();
+storeInHashTable(addressOfFunctions,
+    toExpr("double"),
+    Expr(CompiledFunction(RRtoDoubleStar, nextHash())));
+
+setupconst("addressOfFunctions", Expr(addressOfFunctions));
+
+dereferenceFunctions := newHashTable(mutableHashTableClass, nothingClass);
+DoubleStarToRR(e:Expr):Expr :=
+    when e
+    is x:pointerCell do (
+	y := Ccode(double, "*(double *)", x.v, "");
+	toExpr(y))
+    else WrongArg("a pointer");
+storeInHashTable(dereferenceFunctions,
+    toExpr("double"),
+    Expr(CompiledFunction(DoubleStarToRR, nextHash())));
+
+setupconst("dereferenceFunctions", Expr(dereferenceFunctions));
