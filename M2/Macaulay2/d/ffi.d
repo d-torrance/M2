@@ -1,6 +1,8 @@
 use common;
+use hashtables;
 
-header "#include <dlfcn.h>";
+header "#include <dlfcn.h>
+	#include <ffi.h>";
 
 voidPointerOrNull := voidPointer or null;
 toExpr(x:voidPointer):Expr := Expr(pointerCell(x));
@@ -34,3 +36,78 @@ dlsym0(e:Expr):Expr :=
 	    else WrongArg(1, "a pointer")
     else WrongNumArgs(2);
 setupfun("dlsym", dlsym0);
+
+foreignFunctionTypes := newHashTable(mutableHashTableClass, nothingClass);
+storeInHashTable(foreignFunctionTypes,
+    toExpr("void"),
+    toExpr(Ccode(voidPointer, "&ffi_type_void")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("uint8"),
+    toExpr(Ccode(voidPointer, "&ffi_type_uint8")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("sint8"),
+    toExpr(Ccode(voidPointer, "&ffi_type_sint8")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("uint16"),
+    toExpr(Ccode(voidPointer, "&ffi_type_uint16")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("sint16"),
+    toExpr(Ccode(voidPointer, "&ffi_type_sint16")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("uint32"),
+    toExpr(Ccode(voidPointer, "&ffi_type_uint32")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("sint32"),
+    toExpr(Ccode(voidPointer, "&ffi_type_sint32")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("uint64"),
+    toExpr(Ccode(voidPointer, "&ffi_type_uint64")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("sint64"),
+    toExpr(Ccode(voidPointer, "&ffi_type_sint64")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("float"),
+    toExpr(Ccode(voidPointer, "&ffi_type_float")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("double"),
+    toExpr(Ccode(voidPointer, "&ffi_type_double")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("uchar"),
+    toExpr(Ccode(voidPointer, "&ffi_type_uchar")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("schar"),
+    toExpr(Ccode(voidPointer, "&ffi_type_schar")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("ushort"),
+    toExpr(Ccode(voidPointer, "&ffi_type_ushort")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("sshort"),
+    toExpr(Ccode(voidPointer, "&ffi_type_sshort")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("uint"),
+    toExpr(Ccode(voidPointer, "&ffi_type_uint")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("sint"),
+    toExpr(Ccode(voidPointer, "&ffi_type_sint")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("ulong"),
+    toExpr(Ccode(voidPointer, "&ffi_type_ulong")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("slong"),
+    toExpr(Ccode(voidPointer, "&ffi_type_slong")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("longdouble"),
+    toExpr(Ccode(voidPointer, "&ffi_type_longdouble")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("pointer"),
+    toExpr(Ccode(voidPointer, "&ffi_type_pointer")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("complex_float"),
+    toExpr(Ccode(voidPointer, "&ffi_type_complex_float")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("complex_double"),
+    toExpr(Ccode(voidPointer, "&ffi_type_complex_double")));
+storeInHashTable(foreignFunctionTypes,
+    toExpr("complex_longdouble"),
+    toExpr(Ccode(voidPointer, "&ffi_type_complex_longdouble")));
+setupconst("foreignFunctionTypes", Expr(foreignFunctionTypes));
