@@ -13,6 +13,10 @@ export {
 importFrom_Core {
     "dlopen",
     "dlsym",
+    "ffiPrefCif"
+    }
+
+exportFrom_Core {
     "foreignFunctionTypes"
     }
 
@@ -37,4 +41,13 @@ foreignFunction(SharedLibrary, String, String, List) :=
 	then error("unknown return type: ", rtype);
 	for argtype in argtypes do if not foreignFunctionTypes#?argtype
 	then error("unknown argument type: ", argtype);
+	cif := ffiPrefCif(foreignFunctionTypes#rtype,
+	    apply(argtypes, argtype -> foreignFunctionTypes#argtype));
 	ForeignFunction(x -> x))
+
+end
+
+restart
+loadPackage("ForeignFunctions", Reload => true)
+libm = openSharedLibrary "libm.so.6"
+foreignFunction(libm, "cos", "double", {"double"})
