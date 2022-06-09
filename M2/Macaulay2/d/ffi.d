@@ -2,7 +2,8 @@ use common;
 use hashtables;
 
 header "#include <dlfcn.h>
-	#include <ffi.h>";
+	#include <ffi.h>
+	#include <M2mem.h>";
 
 voidPointerOrNull := voidPointer or null;
 toExpr(x:voidPointer):Expr := Expr(pointerCell(x));
@@ -37,10 +38,44 @@ dlsym0(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("dlsym", dlsym0);
 
+ffiTypeVoid := Ccode(voidPointer, "&ffi_type_void");
+
+ffiError(r:int):Expr:=
+    if r == Ccode(int, "FFI_BAD_TYPEDEF")
+    then buildErrorPacket("libffi: bad typedef")
+    else if r == Ccode(int, "FFI_BAD_ABI")
+    then buildErrorPacket("libffi: bad ABI")
+    else if r == Ccode(int, "FFI_BAD_ARGTYPE")
+    then buildErrorPacket("libffi: bad argtype")
+    else buildErrorPacket("libffi: unknown");
+
+ffiPrefCif(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) != 2 then WrongNumArgs(2)
+	else when a.0
+	    is x:pointerCell do when a.1
+		is y:List do (
+		    argtypes := new array(voidPointer) len length(y.v) at i
+		    	do provide when y.v.i is z:pointerCell do z.v
+			    else ffiTypeVoid;
+		    cif := Ccode(voidPointer, "getmem(sizeof(ffi_cif))");
+		    r := Ccode(int, "ffi_prep_cif((ffi_cif *)", cif,
+			", FFI_DEFAULT_ABI, ",
+			argtypes, "->len, ",
+			"(ffi_type *) ", x.v, ", ",
+			"(ffi_type **) ", argtypes, "->array)");
+		    if r != Ccode(int, "FFI_OK") then ffiError(r)
+		    else toExpr(cif))
+		else WrongArg(2, "a list")
+	    else WrongArg(1, "a pointer")
+    else WrongNumArgs(2);
+setupfun("ffiPrefCif", ffiPrefCif);
+
 foreignFunctionTypes := newHashTable(mutableHashTableClass, nothingClass);
 storeInHashTable(foreignFunctionTypes,
     toExpr("void"),
-    toExpr(Ccode(voidPointer, "&ffi_type_void")));
+    toExpr(ffiTypeVoid));
 storeInHashTable(foreignFunctionTypes,
     toExpr("uint8"),
     toExpr(Ccode(voidPointer, "&ffi_type_uint8")));
