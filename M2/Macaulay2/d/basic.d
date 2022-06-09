@@ -74,6 +74,7 @@ export hash(e:Expr):int := (
      is xmlAttrCell do int(123457)
      is t:TaskCell do t.body.hash
      is foss:fileOutputSyncState do int(123458)
+     is pointerCell do int(123459)
      );
 
 export hash(x:List):int := (
