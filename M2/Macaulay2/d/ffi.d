@@ -179,6 +179,17 @@ setupconst("foreignFunctionTypes", Expr(foreignFunctionTypes));
 
 addressOfFunctions := newHashTable(mutableHashTableClass, nothingClass);
 
+ZZtoUint8Star(e:Expr):Expr :=
+    when e
+    is x:ZZcell do (
+    	y := Ccode(voidPointer, "getmem_atomic(sizeof(uint8_t))");
+	Ccode(void, "*(uint8_t *)", y, " = ", toInt(x));
+	toExpr(y))
+    else WrongArgZZ();
+storeInHashTable(addressOfFunctions,
+    toExpr("uint8"),
+    Expr(CompiledFunction(ZZtoUint8Star, nextHash())));
+
 RRtoDoubleStar(e:Expr):Expr :=
     when e
     is x:RRcell do (
@@ -200,6 +211,16 @@ PointerToNull(e:Expr):Expr :=
 storeInHashTable(dereferenceFunctions,
     toExpr("void"),
     Expr(CompiledFunction(PointerToNull, nextHash())));
+
+Uint8StarToZZ(e:Expr):Expr :=
+    when e
+    is x:pointerCell do (
+	y := Ccode(uint8_t, "*(uint8_t *)", x.v, "");
+	toExpr(int(y)))
+    else WrongArgPointer();
+storeInHashTable(dereferenceFunctions,
+    toExpr("uint8"),
+    Expr(CompiledFunction(Uint8StarToZZ, nextHash())));
 
 DoubleStarToRR(e:Expr):Expr :=
     when e
