@@ -13,11 +13,14 @@ export {
 importFrom_Core {
     "dlopen",
     "dlsym",
-    "ffiPrefCif"
+    "ffiPrefCif",
+    "ffiCall",
     }
 
 exportFrom_Core {
-    "foreignFunctionTypes"
+    "foreignFunctionTypes",
+    "addressOfFunctions",
+    "dereferenceFunctions"
     }
 
 SharedLibrary = new SelfInitializingType of BasicList
@@ -43,11 +46,19 @@ foreignFunction(SharedLibrary, String, String, List) :=
 	then error("unknown argument type: ", argtype);
 	cif := ffiPrefCif(foreignFunctionTypes#rtype,
 	    apply(argtypes, argtype -> foreignFunctionTypes#argtype));
-	ForeignFunction(x -> x))
+	ForeignFunction(args -> (
+		if not instance(args, Sequence) then args = 1:args;
+		if #argtypes != #args
+		then error("expected ", #argtypes, " arguments");
+		avalues := apply(#args, i ->
+		    addressOfFunctions#(argtypes#i) args#i);
+		dereferenceFunctions#rtype ffiCall(
+		    cif, funcptr, 100, avalues))))
 
 end
 
 restart
 loadPackage("ForeignFunctions", Reload => true)
 libm = openSharedLibrary "libm.so.6"
-foreignFunction(libm, "cos", "double", {"double"})
+f = foreignFunction(libm, "cos", "double", {"double"})
+f 5.0
