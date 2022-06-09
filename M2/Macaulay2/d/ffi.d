@@ -193,6 +193,14 @@ storeInHashTable(addressOfFunctions,
 setupconst("addressOfFunctions", Expr(addressOfFunctions));
 
 dereferenceFunctions := newHashTable(mutableHashTableClass, nothingClass);
+PointerToNull(e:Expr):Expr :=
+    when e
+    is x:pointerCell do nullE
+    else WrongArgPointer();
+storeInHashTable(dereferenceFunctions,
+    toExpr("void"),
+    Expr(CompiledFunction(PointerToNull, nextHash())));
+
 DoubleStarToRR(e:Expr):Expr :=
     when e
     is x:pointerCell do (
