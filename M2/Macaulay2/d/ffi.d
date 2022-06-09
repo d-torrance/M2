@@ -7,6 +7,8 @@ header "#include <dlfcn.h>
 
 voidPointerOrNull := voidPointer or null;
 toExpr(x:voidPointer):Expr := Expr(pointerCell(x));
+WrongArgPointer():Expr := WrongArg("a pointer");
+WrongArgPointer(n:int):Expr := WrongArg(n, "a pointer");
 
 dlerror0():Expr:= buildErrorPacket(tostring(Ccode(charstar, "dlerror()")));
 
@@ -34,7 +36,7 @@ dlsym0(e:Expr):Expr :=
 		    is null do dlerror0()
 		    is addr:voidPointer do toExpr(addr))
 		else WrongArgString(2)
-	    else WrongArg(1, "a pointer")
+	    else WrongArgPointer(1)
     else WrongNumArgs(2);
 setupfun("dlsym", dlsym0);
 
@@ -68,7 +70,7 @@ ffiPrefCif(e:Expr):Expr :=
 		    if r != Ccode(int, "FFI_OK") then ffiError(r)
 		    else toExpr(cif))
 		else WrongArg(2, "a list")
-	    else WrongArg(1, "a pointer")
+	    else WrongArgPointer(1)
     else WrongNumArgs(2);
 setupfun("ffiPrefCif", ffiPrefCif);
 
@@ -95,8 +97,8 @@ ffiCall(e:Expr):Expr :=
 			    toExpr(rvalue))
 			else WrongArg(4, "a list")
 		    else WrongArgZZ(3)
-		else WrongArg(2, "a pointer")
-	    else WrongArg(1, "a pointer")
+		else WrongArgPointer(2)
+	    else WrongArgPointer(1)
     else WrongNumArgs(4);
 setupfun("ffiCall", ffiCall);
 
@@ -196,7 +198,7 @@ DoubleStarToRR(e:Expr):Expr :=
     is x:pointerCell do (
 	y := Ccode(double, "*(double *)", x.v, "");
 	toExpr(y))
-    else WrongArg("a pointer");
+    else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("double"),
     Expr(CompiledFunction(DoubleStarToRR, nextHash())));
