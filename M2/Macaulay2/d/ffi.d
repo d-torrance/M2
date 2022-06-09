@@ -72,6 +72,34 @@ ffiPrefCif(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("ffiPrefCif", ffiPrefCif);
 
+ffiCall(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) != 4 then WrongNumArgs(4)
+	else when a.0
+	    is cif:pointerCell do when a.1
+		is fn:pointerCell do when a.2
+		    is n:ZZcell do when a.3
+			is z:List do (
+			    rvalue := Ccode(voidPointer,
+				"getmem(", toInt(n), ")");
+			    avalues := new array(voidPointer)
+				len length(z.v) at i
+				    do provide when z.v.i is p:pointerCell
+					do p.v
+					else nullPointer();
+			    Ccode(void, "ffi_call((ffi_cif *)", cif.v, ", ",
+				fn.v, ", ",
+				rvalue, ", ",
+				avalues, "->array)");
+			    toExpr(rvalue))
+			else WrongArg(4, "a list")
+		    else WrongArgZZ(3)
+		else WrongArg(2, "a pointer")
+	    else WrongArg(1, "a pointer")
+    else WrongNumArgs(4);
+setupfun("ffiCall", ffiCall);
+
 foreignFunctionTypes := newHashTable(mutableHashTableClass, nothingClass);
 storeInHashTable(foreignFunctionTypes,
     toExpr("void"),
