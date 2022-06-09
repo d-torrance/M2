@@ -190,6 +190,17 @@ storeInHashTable(addressOfFunctions,
     toExpr("uint8"),
     Expr(CompiledFunction(ZZtoUint8Star, nextHash())));
 
+ZZtoSint8Star(e:Expr):Expr :=
+    when e
+    is x:ZZcell do (
+    	y := Ccode(voidPointer, "getmem_atomic(sizeof(int8_t))");
+	Ccode(void, "*(int8_t *)", y, " = ", toInt(x));
+	toExpr(y))
+    else WrongArgZZ();
+storeInHashTable(addressOfFunctions,
+    toExpr("sint8"),
+    Expr(CompiledFunction(ZZtoSint8Star, nextHash())));
+
 RRtoDoubleStar(e:Expr):Expr :=
     when e
     is x:RRcell do (
@@ -221,6 +232,16 @@ Uint8StarToZZ(e:Expr):Expr :=
 storeInHashTable(dereferenceFunctions,
     toExpr("uint8"),
     Expr(CompiledFunction(Uint8StarToZZ, nextHash())));
+
+Sint8StarToZZ(e:Expr):Expr :=
+    when e
+    is x:pointerCell do (
+	y := Ccode(int8_t, "*(int8_t *)", x.v, "");
+	toExpr(int(y)))
+    else WrongArgPointer();
+storeInHashTable(dereferenceFunctions,
+    toExpr("sint8"),
+    Expr(CompiledFunction(Sint8StarToZZ, nextHash())));
 
 DoubleStarToRR(e:Expr):Expr :=
     when e
