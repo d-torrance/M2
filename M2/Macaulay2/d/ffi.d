@@ -281,6 +281,17 @@ storeInHashTable(addressOfFunctions,
     toExpr("sint64"),
     Expr(CompiledFunction(ZZtoSint64Star, nextHash())));
 
+RRtoFloatStar(e:Expr):Expr :=
+    when e
+    is x:RRcell do (
+	y := Ccode(voidPointer, "getmem_atomic(sizeof(float))");
+	Ccode(void, "*(float *)", y ," = ", toFloat(x));
+	toExpr(y))
+    else WrongArgRR();
+storeInHashTable(addressOfFunctions,
+    toExpr("float"),
+    Expr(CompiledFunction(RRtoFloatStar, nextHash())));
+
 RRtoDoubleStar(e:Expr):Expr :=
     when e
     is x:RRcell do (
@@ -389,6 +400,16 @@ Sint64StarToZZ(e:Expr):Expr :=
 storeInHashTable(dereferenceFunctions,
     toExpr("sint64"),
     Expr(CompiledFunction(Sint64StarToZZ, nextHash())));
+
+FloatStarToRR(e:Expr):Expr :=
+    when e
+    is x:pointerCell do (
+	y := Ccode(float, "*(float *)", x.v, "");
+	toExpr(y))
+    else WrongArgPointer();
+storeInHashTable(dereferenceFunctions,
+    toExpr("float"),
+    Expr(CompiledFunction(FloatStarToRR, nextHash())));
 
 DoubleStarToRR(e:Expr):Expr :=
     when e

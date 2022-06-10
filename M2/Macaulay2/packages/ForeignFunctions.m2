@@ -81,3 +81,12 @@ loadPackage("ForeignFunctions", Reload => true)
 libm = openSharedLibrary "libm.so.6"
 f = foreignFunction(libm, "cos", "double", {"double"})
 f 5.0
+
+check("ForeignFunctions", Verbose => true)
+
+errorDepth = 0
+
+pointerAndBackAgain#"uint8"
+(dereferenceFunctions#"uint8" @@ addressOfFunctions#"uint8") 255
+
+(pointerAndBackAgain "float")(pi + 0)
