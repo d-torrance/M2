@@ -23,6 +23,24 @@ exportFrom_Core {
     "dereferenceFunctions"
     }
 
+addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
+addressOfFunctions#"sshort" = addressOfFunctions#"sint16"
+addressOfFunctions#"uint" = addressOfFunctions#"uint32"
+addressOfFunctions#"sint" = addressOfFunctions#"sint32"
+addressOfFunctions#"ulong" = addressOfFunctions#("uint" |
+    toString(8 * version#"pointer size"))
+addressOfFunctions#"slong" = addressOfFunctions#("sint" |
+    toString(8 * version#"pointer size"))
+
+dereferenceFunctions#"ushort" = dereferenceFunctions#"uint16"
+dereferenceFunctions#"sshort" = dereferenceFunctions#"sint16"
+dereferenceFunctions#"uint" = dereferenceFunctions#"uint32"
+dereferenceFunctions#"sint" = dereferenceFunctions#"sint32"
+dereferenceFunctions#"ulong" = dereferenceFunctions#("uint" |
+    toString(8 * version#"pointer size"))
+dereferenceFunctions#"slong" = dereferenceFunctions#("sint" |
+    toString(8 * version#"pointer size"))
+
 SharedLibrary = new SelfInitializingType of BasicList
 SharedLibrary.synonym = "shared library"
 net SharedLibrary := lib -> lib#1
@@ -81,6 +99,19 @@ assert Equation((pointerAndBackAgain "schar")(2^7 - 1), ascii(2^7 - 1))
 assert Equation((pointerAndBackAgain "schar") ascii(2^7 - 1), ascii(2^7 - 1))
 assert Equation((pointerAndBackAgain "schar")(-2^7), ascii(-2^7))
 assert Equation((pointerAndBackAgain "schar") ascii(-2^7), ascii(-2^7))
+
+assert Equation((pointerAndBackAgain "ushort")(2^16 - 1), 2^16 - 1)
+assert Equation((pointerAndBackAgain "sshort")(2^15 - 1), 2^15 - 1)
+assert Equation((pointerAndBackAgain "sshort")(-2^15), -2^15)
+assert Equation((pointerAndBackAgain "uint")(2^32 - 1), 2^32 - 1)
+assert Equation((pointerAndBackAgain "sint")(2^31 - 1), 2^31 - 1)
+assert Equation((pointerAndBackAgain "sint")(-2^31), -2^31)
+longexp = 8 * version#"pointer size"
+assert Equation((pointerAndBackAgain "ulong")(2^longexp - 1), 2^longexp - 1)
+assert Equation((pointerAndBackAgain "slong")(2^(longexp - 1) - 1),
+    2^(longexp - 1) - 1)
+assert Equation((pointerAndBackAgain "slong")(-2^(longexp - 1)),
+    -2^(longexp - 1))
 ///
 
 end
