@@ -13,7 +13,7 @@ export {
 importFrom_Core {
     "dlopen",
     "dlsym",
-    "ffiPrefCif",
+    "ffiPrepCif",
     "ffiCall",
     }
 
@@ -64,7 +64,7 @@ foreignFunction(SharedLibrary, String, String, List) :=
 	then error("unknown return type: ", rtype);
 	for argtype in argtypes do if not foreignFunctionTypes#?argtype
 	then error("unknown argument type: ", argtype);
-	cif := ffiPrefCif(foreignFunctionTypes#rtype,
+	cif := ffiPrepCif(foreignFunctionTypes#rtype,
 	    apply(argtypes, argtype -> foreignFunctionTypes#argtype));
 	ForeignFunction(args -> (
 		if not instance(args, Sequence) then args = 1:args;

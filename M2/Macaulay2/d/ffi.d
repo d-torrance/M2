@@ -55,7 +55,7 @@ ffiError(r:int):Expr:=
     then buildErrorPacket("libffi: bad argtype")
     else buildErrorPacket("libffi: unknown");
 
-ffiPrefCif(e:Expr):Expr :=
+ffiPrepCif(e:Expr):Expr :=
     when e
     is a:Sequence do
 	if length(a) != 2 then WrongNumArgs(2)
@@ -76,7 +76,7 @@ ffiPrefCif(e:Expr):Expr :=
 		else WrongArg(2, "a list")
 	    else WrongArgPointer(1)
     else WrongNumArgs(2);
-setupfun("ffiPrefCif", ffiPrefCif);
+setupfun("ffiPrepCif", ffiPrepCif);
 
 ffiPrepCifVar(e:Expr):Expr :=
     when e
