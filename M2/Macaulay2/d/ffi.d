@@ -3,6 +3,10 @@ use hashtables;
 
 header "#include <dlfcn.h>
 	#include <ffi.h>
+	/* FFI_BAD_ARGTYPE not introduced until libffi 3.4 in 2021 */
+	#ifndef FFI_BAD_ARGTYPE
+	  #define FFI_BAD_ARGTYPE 3
+	#endif
 	#include <M2mem.h>";
 
 voidPointerOrNull := voidPointer or null;
