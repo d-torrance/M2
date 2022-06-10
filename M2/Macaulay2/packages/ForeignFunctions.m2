@@ -85,10 +85,10 @@ assert Equation((pointerAndBackAgain "sint16")(-2^15), -2^15)
 assert Equation((pointerAndBackAgain "uint32")(2^32 - 1), 2^32 - 1)
 assert Equation((pointerAndBackAgain "sint32")(2^31 - 1), 2^31 - 1)
 assert Equation((pointerAndBackAgain "sint32")(-2^31), -2^31)
--- possibly broken on 32-bit systems
-assert Equation((pointerAndBackAgain "uint64")(2^64 - 1), 2^64 - 1)
-assert Equation((pointerAndBackAgain "sint64")(2^63 - 1), 2^63 - 1)
-assert Equation((pointerAndBackAgain "sint64")(-2^63), -2^63)
+if version#"pointer size" == 8 then (
+    assert Equation((pointerAndBackAgain "uint64")(2^64 - 1), 2^64 - 1);
+    assert Equation((pointerAndBackAgain "sint64")(2^63 - 1), 2^63 - 1);
+    assert Equation((pointerAndBackAgain "sint64")(-2^63), -2^63))
 
 assert Equation((pointerAndBackAgain "float") 3.14159, 3.14159p24)
 assert Equation((pointerAndBackAgain "double") 3.14159, 3.14159p53)
@@ -130,3 +130,6 @@ pointerAndBackAgain#"uint8"
 (dereferenceFunctions#"uint8" @@ addressOfFunctions#"uint8") 255
 
 (pointerAndBackAgain "float")(pi + 0)
+
+(pointerAndBackAgain "uchar") "C"
+
