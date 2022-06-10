@@ -74,6 +74,13 @@ assert Equation((pointerAndBackAgain "sint64")(-2^63), -2^63)
 
 assert Equation((pointerAndBackAgain "float") 3.14159, 3.14159p24)
 assert Equation((pointerAndBackAgain "double") 3.14159, 3.14159p53)
+
+assert Equation((pointerAndBackAgain "uchar")(2^8 - 1), ascii(2^8 - 1))
+assert Equation((pointerAndBackAgain "uchar") ascii(2^8 - 1), ascii(2^8 - 1))
+assert Equation((pointerAndBackAgain "schar")(2^7 - 1), ascii(2^7 - 1))
+assert Equation((pointerAndBackAgain "schar") ascii(2^7 - 1), ascii(2^7 - 1))
+assert Equation((pointerAndBackAgain "schar")(-2^7), ascii(-2^7))
+assert Equation((pointerAndBackAgain "schar") ascii(-2^7), ascii(-2^7))
 ///
 
 end

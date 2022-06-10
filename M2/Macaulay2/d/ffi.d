@@ -303,6 +303,40 @@ storeInHashTable(addressOfFunctions,
     toExpr("double"),
     Expr(CompiledFunction(RRtoDoublestar, nextHash())));
 
+ZZorStringtoUcharstar(e:Expr):Expr :=
+    when e
+    is x:ZZcell do (
+	y := Ccode(voidPointer, "getmem_atomic(sizeof(char))");
+	Ccode(void, "*(unsigned char *)", y, " = ", toInt(x));
+	toExpr(y))
+    is x:stringCell do
+	if length(x.v) != 1 then buildErrorPacket("expected string of length 1")
+	else (
+	    y := Ccode(voidPointer, "getmem_atomic(sizeof(char))");
+	    Ccode(void, "*(unsigned char *)", y, " = ", x.v, "->array[0]");
+	    toExpr(y))
+    else WrongArg("an integer or string");
+storeInHashTable(addressOfFunctions,
+    toExpr("uchar"),
+    Expr(CompiledFunction(ZZorStringtoUcharstar, nextHash())));
+
+ZZorStringtoScharstar(e:Expr):Expr :=
+    when e
+    is x:ZZcell do (
+	y := Ccode(voidPointer, "getmem_atomic(sizeof(char))");
+	Ccode(void, "*(signed char *)", y, " = ", toInt(x));
+	toExpr(y))
+    is x:stringCell do
+	if length(x.v) != 1 then buildErrorPacket("expected string of length 1")
+	else (
+	    y := Ccode(voidPointer, "getmem_atomic(sizeof(char))");
+	    Ccode(void, "*(signed char *)", y, " = ", x.v, "->array[0]");
+	    toExpr(y))
+    else WrongArg("an integer or string");
+storeInHashTable(addressOfFunctions,
+    toExpr("schar"),
+    Expr(CompiledFunction(ZZorStringtoScharstar, nextHash())));
+
 setupconst("addressOfFunctions", Expr(addressOfFunctions));
 
 --------------------------
@@ -420,5 +454,25 @@ doublestarToRR(e:Expr):Expr :=
 storeInHashTable(dereferenceFunctions,
     toExpr("double"),
     Expr(CompiledFunction(doublestarToRR, nextHash())));
+
+ucharstarToString(e:Expr):Expr :=
+    when e
+    is x:pointerCell do (
+	y := Ccode(uchar, "*(unsigned char *)", x.v);
+	toExpr(new string len 1 do provide char(y)))
+    else WrongArgPointer();
+storeInHashTable(dereferenceFunctions,
+    toExpr("uchar"),
+    Expr(CompiledFunction(ucharstarToString, nextHash())));
+
+scharstarToString(e:Expr):Expr :=
+    when e
+    is x:pointerCell do (
+	y := Ccode(uchar, "*(signed char *)", x.v);
+	toExpr(new string len 1 do provide char(y)))
+    else WrongArgPointer();
+storeInHashTable(dereferenceFunctions,
+    toExpr("schar"),
+    Expr(CompiledFunction(scharstarToString, nextHash())));
 
 setupconst("dereferenceFunctions", Expr(dereferenceFunctions));
