@@ -21,7 +21,8 @@ exportFrom_Core {
     "foreignFunctionTypes",
     "addressOfFunctions",
     "dereferenceFunctions",
-    "Pointer"
+    "Pointer",
+    "stringFromPointer"
     }
 
 addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
@@ -113,6 +114,8 @@ assert Equation((pointerAndBackAgain "slong")(2^(longexp - 1) - 1),
     2^(longexp - 1) - 1)
 assert Equation((pointerAndBackAgain "slong")(-2^(longexp - 1)),
     -2^(longexp - 1))
+
+assert Equation(stringFromPointer (pointerAndBackAgain "pointer") "foo", "foo")
 ///
 
 end

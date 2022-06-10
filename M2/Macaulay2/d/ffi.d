@@ -499,3 +499,9 @@ storeInHashTable(dereferenceFunctions,
     Expr(CompiledFunction(voidstarstarToPointer, nextHash())));
 
 setupconst("dereferenceFunctions", Expr(dereferenceFunctions));
+
+stringFromPointer(e:Expr):Expr :=
+    when e
+    is x:pointerCell do toExpr(tostring(Ccode(charstar, x.v)))
+    else WrongArgPointer();
+setupfun("stringFromPointer", stringFromPointer);
