@@ -78,6 +78,32 @@ ffiPrefCif(e:Expr):Expr :=
     else WrongNumArgs(2);
 setupfun("ffiPrefCif", ffiPrefCif);
 
+ffiPrepCifVar(e:Expr):Expr :=
+    when e
+    is a:Sequence do
+	if length(a) != 3 then WrongNumArgs(3)
+	else when a.0
+	    is n:ZZcell do when a.1
+		is x:pointerCell do when a.2
+		    is y:List do (
+			argtypes := new array(voidPointer) len length(y.v) at i
+				do provide when y.v.i is z:pointerCell do z.v
+				else ffiTypeVoid;
+			cif := Ccode(voidPointer, "getmem(sizeof(ffi_cif))");
+			r := Ccode(int, "ffi_prep_cif_var((ffi_cif *)", cif,
+			    ", FFI_DEFAULT_ABI, ",
+			    toInt(n), ", ",
+			    argtypes, "->len, ",
+			    "(ffi_type *) ", x.v, ", ",
+			    "(ffi_type **) ", argtypes, "->array)");
+			if r != Ccode(int, "FFI_OK") then ffiError(r)
+			else toExpr(cif))
+		    else WrongArg(3, "a list")
+		else WrongArgPointer(2)
+	    else WrongArgZZ(1)
+	else WrongNumArgs(3);
+setupfun("ffiPrepCifVar", ffiPrepCifVar);
+
 ffiCall(e:Expr):Expr :=
     when e
     is a:Sequence do
