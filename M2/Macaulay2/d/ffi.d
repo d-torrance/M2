@@ -337,6 +337,21 @@ storeInHashTable(addressOfFunctions,
     toExpr("schar"),
     Expr(CompiledFunction(ZZorStringtoScharstar, nextHash())));
 
+pointerOrStringToVoidstarstar(e:Expr):Expr :=
+    when e
+    is x:pointerCell do (
+	y := Ccode(voidPointer, "getmem_atomic(sizeof(void *))");
+	Ccode(void, "*(void **)", y, " = ", x.v);
+	toExpr(y))
+    is x:stringCell do (
+	y := Ccode(voidPointer, "getmem_atomic(sizeof(void *))");
+	Ccode(void, "*(void **)", y, " = ", tocharstar(x.v));
+	toExpr(y))
+    else WrongArg("a pointer or string");
+storeInHashTable(addressOfFunctions,
+    toExpr("pointer"),
+    Expr(CompiledFunction(pointerOrStringToVoidstarstar, nextHash())));
+
 setupconst("addressOfFunctions", Expr(addressOfFunctions));
 
 --------------------------
@@ -474,5 +489,13 @@ scharstarToString(e:Expr):Expr :=
 storeInHashTable(dereferenceFunctions,
     toExpr("schar"),
     Expr(CompiledFunction(scharstarToString, nextHash())));
+
+voidstarstarToPointer(e:Expr):Expr :=
+    when e
+    is x:pointerCell do toExpr(Ccode(voidPointer, "*(void **)", x.v))
+    else WrongArgPointer();
+storeInHashTable(dereferenceFunctions,
+    toExpr("pointer"),
+    Expr(CompiledFunction(voidstarstarToPointer, nextHash())));
 
 setupconst("dereferenceFunctions", Expr(dereferenceFunctions));
