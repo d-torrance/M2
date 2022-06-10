@@ -55,6 +55,25 @@ foreignFunction(SharedLibrary, String, String, List) :=
 		dereferenceFunctions#rtype ffiCall(
 		    cif, funcptr, 100, avalues))))
 
+TEST ///
+-- test that integer conversions work
+pointerAndBackAgain = type ->
+    dereferenceFunctions#type @@ addressOfFunctions#type
+assert Equation((pointerAndBackAgain "uint8")(2^8 - 1), 2^8 - 1)
+assert Equation((pointerAndBackAgain "sint8")(2^7 - 1), 2^7 - 1)
+assert Equation((pointerAndBackAgain "sint8")(-2^7), -2^7)
+assert Equation((pointerAndBackAgain "uint16")(2^16 - 1), 2^16 - 1)
+assert Equation((pointerAndBackAgain "sint16")(2^15 - 1), 2^15 - 1)
+assert Equation((pointerAndBackAgain "sint16")(-2^15), -2^15)
+assert Equation((pointerAndBackAgain "uint32")(2^32 - 1), 2^32 - 1)
+assert Equation((pointerAndBackAgain "sint32")(2^31 - 1), 2^31 - 1)
+assert Equation((pointerAndBackAgain "sint32")(-2^31), -2^31)
+-- possibly broken on 32-bit systems
+assert Equation((pointerAndBackAgain "uint64")(2^64 - 1), 2^64 - 1)
+assert Equation((pointerAndBackAgain "sint64")(2^63 - 1), 2^63 - 1)
+assert Equation((pointerAndBackAgain "sint64")(-2^63), -2^63)
+///
+
 end
 
 restart
