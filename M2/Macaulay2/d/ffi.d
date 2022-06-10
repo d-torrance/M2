@@ -102,6 +102,13 @@ ffiCall(e:Expr):Expr :=
     else WrongNumArgs(4);
 setupfun("ffiCall", ffiCall);
 
+--------------------------
+-- foreignFunctionTypes --
+--------------------------
+
+-- mutable hash table with pointers to each of libffi's built-in ffi_type
+-- objects
+
 foreignFunctionTypes := newHashTable(mutableHashTableClass, nothingClass);
 storeInHashTable(foreignFunctionTypes,
     toExpr("void"),
@@ -177,12 +184,19 @@ storeInHashTable(foreignFunctionTypes,
     toExpr(Ccode(voidPointer, "&ffi_type_complex_longdouble")));
 setupconst("foreignFunctionTypes", Expr(foreignFunctionTypes));
 
+------------------------
+-- addressOfFunctions --
+------------------------
+
+-- mutable hash table with functions for getting the address of objects
+-- of various types (after converting from some equivalent M2 object)
+
 addressOfFunctions := newHashTable(mutableHashTableClass, nothingClass);
 
 ZZtoUint8Star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
-    	y := Ccode(voidPointer, "getmem_atomic(sizeof(uint8_t))");
+	y := Ccode(voidPointer, "getmem_atomic(sizeof(uint8_t))");
 	Ccode(void, "*(uint8_t *)", y, " = ", toInt(x));
 	toExpr(y))
     else WrongArgZZ();
@@ -193,7 +207,7 @@ storeInHashTable(addressOfFunctions,
 ZZtoSint8Star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
-    	y := Ccode(voidPointer, "getmem_atomic(sizeof(int8_t))");
+	y := Ccode(voidPointer, "getmem_atomic(sizeof(int8_t))");
 	Ccode(void, "*(int8_t *)", y, " = ", toInt(x));
 	toExpr(y))
     else WrongArgZZ();
@@ -279,6 +293,13 @@ storeInHashTable(addressOfFunctions,
     Expr(CompiledFunction(RRtoDoubleStar, nextHash())));
 
 setupconst("addressOfFunctions", Expr(addressOfFunctions));
+
+--------------------------
+-- dereferenceFunctions --
+--------------------------
+
+-- mutable hash table containing functions for dereferencing pointers
+-- and converting to some corresponding M2 object
 
 dereferenceFunctions := newHashTable(mutableHashTableClass, nothingClass);
 PointerToNull(e:Expr):Expr :=
