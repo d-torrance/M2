@@ -193,7 +193,7 @@ setupconst("foreignFunctionTypes", Expr(foreignFunctionTypes));
 
 addressOfFunctions := newHashTable(mutableHashTableClass, nothingClass);
 
-ZZtoUint8Star(e:Expr):Expr :=
+ZZtoUint8star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(uint8_t))");
@@ -202,9 +202,9 @@ ZZtoUint8Star(e:Expr):Expr :=
     else WrongArgZZ();
 storeInHashTable(addressOfFunctions,
     toExpr("uint8"),
-    Expr(CompiledFunction(ZZtoUint8Star, nextHash())));
+    Expr(CompiledFunction(ZZtoUint8star, nextHash())));
 
-ZZtoSint8Star(e:Expr):Expr :=
+ZZtoSint8star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(int8_t))");
@@ -213,9 +213,9 @@ ZZtoSint8Star(e:Expr):Expr :=
     else WrongArgZZ();
 storeInHashTable(addressOfFunctions,
     toExpr("sint8"),
-    Expr(CompiledFunction(ZZtoSint8Star, nextHash())));
+    Expr(CompiledFunction(ZZtoSint8star, nextHash())));
 
-ZZtoUint16Star(e:Expr):Expr :=
+ZZtoUint16star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(uint16_t))");
@@ -224,9 +224,9 @@ ZZtoUint16Star(e:Expr):Expr :=
     else WrongArgZZ();
 storeInHashTable(addressOfFunctions,
     toExpr("uint16"),
-    Expr(CompiledFunction(ZZtoUint16Star, nextHash())));
+    Expr(CompiledFunction(ZZtoUint16star, nextHash())));
 
-ZZtoSint16Star(e:Expr):Expr :=
+ZZtoSint16star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(int16_t))");
@@ -235,9 +235,9 @@ ZZtoSint16Star(e:Expr):Expr :=
     else WrongArgZZ();
 storeInHashTable(addressOfFunctions,
     toExpr("sint16"),
-    Expr(CompiledFunction(ZZtoSint16Star, nextHash())));
+    Expr(CompiledFunction(ZZtoSint16star, nextHash())));
 
-ZZtoUint32Star(e:Expr):Expr :=
+ZZtoUint32star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(uint32_t))");
@@ -246,9 +246,9 @@ ZZtoUint32Star(e:Expr):Expr :=
     else WrongArgZZ();
 storeInHashTable(addressOfFunctions,
     toExpr("uint32"),
-    Expr(CompiledFunction(ZZtoUint32Star, nextHash())));
+    Expr(CompiledFunction(ZZtoUint32star, nextHash())));
 
-ZZtoSint32Star(e:Expr):Expr :=
+ZZtoSint32star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(int32_t))");
@@ -257,9 +257,9 @@ ZZtoSint32Star(e:Expr):Expr :=
     else WrongArgZZ();
 storeInHashTable(addressOfFunctions,
     toExpr("sint32"),
-    Expr(CompiledFunction(ZZtoSint32Star, nextHash())));
+    Expr(CompiledFunction(ZZtoSint32star, nextHash())));
 
-ZZtoUint64Star(e:Expr):Expr :=
+ZZtoUint64star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(uint64_t))");
@@ -268,9 +268,9 @@ ZZtoUint64Star(e:Expr):Expr :=
     else WrongArgZZ();
 storeInHashTable(addressOfFunctions,
     toExpr("uint64"),
-    Expr(CompiledFunction(ZZtoUint64Star, nextHash())));
+    Expr(CompiledFunction(ZZtoUint64star, nextHash())));
 
-ZZtoSint64Star(e:Expr):Expr :=
+ZZtoSint64star(e:Expr):Expr :=
     when e
     is x:ZZcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(int64_t))");
@@ -279,9 +279,9 @@ ZZtoSint64Star(e:Expr):Expr :=
     else WrongArgZZ();
 storeInHashTable(addressOfFunctions,
     toExpr("sint64"),
-    Expr(CompiledFunction(ZZtoSint64Star, nextHash())));
+    Expr(CompiledFunction(ZZtoSint64star, nextHash())));
 
-RRtoFloatStar(e:Expr):Expr :=
+RRtoFloatstar(e:Expr):Expr :=
     when e
     is x:RRcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(float))");
@@ -290,9 +290,9 @@ RRtoFloatStar(e:Expr):Expr :=
     else WrongArgRR();
 storeInHashTable(addressOfFunctions,
     toExpr("float"),
-    Expr(CompiledFunction(RRtoFloatStar, nextHash())));
+    Expr(CompiledFunction(RRtoFloatstar, nextHash())));
 
-RRtoDoubleStar(e:Expr):Expr :=
+RRtoDoublestar(e:Expr):Expr :=
     when e
     is x:RRcell do (
 	y := Ccode(voidPointer, "getmem_atomic(sizeof(double))");
@@ -301,7 +301,7 @@ RRtoDoubleStar(e:Expr):Expr :=
     else WrongArgRR();
 storeInHashTable(addressOfFunctions,
     toExpr("double"),
-    Expr(CompiledFunction(RRtoDoubleStar, nextHash())));
+    Expr(CompiledFunction(RRtoDoublestar, nextHash())));
 
 setupconst("addressOfFunctions", Expr(addressOfFunctions));
 
@@ -321,7 +321,7 @@ storeInHashTable(dereferenceFunctions,
     toExpr("void"),
     Expr(CompiledFunction(PointerToNull, nextHash())));
 
-Uint8StarToZZ(e:Expr):Expr :=
+uint8starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(uint8_t, "*(uint8_t *)", x.v, "");
@@ -329,9 +329,9 @@ Uint8StarToZZ(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("uint8"),
-    Expr(CompiledFunction(Uint8StarToZZ, nextHash())));
+    Expr(CompiledFunction(uint8starToZZ, nextHash())));
 
-Sint8StarToZZ(e:Expr):Expr :=
+sint8starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(int8_t, "*(int8_t *)", x.v, "");
@@ -339,9 +339,9 @@ Sint8StarToZZ(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("sint8"),
-    Expr(CompiledFunction(Sint8StarToZZ, nextHash())));
+    Expr(CompiledFunction(sint8starToZZ, nextHash())));
 
-Uint16StarToZZ(e:Expr):Expr :=
+uint16starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(uint16_t, "*(uint16_t *)", x.v, "");
@@ -349,9 +349,9 @@ Uint16StarToZZ(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("uint16"),
-    Expr(CompiledFunction(Uint16StarToZZ, nextHash())));
+    Expr(CompiledFunction(uint16starToZZ, nextHash())));
 
-Sint16StarToZZ(e:Expr):Expr :=
+sint16starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(int16_t, "*(int16_t *)", x.v, "");
@@ -359,9 +359,9 @@ Sint16StarToZZ(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("sint16"),
-    Expr(CompiledFunction(Sint16StarToZZ, nextHash())));
+    Expr(CompiledFunction(sint16starToZZ, nextHash())));
 
-Uint32StarToZZ(e:Expr):Expr :=
+uint32starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(uint32_t, "*(uint32_t *)", x.v, "");
@@ -369,9 +369,9 @@ Uint32StarToZZ(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("uint32"),
-    Expr(CompiledFunction(Uint32StarToZZ, nextHash())));
+    Expr(CompiledFunction(uint32starToZZ, nextHash())));
 
-Sint32StarToZZ(e:Expr):Expr :=
+sint32starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(int32_t, "*(int32_t *)", x.v, "");
@@ -379,9 +379,9 @@ Sint32StarToZZ(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("sint32"),
-    Expr(CompiledFunction(Sint32StarToZZ, nextHash())));
+    Expr(CompiledFunction(sint32starToZZ, nextHash())));
 
-Uint64StarToZZ(e:Expr):Expr :=
+uint64starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(uint64_t, "*(uint64_t *)", x.v, "");
@@ -389,9 +389,9 @@ Uint64StarToZZ(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("uint64"),
-    Expr(CompiledFunction(Uint64StarToZZ, nextHash())));
+    Expr(CompiledFunction(uint64starToZZ, nextHash())));
 
-Sint64StarToZZ(e:Expr):Expr :=
+sint64starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(int64_t, "*(int64_t *)", x.v, "");
@@ -399,9 +399,9 @@ Sint64StarToZZ(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("sint64"),
-    Expr(CompiledFunction(Sint64StarToZZ, nextHash())));
+    Expr(CompiledFunction(sint64starToZZ, nextHash())));
 
-FloatStarToRR(e:Expr):Expr :=
+floatstarToRR(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(float, "*(float *)", x.v, "");
@@ -409,9 +409,9 @@ FloatStarToRR(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("float"),
-    Expr(CompiledFunction(FloatStarToRR, nextHash())));
+    Expr(CompiledFunction(floatstarToRR, nextHash())));
 
-DoubleStarToRR(e:Expr):Expr :=
+doublestarToRR(e:Expr):Expr :=
     when e
     is x:pointerCell do (
 	y := Ccode(double, "*(double *)", x.v, "");
@@ -419,6 +419,6 @@ DoubleStarToRR(e:Expr):Expr :=
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
     toExpr("double"),
-    Expr(CompiledFunction(DoubleStarToRR, nextHash())));
+    Expr(CompiledFunction(doublestarToRR, nextHash())));
 
 setupconst("dereferenceFunctions", Expr(dereferenceFunctions));
