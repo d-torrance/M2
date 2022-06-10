@@ -358,7 +358,7 @@ storeInHashTable(dereferenceFunctions,
 uint8starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(uint8_t, "*(uint8_t *)", x.v, "");
+	y := Ccode(uint8_t, "*(uint8_t *)", x.v);
 	toExpr(int(y)))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
@@ -368,7 +368,7 @@ storeInHashTable(dereferenceFunctions,
 sint8starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(int8_t, "*(int8_t *)", x.v, "");
+	y := Ccode(int8_t, "*(int8_t *)", x.v);
 	toExpr(int(y)))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
@@ -378,7 +378,7 @@ storeInHashTable(dereferenceFunctions,
 uint16starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(uint16_t, "*(uint16_t *)", x.v, "");
+	y := Ccode(uint16_t, "*(uint16_t *)", x.v);
 	toExpr(int(y)))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
@@ -388,7 +388,7 @@ storeInHashTable(dereferenceFunctions,
 sint16starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(int16_t, "*(int16_t *)", x.v, "");
+	y := Ccode(int16_t, "*(int16_t *)", x.v);
 	toExpr(int(y)))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
@@ -398,7 +398,7 @@ storeInHashTable(dereferenceFunctions,
 uint32starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(uint32_t, "*(uint32_t *)", x.v, "");
+	y := Ccode(uint32_t, "*(uint32_t *)", x.v);
 	toExpr(ulong(y)))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
@@ -408,7 +408,7 @@ storeInHashTable(dereferenceFunctions,
 sint32starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(int32_t, "*(int32_t *)", x.v, "");
+	y := Ccode(int32_t, "*(int32_t *)", x.v);
 	toExpr(int(y)))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
@@ -418,7 +418,7 @@ storeInHashTable(dereferenceFunctions,
 uint64starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(uint64_t, "*(uint64_t *)", x.v, "");
+	y := Ccode(uint64_t, "*(uint64_t *)", x.v);
 	toExpr(ulong(y)))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
@@ -428,7 +428,7 @@ storeInHashTable(dereferenceFunctions,
 sint64starToZZ(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(int64_t, "*(int64_t *)", x.v, "");
+	y := Ccode(int64_t, "*(int64_t *)", x.v);
 	toExpr(long(y)))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
@@ -438,7 +438,7 @@ storeInHashTable(dereferenceFunctions,
 floatstarToRR(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(float, "*(float *)", x.v, "");
+	y := Ccode(float, "*(float *)", x.v);
 	toExpr(y))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
@@ -448,7 +448,7 @@ storeInHashTable(dereferenceFunctions,
 doublestarToRR(e:Expr):Expr :=
     when e
     is x:pointerCell do (
-	y := Ccode(double, "*(double *)", x.v, "");
+	y := Ccode(double, "*(double *)", x.v);
 	toExpr(y))
     else WrongArgPointer();
 storeInHashTable(dereferenceFunctions,
