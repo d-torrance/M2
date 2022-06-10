@@ -56,7 +56,6 @@ foreignFunction(SharedLibrary, String, String, List) :=
 		    cif, funcptr, 100, avalues))))
 
 TEST ///
--- test that integer conversions work
 pointerAndBackAgain = type ->
     dereferenceFunctions#type @@ addressOfFunctions#type
 assert Equation((pointerAndBackAgain "uint8")(2^8 - 1), 2^8 - 1)
@@ -72,6 +71,9 @@ assert Equation((pointerAndBackAgain "sint32")(-2^31), -2^31)
 assert Equation((pointerAndBackAgain "uint64")(2^64 - 1), 2^64 - 1)
 assert Equation((pointerAndBackAgain "sint64")(2^63 - 1), 2^63 - 1)
 assert Equation((pointerAndBackAgain "sint64")(-2^63), -2^63)
+
+assert Equation((pointerAndBackAgain "float") 3.14159, 3.14159p24)
+assert Equation((pointerAndBackAgain "double") 3.14159, 3.14159p53)
 ///
 
 end
