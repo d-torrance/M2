@@ -14,6 +14,7 @@ importFrom_Core {
     "dlopen",
     "dlsym",
     "ffiPrepCif",
+    "ffiPrepCifVar",
     "ffiCall",
     }
 
@@ -59,21 +60,51 @@ foreignFunction(SharedLibrary, String, String, String) :=
     (lib, symb, rtype, argtype) -> foreignFunction(lib, symb, rtype, {argtype})
 foreignFunction(SharedLibrary, String, String, List) :=
     (lib, symb, rtype, argtypes) -> (
-	funcptr := dlsym(lib#0, symb);
+	variadic := if member("...", argtypes) then (
+	    if #argtypes < 2
+	    then error "expected at least 1 fixed argument";
+	    if positions(argtypes, x -> x == "...") != {#argtypes - 1}
+	    then error "expected \"...\" to be the last argument";
+	    argtypes = drop(argtypes, -1);
+	    nfixedargs := #argtypes;
+	    true) else false;
 	if not foreignFunctionTypes#?rtype
 	then error("unknown return type: ", rtype);
 	for argtype in argtypes do if not foreignFunctionTypes#?argtype
 	then error("unknown argument type: ", argtype);
-	cif := ffiPrepCif(foreignFunctionTypes#rtype,
-	    apply(argtypes, argtype -> foreignFunctionTypes#argtype));
-	ForeignFunction(args -> (
-		if not instance(args, Sequence) then args = 1:args;
-		if #argtypes != #args
-		then error("expected ", #argtypes, " arguments");
-		avalues := apply(#args, i ->
-		    addressOfFunctions#(argtypes#i) args#i);
-		dereferenceFunctions#rtype ffiCall(
-		    cif, funcptr, 100, avalues))))
+	funcptr := dlsym(lib#0, symb);
+	argtypePointers := apply(argtypes,
+	    argtype -> foreignFunctionTypes#argtype);
+	if variadic then (
+	    ForeignFunction(args -> (
+		    for i from nfixedargs to #args - 1 do
+			if not instance(args#i, Sequence) and #args#i != 2
+			then error("expected type for argument ", i + 1);
+		    argtypePointersWithVarArgs := join(argtypePointers,
+			for i from nfixedargs to #args - 1 list
+			    foreignFunctionTypes#(first args#i));
+		    cif := ffiPrepCifVar(nfixedargs,
+			foreignFunctionTypes#rtype, argtypePointersWithVarArgs);
+		    avalues := apply(nfixedargs, i ->
+			addressOfFunctions#(argtypes#i) args#i);
+		    avalues = join(avalues,
+			for i from nfixedargs to #args - 1 list
+			    addressOfFunctions#(first args#i) last args#i);
+		    dereferenceFunctions#rtype ffiCall(
+			cif, funcptr, 100, avalues))))
+	else (
+	    cif := ffiPrepCif(foreignFunctionTypes#rtype, argtypePointers);
+	    ForeignFunction(args -> (
+		    if not instance(args, Sequence) then args = 1:args;
+		    if #argtypes != #args
+		    then error("expected ", #argtypes, " arguments");
+		    avalues := apply(#args, i ->
+			addressOfFunctions#(argtypes#i) args#i);
+		    dereferenceFunctions#rtype ffiCall(
+			cif, funcptr, 100, avalues)))))
+
+-- note to self for writing documentation: variadic arguments can't be small
+-- https://github.com/libffi/libffi/pull/628
 
 TEST ///
 pointerAndBackAgain = type ->
