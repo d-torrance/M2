@@ -311,7 +311,6 @@ export {
 	"PairsRemaining",
 	"Parenthesize",
 	"Partition",
-	"Pointer",
 	"PolynomialRing",
 	"Position",
 	"Postfix",

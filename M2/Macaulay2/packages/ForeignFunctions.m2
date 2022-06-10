@@ -20,7 +20,8 @@ importFrom_Core {
 exportFrom_Core {
     "foreignFunctionTypes",
     "addressOfFunctions",
-    "dereferenceFunctions"
+    "dereferenceFunctions",
+    "Pointer"
     }
 
 addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
