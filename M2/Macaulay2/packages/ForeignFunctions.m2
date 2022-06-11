@@ -37,6 +37,8 @@ export {
     "uint",
     "long",
     "ulong",
+    "float",
+    "double",
 
 -- methods
     "openSharedLibrary",
@@ -56,7 +58,10 @@ importFrom_Core {
     "ffiCall",
     "ffiIntegerType",
     "ffiIntegerAddress",
-    "ffiIntegerValue"
+    "ffiIntegerValue",
+    "ffiRealType",
+    "ffiRealAddress",
+    "ffiRealValue"
     }
 
 exportFrom_Core {
@@ -138,6 +143,36 @@ ForeignIntegerType ZZ := (type, n) -> (
 ForeignIntegerType Number :=
 ForeignIntegerType Constant := (type, x) -> (
     if x >= 0 then type floor x else type ceiling x)
+
+-----------------------
+-- foreign real type --
+-----------------------
+
+ForeignRealType = new SelfInitializingType of ForeignType
+ForeignRealType.synonym = "foreign real type"
+
+foreignRealType = method()
+foreignRealType(String, ZZ) := (name, bits) -> (
+    ForeignRealType {
+	"name" => name,
+	"type" => ffiRealType(bits),
+	"bits" => bits})
+
+float = foreignRealType("float", 32)
+double = foreignRealType("double", 64)
+
+ForeignRealType RR := (type, x) -> (
+    address := ffiRealAddress(x, type#"bits");
+    val := ffiRealValue(address, type#"bits");
+    ForeignObject {
+	"type" => type,
+	"address" => address,
+	"value" => val})
+
+ForeignRealType CC := (type, x) -> type realPart x
+
+ForeignRealType Number :=
+ForeignRealType Constant := (type, x) -> type numeric x
 
 addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
 addressOfFunctions#"sshort" = addressOfFunctions#"sint16"

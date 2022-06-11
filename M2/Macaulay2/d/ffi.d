@@ -295,6 +295,67 @@ ffiIntegerValue(e:Expr):Expr := (
 	else WrongNumArgs(3))
     else WrongNumArgs(3));
 setupfun("ffiIntegerValue", ffiIntegerValue);
+
+----------------
+-- real types --
+----------------
+
+ffiRealType(e:Expr):Expr := (
+    when e
+    is n:ZZcell do (
+	bits := toInt(n);
+	if bits == 32 then toExpr(Ccode(voidPointer, "&ffi_type_float"))
+	else if bits == 64 then toExpr(Ccode(voidPointer, "&ffi_type_double"))
+	else buildErrorPacket("expected 32 or 64 bits"))
+    else WrongArgZZ());
+setupfun("ffiRealType", ffiRealType);
+
+ffiRealAddress(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 2 then (
+	    when a.0
+	    is x:RRcell do (
+		when a.1
+		is y:ZZcell do (
+		    bits := toInt(y);
+		    ptr := getMemAtomic(bits / 8);
+		    if bits == 32
+		    then (
+			z := toFloat(x);
+			Ccode(void, "*(float *)", ptr, " = ", z))
+		    else if bits == 64
+		    then (
+			z := toDouble(x);
+			Ccode(void, "*(double *)", ptr, " = ", z))
+		    else return buildErrorPacket("expected 32 or 64 bits");
+		    toExpr(ptr))
+		else WrongArgZZ(2))
+	    else WrongArgRR(1))
+	else WrongNumArgs(2))
+    else WrongNumArgs(2));
+setupfun("ffiRealAddress", ffiRealAddress);
+
+ffiRealValue(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 2 then (
+	    when a.0
+	    is x:pointerCell do (
+		when a.1
+		is y:ZZcell do (
+		    bits := toInt(y);
+		    if bits == 32
+		    then toExpr(Ccode(float, "*(float *)", x.v))
+		    else if bits == 64
+		    then toExpr(Ccode(double, "*(double *)", x.v))
+		    else buildErrorPacket("expected 32 or 64 bits"))
+		else WrongArgZZ(2))
+	    else WrongArgPointer(1))
+	else WrongNumArgs(2))
+    else WrongNumArgs(2));
+setupfun("ffiRealValue", ffiRealValue);
+
 --------------------------
 -- foreignFunctionTypes --
 --------------------------
