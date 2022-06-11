@@ -12,6 +12,15 @@ export {
 -- classes
     "SharedLibrary",
     "ForeignFunction",
+    "ForeignType",
+    "ForeignVoidType",
+    "ForeignIntegerType",
+    "ForeignRealType",
+    "ForeignPointerType",
+    "ForeignStringType",
+    "ForeignArrayType",
+    "ForeignStructType",
+    "ForeignObject",
 
 -- methods
     "openSharedLibrary",
@@ -34,6 +43,37 @@ exportFrom_Core {
     "stringFromPointer"
     }
 
+ForeignType = new SelfInitializingType of HashTable
+ForeignType.synonym = "foreign type"
+net ForeignType := x -> x#"name"
+
+ForeignIntegerType = new SelfInitializingType of ForeignType
+ForeignIntegerType.synonym = "foreign integer type"
+
+ForeignRealType = new SelfInitializingType of ForeignType
+ForeignRealType.synonym = "foreign real type"
+
+ForeignPointerType = new SelfInitializingType of ForeignType
+ForeignPointerType.synonym = "foreign pointer type"
+
+ForeignStringType = new SelfInitializingType of ForeignPointerType
+ForeignStringType.synonym = "foreign string type"
+
+ForeignArrayType = new SelfInitializingType of ForeignPointerType
+ForeignArrayType.synonym = "foreign array type"
+
+ForeignStructType = new SelfInitializingType of ForeignType
+ForeignStructType.synonym = "foreign struct type"
+
+ForeignObject = new SelfInitializingType of MutableHashTable
+ForeignObject.synonym = "foreign object"
+net ForeignObject := x -> net value x
+ForeignObject#{Standard, AfterPrint} = x -> (
+    << endl
+    << concatenate(interpreterDepth:"o") << lineNumber
+    << " : ForeignObject of type " << net x#"type" << endl)
+
+value ForeignObject := x -> x#"value"
 addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
 addressOfFunctions#"sshort" = addressOfFunctions#"sint16"
 addressOfFunctions#"uint" = addressOfFunctions#"uint32"
