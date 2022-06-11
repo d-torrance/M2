@@ -45,6 +45,7 @@ dlsym0(e:Expr):Expr :=
 setupfun("dlsym", dlsym0);
 
 ffiTypeVoid := Ccode(voidPointer, "&ffi_type_void");
+ffiOk := Ccode(int, "FFI_OK");
 
 ffiError(r:int):Expr:=
     if r == Ccode(int, "FFI_BAD_TYPEDEF")
@@ -71,7 +72,7 @@ ffiPrepCif(e:Expr):Expr :=
 			argtypes, "->len, ",
 			"(ffi_type *) ", x.v, ", ",
 			"(ffi_type **) ", argtypes, "->array)");
-		    if r != Ccode(int, "FFI_OK") then ffiError(r)
+		    if r != ffiOk then ffiError(r)
 		    else toExpr(cif))
 		else WrongArg(2, "a list")
 	    else WrongArgPointer(1)
@@ -96,7 +97,7 @@ ffiPrepCifVar(e:Expr):Expr :=
 			    argtypes, "->len, ",
 			    "(ffi_type *) ", x.v, ", ",
 			    "(ffi_type **) ", argtypes, "->array)");
-			if r != Ccode(int, "FFI_OK") then ffiError(r)
+			if r != ffiOk then ffiError(r)
 			else toExpr(cif))
 		    else WrongArg(3, "a list")
 		else WrongArgPointer(2)
