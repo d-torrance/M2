@@ -4,7 +4,9 @@ newPackage("ForeignFunctions",
     Authors => {{
 	    Name => "Doug Torrance",
 	    Email => "dtorrance@piedmont.edu",
-	    HomePage => "https://webwork.piedmont.edu/~dtorrance"}})
+	    HomePage => "https://webwork.piedmont.edu/~dtorrance"}},
+    Keywords => {"Interfaces"}
+    )
 
 export {
 -- classes
