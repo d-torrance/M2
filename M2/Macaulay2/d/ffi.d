@@ -169,6 +169,10 @@ ffiGetStructOffsets(e:Expr):Expr :=
     else WrongArgPointer();
 setupfun("ffiGetStructOffsets", ffiGetStructOffsets);
 
+-------------------
+-- integer types --
+-------------------
+
 ffiIntegerType(e:Expr):Expr := (
     when e
     is a:Sequence do (
@@ -216,7 +220,7 @@ ffiIntegerAddress(e:Expr):Expr := (
 		    when a.2
 		    is signed:Boolean do (
 			bits := toInt(y);
-			ptr := getMemAtomic(100);
+			ptr := getMemAtomic(bits / 8);
 			if signed.v then (
 			    n := toLong(x);
 			    if bits == 8
@@ -249,6 +253,7 @@ ffiIntegerAddress(e:Expr):Expr := (
 	else WrongNumArgs(3))
     else WrongNumArgs(3));
 setupfun("ffiIntegerAddress", ffiIntegerAddress);
+
 ffiIntegerValue(e:Expr):Expr := (
     when e
     is a:Sequence do (
