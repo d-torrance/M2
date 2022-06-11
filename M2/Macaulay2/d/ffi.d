@@ -249,6 +249,47 @@ ffiIntegerAddress(e:Expr):Expr := (
 	else WrongNumArgs(3))
     else WrongNumArgs(3));
 setupfun("ffiIntegerAddress", ffiIntegerAddress);
+ffiIntegerValue(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 3 then (
+	    when a.0
+	    is x:pointerCell do (
+		when a.1
+		is y:ZZcell do (
+		    when a.2
+		    is signed:Boolean do (
+			bits := toInt(y);
+			if signed.v then (
+			    n := Ccode(long, "*(long *)", x.v);
+			    if bits == 8
+			    then toExpr(long(int8_t(n)))
+			    else if bits == 16
+			    then toExpr(long(int16_t(n)))
+			    else if bits == 32
+			    then toExpr(long(int32_t(n)))
+			    else if bits == 64
+			    then toExpr(long(int64_t(n)))
+			    else buildErrorPacket(
+				"expected 8, 16, 32, or 64 bits"))
+			else (
+			    n := Ccode(long, "*(unsigned long *)", x.v);
+			    if bits == 8
+			    then toExpr(ulong(uint8_t(n)))
+			    else if bits == 16
+			    then toExpr(ulong(uint16_t(n)))
+			    else if bits == 32
+			    then toExpr(ulong(uint32_t(n)))
+			    else if bits == 64
+			    then toExpr(ulong(uint64_t(n)))
+			    else buildErrorPacket(
+				"expected 8, 16, 32, or 64 bits")))
+		    else WrongArgBoolean(3))
+		else WrongArgZZ(2))
+	    else WrongArgPointer(1))
+	else WrongNumArgs(3))
+    else WrongNumArgs(3));
+setupfun("ffiIntegerValue", ffiIntegerValue);
 --------------------------
 -- foreignFunctionTypes --
 --------------------------
