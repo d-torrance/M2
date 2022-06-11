@@ -152,6 +152,21 @@ ffiAllocStruct(e:Expr):Expr :=
     else WrongArg("a list");
 setupfun("ffiAllocStruct", ffiAllocStruct);
 
+ffiGetStructOffsets(e:Expr):Expr :=
+    when e
+    is x:pointerCell do (
+	n := 0;
+	while Ccode(voidPointer, "(((ffi_type *)", x.v, ")->elements)[", n,
+	    "]") != nullPointer() do n = n + 1;
+	offsets := Ccode(voidPointer, "getmem((", n , ") * sizeof(size_t))");
+	r := Ccode(int, "ffi_get_struct_offsets(FFI_DEFAULT_ABI, ",
+	    "(ffi_type *)", x.v, ", (size_t *)", offsets, ")");
+	if r != ffiOk then return ffiError(r);
+	Expr(list(new Sequence len n at i do provide
+	    toExpr(Ccode(int, "((size_t *)", offsets, ")[", i, "]")))))
+    else WrongArgPointer();
+setupfun("ffiGetStructOffsets", ffiGetStructOffsets);
+
 --------------------------
 -- foreignFunctionTypes --
 --------------------------
