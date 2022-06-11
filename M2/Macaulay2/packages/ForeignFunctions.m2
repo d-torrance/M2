@@ -42,7 +42,8 @@ export {
 
 -- methods
     "openSharedLibrary",
-    "foreignFunction"
+    "foreignFunction",
+    "foreignObject"
     }
 
 if version#"pointer size" == 8 then export {
@@ -174,6 +175,24 @@ ForeignRealType CC := (type, x) -> type realPart x
 ForeignRealType Number :=
 ForeignRealType Constant := (type, x) -> type numeric x
 
+--------------------
+-- foreign object --
+--------------------
+
+ForeignObject = new SelfInitializingType of MutableHashTable
+ForeignObject.synonym = "foreign object"
+net ForeignObject := x -> net value x
+ForeignObject#{Standard, AfterPrint} = x -> (
+    << endl
+    << concatenate(interpreterDepth:"o") << lineNumber
+    << " : ForeignObject of type " << net x#"type" << endl)
+
+value ForeignObject := x -> x#"value"
+
+foreignObject = method()
+foreignObject ForeignObject := identity
+foreignObject ZZ := n -> int n
+foreignObject Number := foreignObject Constant := x -> double x
 addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
 addressOfFunctions#"sshort" = addressOfFunctions#"sint16"
 addressOfFunctions#"uint" = addressOfFunctions#"uint32"
