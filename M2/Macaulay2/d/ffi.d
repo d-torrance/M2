@@ -169,6 +169,41 @@ ffiGetStructOffsets(e:Expr):Expr :=
     else WrongArgPointer();
 setupfun("ffiGetStructOffsets", ffiGetStructOffsets);
 
+ffiIntegerType(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 2 then (
+	    when a.0
+	    is n:ZZcell do (
+		when a.1
+		is signed:Boolean do (
+		    bits := toInt(n);
+		    if signed.v then (
+			if bits == 8
+			then toExpr(Ccode(voidPointer, "&ffi_type_sint8"))
+			else if bits == 16
+			then toExpr(Ccode(voidPointer, "&ffi_type_sint16"))
+			else if bits == 32
+			then toExpr(Ccode(voidPointer, "&ffi_type_sint32"))
+			else if bits == 64
+			then toExpr(Ccode(voidPointer, "&ffi_type_sint64"))
+			else buildErrorPacket("expected 8, 16, 32, or 64 bits"))
+		    else (
+			if bits == 8
+			then toExpr(Ccode(voidPointer, "&ffi_type_uint8"))
+			else if bits == 16
+			then toExpr(Ccode(voidPointer, "&ffi_type_uint16"))
+			else if bits == 32
+			then toExpr(Ccode(voidPointer, "&ffi_type_uint32"))
+			else if bits == 64
+			then toExpr(Ccode(voidPointer, "&ffi_type_uint64"))
+			else buildErrorPacket("expected 8, 16, 32, or 64 bits"))
+		    )
+		else WrongArgBoolean(2))
+	    else WrongArgZZ(1))
+	else WrongNumArgs(2))
+    else WrongNumArgs(2));
+setupfun("ffiIntegerType", ffiIntegerType);
 --------------------------
 -- foreignFunctionTypes --
 --------------------------
