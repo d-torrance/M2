@@ -133,6 +133,25 @@ ffiCall(e:Expr):Expr :=
     else WrongNumArgs(4);
 setupfun("ffiCall", ffiCall);
 
+ffiAllocStruct(e:Expr):Expr :=
+    when e
+    is a:List do (
+	x := Ccode(voidPointer, "getmem(sizeof(ffi_type))");
+	Ccode(void, "((ffi_type *)", x, ")->size = 0");
+	Ccode(void, "((ffi_type *)", x, ")->alignment = 0");
+	Ccode(void, "((ffi_type *)", x, ")->type = FFI_TYPE_STRUCT");
+	n := length(a.v);
+	elements := new array(voidPointer) len n + 1 at i do provide
+	    if i < n then when a.v.i
+		is p:pointerCell do p.v
+		else nullPointer()
+	    else nullPointer();
+	Ccode(void, "((ffi_type *)", x, ")->elements = (ffi_type **)",
+	    elements, "->array");
+	toExpr(x))
+    else WrongArg("a list");
+setupfun("ffiAllocStruct", ffiAllocStruct);
+
 --------------------------
 -- foreignFunctionTypes --
 --------------------------
