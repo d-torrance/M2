@@ -1,4 +1,10 @@
-newPackage("ForeignFunctions")
+newPackage("ForeignFunctions",
+    Headline => "foreign function interface",
+    Version => "0.1",
+    Authors => {{
+	    Name => "Doug Torrance",
+	    Email => "dtorrance@piedmont.edu",
+	    HomePage => "https://webwork.piedmont.edu/~dtorrance"}})
 
 export {
 -- classes
