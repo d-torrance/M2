@@ -204,6 +204,51 @@ ffiIntegerType(e:Expr):Expr := (
 	else WrongNumArgs(2))
     else WrongNumArgs(2));
 setupfun("ffiIntegerType", ffiIntegerType);
+
+ffiIntegerAddress(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 3 then (
+	    when a.0
+	    is x:ZZcell do (
+		when a.1
+		is y:ZZcell do (
+		    when a.2
+		    is signed:Boolean do (
+			bits := toInt(y);
+			ptr := getMemAtomic(100);
+			if signed.v then (
+			    n := toLong(x);
+			    if bits == 8
+			    then Ccode(void, "*(int8_t *)", ptr, " = ", n)
+			    else if bits == 16
+			    then Ccode(void, "*(int16_t *)", ptr, " = ", n)
+			    else if bits == 32
+			    then Ccode(void, "*(int32_t *)", ptr, " = ", n)
+			    else if bits == 64
+			    then Ccode(void, "*(int64_t *)", ptr, " = ", n)
+			    else return buildErrorPacket(
+				"expected 8, 16, 32, or 64 bits");
+			    toExpr(ptr))
+			else (
+			    n := toULong(x);
+			    if bits == 8
+			    then Ccode(void, "*(uint8_t *)", ptr, " = ", n)
+			    else if bits == 16
+			    then Ccode(void, "*(uint16_t *)", ptr, " = ", n)
+			    else if bits == 32
+			    then Ccode(void, "*(uint32_t *)", ptr, " = ", n)
+			    else if bits == 64
+			    then Ccode(void, "*(uint64_t *)", ptr, " = ", n)
+			    else return buildErrorPacket(
+				"expected 8, 16, 32, or 64 bits");
+			    toExpr(ptr)))
+		    else WrongArgBoolean(3))
+		else WrongArgZZ(2))
+	    else WrongArgZZ(1))
+	else WrongNumArgs(3))
+    else WrongNumArgs(3));
+setupfun("ffiIntegerAddress", ffiIntegerAddress);
 --------------------------
 -- foreignFunctionTypes --
 --------------------------
