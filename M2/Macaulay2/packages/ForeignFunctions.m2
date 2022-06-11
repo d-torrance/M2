@@ -22,9 +22,30 @@ export {
     "ForeignStructType",
     "ForeignObject",
 
+-- built-in foreign types
+    "int8",
+    "uint8",
+    "int16",
+    "uint16",
+    "int32",
+    "uint32",
+    "char'",
+    "uchar",
+    "short",
+    "ushort",
+    "int",
+    "uint",
+    "long",
+    "ulong",
+
 -- methods
     "openSharedLibrary",
     "foreignFunction"
+    }
+
+if version#"pointer size" == 8 then export {
+    "int64",
+    "uint64"
     }
 
 importFrom_Core {
@@ -33,6 +54,9 @@ importFrom_Core {
     "ffiPrepCif",
     "ffiPrepCifVar",
     "ffiCall",
+    "ffiIntegerType",
+    "ffiIntegerAddress",
+    "ffiIntegerValue"
     }
 
 exportFrom_Core {
@@ -74,6 +98,47 @@ ForeignObject#{Standard, AfterPrint} = x -> (
     << " : ForeignObject of type " << net x#"type" << endl)
 
 value ForeignObject := x -> x#"value"
+
+foreignIntegerType = method()
+foreignIntegerType(String, ZZ, Boolean) := (name, bits, signed) ->
+    ForeignIntegerType{
+	"name" => name,
+	"type" => ffiIntegerType(bits, signed),
+	"bits" => bits,
+	"signed" => signed}
+int8 = foreignIntegerType("int8", 8, true)
+uint8 = foreignIntegerType("uint8", 8, false)
+char' = int8
+uchar = uint8
+int16 = foreignIntegerType("int16", 16, true)
+uint16 = foreignIntegerType("uint16", 16, false)
+short = int16
+ushort = uint16
+int32 = foreignIntegerType("int32", 32, true)
+uint32 = foreignIntegerType("uint32", 32, false)
+int = int32
+uint = uint32
+if version#"pointer size" == 4 then (
+    long = int32;
+    ulong = uint32
+    ) else (
+    int64 = foreignIntegerType("int64", 64, true);
+    uint64 = foreignIntegerType("uint64", 64, false);
+    long = int64;
+    ulong = uint64)
+
+ForeignIntegerType ZZ := (type, n) -> (
+    address := ffiIntegerAddress(n, type#"bits", type#"signed");
+    val := ffiIntegerValue(address, type#"bits", type#"signed");
+    ForeignObject{
+	"type" => type,
+	"address" => address,
+	"value" => val})
+
+ForeignIntegerType Number :=
+ForeignIntegerType Constant := (type, x) -> (
+    if x >= 0 then type floor x else type ceiling x)
+
 addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
 addressOfFunctions#"sshort" = addressOfFunctions#"sint16"
 addressOfFunctions#"uint" = addressOfFunctions#"uint32"
@@ -155,44 +220,36 @@ foreignFunction(SharedLibrary, String, String, List) :=
 -- https://github.com/libffi/libffi/pull/628
 
 TEST ///
-pointerAndBackAgain = type ->
-    dereferenceFunctions#type @@ addressOfFunctions#type
-assert Equation((pointerAndBackAgain "uint8")(2^8 - 1), 2^8 - 1)
-assert Equation((pointerAndBackAgain "sint8")(2^7 - 1), 2^7 - 1)
-assert Equation((pointerAndBackAgain "sint8")(-2^7), -2^7)
-assert Equation((pointerAndBackAgain "uint16")(2^16 - 1), 2^16 - 1)
-assert Equation((pointerAndBackAgain "sint16")(2^15 - 1), 2^15 - 1)
-assert Equation((pointerAndBackAgain "sint16")(-2^15), -2^15)
-assert Equation((pointerAndBackAgain "uint32")(2^32 - 1), 2^32 - 1)
-assert Equation((pointerAndBackAgain "sint32")(2^31 - 1), 2^31 - 1)
-assert Equation((pointerAndBackAgain "sint32")(-2^31), -2^31)
+assert Equation(value uint8(2^8 - 1), 2^8 - 1)
+assert Equation(value int8(2^7 - 1), 2^7 - 1)
+assert Equation(value int8(-2^7), -2^7)
+assert Equation(value uint16(2^16 - 1), 2^16 - 1)
+assert Equation(value int16(2^15 - 1), 2^15 - 1)
+assert Equation(value int16(-2^15), -2^15)
+assert Equation(value uint32(2^32 - 1), 2^32 - 1)
+assert Equation(value int32(2^31 - 1), 2^31 - 1)
+assert Equation(value int32(-2^31), -2^31)
 if version#"pointer size" == 8 then (
-    assert Equation((pointerAndBackAgain "uint64")(2^64 - 1), 2^64 - 1);
-    assert Equation((pointerAndBackAgain "sint64")(2^63 - 1), 2^63 - 1);
-    assert Equation((pointerAndBackAgain "sint64")(-2^63), -2^63))
+    assert Equation(value uint64(2^64 - 1), 2^64 - 1);
+    assert Equation(value int64(2^63 - 1), 2^63 - 1);
+    assert Equation(value int64(-2^63), -2^63))
+
+assert Equation(value uchar(2^8 - 1), 2^8 - 1)
+assert Equation(value char'(2^7 - 1), 2^7 - 1)
+assert Equation(value char'(-2^7), -2^7)
+assert Equation(value ushort(2^16 - 1), 2^16 - 1)
+assert Equation(value short(2^15 - 1), 2^15 - 1)
+assert Equation(value short(-2^15), -2^15)
+assert Equation(value uint(2^32 - 1), 2^32 - 1)
+assert Equation(value int(2^31 - 1), 2^31 - 1)
+assert Equation(value int(-2^31), -2^31)
+longexp = 8 * version#"pointer size"
+assert Equation(value ulong(2^longexp - 1), 2^longexp - 1)
+assert Equation(value long(2^(longexp - 1) - 1), 2^(longexp - 1) - 1)
+assert Equation(value long(-2^(longexp - 1)), -2^(longexp - 1))
 
 assert Equation((pointerAndBackAgain "float") 3.14159, 3.14159p24)
 assert Equation((pointerAndBackAgain "double") 3.14159, 3.14159p53)
-
-assert Equation((pointerAndBackAgain "uchar")(2^8 - 1), ascii(2^8 - 1))
-assert Equation((pointerAndBackAgain "uchar") ascii(2^8 - 1), ascii(2^8 - 1))
-assert Equation((pointerAndBackAgain "schar")(2^7 - 1), ascii(2^7 - 1))
-assert Equation((pointerAndBackAgain "schar") ascii(2^7 - 1), ascii(2^7 - 1))
-assert Equation((pointerAndBackAgain "schar")(-2^7), ascii(-2^7))
-assert Equation((pointerAndBackAgain "schar") ascii(-2^7), ascii(-2^7))
-
-assert Equation((pointerAndBackAgain "ushort")(2^16 - 1), 2^16 - 1)
-assert Equation((pointerAndBackAgain "sshort")(2^15 - 1), 2^15 - 1)
-assert Equation((pointerAndBackAgain "sshort")(-2^15), -2^15)
-assert Equation((pointerAndBackAgain "uint")(2^32 - 1), 2^32 - 1)
-assert Equation((pointerAndBackAgain "sint")(2^31 - 1), 2^31 - 1)
-assert Equation((pointerAndBackAgain "sint")(-2^31), -2^31)
-longexp = 8 * version#"pointer size"
-assert Equation((pointerAndBackAgain "ulong")(2^longexp - 1), 2^longexp - 1)
-assert Equation((pointerAndBackAgain "slong")(2^(longexp - 1) - 1),
-    2^(longexp - 1) - 1)
-assert Equation((pointerAndBackAgain "slong")(-2^(longexp - 1)),
-    -2^(longexp - 1))
 
 assert Equation(stringFromPointer (pointerAndBackAgain "pointer") "foo", "foo")
 ///
@@ -216,3 +273,4 @@ pointerAndBackAgain#"uint8"
 
 (pointerAndBackAgain "uchar") "C"
 
+int 5
