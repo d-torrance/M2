@@ -8,6 +8,10 @@ newPackage("ForeignFunctions",
     Keywords => {"Interfaces"}
     )
 
+-------------------------
+-- exports and imports --
+-------------------------
+
 export {
 -- classes
     "SharedLibrary",
@@ -73,48 +77,32 @@ exportFrom_Core {
     "stringFromPointer"
     }
 
+-----------------------------------
+-- foreign type (abstract class) --
+-----------------------------------
+
 ForeignType = new SelfInitializingType of HashTable
 ForeignType.synonym = "foreign type"
 net ForeignType := x -> x#"name"
 
+--------------------------
+-- foreign integer type --
+--------------------------
+
 ForeignIntegerType = new SelfInitializingType of ForeignType
 ForeignIntegerType.synonym = "foreign integer type"
 
-ForeignRealType = new SelfInitializingType of ForeignType
-ForeignRealType.synonym = "foreign real type"
-
-ForeignPointerType = new SelfInitializingType of ForeignType
-ForeignPointerType.synonym = "foreign pointer type"
-
-ForeignStringType = new SelfInitializingType of ForeignPointerType
-ForeignStringType.synonym = "foreign string type"
-
-ForeignArrayType = new SelfInitializingType of ForeignPointerType
-ForeignArrayType.synonym = "foreign array type"
-
-ForeignStructType = new SelfInitializingType of ForeignType
-ForeignStructType.synonym = "foreign struct type"
-
-ForeignObject = new SelfInitializingType of MutableHashTable
-ForeignObject.synonym = "foreign object"
-net ForeignObject := x -> net value x
-ForeignObject#{Standard, AfterPrint} = x -> (
-    << endl
-    << concatenate(interpreterDepth:"o") << lineNumber
-    << " : ForeignObject of type " << net x#"type" << endl)
-
-value ForeignObject := x -> x#"value"
-
 foreignIntegerType = method()
-foreignIntegerType(String, ZZ, Boolean) := (name, bits, signed) ->
-    ForeignIntegerType{
+foreignIntegerType(String, ZZ, Boolean) := (name, bits, signed) -> (
+    ForeignIntegerType {
 	"name" => name,
 	"type" => ffiIntegerType(bits, signed),
 	"bits" => bits,
-	"signed" => signed}
+	"signed" => signed})
+
 int8 = foreignIntegerType("int8", 8, true)
 uint8 = foreignIntegerType("uint8", 8, false)
-char' = int8
+char' = int8  -- char is taken by ring characteristic
 uchar = uint8
 int16 = foreignIntegerType("int16", 16, true)
 uint16 = foreignIntegerType("uint16", 16, false)
@@ -136,7 +124,7 @@ if version#"pointer size" == 4 then (
 ForeignIntegerType ZZ := (type, n) -> (
     address := ffiIntegerAddress(n, type#"bits", type#"signed");
     val := ffiIntegerValue(address, type#"bits", type#"signed");
-    ForeignObject{
+    ForeignObject {
 	"type" => type,
 	"address" => address,
 	"value" => val})
@@ -175,6 +163,18 @@ ForeignRealType CC := (type, x) -> type realPart x
 ForeignRealType Number :=
 ForeignRealType Constant := (type, x) -> type numeric x
 
+ForeignPointerType = new SelfInitializingType of ForeignType
+ForeignPointerType.synonym = "foreign pointer type"
+
+ForeignStringType = new SelfInitializingType of ForeignPointerType
+ForeignStringType.synonym = "foreign string type"
+
+ForeignArrayType = new SelfInitializingType of ForeignPointerType
+ForeignArrayType.synonym = "foreign array type"
+
+ForeignStructType = new SelfInitializingType of ForeignType
+ForeignStructType.synonym = "foreign struct type"
+
 --------------------
 -- foreign object --
 --------------------
@@ -193,6 +193,7 @@ foreignObject = method()
 foreignObject ForeignObject := identity
 foreignObject ZZ := n -> int n
 foreignObject Number := foreignObject Constant := x -> double x
+
 addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
 addressOfFunctions#"sshort" = addressOfFunctions#"sint16"
 addressOfFunctions#"uint" = addressOfFunctions#"uint32"
