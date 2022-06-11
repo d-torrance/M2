@@ -13,6 +13,8 @@ voidPointerOrNull := voidPointer or null;
 toExpr(x:voidPointer):Expr := Expr(pointerCell(x));
 WrongArgPointer():Expr := WrongArg("a pointer");
 WrongArgPointer(n:int):Expr := WrongArg(n, "a pointer");
+getMem(n:int):voidPointer := Ccode(voidPointer, "getmem(", n, ")");
+getMemAtomic(n:int):voidPointer := Ccode(voidPointer, "getmem_atomic(", n, ")");
 
 dlerror0():Expr:= buildErrorPacket(tostring(Ccode(charstar, "dlerror()")));
 
