@@ -221,23 +221,9 @@ foreignObject(ForeignType, Pointer, Thing) := (type, address, val) -> (
 	"address" => address,
 	"value" => val})
 
-addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
-addressOfFunctions#"sshort" = addressOfFunctions#"sint16"
-addressOfFunctions#"uint" = addressOfFunctions#"uint32"
-addressOfFunctions#"sint" = addressOfFunctions#"sint32"
-addressOfFunctions#"ulong" = addressOfFunctions#("uint" |
-    toString(8 * version#"pointer size"))
-addressOfFunctions#"slong" = addressOfFunctions#("sint" |
-    toString(8 * version#"pointer size"))
-
-dereferenceFunctions#"ushort" = dereferenceFunctions#"uint16"
-dereferenceFunctions#"sshort" = dereferenceFunctions#"sint16"
-dereferenceFunctions#"uint" = dereferenceFunctions#"uint32"
-dereferenceFunctions#"sint" = dereferenceFunctions#"sint32"
-dereferenceFunctions#"ulong" = dereferenceFunctions#("uint" |
-    toString(8 * version#"pointer size"))
-dereferenceFunctions#"slong" = dereferenceFunctions#("sint" |
-    toString(8 * version#"pointer size"))
+--------------------
+-- shared library --
+--------------------
 
 SharedLibrary = new SelfInitializingType of BasicList
 SharedLibrary.synonym = "shared library"
@@ -322,8 +308,8 @@ assert Equation(value ulong(2^longexp - 1), 2^longexp - 1)
 assert Equation(value long(2^(longexp - 1) - 1), 2^(longexp - 1) - 1)
 assert Equation(value long(-2^(longexp - 1)), -2^(longexp - 1))
 
-assert Equation((pointerAndBackAgain "float") 3.14159, 3.14159p24)
-assert Equation((pointerAndBackAgain "double") 3.14159, 3.14159p53)
+assert Equation(value float 3.14159, 3.14159p24)
+assert Equation(value double 3.14159, 3.14159p53)
 
 assert Equation(stringFromPointer (pointerAndBackAgain "pointer") "foo", "foo")
 ///
