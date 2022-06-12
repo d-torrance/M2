@@ -255,7 +255,6 @@ value ForeignObject := x -> (type x)#"value" x
 address ForeignObject := x -> x#"address"
 
 type ForeignObject := x -> x#"type"
-type Thing := type @@ foreignObject
 
 foreignObject ForeignObject := identity
 foreignObject ZZ := n -> int n
