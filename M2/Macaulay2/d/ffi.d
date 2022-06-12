@@ -361,6 +361,82 @@ ffiRealValue(e:Expr):Expr := (
     else WrongNumArgs(2));
 setupfun("ffiRealValue", ffiRealValue);
 
+-------------------
+-- pointer types --
+-------------------
+
+pointerSize := Ccode(int, "sizeof(void *)");
+
+setupconst("ffiPointerType", toExpr(Ccode(voidPointer, "&ffi_type_pointer")));
+
+ffiPointerAddress(e:Expr):Expr := (
+    when e
+    is x:pointerCell do (
+	y := getMem(pointerSize);
+	Ccode(void, "*(void **)", y, " = ", x.v);
+	toExpr(y))
+    is x:stringCell do (
+	y := getMem(pointerSize);
+	Ccode(void, "*(void **)", y, " = ", tocharstar(x.v));
+	toExpr(y))
+    is a:Sequence do (
+	if length(a) == 2 then (
+	    when a.0
+	    is x:pointerCell do (
+		when a.1
+		is y:List do (
+		    n := length(y.v);
+		    bytes := Ccode(int, "((ffi_type *)", x.v, ")->size");
+		    arr := getMem(n * bytes);
+		    for i from 0 to n - 1 do (
+			when y.v.i
+			is z:pointerCell do Ccode(voidPointer,
+			    "memcpy(", arr, " + ", i * bytes, ", ",
+			    z.v, ", ", bytes, ")")
+			else return buildErrorPacket(
+			    "expected a list of pointers"));
+		    ptr := getMem(pointerSize);
+		    Ccode(void, "*(void **)", ptr, " = ", arr);
+		    toExpr(ptr))
+		else WrongArg(2, "a list"))
+	    else WrongArgPointer(1))
+	else WrongNumArgs(1, 2))
+    else WrongArg("a pointer, string, or a pointer and a list"));
+setupfun("ffiPointerAddress", ffiPointerAddress);
+
+ffiPointerValue(e:Expr):Expr := (
+    when e
+    is x:pointerCell do toExpr(Ccode(voidPointer, "*(void **)", x.v))
+    else WrongArgPointer());
+setupfun("ffiPointerValue", ffiPointerValue);
+
+ffiStringValue(e:Expr):Expr := (
+    when e
+    is x:pointerCell do toExpr(tostring(Ccode(charstar, "*(char **)", x.v)))
+    else WrongArgPointer());
+setupfun("ffiStringValue", ffiStringValue);
+
+ffiArrayValue(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 3 then (
+	    when a.0
+	    is x:pointerCell do (
+		when a.1
+		is y:pointerCell do (
+		    when a.2
+		    is z:ZZcell do (
+			bytes := Ccode(int, "((ffi_type *)", x.v, ")->size");
+			Expr(list(new Sequence len toInt(z) at i do provide (
+				    toExpr(Ccode(voidPointer, "*(void **)",
+					    y.v, " + ", i * bytes))))))
+		    else WrongArgZZ(3))
+		else WrongArgPointer(2))
+	    else WrongArgPointer(1))
+	else WrongNumArgs(3))
+    else WrongNumArgs(3));
+setupfun("ffiArrayValue", ffiArrayValue);
+
 --------------------------
 -- foreignFunctionTypes --
 --------------------------
