@@ -78,8 +78,7 @@ importFrom_Core {
     "ffiPointerType",
     "ffiPointerAddress",
     "ffiPointerValue",
-    "ffiStringValue",
-    "ffiArrayValue"
+    "ffiStringValue"
     }
 
 exportFrom_Core {
@@ -216,8 +215,10 @@ foreignArrayType(ForeignType, String) := (T, name) -> ForeignArrayType {
     "name" => name,
     "address" => ffiPointerType,
     "type" => T,
-    "value" => x -> apply(ffiArrayValue(address T, address x, x#"length"),
-	y -> T y)}
+    "value" => x -> (
+	ptr := ffiPointerValue address x;
+	sz := size T;
+	apply(x#"length", i -> T(ptr + i * sz)))}
 
 type = method()
 type ForeignArrayType := T -> T#"type"

@@ -421,24 +421,3 @@ ffiStringValue(e:Expr):Expr := (
     is x:pointerCell do toExpr(tostring(Ccode(charstar, "*(char **)", x.v)))
     else WrongArgPointer());
 setupfun("ffiStringValue", ffiStringValue);
-
-ffiArrayValue(e:Expr):Expr := (
-    when e
-    is a:Sequence do (
-	if length(a) == 3 then (
-	    when a.0
-	    is x:pointerCell do (
-		when a.1
-		is y:pointerCell do (
-		    when a.2
-		    is z:ZZcell do (
-			bytes := Ccode(int, "((ffi_type *)", x.v, ")->size");
-			Expr(list(new Sequence len toInt(z) at i do provide (
-				    toExpr(Ccode(voidPointer, "*(void **)",
-					    y.v, " + ", i * bytes))))))
-		    else WrongArgZZ(3))
-		else WrongArgPointer(2))
-	    else WrongArgPointer(1))
-	else WrongNumArgs(3))
-    else WrongNumArgs(3));
-setupfun("ffiArrayValue", ffiArrayValue);
