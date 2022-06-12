@@ -314,6 +314,11 @@ assert Equation(value double 3.14159, 3.14159p53)
 assert Equation(stringFromPointer (pointerAndBackAgain "pointer") "foo", "foo")
 ///
 
+TEST ///
+libm = openSharedLibrary "libm.so.6"
+cCos = foreignFunction(libm, "cos", double, double)
+assert Equation(value cCos pi, -1)
+///
 end
 
 restart
