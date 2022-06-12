@@ -221,11 +221,6 @@ foreignArrayType(ForeignType, String) := (T, name) -> ForeignArrayType {
 type = method()
 type ForeignArrayType := T -> T#"type"
 
-getElementType := x -> (
-    elementTypes := unique(type \ x);
-    if #elementTypes == 1 then first elementTypes
-    else error("expected elements of the same type"))
-
 ForeignArrayType List := (T, x) -> (
     r := foreignObject(T, ffiPointerAddress(address type T,
 	    address \ apply(x, y -> (type T) y)));
@@ -260,7 +255,10 @@ foreignObject ForeignObject := identity
 foreignObject ZZ := n -> int n
 foreignObject Number := foreignObject Constant := x -> double x
 foreignObject String := x -> charstar x
-foreignObject List := x -> (foreignArrayType getElementType x) x
+foreignObject List := x -> (
+    types := unique(type \ foreignObject \ x);
+    if #types == 1 then (foreignArrayType first types) x
+    else error("expected all elements to have the same type"))
 foreignObject(ForeignType, Pointer) := (T, ptr) -> ForeignObject {
     "type" => T,
     "address" => ptr}
