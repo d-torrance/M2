@@ -188,15 +188,56 @@ ForeignRealType Constant := (T, x) -> T numeric x
 ForeignRealType Pointer := (T, ptr) -> foreignObject(T, ptr,
     ffiRealValue(ptr, T#"bits"))
 
+--------------------------
+-- foreign pointer type --
+--------------------------
 
 ForeignPointerType = new SelfInitializingType of ForeignType
 ForeignPointerType.synonym = "foreign pointer type"
 
+voidstar = ForeignPointerType {
+    "name" => "voidstar",
+    "address" => ffiPointerType}
+
 ForeignStringType = new SelfInitializingType of ForeignPointerType
 ForeignStringType.synonym = "foreign string type"
 
+charstar = ForeignStringType {
+    "name" => "charstar",
+    "address" => ffiPointerType}
+
+ForeignStringType String := (T, x) -> (
+    ptr := ffiPointerAddress x;
+    foreignObject(T, ptr, ffiStringValue ptr))
+
+ForeignStringType Pointer := (T, ptr) -> foreignObject(T, ptr,
+    ffiStringValue ptr)
+
 ForeignArrayType = new SelfInitializingType of ForeignPointerType
 ForeignArrayType.synonym = "foreign array type"
+
+foreignArrayType = method()
+foreignArrayType ForeignType := T -> (
+    foreignArrayType(T, T#"name" | "star"))
+foreignArrayType(ForeignType, String) := (T, name) -> ForeignArrayType {
+    "name" => name,
+    "address" => ffiPointerType,
+    "type" => T}
+
+getElementType := x -> (
+    elementTypes := unique(type \ x);
+    if #elementTypes == 1 then first elementTypes
+    else error("expected elements of the same type"))
+
+ForeignArrayType List := (T, x) -> (
+    typeptr := address T#"type";
+    ptr := ffiPointerAddress(typeptr, address \ x);
+    foreignObject(T, ptr,
+	apply(ffiArrayValue(typeptr, ptr, #x), x -> T#"type" x)))
+
+-------------------------
+-- foreign struct type --
+-------------------------
 
 ForeignStructType = new SelfInitializingType of ForeignType
 ForeignStructType.synonym = "foreign struct type"
@@ -223,6 +264,8 @@ foreignObject = method()
 foreignObject ForeignObject := identity
 foreignObject ZZ := n -> int n
 foreignObject Number := foreignObject Constant := x -> double x
+foreignObject String := x -> charstar x
+foreignObject List := x -> (foreignArrayType getElementType x) x
 foreignObject(ForeignType, Pointer, Thing) := (T, ptr, val) -> (
     ForeignObject {
 	"type" => T,
