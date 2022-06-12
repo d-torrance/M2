@@ -99,8 +99,6 @@ address ForeignType := x -> x#"address"
 size ForeignType := ffiTypeSize @@ address
 
 foreignObject = method()
-address Thing := address @@ foreignObject
-
 ForeignType Pointer := (T, ptr) -> foreignObject(T, ptr)
 
 -----------------------
@@ -229,7 +227,8 @@ getElementType := x -> (
     else error("expected elements of the same type"))
 
 ForeignArrayType List := (T, x) -> (
-    r := foreignObject(T, ffiPointerAddress(address type T, address \ x));
+    r := foreignObject(T, ffiPointerAddress(address type T,
+	    address \ apply(x, y -> (type T) y)));
     r#"length" = #x;
     r)
 
