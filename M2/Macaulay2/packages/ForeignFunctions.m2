@@ -362,6 +362,15 @@ assert Equation(value \ value (foreignArrayType int) {1, 2, 3}, {1, 2, 3})
 ///
 
 TEST ///
+assert Equation(value foreignObject 3, 3)
+assert Equation(value foreignObject 3.14159, 3.14159)
+assert Equation(value foreignObject "foo", "foo")
+assert Equation(value \ value foreignObject {1, 2, 3}, {1, 2, 3})
+assert Equation(value \ value foreignObject {1.0, 2.0, 3.0}, {1.0, 2.0, 3.0})
+assert Equation(value \ value foreignObject {"foo", "bar"}, {"foo", "bar"})
+///
+
+TEST ///
 libm = openSharedLibrary "libm.so.6"
 cCos = foreignFunction(libm, "cos", double, double)
 assert Equation(value cCos pi, -1)
