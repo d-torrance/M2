@@ -100,6 +100,9 @@ net ForeignType := x -> x#"name"
 address = method()
 address ForeignType := x -> x#"address"
 
+foreignObject = method()
+address Thing := address @@ foreignObject
+
 -----------------------
 -- foreign void type --
 -----------------------
@@ -259,8 +262,8 @@ address ForeignObject := x -> x#"address"
 
 type = method()
 type ForeignObject := x -> x#"type"
+type Thing := type @@ foreignObject
 
-foreignObject = method()
 foreignObject ForeignObject := identity
 foreignObject ZZ := n -> int n
 foreignObject Number := foreignObject Constant := x -> double x
@@ -271,6 +274,8 @@ foreignObject(ForeignType, Pointer, Thing) := (T, ptr, val) -> (
 	"type" => T,
 	"address" => ptr,
 	"value" => val})
+
+ForeignType ForeignObject := (T, x) -> x
 
 --------------------
 -- shared library --
@@ -299,7 +304,7 @@ foreignFunction(SharedLibrary, String, ForeignType, List) :=
 	variadic := if member("...", argtypes) then (
 	    if #argtypes < 2
 	    then error "expected at least 1 fixed argument";
-	    if positions(argtypes, x -> x == "...") != {#argtypes - 1}
+	    if positions(argtypes, x -> x === "...") != {#argtypes - 1}
 	    then error "expected \"...\" to be the last argument";
 	    argtypes = drop(argtypes, -1);
 	    nfixedargs := #argtypes;
@@ -310,6 +315,7 @@ foreignFunction(SharedLibrary, String, ForeignType, List) :=
 	argtypePointers := address \ argtypes;
 	if variadic then (
 	    ForeignFunction(args -> (
+		    if not instance(args, Sequence) then args = 1:args;
 		    varargs := for i from nfixedargs to #args - 1 list (
 			foreignObject args#i);
 		    varargtypePointers := address \ type \ varargs;
