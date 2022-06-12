@@ -142,15 +142,15 @@ if version#"pointer size" == 4 then (
 
 ForeignIntegerType ZZ := (type, n) -> (
     address := ffiIntegerAddress(n, type#"bits", type#"signed");
-    val := ffiIntegerValue(address, type#"bits", type#"signed");
-    ForeignObject {
-	"type" => type,
-	"address" => address,
-	"value" => val})
+    foreignObject(type, address,
+	ffiIntegerValue(address, type#"bits", type#"signed")))
 
 ForeignIntegerType Number :=
 ForeignIntegerType Constant := (type, x) -> (
     if x >= 0 then type floor x else type ceiling x)
+
+ForeignIntegerType Pointer := (type, address) -> foreignObject(type, address,
+    ffiIntegerValue(address, type#"bits", type#"signed"))
 
 -----------------------
 -- foreign real type --
@@ -171,16 +171,15 @@ double = foreignRealType("double", 64)
 
 ForeignRealType RR := (type, x) -> (
     address := ffiRealAddress(x, type#"bits");
-    val := ffiRealValue(address, type#"bits");
-    ForeignObject {
-	"type" => type,
-	"address" => address,
-	"value" => val})
+    foreignObject(type, address, ffiRealValue(address, type#"bits")))
 
 ForeignRealType CC := (type, x) -> type realPart x
 
 ForeignRealType Number :=
 ForeignRealType Constant := (type, x) -> type numeric x
+
+ForeignRealType Pointer := (type, address) -> foreignObject(type, address,
+    ffiRealValue(address, type#"bits"))
 
 ForeignPointerType = new SelfInitializingType of ForeignType
 ForeignPointerType.synonym = "foreign pointer type"
@@ -216,6 +215,11 @@ foreignObject = method()
 foreignObject ForeignObject := identity
 foreignObject ZZ := n -> int n
 foreignObject Number := foreignObject Constant := x -> double x
+foreignObject(ForeignType, Pointer, Thing) := (type, address, val) -> (
+    ForeignObject {
+	"type" => type,
+	"address" => address,
+	"value" => val})
 
 addressOfFunctions#"ushort" = addressOfFunctions#"uint16"
 addressOfFunctions#"sshort" = addressOfFunctions#"sint16"
