@@ -47,7 +47,9 @@ export {
 -- methods
     "openSharedLibrary",
     "foreignFunction",
-    "foreignObject"
+    "foreignObject",
+    "address",
+    "type"
     }
 
 if version#"pointer size" == 8 then export {
@@ -85,6 +87,9 @@ ForeignType = new SelfInitializingType of HashTable
 ForeignType.synonym = "foreign type"
 net ForeignType := x -> x#"name"
 
+address = method()
+address ForeignType := x -> x#"address"
+
 --------------------------
 -- foreign integer type --
 --------------------------
@@ -96,7 +101,7 @@ foreignIntegerType = method()
 foreignIntegerType(String, ZZ, Boolean) := (name, bits, signed) -> (
     ForeignIntegerType {
 	"name" => name,
-	"type" => ffiIntegerType(bits, signed),
+	"address" => ffiIntegerType(bits, signed),
 	"bits" => bits,
 	"signed" => signed})
 
@@ -144,7 +149,7 @@ foreignRealType = method()
 foreignRealType(String, ZZ) := (name, bits) -> (
     ForeignRealType {
 	"name" => name,
-	"type" => ffiRealType(bits),
+	"address" => ffiRealType(bits),
 	"bits" => bits})
 
 float = foreignRealType("float", 32)
@@ -185,9 +190,13 @@ net ForeignObject := x -> net value x
 ForeignObject#{Standard, AfterPrint} = x -> (
     << endl
     << concatenate(interpreterDepth:"o") << lineNumber
-    << " : ForeignObject of type " << net x#"type" << endl)
+    << " : ForeignObject of type " << net type x << endl)
 
 value ForeignObject := x -> x#"value"
+address ForeignObject := x -> x#"address"
+
+type = method()
+type ForeignObject := x -> x#"type"
 
 foreignObject = method()
 foreignObject ForeignObject := identity
@@ -219,14 +228,18 @@ net SharedLibrary := lib -> lib#1
 openSharedLibrary = method()
 openSharedLibrary String := name -> SharedLibrary{dlopen name, name}
 
+----------------------
+-- foreign function --
+----------------------
+
 ForeignFunction = new SelfInitializingType of FunctionClosure
 ForeignFunction.synonym = "foreign function"
 net ForeignFunction := f -> (frames f)#0#0#1 | "::" | (frames f)#0#1
 
 foreignFunction = method()
-foreignFunction(SharedLibrary, String, String, String) :=
+foreignFunction(SharedLibrary, String, ForeignType, ForeignType) :=
     (lib, symb, rtype, argtype) -> foreignFunction(lib, symb, rtype, {argtype})
-foreignFunction(SharedLibrary, String, String, List) :=
+foreignFunction(SharedLibrary, String, ForeignType, List) :=
     (lib, symb, rtype, argtypes) -> (
 	variadic := if member("...", argtypes) then (
 	    if #argtypes < 2
@@ -236,40 +249,28 @@ foreignFunction(SharedLibrary, String, String, List) :=
 	    argtypes = drop(argtypes, -1);
 	    nfixedargs := #argtypes;
 	    true) else false;
-	if not foreignFunctionTypes#?rtype
-	then error("unknown return type: ", rtype);
-	for argtype in argtypes do if not foreignFunctionTypes#?argtype
-	then error("unknown argument type: ", argtype);
+	if any(argtypes, argtype -> not instance(argtype, ForeignType))
+	then error("expected argument types to be foreign types");
 	funcptr := dlsym(lib#0, symb);
-	argtypePointers := apply(argtypes,
-	    argtype -> foreignFunctionTypes#argtype);
+	argtypePointers := address \ argtypes;
 	if variadic then (
 	    ForeignFunction(args -> (
-		    for i from nfixedargs to #args - 1 do
-			if not instance(args#i, Sequence) and #args#i != 2
-			then error("expected type for argument ", i + 1);
-		    argtypePointersWithVarArgs := join(argtypePointers,
-			for i from nfixedargs to #args - 1 list
-			    foreignFunctionTypes#(first args#i));
-		    cif := ffiPrepCifVar(nfixedargs,
-			foreignFunctionTypes#rtype, argtypePointersWithVarArgs);
+		    varargs := for i from nfixedargs to #args - 1 list (
+			foreignObject args#i);
+		    varargtypePointers := address \ type \ varargs;
+		    cif := ffiPrepCifVar(nfixedargs, address rtype,
+			argtypePointers | varargtypePointers);
 		    avalues := apply(nfixedargs, i ->
-			addressOfFunctions#(argtypes#i) args#i);
-		    avalues = join(avalues,
-			for i from nfixedargs to #args - 1 list
-			    addressOfFunctions#(first args#i) last args#i);
-		    dereferenceFunctions#rtype ffiCall(
-			cif, funcptr, 100, avalues))))
+			address (argtypes#i args#i)) | address \ varargs;
+		    rtype ffiCall(cif, funcptr, 100, avalues))))
 	else (
-	    cif := ffiPrepCif(foreignFunctionTypes#rtype, argtypePointers);
+	    cif := ffiPrepCif(address rtype, argtypePointers);
 	    ForeignFunction(args -> (
 		    if not instance(args, Sequence) then args = 1:args;
 		    if #argtypes != #args
 		    then error("expected ", #argtypes, " arguments");
-		    avalues := apply(#args, i ->
-			addressOfFunctions#(argtypes#i) args#i);
-		    dereferenceFunctions#rtype ffiCall(
-			cif, funcptr, 100, avalues)))))
+		    avalues := apply(#args, i -> address (argtypes#i args#i));
+		    rtype ffiCall(cif, funcptr, 100, avalues)))))
 
 -- note to self for writing documentation: variadic arguments can't be small
 -- https://github.com/libffi/libffi/pull/628
