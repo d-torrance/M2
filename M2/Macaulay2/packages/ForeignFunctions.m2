@@ -82,11 +82,7 @@ importFrom_Core {
     }
 
 exportFrom_Core {
-    "foreignFunctionTypes",
-    "addressOfFunctions",
-    "dereferenceFunctions",
     "Pointer",
-    "stringFromPointer"
     }
 
 -----------------------------------
