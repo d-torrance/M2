@@ -44,13 +44,16 @@ export {
     "ulong",
     "float",
     "double",
+    "voidstar",
+    "charstar",
 
 -- methods
     "openSharedLibrary",
     "foreignFunction",
     "foreignObject",
     "address",
-    "type"
+    "type",
+    "foreignArrayType"
     }
 
 if version#"pointer size" == 8 then export {
@@ -70,7 +73,12 @@ importFrom_Core {
     "ffiIntegerValue",
     "ffiRealType",
     "ffiRealAddress",
-    "ffiRealValue"
+    "ffiRealValue",
+    "ffiPointerType",
+    "ffiPointerAddress",
+    "ffiPointerValue",
+    "ffiStringValue",
+    "ffiArrayValue"
     }
 
 exportFrom_Core {
@@ -98,7 +106,7 @@ address ForeignType := x -> x#"address"
 
 ForeignVoidType = new SelfInitializingType of ForeignType
 ForeignVoidType.synonym = "foreign void type"
-ForeignVoidType Thing := (type, x) -> null
+ForeignVoidType Thing := (T, x) -> null
 
 void = ForeignVoidType{
     "name" => "void",
@@ -140,17 +148,16 @@ if version#"pointer size" == 4 then (
     long = int64;
     ulong = uint64)
 
-ForeignIntegerType ZZ := (type, n) -> (
-    address := ffiIntegerAddress(n, type#"bits", type#"signed");
-    foreignObject(type, address,
-	ffiIntegerValue(address, type#"bits", type#"signed")))
+ForeignIntegerType ZZ := (T, n) -> (
+    ptr := ffiIntegerAddress(n, T#"bits", T#"signed");
+    foreignObject(T, ptr, ffiIntegerValue(ptr, T#"bits", T#"signed")))
 
 ForeignIntegerType Number :=
-ForeignIntegerType Constant := (type, x) -> (
-    if x >= 0 then type floor x else type ceiling x)
+ForeignIntegerType Constant := (T, x) -> (
+    if x >= 0 then T floor x else T ceiling x)
 
-ForeignIntegerType Pointer := (type, address) -> foreignObject(type, address,
-    ffiIntegerValue(address, type#"bits", type#"signed"))
+ForeignIntegerType Pointer := (T, ptr) -> foreignObject(T, ptr,
+    ffiIntegerValue(ptr, T#"bits", T#"signed"))
 
 -----------------------
 -- foreign real type --
@@ -169,17 +176,18 @@ foreignRealType(String, ZZ) := (name, bits) -> (
 float = foreignRealType("float", 32)
 double = foreignRealType("double", 64)
 
-ForeignRealType RR := (type, x) -> (
-    address := ffiRealAddress(x, type#"bits");
-    foreignObject(type, address, ffiRealValue(address, type#"bits")))
+ForeignRealType RR := (T, x) -> (
+    ptr := ffiRealAddress(x, T#"bits");
+    foreignObject(T, ptr, ffiRealValue(ptr, T#"bits")))
 
-ForeignRealType CC := (type, x) -> type realPart x
+ForeignRealType CC := (T, x) -> T realPart x
 
 ForeignRealType Number :=
-ForeignRealType Constant := (type, x) -> type numeric x
+ForeignRealType Constant := (T, x) -> T numeric x
 
-ForeignRealType Pointer := (type, address) -> foreignObject(type, address,
-    ffiRealValue(address, type#"bits"))
+ForeignRealType Pointer := (T, ptr) -> foreignObject(T, ptr,
+    ffiRealValue(ptr, T#"bits"))
+
 
 ForeignPointerType = new SelfInitializingType of ForeignType
 ForeignPointerType.synonym = "foreign pointer type"
@@ -215,10 +223,10 @@ foreignObject = method()
 foreignObject ForeignObject := identity
 foreignObject ZZ := n -> int n
 foreignObject Number := foreignObject Constant := x -> double x
-foreignObject(ForeignType, Pointer, Thing) := (type, address, val) -> (
+foreignObject(ForeignType, Pointer, Thing) := (T, ptr, val) -> (
     ForeignObject {
-	"type" => type,
-	"address" => address,
+	"type" => T,
+	"address" => ptr,
 	"value" => val})
 
 --------------------
