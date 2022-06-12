@@ -67,6 +67,7 @@ importFrom_Core {
     "ffiPrepCif",
     "ffiPrepCifVar",
     "ffiCall",
+    "ffiTypeSize",
     "ffiVoidType",
     "ffiIntegerType",
     "ffiIntegerAddress",
@@ -95,6 +96,8 @@ net ForeignType := x -> x#"name"
 
 address = method()
 address ForeignType := x -> x#"address"
+
+size ForeignType := ffiTypeSize @@ address
 
 foreignObject = method()
 address Thing := address @@ foreignObject

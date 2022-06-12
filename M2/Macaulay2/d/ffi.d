@@ -49,6 +49,12 @@ setupfun("dlsym", dlsym0);
 ffiTypeVoid := Ccode(voidPointer, "&ffi_type_void");
 ffiOk := Ccode(int, "FFI_OK");
 
+ffiTypeSize(e:Expr):Expr := (
+    when e
+    is x:pointerCell do toExpr(Ccode(int, "((ffi_type *)", x.v, ")->size"))
+    else WrongArgPointer());
+setupfun("ffiTypeSize", ffiTypeSize);
+
 ffiError(r:int):Expr:=
     if r == Ccode(int, "FFI_BAD_TYPEDEF")
     then buildErrorPacket("libffi: bad typedef")
