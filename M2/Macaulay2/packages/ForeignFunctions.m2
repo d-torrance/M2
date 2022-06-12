@@ -366,6 +366,15 @@ libm = openSharedLibrary "libm.so.6"
 cCos = foreignFunction(libm, "cos", double, double)
 assert Equation(value cCos pi, -1)
 ///
+
+TEST ///
+libc = openSharedLibrary "libc.so.6"
+sprintf = foreignFunction(libc, "sprintf", void, {charstar, charstar, "..."})
+foo = charstar "foo"
+sprintf(foo, "%s", "bar")
+assert Equation(value foo, "bar")
+///
+
 end
 
 restart
