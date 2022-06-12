@@ -169,6 +169,11 @@ ffiGetStructOffsets(e:Expr):Expr :=
     else WrongArgPointer();
 setupfun("ffiGetStructOffsets", ffiGetStructOffsets);
 
+---------------
+-- void type --
+---------------
+setupconst("ffiVoidType", toExpr(Ccode(voidPointer, "&ffi_type_void")));
+
 -------------------
 -- integer types --
 -------------------

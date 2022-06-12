@@ -27,6 +27,7 @@ export {
     "ForeignObject",
 
 -- built-in foreign types
+    "void",
     "int8",
     "uint8",
     "int16",
@@ -63,6 +64,7 @@ importFrom_Core {
     "ffiPrepCif",
     "ffiPrepCifVar",
     "ffiCall",
+    "ffiVoidType",
     "ffiIntegerType",
     "ffiIntegerAddress",
     "ffiIntegerValue",
@@ -89,6 +91,18 @@ net ForeignType := x -> x#"name"
 
 address = method()
 address ForeignType := x -> x#"address"
+
+-----------------------
+-- foreign void type --
+-----------------------
+
+ForeignVoidType = new SelfInitializingType of ForeignType
+ForeignVoidType.synonym = "foreign void type"
+ForeignVoidType Thing := (type, x) -> null
+
+void = ForeignVoidType{
+    "name" => "void",
+    "address" => ffiVoidType}
 
 --------------------------
 -- foreign integer type --
