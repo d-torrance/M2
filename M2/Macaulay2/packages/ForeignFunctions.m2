@@ -356,7 +356,9 @@ assert Equation(value long(-2^(longexp - 1)), -2^(longexp - 1))
 assert Equation(value float 3.14159, 3.14159p24)
 assert Equation(value double 3.14159, 3.14159p53)
 
-assert Equation(stringFromPointer (pointerAndBackAgain "pointer") "foo", "foo")
+assert Equation(value charstar "Hello, world!", "Hello, world!")
+
+assert Equation(value \ value (foreignArrayType int) {1, 2, 3}, {1, 2, 3})
 ///
 
 TEST ///
