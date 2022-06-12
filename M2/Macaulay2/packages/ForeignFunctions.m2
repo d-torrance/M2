@@ -53,7 +53,8 @@ export {
     "foreignObject",
     "address",
     "type",
-    "foreignArrayType"
+    "foreignArrayType",
+    "foreignStructType"
     }
 
 if version#"pointer size" == 8 then export {
@@ -78,7 +79,10 @@ importFrom_Core {
     "ffiPointerType",
     "ffiPointerAddress",
     "ffiPointerValue",
-    "ffiStringValue"
+    "ffiStringValue",
+    "ffiStructType",
+    "ffiGetStructOffsets",
+    "ffiStructAddress"
     }
 
 exportFrom_Core {
@@ -233,6 +237,30 @@ ForeignArrayType List := (T, x) -> (
 
 ForeignStructType = new SelfInitializingType of ForeignType
 ForeignStructType.synonym = "foreign struct type"
+
+foreignStructType = method()
+foreignStructType(String, Option) := (name, x) -> foreignStructType(name, {x})
+foreignStructType(String, List) := (name, x) -> (
+    if not (all(x, y -> instance(y, Option)) and all(x, y ->
+	instance(first y, String) and instance(last y, ForeignType)))
+    then error("expected options of the form string => foreign type");
+    types := last \ x;
+    ptr := ffiStructType \\ address \ types;
+    ForeignStructType {
+	"name" => name,
+	"address" => ptr,
+	"members" => first \ x,
+	"types" => types,
+	"offsets" => ffiGetStructOffsets ptr,
+	"value" => x -> 0})
+
+ForeignStructType HashTable := (T, x) -> (
+    -- check that keys line up correctly
+    foreignObject(T,
+	ffiStructAddress(
+	    address \ T#"types",
+	    address \ apply(#x, i -> (T#"types"#i) x#(T#"members"#i)),
+	    T#"offsets")))
 
 --------------------
 -- foreign object --
