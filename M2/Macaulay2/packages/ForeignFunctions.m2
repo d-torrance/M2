@@ -195,7 +195,7 @@ ForeignPointerType.synonym = "foreign pointer type"
 voidstar = ForeignPointerType {
     "name" => "voidstar",
     "address" => ffiPointerType,
-    "value" => address -* ?? *- }
+    "value" => ffiPointerValue @@ address}
 
 ForeignStringType = new SelfInitializingType of ForeignPointerType
 ForeignStringType.synonym = "foreign string type"
