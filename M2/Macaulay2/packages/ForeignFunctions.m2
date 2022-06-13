@@ -270,23 +270,26 @@ foreignStructType(String, List) := (name, x) -> (
     if not (all(x, y -> instance(y, Option)) and all(x, y ->
 	instance(first y, String) and instance(last y, ForeignType)))
     then error("expected options of the form string => foreign type");
-    types := last \ x;
-    ptr := ffiStructType \\ address \ types;
+    types := hashTable x;
+    ptr := ffiStructType \\ address \ last \ x;
+    members := first \ x;
+    offsets := hashTable apply(#x, i -> (x#i#0, (ffiGetStructOffsets ptr)#i));
     ForeignStructType {
 	"name" => name,
 	"address" => ptr,
-	"members" => first \ x,
+	"members" => members,
 	"types" => types,
-	"offsets" => ffiGetStructOffsets ptr,
-	"value" => x -> 0})
+	"offsets" => offsets,
+	"value" => x -> (
+	    ptr := address x;
+	    hashTable apply(members,
+		mbr -> (mbr, types#mbr(ptr + offsets#mbr))))})
 
-ForeignStructType HashTable := (T, x) -> (
-    -- check that keys line up correctly
-    foreignObject(T,
-	ffiStructAddress(
-	    address \ T#"types",
-	    address \ apply(#x, i -> (T#"types"#i) x#(T#"members"#i)),
-	    T#"offsets")))
+ForeignStructType HashTable := (T, x) -> foreignObject(T,
+    ffiStructAddress(
+	address T,
+	apply(T#"members", mbr -> address T#"types"#mbr x#mbr)))
+ForeignStructType List := (T, x) -> T hashTable x
 
 --------------------
 -- foreign object --
