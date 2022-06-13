@@ -455,8 +455,187 @@ sprintf(foo, "%s", "bar")
 assert Equation(value foo, "bar")
 ///
 
+TEST ///
+tm = foreignStructType("tm", {
+	"tm_sec" => int,
+	"tm_min" => int,
+	"tm_hour" => int,
+	"tm_mday" => int,
+	"tm_mon" => int,
+	"tm_year" => int,
+	"tm_wday" => int,
+	"tm_yday" => int,
+	"tm_isdst" => int,
+	"tm_gmtoff" => long,
+	"tm_zone" => charstar})
+epoch = tm {
+    "tm_sec" => 0,
+    "tm_min" => 0,
+    "tm_hour" => 0,
+    "tm_mday" => 1,
+    "tm_mon" => 0,
+    "tm_year" => 70,
+    "tm_wday" => 4,
+    "tm_yday" => 0,
+    "tm_isdst" => 0,
+    "tm_gmtoff" => 0,
+    "tm_zone" => "GMT"}
+libc = openSharedLibrary "libc.so.6"
+asctime = foreignFunction(libc, "asctime", charstar, voidstar)
+assert Equation(value asctime address epoch,"Thu Jan  1 00:00:00 1970\n")
+///
 end
 
 restart
 loadPackage("ForeignFunctions", Reload => true)
 check("ForeignFunctions", Verbose => true)
+
+
+intstar = foreignArrayType int
+ptr = address intstar {1, 2, 3}
+intstar ptr
+intstar(ptr, 5)
+
+errorDepth = 2
+foreignStructType(1, 2, 3)
+foreignStructType("baz", "foo" => int)
+baz = foreignStructType("baz", {"foo" => int, "bar" => double})
+peek oo
+
+baz = foreignStructType("baz", {"foo" => int, "bar" => double})
+
+x = baz hashTable{"foo" => 12, "bar" => pi}
+ptr = address x
+int ptr
+double(ptr + 8)
+
+baz hashTable{"foo" => 3, "bar" => 3.0}
+peek oo
+peek baz
+size baz
+size int
+size double
+
+debug Core
+ptr = ffiStructAddress(address baz, address \ {int 5, double 6})
+
+baz#"offsets"
+int ptr
+double(ptr + 8)
+
+
+loadPackage("ForeignFunctions", Reload => true)
+libc = openSharedLibrary "libc.so.6"
+localtime = foreignFunction(libc, "localtime", voidstar, voidstar)
+ptr = localtime address long 0
+
+tm = foreignStructType("tm",
+    {"tm_sec" => int,
+	"tm_min" => int,
+	"tm_hour" => int,
+	"tm_mday" => int,
+	"tm_mon" => int,
+	"tm_year" => int,
+	"tm_wday" => int,
+	"tm_yday" => int,
+	"tm_isdst" => int,
+	"tm_gmtoff" => long,
+	"tm_zone" => charstar})
+
+x = int 5
+ptr = voidstar address x
+int address ptr
+
+peek value
+ptr
+
+debug Core
+value ptr
+
+ffiPointerAddress address ptr
+
+tm address ptr
+
+errorDepth = 2
+tm ptr
+
+localtime currentTime()
+
+
+debug Core
+loadPackage "ForeignFunctions"
+libc = openSharedLibrary "libc.so.6"
+charstar(dlsym(first libc, "tzname") + 8)
+charstar oo
+size charstar
+
+x = long 500
+ptr = address x
+long address x
+
+
+localtime ptr;
+
+
+foreignObject {"foo", "bar"}
+
+int address voidstar address int 5
+voidstar int 5
+
+double int 5
+double address int 5
+short address int 5
+uint8 address int(-1)
+charstarstar = foreignArrayType charstar
+
+
+charstarstar {"foo", "bar", "baz"}
+
+int address voidstar int 5
+voidstar int 5
+value oo
+x = int 5
+address x
+voidstar x
+address oo
+
+foo address x
+foo = foreignStructType("foo", {"bar" => int, "baz" => charstar})
+x = foo hashTable{"bar" => 5, "baz" => "baz"}
+
+timetstar = foreignArrayType long
+localtime = foreignFunction(libc, "localtime", voidstar, timetstar)
+ptr = localtime {0}
+
+tm value ptr
+tmstar = foreignArrayType tm
+asctime = foreignFunction(libc, "asctime", charstar, tmstar)
+
+x = tmstar {hashTable {"tm_sec" => 5,
+	"tm_min" => 33,
+	"tm_hour" => 20,
+	"tm_mday" => 12,
+	"tm_mon" => 5,
+	"tm_year" => 122,
+	"tm_wday" => 0,
+	"tm_yday" => 163,
+	"tm_isdst" => 1,
+	"tm_gmtoff" => -4,
+	"tm_zone" => "EDT"}}
+asctime x
+
+y = tm hashTable {"tm_sec" => 5,
+	"tm_min" => 33,
+	"tm_hour" => 20,
+	"tm_mday" => 12,
+	"tm_mon" => 5,
+	"tm_year" => 122,
+	"tm_wday" => 0,
+	"tm_yday" => 163,
+	"tm_isdst" => 1,
+	"tm_gmtoff" => -4,
+	"tm_zone" => "EDT"}
+
+z = voidstar address y
+
+asctime address y
