@@ -469,20 +469,10 @@ tm = foreignStructType("tm", {
 	"tm_isdst" => int,
 	"tm_gmtoff" => long,
 	"tm_zone" => charstar})
-epoch = tm {
-    "tm_sec" => 0,
-    "tm_min" => 0,
-    "tm_hour" => 0,
-    "tm_mday" => 1,
-    "tm_mon" => 0,
-    "tm_year" => 70,
-    "tm_wday" => 4,
-    "tm_yday" => 0,
-    "tm_isdst" => 0,
-    "tm_gmtoff" => 0,
-    "tm_zone" => "GMT"}
 libc = openSharedLibrary "libc.so.6"
+gmtime = foreignFunction(libc, "gmtime", voidstar, voidstar)
 asctime = foreignFunction(libc, "asctime", charstar, voidstar)
+epoch = tm value gmtime address long 0
 assert Equation(value asctime address epoch,"Thu Jan  1 00:00:00 1970\n")
 ///
 end
