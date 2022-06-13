@@ -241,6 +241,22 @@ ForeignArrayType List := (T, x) -> (
     r#"length" = #x;
     r)
 
+ForeignArrayType Pointer := (T, ptr) -> (
+    r := foreignObject(T, ptr);
+    r#"length" = 1;
+    r)
+
+ForeignArrayType Sequence := (T, a) -> (
+    if #a == 2 then (
+	if instance(a#0, Pointer) then (
+	    if instance(a#1, ZZ) then (
+		r := foreignObject(T, a#0);
+		r#"length" = a#1;
+		r)
+	    else error "expected argument 2 to be an integer")
+	else error "expected argument 1 to be a pointer")
+    else error "expected 2 arguments")
+
 -------------------------
 -- foreign struct type --
 -------------------------
