@@ -320,7 +320,7 @@ foreignObject(ForeignType, Pointer) := (T, ptr) -> ForeignObject {
     "type" => T,
     "address" => ptr}
 
-ForeignType ForeignObject := (T, x) -> x
+ForeignType ForeignObject := (T, x) -> T address x
 
 --------------------
 -- shared library --
