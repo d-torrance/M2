@@ -198,6 +198,8 @@ voidstar = ForeignPointerType {
     "value" => ffiPointerValue @@ address}
 
 ForeignStringType = new SelfInitializingType of ForeignPointerType
+ForeignPointerType Pointer := (T, x) -> foreignObject(T, ffiPointerAddress x)
+
 ForeignStringType.synonym = "foreign string type"
 
 charstar = ForeignStringType {
