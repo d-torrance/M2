@@ -362,7 +362,7 @@ ffiPointerAddress(e:Expr):Expr := (
 		    arr := getMem(n * bytes);
 		    for i from 0 to n - 1 do (
 			when y.v.i
-			is z:pointerCell do Ccode(voidPointer,
+			is z:pointerCell do Ccode(void,
 			    "memcpy(", arr, " + ", i * bytes, ", ",
 			    z.v, ", ", bytes, ")")
 			else return buildErrorPacket(
