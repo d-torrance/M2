@@ -415,11 +415,15 @@ assert Equation(value double 3.14159, 3.14159p53)
 
 ptr = address int 3
 assert(value voidstar ptr === ptr)
+assert Equation(value int ptr, 3)
 
 assert Equation(value charstar "Hello, world!", "Hello, world!")
 
 intstar = foreignArrayType int
 assert Equation(value \ value intstar {1, 2, 3}, {1, 2, 3})
+ptr = address intstar {1, 2, 3}
+assert Equation(value \ value intstar ptr, {1})
+assert Equation(value \ value intstar(ptr, 3), {1, 2, 3})
 
 teststructtype = foreignStructType("foo",
     {"a" => int, "b" => double, "c" => charstar})
