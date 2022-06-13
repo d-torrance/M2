@@ -331,11 +331,13 @@ SharedLibrary = new SelfInitializingType of BasicList
 SharedLibrary.synonym = "shared library"
 net SharedLibrary := lib -> lib#1
 
-openSharedLibrary = method()
-openSharedLibrary String := name -> SharedLibrary {
-    dlopen("lib" | name |
+openSharedLibrary = method(Options => {FileName => null})
+openSharedLibrary String := o -> name -> (
+    filename := if o.FileName =!= null then o.FileName else (
+	"lib" | name |
 	if version#"operating system" == "Darwin" then ".dylib"
-	else ".so"), name}
+	else ".so");
+    SharedLibrary {dlopen filename, name})
 
 ----------------------
 -- foreign function --
