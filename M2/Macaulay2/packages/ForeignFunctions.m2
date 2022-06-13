@@ -197,9 +197,13 @@ voidstar = ForeignPointerType {
     "address" => ffiPointerType,
     "value" => ffiPointerValue @@ address}
 
-ForeignStringType = new SelfInitializingType of ForeignPointerType
 ForeignPointerType Pointer := (T, x) -> foreignObject(T, ffiPointerAddress x)
 
+-------------------------
+-- foreign string type --
+-------------------------
+
+ForeignStringType = new SelfInitializingType of ForeignType
 ForeignStringType.synonym = "foreign string type"
 
 charstar = ForeignStringType {
@@ -209,7 +213,11 @@ charstar = ForeignStringType {
 
 ForeignStringType String := (T, x) -> foreignObject(T, ffiPointerAddress x)
 
-ForeignArrayType = new SelfInitializingType of ForeignPointerType
+------------------------
+-- foreign array type --
+------------------------
+
+ForeignArrayType = new SelfInitializingType of ForeignType
 ForeignArrayType.synonym = "foreign array type"
 
 foreignArrayType = method()
