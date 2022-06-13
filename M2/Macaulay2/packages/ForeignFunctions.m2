@@ -102,7 +102,9 @@ address ForeignType := x -> x#"address"
 
 size ForeignType := ffiTypeSize @@ address
 
-dereference = (T, ptr) -> foreignObject(T, ptr)
+dereference = method()
+dereference(ForeignType, Pointer) := (T, ptr) -> foreignObject(T, ptr)
+
 foreignObject = method()
 ForeignType Pointer := dereference
 
@@ -112,7 +114,8 @@ ForeignType Pointer := dereference
 
 ForeignVoidType = new SelfInitializingType of ForeignType
 ForeignVoidType.synonym = "foreign void type"
-ForeignVoidType Thing := (T, x) -> null
+ForeignVoidType Thing :=
+dereference(ForeignVoidType, Pointer) := (T, x) -> null
 
 void = ForeignVoidType{
     "name" => "void",
