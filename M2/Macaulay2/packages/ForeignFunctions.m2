@@ -413,9 +413,19 @@ assert Equation(value long(-2^(longexp - 1)), -2^(longexp - 1))
 assert Equation(value float 3.14159, 3.14159p24)
 assert Equation(value double 3.14159, 3.14159p53)
 
+ptr = address int 3
+assert(value voidstar ptr === ptr)
+
 assert Equation(value charstar "Hello, world!", "Hello, world!")
 
-assert Equation(value \ value (foreignArrayType int) {1, 2, 3}, {1, 2, 3})
+intstar = foreignArrayType int
+assert Equation(value \ value intstar {1, 2, 3}, {1, 2, 3})
+
+teststructtype = foreignStructType("foo",
+    {"a" => int, "b" => double, "c" => charstar})
+x = value teststructtype {"a" => 1, "b" => 2, "c" => "foo"}
+y = hashTable {"a" => 1, "b" => 2.0, "c" => "foo"}
+assert(keys x == keys y and all(keys x, key -> value x#key == y#key))
 ///
 
 TEST ///
