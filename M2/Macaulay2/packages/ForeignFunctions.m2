@@ -332,7 +332,10 @@ SharedLibrary.synonym = "shared library"
 net SharedLibrary := lib -> lib#1
 
 openSharedLibrary = method()
-openSharedLibrary String := name -> SharedLibrary{dlopen name, name}
+openSharedLibrary String := name -> SharedLibrary {
+    dlopen("lib" | name |
+	if version#"operating system" == "Darwin" then ".dylib"
+	else ".so"), name}
 
 ----------------------
 -- foreign function --
