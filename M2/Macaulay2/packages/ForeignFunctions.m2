@@ -285,11 +285,11 @@ foreignStructType(String, List) := (name, x) -> (
 	    hashTable apply(members,
 		mbr -> (mbr, types#mbr(ptr + offsets#mbr))))})
 
-ForeignStructType HashTable := (T, x) -> foreignObject(T,
-    ffiStructAddress(
-	address T,
-	apply(T#"members", mbr -> address T#"types"#mbr x#mbr)))
-ForeignStructType List := (T, x) -> T hashTable x
+ForeignStructType List := (T, x) -> (
+    y := hashTable x;
+    foreignObject(T, ffiStructAddress(
+	    address T,
+	    apply(T#"members", mbr -> address T#"types"#mbr y#mbr))))
 
 --------------------
 -- foreign object --
