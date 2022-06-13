@@ -102,8 +102,9 @@ address ForeignType := x -> x#"address"
 
 size ForeignType := ffiTypeSize @@ address
 
+dereference = (T, ptr) -> foreignObject(T, ptr)
 foreignObject = method()
-ForeignType Pointer := (T, ptr) -> foreignObject(T, ptr)
+ForeignType Pointer := dereference
 
 -----------------------
 -- foreign void type --
@@ -368,7 +369,7 @@ foreignFunction(SharedLibrary, String, ForeignType, List) :=
 			argtypePointers | varargtypePointers);
 		    avalues := apply(nfixedargs, i ->
 			address (argtypes#i args#i)) | address \ varargs;
-		    rtype ffiCall(cif, funcptr, 100, avalues))))
+		    dereference_rtype ffiCall(cif, funcptr, 100, avalues))))
 	else (
 	    cif := ffiPrepCif(address rtype, argtypePointers);
 	    ForeignFunction(args -> (
@@ -376,7 +377,7 @@ foreignFunction(SharedLibrary, String, ForeignType, List) :=
 		    if #argtypes != #args
 		    then error("expected ", #argtypes, " arguments");
 		    avalues := apply(#args, i -> address (argtypes#i args#i));
-		    rtype ffiCall(cif, funcptr, 100, avalues)))))
+		    dereference_rtype ffiCall(cif, funcptr, 100, avalues)))))
 
 -- note to self for writing documentation: variadic arguments can't be small
 -- https://github.com/libffi/libffi/pull/628
