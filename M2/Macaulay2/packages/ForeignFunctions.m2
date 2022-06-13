@@ -340,20 +340,21 @@ openSharedLibrary String := name -> SharedLibrary{dlopen name, name}
 
 ForeignFunction = new SelfInitializingType of FunctionClosure
 ForeignFunction.synonym = "foreign function"
-net ForeignFunction := f -> (frames f)#0#0#1 | "::" | (frames f)#0#1
+net ForeignFunction := f -> (frames f)#0#1
 
 foreignFunction = method()
 foreignFunction(String, ForeignType, ForeignType) := (
     (symb, rtype, argtype) -> foreignFunction(symb, rtype, {argtype}))
 foreignFunction(String, ForeignType, List) := (
-    (symb, rtype, argtypes) -> foreignFunction(dlsym symb, rtype, argtypes))
+    (symb, rtype, argtypes) -> foreignFunction(
+	dlsym symb, symb, rtype, argtypes))
 foreignFunction(SharedLibrary, String, ForeignType, ForeignType) :=
     (lib, symb, rtype, argtype) -> foreignFunction(lib, symb, rtype, {argtype})
 foreignFunction(SharedLibrary, String, ForeignType, List) := (
     (lib, symb, rtype, argtypes) -> foreignFunction(
-	dlsym(lib#0, symb), rtype, argtypes))
-foreignFunction(Pointer, ForeignType, List) := (
-    (funcptr, rtype, argtypes) -> (
+	dlsym(lib#0, symb), lib#1 | "::" | symb, rtype, argtypes))
+foreignFunction(Pointer, String, ForeignType, List) := (
+    (funcptr, name, rtype, argtypes) -> (
 	variadic := if member("...", argtypes) then (
 	    if #argtypes < 2
 	    then error "expected at least 1 fixed argument";
