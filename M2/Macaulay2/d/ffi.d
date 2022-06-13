@@ -430,24 +430,32 @@ setupfun("ffiGetStructOffsets", ffiGetStructOffsets);
 ffiStructAddress(e:Expr):Expr := (
     when e
     is a:Sequence do (
-	if length(a) == 3 then (
+	if length(a) == 2 then (
 	    when a.0
-	    is x:List do (
+	    is x:pointerCell do (
 		when a.1 is y:List do (
-		    when a.2 is z:List do (
-			if (length(x.v) != length(y.v) ||
-			    length(y.v) != length(z.v)) then (
-			    return buildErrorPacket(
-				"expected lists of same length"));
-			n := length(y.v);
-			ptr := getMem(
-			    Ccode(int, "((ffi_type *)", x.v, ")->size"));
-			-- TODO: get sizes from x and values from y and
-			-- use offsets from z to do a bunch of memcpy's
-			toExpr(ptr))
-		    else WrongArg(3, "a list"))
+		    n := 0;
+		    while Ccode(voidPointer, "(((ffi_type *)", x.v,
+			")->elements)[", n, "]") != nullPointer() do n = n + 1;
+		    offsets := Ccode(voidPointer, "getmem((", n ,
+			") * sizeof(size_t))");
+		    r := Ccode(int, "ffi_get_struct_offsets(FFI_DEFAULT_ABI, ",
+			"(ffi_type *)", x.v, ", (size_t *)", offsets, ")");
+		    if r != ffiOk then return ffiError(r);
+		    result := getMem(Ccode(int, "((ffi_type *)", x.v,
+			    ")->size"));
+		    for i from 0 to n - 1 do (
+			when y.v.i
+			is elmnt:pointerCell do (
+			    tocopy := Ccode(int, "(((ffi_type *)", x.v,
+				")->elements)[", i, "]->size");
+			    Ccode(void, "memcpy(", result, " + ((size_t *)",
+				offsets, ")[", i, "],", elmnt.v, ", ",
+				tocopy, ")"))
+			else nothing);
+		    toExpr(result))
 		else WrongArg(2, "a list"))
-	    else WrongArg(1, "a list"))
-	else WrongNumArgs(3))
-    else WrongNumArgs(3));
+	    else WrongArgPointer(1))
+	else WrongNumArgs(2))
+    else WrongNumArgs(2));
 setupfun("ffiStructAddress", ffiStructAddress);
