@@ -343,10 +343,17 @@ ForeignFunction.synonym = "foreign function"
 net ForeignFunction := f -> (frames f)#0#0#1 | "::" | (frames f)#0#1
 
 foreignFunction = method()
+foreignFunction(String, ForeignType, ForeignType) := (
+    (symb, rtype, argtype) -> foreignFunction(symb, rtype, {argtype}))
+foreignFunction(String, ForeignType, List) := (
+    (symb, rtype, argtypes) -> foreignFunction(dlsym symb, rtype, argtypes))
 foreignFunction(SharedLibrary, String, ForeignType, ForeignType) :=
     (lib, symb, rtype, argtype) -> foreignFunction(lib, symb, rtype, {argtype})
-foreignFunction(SharedLibrary, String, ForeignType, List) :=
-    (lib, symb, rtype, argtypes) -> (
+foreignFunction(SharedLibrary, String, ForeignType, List) := (
+    (lib, symb, rtype, argtypes) -> foreignFunction(
+	dlsym(lib#0, symb), rtype, argtypes))
+foreignFunction(Pointer, ForeignType, List) := (
+    (funcptr, rtype, argtypes) -> (
 	variadic := if member("...", argtypes) then (
 	    if #argtypes < 2
 	    then error "expected at least 1 fixed argument";
@@ -357,7 +364,6 @@ foreignFunction(SharedLibrary, String, ForeignType, List) :=
 	    true) else false;
 	if any(argtypes, argtype -> not instance(argtype, ForeignType))
 	then error("expected argument types to be foreign types");
-	funcptr := dlsym(lib#0, symb);
 	argtypePointers := address \ argtypes;
 	if variadic then (
 	    ForeignFunction(args -> (
@@ -377,7 +383,7 @@ foreignFunction(SharedLibrary, String, ForeignType, List) :=
 		    if #argtypes != #args
 		    then error("expected ", #argtypes, " arguments");
 		    avalues := apply(#args, i -> address (argtypes#i args#i));
-		    dereference_rtype ffiCall(cif, funcptr, 100, avalues)))))
+		    dereference_rtype ffiCall(cif, funcptr, 100, avalues))))))
 
 -- note to self for writing documentation: variadic arguments can't be small
 -- https://github.com/libffi/libffi/pull/628
@@ -443,14 +449,12 @@ assert Equation(value \ value foreignObject {"foo", "bar"}, {"foo", "bar"})
 ///
 
 TEST ///
-libm = openSharedLibrary "libm.so.6"
-cCos = foreignFunction(libm, "cos", double, double)
+cCos = foreignFunction("cos", double, double)
 assert Equation(value cCos pi, -1)
 ///
 
 TEST ///
-libc = openSharedLibrary "libc.so.6"
-sprintf = foreignFunction(libc, "sprintf", void, {charstar, charstar, "..."})
+sprintf = foreignFunction("sprintf", void, {charstar, charstar, "..."})
 foo = charstar "foo"
 sprintf(foo, "%s", "bar")
 assert Equation(value foo, "bar")
@@ -469,9 +473,8 @@ tm = foreignStructType("tm", {
 	"tm_isdst" => int,
 	"tm_gmtoff" => long,
 	"tm_zone" => charstar})
-libc = openSharedLibrary "libc.so.6"
-gmtime = foreignFunction(libc, "gmtime", voidstar, voidstar)
-asctime = foreignFunction(libc, "asctime", charstar, voidstar)
+gmtime = foreignFunction("gmtime", voidstar, voidstar)
+asctime = foreignFunction("asctime", charstar, voidstar)
 epoch = tm value gmtime address long 0
 assert Equation(value asctime address epoch,"Thu Jan  1 00:00:00 1970\n")
 ///

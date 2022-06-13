@@ -31,8 +31,14 @@ setupfun("dlopen", dlopen0);
 
 dlsym0(e:Expr):Expr :=
     when e
+    is y:stringCell do (
+	r := Ccode(voidPointerOrNull,
+	    "dlsym((void *)0, ", tocharstar(y.v), ")");
+	when r
+	is null do dlerror0()
+	is addr:voidPointer do toExpr(addr))
     is a:Sequence do
-        if length(a) != 2 then WrongNumArgs(2)
+        if length(a) != 2 then WrongNumArgs(1,2)
 	else when a.0
 	    is x:pointerCell do when a.1
 	        is y:stringCell do (
@@ -43,7 +49,7 @@ dlsym0(e:Expr):Expr :=
 		    is addr:voidPointer do toExpr(addr))
 		else WrongArgString(2)
 	    else WrongArgPointer(1)
-    else WrongNumArgs(2);
+    else WrongArg("a string or a pointer and a string");
 setupfun("dlsym", dlsym0);
 
 ffiTypeVoid := Ccode(voidPointer, "&ffi_type_void");
@@ -459,3 +465,9 @@ ffiStructAddress(e:Expr):Expr := (
 	else WrongNumArgs(2))
     else WrongNumArgs(2));
 setupfun("ffiStructAddress", ffiStructAddress);
+
+pointer(e:Expr):Expr := (
+    when e
+    is x:ZZcell do toExpr(Ccode(voidPointer, "(void *)", toULong(x)))
+    else WrongArgZZ());
+setupfun("pointer", pointer);
