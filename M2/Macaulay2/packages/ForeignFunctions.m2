@@ -25,6 +25,7 @@ export {
     "ForeignArrayType",
     "ForeignStructType",
     "ForeignObject",
+    "ForeignArrayObject",
 
 -- built-in foreign types
     "void",
@@ -235,29 +236,22 @@ foreignArrayType(ForeignType, String) := (T, name) -> ForeignArrayType {
     "value" => x -> (
 	ptr := ffiPointerValue address x;
 	sz := size T;
-	apply(x#"length", i -> T(ptr + i * sz)))}
+	apply(length x, i -> T(ptr + i * sz)))}
 
 type = method()
 type ForeignArrayType := T -> T#"type"
 
-ForeignArrayType List := (T, x) -> (
-    r := foreignObject(T, ffiPointerAddress(address type T,
-	    address \ apply(x, y -> (type T) y)));
-    r#"length" = #x;
-    r)
+ForeignArrayType List := (T, x) -> foreignArrayObject(T,
+    ffiPointerAddress(address type T, address \ apply(x, y -> (type T) y)), #x)
 
-ForeignArrayType Pointer := (T, ptr) -> (
-    r := foreignObject(T, ptr);
-    r#"length" = 1;
-    r)
+-- assume length is 1 if just given a pointer
+ForeignArrayType Pointer := (T, ptr) -> foreignArrayObject(T, ptr, 1)
 
+-- unless we specify the length
 ForeignArrayType Sequence := (T, a) -> (
     if #a == 2 then (
 	if instance(a#0, Pointer) then (
-	    if instance(a#1, ZZ) then (
-		r := foreignObject(T, a#0);
-		r#"length" = a#1;
-		r)
+	    if instance(a#1, ZZ) then foreignArrayObject(T, a#0, a#1)
 	    else error "expected argument 2 to be an integer")
 	else error "expected argument 1 to be a pointer")
     else error "expected 2 arguments")
@@ -300,7 +294,7 @@ ForeignStructType List := (T, x) -> (
 -- foreign object --
 --------------------
 
-ForeignObject = new SelfInitializingType of MutableHashTable
+ForeignObject = new SelfInitializingType of BasicList
 ForeignObject.synonym = "foreign object"
 net ForeignObject := x -> net value x
 ForeignObject#{Standard, AfterPrint} = x -> (
@@ -309,9 +303,9 @@ ForeignObject#{Standard, AfterPrint} = x -> (
     << " : ForeignObject of type " << net type x << endl)
 
 value ForeignObject := x -> (type x)#"value" x
-address ForeignObject := x -> x#"address"
+address ForeignObject := x -> x#1
 
-type ForeignObject := x -> x#"type"
+type ForeignObject := x -> x#0
 
 foreignObject ForeignObject := identity
 foreignObject ZZ := n -> int n
@@ -321,11 +315,13 @@ foreignObject List := x -> (
     types := unique(type \ foreignObject \ x);
     if #types == 1 then (foreignArrayType first types) x
     else error("expected all elements to have the same type"))
-foreignObject(ForeignType, Pointer) := (T, ptr) -> ForeignObject {
-    "type" => T,
-    "address" => ptr}
+foreignObject(ForeignType, Pointer) := (T, ptr) -> ForeignObject {T, ptr}
 
 ForeignType ForeignObject := (T, x) -> T address x
+
+ForeignArrayObject = new SelfInitializingType of ForeignObject
+length ForeignArrayObject := x -> x#2
+foreignArrayObject = (T, x, len) -> ForeignArrayObject {T, x, len}
 
 --------------------
 -- shared library --
