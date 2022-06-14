@@ -119,7 +119,8 @@ dereference(ForeignVoidType, Pointer) := (T, x) -> null
 
 void = ForeignVoidType{
     "name" => "void",
-    "address" => ffiVoidType}
+    "address" => ffiVoidType,
+    "value" => x -> null}
 
 --------------------------
 -- foreign integer type --
