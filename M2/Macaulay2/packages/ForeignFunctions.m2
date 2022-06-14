@@ -394,6 +394,33 @@ foreignFunction(Pointer, String, ForeignType, List) := (
 		    avalues := apply(#args, i -> address (argtypes#i args#i));
 		    dereference_rtype ffiCall(cif, funcptr, 100, avalues))))))
 
+beginDocumentation()
+
+doc ///
+  Key
+    ForeignType
+  Headline
+    abstract foreign type
+  Description
+    Text
+      This is the abstract class from which all other foreign types classes
+      should inherit.  All @TT "ForeignType"@ objects should have, at minimum,
+      three key-value pairs:
+
+      @CODE UL {
+	  LI {TT "name", ", ", ofClass String, ", a human-readable name of ",
+	      "the class for display purposes, used by ",
+	      TO (net, ForeignType), "."},
+	  LI {TT "address", ", ", ofClass Pointer, ", a pointer to the ",
+	      "corresponding ", TT "ffi_type", " object, used by ",
+	      TO (address, ForeignType), "."},
+	  LI {TT "value", ", ", ofClass Function, ", a function that sends ",
+	      "objects of this type to corresponding Macaulay2 values, ",
+	      "used by ", TO (value, ForeignObject), "."}}@
+
+      Subclasses may add additional key-value pairs as needed.
+///
+
 -- note to self for writing documentation: variadic arguments can't be small
 -- https://github.com/libffi/libffi/pull/628
 
