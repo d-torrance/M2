@@ -372,6 +372,10 @@ foreignFunction(Pointer, String, ForeignType, List) := (
 	    true) else false;
 	if any(argtypes, argtype -> not instance(argtype, ForeignType))
 	then error("expected argument types to be foreign types");
+	if any(argtypes, argtype -> instance(argtype, ForeignVoidType))
+	then (
+	    if #argtypes == 1 then argtypes = {}
+	    else error("void must be the only parameter"));
 	argtypePointers := address \ argtypes;
 	if variadic then (
 	    ForeignFunction(args -> (
@@ -432,7 +436,8 @@ doc ///
 
      Note that there are no foreign objects of this type.  It is, however, used
      as a return type for @TO foreignFunction@.  Such functions will return
-     @TO null@.
+     @TO null@.  It may also be used by itself as an argument type to indicate
+     functions that take no arguments.
 ///
 
 -- note to self for writing documentation: variadic arguments can't be small
