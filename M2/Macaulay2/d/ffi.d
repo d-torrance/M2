@@ -1,5 +1,6 @@
 use common;
 use hashtables;
+use evaluate;
 
 header "#include <dlfcn.h>
 	#include <ffi.h>
@@ -393,6 +394,26 @@ ffiStringValue(e:Expr):Expr := (
     is x:pointerCell do toExpr(tostring(Ccode(charstar, "*(char **)", x.v)))
     else WrongArgPointer());
 setupfun("ffiStringValue", ffiStringValue);
+
+ptrfinalizer(x:voidPointer, a:Sequence):void := (
+    if length(a) == 2 then (
+	applyEE(a.0, a.1);
+	nothing)
+    else nothing);
+
+registerFinalizerForPointer(e:Expr):Expr := (
+    when e is s:Sequence do (
+	if length(s) == 3 then (
+	    when s.0
+	    is x:pointerCell do (
+		a := new Sequence len 2 at i do provide s.(i + 1);
+		Ccode(void, "GC_REGISTER_FINALIZER(", x.v, ", ",
+		    "(GC_finalization_proc)", ptrfinalizer, ", ", a, ", 0, 0)");
+		nullE)
+	    else WrongArgPointer(1))
+	else WrongNumArgs(3))
+    else WrongNumArgs(3));
+setupfun("registerFinalizerForPointer", registerFinalizerForPointer);
 
 ------------------
 -- struct types --
