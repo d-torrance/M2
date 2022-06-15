@@ -404,7 +404,7 @@ doc ///
       should inherit.  All @TT "ForeignType"@ objects should have, at minimum,
       three key-value pairs:
 
-      @CODE UL {
+      @UL {
 	  LI {TT "name", ", ", ofClass String, ", a human-readable name of ",
 	      "the class for display purposes, used by ",
 	      TO (net, ForeignType), "."},
