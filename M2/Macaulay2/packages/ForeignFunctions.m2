@@ -115,7 +115,7 @@ ForeignType Pointer := dereference
 
 ForeignVoidType = new SelfInitializingType of ForeignType
 ForeignVoidType.synonym = "foreign void type"
-ForeignVoidType Thing :=
+
 dereference(ForeignVoidType, Pointer) := (T, x) -> null
 
 void = ForeignVoidType{
