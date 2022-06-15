@@ -118,9 +118,11 @@ ForeignVoidType.synonym = "foreign void type"
 
 dereference(ForeignVoidType, Pointer) := (T, x) -> null
 
-void = ForeignVoidType{
+void = ForeignVoidType {
     "name" => "void",
     "address" => ffiVoidType,
+    -- there should be no foreign void objects, so this should never get
+    -- called, but we include it anyway:
     "value" => x -> null}
 
 --------------------------
