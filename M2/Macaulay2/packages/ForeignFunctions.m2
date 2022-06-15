@@ -84,7 +84,8 @@ importFrom_Core {
     "ffiStringValue",
     "ffiStructType",
     "ffiGetStructOffsets",
-    "ffiStructAddress"
+    "ffiStructAddress",
+    "registerFinalizerForPointer"
     }
 
 exportFrom_Core {
@@ -331,6 +332,9 @@ ForeignType ForeignObject := (T, x) -> T address x
 
 ForeignPointerObject = new SelfInitializingType of ForeignObject
 ForeignPointerObject.synonym = "foreign pointer object"
+
+registerFinalizer(ForeignPointerObject, Function) := (x, f) -> (
+    registerFinalizerForPointer(address x, f, value x))
 
 ForeignArrayObject = new SelfInitializingType of ForeignObject
 length ForeignArrayObject := x -> x#2
