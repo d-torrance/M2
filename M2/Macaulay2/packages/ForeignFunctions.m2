@@ -406,7 +406,7 @@ doc ///
     abstract foreign type
   Description
     Text
-      This is the abstract class from which all other foreign types classes
+      This is the abstract class from which all other foreign type classes
       should inherit.  All @TT "ForeignType"@ objects should have, at minimum,
       three key-value pairs:
 
