@@ -302,7 +302,7 @@ net ForeignObject := x -> net value x
 ForeignObject#{Standard, AfterPrint} = x -> (
     << endl
     << concatenate(interpreterDepth:"o") << lineNumber
-    << " : ForeignObject of type " << net type x << endl)
+    << " : " << class x << " of type " << type x << endl)
 
 value ForeignObject := x -> (type x)#"value" x
 address ForeignObject := x -> x#1
