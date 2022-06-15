@@ -25,6 +25,7 @@ export {
     "ForeignArrayType",
     "ForeignStructType",
     "ForeignObject",
+    "ForeignPointerObject",
     "ForeignArrayObject",
 
 -- built-in foreign types
@@ -205,7 +206,10 @@ voidstar = ForeignPointerType {
     "address" => ffiPointerType,
     "value" => ffiPointerValue @@ address}
 
-ForeignPointerType Pointer := (T, x) -> foreignObject(T, ffiPointerAddress x)
+ForeignPointerType Pointer := (T, x) -> ForeignPointerObject {
+    T, ffiPointerAddress x}
+dereference(ForeignPointerType, Pointer) := (T, x) -> ForeignPointerObject {
+    T, x}
 
 -------------------------
 -- foreign string type --
@@ -320,6 +324,13 @@ foreignObject List := x -> (
 foreignObject(ForeignType, Pointer) := (T, ptr) -> ForeignObject {T, ptr}
 
 ForeignType ForeignObject := (T, x) -> T address x
+
+-----------------------------
+-- foreign pointer objects --
+-----------------------------
+
+ForeignPointerObject = new SelfInitializingType of ForeignObject
+ForeignPointerObject.synonym = "foreign pointer object"
 
 ForeignArrayObject = new SelfInitializingType of ForeignObject
 length ForeignArrayObject := x -> x#2
