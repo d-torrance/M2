@@ -420,6 +420,21 @@ doc ///
       Subclasses may add additional key-value pairs as needed.
 ///
 
+doc ///
+ Key
+   ForeignVoidType
+ Headline
+   foreign void type
+ Description
+   Text
+     The @wikipedia "void type"@.  There is one built-in type of this class,
+     @TT "void"@.
+
+     Note that there are no foreign objects of this type.  It is, however, used
+     as a return type for @TO foreignFunction@.  Such functions will return
+     @TO null@.
+///
+
 -- note to self for writing documentation: variadic arguments can't be small
 -- https://github.com/libffi/libffi/pull/628
 
