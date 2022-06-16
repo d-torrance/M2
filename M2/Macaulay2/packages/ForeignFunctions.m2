@@ -17,16 +17,20 @@ export {
     "SharedLibrary",
     "ForeignFunction",
     "ForeignType",
+    "ForeignObject",
     "ForeignVoidType",
     "ForeignIntegerType",
+    "ForeignIntegerObject",
     "ForeignRealType",
+    "ForeignRealObject",
     "ForeignPointerType",
-    "ForeignStringType",
-    "ForeignArrayType",
-    "ForeignStructType",
-    "ForeignObject",
     "ForeignPointerObject",
+    "ForeignStringType",
+    "ForeignStringObject",
+    "ForeignArrayType",
     "ForeignArrayObject",
+    "ForeignStructType",
+    "ForeignStructObject",
 
 -- built-in foreign types
     "void",
@@ -52,11 +56,11 @@ export {
 -- methods
     "openSharedLibrary",
     "foreignFunction",
-    "foreignObject",
     "address",
     "type",
     "foreignArrayType",
-    "foreignStructType"
+    "foreignStructType",
+    "foreignObject"
     }
 
 if version#"pointer size" == 8 then export {
@@ -105,11 +109,29 @@ address ForeignType := x -> x#"address"
 
 size ForeignType := ffiTypeSize @@ address
 
+-- not exported, but used for dealing with return values of foreign functions
 dereference = method()
-dereference(ForeignType, Pointer) := (T, ptr) -> foreignObject(T, ptr)
+dereference(ForeignType, Pointer) := (T, ptr) -> ForeignObject {T, ptr}
 
-foreignObject = method()
 ForeignType Pointer := dereference
+
+-------------------------------------
+-- foreign object (abstract class) --
+-------------------------------------
+
+ForeignObject = new SelfInitializingType of BasicList
+ForeignObject.synonym = "foreign object"
+net ForeignObject := x -> net value x
+ForeignObject#{Standard, AfterPrint} = x -> (
+    << endl
+    << concatenate(interpreterDepth:"o") << lineNumber
+    << " : " << class x << " of type " << type x << endl)
+
+type = method()
+type ForeignObject := x -> x#0
+address ForeignObject := x -> x#1
+
+ForeignType ForeignObject := (T, x) -> T address x
 
 -----------------------
 -- foreign void type --
@@ -118,14 +140,11 @@ ForeignType Pointer := dereference
 ForeignVoidType = new SelfInitializingType of ForeignType
 ForeignVoidType.synonym = "foreign void type"
 
-dereference(ForeignVoidType, Pointer) := (T, x) -> null
-
 void = ForeignVoidType {
     "name" => "void",
-    "address" => ffiVoidType,
-    -- there should be no foreign void objects, so this should never get
-    -- called, but we include it anyway:
-    "value" => x -> null}
+    "address" => ffiVoidType}
+
+dereference(ForeignVoidType, Pointer) := (T, x) -> null
 
 --------------------------
 -- foreign integer type --
@@ -140,8 +159,7 @@ foreignIntegerType(String, ZZ, Boolean) := (name, bits, signed) -> (
 	"name" => name,
 	"address" => ffiIntegerType(bits, signed),
 	"bits" => bits,
-	"signed" => signed,
-	"value" => x -> ffiIntegerValue(address x, bits, signed)})
+	"signed" => signed})
 
 int8 = foreignIntegerType("int8", 8, true)
 uint8 = foreignIntegerType("uint8", 8, false)
@@ -164,12 +182,24 @@ if version#"pointer size" == 4 then (
     long = int64;
     ulong = uint64)
 
-ForeignIntegerType ZZ := (T, n) -> foreignObject(
-    T, ffiIntegerAddress(n, T#"bits", T#"signed"))
+----------------------------
+-- foreign integer object --
+----------------------------
 
+ForeignIntegerObject = new SelfInitializingType of ForeignObject
+ForeignIntegerObject.synonym = "foreign integer object"
+
+value ForeignIntegerObject := x -> ffiIntegerValue(
+    address x, (type x)#"bits", (type x)#"signed")
+
+ForeignIntegerType ZZ := (T, n) -> ForeignIntegerObject {
+    T, ffiIntegerAddress(n, T#"bits", T#"signed")}
 ForeignIntegerType Number :=
 ForeignIntegerType Constant := (T, x) -> (
     if x >= 0 then T floor x else T ceiling x)
+
+dereference(ForeignIntegerType, Pointer) := (T, ptr) -> ForeignIntegerObject {
+    T, ptr}
 
 -----------------------
 -- foreign real type --
@@ -182,18 +212,28 @@ foreignRealType = method()
 foreignRealType(String, ZZ) := (name, bits) -> ForeignRealType {
     "name" => name,
     "address" => ffiRealType(bits),
-    "bits" => bits,
-    "value" => x -> ffiRealValue(address x, bits)}
+    "bits" => bits}
 
 float = foreignRealType("float", 32)
 double = foreignRealType("double", 64)
 
-ForeignRealType RR := (T, x) -> foreignObject(T, ffiRealAddress(x, T#"bits"))
+----------------------------
+-- foreign real object --
+----------------------------
 
+ForeignRealObject = new SelfInitializingType of ForeignObject
+ForeignRealObject.synonym = "foreign real object"
+
+value ForeignRealObject := x -> ffiRealValue(address x, (type x)#"bits")
+
+ForeignRealType RR := (T, x) -> ForeignRealObject {
+    T, ffiRealAddress(x, T#"bits")}
 ForeignRealType CC := (T, x) -> T realPart x
-
 ForeignRealType Number :=
 ForeignRealType Constant := (T, x) -> T numeric x
+
+dereference(ForeignRealType, Pointer) := (T, ptr) -> ForeignRealObject {
+    T, ptr}
 
 --------------------------
 -- foreign pointer type --
@@ -204,11 +244,23 @@ ForeignPointerType.synonym = "foreign pointer type"
 
 voidstar = ForeignPointerType {
     "name" => "voidstar",
-    "address" => ffiPointerType,
-    "value" => ffiPointerValue @@ address}
+    "address" => ffiPointerType}
+
+----------------------------
+-- foreign pointer object --
+----------------------------
+
+ForeignPointerObject = new SelfInitializingType of ForeignObject
+ForeignPointerObject.synonym = "foreign pointer object"
+
+value ForeignPointerObject := ffiPointerValue @@ address
+
+registerFinalizer(ForeignPointerObject, Function) := (x, f) -> (
+    registerFinalizerForPointer(address x, f, value x))
 
 ForeignPointerType Pointer := (T, x) -> ForeignPointerObject {
     T, ffiPointerAddress x}
+
 dereference(ForeignPointerType, Pointer) := (T, x) -> ForeignPointerObject {
     T, x}
 
@@ -221,10 +273,21 @@ ForeignStringType.synonym = "foreign string type"
 
 charstar = ForeignStringType {
     "name" => "charstar",
-    "address" => ffiPointerType,
-    "value" => ffiStringValue @@ address }
+    "address" => ffiPointerType}
 
-ForeignStringType String := (T, x) -> foreignObject(T, ffiPointerAddress x)
+---------------------------
+-- foreign string object --
+---------------------------
+
+ForeignStringObject = new SelfInitializingType of ForeignObject
+ForeignStringObject.synonym = "foreign string object"
+
+value ForeignStringObject := ffiStringValue @@ address
+
+ForeignStringType String := (T, x) -> ForeignStringObject {
+    T, ffiPointerAddress x}
+
+dereference(ForeignStringType, Pointer) := (T, x) -> ForeignStringObject {T, x}
 
 ------------------------
 -- foreign array type --
@@ -234,34 +297,45 @@ ForeignArrayType = new SelfInitializingType of ForeignType
 ForeignArrayType.synonym = "foreign array type"
 
 foreignArrayType = method()
-foreignArrayType ForeignType := T -> (
-    foreignArrayType(T, T#"name" | "star"))
+foreignArrayType ForeignType := T -> foreignArrayType(T, T#"name" | "star")
 foreignArrayType(ForeignType, String) := (T, name) -> ForeignArrayType {
     "name" => name,
     "address" => ffiPointerType,
-    "type" => T,
-    "value" => x -> (
-	ptr := ffiPointerValue address x;
-	sz := size T;
-	apply(length x, i -> T(ptr + i * sz)))}
+    "type" => T}
 
-type = method()
 type ForeignArrayType := T -> T#"type"
 
-ForeignArrayType List := (T, x) -> foreignArrayObject(T,
-    ffiPointerAddress(address type T, address \ apply(x, y -> (type T) y)), #x)
+--------------------------
+-- foreign array object --
+--------------------------
+
+ForeignArrayObject = new SelfInitializingType of ForeignObject
+ForeignArrayObject.synonym = "foreign array object"
+
+length ForeignArrayObject := x -> x#2
+
+value ForeignArrayObject := x -> (
+    ptr := ffiPointerValue address x;
+    T := type type x;
+    sz := size T;
+    apply(length x, i -> T(ptr + i * sz)))
+
+ForeignArrayType List := (T, x) -> ForeignArrayObject {T,
+    ffiPointerAddress(address type T, address \ apply(x, y -> (type T) y)), #x}
 
 -- assume length is 1 if just given a pointer
-ForeignArrayType Pointer := (T, ptr) -> foreignArrayObject(T, ptr, 1)
+ForeignArrayType Pointer := (T, ptr) -> ForeignArrayObject {T, ptr, 1}
 
 -- unless we specify the length
 ForeignArrayType Sequence := (T, a) -> (
     if #a == 2 then (
 	if instance(a#0, Pointer) then (
-	    if instance(a#1, ZZ) then foreignArrayObject(T, a#0, a#1)
+	    if instance(a#1, ZZ) then ForeignArrayObject {T, a#0, a#1}
 	    else error "expected argument 2 to be an integer")
 	else error "expected argument 1 to be a pointer")
     else error "expected 2 arguments")
+
+dereference(ForeignArrayType, Pointer) := (T, x) -> ForeignArrayObject {T, x}
 
 -------------------------
 -- foreign struct type --
@@ -276,44 +350,39 @@ foreignStructType(String, List) := (name, x) -> (
     if not (all(x, y -> instance(y, Option)) and all(x, y ->
 	instance(first y, String) and instance(last y, ForeignType)))
     then error("expected options of the form string => foreign type");
-    types := hashTable x;
     ptr := ffiStructType \\ address \ last \ x;
-    members := first \ x;
-    offsets := hashTable apply(#x, i -> (x#i#0, (ffiGetStructOffsets ptr)#i));
     ForeignStructType {
 	"name" => name,
 	"address" => ptr,
-	"members" => members,
-	"types" => types,
-	"offsets" => offsets,
-	"value" => x -> (
-	    ptr := address x;
-	    hashTable apply(members,
-		mbr -> (mbr, types#mbr(ptr + offsets#mbr))))})
+	"members" => first \ x,
+	"types" => hashTable x,
+	"offsets" => hashTable apply(#x, i -> (
+		x#i#0, (ffiGetStructOffsets ptr)#i))})
+
+---------------------------
+-- foreign struct object --
+---------------------------
+
+ForeignStructObject = new SelfInitializingType of ForeignObject
+ForeignStructObject.synonym = "foreign struct object"
+
+value ForeignStructObject := x -> hashTable apply((type x)#"members",
+    mbr -> (mbr, ((type x)#"types")#mbr(address x + ((type x)#"offsets")#mbr)))
 
 ForeignStructType List := (T, x) -> (
     y := hashTable x;
-    foreignObject(T, ffiStructAddress(
+    ForeignStructObject {T, ffiStructAddress(
 	    address T,
-	    apply(T#"members", mbr -> address T#"types"#mbr y#mbr))))
+	    apply(T#"members", mbr -> address T#"types"#mbr y#mbr))})
 
---------------------
--- foreign object --
---------------------
+dereference(ForeignStructType, Pointer) := (T, x) -> ForeignStructObject {T, x}
 
-ForeignObject = new SelfInitializingType of BasicList
-ForeignObject.synonym = "foreign object"
-net ForeignObject := x -> net value x
-ForeignObject#{Standard, AfterPrint} = x -> (
-    << endl
-    << concatenate(interpreterDepth:"o") << lineNumber
-    << " : " << class x << " of type " << type x << endl)
+---------------------------------------------
+-- generic M2 -> foreign object conversion --
+---------------------------------------------
+-- used by variadic functions
 
-value ForeignObject := x -> (type x)#"value" x
-address ForeignObject := x -> x#1
-
-type ForeignObject := x -> x#0
-
+foreignObject = method()
 foreignObject ForeignObject := identity
 foreignObject ZZ := n -> int n
 foreignObject Number := foreignObject Constant := x -> double x
@@ -322,23 +391,7 @@ foreignObject List := x -> (
     types := unique(type \ foreignObject \ x);
     if #types == 1 then (foreignArrayType first types) x
     else error("expected all elements to have the same type"))
-foreignObject(ForeignType, Pointer) := (T, ptr) -> ForeignObject {T, ptr}
-
-ForeignType ForeignObject := (T, x) -> T address x
-
------------------------------
--- foreign pointer objects --
------------------------------
-
-ForeignPointerObject = new SelfInitializingType of ForeignObject
-ForeignPointerObject.synonym = "foreign pointer object"
-
-registerFinalizer(ForeignPointerObject, Function) := (x, f) -> (
-    registerFinalizerForPointer(address x, f, value x))
-
-ForeignArrayObject = new SelfInitializingType of ForeignObject
-length ForeignArrayObject := x -> x#2
-foreignArrayObject = (T, x, len) -> ForeignArrayObject {T, x, len}
+foreignObject Pointer := x -> voidstar x
 
 --------------------
 -- shared library --
@@ -423,7 +476,7 @@ doc ///
     Text
       This is the abstract class from which all other foreign type classes
       should inherit.  All @TT "ForeignType"@ objects should have, at minimum,
-      three key-value pairs:
+      two key-value pairs:
 
       @UL {
 	  LI {TT "name", ", ", ofClass String, ", a human-readable name of ",
@@ -431,10 +484,7 @@ doc ///
 	      TO (net, ForeignType), "."},
 	  LI {TT "address", ", ", ofClass Pointer, ", a pointer to the ",
 	      "corresponding ", TT "ffi_type", " object, used by ",
-	      TO (address, ForeignType), "."},
-	  LI {TT "value", ", ", ofClass Function, ", a function that sends ",
-	      "objects of this type to corresponding Macaulay2 values, ",
-	      "used by ", TO (value, ForeignObject), "."}}@
+	      TO (address, ForeignType), "."}}@
 
       Subclasses may add additional key-value pairs as needed.
 ///
