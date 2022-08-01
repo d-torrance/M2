@@ -175,15 +175,21 @@ then
 
 	echo -n "regenerating examples ... "
 	NUM_EXAMPLES=$(
-	    M2 --srcdir M2 --silent -e \
+	    M2 --stop --srcdir M2 --silent -e \
 	       'loadPackage("Debian", FileName => "debian/scripts/Debian.m2");
 		print generateExamples();
-		exit 0' 2> /dev/null)
-	echo "$NUM_EXAMPLES change(s)"
-	if [ $NUM_EXAMPLES -gt 0 ]
+		exit 0' 2> /dev/null || true)
+	if [ -z $NUM_EXAMPLES ]
 	then
-	    git add debian/examples
-	    git commit -m "Regenerating examples for $VERSION"
+	    echo "error -- M2 binary out of date?"
+	    exit 1
+	else
+	    echo "$NUM_EXAMPLES change(s)"
+	    if [ $NUM_EXAMPLES -gt 0 ]
+	    then
+		git add debian/examples
+		git commit -m "Regenerating examples for $VERSION"
+	    fi
 	fi
 
 	echo -n "checking for new packages not in d/copyright ... "
