@@ -1,0 +1,28 @@
+var class_gausser =
+[
+    [ "ZZp", "d4/db9/class_gausser_a34b4ccb72d24d3a4ef71bfaf7570e586.html#a34b4ccb72d24d3a4ef71bfaf7570e586aee9c7806fb3df43cfd65fc7e28df6eff", null ],
+    [ "Gausser", "d4/db9/class_gausser_abf88e5b6c427c97dfe26c2b5def33012.html#abf88e5b6c427c97dfe26c2b5def33012", null ],
+    [ "~Gausser", "d4/db9/class_gausser_a233a0b6feff83d533a1710f7c8e68bea.html#a233a0b6feff83d533a1710f7c8e68bea", null ],
+    [ "copy_F4CoefficientArray", "d4/db9/class_gausser_a7150735750e41610a2f763d4bc4c8b4a.html#a7150735750e41610a2f763d4bc4c8b4a", null ],
+    [ "deallocate_F4CCoefficientArray", "d4/db9/class_gausser_a8a20651701fc545dfb4493446aee8a88.html#a8a20651701fc545dfb4493446aee8a88", null ],
+    [ "dense_row_allocate", "d4/db9/class_gausser_a2cce598219289d1ea7770183fe48d865.html#a2cce598219289d1ea7770183fe48d865", null ],
+    [ "dense_row_cancel_sparse", "d4/db9/class_gausser_ab4abf79c9743e5f06f17886e17ed104f.html#ab4abf79c9743e5f06f17886e17ed104f", null ],
+    [ "dense_row_clear", "d4/db9/class_gausser_a34e38c1cb71e3e4c434a1750d3474de4.html#a34e38c1cb71e3e4c434a1750d3474de4", null ],
+    [ "dense_row_deallocate", "d4/db9/class_gausser_a1cf8246b81e63c56b636e0e5a96ba56f.html#a1cf8246b81e63c56b636e0e5a96ba56f", null ],
+    [ "dense_row_fill_from_sparse", "d4/db9/class_gausser_a6a401f3a583d5a1be99d350da4a20c25.html#a6a401f3a583d5a1be99d350da4a20c25", null ],
+    [ "dense_row_next_nonzero", "d4/db9/class_gausser_a2ca91c5645bf929b75c23d39cea1e496.html#a2ca91c5645bf929b75c23d39cea1e496", null ],
+    [ "dense_row_to_sparse_row", "d4/db9/class_gausser_ae4ae6fbe4b291982c9a7cc20afb5a7a2.html#ae4ae6fbe4b291982c9a7cc20afb5a7a2", null ],
+    [ "from_ringelem_array", "d4/db9/class_gausser_a83cdc36f41882decfeec7a6025d5163d.html#a83cdc36f41882decfeec7a6025d5163d", null ],
+    [ "get_coeff_ring", "d4/db9/class_gausser_af5f262b7c2b1f3a991e994df2f1dfd61.html#af5f262b7c2b1f3a991e994df2f1dfd61", null ],
+    [ "get_ring", "d4/db9/class_gausser_a17403ab827e4bef505412b125945d9d9.html#a17403ab827e4bef505412b125945d9d9", null ],
+    [ "lead_coeff", "d4/db9/class_gausser_a8c98041aa960630bd4b9c02c31c42cae.html#a8c98041aa960630bd4b9c02c31c42cae", null ],
+    [ "newGausser", "d4/db9/class_gausser_a98124ff5c2eb54e1e426e302b0b6d2a1.html#a98124ff5c2eb54e1e426e302b0b6d2a1", null ],
+    [ "sparse_row_make_monic", "d4/db9/class_gausser_a51ed4be9c00dafcfa8bfb3e41c06a0b5.html#a51ed4be9c00dafcfa8bfb3e41c06a0b5", null ],
+    [ "to_ringelem_array", "d4/db9/class_gausser_a3ac8e487ee59654206eecd8ba68c1323.html#a3ac8e487ee59654206eecd8ba68c1323", null ],
+    [ "K", "d4/db9/class_gausser_a84e1b17dd94fdf0a21f01feaaff16194.html#a84e1b17dd94fdf0a21f01feaaff16194", null ],
+    [ "Kp", "d4/db9/class_gausser_a47c8a1e15a64779b452b0ab70e6600d6.html#a47c8a1e15a64779b452b0ab70e6600d6", null ],
+    [ "Mem", "d4/db9/class_gausser_a09e171544d4017bbea7141f059c9872c.html#a09e171544d4017bbea7141f059c9872c", null ],
+    [ "n_dense_row_cancel", "d4/db9/class_gausser_ad8377dc051d71dda514b5eec2bf20244.html#ad8377dc051d71dda514b5eec2bf20244", null ],
+    [ "n_subtract_multiple", "d4/db9/class_gausser_aab47d8fcfb842e0912f60e25ed0760b4.html#aab47d8fcfb842e0912f60e25ed0760b4", null ],
+    [ "typ", "d4/db9/class_gausser_af43cde88b7409b0d6a9ccf481828d4db.html#af43cde88b7409b0d6a9ccf481828d4db", null ]
+];

@@ -1,0 +1,27 @@
+var class_memory_block =
+[
+    [ "slab", "d5/d90/struct_memory_block_1_1slab.html", "d5/d90/struct_memory_block_1_1slab" ],
+    [ "MemoryBlock", "d3/d57/class_memory_block_aa660d750815108d0cbb8059251b7b856.html#aa660d750815108d0cbb8059251b7b856", null ],
+    [ "~MemoryBlock", "d3/d57/class_memory_block_aa9e31d7312c092debc072d4a68711ca8.html#aa9e31d7312c092debc072d4a68711ca8", null ],
+    [ "MemoryBlock", "d3/d57/class_memory_block_aa660d750815108d0cbb8059251b7b856.html#aa660d750815108d0cbb8059251b7b856", null ],
+    [ "~MemoryBlock", "d3/d57/class_memory_block_aa9e31d7312c092debc072d4a68711ca8.html#aa9e31d7312c092debc072d4a68711ca8", null ],
+    [ "allocate", "d3/d57/class_memory_block_affb6dd57bc5ffa516ba18096d669df5f.html#affb6dd57bc5ffa516ba18096d669df5f", null ],
+    [ "allocateArray", "d3/d57/class_memory_block_ab4e5ade6f7482fafa0101dade03eb3db.html#ab4e5ade6f7482fafa0101dade03eb3db", null ],
+    [ "deallocateAll", "d3/d57/class_memory_block_a62539b8a02efacf0318ffb5c0c8f93c6.html#a62539b8a02efacf0318ffb5c0c8f93c6", null ],
+    [ "freeTopArray", "d3/d57/class_memory_block_aa7c9b54bbf71f6ba3b97062f72dc0767.html#aa7c9b54bbf71f6ba3b97062f72dc0767", null ],
+    [ "getMemoryUsedInBytes", "d3/d57/class_memory_block_aeac9f21ea01ef0162d4ae26ce06be485.html#aeac9f21ea01ef0162d4ae26ce06be485", null ],
+    [ "intern", "d3/d57/class_memory_block_ab5498b3da20f6fec471d7e3bf793e89a.html#ab5498b3da20f6fec471d7e3bf793e89a", null ],
+    [ "memoryUsage", "d3/d57/class_memory_block_a708344d5923f12643ff7ae63191212d5.html#a708344d5923f12643ff7ae63191212d5", null ],
+    [ "n_slabs", "d3/d57/class_memory_block_a6c37a05a94e1cc4c115168eae0cf9013.html#a6c37a05a94e1cc4c115168eae0cf9013", null ],
+    [ "new_slab", "d3/d57/class_memory_block_ae4ffe7c0d25857c6b7912e5df07bdb6b.html#ae4ffe7c0d25857c6b7912e5df07bdb6b", null ],
+    [ "reserve", "d3/d57/class_memory_block_ad51976056b40939fa77462e365bb3b14.html#ad51976056b40939fa77462e365bb3b14", null ],
+    [ "reset", "d3/d57/class_memory_block_a788cf5973d411d28471810cb6bcf64c6.html#a788cf5973d411d28471810cb6bcf64c6", null ],
+    [ "safeAllocateArray", "d3/d57/class_memory_block_aa64f3069660136719594b511c31b4cd8.html#aa64f3069660136719594b511c31b4cd8", null ],
+    [ "shrinkLastAllocate", "d3/d57/class_memory_block_a74713bf7b9163e0fe296123da7af8567.html#a74713bf7b9163e0fe296123da7af8567", null ],
+    [ "swap", "d3/d57/class_memory_block_a5c76dc39bc6dd672c3c9d5e0d87d3e99.html#a5c76dc39bc6dd672c3c9d5e0d87d3e99", null ],
+    [ "current_slab", "d3/d57/class_memory_block_a4c2125f20aa781e14be895760963c112.html#a4c2125f20aa781e14be895760963c112", null ],
+    [ "first_slab", "d3/d57/class_memory_block_a6f43ec84193ded569b517ff2e923acb1.html#a6f43ec84193ded569b517ff2e923acb1", null ],
+    [ "last_slab", "d3/d57/class_memory_block_a57050cfa18c6d54d890c6ff50544cb34.html#a57050cfa18c6d54d890c6ff50544cb34", null ],
+    [ "mArena", "d3/d57/class_memory_block_a590609faef676004c58230ba99d16990.html#a590609faef676004c58230ba99d16990", null ],
+    [ "next_free", "d3/d57/class_memory_block_a7313e4fb4dd7a62fe14cd1ce4b76485f.html#a7313e4fb4dd7a62fe14cd1ce4b76485f", null ]
+];

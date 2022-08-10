@@ -1,0 +1,26 @@
+var ringelem_8hpp =
+[
+    [ "cc_struct", "de/d31/structcc__struct.html", "de/d31/structcc__struct" ],
+    [ "cc_doubles_struct", "db/dae/structcc__doubles__struct.html", "db/dae/structcc__doubles__struct" ],
+    [ "ring_elem", "d5/d64/unionring__elem.html", "d5/d64/unionring__elem" ],
+    [ "Nterm", "d0/dbc/struct_nterm.html", "d0/dbc/struct_nterm" ],
+    [ "vec", "d6/ddd/structvecterm.html", "d6/ddd/structvecterm" ],
+    [ "BIGCC_IM", "dd/dc9/ringelem_8hpp_af9bac62e2d632a9591e4db48aaa8ebd6.html#af9bac62e2d632a9591e4db48aaa8ebd6", null ],
+    [ "BIGCC_RE", "dd/dc9/ringelem_8hpp_a077ed2ed9749aaaf0966997a1c7b7e8d.html#a077ed2ed9749aaaf0966997a1c7b7e8d", null ],
+    [ "MPQ_VAL", "dd/dc9/ringelem_8hpp_a763804a1f716888d0f6362e483ca41c3.html#a763804a1f716888d0f6362e483ca41c3", null ],
+    [ "TOWER_RINGELEM", "dd/dc9/ringelem_8hpp_a1803b45d6c9cd803ee8f0cd04fbf586a.html#a1803b45d6c9cd803ee8f0cd04fbf586a", null ],
+    [ "TOWER_VAL", "dd/dc9/ringelem_8hpp_aa78206e01eb49432b509c2907cdfcbd9.html#aa78206e01eb49432b509c2907cdfcbd9", null ],
+    [ "cc_doubles_ptr", "dd/dc9/ringelem_8hpp_a4594734eccf5cafe9efe0c6f10033c1d.html#a4594734eccf5cafe9efe0c6f10033c1d", null ],
+    [ "cc_doubles_srcptr", "dd/dc9/ringelem_8hpp_acb643c14d91da1672bddeb106a658d14.html#acb643c14d91da1672bddeb106a658d14", null ],
+    [ "cc_ptr", "dd/dc9/ringelem_8hpp_a4fc9613c51458feac620985131522c86.html#a4fc9613c51458feac620985131522c86", null ],
+    [ "cc_srcptr", "dd/dc9/ringelem_8hpp_ac41157afaee715b7ffc149faaba9d28e.html#ac41157afaee715b7ffc149faaba9d28e", null ],
+    [ "QQ", "dd/dc9/ringelem_8hpp_a845589cbe81fb92f0ca26c8b911f8f38.html#a845589cbe81fb92f0ca26c8b911f8f38", null ],
+    [ "QQmutable", "dd/dc9/ringelem_8hpp_aa5d5500afd1f71d6375b54e272c03748.html#aa5d5500afd1f71d6375b54e272c03748", null ],
+    [ "RRielement", "dd/dc9/ringelem_8hpp_ae8a8b1a5e976663d49e3f3b5a3f77ce3.html#ae8a8b1a5e976663d49e3f3b5a3f77ce3", null ],
+    [ "RRimutable", "dd/dc9/ringelem_8hpp_a1de7e1c108cab3f167b1824f0650ec74.html#a1de7e1c108cab3f167b1824f0650ec74", null ],
+    [ "RRRelement", "dd/dc9/ringelem_8hpp_a5e9cb9214c045fe4d410b3823042f3ea.html#a5e9cb9214c045fe4d410b3823042f3ea", null ],
+    [ "RRRmutable", "dd/dc9/ringelem_8hpp_a059c72b6789888407f38bf1e472c6b0b.html#a059c72b6789888407f38bf1e472c6b0b", null ],
+    [ "tpoly", "dd/dc9/ringelem_8hpp_a05321deeb078adf416e16f6ef1ce27b5.html#a05321deeb078adf416e16f6ef1ce27b5", null ],
+    [ "ZZ", "dd/dc9/ringelem_8hpp_afea72c39052b53d15e7acad8d36847c1.html#afea72c39052b53d15e7acad8d36847c1", null ],
+    [ "ZZmutable", "dd/dc9/ringelem_8hpp_a487debf371b09c706e237215cab277af.html#a487debf371b09c706e237215cab277af", null ]
+];

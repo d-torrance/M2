@@ -1,0 +1,56 @@
+var group__comp =
+[
+    [ "Groebner Bases", "d0/d58/group__gb.html", "d0/d58/group__gb" ],
+    [ "Free Resolutions", "d5/d44/group__res.html", "d5/d44/group__res" ],
+    [ "Hilbert Functions", "d9/d8a/group__hilb.html", "d9/d8a/group__hilb" ],
+    [ "DetComputation", "d7/d9a/class_det_computation.html", [
+      [ "DetComputation", "d7/d9a/class_det_computation_abaffd9598d5daedb16c43003fbe3a0b8.html#abaffd9598d5daedb16c43003fbe3a0b8", null ],
+      [ "~DetComputation", "d7/d9a/class_det_computation_aaac6b9b69174e5fb6b29614ea680cd0d.html#aaac6b9b69174e5fb6b29614ea680cd0d", null ],
+      [ "bareiss_det", "d7/d9a/class_det_computation_a62ee6a0477712050148037df25f08291.html#a62ee6a0477712050148037df25f08291", null ],
+      [ "calc", "d7/d9a/class_det_computation_a4b2645ebecf68597a014fce84f801aa2.html#a4b2645ebecf68597a014fce84f801aa2", null ],
+      [ "calc_det", "d7/d9a/class_det_computation_ab2d65f64a1fe20c7abbc6e2aaf8e9bd0.html#ab2d65f64a1fe20c7abbc6e2aaf8e9bd0", null ],
+      [ "clear", "d7/d9a/class_det_computation_ae02266d7cb14ac886dec5bf4f64e4f25.html#ae02266d7cb14ac886dec5bf4f64e4f25", null ],
+      [ "determinants", "d7/d9a/class_det_computation_a87040347cb140ca5eee9e2378a4952c5.html#a87040347cb140ca5eee9e2378a4952c5", null ],
+      [ "detmult", "d7/d9a/class_det_computation_a4afa892d5ec0a37343109f060a8d6ba1.html#a4afa892d5ec0a37343109f060a8d6ba1", null ],
+      [ "discard", "d7/d9a/class_det_computation_ae14f8d7973a6bf76d72cefcfae004f34.html#ae14f8d7973a6bf76d72cefcfae004f34", null ],
+      [ "gauss", "d7/d9a/class_det_computation_a3101855e412fda4054f76aa6c3a73708.html#a3101855e412fda4054f76aa6c3a73708", null ],
+      [ "get_minor", "d7/d9a/class_det_computation_acf9886890b4bb88d14c21bb441472632.html#acf9886890b4bb88d14c21bb441472632", null ],
+      [ "get_pivot", "d7/d9a/class_det_computation_aae79a51d41c4d138febd14da631bb7dd.html#aae79a51d41c4d138febd14da631bb7dd", null ],
+      [ "set_next_minor", "d7/d9a/class_det_computation_a27c165be0be31a9f726e594d00e49430.html#a27c165be0be31a9f726e594d00e49430", null ],
+      [ "step", "d7/d9a/class_det_computation_a61a2fe69fa74a11faa8ffaf8e18c47ce.html#a61a2fe69fa74a11faa8ffaf8e18c47ce", null ],
+      [ "col_set", "d7/d9a/class_det_computation_a46e5d346402a2b23f6b4a36a78dfb538.html#a46e5d346402a2b23f6b4a36a78dfb538", null ],
+      [ "D", "d7/d9a/class_det_computation_a4ae8dd5acacbfa4aeff3d9611b3d8c97.html#a4ae8dd5acacbfa4aeff3d9611b3d8c97", null ],
+      [ "do_exterior", "d7/d9a/class_det_computation_ab012b4f6ee21617589190559f452ac41.html#ab012b4f6ee21617589190559f452ac41", null ],
+      [ "done", "d7/d9a/class_det_computation_aa39fdc298268586ee495861f615adf8c.html#aa39fdc298268586ee495861f615adf8c", null ],
+      [ "F", "d7/d9a/class_det_computation_a56e866aa028fb5b65d3f15d37fbecc74.html#a56e866aa028fb5b65d3f15d37fbecc74", null ],
+      [ "M", "d7/d9a/class_det_computation_ae83c2e8b3837ef8312f7a6e51c4360cf.html#ae83c2e8b3837ef8312f7a6e51c4360cf", null ],
+      [ "p", "d7/d9a/class_det_computation_a80a86063015cd6387fd063a856b84aa3.html#a80a86063015cd6387fd063a856b84aa3", null ],
+      [ "R", "d7/d9a/class_det_computation_a2f7beed92db231d0c6065a4262d8d5fb.html#a2f7beed92db231d0c6065a4262d8d5fb", null ],
+      [ "result", "d7/d9a/class_det_computation_a52407ff27b1087dcc54dc4a937a9cf64.html#a52407ff27b1087dcc54dc4a937a9cf64", null ],
+      [ "row_set", "d7/d9a/class_det_computation_a3728f0224056f7bf6123c4c2e869bc70.html#a3728f0224056f7bf6123c4c2e869bc70", null ],
+      [ "strategy", "d7/d9a/class_det_computation_a6c0eb3c0f428f7106fd3b5f0e4bdd262.html#a6c0eb3c0f428f7106fd3b5f0e4bdd262", null ],
+      [ "this_col", "d7/d9a/class_det_computation_a9f30a0128d1db59c20b42df3579616a5.html#a9f30a0128d1db59c20b42df3579616a5", null ],
+      [ "this_row", "d7/d9a/class_det_computation_adf4c75af80cfdf81412a905ab92d3cad.html#adf4c75af80cfdf81412a905ab92d3cad", null ]
+    ] ],
+    [ "PfaffianComputation", "dc/df6/class_pfaffian_computation.html", [
+      [ "PfaffianComputation", "dc/df6/class_pfaffian_computation_a54df7120d2643029fc7d571c0c297ccc.html#a54df7120d2643029fc7d571c0c297ccc", null ],
+      [ "~PfaffianComputation", "dc/df6/class_pfaffian_computation_af43812eafc842cc83b3a0c1b046f4555.html#af43812eafc842cc83b3a0c1b046f4555", null ],
+      [ "calc", "dc/df6/class_pfaffian_computation_acc1456dde448046b2c81d168a858eda9.html#acc1456dde448046b2c81d168a858eda9", null ],
+      [ "calc_pfaff", "dc/df6/class_pfaffian_computation_a1b3e37420a67db7b0c07f698ffdedbf6.html#a1b3e37420a67db7b0c07f698ffdedbf6", null ],
+      [ "get_ring", "dc/df6/class_pfaffian_computation_ac7f2d1b2a35fb714b495c2fae4000bc4.html#ac7f2d1b2a35fb714b495c2fae4000bc4", null ],
+      [ "pfaffians", "dc/df6/class_pfaffian_computation_a1eeab89909df9b64c4a01fdfdf4c4f81.html#a1eeab89909df9b64c4a01fdfdf4c4f81", null ],
+      [ "step", "dc/df6/class_pfaffian_computation_a7e3fb2bd3b4120cbe667b424aa6651de.html#a7e3fb2bd3b4120cbe667b424aa6651de", null ],
+      [ "done", "dc/df6/class_pfaffian_computation_ae467213cdd993ea7c5bf4c6356cdc41f.html#ae467213cdd993ea7c5bf4c6356cdc41f", null ],
+      [ "M", "dc/df6/class_pfaffian_computation_a83c4888928e01ee9c1290dd2271c8373.html#a83c4888928e01ee9c1290dd2271c8373", null ],
+      [ "p", "dc/df6/class_pfaffian_computation_ad7f2deb0306c4da8887f153bee88111f.html#ad7f2deb0306c4da8887f153bee88111f", null ],
+      [ "pfaffs", "dc/df6/class_pfaffian_computation_a4e895f3505748f76bf9b4f8532a1755a.html#a4e895f3505748f76bf9b4f8532a1755a", null ],
+      [ "R", "dc/df6/class_pfaffian_computation_a030d878549e94839c152d75c57bd7d26.html#a030d878549e94839c152d75c57bd7d26", null ],
+      [ "row_set", "dc/df6/class_pfaffian_computation_a51067a968e1e5fb68d16cf25e80f7f90.html#a51067a968e1e5fb68d16cf25e80f7f90", null ]
+    ] ],
+    [ "sagbi", "dc/d5a/classsagbi.html", [
+      [ "subduct", "dc/d5a/classsagbi_a5ed0f492b56ddf205914fc40911ac07f.html#a5ed0f492b56ddf205914fc40911ac07f", null ],
+      [ "subduct", "dc/d5a/classsagbi_a64a8b4a6e105fb866603f7635109cb9d.html#a64a8b4a6e105fb866603f7635109cb9d", null ],
+      [ "subduct1", "dc/d5a/classsagbi_a46fdc62b4d511ef235d0604872a6e700.html#a46fdc62b4d511ef235d0604872a6e700", null ],
+      [ "subduct1", "dc/d5a/classsagbi_a7b41ac511b69cf5dd55581f10945c0e8.html#a7b41ac511b69cf5dd55581f10945c0e8", null ]
+    ] ]
+];

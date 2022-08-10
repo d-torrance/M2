@@ -1,0 +1,28 @@
+var class_f4_computation =
+[
+    [ "F4Computation", "d8/d5d/class_f4_computation_a530ea79f1426b0eb3cb81853c6422483.html#a530ea79f1426b0eb3cb81853c6422483", null ],
+    [ "~F4Computation", "d8/d5d/class_f4_computation_ac3e1e5d8ae5733e7ec46ed2deb13aab4.html#ac3e1e5d8ae5733e7ec46ed2deb13aab4", null ],
+    [ "complete_thru_degree", "d8/d5d/class_f4_computation_a6fd1548b75b94364b91d583c06432598.html#a6fd1548b75b94364b91d583c06432598", null ],
+    [ "computation_is_complete", "d8/d5d/class_f4_computation_a7ca6f873fefd0318a9fd046e63d2aa72.html#a7ca6f873fefd0318a9fd046e63d2aa72", null ],
+    [ "contains", "d8/d5d/class_f4_computation_a5b24115c2a0f88664eb97a35f3407a5e.html#a5b24115c2a0f88664eb97a35f3407a5e", null ],
+    [ "get_change", "d8/d5d/class_f4_computation_a7d6723bd9d52d77d82dda0549df2b06b.html#a7d6723bd9d52d77d82dda0549df2b06b", null ],
+    [ "get_gb", "d8/d5d/class_f4_computation_a7a3299f8e1592a0e9d63293a3cc3252e.html#a7a3299f8e1592a0e9d63293a3cc3252e", null ],
+    [ "get_initial", "d8/d5d/class_f4_computation_a9c516c3e55a4125d8418821377111c11.html#a9c516c3e55a4125d8418821377111c11", null ],
+    [ "get_mingens", "d8/d5d/class_f4_computation_acda6399708b9d07d46a2d80084c61cc6.html#acda6399708b9d07d46a2d80084c61cc6", null ],
+    [ "get_ring", "d8/d5d/class_f4_computation_a4a1030a5ad99ae7ecaf136f7110ad220.html#a4a1030a5ad99ae7ecaf136f7110ad220", null ],
+    [ "get_syzygies", "d8/d5d/class_f4_computation_adacdcb69ed57a5bd2b871f455efe92c4.html#adacdcb69ed57a5bd2b871f455efe92c4", null ],
+    [ "matrix_lift", "d8/d5d/class_f4_computation_a62d80a66689f65dfaacbef405f34bc6f.html#a62d80a66689f65dfaacbef405f34bc6f", null ],
+    [ "matrix_remainder", "d8/d5d/class_f4_computation_a9459a816720fb825cc14a366ba28b5d7.html#a9459a816720fb825cc14a366ba28b5d7", null ],
+    [ "remove_gb", "d8/d5d/class_f4_computation_aa95d29409eeb00501ca5ae09da238033.html#aa95d29409eeb00501ca5ae09da238033", null ],
+    [ "set_hilbert_function", "d8/d5d/class_f4_computation_aba8ed42bc0d5b4def6f33ff0b7de03e0.html#aba8ed42bc0d5b4def6f33ff0b7de03e0", null ],
+    [ "show", "d8/d5d/class_f4_computation_a8d93ae992e4b27777d61e67099411b08.html#a8d93ae992e4b27777d61e67099411b08", null ],
+    [ "start_computation", "d8/d5d/class_f4_computation_a47d50958b502e157b15fdc89afa61a3e.html#a47d50958b502e157b15fdc89afa61a3e", null ],
+    [ "stop_conditions_ok", "d8/d5d/class_f4_computation_a35c58e01d451c74bf7ec3fd4f7a704f1.html#a35c58e01d451c74bf7ec3fd4f7a704f1", null ],
+    [ "text_out", "d8/d5d/class_f4_computation_add152c63c999ea0cfd850b6e2d198bd4.html#add152c63c999ea0cfd850b6e2d198bd4", null ],
+    [ "mF4GB", "d8/d5d/class_f4_computation_ac4f54bbee485f4db798db2376c20e0e4.html#ac4f54bbee485f4db798db2376c20e0e4", null ],
+    [ "mFreeModule", "d8/d5d/class_f4_computation_a5f864ae99ce27c1131f9cb41db793236.html#a5f864ae99ce27c1131f9cb41db793236", null ],
+    [ "mMemoryBlock", "d8/d5d/class_f4_computation_a3ad4601ee83a1e3301f5a43111d68d0b.html#a3ad4601ee83a1e3301f5a43111d68d0b", null ],
+    [ "mMonoid", "d8/d5d/class_f4_computation_a76dbf0577b28bf37f57dabcdd08cfb03.html#a76dbf0577b28bf37f57dabcdd08cfb03", null ],
+    [ "mOriginalRing", "d8/d5d/class_f4_computation_a3d0ff21db28d54e1372894080b53489d.html#a3d0ff21db28d54e1372894080b53489d", null ],
+    [ "mVectorArithmetic", "d8/d5d/class_f4_computation_a52865cc5617670ae29baf59dd1c3fb12.html#a52865cc5617670ae29baf59dd1c3fb12", null ]
+];
