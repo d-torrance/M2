@@ -200,7 +200,7 @@ isCellular Ideal := Ideal => o -> I -> (
 
 cellVars = method (Options => {CellVariables => null})
 cellVars Ideal := Ideal => o -> I -> (
-     -- This function compotes the cell variables for a cellular ideal if necessary.
+     -- This function computes the cell variables for a cellular ideal if necessary.
      if o#CellVariables === null then (
 	  cv := {};
 	  for i in gens ring I do if saturate (I,i) != substitute(ideal(1), ring I) then cv=cv|{i};
@@ -1064,7 +1064,7 @@ cellularBinomialUnmixedDecomposition Ideal := Ideal => o -> I -> (
      b := sub(makeBinomial(CoeffR(monoid [cv]), L2cols#i, l2#1#i), R);
      
      -- We can't follow Section 4.1 of Ojeda/Sanchez because there is no 
-     -- effictive criterion to decide that mb^[e] will never lie in I, no
+     -- effective criterion to decide that mb^[e] will never lie in I, no
      -- matter how divisible e is.
     
      -- We take the approach of computing e_b by actually coloning.

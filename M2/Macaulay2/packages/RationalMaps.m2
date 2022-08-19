@@ -38,7 +38,7 @@ export{
 	"mapOntoImage",
     "QuickRank",
 	--"blowUpIdeals", --at some point we should document this and expose it to the user
-	--"nonZeroMinor",-- it is internal because the answer is probobalistic (either it finds one or it doesn't) and it is controlled by MinorsLimit option
+	--"nonZeroMinor",-- it is internal because the answer is probabilistic (either it finds one or it doesn't) and it is controlled by MinorsLimit option
     "isSameMap",
     "sourceInversionFactor",
         --"simisAlgebra", --at some point we should document this and expose it to the user
@@ -2595,7 +2595,7 @@ TEST /// --test #27
 ///
 
 TEST /// --test #28
-     --let's parameterize the nodal plane cubic
+     --let's parametrize the nodal plane cubic
      P2 = QQ[x,y,z]
      C = QQ[a,b]
      h = map(C, P2, {b*a*(a-b), a^2*(a-b), b^3})

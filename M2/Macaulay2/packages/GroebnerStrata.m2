@@ -327,7 +327,7 @@ minimalizeFamily (Ideal, Ideal) := (J,H) -> (
      )
 *-
 
--- take an ideal in A[vars], homogeneous, and a ring S (in vars, but with different, often standrd, grading)
+-- take an ideal in A[vars], homogeneous, and a ring S (in vars, but with different, often standard, grading)
 -- return: free non-minimal resolution, as well as the degree zero maps in the resolution.
 nonminimalMaps = method()
 nonminimalMaps(Ideal) := Sequence => (F) -> (
@@ -1024,7 +1024,7 @@ doc ///
   Description
     Text
       This an optional input for the @TO groebnerStratum@ function.  It takes values $true$ and $false$.  When assigned the value
-      $true$, elimanable parameters are eliminated to obtain the groebner basin / stratum in a smaller ring.  When assigned the 
+      $true$, eliminable parameters are eliminated to obtain the groebner basin / stratum in a smaller ring.  When assigned the 
       value $false$, no parameters are eliminated, and the groebner basin / stratum is computed in a ring containing all the parameters.
   SeeAlso
     groebnerStratum
