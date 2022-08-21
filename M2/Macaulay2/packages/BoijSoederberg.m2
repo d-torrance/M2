@@ -569,7 +569,7 @@ decompose3 = B -> (
 -- Same as decompose but with options.
 -- this was done in order to preserve the old functionality and give 
 -- the ability to add options to the method.
--- We would like to replace 'decompse' with 'decomposeBetti'.
+-- We would like to replace 'decompose' with 'decomposeBetti'.
 decomposeBetti = method(Options => {TableEntries => LeastIntegerEntries})
 decomposeBetti BettiTally := o -> B -> (
     
@@ -1273,7 +1273,7 @@ for i from 0 to #W-1 list (W_i/P_0)
 -- Constructions often producing pure resolutions --
 ----------------------------------------------------
 
---Given a strictly increasing degree sequence L and a number of gneerators m,
+--Given a strictly increasing degree sequence L and a number of generators m,
 --this routine produces a "generic" module of finite length with the 
 --m generators and number of socle elements  and regularity corresponding
 --to the pure resolution with degree sequence L. The module is constructed
