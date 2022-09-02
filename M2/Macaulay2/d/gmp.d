@@ -250,6 +250,8 @@ set(x:ZZmutable, y:ZZ   ) ::= Ccode( void, "mpz_set   (", x, ",", y, ")" );
 set(x:ZZmutable, n:int  ) ::= Ccode( void, "mpz_set_si(", x, ",", n, ")" );
 set(x:ZZmutable, n:long ) ::= Ccode( void, "mpz_set_si(", x, ",", n, ")" );
 set(x:ZZmutable, n:ulong) ::= Ccode( void, "mpz_set_ui(", x, ",", n, ")" );
+set(x:ZZmutable, s:charstar, base:int) ::= Ccode(
+    void, "mpz_set_str(", x, ", ", s, ", ", base, ")");
 
 negsmall := -100;
 possmall := 300;
@@ -293,6 +295,11 @@ export toInteger(i:long):ZZ := (
 	  x := newZZmutable();
 	  set(x,i);
 	  moveToZZandclear(x)));
+
+export toInteger(s:charstar, base:int):ZZ := (
+    x := newZZmutable();
+    set(x, s, base);
+    moveToZZandclear(x));
 
 neg(x:ZZmutable, y:ZZ) ::= Ccode( void, "mpz_neg(", x, ",", y, ")" );
 
