@@ -83,6 +83,10 @@ Boolean xor Boolean := (x, y) -> x and not y or not x and y
 changeBase = method()
 changeBase(ZZ, ZZ) := changeBase0
 
+toZZ = method()
+toZZ(String, ZZ) := toZZ0
+toZZ String := s -> toZZ(s, 10)
+
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/m2 "
 -- End:
