@@ -1040,6 +1040,22 @@ tostringfun(e:Expr):Expr := (
 );
 setupfun("simpleToString",tostringfun);
 
+changeBase(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	when a.0
+	is x:ZZcell do (
+	    when a.1
+	    is y:ZZcell do (
+		base := toInt(y.v);
+		if base > 62 || base < 2 then buildErrorPacket(
+		    "expected a base between 2 and 62")
+		else toExpr(tostring(x.v, base)))
+	    else WrongArgZZ(2))
+	else WrongArgZZ(1))
+    else WrongNumArgs(2));
+setupfun("changeBase0", changeBase);
+
 connectionCount(e:Expr):Expr := (
      when e is f:file do if f.listener then toExpr(f.numconns)
      else WrongArg(1,"an open socket listening for connections")
