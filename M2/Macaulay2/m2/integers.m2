@@ -80,6 +80,9 @@ ZZ & ZZ := ZZ => lookup(symbol &, ZZ, ZZ)
 ZZ ^^ ZZ := bitxorfun
 Boolean xor Boolean := (x, y) -> x and not y or not x and y
 
+changeBase = method()
+changeBase(ZZ, ZZ) := changeBase0
+
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/m2 "
 -- End:
