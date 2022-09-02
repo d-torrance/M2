@@ -84,8 +84,10 @@ changeBase = method()
 changeBase(ZZ, ZZ) := changeBase0
 
 toZZ = method()
+toZZ ZZ := identity
 toZZ(String, ZZ) := toZZ0
 toZZ String := s -> toZZ(s, 10)
+toZZ RR := toZZ QQ := toZZ CC := toZZ RRi := x -> lift(x, ZZ)
 
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/m2 "
