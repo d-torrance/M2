@@ -1,3 +1,4 @@
+use system;
 use common;
 use hashtables;
 use evaluate;
@@ -34,7 +35,7 @@ dlsym0(e:Expr):Expr :=
     when e
     is y:stringCell do (
 	r := Ccode(voidPointerOrNull,
-	    "dlsym((void *)0, ", tocharstar(y.v), ")");
+	    "dlsym(RTLD_DEFAULT, ", tocharstar(y.v), ")");
 	when r
 	is null do dlerror0()
 	is addr:voidPointer do toExpr(addr))
