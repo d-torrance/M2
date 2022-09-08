@@ -12,47 +12,43 @@ export {
     "zeroBi"
     }
 
+----------------------
+-- helper functions --
+----------------------
+
+setupGSLSpecialFunctionDouble = (f, g) -> (
+    ff := foreignFunction(gsl, g, double, {double, uint});
+    h := x -> value ff(x, 0);
+    installMethod(f, Number, h);
+    installMethod(f, Constant, h))
+
 --------------------
 -- Airy functions --
 --------------------
 
 Ai = method()
-Ai' = foreignFunction(gsl, "gsl_sf_airy_Ai", double, {double, uint})
-Ai Number := x -> value Ai'(x, 0)
+setupGSLSpecialFunctionDouble(Ai, "gsl_sf_airy_Ai")
 
 Bi = method()
-Bi' = foreignFunction(gsl, "gsl_sf_airy_Bi", double, {double, uint})
-Bi Number := x -> value Bi'(x, 0)
+setupGSLSpecialFunctionDouble(Bi, "gsl_sf_airy_Bi")
 
 AiScaled = method()
-AiScaled' = foreignFunction(
-    gsl, "gsl_sf_airy_Ai_scaled", double,{double, uint})
-AiScaled Number := x -> value AiScaled'(x, 0)
+setupGSLSpecialFunctionDouble(AiScaled, "gsl_sf_airy_Ai_scaled")
 
 BiScaled = method()
-BiScaled' = foreignFunction(
-    gsl, "gsl_sf_airy_Bi_scaled", double, {double, uint})
-BiScaled Number := x -> value BiScaled'(x, 0)
+setupGSLSpecialFunctionDouble(BiScaled, "gsl_sf_airy_Bi_scaled")
 
 AiDeriv = method()
-AiDeriv' = foreignFunction(
-    gsl, "gsl_sf_airy_Ai_deriv", double,{double, uint})
-AiDeriv Number := x -> value AiDeriv'(x, 0)
+setupGSLSpecialFunctionDouble(AiDeriv, "gsl_sf_airy_Ai_deriv")
 
 BiDeriv = method()
-BiDeriv' = foreignFunction(
-    gsl, "gsl_sf_airy_Bi_deriv", double, {double, uint})
-BiDeriv Number := x -> value BiDeriv'(x, 0)
+setupGSLSpecialFunctionDouble(BiDeriv, "gsl_sf_airy_Bi_deriv")
 
 AiDerivScaled = method()
-AiDerivScaled' = foreignFunction(
-    gsl, "gsl_sf_airy_Ai_deriv_scaled", double,{double, uint})
-AiDerivScaled Number := x -> value AiDerivScaled'(x, 0)
+setupGSLSpecialFunctionDouble(AiDerivScaled, "gsl_sf_airy_Ai_deriv_scaled")
 
 BiDerivScaled = method()
-BiDerivScaled' = foreignFunction(
-    gsl, "gsl_sf_airy_Bi_deriv_scaled", double, {double, uint})
-BiDerivScaled Number := x -> value BiDerivScaled'(x, 0)
+setupGSLSpecialFunctionDouble(BiDerivScaled, "gsl_sf_airy_Bi_deriv_scaled")
 
 zeroAi = method()
 zeroAi' := foreignFunction(gsl, "gsl_sf_airy_zero_Ai", double, uint)
