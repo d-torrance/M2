@@ -1,17 +1,17 @@
 export {
     -- Airy functions
-    "Ai",
-    "Bi",
-    "AiScaled",
-    "BiScaled",
-    "AiDeriv",
-    "BiDeriv",
-    "AiDerivScaled",
-    "BiDerivScaled",
-    "zeroAi",
-    "zeroBi",
-    "zeroAiDeriv",
-    "zeroBiDeriv"
+    "AiryAi",
+    "AiryBi",
+    "AiryAiScaled",
+    "AiryBiScaled",
+    "AiryAiPrime",
+    "AiryBiPrime",
+    "AiryAiPrimeScaled",
+    "AiryBiPrimeScaled",
+    "AiryAiZero",
+    "AiryBiZero",
+    "AiryAiPrimeZero",
+    "AiryBiPrimeZero",
     }
 
 exportMutable {
@@ -58,41 +58,41 @@ setupGSLSpecialFunctionInt = (m2method, gslfunc) -> (
 -- Airy functions --
 --------------------
 
-Ai = method()
-setupGSLSpecialFunctionDouble(Ai, "gsl_sf_airy_Ai_e")
+AiryAi = method()
+setupGSLSpecialFunctionDouble(AiryAi, "gsl_sf_airy_Ai_e")
 
-Bi = method()
-setupGSLSpecialFunctionDouble(Bi, "gsl_sf_airy_Bi_e")
+AiryBi = method()
+setupGSLSpecialFunctionDouble(AiryBi, "gsl_sf_airy_Bi_e")
 
-AiScaled = method()
-setupGSLSpecialFunctionDouble(AiScaled, "gsl_sf_airy_Ai_scaled_e")
+AiryAiScaled = method()
+setupGSLSpecialFunctionDouble(AiryAiScaled, "gsl_sf_airy_Ai_scaled_e")
 
-BiScaled = method()
-setupGSLSpecialFunctionDouble(BiScaled, "gsl_sf_airy_Bi_scaled_e")
+AiryBiScaled = method()
+setupGSLSpecialFunctionDouble(AiryBiScaled, "gsl_sf_airy_Bi_scaled_e")
 
-AiDeriv = method()
-setupGSLSpecialFunctionDouble(AiDeriv, "gsl_sf_airy_Ai_deriv_e")
+AiryAiPrime = method()
+setupGSLSpecialFunctionDouble(AiryAiPrime, "gsl_sf_airy_Ai_deriv_e")
 
-BiDeriv = method()
-setupGSLSpecialFunctionDouble(BiDeriv, "gsl_sf_airy_Bi_deriv_e")
+AiryBiPrime = method()
+setupGSLSpecialFunctionDouble(AiryBiPrime, "gsl_sf_airy_Bi_deriv_e")
 
-AiDerivScaled = method()
-setupGSLSpecialFunctionDouble(AiDerivScaled, "gsl_sf_airy_Ai_deriv_scaled_e")
+AiryAiPrimeScaled = method()
+setupGSLSpecialFunctionDouble(AiryAiPrimeScaled, "gsl_sf_airy_Ai_deriv_scaled_e")
 
-BiDerivScaled = method()
-setupGSLSpecialFunctionDouble(BiDerivScaled, "gsl_sf_airy_Bi_deriv_scaled_e")
+AiryBiPrimeScaled = method()
+setupGSLSpecialFunctionDouble(AiryBiPrimeScaled, "gsl_sf_airy_Bi_deriv_scaled_e")
 
-zeroAi = method()
-setupGSLSpecialFunctionInt(zeroAi, "gsl_sf_airy_zero_Ai_e")
+AiryAiZero = method()
+setupGSLSpecialFunctionInt(AiryAiZero, "gsl_sf_airy_zero_Ai_e")
 
-zeroBi = method()
-setupGSLSpecialFunctionInt(zeroBi, "gsl_sf_airy_zero_Bi_e")
+AiryBiZero = method()
+setupGSLSpecialFunctionInt(AiryBiZero, "gsl_sf_airy_zero_Bi_e")
 
-zeroAiDeriv = method()
-setupGSLSpecialFunctionInt(zeroAiDeriv, "gsl_sf_airy_zero_Ai_deriv_e")
+AiryAiPrimeZero = method()
+setupGSLSpecialFunctionInt(AiryAiPrimeZero, "gsl_sf_airy_zero_Ai_deriv_e")
 
-zeroBiDeriv = method()
-setupGSLSpecialFunctionInt(zeroBiDeriv, "gsl_sf_airy_zero_Bi_deriv_e")
+AiryBiPrimeZero = method()
+setupGSLSpecialFunctionInt(AiryBiPrimeZero, "gsl_sf_airy_zero_Bi_deriv_e")
 
 end
 
