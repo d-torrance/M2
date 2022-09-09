@@ -92,7 +92,7 @@ export (lhs:Expr) + (rhs:Expr) : Expr := (
      is x:pointerCell do (
 	  when rhs
 	  is y:ZZcell do Expr(pointerCell(Ccode(voidPointer, x.v, " + ",
-		      toInt(y))))
+		      toLong(y))))
 	  is Error do rhs
 	  else binarymethod(lhs,rhs,PlusS))
      is Error do lhs
