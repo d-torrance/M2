@@ -1401,6 +1401,7 @@ assert Equation(value double 3.14159, 3.14159p53)
 -- pointer types
 ptr = address int 3
 assert(value voidstar ptr === ptr)
+assert(value voidstar voidstar voidstar voidstar ptr === ptr)
 assert Equation(value int ptr, 3)
 
 -- string types
@@ -1414,15 +1415,20 @@ ptr = address x
 assert Equation(value \ value intarray3 ptr, {1, 2, 3})
 assert Equation(value x_0, 1)
 assert Equation(value x_(-1), 3)
+ptrarray = 3 * voidstar
+assert Equation(
+    apply(value ptrarray {address int 1, address int 2, address int 3},
+    x -> value int value x), {1, 2, 3})
 
 -- struct types
 teststructtype = foreignStructType("foo",
-    {"a" => int, "b" => double, "c" => charstar})
-x = teststructtype {"a" => 1, "b" => 2, "c" => "foo"}
+    {"a" => int, "b" => double, "c" => charstar, "d" => voidstar})
+x = teststructtype {"a" => 1, "b" => 2, "c" => "foo", "d" => address int 4}
 assert instance(value x, HashTable)
 assert Equation(value x_"a", 1)
 assert Equation(value x_"b", 2.0)
 assert Equation(value x_"c", "foo")
+assert Equation(value int value x_"d", 4)
 
 -- union types
 testuniontype = foreignUnionType("bar", {"a" => float, "b" => uint32})
