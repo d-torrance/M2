@@ -312,7 +312,7 @@ ForeignUnionType = new SelfInitializingType of ForeignType
 ForeignUnionType.synonym = "foreign union type"
 
 foreignUnionType = method(TypicalValue => ForeignUnionType)
-foreignUnionType(String, Option) := (name, x) -> foreignUnionType(name, x)
+foreignUnionType(String, Option) := (name, x) -> foreignUnionType(name, {x})
 foreignUnionType(String, VisibleList) := (name, x) -> (
     if not (all(x, y -> instance(y, Option)) and all(x, y ->
 	    instance(first y, String) and instance(last y, ForeignType)))
