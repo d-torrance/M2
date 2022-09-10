@@ -255,7 +255,7 @@ foreignArrayType(String, ForeignType, ZZ) := (name, T, n) -> ForeignArrayType {
     "value" => x -> (
 	ptr := ffiPointerValue address x;
 	sz := size T;
-	apply(n, i -> T(ptr + i * sz)))}
+	apply(n, i -> dereference_T(ptr + i * sz)))}
 
 -- syntactic sugar based on Python's ctypes
 ZZ * ForeignType := (n, T) -> foreignArrayType(T, n)
@@ -297,7 +297,7 @@ foreignStructType(String, VisibleList) := (name, x) -> (
 	"value" => y -> (
 	    ptr' := address y;
 	    hashTable apply(members,
-		mbr -> (mbr, types#mbr(ptr' + offsets#mbr))))})
+		mbr -> (mbr, dereference_(types#mbr)(ptr' + offsets#mbr))))})
 
 ForeignStructType HashTable := (T, x) -> foreignObject(T, ffiStructAddress(
 	address T,
@@ -328,7 +328,7 @@ foreignUnionType(String, VisibleList) := (name, x) -> (
 	"value" => y -> (
 	    ptr' := address y;
 	    hashTable apply(members,
-		mbr -> (mbr, types#mbr ptr')))})
+		mbr -> (mbr, dereference_(types#mbr) ptr')))})
 
 ForeignUnionType Thing := (T, x) -> foreignObject(T, address foreignObject x)
 
@@ -360,7 +360,7 @@ foreignObject VisibleList := x -> (
     else error("expected all elements to have the same type"))
 foreignObject(ForeignType, Pointer) := (T, ptr) -> ForeignObject {T, ptr}
 
-ForeignType ForeignObject := (T, x) -> T address x
+ForeignType ForeignObject := (T, x) -> dereference_T address x
 
 ForeignObject_String := (x, mbr) -> (
     T := type x;
