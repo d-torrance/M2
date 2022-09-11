@@ -101,16 +101,65 @@ Pointer + ZZ := (ptr, n) -> ptr + n -- defined in actors.d
 ZZ + Pointer := (n, ptr) -> ptr + n
 Pointer - ZZ := (ptr, n) -> ptr + -n
 
+--------------------
+-- foreign object --
+--------------------
+
+ForeignObject = new SelfInitializingType of BasicList
+ForeignObject.synonym = "foreign object"
+net ForeignObject := x -> net value x
+ForeignObject#{Standard, AfterPrint} = x -> (
+    << endl
+    << concatenate(interpreterDepth:"o") << lineNumber
+    << " : ForeignObject of type " << class x << endl)
+
+value ForeignObject := x -> error("no value function exists for ", class x)
+
+address = method(TypicalValue => Pointer)
+address ForeignObject := first
+
+foreignObject = method(TypicalValue => ForeignObject)
+foreignObject ForeignObject := identity
+foreignObject ZZ := n -> int n
+foreignObject Number := foreignObject Constant := x -> double x
+foreignObject String := x -> charstar x
+foreignObject VisibleList := x -> (
+    types := unique(type \ foreignObject \ x);
+    if #types == 1 then (foreignArrayType(first types, #x)) x
+    else error("expected all elements to have the same type"))
+--foreignObject(ForeignType, Pointer) := (T, ptr) -> ForeignObject {T, ptr}
+
+ForeignObject_String := (x, mbr) -> (
+    T := type x;
+    if not (instance(T, ForeignStructType) or instance(T, ForeignUnionType))
+    then error("expected a foreign struct or union object");
+    (value x)#mbr)
+
+ForeignObject_ZZ := (x, i) -> (
+    T := type x;
+    if not instance(T, ForeignArrayType)
+    then error "expected a foreign array object";
+    (value x)#i)
+
+registerFinalizer(ForeignObject, Function) := (x, f) -> (
+    if not instance(type x, ForeignPointerType) then error(
+	"expected a foreign pointer object");
+    registerFinalizerForPointer(address x, f, value x))
+
 -----------------------------------
 -- foreign type (abstract class) --
 -----------------------------------
 
-ForeignType = new SelfInitializingType of HashTable
+ForeignType = new SelfInitializingType of SelfInitializingType
 ForeignType.synonym = "foreign type"
-net ForeignType := x -> x#"name"
 
-address = method(TypicalValue => Pointer)
-address ForeignType := x -> x#"address"
+new ForeignType := T -> new ForeignType of ForeignObject
+
+net ForeignType := T -> if T.?Name then T.Name else "<<a foreign type>>"
+
+protect Address
+address ForeignType := T -> if T.?Address then T.Address else error(
+    toString T, " has no address")
 
 size ForeignType := ffiTypeSize @@ address
 
@@ -124,6 +173,7 @@ size ForeignType := ffiTypeSize @@ address
 dereference = method()
 dereference(ForeignType, Pointer) := (T, ptr) -> foreignObject(T, ptr)
 ForeignType Pointer := dereference
+ForeignType ForeignObject := (T, x) -> dereference_T address x
 
 -----------------------
 -- foreign void type --
@@ -134,12 +184,9 @@ ForeignVoidType.synonym = "foreign void type"
 
 dereference(ForeignVoidType, Pointer) := (T, x) -> null
 
-void = ForeignVoidType {
-    "name" => "void",
-    "address" => ffiVoidType,
-    -- there should be no foreign void objects, so this should never get
-    -- called, but we include it anyway:
-    "value" => x -> null}
+void = new ForeignVoidType
+void.Name = "void"
+void.Address = ffiVoidType
 
 --------------------------
 -- foreign integer type --
@@ -150,12 +197,12 @@ ForeignIntegerType.synonym = "foreign integer type"
 
 foreignIntegerType = method()
 foreignIntegerType(String, ZZ, Boolean) := (name, bits, signed) -> (
-    ForeignIntegerType {
-	"name" => name,
-	"address" => ffiIntegerType(bits, signed),
-	"bits" => bits,
-	"signed" => signed,
-	"value" => x -> ffiIntegerValue(address x, bits, signed)})
+    T := new ForeignIntegerType;
+    T.Name = name;
+    T.Address = ffiIntegerType(bits, signed);
+    new T from ZZ := (T, n) -> T {ffiIntegerAddress(n, bits, signed)};
+    value T := x -> ffiIntegerValue(address x, bits, signed);
+    T)
 
 int8 = foreignIntegerType("int8", 8, true)
 uint8 = foreignIntegerType("uint8", 8, false)
@@ -178,12 +225,10 @@ if version#"pointer size" == 4 then (
     long = int64;
     ulong = uint64)
 
-ForeignIntegerType ZZ := (T, n) -> foreignObject(
-    T, ffiIntegerAddress(n, T#"bits", T#"signed"))
-
+-- TODO: use truncate
 ForeignIntegerType Number :=
-ForeignIntegerType Constant := (T, x) -> (
-    if x >= 0 then T floor x else T ceiling x)
+ForeignIntegerType Constant := (T, x) -> new T from (
+    if x >= 0 then floor x else ceiling x)
 
 -----------------------
 -- foreign real type --
@@ -193,21 +238,20 @@ ForeignRealType = new SelfInitializingType of ForeignType
 ForeignRealType.synonym = "foreign real type"
 
 foreignRealType = method()
-foreignRealType(String, ZZ) := (name, bits) -> ForeignRealType {
-    "name" => name,
-    "address" => ffiRealType(bits),
-    "bits" => bits,
-    "value" => x -> ffiRealValue(address x, bits)}
+foreignRealType(String, ZZ) := (name, bits) -> (
+    T := new ForeignRealType;
+    T.Name = name;
+    T.Address = ffiRealType(bits);
+    new T from RR := (T, x) -> T {ffiRealAddress(x, bits)};
+    value T := x -> ffiRealValue(address x, bits);
+    T)
 
 float = foreignRealType("float", 32)
 double = foreignRealType("double", 64)
 
-ForeignRealType RR := (T, x) -> foreignObject(T, ffiRealAddress(x, T#"bits"))
-
-ForeignRealType CC := (T, x) -> T realPart x
-
 ForeignRealType Number :=
-ForeignRealType Constant := (T, x) -> T numeric x
+ForeignRealType Constant := (T, x) -> new T from realPart numeric x
+ForeignRealType RRi := (T, x) -> T toRR x
 
 --------------------------
 -- foreign pointer type --
@@ -331,53 +375,6 @@ foreignUnionType(String, VisibleList) := (name, x) -> (
 		mbr -> (mbr, dereference_(types#mbr) ptr')))})
 
 ForeignUnionType Thing := (T, x) -> foreignObject(T, address foreignObject x)
-
---------------------
--- foreign object --
---------------------
-
-ForeignObject = new SelfInitializingType of BasicList
-ForeignObject.synonym = "foreign object"
-net ForeignObject := x -> net value x
-ForeignObject#{Standard, AfterPrint} = x -> (
-    << endl
-    << concatenate(interpreterDepth:"o") << lineNumber
-    << " : " << class x << " of type " << type x << endl)
-
-value ForeignObject := x -> (type x)#"value" x
-address ForeignObject := x -> x#1
-
-type ForeignObject := x -> x#0
-
-foreignObject = method(TypicalValue => ForeignObject)
-foreignObject ForeignObject := identity
-foreignObject ZZ := n -> int n
-foreignObject Number := foreignObject Constant := x -> double x
-foreignObject String := x -> charstar x
-foreignObject VisibleList := x -> (
-    types := unique(type \ foreignObject \ x);
-    if #types == 1 then (foreignArrayType(first types, #x)) x
-    else error("expected all elements to have the same type"))
-foreignObject(ForeignType, Pointer) := (T, ptr) -> ForeignObject {T, ptr}
-
-ForeignType ForeignObject := (T, x) -> dereference_T address x
-
-ForeignObject_String := (x, mbr) -> (
-    T := type x;
-    if not (instance(T, ForeignStructType) or instance(T, ForeignUnionType))
-    then error("expected a foreign struct or union object");
-    (value x)#mbr)
-
-ForeignObject_ZZ := (x, i) -> (
-    T := type x;
-    if not instance(T, ForeignArrayType)
-    then error "expected a foreign array object";
-    (value x)#i)
-
-registerFinalizer(ForeignObject, Function) := (x, f) -> (
-    if not instance(type x, ForeignPointerType) then error(
-	"expected a foreign pointer object");
-    registerFinalizerForPointer(address x, f, value x))
 
 --------------------
 -- shared library --
@@ -653,7 +650,8 @@ doc ///
       ulong
 ///
 
-doc ///
+-- TODO
+ ///
   Key
     (symbol SPACE, ForeignIntegerType, Number)
     (symbol SPACE, ForeignIntegerType, ZZ)
@@ -695,7 +693,8 @@ doc ///
       double
 ///
 
-doc ///
+-- TODO
+///
   Key
     (symbol SPACE, ForeignRealType, Number)
     (symbol SPACE, ForeignRealType, RR)
@@ -737,7 +736,8 @@ doc ///
       voidstar
 ///
 
-doc ///
+-- TODO
+///
   Key
     (symbol SPACE, ForeignPointerType, Pointer)
   Headline
@@ -841,7 +841,8 @@ doc ///
       5 * int
 ///
 
-doc ///
+-- TODO
+ ///
   Key
     type
     (type, ForeignArrayType)
@@ -1088,7 +1089,8 @@ doc ///
       representing foreign objects.
 ///
 
-doc ///
+-- TODO
+///
   Key
     foreignObject
     (foreignObject, Constant)
