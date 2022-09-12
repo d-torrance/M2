@@ -34,7 +34,7 @@ gslSpecialFunctionDouble = gslfunc -> (
     x -> (
 	result := gslSfResult {"val" => 0, "err" => 0};
 	ret := value foreignfunc(x, precisionMode, address result);
-	if ret != 0 then error gslStrerror ret
+	if ret != 0 then gslError ret
 	else (
 	    errorEstimate = value result_"err";
 	    value result_"val")))
@@ -44,7 +44,7 @@ gslSpecialFunctionInt = gslfunc -> (
     s -> (
 	result := gslSfResult {"val" => 0, "err" => 0};
 	ret := value foreignfunc(s, address result);
-	if ret != 0 then error gslStrerror ret
+	if ret != 0 then error gslError ret
 	else (
 	    errorEstimate = value result_"err";
 	    value result_"val")))

@@ -9,5 +9,6 @@ gsl = openSharedLibrary "gsl"
 (foreignFunction(gsl, "gsl_set_error_handler_off", void, void))()
 
 gslStrerror = value @@ (foreignFunction(gsl, "gsl_strerror", charstar, int))
+gslError = ret -> error("GSL: ", gslStrerror ret)
 
 load "./GNUScientificLibrary/special-functions.m2"
