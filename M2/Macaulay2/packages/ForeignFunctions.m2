@@ -131,7 +131,7 @@ foreignObject VisibleList := x -> (
 -- foreign type (abstract class) --
 -----------------------------------
 
-ForeignType = new SelfInitializingType of SelfInitializingType
+ForeignType = new Type of Type
 ForeignType.synonym = "foreign type"
 
 new ForeignType := T -> new ForeignType of ForeignObject
@@ -152,8 +152,7 @@ size ForeignType := ffiTypeSize @@ address
 -- so we add the unexported "dereference" method for the latter case
 
 dereference = method()
-dereference(ForeignType, Pointer) := (
-    T, ptr) -> T new BasicList from {ptr}
+dereference(ForeignType, Pointer) := (T, ptr) -> new T from ForeignObject {ptr}
 ForeignType Pointer := dereference
 ForeignType ForeignObject := (T, x) -> dereference_T address x
 
@@ -161,7 +160,7 @@ ForeignType ForeignObject := (T, x) -> dereference_T address x
 -- foreign void type --
 -----------------------
 
-ForeignVoidType = new SelfInitializingType of ForeignType
+ForeignVoidType = new Type of ForeignType
 ForeignVoidType.synonym = "foreign void type"
 
 dereference(ForeignVoidType, Pointer) := (T, x) -> null
@@ -174,7 +173,7 @@ void.Address = ffiVoidType
 -- foreign integer type --
 --------------------------
 
-ForeignIntegerType = new SelfInitializingType of ForeignType
+ForeignIntegerType = new Type of ForeignType
 ForeignIntegerType.synonym = "foreign integer type"
 
 foreignIntegerType = method()
@@ -182,7 +181,7 @@ foreignIntegerType(String, ZZ, Boolean) := (name, bits, signed) -> (
     T := new ForeignIntegerType;
     T.Name = name;
     T.Address = ffiIntegerType(bits, signed);
-    new T from ZZ := (T, n) -> T {ffiIntegerAddress(n, bits, signed)};
+    new T from ZZ := (T, n) -> new T from {ffiIntegerAddress(n, bits, signed)};
     value T := x -> ffiIntegerValue(address x, bits, signed);
     T)
 
@@ -214,7 +213,7 @@ ForeignIntegerType Constant := (T, x) -> new T from truncate x
 -- foreign real type --
 -----------------------
 
-ForeignRealType = new SelfInitializingType of ForeignType
+ForeignRealType = new Type of ForeignType
 ForeignRealType.synonym = "foreign real type"
 
 foreignRealType = method()
@@ -222,7 +221,7 @@ foreignRealType(String, ZZ) := (name, bits) -> (
     T := new ForeignRealType;
     T.Name = name;
     T.Address = ffiRealType(bits);
-    new T from RR := (T, x) -> T {ffiRealAddress(x, bits)};
+    new T from RR := (T, x) -> new T from {ffiRealAddress(x, bits)};
     value T := x -> ffiRealValue(address x, bits);
     T)
 
@@ -237,14 +236,14 @@ ForeignRealType RRi := (T, x) -> T toRR x
 -- foreign pointer type --
 --------------------------
 
-ForeignPointerType = new SelfInitializingType of ForeignType
+ForeignPointerType = new Type of ForeignType
 ForeignPointerType.synonym = "foreign pointer type"
 
 voidstar = new ForeignPointerType
 voidstar.Name = "void*"
 voidstar.Address = ffiPointerType
 value voidstar := ffiPointerValue @@ address
-ForeignPointerType Pointer := (T, x) -> T {ffiPointerAddress x}
+ForeignPointerType Pointer := (T, x) -> new T from {ffiPointerAddress x}
 
 registerFinalizer(voidstar, Function) := (
     x, f) -> registerFinalizerForPointer(address x, f, value x)
@@ -253,20 +252,20 @@ registerFinalizer(voidstar, Function) := (
 -- foreign string type --
 -------------------------
 
-ForeignStringType = new SelfInitializingType of ForeignType
+ForeignStringType = new Type of ForeignType
 ForeignStringType.synonym = "foreign string type"
 
 charstar = new ForeignStringType
 charstar.Name = "char*"
 charstar.Address = ffiPointerType
 value charstar := ffiStringValue @@ address
-ForeignStringType String := (T, x) -> T {ffiPointerAddress x}
+ForeignStringType String := (T, x) -> new T from {ffiPointerAddress x}
 
 ------------------------
 -- foreign array type --
 ------------------------
 
-ForeignArrayType = new SelfInitializingType of ForeignType
+ForeignArrayType = new Type of ForeignType
 ForeignArrayType.synonym = "foreign array type"
 
 checkarraybounds = (n, i) -> (
@@ -297,6 +296,8 @@ foreignArrayType(String, ForeignType, ZZ) := (name, T, n) -> (
 	ffiPointerValue address x + size T * checkarraybounds(n, i));
     S)
 
+ForeignArrayType VisibleList := (T, x) -> new T from x
+
 -- syntactic sugar based on Python's ctypes
 ZZ * ForeignType := (n, T) -> foreignArrayType(T, n)
 ForeignType * ZZ := (T, n) -> n * T
@@ -305,7 +306,7 @@ ForeignType * ZZ := (T, n) -> n * T
 -- foreign struct type --
 -------------------------
 
-ForeignStructType = new SelfInitializingType of ForeignType
+ForeignStructType = new Type of ForeignType
 ForeignStructType.synonym = "foreign struct type"
 
 foreignStructType = method(TypicalValue => ForeignStructType)
@@ -329,13 +330,13 @@ foreignStructType(String, VisibleList) := (name, x) -> (
     T_String := (y, mbr) -> dereference_(types#mbr)(address y + offsets#mbr);
     T)
 
-ForeignStructType VisibleList := (T, x) -> T hashTable x
+ForeignStructType VisibleList := (T, x) -> new T from hashTable x
 
 ------------------------
 -- foreign union type --
 ------------------------
 
-ForeignUnionType = new SelfInitializingType of ForeignType
+ForeignUnionType = new Type of ForeignType
 ForeignUnionType.synonym = "foreign union type"
 
 foreignUnionType = method(TypicalValue => ForeignUnionType)
