@@ -454,6 +454,9 @@ scanKeys(Database,Function) := (x,f) -> (
 	       s = nextkey x;
 	       ))
 
+iterator = method()
+next = method()
+
 -- TODO: eventually move this to lists.m2
 select' = select
 select = method(Options => true)

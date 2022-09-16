@@ -1116,6 +1116,13 @@ sqrt(a:Expr):Expr := (
      is Error do a
      else WrongArgRR());
 setupfun("sqrt",sqrt).Protected=false;
+
+-- symbols for iteration
+-- "iterator" and "next" will be overwritten at top level
+iteratorS := setupvar("iterator", nullE);
+nextS := setupvar("next", nullE);
+StopIterationS := makeProtectedSymbolClosure("StopIteration");
+
 map(a1:Sequence,a2:Sequence,f:Expr):Expr := (
      newlen := length(a1);
      if newlen != length(a2) then return WrongArg("lists of the same length");
