@@ -2082,7 +2082,24 @@ scan(e:Expr,f:Expr):Expr := (
 	  then WrongArgSmallInteger(1)
 	  else scan(toInt(i),f))
      is s:stringCell do scan(strtoseq(s), f)
-     else buildErrorPacket("scan expects a list, sequence, integer, or string"));
+     else (
+	 itermethod := getGlobalVariable(iteratorS);
+	 if lookup1Q(Class(e), itermethod)
+	 then (
+	     i := applyEE(lookup1force(Class(e), itermethod), e);
+	     nextmethod := getGlobalVariable(nextS);
+	     if lookup1Q(Class(i), nextmethod)
+	     then (
+		 nextfunc := lookup1force(Class(i), nextmethod);
+		 y := nullE;
+		 while (
+		     y = applyEE(nextfunc, i);
+		     y != Expr(StopIterationS))
+		 do applyEE(f, y);
+		 nullE)
+	     else buildErrorPacket("iterator has no \"next\" method"))
+	 else buildErrorPacket(
+	     "scan expects a list, sequence, integer, string, or iterable")));
 scan(e:Expr):Expr := (
      when e is a:Sequence do (
 	  if length(a) == 2
