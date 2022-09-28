@@ -9,6 +9,10 @@ export {
     "AiryAiPrimeZero",
     "AiryBiPrimeZero",
 
+    -- Bessel functions
+    "BesselI",
+    "BesselK",
+
     -- symbols for options
     "Scaled"
     }
@@ -29,83 +33,171 @@ gslSfResult = foreignStructType("gsl_sf_result", {
 -- helper functions --
 ----------------------
 
-gslSpecialFunctionDouble = gslfunc -> (
-    foreignfunc := foreignFunction(gsl, gslfunc, int, {double, uint, voidstar});
+protect Input
+protect PrecisionMode
+gslspecfunc = method(Options => {Input => double, PrecisionMode => false})
+gslspecfunc String := o -> gslfunc -> (
+    foreignfunc := foreignFunction(gsl, gslfunc, int,
+	if o.PrecisionMode then {o.Input, uint, voidstar}
+	else {o.Input, voidstar});
     x -> (
 	result := gslSfResult {"val" => 0, "err" => 0};
-	ret := value foreignfunc(x, precisionMode, address result);
+	ret := value foreignfunc(
+	    if o.PrecisionMode then (x, precisionMode, address result)
+	    else (x, address result));
 	if ret != 0 then gslError ret
 	else (
 	    errorEstimate = value result_"err";
 	    value result_"val")))
 
-gslSpecialFunctionInt = gslfunc -> (
-    foreignfunc := foreignFunction(gsl, gslfunc, int, {uint, voidstar});
-    s -> (
+gslspecfunc2arg = method()
+gslspecfunc2arg String := gslfunc -> (
+    foreignfunc := foreignFunction(gsl, gslfunc, int, {int, double, voidstar});
+    (n, x) -> (
 	result := gslSfResult {"val" => 0, "err" => 0};
-	ret := value foreignfunc(s, address result);
-	if ret != 0 then error gslError ret
+	ret := value foreignfunc(n, x, address result);
+	if ret != 0 then gslError ret
 	else (
 	    errorEstimate = value result_"err";
 	    value result_"val")))
+
 
 --------------------
 -- Airy functions --
 --------------------
 
 AiryAi = method(Options => {Scaled => false}, TypicalValue => RR)
-AiryAi Number := AiryAi Constant := o -> gslSpecialFunctionDouble(
+AiryAi Number := AiryAi Constant := o -> gslspecfunc(
     if o.Scaled then "gsl_sf_airy_Ai_scaled_e"
-    else "gsl_sf_airy_Ai_e")
+    else "gsl_sf_airy_Ai_e", PrecisionMode => true)
 
 AiryBi = method(Options => {Scaled => false}, TypicalValue => RR)
-AiryBi Number := AiryBi Constant := o -> gslSpecialFunctionDouble(
+AiryBi Number := AiryBi Constant := o -> gslspecfunc(
     if o.Scaled then "gsl_sf_airy_Bi_scaled_e"
-    else "gsl_sf_airy_Bi_e")
+    else "gsl_sf_airy_Bi_e", PrecisionMode => true)
 
 AiryAiPrime = method(Options => {Scaled => false}, TypicalValue => RR)
-AiryAiPrime Number := AiryAiPrime Constant := o -> gslSpecialFunctionDouble(
+AiryAiPrime Number := AiryAiPrime Constant := o -> gslspecfunc(
     if o.Scaled then "gsl_sf_airy_Ai_deriv_scaled_e"
-    else "gsl_sf_airy_Ai_deriv_e")
+    else "gsl_sf_airy_Ai_deriv_e", PrecisionMode => true)
 
 AiryBiPrime = method(Options => {Scaled => false}, TypicalValue => RR)
-AiryBiPrime Number := AiryBiPrime Constant := o -> gslSpecialFunctionDouble(
+AiryBiPrime Number := AiryBiPrime Constant := o -> gslspecfunc(
     if o.Scaled then "gsl_sf_airy_Bi_deriv_scaled_e"
-    else "gsl_sf_airy_Bi_deriv_e")
+    else "gsl_sf_airy_Bi_deriv_e", PrecisionMode => true)
 
 AiryAiZero = method(TypicalValue => RR)
-AiryAiZero Number := AiryAiZero Constant := gslSpecialFunctionInt(
-    "gsl_sf_airy_zero_Ai_e")
+AiryAiZero Number := AiryAiZero Constant := gslspecfunc(
+    "gsl_sf_airy_zero_Ai_e", Input => int)
 
 AiryBiZero = method(TypicalValue => RR)
-AiryBiZero Number := AiryBiZero Constant := gslSpecialFunctionInt(
-    "gsl_sf_airy_zero_Bi_e")
+AiryBiZero Number := AiryBiZero Constant := gslspecfunc(
+    "gsl_sf_airy_zero_Bi_e", Input => int)
 
 AiryAiPrimeZero = method(TypicalValue => RR)
-AiryAiPrimeZero Number := AiryAiPrimeZero Constant := gslSpecialFunctionInt(
-    "gsl_sf_airy_zero_Ai_deriv_e")
+AiryAiPrimeZero Number := AiryAiPrimeZero Constant := gslspecfunc(
+    "gsl_sf_airy_zero_Ai_deriv_e", Input => int)
 
 AiryBiPrimeZero = method(TypicalValue => RR)
-AiryBiPrimeZero Number := AiryBiPrimeZero Constant := gslSpecialFunctionInt(
-    "gsl_sf_airy_zero_Bi_deriv_e")
+AiryBiPrimeZero Number := AiryBiPrimeZero Constant := gslspecfunc(
+    "gsl_sf_airy_zero_Bi_deriv_e", Input => int)
 
 TEST ///
--- values from gsl/specfunc/test_airy.c
-doubleEpsilon = 2.2204460492503131e-16
-testSpecialFunction = (
-    f, x, y, tol) -> assert(abs(f(x) - y) < tol * doubleEpsilon)
+-- Airy function tests
+near = (x, y) -> BinaryOperation(symbol <, abs(x - y), 1e-14)
+assert near(AiryAi 0, 1 / (3^(2/3) * Gamma(2/3)))
+assert near(AiryAiPrime 0, -1/(3^(1/3) * Gamma(1/3)))
+assert near(AiryBi 0, 1/(3^(1/6) * Gamma(2/3)))
+assert near(AiryBiPrime 0, 1/Gamma(1/3) * 3^(1/6))
+assert near(exp(2/3*2^(3/2)) * AiryAi(2), AiryAi(2, Scaled => true))
+assert near(AiryAi(-2), AiryAi(-2, Scaled => true))
+assert near(exp(-2/3*2^(3/2)) * AiryBi(2), AiryBi(2, Scaled => true))
+assert near(AiryBi(-2), AiryBi(-2, Scaled => true))
+assert near(exp(2/3*2^(3/2)) * AiryAiPrime(2), AiryAiPrime(2, Scaled => true))
+assert near(AiryAiPrime(-2), AiryAiPrime(-2, Scaled => true))
+assert near(exp(-2/3*2^(3/2)) * AiryBiPrime(2), AiryBiPrime(2, Scaled => true))
+assert near(AiryBiPrime(-2), AiryBiPrime(-2, Scaled => true))
+for n from 1 to 10 do assert near(AiryAi AiryAiZero n, 0)
+for n from 1 to 10 do assert near(AiryBi AiryBiZero n, 0)
+for n from 1 to 10 do assert near(AiryAiPrime AiryAiPrimeZero n, 0)
+for n from 1 to 10 do assert near(AiryBiPrime AiryBiPrimeZero n, 0)
+///
 
-testSpecialFunction(AiryAi, -500, 0.0725901201040411396, 16384)
-testSpecialFunction(AiryAi, -5, 0.3507610090241142, 2)
-testSpecialFunction(AiryAi, -0.3000000000000094, 0.4309030952855831, 2)
-testSpecialFunction(AiryAi, 0.6999999999999907, 0.1891624003981519, 2)
-testSpecialFunction(AiryAi, 1.649999999999991, 0.0583105861872088521, 2)
-testSpecialFunction(AiryAi, 2.54999999999999, 0.01446149513295428, 2)
-testSpecialFunction(AiryAi, 3.499999999999987,0.002584098786989702, 16)
-testSpecialFunction(AiryAi, 5.39999999999998, 4.272986169411866e-05, 2)
+----------------------
+-- Bessel functions --
+----------------------
+
+-- we skip BesselJ and BesselY since they are already available in Macaulay2
+
+BesselI = method(Options => {Scaled => false}, TypicalValue => RR)
+BesselI(ZZ, Number) := BesselI(ZZ, Constant) := o -> (n, x) -> (
+    if n == 0 then (gslspecfunc(
+	if o.Scaled then "gsl_sf_bessel_I0_scaled_e"
+	else "gsl_sf_bessel_I0_e")) x
+    else if n == 1 then (gslspecfunc(
+	if o.Scaled then "gsl_sf_bessel_I1_scaled_e"
+	else "gsl_sf_bessel_I1_e")) x
+    else (gslspecfunc2arg(
+	if o.Scaled then "gsl_sf_bessel_In_scaled_e"
+	else "gsl_sf_bessel_In_e"))(n, x))
+
+BesselK = method(Options => {Scaled => false}, TypicalValue => RR)
+BesselK(ZZ, Number) := BesselK(ZZ, Constant) := o -> (n, x) -> (
+    if n == 0 then (gslspecfunc(
+	if o.Scaled then "gsl_sf_bessel_K0_scaled_e"
+	else "gsl_sf_bessel_K0_e")) x
+    else if n == 1 then (gslspecfunc(
+	if o.Scaled then "gsl_sf_bessel_K1_scaled_e"
+	else "gsl_sf_bessel_K1_e")) x
+    else (gslspecfunc2arg(
+	if o.Scaled then "gsl_sf_bessel_Kn_scaled_e"
+	else "gsl_sf_bessel_Kn_e"))(n, x))
+
+TEST ///
+near = (x, y) -> BinaryOperation(symbol <, abs(x - y), 5e-10)
+-- Abramowitz & Stegun Table 9.8
+assert near(BesselI_0(0, Scaled => true), 1)
+assert near(BesselI_0(1, Scaled => true), 0.4657596077)
+assert near(BesselI_0(2, Scaled => true), 0.3085083225)
+assert near(BesselI_0(3, Scaled => true), 0.2430003542)
+assert near(BesselI_0(4, Scaled => true), 0.2070019211)
+assert near(BesselI_1(0, Scaled => true), 0)
+assert near(BesselI_1(1, Scaled => true), 0.2079104154)
+assert near(BesselI_1(2, Scaled => true), 0.2152692892)
+assert near(BesselI_1(3, Scaled => true), 0.1968267133)
+assert near(BesselI_1(4, Scaled => true), 0.1787508394)
+assert near(1^(-2) * BesselI_2 1, 0.1357476698)
+assert near(2^(-2) * BesselI_2 2, 0.1722371119)
+assert near(3^(-2) * BesselI_2 3, 0.2494680490)
+assert near(4^(-2) * BesselI_2 4, 0.4013868359)
+for n from -2 to 2 do for x from -2 to 2 do assert near(
+    exp(-abs x) * BesselI_n x, BesselI_n(x, Scaled => true))
+
+assert near(BesselK_0(1, Scaled => true), 1.1444630797)
+assert near(BesselK_0(2, Scaled => true), 0.8415682151)
+assert near(BesselK_0(3, Scaled => true), 0.6977615980)
+assert near(BesselK_0(4, Scaled => true), 0.6092976693)
+assert near(BesselK_1(1, Scaled => true), 1.6361534863)
+assert near(BesselK_1(2, Scaled => true), 1.0334768471)
+assert near(BesselK_1(3, Scaled => true), 0.8065634800)
+assert near(BesselK_1(4, Scaled => true), 0.6815759452)
+assert near(1^2 * BesselK_2 1, 1.624838899)
+assert near(2^2 * BesselK_2 2, 1.015039018)
+assert near(3^2 * BesselK_2 3, 0.553594126)
+assert near(4^2 * BesselK_2 4, 0.278422808)
+for n from -2 to 2 do for x from 1 to 4 do assert near(
+    exp x * BesselK_n x, BesselK_n(x, Scaled => true))
 ///
 
 end
+BesselI(0, 0)
+BesselI(12, 5)
+BesselI_1 5
+BesselI_0 1
+BesselI_2 6
+exp(-5) * BesselI_0 5
+BesselI_0(5, Scaled => true)
+
 
 loadPackage("GNUScientificLibrary", Reload => true)
 check("GNUScientificLibrary", Verbose => true)
