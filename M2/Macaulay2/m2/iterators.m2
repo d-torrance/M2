@@ -22,6 +22,10 @@ iterator String      := x -> Iterator (
 	    i = i + 1;
 	    r)))
 
+reverse' = reverse
+reverse = method(Dispatch => Thing)
+reverse VisibleList := VisibleList => reverse'
+reverse String := String => reverse'
 -- called by map(Expr,Expr) in actors3.d
 applyIterator = (iter, f) -> Iterator (
     () -> (

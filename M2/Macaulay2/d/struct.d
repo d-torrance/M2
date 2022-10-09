@@ -8,7 +8,7 @@ reverse(e:Expr):Expr := (
      is a:List do Expr(reverse(a))
      is s:stringCell do toExpr(reverse(s.v))
      else WrongArg("a list, sequence, or string"));
-setupfun("reverse",reverse);
+setupfun("reverse",reverse).Protected = false;
 export seq(e:Expr):Expr := Expr(Sequence(e));
 -- setupfun("singleton",seq);
 export splice(a:Sequence):Sequence := (
