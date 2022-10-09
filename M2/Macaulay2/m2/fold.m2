@@ -28,7 +28,14 @@ fold(Function,VisibleList) := VisibleList => (f,v) -> (
      fold(f,v#0,drop(v,1)))
 fold(VisibleList,Function) := VisibleList => (v,f) -> (
      if #v === 0 then error "expected a nonempty list";
-     fold(drop(v,-1),v#-1,f))     
+     fold(drop(v,-1),v#-1,f))
+fold(Function, Thing) := (f, v) -> (
+    iter := iterator v;
+    x := next iter;
+    if x === StopIteration then error "expected a nonempty iterator"
+    else (
+	scan(iter, y -> x = f(x, y));
+	x))
 
 demark = (s,v) -> concatenate between(s,v)
 
