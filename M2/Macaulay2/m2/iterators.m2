@@ -26,6 +26,16 @@ reverse' = reverse
 reverse = method(Dispatch => Thing)
 reverse VisibleList := VisibleList => reverse'
 reverse String := String => reverse'
+reverse Iterator := Iterator => iter -> Iterator (
+    x := toList iter;
+    i := #x - 1;
+    () -> (
+	if i < 0 then StopIteration
+	else (
+	    r := x#i;
+	    i = i - 1;
+	    r)))
+
 -- called by map(Expr,Expr) in actors3.d
 applyIterator = (iter, f) -> Iterator (
     () -> (
