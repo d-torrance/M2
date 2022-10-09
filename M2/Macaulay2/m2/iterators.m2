@@ -1,9 +1,9 @@
--- originally defined (as null) in evaluate.d
-iterator = method(Dispatch => Thing)
-next = method()
-
 Iterator = new SelfInitializingType of FunctionClosure
 Iterator.synonym = "iterator"
+
+-- originally defined (as null) in evaluate.d
+iterator = method(Dispatch => Thing, TypicalValue => Iterator)
+next = method()
 
 iterator Iterator := identity
 next Iterator := iter -> iter()
