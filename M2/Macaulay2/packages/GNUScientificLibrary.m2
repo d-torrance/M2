@@ -16,4 +16,10 @@ errorEstimate = 0
 gslStrerror = value @@ (foreignFunction(gsl, "gsl_strerror", charstar, int))
 gslError = ret -> error("GSL: ", gslStrerror ret)
 
+gslFunction = foreignStructType(
+    "gsl_function", {
+    "function" => foreignFunctionPointerType(double, {double, voidstar}),
+    "params" => voidstar})
+
+load "./GNUScientificLibrary/numerical-differentiation.m2"
 load "./GNUScientificLibrary/special-functions.m2"
