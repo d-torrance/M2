@@ -20,7 +20,7 @@ gslDerivForward = foreignFunction(gsl, "gsl_deriv_forward", int,
 gslDerivBackward = foreignFunction(gsl, "gsl_deriv_backward", int,
     {voidstar, double, double, voidstar, voidstar})
 
-numericalDerivative Function := o -> f -> (
+numericalDerivative Function := Function => o -> f -> (
     dfunc := (
 	if o.Algorithm === CentralDifference then gslDerivCentral
 	else if o.Algorithm === ForwardDifference then gslDerivForward
@@ -37,5 +37,5 @@ numericalDerivative Function := o -> f -> (
 	value result))
 
 numericalDerivative(Function, Number)   :=
-numericalDerivative(Function, Constant) := o -> (f, x) -> (
+numericalDerivative(Function, Constant) := RR => o -> (f, x) -> (
     numericalDerivative(f, o)) x
