@@ -20,11 +20,9 @@ export {
     }
 
 exportMutable {
-    "errorEstimate",
     "precisionMode"
     }
 
-errorEstimate = 0
 precisionMode = 0
 
 gslSfResult = foreignStructType("gsl_sf_result", {

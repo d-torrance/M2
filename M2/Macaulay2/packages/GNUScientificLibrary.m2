@@ -3,7 +3,12 @@ newPackage(
     PackageImports => {"ForeignFunctions"},
     AuxiliaryFiles => true)
 
+exportMutable {
+    "errorEstimate"
+    }
+
 gsl = openSharedLibrary "gsl"
+errorEstimate = 0
 
 -- turn off error handler -- otherwise errors will abort Macaulay2!
 (foreignFunction(gsl, "gsl_set_error_handler_off", void, void))()
