@@ -35,3 +35,7 @@ numericalDerivative Function := o -> f -> (
 	dfunc(ptr, x, o.StepSize, address result, address abserr);
 	errorEstimate = value abserr;
 	value result))
+
+numericalDerivative(Function, Number)   :=
+numericalDerivative(Function, Constant) := o -> (f, x) -> (
+    numericalDerivative(f, o)) x
