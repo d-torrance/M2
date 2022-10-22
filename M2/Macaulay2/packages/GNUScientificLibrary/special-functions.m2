@@ -160,6 +160,13 @@ sphericalBesselJ(ZZ, Number) := sphericalBesselJ(ZZ, Constant) := (n, x) -> (
     else if n == 2 then (gslspecfunc "gsl_sf_bessel_j2_e") x
     else (gslspecfunc2arg "gsl_sf_bessel_jl_e")(n, x))
 
+sphericalBesselY = method(TypicalValue => RR)
+sphericalBesselY(ZZ, Number) := sphericalBesselJ(ZZ, Constant) := (n, x) -> (
+    if n == 0 then (gslspecfunc "gsl_sf_bessel_y0_e") x
+    else if n == 1 then (gslspecfunc "gsl_sf_bessel_y1_e") x
+    else if n == 2 then (gslspecfunc "gsl_sf_bessel_y2_e") x
+    else (gslspecfunc2arg "gsl_sf_bessel_yl_e")(n, x))
+
 TEST ///
 epsilon = 5e-10
 near = (x, y) -> BinaryOperation(symbol <, abs(x - y), epsilon)
