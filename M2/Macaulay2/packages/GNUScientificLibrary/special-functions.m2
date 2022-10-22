@@ -12,8 +12,8 @@ export {
     -- Bessel functions
     "BesselI",
     "BesselK",
-    "SphericalBesselJ",
-    "SphericalBesselY",
+    "sphericalBesselJ",
+    "sphericalBesselY",
 
     -- symbols for options
     "Scaled"
@@ -153,8 +153,8 @@ BesselK(ZZ, Number) := BesselK(ZZ, Constant) := o -> (n, x) -> (
 	if o.Scaled then "gsl_sf_bessel_Kn_scaled_e"
 	else "gsl_sf_bessel_Kn_e"))(n, x))
 
-SphericalBesselJ = method(TypicalValue => RR)
-SphericalBesselJ(ZZ, Number) := SphericalBesselJ(ZZ, Constant) := (n, x) -> (
+sphericalBesselJ = method(TypicalValue => RR)
+sphericalBesselJ(ZZ, Number) := sphericalBesselJ(ZZ, Constant) := (n, x) -> (
     if n == 0 then (gslspecfunc "gsl_sf_bessel_j0_e") x
     else if n == 1 then (gslspecfunc "gsl_sf_bessel_j1_e") x
     else if n == 2 then (gslspecfunc "gsl_sf_bessel_j2_e") x
@@ -198,33 +198,33 @@ for n from -2 to 2 do for x from 1 to 4 do assert near(
 
 -- Abramowitz & Stegun Table 10.1
 epsilon = 6e-9
-assert near(SphericalBesselJ_0 0, 1)
-assert near(SphericalBesselJ_0 1, 0.84147098)
-assert near(SphericalBesselJ_0 2, 0.45464871)
-assert near(SphericalBesselJ_0 3, 0.047040003)
-assert near(SphericalBesselJ_0 4, -0.18920062)
-assert near(SphericalBesselJ_1 0, 0)
-assert near(SphericalBesselJ_1 1, 0.30116868)
-assert near(SphericalBesselJ_1 2, 0.43539778)
-assert near(SphericalBesselJ_1 3, 0.34567750)
-assert near(SphericalBesselJ_1 4, 0.11611075)
-assert near(SphericalBesselJ_2 0, 0)
-assert near(SphericalBesselJ_2 1, 0.062035052)
-assert near(SphericalBesselJ_2 2, 0.19844795)
-assert near(SphericalBesselJ_2 3, 0.29863750)
-assert near(SphericalBesselJ_2 4, 0.27628369)
+assert near(sphericalBesselJ_0 0, 1)
+assert near(sphericalBesselJ_0 1, 0.84147098)
+assert near(sphericalBesselJ_0 2, 0.45464871)
+assert near(sphericalBesselJ_0 3, 0.047040003)
+assert near(sphericalBesselJ_0 4, -0.18920062)
+assert near(sphericalBesselJ_1 0, 0)
+assert near(sphericalBesselJ_1 1, 0.30116868)
+assert near(sphericalBesselJ_1 2, 0.43539778)
+assert near(sphericalBesselJ_1 3, 0.34567750)
+assert near(sphericalBesselJ_1 4, 0.11611075)
+assert near(sphericalBesselJ_2 0, 0)
+assert near(sphericalBesselJ_2 1, 0.062035052)
+assert near(sphericalBesselJ_2 2, 0.19844795)
+assert near(sphericalBesselJ_2 3, 0.29863750)
+assert near(sphericalBesselJ_2 4, 0.27628369)
 
 -- Abramowitz & Stegun Table 10.2
 epsilon = 5e-5
-assert near(10^3 * SphericalBesselJ_3 1, 9.0066)
-assert near(10^2 * SphericalBesselJ_4 2, 1.4079)
-assert near(10^2 * SphericalBesselJ_5 3, 1.6397)
-assert near(10^2 * SphericalBesselJ_6 4, 1.7462)
-assert near(10^2 * SphericalBesselJ_7 5, 1.7903)
-assert near(10^2 * SphericalBesselJ_8 6, 1.8010)
+assert near(10^3 * sphericalBesselJ_3 1, 9.0066)
+assert near(10^2 * sphericalBesselJ_4 2, 1.4079)
+assert near(10^2 * sphericalBesselJ_5 3, 1.6397)
+assert near(10^2 * sphericalBesselJ_6 4, 1.7462)
+assert near(10^2 * sphericalBesselJ_7 5, 1.7903)
+assert near(10^2 * sphericalBesselJ_8 6, 1.8010)
 epsilon = 1e-7
-assert near(10^9 * 7^(-9) * SphericalBesselJ_9 7, 0.4443345)
-assert near(10^11 * 8^(-10) * SphericalBesselJ_10 8, 1.6525772)
+assert near(10^9 * 7^(-9) * sphericalBesselJ_9 7, 0.4443345)
+assert near(10^11 * 8^(-10) * sphericalBesselJ_10 8, 1.6525772)
 ///
 
 end
