@@ -39,3 +39,13 @@ numericalDerivative Function := Function => o -> f -> (
 numericalDerivative(Function, Number)   :=
 numericalDerivative(Function, Constant) := RR => o -> (f, x) -> (
     numericalDerivative(f, o)) x
+
+TEST ///
+near = (x, y) -> BinaryOperation(symbol <, abs(x - y), errorEstimate)
+assert near((numericalDerivative sin) pi, -1)
+assert near((numericalDerivative(sin, Algorithm => BackwardDifference)) pi, -1)
+assert near((numericalDerivative(sin, Algorithm => ForwardDifference)) pi, -1)
+assert near(numericalDerivative(exp, 0), 1)
+assert near(numericalDerivative(exp, 0, Algorithm => BackwardDifference), 1)
+assert near(numericalDerivative(exp, 0, Algorithm => ForwardDifference), 1)
+///
