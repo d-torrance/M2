@@ -14,6 +14,7 @@ export {
     "BesselK",
     "sphericalBesselJ",
     "sphericalBesselY",
+    "sphericalBesselK",
 
     -- symbols for options
     "Scaled"
@@ -166,6 +167,17 @@ sphericalBesselY(ZZ, Number) := sphericalBesselJ(ZZ, Constant) := (n, x) -> (
     else if n == 1 then (gslspecfunc "gsl_sf_bessel_y1_e") x
     else if n == 2 then (gslspecfunc "gsl_sf_bessel_y2_e") x
     else (gslspecfunc2arg "gsl_sf_bessel_yl_e")(n, x))
+
+sphericalBesselK = method(Options => {Scaled => false}, TypicalValue => RR)
+sphericalBesselK(ZZ, Number) :=
+sphericalBesselK(ZZ, Constant) := o -> (n, x) -> (
+    -- only scaled version exists (exp(x) * k_l(x))
+    result := (
+	if n == 0 then (gslspecfunc "gsl_sf_bessel_k0_scaled_e") x
+	else if n == 1 then (gslspecfunc "gsl_sf_bessel_k1_scaled_e") x
+	else if n == 2 then (gslspecfunc "gsl_sf_bessel_k2_scaled_e") x
+	else (gslspecfunc2arg "gsl_sf_bessel_kl_scaled_e")(n, x));
+    if o.Scaled then result else result / exp x)
 
 TEST ///
 epsilon = 5e-10
