@@ -34,13 +34,17 @@ gslSfResult = foreignStructType("gsl_sf_result", {
 -- helper functions --
 ----------------------
 
+gslfuncCache = new MutableHashTable
+
 protect Input
 protect PrecisionMode
 gslspecfunc = method(Options => {Input => double, PrecisionMode => false})
 gslspecfunc String := o -> gslfunc -> (
-    foreignfunc := foreignFunction(gsl, gslfunc, int,
-	if o.PrecisionMode then {o.Input, uint, voidstar}
-	else {o.Input, voidstar});
+    foreignfunc := (
+	if gslfuncCache#?gslfunc then gslfuncCache#gslfunc
+	else gslfuncCache#gslfunc = foreignFunction(gsl, gslfunc, int,
+	    if o.PrecisionMode then {o.Input, uint, voidstar}
+	    else {o.Input, voidstar}));
     x -> (
 	result := gslSfResult {"val" => 0, "err" => 0};
 	ret := value foreignfunc(
@@ -53,7 +57,10 @@ gslspecfunc String := o -> gslfunc -> (
 
 gslspecfunc2arg = method()
 gslspecfunc2arg String := gslfunc -> (
-    foreignfunc := foreignFunction(gsl, gslfunc, int, {int, double, voidstar});
+    foreignfunc := (
+	if gslfuncCache#?gslfunc then gslfuncCache#gslfunc
+	else gslfuncCache#gslfunc = foreignFunction(gsl, gslfunc, int,
+	    {int, double, voidstar}));
     (n, x) -> (
 	result := gslSfResult {"val" => 0, "err" => 0};
 	ret := value foreignfunc(n, x, address result);
