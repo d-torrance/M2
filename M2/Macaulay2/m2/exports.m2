@@ -550,6 +550,7 @@ export {
 	"columnRankProfile",
 	"columnSwap",
 	"columnate",
+	"combinations",
 	"combine",
 	"commandInterpreter",
 	"commandLine",
