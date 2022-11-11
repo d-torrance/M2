@@ -34,7 +34,7 @@ gslSfResult = foreignStructType("gsl_sf_result", {
 -- helper functions --
 ----------------------
 
-gslfuncCache = new MutableHashTable
+gslfuncCache = new CacheTable
 
 protect Input
 protect PrecisionMode
