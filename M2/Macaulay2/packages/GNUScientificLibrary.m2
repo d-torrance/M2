@@ -22,4 +22,5 @@ gslFunction = foreignStructType(
     "params" => voidstar})
 
 load "./GNUScientificLibrary/numerical-differentiation.m2"
+load "./GNUScientificLibrary/roots.m2"
 load "./GNUScientificLibrary/special-functions.m2"
