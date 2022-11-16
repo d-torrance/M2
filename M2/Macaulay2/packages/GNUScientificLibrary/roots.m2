@@ -112,6 +112,12 @@ gslRootFdfsolverRoot = foreignFunction(gsl, "gsl_root_fdfsolver_root", double,
 
 RootPolishingSolver = new SelfInitializingType of RootSolver
 
+gslRootFdfsolver = s -> (frames s)#0#4
+
+net RootPolishingSolver := gslRootFdfsolverName @@ gslRootFdfsolver
+
+value RootPolishingSolver := value @@ gslRootFdfsolverRoot @@ gslRootFdfsolver
+
 rootPolishingSolver = (f, f', a, type) -> (
     RootPolishingSolver(
 	s := gslRootFdfsolverAlloc type;
