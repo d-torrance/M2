@@ -7,7 +7,10 @@ export {
 -- methods
     "bisectionSolver",
     "brentDekkerSolver",
-    "falsePositiveSolver"
+    "falsePositiveSolver",
+    "newtonSolver",
+    "secantSolver",
+    "steffensonSolver"
     }
 
 RootSolver = new SelfInitializingType of Iterator
@@ -116,13 +119,28 @@ rootPolishingSolver = (f, f', a, type) -> (
 	F := gslFunctionFdf {
 	    "f" => (x, params) -> f x,
 	    "df" => (x, params) -> f' x,
-	    "fdf" => identity, -- TODO: what do i do about this?
+	    "fdf" => (x, params, fptr, dfptr) -> (
+		*fptr = f x;
+		*dfptr = f' x;
+		),
 	    "params" => nullPointer};
 	gslRootFdfsolverSet(s, address F, a);
 	() -> (
 	    ret := gslRootFdfsolverIterate s;
 	    if value ret != 0 then gslError ret
 	    else value gslRootFdfsolverRoot s)))
+
+newtonSolver = method(TypicalValue => RootPolishingSolver)
+newtonSolver(Function, Function, Number) := (f, f', a) -> rootPolishingSolver(
+    f, f', a, gslRootFdfsolverNewton)
+
+secantSolver = method(TypicalValue => RootPolishingSolver)
+secantSolver(Function, Function, Number) := (f, f', a) -> rootPolishingSolver(
+    f, f', a, gslRootFdfsolverSecant)
+
+steffensonSolver = method(TypicalValue => RootPolishingSolver)
+steffensonSolver(Function, Function, Number) := (f, f', a) -> (
+    rootPolishingSolver(f, f', a, gslRootFdfsolverSteffenson))
 
 end
 
