@@ -216,6 +216,8 @@ export toExpr(x:RRi):Expr := Expr(RRicell(x));
 export toExpr(x:CC):Expr := Expr(CCcell(x));
 export toExpr(x:float):Expr := Expr(RRcell(toRR(x,ulong(24))));
 export toExpr(x:double):Expr := Expr(RRcell(toRR(x,ulong(53))));
+export toExpr(x:longdouble):Expr := Expr(RRcell(toRR(x,
+	    Ccode(ulong, "LDBL_MANT_DIG"))));
 export toExpr(x:RawComputation):Expr := Expr(RawComputationCell(x));
 export toExpr(x:RawFreeModule):Expr := Expr(RawFreeModuleCell(x));
 export toExpr(x:RawMatrix):Expr := Expr(RawMatrixCell(x));

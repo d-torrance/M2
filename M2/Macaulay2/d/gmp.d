@@ -988,6 +988,11 @@ export toRR(n:double,prec:ulong):RR := (
      Ccode( void, "mpfr_set_d(",  x, ",", n, ", MPFR_RNDN)" );
      moveToRRandclear(x));
 
+export toRR(n:longdouble,prec:ulong):RR := (
+     x := newRRmutable(prec);
+     Ccode( void, "mpfr_set_ld(",  x, ",", n, ", MPFR_RNDN)" );
+     moveToRRandclear(x));
+
 export toRRi(n:double,prec:ulong):RRi := (
     x := newRRimutable(prec);
     Ccode( void, "mpfi_set_d(",  x, ",", n, ")" );
