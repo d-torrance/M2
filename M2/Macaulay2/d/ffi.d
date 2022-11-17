@@ -337,13 +337,19 @@ setupfun("ffiIntegerValue", ffiIntegerValue);
 -- real types --
 ----------------
 
+longDoubleBits := Ccode(int, "8 * sizeof(long double)");
+WrongRealTypeBits():Expr := buildErrorPacket("expected 32, 64, or " +
+    tostring(longDoubleBits) + " bits");
+
 ffiRealType(e:Expr):Expr := (
     when e
     is n:ZZcell do (
 	bits := toInt(n);
 	if bits == 32 then toExpr(Ccode(voidPointer, "&ffi_type_float"))
 	else if bits == 64 then toExpr(Ccode(voidPointer, "&ffi_type_double"))
-	else buildErrorPacket("expected 32 or 64 bits"))
+	else if bits == longDoubleBits then toExpr(Ccode(voidPointer,
+		"&ffi_type_longdouble"))
+	else WrongRealTypeBits())
     else WrongArgZZ());
 setupfun("ffiRealType", ffiRealType);
 
@@ -365,7 +371,11 @@ ffiRealAddress(e:Expr):Expr := (
 		    then (
 			z := toDouble(x);
 			Ccode(void, "*(double *)", ptr, " = ", z))
-		    else return buildErrorPacket("expected 32 or 64 bits");
+		    else if bits == longDoubleBits
+		    then (
+			z := toLongDouble(x);
+			Ccode(void, "*(long double *)", ptr, " = ", z))
+		    else return WrongRealTypeBits();
 		    toExpr(ptr))
 		else WrongArgZZ(2))
 	    else WrongArgRR(1))
@@ -386,7 +396,9 @@ ffiRealValue(e:Expr):Expr := (
 		    then toExpr(Ccode(float, "*(float *)", x.v))
 		    else if bits == 64
 		    then toExpr(Ccode(double, "*(double *)", x.v))
-		    else buildErrorPacket("expected 32 or 64 bits"))
+		    else if bits == longDoubleBits
+		    then toExpr(Ccode(longdouble, "*(long double *)", x.v))
+		    else WrongRealTypeBits())
 		else WrongArgZZ(2))
 	    else WrongArgPointer(1))
 	else WrongNumArgs(2))
