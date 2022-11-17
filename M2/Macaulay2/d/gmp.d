@@ -1163,6 +1163,12 @@ export toDouble(x:RRcell):double := Ccode( double, "mpfr_get_d(",  x.v, ", MPFR_
                                     
 export toDouble(x:RRicell):double := toDouble(midpointRR(x.v));
 
+export toLongDouble(x:RR):longdouble := Ccode(longdouble,
+    "mpfr_get_ld(", x,", MPFR_RNDN)");
+export toLongDouble(x:RRi):longdouble := toLongDouble(midpointRR(x));
+export toLongDouble(x:RRcell):longdouble := toLongDouble(x.v);
+export toLongDouble(x:RRicell):longdouble := toLongDouble(x.v);
+
 export flagged():bool := flagged0();
 
 export isfinite(x:RR):bool := isfinite0(x);
