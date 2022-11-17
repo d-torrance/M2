@@ -18,6 +18,7 @@ export uint32_t := integerType "uint32_t";
 export int64_t := integerType "int64_t";
 export uint64_t := integerType "uint64_t";
 export float := arithmeticType "float";
+export longdouble := arithmeticType "long double";
 export ! (x:bool) ::= Ccode(bool,"(!(",x,"))");
 export (x:bool) | (y:bool) ::= Ccode(bool,"((",x,")|(",y,"))");
 export (x:bool) & (y:bool) ::= Ccode(bool,"(",x," & ",y,")");
