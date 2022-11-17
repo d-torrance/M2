@@ -53,6 +53,7 @@ export {
     "ulong",
     "float",
     "double",
+    "longdouble",
     "voidstar",
     "charstar",
     "voidstarstar",
@@ -268,6 +269,7 @@ foreignRealType(String, ZZ) := (name, bits) -> (
 
 float = foreignRealType("float", 32)
 double = foreignRealType("double", 64)
+longdouble = foreignRealType("long double", 8 * version#"long double size")
 
 ForeignRealType Number :=
 ForeignRealType Constant := (T, x) -> new T from realPart numeric x
