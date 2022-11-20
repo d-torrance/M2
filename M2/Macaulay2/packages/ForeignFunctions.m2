@@ -272,7 +272,8 @@ double = foreignRealType("double", 64)
 longdouble = foreignRealType("long double", 8 * version#"long double size")
 
 ForeignRealType Number :=
-ForeignRealType Constant := (T, x) -> new T from realPart numeric x
+ForeignRealType Constant := (T, x) -> new T from realPart numeric(
+    version#"long double precision", x)
 ForeignRealType RRi := (T, x) -> T toRR x
 
 isAtomic ForeignRealType := T -> true
@@ -860,17 +861,22 @@ doc ///
     ForeignRealType
     "float"
     "double"
+    "longdouble"
   Headline
     foreign real type
   Description
     Text
-      This is the class for C real types.  There are two built-in types,
+      This is the class for C real types.  There are three built-in types,
       @TT "float"@ for reals using the
-      @wikipedia "single-precision floating-point format"@ and @TT "double"@
-      for reals using the @wikipedia "double-precision floating-point format"@.
+      @wikipedia "single-precision floating-point format"@, and @TT "double"@
+      for reals using the @wikipedia "double-precision floating-point format"@,
+      and @TT "longdouble"@.  The latter type uses the
+      @wikipedia "quadruple-precision floating-point format"@ on most modern
+      systems.
     Example
       float
       double
+      longdouble
 ///
 
 doc ///
@@ -880,6 +886,7 @@ doc ///
     (symbol SPACE, ForeignRealType, RRi)
     (NewFromMethod, float, RR)
     (NewFromMethod, double, RR)
+    (NewFromMethod, longdouble, RR)
   Headline
     cast a Macaulay2 number to a foreign real object
   Usage
@@ -896,6 +903,7 @@ doc ///
     Example
       float 3
       double pi
+      longdouble exp 1
     Text
       The imaginary parts of complex numbers are discarded.
     Example
@@ -1404,6 +1412,7 @@ doc ///
     (value, charstarstar)
     (value, double)
     (value, float)
+    (value, longdouble)
     (value, int8)
     (value, int16)
     (value, int32)
@@ -1417,6 +1426,7 @@ doc ///
     (net, ForeignObject)
     (net, double)
     (net, float)
+    (net, longdouble)
   Headline
     get the value of a foreign object as a Macaulay2 thing
   Usage
@@ -1836,8 +1846,10 @@ assert Equation(value long(2^(longexp - 1) - 1), 2^(longexp - 1) - 1)
 assert Equation(value long(-2^(longexp - 1)), -2^(longexp - 1))
 
 -- real types
-assert Equation(value float 3.14159, 3.14159p24)
-assert Equation(value double 3.14159, 3.14159p53)
+assert Equation(value float pi, numeric(24, pi))
+assert Equation(value double pi, numeric(53, pi))
+assert Equation(value longdouble pi,
+    numeric(version#"long double precision", pi))
 
 -- pointer types
 ptr = address int 3
