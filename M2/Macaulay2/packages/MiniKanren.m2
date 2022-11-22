@@ -68,66 +68,109 @@ unify(Thing, Thing, Substitution) := (u, v, s) -> false
 
 -- 2nd course
 
-ConsCell = new Type of BasicList
-net ConsCell := x -> "(" | net car x | " . " | net cdr x | ")"
+Stream = new Type of HashTable
+
+EmptyStream = new Type of Stream
+emptyStream = new EmptyStream
+net EmptyStream := x -> "()"
+
+iterator EmptyStream := x -> Iterator(() -> StopIteration)
+
+PairStream = new Type of Stream
+net PairStream := x -> "(" | net car x | " . " | net cdr x | ")"
 
 cons = method()
-cons(Thing, Thing) := (x, y) -> new ConsCell from {x, y}
+cons(Substitution, Stream) := (x, y) -> new PairStream from {
+    symbol car => x, symbol cdr => y}
 
 car = method()
-car ConsCell := x -> x#0
+car PairStream := x -> x.car
 
 cdr = method()
-cdr ConsCell := x -> x#1
+cdr PairStream := x -> x.cdr
+
+singletonStream = method()
+singletonStream Substitution := s -> cons(s, emptyStream)
+
+-- TODO: move this to Core
+joinIterators = a -> (
+    n := #a;
+    iters := iterator \ a;
+    i := 0;
+    Iterator(
+	() -> (
+	    if i >= n then StopIteration
+	    else (
+		while (
+		    r := next iters#i;
+		    r === StopIteration)
+		do (
+		    i = i + 1;
+		    if i >= n then return StopIteration);
+		r))))
+
+Iterator | Iterator := (x, y) -> joinIterators(x, y)
+
+iterator PairStream := x -> iterator {car x} | iterator cdr x
+
+Suspension = new SelfInitializingType of Stream
+new Suspension from Function := (s, f) -> new Suspension from {
+    symbol Function => f}
+
+force = method()
+force Suspension := s -> s.Function()
+
+iterator Suspension := iterator @@ force
 
 Goal = new SelfInitializingType of FunctionClosure
 
 LogicVariable == Thing :=
 Thing == LogicVariable := (u, v) -> Goal(
-    s -> if unify(u, v, s) then cons(s, null) else null)
+    s -> if unify(u, v, s) then singletonStream s else emptyStream)
 
-succeed = Goal(s -> cons(s, null))
-fail = Goal(s -> null)
+succeed = Goal(s -> singletonStream s)
+fail = Goal(s -> emptyStream)
 
 -- 3rd course
 
-disj2 = method()
-disj2(Goal, Goal) := (g1, g2) -> Goal(s -> appendInf(g1 s, g2 s))
+-- disj2 = method()
+-- disj2(Goal, Goal) := (g1, g2) -> Goal(s -> appendInf
+    -- (g1 s, g2 s))
 
 -- TODO: would it make sense to define a Stream class?
-appendInf = method()
-appendInf(Nothing, Thing) := (sinf, tinf) -> tinf
-appendInf(ConsCell, Thing) := (sinf, tinf) -> (
-    cons(car sinf, appendInf(cdr sinf, tinf)))
-appendInf(Function, Thing) := (sinf, tinf) -> (
-    appendInf(tinf, sinf()))
+-- appendInf = method()
+-- appendInf(Nothing, Thing) := (sinf, tinf) -> tinf
+-- appendInf(ConsCell, Thing) := (sinf, tinf) -> (
+--     cons(car sinf, appendInf(cdr sinf, tinf)))
+-- appendInf(Function, Thing) := (sinf, tinf) -> (
+--     appendInf(tinf, sinf()))
 
 -- TODO: replace with defrel eventually
-nevero = Goal(s -> () -> nevero s)
-alwayso = Goal(s -> () -> (disj2(succeed, alwayso)) s)
+-- nevero = Goal(s -> () -> nevero s)
+-- alwayso = Goal(s -> () -> (disj2(succeed, alwayso)) s)
 
-takeInf = method()
-takeInf(ZZ, Nothing) :=
-takeInf(Boolean, Nothing) := (n, sinf) -> null
-takeInf(ZZ, ConsCell) := (n, sinf) -> (
-    if n == 0 then null
-    else cons(car sinf, takeInf(n - 1, cdr sinf)))
-takeInf(Boolean, ConsCell) := (n, sinf) -> (
-    cons(car sinf, takeInf(n, cdr sinf)))
-takeInf(ZZ, Function) :=
-takeInf(Boolean, Function) := (n, sinf) -> takeInf(n, sinf())
+-- takeInf = method()
+-- takeInf(ZZ, Nothing) :=
+-- takeInf(Boolean, Nothing) := (n, sinf) -> null
+-- takeInf(ZZ, ConsCell) := (n, sinf) -> (
+--     if n == 0 then null
+--     else cons(car sinf, takeInf(n - 1, cdr sinf)))
+-- takeInf(Boolean, ConsCell) := (n, sinf) -> (
+--     cons(car sinf, takeInf(n, cdr sinf)))
+-- takeInf(ZZ, Function) :=
+-- takeInf(Boolean, Function) := (n, sinf) -> takeInf(n, sinf())
 
--- 4th course
+-- -- 4th course
 
-conj2 = method()
-conj2(Goal, Goal) := (g1, g2) -> Goal(s -> appendMapInf(g2, g1 s))
+-- conj2 = method()
+-- conj2(Goal, Goal) := (g1, g2) -> Goal(s -> appendMapInf(g2, g1 s))
 
-appendMapInf = method()
-appendMapInf(Goal, Nothing) := (g, sinf) -> null
-appendMapInf(Goal, ConsCell) := (g, sinf) -> (
-    appendInf(g car sinf, appendMapInf(g, cdr sinf)))
-appendMapInf(Goal, Function) := (g, sinf) -> (
-    () -> appendMapInf(g, sinf()))
+-- appendMapInf = method()
+-- appendMapInf(Goal, Nothing) := (g, sinf) -> null
+-- appendMapInf(Goal, ConsCell) := (g, sinf) -> (
+--     appendInf(g car sinf, appendMapInf(g, cdr sinf)))
+-- appendMapInf(Goal, Function) := (g, sinf) -> (
+--     () -> appendMapInf(g, sinf()))
 
 -- 5th course
 
@@ -146,21 +189,23 @@ end
 restart
 debug loadPackage("MiniKanren", Reload => true)
 
-kiwi = symbol kiwi
-takeInf(1, (callFresh(kiwi, fruit -> plum == fruit)) emptyS())
+iterator {1, 2, 3} | iterator {4, 5} | iterator {} | iterator {} | iterator "foo"
+toList oo
+cons(emptyS(), emptyStream)
 
-(conj2(succeed, succeed)) emptyS()
+x = var()
+y = var()
 
-q = var()
-(conj2(succeed, corn == q)) emptyS()
-(conj2(fail, corn == q)) emptyS()
-(conj2(corn == q, meal == q)) emptyS()
-(conj2(corn == q, corn == q)) emptyS()
-(disj2(fail, fail)) emptyS()
-(disj2(olive == q, fail)) emptyS()
-(disj2(fail, oil == q)) emptyS()
+s = cons(Substitution{x => 1}, cons(Substitution{y => 2}, emptyStream))
+toList s
+i = iterator s
+next i
 
-
+(x == 2) emptyS()
+s = oo
+i = iterator s
+next i
+next i
 
 x = var()
 takeInf(5, (disj2(olive == x, oil == x)) emptyS())
