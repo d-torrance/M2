@@ -16,6 +16,8 @@ export {
     "takeWhile"
     }
 
+importFrom_Isomorphism {"Strict"}
+
 count = method()
 count(Number) := a -> count(a, 1)
 count(Number, Number) := (a, h) -> Iterator(
@@ -95,12 +97,13 @@ takeWhile(Function, Thing) := (f, x) -> Iterator(
 	    StopIteration)
 	else r))
 
-chunked = method()
-chunked(Thing, ZZ) := (x, n) -> Iterator(
+chunked = method(Options => {Strict => false})
+chunked(Thing, ZZ) := o -> (x, n) -> Iterator(
     iter := iterator x;
     () -> (
 	r := take(iter, n);
 	if #r == 0 then StopIteration
+	else if o.Strict and #r != n then StopIteration
 	else r))
 
 length Thing := x -> (
