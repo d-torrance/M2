@@ -16,7 +16,7 @@ export {
     "takeWhile"
     }
 
-importFrom_Isomorphism {"Strict"}
+exportFrom_Isomorphism {"Strict"}
 
 count = method()
 count(Number) := a -> count(a, 1)
