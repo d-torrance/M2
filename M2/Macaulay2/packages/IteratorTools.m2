@@ -112,6 +112,27 @@ length Thing := x -> (
     while next iter =!= StopIteration do n = n + 1;
     n)
 
+TEST ///
+assert Equation(take(count 1, 10), {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+assert Equation(take(count(2, 3), 10), {2, 5, 8, 11, 14, 17, 20, 23, 26, 29})
+///
+
+TEST ///
+assert Equation(take(cycle {1, 2, 3}, 10), {1, 2, 3, 1, 2, 3, 1, 2, 3, 1})
+///
+
+TEST ///
+assert Equation(take(repeat 5, 10), {5, 5, 5, 5, 5, 5, 5, 5, 5, 5})
+assert Equation(toList repeat(5, 10), {5, 5, 5, 5, 5, 5, 5, 5, 5, 5})
+///
+
+TEST ///
+assert Equation(toList chunked({1, 2, 3, 4, 5, 6, 7}, 2),
+    {{1, 2}, {3, 4}, {5, 6}, {7}})
+assert Equation(toList chunked({1, 2, 3, 4, 5, 6, 7}, 2, Strict => true),
+    {{1, 2}, {3, 4}, {5, 6}})
+///
+
 end
 
 loadPackage("IteratorTools", Reload => true)
