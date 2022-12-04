@@ -47,11 +47,14 @@ document {
 	  LI { "functionality added:",
 	       UL {
 		    LI { "New methods, ", TO iterator, " and ", TO next, ", and a new class, ", TO Iterator, " have been added to allow iteration over any Macaulay2 object." },
-		    LI { TO "for", " loops, as well as the methods ", TO scan, ", ", TO apply, ", ", TO select, ", ", TO fold, ", and, ", TO accumulate, " now work with any iterable object." },
+		    LI { TO "for", " loops, as well as the methods ", TO scan, ", ", TO apply, ", ", TO select, ", ", TO fold, ", ", TO accumulate, ", ", TO take, ", and ", TO join, ", now work with any iterable object." },
 		    LI { TO (truncate, Number), " has been added, rounding numbers toward zero." },
 		    LI { TO (quotientRemainder, ZZ, ZZ), " has been added, for obtaining the quotient and remainder simultaneously when performing integer division." },
 		    LI { "The bitwise not operator, ", TO (symbol ~, ZZ), " has been added." },
-		    LI { "A new strategy ", TO "Dynamic", " is implemented for ", TO "det", ", ", TO "minors", ", and ", TO "exteriorPower", "." }
+		    LI { "A new strategy ", TO "Dynamic", " is implemented for ", TO "det", ", ", TO "minors", ", and ", TO "exteriorPower", "." },
+		    LI { "A new global variable ", TO "blockMatrixForm", " which affects the display of matrices has been added." },
+		    LI { "Partial support for UTF-8 in strings has been added." },
+		    LI { TO changeBase, " has been added for changing integer bases."}
 		    }
 	       },
 	  LI { "improved packages:",
@@ -67,7 +70,8 @@ document {
 		 },
 	  LI { "functionality changed in a way that could break code:",
 	       UL {
-		    LI { TO remove, " may now be used to remove elements from mutable lists.  Its previous (undocumented) behavior was equivalent to ", TO drop, "."}
+		    LI { TO remove, " may now be used to remove elements from mutable lists.  Its previous (undocumented) behavior was equivalent to ", TO drop, "."},
+		    LI { TO characters, " and ", TO (width,Net)," now split strings according to UTF-8 characters rather than bytes." }
 		    }
 	       }
 	  }}
