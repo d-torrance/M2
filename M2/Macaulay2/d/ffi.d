@@ -619,7 +619,7 @@ ffiFunctionPointerAddress(e:Expr):Expr := (
 		Ccode(void, "GC_REGISTER_FINALIZER(", ptr, ", ",
 		    "(GC_finalization_proc)", ffiClosureFinalizer, ", ",
 		    closure, ", 0, 0)");
-		toExpr(ptr))
+		Expr(Sequence(toExpr(ptr), toExpr(closure), toExpr(code))))
 	    else WrongArgPointer(2))
 	else WrongArg(1, "a function"))
     else WrongNumArgs(2));

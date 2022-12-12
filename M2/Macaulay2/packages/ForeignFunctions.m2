@@ -467,6 +467,8 @@ isAtomic ForeignUnionType := T -> T.Atomic
 ForeignFunctionPointerType = new Type of ForeignType
 ForeignFunctionPointerType.synonym = "foreign function pointer type"
 
+protect Closure
+protect Code
 foreignFunctionPointerType = method(TypicalValue => ForeignFunctionPointerType)
 foreignFunctionPointerType(ForeignType, ForeignType) := (
     rtype, argtype) -> foreignFunctionPointerType(rtype, {argtype})
@@ -488,14 +490,18 @@ foreignFunctionPointerType(String, ForeignType, VisibleList) := (
     cif := ffiPrepCif(address rtype, address \ argtypes);
     net T := x -> concatenate(net rtype, "(*", x.Name, ")(",
 	demark(",", net \ argtypes), ")");
-    new T from Function := (T, f) -> new T from {
-	Address => ffiFunctionPointerAddress(
+    new T from Function := (T, f) -> (
+	(ptr, closure, code') := ffiFunctionPointerAddress(
 	    if #argtypes == 1
 	    then args -> address rtype f value dereference_(argtypes#0) args
 	    else args -> address rtype f apply(0..#args-1,
 		i -> value dereference_(argtypes#i) args#i),
-	    cif),
-	Name => net f};
+	    cif);
+	new T from {
+	    Address => ptr,
+	    Closure => closure,
+	    Code => code',
+	    Name => net f});
     value T := x -> foreignFunction(ffiPointerValue address x, x.Name, rtype,
 	argtypes);
     T)
