@@ -176,7 +176,7 @@ const Matrix /* or null */ *IM2_Matrix_remake1(const FreeModule *target,
                                                int preference)
 /* Create a new matrix, from M, with new target,
    The target free module must have the expected rank.
-   The source free module is computed heuristically from the the target and the
+   The source free module is computed heuristically from the target and the
    columns of the matrix.
 */
 {
@@ -790,6 +790,15 @@ M2SLEvaluator /* or null */ *rawSLEvaluator(M2SLProgram *SLP,
                                           const MutableMatrix *consts)
 {
   return consts->createSLEvaluator(SLP, constsPos, varsPos);
+}
+
+M2SLEvaluator /* or null */ *rawCompiledSLEvaluator(
+                                                    M2_string libName,
+                                                    int nInputs,
+                                                    int nOutputs,
+                                                    const MutableMatrix *empty)
+{
+  return empty->createCompiledSLEvaluator(libName, nInputs, nOutputs);
 }
 
 M2SLEvaluator /* or null */ *rawSLEvaluatorSpecialize(

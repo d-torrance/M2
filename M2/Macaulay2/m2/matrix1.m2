@@ -56,6 +56,7 @@ makeRawTable := (R,p) -> (					    -- this is messy
      else applyTable(p,x -> raw promote(x,R)))
 
 map(Module,Nothing,Matrix) := Matrix => o -> (M,nothing,p) -> (
+    -- TODO: why give an error? Compare with map(Module,Nothing,RawMatrix)
      if o.Degree =!= null then error "Degree option given with indeterminate source module";
      samering(M,p);
      R := ring M;
@@ -435,6 +436,7 @@ isIdeal Ideal := I -> true
 isHomogeneous Ideal := (I) -> isHomogeneous generators I
 
 degrees Ideal := I -> degrees source generators I
+-- TODO: deprecate these
 degreeLength Ideal := I -> degreeLength ring I
 degreesRing Ideal := I -> degreesRing ring I
 

@@ -1,7 +1,7 @@
  --		Copyright 1993-2002 by Daniel R. Grayson
 
+needs "monoids.m2"  -- for degreesMonoid
 needs "reals.m2" -- for inexact number
-needs "ofcm.m2"  -- for degreesMonoid
 
 -----------------------------------------------------------------------------
 -- Matrix
@@ -111,8 +111,8 @@ numeric(ZZ,Vector) := (prec,v) -> (
      error "expected vector of numbers"
      )
 
-- Vector := Vector => v -> vector (-v#0)
-Number * Vector := RingElement * Vector := Vector => (r,v) -> new class v from {r * v#0}
+- Vector := Vector => v -> new class v from {-v#0}
+Number * Vector := RingElement * Vector := Vector => (r,v) -> vector(r * v#0)
 Vector + Vector := Vector => (v,w) -> vector(v#0+w#0)
 Vector - Vector := Vector => (v,w) -> vector(v#0-w#0)
 Vector ** Vector := Vector => (v,w) -> vector(v#0**w#0)
@@ -147,6 +147,7 @@ new Module from Sequence := (Module,x) -> (
      	       symbol numgens => rawRank rM
      	       })) x
 
+-- TODO: deprecate these
 degreesMonoid Module := GeneralOrderedMonoid => M -> degreesMonoid ring M
 degreesRing Module := PolynomialRing => M -> degreesRing ring M
 degreeLength Module := M -> degreeLength ring M
@@ -182,8 +183,6 @@ isFreeModule Module := M -> not M.?relations and not M.?generators
 isSubmodule = method(TypicalValue => Boolean)
 isSubmodule Thing := x -> false
 isSubmodule Module := M -> not M.?relations
-
-degreeLength Module := M -> degreeLength ring M
 
 isQuotientModule = method(TypicalValue => Boolean)
 isQuotientModule Thing := x -> false
@@ -291,13 +290,15 @@ Module == Module := (M,N) -> M === N or (
 		    isSubset(ambient M, image g))
 	       else true)))
 
-degrees Module := N -> if N.?degrees then N.cache.degrees else N.cache.degrees = (
-     if not isFreeModule N then N = cover N;
-     rk := numgens N;
-     R := ring N;
-     nd := degreeLength R;
-     if nd == 0 then toList (rk : {})
-     else pack(nd,rawMultiDegree N.RawFreeModule))
+-- TODO: where is it set before being cached?
+degrees Module := -*(cacheValue symbol degrees) (*-N -> (
+    r := degreeLength(R := ring N);
+    if r == 0 then toList(numgens N : {}) else (
+	degs := pack(r, rawMultiDegree raw cover N);
+	if not (M := monoid R).?degreeGroup
+	or isFreeModule(G := M.degreeGroup) then degs
+	else apply(degs, reduceDegree_G)))
+--    )
 
 Module ^ ZZ := Module => (M,i) -> if i > 0 then directSum (i:M) else 0*M
 
