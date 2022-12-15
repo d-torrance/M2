@@ -26,6 +26,11 @@ LIBDIR := \$${exec_prefix}/lib/$(DEB_HOST_MULTIARCH)
 EMACSDIR := \
 	\$${prefix}/share/emacs/site-lisp/elpa/macaulay2-$(VERSION)
 
+# fix TBB linking issue on armel (https://github.com/Macaulay2/M2/pull/2528)
+ifeq ($(DEB_HOST_ARCH),armel)
+	LIBS = -latomic
+endif
+
 WITH_PYTHON := $(if $(filter nopython, $(DEB_BUILD_PROFILES)),, --with-python)
 
 ifneq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
@@ -43,6 +48,7 @@ override_dh_auto_configure:
 		--with-system-mathic        \
 		--with-system-mathicgb      \
 		--with-system-gc            \
+		LIBS="$(LIBS)"              \
 		$(WITH_PYTHON)              \
 		$(DISABLE_DOCUMENTATION)    \
 		$(if $(DISABLE_DOCUMENTATION),,--enable-syntax-highlighting)
