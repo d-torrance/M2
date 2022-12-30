@@ -25,7 +25,6 @@ endif()
 set(UNDETERMINED
   dmat-ffpack.cpp
   franzi-brp-test.cpp
-  gb-trace.hpp
   overflow-test.cpp
   test.dd
   aring-wrap # both cpp and hpp
@@ -82,7 +81,6 @@ set(HPPONLYFILES
   geopoly.hpp
   geovec.hpp
   hash.hpp
-  index.hpp
   mat-arith.hpp
   mat-elem-ops.hpp
   mat-linalg.hpp
@@ -91,7 +89,6 @@ set(HPPONLYFILES
   mutablemat-imp.hpp
   mutablemat.hpp
   newdelete.hpp
-  queue.hpp
   res-a0-pair.hpp
   ringelem.hpp
   schur-poly-heap.hpp
@@ -184,7 +181,6 @@ set(SRCLIST
   aring-RRR
   aring-gf-flint-big
   aring-gf-flint
-  aring-gf-givaro
   aring-m2-gf
   aring-qq-flint
   aring-qq-gmp
@@ -221,7 +217,6 @@ set(SRCLIST
   gb-default
   gb-homog2
   gb-sugarless
-  gb-test1
   gb-toric
   gb-walk
   gbring
@@ -385,9 +380,9 @@ target_compile_options(M2-engine PRIVATE
   >
 
   $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
-  -Wno-deprecated-copy -Wno-unknown-pragmas # caused by Givaro and fflas_ffpack
+  -Wno-deprecated-copy #-Wno-unknown-pragmas # caused by Givaro and fflas_ffpack
   -Wno-ignored-qualifiers # FIXME: caused by bibasis/tset.hpp:44:9
-  -Wno-implicit-fallthrough # FIXME: caused by gb-default.cpp, gb-test1.cpp, gb-walk.cpp, hermite.cpp, etc.
+  -Wno-implicit-fallthrough # FIXME: caused by gb-default.cpp, gb-walk.cpp, hermite.cpp, etc.
   >
 
   # Intel TODO: -diag-disable 981,869,383,2259,444 -debug -Wimplicit-function-declaration
@@ -429,7 +424,7 @@ if(BUILD_TESTING)
     unit-tests/ARingTest.hpp
     unit-tests/ARingZZTest.cpp
     unit-tests/ARingZZpTest.cpp
-    unit-tests/ARingGFTest.cpp # FIXME: see aring-gf-givaro.cpp:199
+#    unit-tests/ARingGFTest.cpp # FIXME: see aring-gf-givaro.cpp:199
     unit-tests/ARingQQFlintTest.cpp
     unit-tests/ARingQQGmpTest.cpp
     unit-tests/ARingRRTest.cpp
@@ -477,9 +472,4 @@ if(BUILD_TESTING)
     $<$<COMPILE_LANG_AND_ID:CXX,AppleClang,Clang>:-Wno-mismatched-tags> # FIXME
     )
 
-  ###############################################################################
-  ## GivaroTest.cpp has a main function and does not use gtest
-  #add_executable(M2-unit-tests-givaro unit-tests/GivaroTest.cpp) # FIXME: line 155
-  #target_link_libraries(M2-unit-tests-givaro M2-engine)
-  #add_test(NAME unit-tests:GivaroTest WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND M2-unit-tests-givaro)
 endif()

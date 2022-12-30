@@ -277,8 +277,7 @@ void GBinhom_comp::find_pairs(gb_elem *p)
 // (includes cases m * lead(p) = 0).
 // Returns a list of new s_pair's.
 {
-  queue<Bag *> elems;
-  Index<MonomialIdeal> j;
+  VECTOR(Bag *) elems;
   intarray vplcm;
   s_pair *q;
   int nvars = M->n_vars();
@@ -308,7 +307,7 @@ void GBinhom_comp::find_pairs(gb_elem *p)
           vplcm.shrink(0);
           M->to_varpower(find_pairs_lcm, vplcm);
           s_pair *q2 = new_var_pair(p, find_pairs_lcm);
-          elems.insert(new Bag(q2, vplcm));
+          elems.push_back(new Bag(q2, vplcm));
         }
       freemem(find_pairs_exp);
     }
@@ -326,7 +325,7 @@ void GBinhom_comp::find_pairs(gb_elem *p)
           vplcm.shrink(0);
           M->to_varpower(find_pairs_lcm, vplcm);
           s_pair *q2 = new_ring_pair(p, find_pairs_lcm);
-          elems.insert(new Bag(q2, vplcm));
+          elems.push_back(new Bag(q2, vplcm));
         }
     }
 
@@ -341,27 +340,27 @@ void GBinhom_comp::find_pairs(gb_elem *p)
       vplcm.shrink(0);
       M->to_varpower(find_pairs_lcm, vplcm);
       q = new_s_pair(p, s, find_pairs_lcm);
-      elems.insert(new Bag(q, vplcm));
+      elems.push_back(new Bag(q, vplcm));
     }
 
   // Now minimalize these elements, and insert the minimal ones
 
-  queue<Bag *> rejects;
-  Bag *b;
+  VECTOR(Bag *) rejects;
   MonomialIdeal mi(originalR, elems, rejects);
-  while (rejects.remove(b))
+  for (auto& b : rejects)
     {
       s_pair *q2 = reinterpret_cast<s_pair *>(b->basis_ptr());
       remove_pair(q2);
-      freemem(b);
+      delete b;
     }
 
   s_pair head;
   s_pair *nextsame = &head;
   int len = 0;
-  for (j = mi.first(); j.valid(); j++)
+
+  for (Bag& a : mi)
     {
-      q = reinterpret_cast<s_pair *>(mi[j]->basis_ptr());
+      q = reinterpret_cast<s_pair *>(a.basis_ptr());
       nextsame->next = q;
       nextsame = q;
       len++;

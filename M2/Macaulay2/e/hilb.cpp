@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <cstdlib>
+#include <algorithm>
 
 #include "hilb.hpp"
 #include "relem.hpp"
@@ -106,9 +107,9 @@ void partition_table::partition(MonomialIdeal *&I,
   int k;
   reset(I->topvar() + 1);
   // Create the sets
-  for (Index<MonomialIdeal> i = I->first(); i.valid(); i++)
+  for (Bag& a : *I)
     if (n_sets > 1)
-      merge_in((*I)[i]->monom().raw());
+      merge_in(a.monom().raw());
     else
       break;
 
@@ -174,9 +175,9 @@ static int popular_var(const MonomialIdeal &I,
 
   non_pure_power = NULL;
 
-  for (Index<MonomialIdeal> i = I.first(); i.valid(); i++)
+  for (Bag& a : I)
     {
-      const int *m = I[i]->monom().raw();
+      const int *m = a.monom().raw();
       index_varpower j = m;
       assert(j.valid());  // The monomial cannot be '1'.
       ++j;
@@ -237,7 +238,7 @@ static int find_pivot(const MonomialIdeal &I,
 
   // For now, let's just take this variable, if there is more than one
   // non pure power.
-  if (npure >= I.length() - 1)
+  if (npure >= I.size() - 1)
     {
       assert(vp != NULL);
       varpower::copy(vp, m);
@@ -253,42 +254,45 @@ static void iquotient_and_sum(MonomialIdeal &I,
                               MonomialIdeal *&sum,
                               stash *mi_stash)
 {
-  VECTOR(queue<Bag *> *) bins;
+  VECTOR(Bag *) elems;
   sum = new MonomialIdeal(I.get_ring(), mi_stash);
   quot = new MonomialIdeal(I.get_ring(), mi_stash);
   Bag *bmin = new Bag();
   varpower::copy(m, bmin->monom());
   sum->insert_minimal(bmin);
-  for (Index<MonomialIdeal> i = I.first(); i.valid(); i++)
+  for (Bag& a : I)
     {
       Bag *b = new Bag();
-      varpower::quotient(I[i]->monom().raw(), m, b->monom());
-      if (varpower::divides(m, I[i]->monom().raw()))
+      varpower::quotient(a.monom().raw(), m, b->monom());
+      if (varpower::divides(m, a.monom().raw()))
         quot->insert_minimal(b);
       else
         {
-          sum->insert_minimal(new Bag(0, I[i]->monom()));
-          int d = varpower::simple_degree(b->monom().raw());
-          if (d >= bins.size())
-            for (int j = bins.size(); j <= d; j++)
-              // bins.append((queue<Bag *> *)NULL);
-              bins.push_back(NULL);
-          if (bins[d] == NULL)  //(queue<Bag *> *)NULL)
-            bins[d] = new queue<Bag *>;
-          bins[d]->insert(b);
+          sum->insert_minimal(new Bag(0, a.monom()));
+          elems.push_back(b);
         }
     }
 
-  // Now insert the elements in the queue.
-  // MES: is it worth looping through each degree, first checking
-  // divisibility, and after that, insert_minimal of the ones that survive?
-  Bag *b;
-  for (int j = 0; j < bins.size(); j++)
-    if (bins[j] != NULL)
-      {
-        while (bins[j]->remove(b)) quot->insert(b);
-        delete bins[j];
-      }
+  // Now we sort items in 'elems' so that we can insert as min gens into 'quot'
+  std::vector<std::pair<int, int>> degs_and_indices;
+  int count = 0;
+  for (auto& b : elems)
+    {
+      int deg = varpower::simple_degree(b->monom().raw());
+      degs_and_indices.push_back(std::make_pair(deg, count));
+      ++count;
+    }
+  std::stable_sort(degs_and_indices.begin(), degs_and_indices.end());
+
+  for (auto p : degs_and_indices)
+    {
+      Bag* b = elems[p.second];
+      Bag* b1; // not used here...
+      if (quot->search(b->monom().raw(), b1))
+        delete b;
+      else
+        quot->insert_minimal(b);
+    }
 }
 
 void hilb_comp::next_monideal()
@@ -509,7 +513,7 @@ void hilb_comp::do_ideal(MonomialIdeal *I)
   nideal++;
   ring_elem F = R->from_long(1);
   ring_elem G;
-  int len = I->length();
+  int len = I->size();
   if (len <= 2)
     {
       // len==1: set F to be 1 - t^(deg m), where m = this one element
