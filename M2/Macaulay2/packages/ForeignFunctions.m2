@@ -836,6 +836,8 @@ doc ///
       uint
       long
       ulong
+  SeeAlso
+    mpz
 ///
 
 doc ///
@@ -867,6 +869,24 @@ doc ///
       int 12
       ulong pi
       short(-2.71828)
+///
+
+doc ///
+  Key
+    mpz
+    (NewFromMethod, mpz, ZZ)
+    (value, mpz)
+  Headline
+    GMP arbitrary-precision integer type
+  Description
+    Text
+      Macaulay2's native @TO ZZ@ integer type wraps around @TT "mpz_t"@ from
+      @HREF{"https://gmplib.org/", "GMP"}@.  This type (which is an instance
+      of @TO ForeignIntegerType@) allows for conversion between Macaulay2
+      integers and GMP integers without loss of precision.
+    Example
+      mpz 2^100
+      value oo
 ///
 
 doc ///
