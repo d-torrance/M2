@@ -359,6 +359,14 @@ setupfun("ffiRealType", ffiRealType);
 
 ffiRealAddress(e:Expr):Expr := (
     when e
+    is x:RRcell do (
+	y := newRRmutable(precision(x.v));
+	Ccode(void, "mpfr_set(", y, ", ", x.v, ", MPFR_RNDN)");
+	ptr := getMem(pointerSize);
+	Ccode(void, "*(void **)", ptr, " = ", y);
+--	Ccode(void, "GC_REGISTER_FINALIZER(", ptr,
+--	    ", (GC_finalization_proc)mpfr_clear, ", y, ", 0, 0)");
+	toExpr(ptr))
     is a:Sequence do (
 	if length(a) == 2 then (
 	    when a.0
@@ -385,6 +393,7 @@ setupfun("ffiRealAddress", ffiRealAddress);
 
 ffiRealValue(e:Expr):Expr := (
     when e
+    is x:pointerCell do toExpr(moveToRR(Ccode(RRmutable, "*(mpfr_ptr*)", x.v)))
     is a:Sequence do (
 	if length(a) == 2 then (
 	    when a.0
