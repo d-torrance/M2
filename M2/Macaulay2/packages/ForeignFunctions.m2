@@ -233,8 +233,8 @@ if version#"pointer size" == 4 then (
     long = int64;
     ulong = uint64)
 
-mpz = new ForeignIntegerType;
-mpz.Name = "mpz_t";
+mpz = new ForeignIntegerType
+mpz.Name = "mpz_t"
 mpz.Address = ffiPointerType
 new mpz from ZZ := (T, n) -> new T from {Address => ffiIntegerAddress n}
 value mpz := ffiIntegerValue @@ address
