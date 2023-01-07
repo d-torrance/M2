@@ -55,6 +55,7 @@ export {
     "long",
     "ulong",
     "mpz",
+    "mpfrT",
     "float",
     "double",
     "voidstar",
@@ -263,6 +264,12 @@ foreignRealType(String, ZZ) := (name, bits) -> (
 
 float = foreignRealType("float", 32)
 double = foreignRealType("double", 64)
+
+mpfrT = new ForeignRealType
+mpfrT.Name = "mpfr_t"
+mpfrT.Address = ffiPointerType
+new mpfrT from RR := (T, x) -> new T from {Address => ffiRealAddress x}
+value mpfrT := ffiRealValue @@ address
 
 ForeignRealType Number :=
 ForeignRealType Constant := (T, x) -> new T from realPart numeric x
