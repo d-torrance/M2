@@ -2,42 +2,44 @@ newPackage(
     "Arb",
     PackageImports => {"ForeignFunctions"})
 
+export {
+    "RRball"
+    }
+
 libarb = openSharedLibrary "flint-arb"
 
 --------------
--- RealBall --
+-- RRball --
 --------------
 
-RealBall = new Type of BasicList
+RRball = new SelfInitializingType of BasicList
 
-ForeignPointerType RealBall := (T, x) -> x#0
+ForeignPointerType RRball := (T, x) -> x#0
 
 arbGetStr = foreignFunction(libarb, "arb_get_str", charstar, {
 	voidstar, long, ulong})
-net RealBall := x -> value arbGetStr(x, printingPrecision, 0)
-
-realBall = method()
+net RRball := x -> value arbGetStr(x, printingPrecision, 0)
 
 arbInit = foreignFunction(libarb, "arb_init", void, voidstar)
 arbClear = foreignFunction(libarb, "arb_clear", void, voidstar)
-installMethod(realBall, () -> new RealBall from {
-	x := getMemory 16;
-	arbInit x;
-	registerFinalizer(x, arbClear);
-	x})
+new RRball := T -> new T from {
+    x := getMemory 16;
+    arbInit x;
+    registerFinalizer(x, arbClear);
+    x}
 
 arbSetSi = foreignFunction(libarb, "arb_set_si", void, {voidstar, long})
-realBall ZZ := x -> (
-    y := realBall();
+new RRball from ZZ := (T, x) -> (
+    y := new T;
     arbSetSi(y, x);
     y)
 
 arbSetD := foreignFunction(libarb, "arb_set_d", void, {voidstar, double})
-realBall RR := x -> (
-    y := realBall();
+new RRball from RR := (T, x) -> (
+    y := new T;
     arbSetD(y, x);
     y)
-realBall QQ := realBall Constant := realBall @@ numeric
+new RRball from QQ := new RRball from Constant := (T, x) -> T numeric x
 
 -- unary methods
 scan({
@@ -71,8 +73,8 @@ scan({
 	("arb_zeta", zeta)
 	}, (arbf, m2f) -> (
 	f := foreignFunction(libarb, arbf, void, {voidstar, voidstar, long});
-	installMethod(m2f, RealBall, x -> (
-		y := realBall();
+	installMethod(m2f, RRball, x -> (
+		y := new RRball;
 		f(y, x, defaultPrecision);
 		y))))
 
@@ -86,27 +88,30 @@ scan({
 	}, (arbf, m2f) -> (
 	f := foreignFunction(libarb, arbf, void,
 	    {voidstar, voidstar, voidstar, long});
-	installMethod(m2f, RealBall, RealBall, (x, y) -> (
-		z := realBall();
+	installMethod(m2f, RRball, RRball, (x, y) -> (
+		z := new RRball;
 		f(z, x, y, defaultPrecision);
 		z))))
 
 arbEq = foreignFunction(libarb, "arb_eq", int, {voidstar, voidstar})
 arbLt = foreignFunction(libarb, "arb_lt", int, {voidstar, voidstar})
 arbGt = foreignFunction(libarb, "arb_gt", int, {voidstar, voidstar})
-RealBall == RealBall := (x, y) -> value arbEq(x, y) == 1
-RealBall ? RealBall := (x, y) -> (
+RRball == RRball := (x, y) -> value arbEq(x, y) == 1
+RRball ? RRball := (x, y) -> (
     if value arbLt(x, y) == 1 then symbol <
     else if value arbGt(x, y) == 1 then symbol >
     else if x == y then symbol ==
     else incomparable)
 
 arbContains = foreignFunction(libarb, "arb_contains", int, {voidstar, voidstar})
-isSubset(RealBall, RealBall) := (x, y) -> value arbContains(y, x) == 1
+isSubset(RRball, RRball) := (x, y) -> value arbContains(y, x) == 1
 
 end
 
-debug loadPackage("Arb", Reload => true)
+restart
+loadPackage("Arb", Reload => true)
+
+sin RRball 3
 
 isSubset(realBall 2, realBall 2)
 
@@ -119,3 +124,4 @@ x^y
 printingPrecision = 6
 
 realBall 2 / realBall 3
+
