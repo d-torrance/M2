@@ -618,6 +618,36 @@ errorfun(e:Expr):Expr := (
      else buildErrorPacket("expects a string or sequence of strings as its argument"));
 setupfun("error",errorfun).Protected = false;		    -- this will be replaced by a toplevel function that calls this one
 
+printMessage0(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 4 then (
+	    when a.0
+	    is filename:stringCell do (
+		when a.1
+		is line:ZZcell do (
+		    if !isUShort(line.v)
+		    then return WrongArgSmallInteger(2);
+		    when a.2
+		    is column:ZZcell do (
+			if !isUShort(column.v)
+			then return WrongArgSmallInteger(3);
+			when a.3
+			is message:stringCell do (
+			    printMessage(Position(filename.v,
+				toUShort(line.v),
+				toUShort(column.v),
+				ushort(0)),
+				message.v);
+			    nullE)
+			else WrongArgString(4))
+		    else WrongArgZZ(3))
+		else WrongArgZZ(2))
+	    else WrongArgString(1))
+	else WrongNumArgs(4))
+    else WrongNumArgs(4));
+setupfun("printMessage0", printMessage0);
+
 mingleseq(a:Sequence):Expr := (
      n := length(a);
      b := new array(Sequence) len n do provide emptySequence;

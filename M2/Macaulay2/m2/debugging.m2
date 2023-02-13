@@ -255,7 +255,11 @@ locate Symbol      := FilePosition => x -> if (x':=locate' x) =!= null then new 
 locate List        := List     => x -> apply(x, locate)
 protect symbol locate
 
-
+-- wrapper around printMessage in stdiop.d
+printMessage = method()
+printMessage(String, ZZ, ZZ, String) := printMessage0
+printMessage(FilePosition, String) := (
+    p, msg) -> printMessage0(p#0, p#1, p#2, msg)
 
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/m2 "
