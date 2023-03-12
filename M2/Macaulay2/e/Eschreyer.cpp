@@ -2,6 +2,7 @@
 
 #include "Eschreyer.hpp"
 #include "matrix.hpp"
+#include "monoid.hpp"
 #include "text-io.hpp"
 #include "gbring.hpp"
 #include "matrix-con.hpp"
@@ -112,7 +113,7 @@ GBMatrix *GBKernelComputation::get_syzygies()
 // Private routines //
 //////////////////////
 gbvector *GBKernelComputation::make_syz_term(ring_elem c,
-                                             const int *m,
+                                             const_monomial m,
                                              int comp) const
 // c is an element of GR->get_flattened_coefficients()
 // (m,comp) is a Schreyer encoded monomial in Fsyz
@@ -173,9 +174,9 @@ void GBKernelComputation::new_pairs(int i)
 
   if (R->is_skew_commutative())
     {
-      int *find_pairs_exp = newarray_atomic(int, M->n_vars());
+      exponents_t find_pairs_exp = newarray_atomic(int, M->n_vars());
 
-      varpower::to_ntuple(M->n_vars(), vp.raw(), find_pairs_exp);
+      varpower::to_expvector(M->n_vars(), vp.raw(), find_pairs_exp);
       for (int w = 0; w < R->n_skew_commutative_vars(); w++)
         if (find_pairs_exp[R->skew_variable(w)] > 0)
           {
@@ -226,7 +227,7 @@ void GBKernelComputation::new_pairs(int i)
 
   MonomialIdeal *new_mi = new MonomialIdeal(R, elems);
 
-  int *m = M->make_one();
+  monomial m = M->make_one();
   for (Bag& a : *new_mi)
     {
       M->from_varpower(a.monom().raw(), m);
@@ -242,7 +243,7 @@ void GBKernelComputation::new_pairs(int i)
 //  S-pairs and reduction ////////////////////
 //////////////////////////////////////////////
 
-bool GBKernelComputation::find_ring_divisor(const int *exp,
+bool GBKernelComputation::find_ring_divisor(const_exponents exp,
                                             const gbvector *&result)
 // If 'exp' is divisible by a ring lead term, then 1 is returned,
 // and result is set to be that ring element.
@@ -257,7 +258,7 @@ bool GBKernelComputation::find_ring_divisor(const int *exp,
 }
 
 int GBKernelComputation::find_divisor(const MonomialIdeal *this_mi,
-                                      const int *exp,
+                                      const_exponents exp,
                                       int &result)
 {
   // Find all the possible matches, use some criterion for finding the best...
@@ -297,7 +298,7 @@ int GBKernelComputation::find_divisor(const MonomialIdeal *this_mi,
 gbvector *GBKernelComputation::s_pair(gbvector *gsyz)
 {
   gbvector *result = NULL;
-  int *si = M->make_one();
+  monomial si = M->make_one();
   for (gbvector *f = gsyz; f != 0; f = f->next)
     {
       SG->schreyer_down(f->monom, f->comp - 1, si);
@@ -313,7 +314,7 @@ void GBKernelComputation::wipe_unneeded_terms(gbvector *&f)
 {
   // Remove every term of f (except the lead term)
   // which is NOT divisible by an element of mi.
-  int *exp = newarray_atomic(int, GR->n_vars());
+  exponents_t exp = newarray_atomic(int, GR->n_vars());
   // int nterms = 1;
   // int nsaved = 0;
   gbvector *g = f;
@@ -350,7 +351,7 @@ void GBKernelComputation::wipe_unneeded_terms(gbvector *&f)
 
 void GBKernelComputation::reduce(gbvector *&f, gbvector *&fsyz)
 {
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   const Ring *gbringK = GR->get_flattened_coefficients();
@@ -442,7 +443,7 @@ void GBKernelComputation::reduce(gbvector *&f, gbvector *&fsyz)
 
 void GBKernelComputation::geo_reduce(gbvector *&f, gbvector *&fsyz)
 {
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   const Ring *gbringK = GR->get_flattened_coefficients();

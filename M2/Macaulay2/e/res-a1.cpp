@@ -1,5 +1,9 @@
 // Copyright 1996.  Michael E. Stillman
 
+#include "res-a1.hpp"
+
+#include "ExponentVector.hpp"
+#include "intarray.hpp"
 #include "res-a1-poly.hpp"
 #include "res-a1.hpp"
 #include "text-io.hpp"
@@ -274,7 +278,7 @@ int res_comp::degree(const res_pair *p) const
   return result;
 }
 
-void res_comp::multi_degree(const res_pair *p, int *deg) const
+void res_comp::multi_degree(const res_pair *p, monomial deg) const
 {
   // MES: Is this correct?
   M->multi_degree(p->base_monom, deg);
@@ -314,7 +318,7 @@ void res_comp::insert_res_pair(int level, res_pair *p)
 
 int res_comp::compare_res_pairs(res_pair *f, res_pair *g) const
 {
-  exponents EXP1, EXP2;
+  exponents_t EXP1, EXP2;
   int cmp, df, dg, i;
   //  if (f->compare_num < g->compare_num) return 1;
   //  if (f->compare_num > g->compare_num) return -1;
@@ -457,13 +461,11 @@ void res_comp::sort_res_pairs(res_pair *&p) const
   p = merge_res_pairs(p1, p2);
 }
 
-int res_comp::sort_value(res_pair *p, const int *sort_order) const
+int res_comp::sort_value(res_pair *p, const std::vector<int> sort_order) const
 {
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   M->to_expvector(p->base_monom, REDUCE_exp);
-  int result = 0;
-  for (int i = 0; i < P->n_vars(); i++) result += REDUCE_exp[i] * sort_order[i];
-  return result;
+  return exponents::weight(P->n_vars(), REDUCE_exp, sort_order);
 }
 
 void res_comp::sort_gens(res_degree *mypairs)
@@ -630,8 +632,8 @@ void res_comp::new_pairs(res_pair *p)
 
   if (P->is_skew_commutative())
     {
-      int *exp = newarray_atomic(int, M->n_vars());
-      varpower::to_ntuple(M->n_vars(), vp.raw(), exp);
+      exponents_t exp = newarray_atomic(int, M->n_vars());
+      varpower::to_expvector(M->n_vars(), vp.raw(), exp);
 
       int nskew = P->n_skew_commutative_vars();
       for (int v = 0; v < nskew; v++)
@@ -706,7 +708,7 @@ void res_comp::new_pairs(res_pair *p)
 //  S-pairs and reduction ////////////////////
 //////////////////////////////////////////////
 
-int res_comp::find_ring_divisor(const int *exp, ring_elem &result) const
+int res_comp::find_ring_divisor(const_exponents exp, ring_elem &result) const
 // If 'exp' is divisible by a ring lead term, then 1 is returned,
 // and result is set to be that ring element.
 // Otherwise 0 is returned.
@@ -724,7 +726,7 @@ resterm *res_comp::s_pair(res_pair *p) const
 // Care is of course taken with the Schreyer order
 {
   p->syz = R->new_term(K->from_long(1), p->base_monom, p->first);
-  int *si = M->make_one();
+  monomial si = M->make_one();
   M->divide(p->base_monom, p->first->base_monom, si);
   resterm *result = R->mult_by_monomial(p->first->syz, si);
   ring_elem one = K->from_long(1);
@@ -746,7 +748,7 @@ res_pair *res_comp::reduce(resterm *&f, resterm *&fsyz, resterm *&pivot)
 // place a pointer to the corresponding term in "pivot".
 {
   // 'lastterm' is used to append the next monomial to fsyz->syz
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   resterm *lastterm = (fsyz->next == NULL ? fsyz : fsyz->next);
@@ -796,7 +798,7 @@ res_pair *res_comp::reduce_level_one(resterm *&f,
                                      resterm *&pivot)
 {
   // 'lastterm' is used to append the next monomial to fsyz->syz
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   resterm *lastterm = (fsyz->next == NULL ? fsyz : fsyz->next);
@@ -842,7 +844,7 @@ res_pair *res_comp::reduce_level_one(resterm *&f,
 
 void res_comp::reduce_gen(resterm *&f) const
 {
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   res_pair *q;
@@ -1342,7 +1344,7 @@ const FreeModule *res_comp::free_of(int i) const
   FreeModule *result;
   result = P->make_Schreyer_FreeModule();
   if (i < 0 || i >= resn.size()) return result;
-  int *deg = P->degree_monoid()->make_one();
+  monomial deg = P->degree_monoid()->make_one();
   int n = 0;
   res_level *lev = resn[i];
   for (int j = 0; j < lev->bin.size(); j++)
@@ -1365,7 +1367,7 @@ const FreeModule *res_comp::minimal_free_of(int i) const
   if (i == 0) return generator_matrix->rows();
   result = P->make_FreeModule();
   if (i < 0 || i > length_limit) return result;
-  int *deg = P->degree_monoid()->make_one();
+  monomial deg = P->degree_monoid()->make_one();
   int nminimals = 0;
   res_level *lev = resn[i];
   for (int j = 0; j < lev->bin.size(); j++)
@@ -1516,8 +1518,8 @@ void res_comp::skeleton_pairs(res_pair *&result, res_pair *p)
 
   if (P->is_skew_commutative())
     {
-      int *exp = newarray_atomic(int, M->n_vars());
-      varpower::to_ntuple(M->n_vars(), vp.raw(), exp);
+      exponents_t exp = newarray_atomic(int, M->n_vars());
+      varpower::to_expvector(M->n_vars(), vp.raw(), exp);
 
       int nskew = P->n_skew_commutative_vars();
       for (int v = 0; v < nskew; v++)

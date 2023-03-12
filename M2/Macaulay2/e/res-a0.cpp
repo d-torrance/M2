@@ -1,5 +1,9 @@
 // Copyright 1996.  Michael E. Stillman
 
+#include "res-a0.hpp"
+
+#include "ExponentVector.hpp"
+#include "intarray.hpp"
 #include "res-a0-poly.hpp"
 #include "res-a0.hpp"
 #include "geobucket.hpp"
@@ -633,7 +637,7 @@ res2_pair *res2_comp::new_base_res2_pair(int i)
   p->degree = (short unsigned int)(generator_matrix->rows()->primary_degree(i) -
                                    lodegree);
   p->compare_num = i;
-  int *m = M->make_one();
+  monomial m = M->make_one();
   p->syz = R->new_term(K->from_long(1), m, p);  // circular link...
   M->remove(m);
   p->mi = new MonomialIdeal(P, mi_stash);
@@ -714,7 +718,7 @@ int res2_comp::compare_res2_pairs(res2_pair *f, res2_pair *g) const
   // Lots of different orders appear here, controlled by the above
   // static variables.
   // if compare(f,g) returns -1, this says place g BEFORE f on the list.
-  exponents EXP1, EXP2, EXP3, EXP4;
+  exponents_t EXP1, EXP2, EXP3, EXP4;
   int cmp, df, dg;
 
   if (compare_use_degree)
@@ -935,13 +939,11 @@ void res2_comp::sort_reduction(res2_pair *&p)
   sort_res2_pairs(p);
 }
 
-int res2_comp::sort_value(res2_pair *p, const int *sort_order) const
+int res2_comp::sort_value(res2_pair *p, const std::vector<int> sort_order) const
 {
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   M->to_expvector(p->syz->monom, REDUCE_exp);
-  int result = 0;
-  for (int i = 0; i < P->n_vars(); i++) result += REDUCE_exp[i] * sort_order[i];
-  return result;
+  return exponents::weight(P->n_vars(), REDUCE_exp, sort_order);
 }
 
 //////////////////////////////////////////////
@@ -972,8 +974,8 @@ void res2_comp::new_pairs(res2_pair *p)
 
   if (P->is_skew_commutative())
     {
-      int *exp = newarray_atomic(int, M->n_vars());
-      varpower::to_ntuple(M->n_vars(), vp.raw(), exp);
+      exponents_t exp = newarray_atomic(int, M->n_vars());
+      varpower::to_expvector(M->n_vars(), vp.raw(), exp);
 
       int nskew = P->n_skew_commutative_vars();
       for (int v = 0; v < nskew; v++)
@@ -1030,7 +1032,7 @@ void res2_comp::new_pairs(res2_pair *p)
 
   if (M2_gbTrace >= 11) mi.debug_out(1);
 
-  int *m = M->make_one();
+  monomial m = M->make_one();
   for (Bag& a : mi)
     {
       res2_pair *second = reinterpret_cast<res2_pair *>(a.basis_ptr());
@@ -1110,7 +1112,7 @@ int res2_comp::find_divisor(const MonomialIdeal *mi,
 res2term *res2_comp::s_pair(res2term *f) const
 {
   res2term *result = NULL;
-  int *si = M->make_one();
+  monomial si = M->make_one();
   while (f != NULL)
     {
       M->divide(f->monom, f->comp->syz->monom, si);
@@ -1133,7 +1135,7 @@ res2_pair *res2_comp::reduce(res2term *&f,
 // place a pointer to the corresponding term in "pivot".
 {
   // 'lastterm' is used to append the next monomial to fsyz->syz
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   res2term *lastterm = (fsyz->next == NULL ? fsyz : fsyz->next);
@@ -1208,7 +1210,7 @@ res2_pair *res2_comp::reduce2(res2term *&f,
 // 'p' is just here for auto-reduction...
 {
   // 'lastterm' is used to append the next monomial to fsyz->syz
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   res2term *lastterm = (fsyz->next == NULL ? fsyz : fsyz->next);
@@ -1315,7 +1317,7 @@ res2_pair *res2_comp::reduce3(res2term *&f,
 // place a pointer to the corresponding term in "pivot".
 {
   // 'lastterm' is used to append the next monomial to fsyz->syz
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   res2term *lastterm = (fsyz->next == NULL ? fsyz : fsyz->next);
@@ -1410,7 +1412,7 @@ res2_pair *res2_comp::reduce4(res2term *&f,
 // 'p' is just here for auto-reduction...
 {
   // 'lastterm' is used to append the next monomial to fsyz->syz
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   res2term *lastterm = fsyz;
@@ -1501,7 +1503,7 @@ res2_pair *res2_comp::reduce_by_level(res2term *&f, res2term *&fsyz)
 // place a pointer to the corresponding term in "pivot".
 {
   // 'lastterm' is used to append the next monomial to fsyz->syz
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   res2term *lastterm = (fsyz->next == NULL ? fsyz : fsyz->next);
@@ -1554,7 +1556,7 @@ res2_pair *res2_comp::reduce_by_level(res2term *&f, res2term *&fsyz)
 res2_pair *res2_comp::reduce_heap_by_level(res2term *&f, res2term *&fsyz)
 {
   // 'lastterm' is used to append the next monomial to fsyz->syz
-  exponents REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
+  exponents_t REDUCE_exp = ALLOCATE_EXPONENTS(exp_size);
   monomial REDUCE_mon = ALLOCATE_MONOMIAL(monom_size);
 
   res2term *lastterm = (fsyz->next == NULL ? fsyz : fsyz->next);
@@ -2037,7 +2039,7 @@ FreeModule *res2_comp::free_of(int i) const
   result = P->make_Schreyer_FreeModule();
   if (i < 0 || i >= resn.size()) return result;
 
-  int *deg = degree_monoid()->make_one();
+  monomial deg = degree_monoid()->make_one();
   int n = 0;
   for (res2_pair *p = resn[i]->pairs; p != NULL; p = p->next)
     {
@@ -2055,7 +2057,7 @@ FreeModule *res2_comp::minimal_free_of(int i) const
   if (i < 0 || i >= resn.size() - 1) return result;
   if (do_by_level > 0) return free_of(i);
 
-  int *deg = degree_monoid()->make_one();
+  monomial deg = degree_monoid()->make_one();
   int n = 0;
   for (res2_pair *p = resn[i]->pairs; p != NULL; p = p->next)
     if (p->syz_type == SYZ2_MINIMAL)

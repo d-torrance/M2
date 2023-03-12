@@ -56,8 +56,6 @@ set(HPPONLYFILES
   MemoryBlock.hpp
   NCAlgebras/Range.hpp
   VectorArithmetic.hpp
-  ARingElem.hpp
-  newdelete.hpp
   timing.hpp
   SLP-defs.hpp
   SLP-imp.hpp
@@ -89,13 +87,16 @@ set(HPPONLYFILES
   mutablemat-imp.hpp
   mutablemat.hpp
   newdelete.hpp
+  ExponentVector.hpp
   res-a0-pair.hpp
   ringelem.hpp
   schur-poly-heap.hpp
   smat.hpp
+  util.hpp
   style.hpp
   f4/f4-types.hpp
   f4/memblock.hpp
+  f4/ntuple-monomial.hpp
   schreyer-resolution/res-memblock.hpp
   schreyer-resolution/res-monomial-types.hpp
   schreyer-resolution/res-schreyer-order.hpp
@@ -246,7 +247,6 @@ set(SRCLIST
   montableZZ
   mutablecomplex
   ntl-interface
-  ntuple
   overflow
   pfaff
   poly
@@ -278,7 +278,6 @@ set(SRCLIST
   spair
   text-io
   tower # TODO: move rawTowerTranslatePoly to e/interface
-  util
   varpower
   weylalg
   # Faugère's F4 Algorithm
@@ -292,7 +291,6 @@ set(SRCLIST
   f4/hilb-fcn
   f4/monhashtable
   f4/moninfo
-  f4/ntuple-monomial
   f4/varpower-monomial
   # Schreyer resolution a la Linear algebra (F4 Faugere style)
   schreyer-resolution/res-f4-computation
@@ -420,6 +418,8 @@ if(BUILD_TESTING)
     unit-tests/M2-replacement.c
     unit-tests/M2mem-replacement.c
     unit-tests/M2mem-replacement.h
+
+    unit-tests/MonoidTest.cpp
 
     unit-tests/ARingTest.hpp
     unit-tests/ARingZZTest.cpp

@@ -183,7 +183,7 @@ RingElement /* or null */ *RingElement::lead_coeff(const Ring *coeffR) const
 }
 
 RingElement /* or null */ *RingElement::get_coeff(const Ring *coeffR,
-                                                  const Monomial *m) const
+                                                  const EngineMonomial *m) const
 {
   const PolynomialRing *P = R->cast_to_PolynomialRing();
   if (P == 0)
@@ -194,7 +194,7 @@ RingElement /* or null */ *RingElement::get_coeff(const Ring *coeffR,
   return new RingElement(coeffR, P->get_coeff(coeffR, get_value(), m->ints()));
 }
 
-Monomial *RingElement::lead_monom(int nvars) const
+EngineMonomial *RingElement::lead_monom(int nvars) const
 {
   if (is_zero())
     {
@@ -207,10 +207,10 @@ Monomial *RingElement::lead_monom(int nvars) const
       intarray resultvp;
       Nterm *t = get_value();
 
-      int *exp = newarray_atomic(int, nvars);
+      exponents_t exp = newarray_atomic(int, nvars);
       P->lead_logical_exponents(nvars, t, exp);
-      varpower::from_ntuple(nvars, exp, resultvp);
-      return Monomial::make(resultvp.raw());
+      varpower::from_expvector(nvars, exp, resultvp);
+      return EngineMonomial::make(resultvp.raw());
     }
   const M2FreeAlgebraOrQuotient* Q = dynamic_cast<const M2FreeAlgebraOrQuotient*>(R);
   if (Q != nullptr)

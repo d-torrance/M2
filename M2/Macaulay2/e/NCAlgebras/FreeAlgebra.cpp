@@ -16,8 +16,6 @@
 
 class PolynomialRing;  // lines 14-14
 
-using ExponentVector = int*;
-
 std::ostream& operator<<(std::ostream& o, const FreeAlgebraElement& f)
 {
   buffer b;
@@ -818,8 +816,8 @@ bool FreeAlgebra::is_homogeneous(const Poly& f) const
 {
   bool result = true;
   if (f.numTerms() <= 1) return true;
-  ExponentVector e = degreeMonoid().make_one();
-  ExponentVector degf = degreeMonoid().make_one();
+  monomial e = degreeMonoid().make_one();
+  monomial degf = degreeMonoid().make_one();
   auto i = f.cbegin();
   auto end = f.cend();
   monoid().multi_degree(i.monom(), degf); // sets degf.
@@ -837,19 +835,19 @@ bool FreeAlgebra::is_homogeneous(const Poly& f) const
   return result;
 }
 
-void FreeAlgebra::degree(const Poly& f, int *d) const
+void FreeAlgebra::degree(const Poly& f, monomial d) const
 {
   multi_degree(f, d);
 }
 
 bool FreeAlgebra::multi_degree(const Poly& f,
-                               int *already_allocated_degree_vector) const
+                               monomial already_allocated_degree_vector) const
 {
-  int* degVec = already_allocated_degree_vector;
+  monomial degVec = already_allocated_degree_vector;
   bool ishomog = true;
   auto i = f.cbegin();
   monoid().multi_degree(i.monom(), degVec);
-  ExponentVector e = degreeMonoid().make_one();
+  monomial e = degreeMonoid().make_one();
   for (++i; i != f.cend(); ++i)
     {
       monoid().multi_degree(i.monom(), e);

@@ -90,7 +90,7 @@ void AssociatedPrimes::ass_prime_generator(Nmi_node *p, int codim)
 {
   int i = codim + 1;
   if (exps[i] == 0) exps[i] = newarray_atomic(int, nvars);
-  int *exp = exps[i];
+  exponents_t exp = exps[i];
   for (int j = 0; j < nvars; j++) exp[j] = exps[codim][j];
   for (;;)
     {
@@ -104,7 +104,7 @@ void AssociatedPrimes::ass_prime_generator(Nmi_node *p, int codim)
             {
               to_prime_ideal(nvars, exp);
               Bag *b = new Bag(0);
-              varpower::from_ntuple(nvars, exp, b->monom());
+              varpower::from_expvector(nvars, exp, b->monom());
               ass_primes->insert(b);
               n_minprimes++;
               if (minprime_limit > 0 && n_minprimes >= minprime_limit) return;

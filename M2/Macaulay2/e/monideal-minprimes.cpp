@@ -103,7 +103,7 @@ void MinimalPrimes::alg1_grab_prime(int depth)
       exp2[i] = 1;
     else
       exp2[i] = 0;
-  varpower::from_ntuple(nvars, exp2, b->monom());
+  varpower::from_expvector(nvars, exp2, b->monom());
   Q.push_back(b);
 }
 
@@ -264,7 +264,7 @@ void MinimalPrimes::ass_prime_generator(Nmi_node *p, int codim)
 {
   int i = codim + 1;
   if (exps[i] == 0) exps[i] = newarray_atomic(int, nvars);
-  int *exp0 = exps[i];
+  exponents_t exp0 = exps[i];
   for (int j = 0; j < nvars; j++) exp0[j] = exps[codim][j];
   for (;;)
     {
@@ -278,7 +278,7 @@ void MinimalPrimes::ass_prime_generator(Nmi_node *p, int codim)
             {
               to_prime_ideal(nvars, exp0);
               Bag *b = new Bag(0);
-              varpower::from_ntuple(nvars, exp0, b->monom());
+              varpower::from_expvector(nvars, exp0, b->monom());
               primes->insert(b);
               n_minprimes++;
             }
