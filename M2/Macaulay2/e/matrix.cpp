@@ -19,6 +19,7 @@
 #include "monideal.hpp"
 #include "relem.hpp"
 #include "freemod.hpp"
+#include "util.hpp"
 
 #include "exptable.h"
 
@@ -290,7 +291,7 @@ const Matrix /* or null */ *Matrix::make(const MonomialIdeal *mi)
   int next = 0;
   for (auto i = mi->beginAtLast(); i != mi->end(); --i)  // TODO MES: should go from last() via --i to end()...
     {
-      M->from_varpower(i->monom().raw(), mon);
+      M->from_varpower(i->monom().data(), mon);
       ring_elem f =
           P->make_flat_term(P->getCoefficientRing()->from_long(1), mon);
       mat.set_entry(0, next++, f);
@@ -878,9 +879,9 @@ Matrix *Matrix::lead_term(int nparts) const
 //       if (v == NULL) continue;
 //       // Reduce each one in turn, and replace.
 //       Bag *junk_bag;
-//       vp.shrink(0);
+//       vp.resize(0);
 //       rows()->lead_varpower(v, vp);
-//       if (!mis[v->comp]->search(vp.raw(),junk_bag))
+//       if (!mis[v->comp]->search(vp.data(),junk_bag))
 //      {
 //        Bag *b = new Bag(indices->array[i], vp);
 //        mis[v->comp]->insert(b);
@@ -903,9 +904,9 @@ M2_arrayintOrNull Matrix::support() const
     for (int i = 0; i < R->n_vars(); i++) exp[i] = exp2[i] = 0;
     for (int j = 0; j < n_cols(); j++)
       for (vec v = elem(j); v != nullptr; v = v->next)
-        for (const Nterm *f = v->coeff; f != nullptr; f = f->next)
+        for (Nterm& f : v->coeff)
         {
-          R->getMonoid()->to_expvector(f->monom, exp2);
+          R->getMonoid()->to_expvector(f.monom, exp2);
           for (int k = 0; k < n; k++)
             if (exp2[k] != 0 && exp[k] == 0)
             {
@@ -1003,7 +1004,7 @@ Matrix *Matrix::top_coefficients(Matrix *&monoms) const
 
 M2_arrayintOrNull Matrix::elim_vars(int nparts) const
 {
-  intarray keep;
+  gc_vector<int> keep;
   const PolynomialRing *P = get_ring()->cast_to_PolynomialRing();
   if (P == nullptr)
     {
@@ -1012,15 +1013,13 @@ M2_arrayintOrNull Matrix::elim_vars(int nparts) const
     }
   int nslots = P->getMonoid()->n_slots(nparts);
   for (int i = 0; i < n_cols(); i++)
-    if (P->vec_in_subring(nslots, elem(i))) keep.append(i);
-  M2_arrayint result = M2_makearrayint(keep.length());
-  for (unsigned int i = 0; i < result->len; i++) result->array[i] = keep[i];
-  return result;
+    if (P->vec_in_subring(nslots, elem(i))) keep.push_back(i);
+  return stdvector_to_M2_arrayint<int>(keep);
 }
 
 M2_arrayintOrNull Matrix::elim_keep(int nparts) const
 {
-  intarray keep;
+  gc_vector<int> keep;
   const PolynomialRing *P = get_ring()->cast_to_PolynomialRing();
   if (P == nullptr)
     {
@@ -1029,10 +1028,8 @@ M2_arrayintOrNull Matrix::elim_keep(int nparts) const
     }
   int nslots = P->getMonoid()->n_slots(nparts);
   for (int i = 0; i < n_cols(); i++)
-    if (!P->vec_in_subring(nslots, elem(i))) keep.append(i);
-  M2_arrayint result = M2_makearrayint(keep.length());
-  for (unsigned int i = 0; i < result->len; i++) result->array[i] = keep[i];
-  return result;
+    if (!P->vec_in_subring(nslots, elem(i))) keep.push_back(i);
+  return stdvector_to_M2_arrayint<int>(keep);
 }
 
 Matrix *Matrix::divide_by_var(int n, int maxd, int &maxdivided) const
@@ -1721,10 +1718,10 @@ Matrix /* or null */ *Matrix::monomials(M2_arrayint vars) const
       vec v = elem(c);
       for (; v != nullptr; v = v->next)
         {
-          for (Nterm *t = v->coeff; t != nullptr; t = t->next)
+          for (Nterm& t : v->coeff)
             {
               exponents_t exp1 = newarray_atomic(int, vars->len + 1);
-              M->to_expvector(t->monom, exp);
+              M->to_expvector(t.monom, exp);
               for (unsigned int i = 0; i < vars->len; i++)
                 exp1[i] = exp[vars->array[i]];
               exp1[vars->len] = v->comp;
@@ -1801,15 +1798,15 @@ static vec coeffs_of_vec(exponent_table *E,
   vec result = nullptr;
   for (vec g = f; g != nullptr; g = g->next)
     {
-      for (Nterm *h = g->coeff; h != nullptr; h = h->next)
+      for (Nterm& h : g->coeff)
         {
-          M->to_expvector(h->monom, exp);
+          M->to_expvector(h.monom, exp);
           get_part_of_expvector(vars, exp, g->comp, scratch_exp);
           int val = static_cast<int>(exponent_table_get(E, scratch_exp));
           if (val > 0)
             {
               M->from_expvector(exp, mon);
-              ring_elem t = P->make_flat_term(h->coeff, mon);
+              ring_elem t = P->make_flat_term(h.coeff, mon);
               vec v = P->make_vec(val - 1, t);
               v->next = result;
               result = v;
