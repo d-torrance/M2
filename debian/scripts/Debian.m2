@@ -136,8 +136,12 @@ problemExamples = {
     -- load Macaulay2Doc first to avoid #2328
     ("Macaulay2Doc", "applicationDirectory"),                   -- #1149
     ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
+    ("Macaulay2Doc", "autoload"),                               -- #1149
     ("Macaulay2Doc", "getenv"),                                 -- #1149
     ("Macaulay2Doc", "homeDirectory"),                          -- #1149
+    ("Macaulay2Doc", "listLocalSymbols"),                       -- #1149
+    ("Macaulay2Doc", "locate"),                                 -- #1149
+    ("Macaulay2Doc", "the debugger"),                           -- #1149
     ("SemidefiniteProgramming", "Solver")                       -- #1149
 }
 
