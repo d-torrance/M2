@@ -12,6 +12,8 @@ libarb = openSharedLibrary "flint-arb"
 -- RRball --
 --------------
 
+-- an RRball is a basic list containing one element, a voidstar object
+-- with the address of the corresponding arb_t
 RRball = new SelfInitializingType of BasicList
 
 ForeignPointerType RRball := (T, x) -> x#0
