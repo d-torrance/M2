@@ -5,8 +5,8 @@ this does not work unless M2 is compiled --with-python
 pythonPresent := Core#"private dictionary"#?"pythonRunString"
 
 newPackage("Python",
-    Version => "0.4",
-    Date => "October 31, 2022",
+    Version => "0.5",
+    Date => "May 9, 2023",
     Headline => "interface to Python",
     Authors => {
 	{Name => "Daniel R. Grayson",
@@ -19,6 +19,16 @@ newPackage("Python",
     CacheExampleOutput => true,
     OptionalComponentsPresent => pythonPresent
     )
+
+---------------
+-- ChangeLog --
+---------------
+
+-- * 0.5 (M2 1.22)
+--   - Update AfterPrint method (#2731, #2788)
+
+-- * 0.4 (M2 1.21)
+
 
 verboseLog = if debugLevel > 0 then printerr else identity
 
