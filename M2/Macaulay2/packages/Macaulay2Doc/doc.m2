@@ -24,11 +24,8 @@ document {
 undocumented {
      (symbol *, Number, RingElement),
      (symbol *, RingElement, Number),
-    (symbol*,  Expression, Product),
-    (symbol*,  Product, Expression),
     (symbol*,  Minus, Expression),
     (symbol*,  Product, Holder),
-    (symbol*,  ZeroExpression, Expression),
     (symbol*,  Minus, Minus),
     (symbol*,  ZZ, InfiniteNumber),
     (symbol*,  QQ, InfiniteNumber),
@@ -36,12 +33,7 @@ undocumented {
     (symbol*,  InfiniteNumber, ZZ),
     (symbol*,  InfiniteNumber, QQ),
     (symbol*,  InfiniteNumber, RR),
-    (symbol*,  Product, ZeroExpression),
     (symbol*,  ZZ, Ideal),
-    (symbol*,  Product, OneExpression),
-    (symbol*,  ZeroExpression, Holder),
-    (symbol*,  Holder, ZeroExpression),
-    (symbol*,  Holder, OneExpression),
     (symbol*,  ZZ, GradedModuleMap),
     (symbol*,  InfiniteNumber, InfiniteNumber),
     (symbol*,  Expression, Minus),
@@ -51,7 +43,6 @@ undocumented {
     (symbol*,  ZZ, MonomialIdeal),
     (symbol*,  String),
     (symbol*,  ZZ, ChainComplexMap),
-    (symbol*,  Expression, ZeroExpression),
     (symbol*,  Expression, OneExpression),
     (symbol*,  OneExpression, Expression),
     (symbol*,  Number, Vector)
@@ -538,10 +529,7 @@ undocumented {
      }
 
 document {
-     Key => {symbol ^,
-	  (symbol ^,CC,ZZ),
-	  (symbol ^,InexactFieldFamily,ZZ)
-	  },
+     Key => {symbol ^},
      Headline => "a binary operator, usually used for powers",
      Usage => "x ^ y",
      PARA{},
@@ -635,7 +623,8 @@ document {
       	  ///x|"x"|x///,
 	  },
      "If one of the two arguments is an integer, it is converted to a string first.",
-     EXAMPLE ///"t = " | 333///
+     EXAMPLE ///"t = " | 333///,
+     SeeAlso => {horizontalJoin}
      }
 
 document {
@@ -656,8 +645,8 @@ document {
 	  (symbol |, RingElement, Matrix),
 	  (symbol |, Matrix, RingElement),
 	  (symbol |, RingElement, RingElement),
-	  (symbol |, ZZ, Matrix),
-	  (symbol |, Matrix, ZZ)
+	  (symbol |, Number, Matrix),
+	  (symbol |, Matrix, Number)
 	  },
      Headline => "join matrices horizontally",
 	Usage => "f = g | h",
@@ -676,7 +665,7 @@ document {
       	  h = matrix {{m,n},{o,p}}
       	  f= g | h
 	  ///,
-     "If one of the arguments is a ring element or an integer, then it
+     "If one of the arguments is a ring element or a number, then it
      will be multiplied by a suitable identity matrix.",
 	EXAMPLE "f | (m-n)",
 	Caveat => {"It is assumed that the matrices ", TT "g", " and ", TT "h", " have the same ", TO Ring, "."},
@@ -709,8 +698,8 @@ document {
 	  (symbol ||, RingElement, Matrix),
 	  (symbol ||, Matrix, RingElement),
 	  (symbol ||, RingElement, RingElement),
-	  (symbol ||, Matrix, ZZ),
-	  (symbol ||, ZZ, Matrix)
+	  (symbol ||, Matrix, Number),
+	  (symbol ||, Number, Matrix)
 	  },
      Headline => "join matrices vertically",
 	Usage => "f = g || h",
@@ -729,7 +718,7 @@ document {
       	  h = matrix {{m,n},{o,p}}
       	  f= g || h
 	  ///,
-     "If one of the arguments is a ring element or an integer, then it
+     "If one of the arguments is a ring element or a number, then it
      will be multiplied by a suitable identity matrix.",
 	EXAMPLE "f || 33",
 	Caveat => {"It is assumed that the matrices ", TT "g", " and ", TT "h", " have the same ", TO Ring, "."},
@@ -829,7 +818,6 @@ document {
 	  (symbol==, Ideal, MonomialIdeal),
 	  (symbol==, GradedModuleMap, ZZ),
 	  (symbol==, InfiniteNumber, InfiniteNumber),
-	  (symbol==, Equation, Expression),
 	  (symbol==, ZZ, Ring),
 	  (symbol==, ZZ, QQ),
 	  (symbol==, Matrix, ZZ),
@@ -855,7 +843,6 @@ document {
 	  (symbol==, MonomialIdeal, Ideal),
 	  (symbol==, ZZ, GradedModuleMap),
 	  (symbol==, GradedModule, GradedModule),
-	  (symbol==, Expression, Equation),
 	  (symbol==, Module, ZZ),
 	  (symbol==, ZZ, Module),
 	  (symbol==, ChainComplexMap, RingElement),
@@ -968,9 +955,8 @@ document {
      }
 
 undocumented {
-    (symbol**, OneExpression, Holder),
     (symbol**, QuotientRing, PolynomialRing),
-    (symbol**, Expression, NonAssociativeProduct),
+--    (symbol**, Expression, NonAssociativeProduct),
     (symbol**, QuotientRing, QuotientRing),
     (symbol**, Number, Matrix),
     (symbol**, Matrix, Number),
@@ -979,13 +965,12 @@ undocumented {
     (symbol **,RingElement,Number),
     (symbol **,RingElement,RingElement),
     (symbol **,Thing,InexactFieldFamily),
-    (symbol**, NonAssociativeProduct, NonAssociativeProduct),
-    (symbol**, Holder, OneExpression),
+--    (symbol**, NonAssociativeProduct, NonAssociativeProduct),
     (symbol**, PolynomialRing, PolynomialRing),
     (symbol**, PolynomialRing, QuotientRing),
-    (symbol**, NonAssociativeProduct, Expression),
-    (symbol**, NonAssociativeProduct, Holder),
-    (symbol**, Holder, NonAssociativeProduct),
+--    (symbol**, NonAssociativeProduct, Expression),
+--    (symbol**, NonAssociativeProduct, Holder),
+--    (symbol**, Holder, NonAssociativeProduct),
     (symbol**, Expression, OneExpression),
     (symbol**, OneExpression, Expression)
      }

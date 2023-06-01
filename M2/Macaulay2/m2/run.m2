@@ -123,7 +123,7 @@ runFile = (inf, inputhash, outf, tmpf, pkg, announcechange, usermode, examplefil
      cmd = cmd | concatenate apply(srcdirs, d -> (" --srcdir ", format d));
      -- TODO: fix capture, add preloaded packages to Macaulay2Doc, then delete the following two lines
      needsline := concatenate(" -e 'needsPackage(",format pkgname,",Reload=>true,FileName=>",format pkg#"source file",")'");
-     cmd = cmd | if not member(pkgname, {"Macaulay2Doc", "Core", "User"}) then needsline else "";
+     cmd = cmd | if not isMember(pkgname, {"Macaulay2Doc", "Core", "User"}) then needsline else "";
      cmd = cmd | readmode(SetInputFile,   "<" | format inf);
      cmd = cmd | readmode(SetOutputFile,  ">>" | format toAbsolutePath tmpf);
      cmd = cmd | readmode(SetCaptureErr,  "2>&1");
@@ -137,10 +137,14 @@ runFile = (inf, inputhash, outf, tmpf, pkg, announcechange, usermode, examplefil
 	  );
      if debugLevel == 0 then stderr << endl;
      stderr << cmd << endl;
-     stderr << tmpf << ":0:1: (output file) error: Macaulay2 " << describeReturnCode r << endl;
+     stderr << (new FilePosition from (tmpf, 0, 1)) << ":(" << loadDepth << "):[" << recursionDepth() << "]: (output file) error: Macaulay2 " << describeReturnCode r << endl;
      stderr << aftermatch(M2errorRegexp,get tmpf);
-     stderr << inf  << ":0:1: (input file)" << endl;
-     scan(statusLines get inf, x -> stderr << x << endl);
+     infcontents := get inf;
+     stderr << (new FilePosition from (inf, 0, 1)) << ": (input file)" << endl;
+     scan(statusLines infcontents, x -> stderr << x << endl);
+     m := regex("^--([^\n]+): location of test code", infcontents);
+     if m =!= null then stderr << (
+	 substring(m#1, infcontents)) << ": (location of test code)" << endl;
      if # findFiles rundir == 1
      then removeDirectory rundir
      else stderr << rundir << ": error: files remain in temporary run directory after program exits abnormally" << endl;

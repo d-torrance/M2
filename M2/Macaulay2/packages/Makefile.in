@@ -111,13 +111,6 @@ $(foreach i, $(patsubst Style,,$(ALL_PACKAGES)), $(eval @pre_libm2dir@/$i/.insta
 $(foreach i, $(patsubst FirstPackage,,$(patsubst Style,,$(ALL_PACKAGES))), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/FirstPackage/.installed))
 $(foreach i, $(patsubst Macaulay2Doc,,$(patsubst FirstPackage,,$(patsubst Style,,$(ALL_PACKAGES)))), $(eval @pre_libm2dir@/$i/.installed: | @pre_libm2dir@/Macaulay2Doc/.installed))
 
-@pre_packagesdir@/Style/highlight.js:
-	$(MAKE) -C ../editors highlightjs/highlight.js
-	$(MKDIR_P) $(dir $@)
-	cp ../editors/highlightjs/highlight.js $@
-
-@pre_libm2dir@/Style/.installed: @pre_packagesdir@/Style/highlight.js
-
 # the Info-validate function doesn't work well enough to be useful:
 # check::check-info
 
@@ -126,6 +119,20 @@ big-check:
 Makefile: Makefile.in; cd ../..; ./config.status Macaulay2/packages/Makefile
 distclean:clean
 	rm -f Makefile
+
+# requires html5validator:
+# python3 -m pip install html5validator
+validate-html:
+	@ INVALID_PACKAGES="";                                       \
+	for PACKAGE in $(PACKAGES);                                  \
+	do echo "validating $$PACKAGE documentation ...";            \
+	   html5validator --show-warnings                            \
+		--root @pre_prefix@/@tail_htmldir@/$$PACKAGE/html || \
+		INVALID_PACKAGES="$$INVALID_PACKAGES $$PACKAGE";     \
+	done;                                                        \
+	if test "$$INVALID_PACKAGES";                                \
+	then echo "invalid packages:$$INVALID_PACKAGES";  exit 1;    \
+	fi
 
 ## here is the list of other files to install along with Macaulay2
 @pre_packagesdir@/%.m2 : %.m2 ; @INSTALL_DATA@ $^ $@

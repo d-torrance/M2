@@ -68,7 +68,7 @@ ZZp Ideal := opts -> (I) -> (
 	  if not isPrime n
 	  then error ("ZZ/n not implemented yet for composite n = ", toString n);
 	  S := new QuotientRing from 
-	    if typ === "Ffpack" then rawARingGaloisField(n,1)  
+      if typ === "Ffpack" then rawARingGaloisField(n,1)  
         else if typ === "Flint" then rawARingZZpFlint n
         else if typ === "Aring" then rawARingZZp n
         else if typ === "Old" then rawZZp n
@@ -165,7 +165,7 @@ EngineRing / Ideal := QuotientRing => (R,I) -> I.cache.QuotientRing = (
      S := new QuotientRing from rawQuotientRing(raw R, raw gensgbI);
      S#"raw creation log" = Bag { FunctionApplication {rawQuotientRing, (raw R, raw gensgbI)} };
      S.cache = new CacheTable;
-     S.basering = R.basering;
+     S.BaseRing   = R.BaseRing;
      S.FlatMonoid = R.FlatMonoid;
      S.numallvars = R.numallvars;
      S.ideal = I;
@@ -180,6 +180,7 @@ EngineRing / Ideal := QuotientRing => (R,I) -> I.cache.QuotientRing = (
 	  R.generatorExpressions
 	  -- apply(R.generatorExpressions,S.generators,(e,x) -> new Holder2 from {e#0,x})
 	  );
+     if R.?index        then S.index = R.index;
      if R.?indexStrings then S.indexStrings = applyValues(R.indexStrings, x -> promote(x,S));
      if R.?indexSymbols then S.indexSymbols = applyValues(R.indexSymbols, x -> promote(x,S));
      expression S := lookup(expression,R);
@@ -250,9 +251,6 @@ dim QuotientRing := (R) -> (
 monoid QuotientRing := o -> (cacheValue monoid) (S -> monoid ambient S)
 degreesMonoid QuotientRing := (cacheValue degreesMonoid) (S -> degreesMonoid ambient S)
 degreesRing QuotientRing := (cacheValue degreesRing) (S -> degreesRing ambient S)
-QuotientRing_String := (S,s) -> if S#?s then S#s else (
-     R := ultimate(ambient, S);
-     S#s = promote(R_s, S))
 
 generators QuotientRing := opts -> (S) -> (
      if opts.CoefficientRing === S then {}
@@ -260,7 +258,7 @@ generators QuotientRing := opts -> (S) -> (
 char QuotientRing := (stashValue symbol char) ((S) -> (
      p := char ambient S;
      if p == 1 then return 1;
-     if isPrime p or member(QQ,S.baseRings) then return if S == 0 then 1 else p;
+     if isPrime p or isMember(QQ,S.baseRings) then return if S == 0 then 1 else p;
      relns := presentation S;
      if relns == 0 then return char ring relns;
      if coefficientRing S =!= ZZ then notImplemented();

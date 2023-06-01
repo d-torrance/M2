@@ -54,7 +54,7 @@ override_dh_auto_configure:
 		$(if $(DISABLE_DOCUMENTATION),,--enable-syntax-highlighting)
 ifeq ($(DISABLE_DOCUMENTATION),)
 	dh_auto_configure --buildsystem=nodejs
-	mv node_modules M2/Macaulay2/editors/highlightjs
+	mv node_modules M2/Macaulay2/editors/prism
 endif
 
 # copy cached example output files (for examples known to fail on
@@ -70,6 +70,7 @@ $(CURDIR)/M2/Macaulay2/packages/%/examples: $(CURDIR)/debian/examples/%
 
 execute_before_dh_auto_build: $(EXAMPLE_DEST)
 	mkdir -p M2/Macaulay2/packages/Style/katex
+	touch M2/Macaulay2/packages/Style/prism.js
 
 # since a "test" target exists, dh_auto_test defaults to using that, but
 # it just prints the values of some variables.  we want the "check" target
@@ -77,11 +78,6 @@ execute_before_dh_auto_build: $(EXAMPLE_DEST)
 # related: https://bugs.debian.org/924052
 override_dh_auto_test-arch:
 	$(MAKE) -C M2 check ArgumentMode="defaultMode - SetUlimit" LIMIT=
-
-ifeq ($(DISABLE_DOCUMENTATION),)
-override_dh_auto_test-indep:
-	$(MAKE) -C M2 validate-html
-endif
 
 # create dumps of package documentation databases to ship with macaulay2-common
 # and then load during postinst
@@ -109,6 +105,9 @@ execute_after_dh_auto_install-indep: $(DUMP_FILES)
 	do if [ -z "$$(ls -A $$DIR)" ]; then rm -rf $$DIR; fi; \
 	done
 	rm -rf $(PKGLIBDIR) # remove package documentation database files
+	$(MAKE) -C M2/Macaulay2/editors prism/prism.js
+	cp M2/Macaulay2/editors/prism/prism.js \
+		debian/tmp/usr/share/Macaulay2/Style
 
 # https://github.com/Macaulay2/M2/issues/1144
 execute_before_dh_link-indep:

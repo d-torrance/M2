@@ -265,7 +265,7 @@ setupMethods := (args, symbols) -> (
 
 setupMethods((), { 
 	  entries, baseName, borel, gcdCoefficients, singularLocus,
-	  Hom, diff, diff', contract, contract', member,
+	  Hom, diff, diff', contract, contract', isMember,
 	  koszul, target, source,
 	  getChangeMatrix, cover, coverMap, super, terms,
 	  cokernel, coimage, comodule, image, someTerms, scanKeys, scanValues,
@@ -275,9 +275,10 @@ setupMethods((), {
 	  leadComponent, assign, realPart, imaginaryPart, conjugate,
 	  relations, cone, inverse, numeric, numericInterval, floor, ceiling, round, degree, multidegree,
 	  presentation, dismiss, precision, 
-	  norm, clean, fraction, part, preimage,
+	  norm, clean, fraction, part,
 	  hasEngineLinearAlgebra, nullSpace,
-      isBasicMatrix, basicDet, basicInverse, basicKernel, basicRank, basicSolve, basicRankProfile
+      isBasicMatrix, basicDet, basicInverse, basicKernel, basicRank, basicSolve, basicRankProfile,
+      minimize
 	  })
 
 assert = method()
@@ -353,7 +354,7 @@ map = method(
 setupMethods(Dispatch => Thing, {transpose} )
 setupMethods(TypicalValue => Boolean,
      {isBorel, isWellDefined, isInjective, isSurjective, isUnit,
-	  isSubset,isHomogeneous, isIsomorphism, isField, isConstant
+	  isSubset,isHomogeneous, isIsomorphism, isField
 	  })
 setupMethods(TypicalValue => ZZ, {
 	binomial, char, degreeLength, depth, dim, euler, genus, height,
@@ -699,17 +700,6 @@ storefuns #toString = (x,e) -> (
 Function Thing = (f,x,e) -> (
      if not storefuns#?f then error("no method for storing values of function ", toString f);
      storefuns#f (x,e))
-
--- defined in d/actors4.d
-locate' = locate -- TODO: why does (net, FunctionBody) in nets.m2 need locate'?
-locate = method(Dispatch => Thing, TypicalValue => Sequence)
-locate Nothing    := Sequence => x -> locate' x
-locate Function   := Sequence => x -> locate' x
-locate Pseudocode := Sequence => x -> locate' x
-locate Sequence   := Sequence => x -> locate' x
-locate Symbol     := Sequence => x -> locate' x
-locate List       := List     => x -> apply(x, locate)
-protect symbol locate
 
 -- registerFinalizer
 registerFinalizer' = registerFinalizer

@@ -35,7 +35,6 @@ IndexedVariableTable.GlobalReleaseHook = (X,x) -> (
      globalReleaseFunction(X,x);
      if x#?symbol$ and x#symbol$ === X then remove(x,symbol$);
      )
-Ring _ IndexedVariable := (x,s) -> x.indexSymbols#s
 expression IndexedVariable := x -> (expression x#0) _ (expression x#1)
 net IndexedVariable := v -> net expression v
 toString IndexedVariable := v -> toString expression v
@@ -74,7 +73,7 @@ IndexedVariable ..< IndexedVariable := Sequence => (v,w) -> apply(toSequence v .
 baseName Thing := R -> (
     if not hasAttribute(R, ReverseDictionary) then error "baseName: no base name available";
     x := getAttribute(R, ReverseDictionary);
-    if mutable x then x else error("baseName: base name ", toString x,
+    if isMutable x then x else error("baseName: base name ", toString x,
 	" is not mutable, hence not available for use as a variable"))
 baseName Symbol :=
 baseName IndexedVariable := identity

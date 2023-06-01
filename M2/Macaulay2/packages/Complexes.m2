@@ -1,7 +1,7 @@
 newPackage(
     "Complexes",
-    Version => "0.9999",
-    Date => "25 April 2022",
+    Version => "0.999995",
+    Date => "1 May 2023",
     Authors => {
         {   Name => "Gregory G. Smith", 
             Email => "ggsmith@mast.queensu.ca", 
@@ -13,9 +13,9 @@ newPackage(
             }},
     Headline => "development package for beta testing new version of chain complexes",
     Keywords => {"Homological Algebra"},
-    PackageExports => {"Truncations"},
+    PackageExports => {}, -- {"Truncations"},
     AuxiliaryFiles => true,
-    DebuggingMode => false
+    DebuggingMode => true
     )
 
 export {
@@ -46,7 +46,6 @@ export {
     "isNullHomotopyOf",
     "isShortExactSequence",
     "liftMapAlongQuasiIsomorphism",
-    "minimize",
     "minimizingMap",
     "nullHomotopy",
     "naiveTruncation",
@@ -73,9 +72,7 @@ protect modules
 
 -- These are keys used in the various ResolutionObject's
 protect SyzygyList
-protect FieldComputation
 protect compute
-protect radical
 protect SchreyerOrder
 protect isComputable
 
@@ -137,11 +134,9 @@ Hom(Module, Module) := Module => (M,N) -> (
 -- package code ----------------------------------------------------
 --------------------------------------------------------------------
 load "Complexes/ChainComplex.m2"
+load "Complexes/FreeResolutions.m2"
 load "Complexes/ChainComplexMap.m2"
 load "Complexes/Tor.m2"
-
--- load "Complexes/Resolutions.m2"
--- load(currentFileDirectory | "Complexes/res.m2")
 
 --------------------------------------------------------------------
 -- interface code to legacy types ----------------------------------
@@ -160,7 +155,7 @@ complex ChainComplex := Complex => opts -> (cacheValue symbol Complex)(D -> (
     while lo < hi and (D_lo).numgens == 0 do lo = lo+1;
     while lo < hi and (D_hi).numgens == 0 do hi = hi-1;
     if lo === hi then
-        complex D_lo
+        complex(D_lo, Base => lo)
     else 
         complex hashTable for i from lo+1 to hi list i => D.dd_i
     ))
@@ -396,6 +391,7 @@ doc ///
 -- package tests ---------------------------------------------------
 --------------------------------------------------------------------
 load "Complexes/ChainComplexTests.m2"
+load "Complexes/FreeResolutionTests.m2"
 
 end------------------------------------------------------------
 
