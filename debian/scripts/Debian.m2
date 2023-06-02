@@ -142,6 +142,7 @@ problemExamples = {
     ("Macaulay2Doc", "listLocalSymbols"),                       -- #1149
     ("Macaulay2Doc", "locate"),                                 -- #1149
     ("Macaulay2Doc", "the debugger"),                           -- #1149
+    ("AssociativeAlgebras", "oppositeRing"),                    -- #2857
     ("SemidefiniteProgramming", "Solver")                       -- #1149
 }
 
