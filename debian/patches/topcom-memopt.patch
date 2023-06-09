@@ -16,6 +16,33 @@ Last-Update: 2022-12-15
      match("[Cc]hecked 1 triangulations, 0 non-regular so far", get errfile)
      )
  
+@@ -134,7 +134,7 @@
+     -- returns null if the triangulation is not regular.
+     -- otherwise returns a list of rational numbers which are the 
+     -- heights that result in the triangulation.
+-    (outfile, errfile) := callTopcom("checkregularity --heights", {topcomPoints(A, opts), [], tri });
++    (outfile, errfile) := callTopcom("checkregularity --heights --memopt", {topcomPoints(A, opts), [], tri });
+     output := get outfile;
+     if match("non-regular", output) then return null;
+     result := (
+@@ -147,7 +147,7 @@
+ 
+ topcomRegularFineTriangulation = method(Options => options topcomIsRegularTriangulation)
+ topcomRegularFineTriangulation Matrix := List => opts -> (A) -> (
+-    (outfile,errfile) := callTopcom("points2finetriang --regular", {topcomPoints(A, opts)});
++    (outfile,errfile) := callTopcom("points2finetriang --regular --memopt", {topcomPoints(A, opts)});
+     value get outfile
+     )
+ 
+@@ -245,7 +245,7 @@
+ topcomAllTriangulations Matrix := List => opts -> (A) -> (
+     if not opts.ConnectedToRegular and opts.RegularOnly then error "cannot have both RegularOnly=>true and ConnectedToRegular=>false";
+     executable := allTriangsExecutable#(opts.Fine, opts.ConnectedToRegular);
+-    args := if opts.RegularOnly then " --regular" else "";
++    args := (if opts.RegularOnly then " --regular" else "") | " --memopt";
+     (outfile, errfile) := callTopcom(executable | args, {topcomPoints(A, Homogenize=>opts.Homogenize)});
+     tris := lines get outfile;
+     -- if ConnectToRegular is true, then the output is different, and needs to be parsed.
 @@ -317,7 +317,7 @@
        << "Index sets do not correspond to full-dimensional simplices" << endl;
        return false;
