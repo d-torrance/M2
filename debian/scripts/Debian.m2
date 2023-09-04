@@ -184,10 +184,10 @@ skipTestHelper = (i, pkgname, str) -> (
 	"quilt push -q skip-failing-package-tests.patch");
     pkg := loadPackage(pkgname, LoadDocumentation => true, Reload => true);
     path = tmp;
-    test := locate (tests pkg)#i;
+    test := locate tests(i, pkg);
     testfile := relativizeFilename(realpath srcdir, realpath first test);
     run("cd " | srcdir | " && quilt add " | testfile | "; " |
-	"sed -i '" | test_1 + 1 | "i " | str | "' " | testfile |
+	"sed -i '" | test#1 + 1 | "i " | str | "' " | testfile |
 	" && quilt refresh && quilt pop -aq");
     )
 
