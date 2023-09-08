@@ -59,7 +59,9 @@ defaultHEAD = title -> HEAD splice { TITLE title, defaultCharset(), defaultStyle
 	"type" => "text/javascript",
 	"src" => getStyleFile "highlight.js",
 	""
-	}
+	},
+    SCRIPT {"var current_version = '", version#"VERSION", "';"},
+    SCRIPT {"src" => getStyleFile "version-select.js", ""}
     }
 
 -----------------------------------------------------------------------------
