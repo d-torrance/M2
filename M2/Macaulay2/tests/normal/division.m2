@@ -204,6 +204,18 @@ assert( (quotientRemainder(1-u^3,1-u)) === (1+u+u^2,0_R) )
   assert Equation(quotientRemainder(5710, -56), (-101, 54))
   assert Equation(quotientRemainder(5710, 0), (0, 5710))
 
+-- quotientRemainder(RingElement, List)
+-- Cox, Little, and O'Shea Section 2.3
+-- Example 1
+R = ZZ[x,y,MonomialOrder => Lex]
+assert Equation(quotientRemainder(x*y^2 + 1, {x*y + 1, y + 1}), ({y, -1}, 2))
+-- Example 2
+assert Equation(quotientRemainder(x^2*y + x*y^2 + y^2, {x*y - 1, y^2 - 1}),
+    ({x + y, 1}, x + y + 1))
+-- Example 4
+assert Equation(quotientRemainder(x^2*y + x*y^2 + y^2, {y^2 - 1, x*y - 1}),
+    ({x + 1, x}, 2*x + 1))
+
 end--
 generateAssertions ///
 R = ZZ[t..u, Degrees => {2:1}, MonomialOrder => { MonomialSize => 32, GroupRevLex => 2, Position => Up}, Inverses => true]
