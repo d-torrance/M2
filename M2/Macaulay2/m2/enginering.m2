@@ -485,6 +485,29 @@ quotientRemainder(RingElement,Number) := quotientRemainder @@ promoterightexact
 quotientRemainder(InexactNumber,RingElement) := quotientRemainder @@ promoteleftinexact
 quotientRemainder(RingElement,InexactNumber) := quotientRemainder @@ promoterightinexact
 
+-- Cox, Little, and O'Shea Section 2.3 Theorem 3
+quotientRemainder(RingElement,List) := (f, G) -> (
+    R := ring f;
+    if not all(G, g -> instance(g, R))
+    then error "expected polynomials in the same ring";
+    s := #G;
+    q := new MutableList from s:0;
+    r := 0;
+    p := f;
+    while p != 0 do (
+	i := 0;
+	divisionOccurred := false;
+	while i < s and not divisionOccurred do (
+	    if leadTerm p % leadTerm G#i == 0 then (
+		q#i = q#i + leadTerm p // leadTerm G#i;
+		p = p - (leadTerm p // leadTerm G#i) * G#i;
+		divisionOccurred = true)
+	    else i = i + 1);
+	if not divisionOccurred then (
+	    r = r + leadTerm p;
+	    p = p - leadTerm p));
+    (toList q, r))
+
 rem0 := (f,g) -> f % g
 Number % RingElement := rem0 @@ promoteleftexact
 RingElement % Number := rem0 @@ promoterightexact
