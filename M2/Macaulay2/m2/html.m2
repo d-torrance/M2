@@ -7,7 +7,7 @@ needs "format.m2"
 needs "system.m2" -- for getViewer
 needs "monoids.m2" -- for Monoid
 
-getStyleFile := fn -> locateCorePackageFileRelative("Style",
+getStyleFile = fn -> locateCorePackageFileRelative("Style",
     layout -> replace("PKG", "Style", layout#"package") | fn,
     installPrefix, htmlDirectory);
 
