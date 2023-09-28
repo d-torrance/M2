@@ -3,6 +3,7 @@ use struct;
 
 -- defined in M2lib.c
 header "
+#include <mpi.h>
 extern int MPInumberOfProcesses();
 extern int MPImyProcessNumber();
 extern int MPIsendString(M2_string s, int p);
@@ -37,3 +38,12 @@ export receiveString(e:Expr):Expr := (
     else WrongArgZZ()
     );
 setupfun("receiveString",receiveString);
+
+export dieCat(e:Expr):Expr := (
+    when e
+    is p:ZZcell do (
+	Ccode(int, "MPI_Send(",tocharstar(""),", 1, MPI_CHAR, ", toInt(p), ", 0xd1eca7, MPI_COMM_WORLD)");
+	nullE)
+    else WrongArgZZ());
+setupfun("dieCat", dieCat);
+
