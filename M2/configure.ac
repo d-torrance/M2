@@ -981,7 +981,7 @@ dnl factory needs to know:
 AC_SUBST(BUILD_flint)
 if test $BUILD_flint = no
 then AC_LANG(C)
-     AC_MSG_CHECKING([for flint >= 2.6.3])
+     AC_MSG_CHECKING([for flint >= 2.8.5])
      AC_COMPILE_IFELSE(
         [AC_LANG_PROGRAM(
 	  [#include <flint/flint.h>
@@ -989,8 +989,8 @@ then AC_LANG(C)
 	  [
 	  /* version == __FLINT_VERSION . __FLINT_VERSION_MINOR . __FLINT_VERSION_PATCHLEVEL */
 	  #if    (__FLINT_VERSION < 2) \
-	      || (__FLINT_VERSION == 2 && __FLINT_VERSION_MINOR < 6) \
-	      || (__FLINT_VERSION == 2 && __FLINT_VERSION_MINOR == 6 && __FLINT_VERSION_PATCHLEVEL < 3)
+	      || (__FLINT_VERSION == 2 && __FLINT_VERSION_MINOR < 8) \
+	      || (__FLINT_VERSION == 2 && __FLINT_VERSION_MINOR == 8 && __FLINT_VERSION_PATCHLEVEL < 5)
 	  #error old flint
 	  #endif
 	  ])],
