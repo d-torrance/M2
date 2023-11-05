@@ -354,7 +354,8 @@ if(FLINT_FOUND)
   set(CMAKE_REQUIRED_INCLUDES "${FLINT_INCLUDE_DIR}")
   check_include_files(flint/nmod.h HAVE_FLINT_NMOD_H)
 else()
-  unset(HAVE_FLINT_NMOD_H CACHE)
+  # TODO: we should use the latter, but there seems to be a bug
+  set(HAVE_FLINT_NMOD_H 1) # unset(HAVE_FLINT_NMOD_H CACHE)
 endif()
 
 if(FROBBY_FOUND)
