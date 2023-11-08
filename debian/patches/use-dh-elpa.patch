@@ -1,17 +1,16 @@
 Description: Modifications to work with dh_elpa.
- * Strip down setupEmacs() function.  We only set f12 as a global key
-   to start Macaulay2 inside Emacs.  This also strips (load "M2-init")
-   from a user's existing .emacs-Macaulay2 file, which would cause
-   errors if they haven't installed elpa-macaulay2.  We also warn the
-   user if elpa-macaulay2 isn't installed.
+ * Only load "M2-init" if we need to (e.g., if elpa-macaulay2 wasn't set up
+   properly because the user didn't have the Debian/Ubuntu emacs package
+   installed).
+ * Warn the user if elpa-macaulay2 isn't installed.
  * Fix path to M2-emacs-help.txt in documentation.
 Author: Doug Torrance <dtorrance@debian.org>
 Forwarded: not-needed
-Last-Update: 2022-02-08
+Last-Update: 2023-11-07
 
 --- a/M2/Macaulay2/m2/files.m2
 +++ b/M2/Macaulay2/m2/files.m2
-@@ -387,12 +387,6 @@
+@@ -387,11 +387,17 @@
  ///
  
  dotemacsFix0 = ///
@@ -20,29 +19,30 @@ Last-Update: 2022-02-08
 -
 -;; this version will not give an error if M2-init.el is not found:
 -;(load "M2-init" t)
--
++;; Load the Macaulay2 major modes just in case elpa-macaulay2 wasn't set up
++;; properly (e.g., if we're using emacs compiled from source instead of the
++;; Debian/Ubuntu package).
++
++(unless (fboundp 'M2)
++  (let ((m2-el-path "/usr/share/emacs/site-lisp/elpa-src/macaulay2-VERSION"))
++    (if (file-readable-p (concat m2-el-path "/M2-init.el"))
++	(progn
++	  (add-to-list 'load-path m2-el-path)
++	  (load "M2-init"))
++      (warn "cannot find M2.el -- run \"sudo apt install elpa-macaulay2\""))))
+ 
  ; You may comment out the following line with an initial semicolon if you 
  ; want to use your f12 key for something else.  However, this action
- ; will be undone the next time you run setup() or setupEmacs().
-@@ -474,10 +468,15 @@
+@@ -474,7 +480,8 @@
  setupEmacs = method()
  setup = method()
  mungeEmacs = () -> (
 -     dotemacsFix = concatenate(emacsHeader, apply(emacsfixes, (var,dir,templ) -> fix(var,dir,"",templ)), dotemacsFix0);
-+     dotemacsFix = concatenate(emacsHeader, dotemacsFix0);
++     dotemacsFix = replace("VERSION", version#"VERSION",
++	 concatenate(emacsHeader, dotemacsFix0));
       supplantStringFile(dotemacsFix,"~/"|M2emacs,false);
--     mungeFile("~/"|".emacs", ";; Macaulay 2 start", ";; Macaulay 2 end", M2emacsRead )
--     )
-+     ret := mungeFile("~/"|".emacs", ";; Macaulay 2 start", ";; Macaulay 2 end", M2emacsRead );
-+     if run("dpkg -s elpa-macaulay2 2> /dev/null | " |
-+	  "grep -q \"^Status:.* installed\"") != 0 then
-+	  stderr << "--warning: you must run \"apt install elpa-macaulay2\" "
-+	       << "as root in order to use" << endl
-+	       <<  "  Macaulay2 with Emacs." << endl;
-+     ret)
- prelim := () -> (
-      promptUser = true;
-      if prefixDirectory === null then error "can't determine Macaulay 2 prefix (prefixDirectory not set)";
+      mungeFile("~/"|".emacs", ";; Macaulay 2 start", ";; Macaulay 2 end", M2emacsRead )
+      )
 --- a/M2/Macaulay2/packages/Macaulay2Doc/ov_getting_started.m2
 +++ b/M2/Macaulay2/packages/Macaulay2Doc/ov_getting_started.m2
 @@ -926,7 +926,7 @@
