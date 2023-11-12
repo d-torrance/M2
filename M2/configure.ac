@@ -96,6 +96,9 @@ then if test -f /usr/bin/sw_vers
      elif test -f /usr/bin/lsb_release
      then ISSUE_FLAVOR=`lsb_release -s --id`
           ISSUE_RELEASE=`lsb_release -s --release`
+	  if test $ISSUE_RELEASE = n/a
+	  then ISSUE_RELEASE=`lsb_release -s --codename`
+	  fi
      elif test -f /etc/os-release
      then ISSUE_FLAVOR=`. /etc/os-release ; echo $ID`
           ISSUE_RELEASE=`. /etc/os-release ; echo $VERSION_ID`
@@ -230,13 +233,6 @@ else for DOCTYPE in $DOCUMENTATION
 fi
 
 AC_SUBST(DOCUMENTATION)
-
-dnl deprecated in 1.22
-dnl TODO: remove this completely after 1.22 is released
-AC_ARG_ENABLE([syntax-highlighting],
-    [AS_HELP_STRING([--enable-syntax-highlighting],
-	[this option is deprecated; syntax highlight is always enabled.])],
-    [AC_MSG_WARN([the --enable-syntax-highlighting option is deprecated; syntax highlighting is always enabled.])])
 
 AC_CANONICAL_HOST()
 AC_SUBST(ARCH,$build_cpu)
