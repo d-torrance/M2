@@ -3,21 +3,28 @@ newPackage("MiniKanren")
 export {
     -- classes
     "LogicVariable",
+    "Substitution",
 
     -- methods
-    "var"
+    "var",
+    "walk",
+    "occursCheck",
+    "extS",
+
+    -- objects
+    "emptyS"
     }
 
 importFrom_Core {
     "getAttribute",
     "hasAttribute",
+    "setAttribute",
     "ReverseDictionary"}
 
 -- 1st course
 
 LogicVariable = new SelfInitializingType of BasicList
-LogicVariable.GlobalAssignHook = globalAssignFunction
-LogicVariable.GlobalReleaseHook = globalReleaseFunction
+globalAssignment LogicVariable
 
 varCounter = 0
 
@@ -29,11 +36,10 @@ net LogicVariable := x -> (
     then net getAttribute(x, ReverseDictionary)
     else (lookup(net, BasicList)) x)
 
-Substitution = new SelfInitializingType of MutableHashTable
+Substitution = new SelfInitializingType of HashTable
 net Substitution := net @@ pairs
 
-emptyS = method()
-installMethod(emptyS, () -> Substitution {})
+emptyS = Substitution {}
 
 walk = method()
 walk(LogicVariable, Substitution) := (v, s) -> if s#?v then walk(s#v, s) else v
@@ -42,7 +48,7 @@ walk(Thing, Substitution) := (v, s) -> v
 extS = method()
 extS(LogicVariable, Thing, Substitution) := (x, v, s) -> (
     if occursCheck(x, v, s) then false
-    else (s#x = v; true))
+    else Substitution append(pairs s, (x, v)))
 
 occursCheck = method()
 occursCheck(LogicVariable, LogicVariable, Substitution) := (x, v, s) -> (
@@ -185,7 +191,32 @@ lookup' = method()
 lookup'(Thing, Substitution) := (v, s) -> v
 lookup'(LogicVariable, Substitution) := (v, s) -> if s#?v then s#v else v
 
+TEST ///
+-- chapter 10 1st course
+(u, v, w, x, y, z) = apply(0..5, i -> var())
+assertStrictEq = (x, y) -> assert BinaryOperation(symbol ===, x, y)
+assertStrictEq(walk(z, Substitution {(z, "a"), (x, w), (y, z)}), "a")
+assertStrictEq(walk(y, Substitution {(z, "a"), (x, w), (y, z)}), "a")
+assertStrictEq(walk(x, Substitution {(z, "a"), (x, w), (y, z)}), w)
+assertStrictEq(walk(x, Substitution {(x, y), (v, x), (w, x)}), y)
+assertStrictEq(walk(x, Substitution {(x, y), (v, x), (w, x)}), y)
+assertStrictEq(walk(v, Substitution {(x, y), (v, x), (w, x)}), y)
+assertStrictEq(walk(w, Substitution {(x, y), (v, x), (w, x)}), y)
+assertStrictEq(walk(w, Substitution {(x, "b"), (z, y), (w, {x, "e", z})}),
+    {x, "e", z})
+
+assert occursCheck(x, x, emptyS)
+assert occursCheck(x, {y}, Substitution {(y, x)})
+assert not extS(x, {x}, emptyS)
+assert not extS(x, {y}, Substitution {(y, x)})
+assertStrictEq(walk(y, extS(x, "e", Substitution {(z, x), (y, z)})), "e")
+///
+
 end
+
+
+
+
 restart
 debug loadPackage("MiniKanren", Reload => true)
 
