@@ -8,16 +8,19 @@ export {
     "ReifiedVariable",
 
     -- methods
+    "alwayso",
+    "callFresh",
+    "conj",
+    "conj2",
+    "disj",
+    "disj2",
+    "extS",
+    "nevero",
+    "occursCheck",
+    "reifyName",
+    "takeInf",
     "var",
     "walk",
-    "occursCheck",
-    "extS",
-    "disj2",
-    "nevero",
-    "alwayso",
-    "takeInf",
-    "callFresh",
-    "reifyName",
 
     -- objects
     "emptyS",
@@ -116,11 +119,13 @@ appendInf(Stream, Stream) := (s, t) -> (
     else if isSuspension s then Stream {() -> appendInf(t, s())}
     else prepend(s#0, appendInf(drop(s, 1), t)))
 
-disj2 = method()
-disj2(Goal, Goal) := (g1, g2) -> Goal(s -> appendInf(g1 s, g2 s))
+disj = method(Binary => true)
+installMethod(disj, () -> fail)
+disj Goal := identity
+disj2 = disj(Goal, Goal) := (g1, g2) -> Goal(s -> appendInf(g1 s, g2 s))
 
 nevero = Goal(s -> Stream {() -> nevero s})
-alwayso = Goal(s -> Stream {() -> (disj2(succeed, alwayso)) s})
+alwayso = Goal(s -> Stream {() -> (disj(succeed, alwayso)) s})
 
 takeInf = method()
 takeInf(ZZ, Stream) := (n, s) -> (
@@ -141,8 +146,10 @@ appendMapInf(Goal, Stream) := (g, s) -> (
     else if isSuspension s then Stream {() -> appendMapInf(g, s())}
     else appendInf(g first s, appendMapInf(g, drop(s, 1))))
 
-conj2 = method()
-conj2(Goal, Goal) := (g1, g2) -> Goal(s -> appendMapInf(g2, g1 s))
+conj = method(Binary => true)
+installMethod(conj, () -> succeed)
+conj Goal := identity
+conj2 = conj(Goal, Goal) := (g1, g2) -> Goal(s -> appendMapInf(g2, g1 s))
 
 -- 5th course
 callFresh = method()
@@ -187,11 +194,11 @@ assertStrictEq(((x == y) emptyS), Stream {Substitution {(x, y)}})
 assertStrictEq(((y == x) emptyS), Stream {Substitution {(y, x)}})
 
 -- 3rd course
-assertStrictEq((disj2(olive == x, oil == x)) emptyS,
+assertStrictEq((disj(olive == x, oil == x)) emptyS,
     Stream {Substitution {(x, olive)}, Substitution {(x, oil)}})
-assertStrictEq(first (disj2(olive == x, nevero)) emptyS,
+assertStrictEq(first (disj(olive == x, nevero)) emptyS,
     Substitution {(x, olive)})
-assertStrictEq(first ((disj2(nevero, olive == x)) emptyS)(),
+assertStrictEq(first ((disj(nevero, olive == x)) emptyS)(),
     Substitution {(x, olive)})
 assertStrictEq(first (alwayso emptyS)(), emptyS)
 assert instance(last (alwayso emptyS)(), Function)
