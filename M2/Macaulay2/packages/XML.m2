@@ -6,11 +6,59 @@ newPackage("XML",
     	Authors => {{Name => "Daniel R. Grayson", Email => "dan@math.uiuc.edu", HomePage => "http://www.math.uiuc.edu/~dan/"}},
     	Headline => "an XML parser",
 	Keywords => {"Miscellaneous"},
+	PackageImports => {"ForeignFunctions"},
     	DebuggingMode => false)
 export {
      "XMLnode", "tag", "children", "parse", "toXMLnode", "Trim", "toLibxmlNode",
      "getChildren", "getAttributes","xmlTypeTable","xmlTypeDescription", "xmlTypeIndex"
      }
+
+-*
+LibxmlAttribute
+LibxmlNode
+xmlAddAttribute
+xmlAddElement
+xmlAddText
+xmlDocDump
+xmlFirstAttribute
+xmlFirstChild
+xmlGetContent
+xmlGetName
+xmlGetNext
+xmlIsElement
+xmlIsText
+xmlNewRoot
+xmlParse
+xmlType
+xmlTypes
+*-
+
+libxml2 = openSharedLibrary "xml2"
+
+LibxmlAttribute = copy voidstar
+LibxmlAttribute.Name = "LibxmlAttribute"
+LibxmlNode = copy voidstar
+LibxmlNode.Name = "LibxmlNode"
+
+xmlAddAttribute = foreignFunction(libxml2, "xmlNewProp", LibxmlAttribute,
+    {LibxmlNode, charstar, charstar})
+xmlAddElement = (
+    newchild := foreignFunction(libxml2, "xmlNewChild", LibxmlNode,
+	{LibxmlNode, voidstar, charstar, voidstar});
+    (parent', name) -> newchild(parent', nullPointer, name, nullPointer))
+xmlAddText = (
+    newtext := foreignFunction(libxml2, "xmlNewText", LibxmlNode, charstar);
+    addchild := foreignFunction(libxml2, "xmlAddChild", LibxmlNode,
+	{LibxmlNode, LibxmlNode});
+    (parent', content) -> (
+	addchild(parent', newtext content)))
+-- xmlDocDump -- trickier -- need node as a struct maybe?
+
+
+
+end
+loadPackage("XML", Reload => true)
+
 scan(pairs Core#"private dictionary", (k,v) -> if match("^(Lib)?xml[A-Z]",k) then (
 	  XML#"private dictionary"#k = v;
 	  export k))
