@@ -17,6 +17,7 @@ export {
     "extS",
     "nevero",
     "occursCheck",
+    "reify",
     "reifyName",
     "takeInf",
     "var",
@@ -167,6 +168,30 @@ net ReifiedVariable := v -> "_" | v#0
 reifyName = method()
 reifyName ZZ := n -> ReifiedVariable {n}
 
+walkStarHelper = method()
+walkStarHelper(LogicVariable, Substitution) :=
+walkStarHelper(Thing, Substitution) := (v, s) -> v
+walkStarHelper(List, Substitution) := (v, s) -> prepend(
+    walkStar(first v, s), walkStar(drop(v, 1), s))
+walkStar = method()
+walkStar(Thing, Substitution) := (v, s) -> walkStarHelper(walk(v, s), s)
+
+-- project?
+
+reifySHelper = method()
+reifySHelper(LogicVariable, Substitution) := (v, r) -> (
+    Substitution prepend((v, reifyName #r), pairs r))
+reifySHelper(List, Substitution) := (v, r) -> (
+    reifyS(drop(1, v), reifyS(first v, r)))
+reifySHelper(Thing, Substitution) := (v, r) -> r
+reifyS = method()
+reifyS(Thing, Substitution) := (v, r) -> reifySHelper(walk(v, r), r)
+
+reify = method()
+reify Thing := v -> Goal(s -> (
+	v := walkStar(v, s);
+	walkStar(v, reifyS(v, emptyS))))
+
 TEST ///
 ----------------
 -- chapter 10 --
@@ -207,10 +232,13 @@ assertStrictEq(takeInf(3, alwayso emptyS), {emptyS, emptyS, emptyS})
 -- 4th course
 assertStrictEq(takeInf(1, (callFresh(kiwi, fruit -> plum == fruit)) emptyS),
     {Substitution {(kiwi, plum)}})
+
+-- 5th course
+(reify x) Substitution {(x, {u, w, y, z, {ice, z}}), (y, corn), (w, {v, u})}
 ///
 
 end
-
+errorDepth = 0
 
 restart
 loadPackage("MiniKanren", Reload => true)
