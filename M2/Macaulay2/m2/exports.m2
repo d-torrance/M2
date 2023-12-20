@@ -1327,6 +1327,7 @@ exportMutable {
 	"printingSeparator",
 	"printingTrailLimit",
 	"recursionLimit",
+	"showInEmacs",
 	"scriptCommandLine",
 	"stopIfError",
 	"topLevelMode"

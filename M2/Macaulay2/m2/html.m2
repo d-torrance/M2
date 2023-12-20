@@ -180,6 +180,8 @@ html Thing := x -> "$" | htmlLiteral texMath x | "$" -- by default, we use math 
 -- Viewing rendered html in a browser
 -----------------------------------------------------------------------------
 
+showInEmacs = false
+
 showHtml =
 show Hypertext := x -> (
     fn := temporaryFileName() | ".html";
