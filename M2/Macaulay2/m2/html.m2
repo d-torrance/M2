@@ -189,6 +189,12 @@ show Hypertext := x -> (
     fn << html HTML { defaultHEAD "Macaulay2 Output", BODY {x}} << endl << close;
     show new URL from replace(" ", "%20", rootURI | realpath fn)) -- TODO: urlEncode might need to replace more characters
 show URL := url -> (
+    if (showInEmacs and getenv "INSIDE_EMACS" != "" and
+	match("^file://", first url) and
+	match({"\\.png$", "\\.gif$", "\\.jpe?g$", "\\.svg$"}, first url))
+    then (
+	print concatenate("-* show URL: ", first url, " *-");
+	return);
     cmd := { getViewer("WWWBROWSER", "firefox"), url#0 }; -- TODO: silence browser messages, perhaps with "> /dev/null"
     if fork() == 0 then (
         setGroupID(0,0);
