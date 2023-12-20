@@ -58,6 +58,10 @@ Node
       By default, the viewer is determined by either @TT "open"@ on macOS or @TT "xdg-open"@ on
       Linux distributions. As backup for when neither @TT "open"@ nor @TT "xdg-open"@ is available,
       the environmental variable @TT "WWWBROWSER"@ or @TT "firefox"@ is used.
+
+      If called inside Emacs when @TO "showInEmacs"@ is @SAMP "true"@
+      and @SAMP "x"@ is the url of a local image file, then the image will
+      appear in the Emacs buffer.
   Caveat
     No attempt is made to wrap large matrices or equations.
     The code for this function is Unix dependent at the moment,
@@ -66,4 +70,20 @@ Node
     tex
     texMath
     html
+    "showInEmacs"
+///
+
+doc ///
+  Key
+    "showInEmacs"
+  Headline
+    whether to show images in the Emacs buffer
+  Description
+    Text
+      @SAMP "showInEmacs"@ is a @TO Boolean@, default value
+      @SAMP "false"@, that determines whether local image files will
+      be displayed inside the Macaulay2 Emacs buffer or an external
+      viewer when displayed using @TO show@.
+  SeeAlso
+    show
 ///
