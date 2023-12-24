@@ -441,7 +441,6 @@ shellfixes := {
      ("INFOPATH", currentLayout#"info",":"),
      ("LD_LIBRARY_PATH", currentLayout#"lib","")}
 emacsfixes := {
-     ("load-path", currentLayout#"emacs", emacstempl),
      -- the exec-path fix is not needed, because we exec the shell and ask it to find M2
      -- ("exec-path", currentLayout#"bin", emacstempl),
      ("Info-default-directory-list", currentLayout#"info", emacstempl),
