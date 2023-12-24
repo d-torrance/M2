@@ -387,12 +387,6 @@ emacsenvtempl := ///
 ///
 
 dotemacsFix0 = ///
-;; this version will give an error if M2-init.el is not found:
-(load "M2-init")
-
-;; this version will not give an error if M2-init.el is not found:
-;; (load "M2-init" t)
-
 ;; You may comment out the following line with an initial semicolon if you 
 ;; want to use your f12 key for something else.  However, this action
 ;; will be undone the next time you run setup() or setupEmacs().
