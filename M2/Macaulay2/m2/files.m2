@@ -482,7 +482,16 @@ prelim := () -> (
      promptUser = true;
      if prefixDirectory === null then error "can't determine Macaulay 2 prefix (prefixDirectory not set)";
      )
-installMethod(setupEmacs, () -> ( prelim(); mungeEmacs(); ))
+installMethod(setupEmacs, () -> (
+	prelim();
+	if run "command -v emacs > /dev/null" != 0
+	then error "cannot find Emacs";
+	if not fileExists(prefixDirectory | currentLayout#"emacs" | "M2.el")
+	then error "cannot find M2-emacs package files";
+	run("emacs --batch --eval \"(require 'package)\" " |
+	    "--eval \"(package-install-file \\\"" |
+	    prefixDirectory | currentLayout#"emacs" | "\\\")\"");
+	mungeEmacs(); ))
 installMethod(setup, () -> (
      prelim();
      dotprofileFix = concatenate(shHeader, apply(shellfixes, (var,dir,rest) -> fix(var,dir,rest,bashtempl)));
