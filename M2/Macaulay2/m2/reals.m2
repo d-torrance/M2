@@ -368,6 +368,12 @@ InfiniteNumber // Constant := (x,c) -> x // (numeric c)
 InfiniteNumber / Constant := (x,c) -> x / (numeric c)
 Constant ! := c -> (numeric c)!
 
+-- left division
+scan(toList(set {Constant, InfiniteNumber, Number, RingElement})^**2,
+    (S, T) -> (
+	installMethod(symbol \, S, T, (x, y) -> y / x);
+	installMethod(symbol \\, S, T, (x, y) -> y // x)))
+
 -- printing
 
 toString RealField := R -> concatenate("RR_",toString R.precision)
