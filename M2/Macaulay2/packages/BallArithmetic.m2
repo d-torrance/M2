@@ -1,5 +1,5 @@
 newPackage(
-    "Arb",
+    "BallArithmetic",
     PackageImports => {"ForeignFunctions"})
 
 export {
