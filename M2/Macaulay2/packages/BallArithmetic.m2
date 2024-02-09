@@ -5,11 +5,9 @@ newPackage(
 export {
     -- types
     "CCball",
-    "RRball",
+    "RRball"
 
     -- methods
-    "Li",
-    "zetaZero"
     }
 
 libarb = openSharedLibrary "flint-arb"
@@ -136,14 +134,11 @@ scan({
 +RRball := identity
 
 -- binary methods
-Li = method()
-
 scan({
 	("arb_add", symbol +),
 	("arb_atan2", atan2),
 	("arb_div", symbol /),
 	("arb_mul", symbol *),
-	("arb_polylog", Li),
 	("arb_pow", symbol ^),
 	("arb_sub", symbol -)
 	}, (arbf, m2f) -> (
@@ -158,13 +153,6 @@ scan({
 	installMethod(m2f, RRball, Constant, (x, y) -> g(x, RRball y));
 	installMethod(m2f, Number, RRball, (x, y) -> g(RRball x, y));
 	installMethod(m2f, Constant, RRball, (x, y) -> g(RRball x, y))))
-
-scan({Li}, f -> (
-	g := (x, y) -> f(RRball x, RRball y);
-	installMethod(f, Number, Number, g);
-	installMethod(f, Number, Constant, g);
-	installMethod(f, Constant, Number, g);
-	installMethod(f, Constant, Constant, g)))
 
 arbEq = foreignFunction(libarb, "arb_eq", int, {voidstar, voidstar})
 arbLt = foreignFunction(libarb, "arb_lt", int, {voidstar, voidstar})
@@ -229,14 +217,5 @@ new CCball from CC := (T, x) -> (
     if x == ii then acbOnei z
     else acbSetSiSi(z, realPart x, imaginaryPart x);
     z)
-
-acbDirichletZetaZeros = foreignFunction(libarb, "acb_dirichlet_zeta_zeros",
-    void, {voidstar, voidstar, long, long})
-zetaZero = method()
-zetaZero ZZ := n -> (
-    if n < 1 then error "expected n >= 1";
-    result := new CCball;
-    acbDirichletZetaZeros(result, fmpzT n, 1, defaultPrecision);
-    result)
 
 end
