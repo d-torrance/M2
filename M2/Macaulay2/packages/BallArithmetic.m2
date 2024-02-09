@@ -146,7 +146,7 @@ scan({
 	    {voidstar, voidstar, voidstar, long});
 	g := (x, y) -> (
 	    z := new RRball;
-	    f(z, x, y, min(precision x, precision y);
+	    f(z, x, y, min(precision x, precision y));
 	    z);
 	installMethod(m2f, RRball, RRball, g);
 	installMethod(m2f, RRball, Number, (x, y) -> g(x, RRball y));
