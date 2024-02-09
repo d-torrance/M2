@@ -8,6 +8,7 @@ export {
     "RRball",
 
     -- methods
+    "Li",
     "zetaZero"
     }
 
@@ -59,48 +60,59 @@ new RRball := T -> new T from {
     registerFinalizer(x, arbClear);
     x}
 
-arbSetSi = foreignFunction(libarb, "arb_set_si", void, {voidstar, long})
-new RRball from ZZ := (T, x) -> (
-    y := new T;
-    arbSetSi(y, x);
-    y)
-
-arbSetD := foreignFunction(libarb, "arb_set_d", void, {voidstar, double})
+arbSetIntervalMpfr = foreignFunction(libarb, "arb_set_interval_mpfr",
+    void, {voidstar, mpfrT, mpfrT, long})
 new RRball from RR := (T, x) -> (
     y := new T;
-    arbSetD(y, x);
+    arbSetIntervalMpfr(y, x, x, precision x);
     y)
-new RRball from QQ := new RRball from Constant := (T, x) -> T numeric x
+new RRball from RRi := (T, x) -> (
+    if left x > right x then error "expected endpoints to be ordered";
+    y := new T;
+    arbSetIntervalMpfr(y, left x, right x, precision x);
+    y)
+new RRball from Number := new RRball from Constant := (T, x) -> T numeric x
+
+arbGetIntervalMpfr := foreignFunction(libarb, "arb_get_interval_mpfr",
+    void, {mpfrT, mpfrT, voidstar})
+new RRi from RRball := (T, x) -> (
+    a := mpfrT 0;
+    b := mpfrT 0;
+    arbGetIntervalMpfr(a, b, x);
+    interval(value a, value b))
 
 -- unary methods
 scan({
-	("arb_floor", floor),
-	("arb_ceil", ceiling),
-	("arb_neg_round", symbol -),
-	("arb_sqrt", sqrt),
-	("arb_log", log),
-	("arb_exp", exp),
-	("arb_sin", sin),
-	("arb_cos", cos),
-	("arb_tan", tan),
-	("arb_cot", cot),
-	("arb_sec", sec),
-	("arb_csc", csc),
-	("arb_atan", atan),
-	("arb_asin", asin),
+	("arb_abs", abs),
 	("arb_acos", acos),
-	("arb_sinh", sinh),
-	("arb_cosh", cosh),
-	("arb_tanh", tanh),
-	("arb_coth", coth),
-	("arb_sech", sech),
-	("arb_csch", csch),
-	("arb_atanh", atanh),
-	("arb_asinh", asinh),
 	("arb_acosh", acosh),
+	("arb_asin", asin),
+	("arb_asinh", asinh),
+	("arb_atan", atan),
+	("arb_atanh", atanh),
+	("arb_ceil", ceiling),
+	("arb_cos", cos),
+	("arb_cosh", cosh),
+	("arb_cot", cot),
+	("arb_coth", coth),
+	("arb_csc", csc),
+	("arb_csch", csch),
+	("arb_digamma", Digamma),
+	("arb_exp", exp),
+	("arb_expm1", expm1),
+	("arb_floor", floor),
 	("arb_gamma", Gamma),
 	("arb_lgamma", lngamma),
-	("arb_digamma", Digamma),
+	("arb_log", log),
+	("arb_log1p", log1p),
+	("arb_neg_round", symbol -),
+	("arb_sec", sec),
+	("arb_sech", sech),
+	("arb_sin", sin),
+	("arb_sinh", sinh),
+	("arb_sqrt", sqrt),
+	("arb_tan", tan),
+	("arb_tanh", tanh),
 	("arb_zeta", zeta)
 	}, (arbf, m2f) -> (
 	f := foreignFunction(libarb, arbf, void, {voidstar, voidstar, long});
@@ -109,20 +121,38 @@ scan({
 		f(y, x, defaultPrecision);
 		y))))
 
++RRball := identity
+
 -- binary methods
+Li = method()
+
 scan({
 	("arb_add", symbol +),
-	("arb_sub", symbol -),
-	("arb_mul", symbol *),
+	("arb_atan2", atan2),
 	("arb_div", symbol /),
-	("arb_pow", symbol ^)
+	("arb_mul", symbol *),
+	("arb_polylog", Li),
+	("arb_pow", symbol ^),
+	("arb_sub", symbol -)
 	}, (arbf, m2f) -> (
 	f := foreignFunction(libarb, arbf, void,
 	    {voidstar, voidstar, voidstar, long});
-	installMethod(m2f, RRball, RRball, (x, y) -> (
-		z := new RRball;
-		f(z, x, y, defaultPrecision);
-		z))))
+	g := (x, y) -> (
+	    z := new RRball;
+	    f(z, x, y, defaultPrecision);
+	    z);
+	installMethod(m2f, RRball, RRball, g);
+	installMethod(m2f, RRball, Number, (x, y) -> g(x, RRball y));
+	installMethod(m2f, RRball, Constant, (x, y) -> g(x, RRball y));
+	installMethod(m2f, Number, RRball, (x, y) -> g(RRball x, y));
+	installMethod(m2f, Constant, RRball, (x, y) -> g(RRball x, y))))
+
+scan({Li}, f -> (
+	g := (x, y) -> f(RRball x, RRball y);
+	installMethod(f, Number, Number, g);
+	installMethod(f, Number, Constant, g);
+	installMethod(f, Constant, Number, g);
+	installMethod(f, Constant, Constant, g)))
 
 arbEq = foreignFunction(libarb, "arb_eq", int, {voidstar, voidstar})
 arbLt = foreignFunction(libarb, "arb_lt", int, {voidstar, voidstar})
@@ -136,6 +166,11 @@ RRball ? RRball := (x, y) -> (
 
 arbContains = foreignFunction(libarb, "arb_contains", int, {voidstar, voidstar})
 isSubset(RRball, RRball) := (x, y) -> value arbContains(y, x) == 1
+
+arbContainsMpfr := foreignFunction(libarb, "arb_contains_mpfr", int,
+    {voidstar, mpfrT})
+isMember(Number, RRball) :=
+isMember(Constant, RRball) := (x, y) -> value arbContainsMpfr(y, x) == 1
 
 ------------
 -- CCball --
@@ -195,7 +230,7 @@ zetaZero ZZ := n -> (
 end
 
 restart
-loadPackage("Arb", Reload => true)
+loadPackage("BallArithmetic", Reload => true)
 new CCball
 
 sin RRball 3
