@@ -52,6 +52,9 @@ arbGetStr = foreignFunction(libarb, "arb_get_str", charstar, {
 	voidstar, long, ulong})
 net RRball := x -> value arbGetStr(x, printingPrecision, 0)
 
+-- TODO: maybe make a struct?
+arbT = voidstar
+
 arbInit = foreignFunction(libarb, "arb_init", void, voidstar)
 arbClear = foreignFunction(libarb, "arb_clear", void, voidstar)
 new RRball := T -> new T from {
@@ -59,6 +62,9 @@ new RRball := T -> new T from {
     arbInit x;
     registerFinalizer(x, arbClear);
     x}
+
+-- TODO: is this what I want?  it gives the *minimum* precision necessary
+precision RRball := value @@ (foreignFunction(libarb, "arb_bits", long, arbT))
 
 arbSetIntervalMpfr = foreignFunction(libarb, "arb_set_interval_mpfr",
     void, {voidstar, mpfrT, mpfrT, long})
@@ -76,8 +82,9 @@ new RRball from Number := new RRball from Constant := (T, x) -> T numeric x
 arbGetIntervalMpfr := foreignFunction(libarb, "arb_get_interval_mpfr",
     void, {mpfrT, mpfrT, voidstar})
 new RRi from RRball := (T, x) -> (
-    a := mpfrT 0;
-    b := mpfrT 0;
+    p := precision x;
+    a := mpfrT numeric(p, 0);
+    b := mpfrT numeric(p, 0);
     arbGetIntervalMpfr(a, b, x);
     interval(value a, value b))
 
