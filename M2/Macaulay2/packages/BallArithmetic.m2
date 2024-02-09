@@ -63,8 +63,12 @@ new RRball := T -> new T from {
     registerFinalizer(x, arbClear);
     x}
 
--- TODO: is this what I want?  it gives the *minimum* precision necessary
-precision RRball := value @@ (foreignFunction(libarb, "arb_bits", long, arbT))
+-- TODO: how should this work?  arb_bits gives *minimum* precision necessary,
+-- so we get small precision for integers
+arbBits = foreignFunction(libarb, "arb_bits", long, arbT)
+precision RRball := x -> (
+    p := value arbBits x;
+    if p > defaultPrecision then p else defaultPrecision)
 
 arbSetIntervalMpfr = foreignFunction(libarb, "arb_set_interval_mpfr",
     void, {voidstar, mpfrT, mpfrT, long})
@@ -77,6 +81,7 @@ new RRball from RRi := (T, x) -> (
     y := new T;
     arbSetIntervalMpfr(y, left x, right x, precision x);
     y)
+new RRball from CC := (T, x) -> error "expected a real number"
 new RRball from Number := new RRball from Constant := (T, x) -> T numeric x
 
 arbGetIntervalMpfr := foreignFunction(libarb, "arb_get_interval_mpfr",
@@ -90,7 +95,7 @@ new RRi from RRball := (T, x) -> (
 
 -- unary methods
 scan({
-	("arb_abs", abs),
+	("arb_abs", abs), -- TODO: this one doesn't take a precision argument
 	("arb_acos", acos),
 	("arb_acosh", acosh),
 	("arb_asin", asin),
@@ -112,7 +117,7 @@ scan({
 	("arb_lgamma", lngamma),
 	("arb_log", log),
 	("arb_log1p", log1p),
-	("arb_neg_round", symbol -),
+	("arb_neg_round", symbol -), -- TODO: maybe use arb_neg instead?
 	("arb_sec", sec),
 	("arb_sech", sech),
 	("arb_sin", sin),
@@ -125,7 +130,7 @@ scan({
 	f := foreignFunction(libarb, arbf, void, {voidstar, voidstar, long});
 	installMethod(m2f, RRball, x -> (
 		y := new RRball;
-		f(y, x, defaultPrecision);
+		f(y, x, precision x);
 		y))))
 
 +RRball := identity
@@ -146,7 +151,7 @@ scan({
 	    {voidstar, voidstar, voidstar, long});
 	g := (x, y) -> (
 	    z := new RRball;
-	    f(z, x, y, defaultPrecision);
+	    f(z, x, y, min(precision x, precision y);
 	    z);
 	installMethod(m2f, RRball, RRball, g);
 	installMethod(m2f, RRball, Number, (x, y) -> g(x, RRball y));
@@ -235,22 +240,3 @@ zetaZero ZZ := n -> (
     result)
 
 end
-
-restart
-loadPackage("BallArithmetic", Reload => true)
-new CCball
-
-sin RRball 3
-
-isSubset(RRball 2, RRball 2)
-
-realBall 2 > realBall 2
-
-x = realBall numeric pi
-y = realBall 2
-ceiling y
-x^y
-printingPrecision = 6
-
-realBall 2 / realBall 3
-
