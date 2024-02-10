@@ -12,30 +12,6 @@ export {
 
 libarb = openSharedLibrary "flint-arb"
 
-
-------------
--- fmpz_t --
-------------
--- flint's integer type -- for interntal use only (for now?)
-fmpzT = new SelfInitializingType of BasicList
-
-ForeignPointerType fmpzT := (T, x) -> x#0
-
-fmpzGetStr = foreignFunction(libarb, "fmpz_get_str", charstar, {
-	voidstar, int, voidstar})
-net fmpzT := f -> value fmpzGetStr(nullPointer, 10, f)
-
-fmpzInitSetSi = foreignFunction(libarb, "fmpz_init_set_si", void,
-    {voidstar, long})
-fmpzClear = foreignFunction(libarb, "fmpz_clear", void, voidstar)
-
-
-new fmpzT from ZZ := (T, n) -> new T from {
-    f := getMemory long;
-    fmpzInitSetSi(f, n);
-    registerFinalizer(f, fmpzClear);
-    f}
-
 --------------
 -- RRball --
 --------------
