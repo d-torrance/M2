@@ -151,46 +151,75 @@ isMember(Constant, RRball) := (x, y) -> value arbContainsMpfr(y, x) == 1
 -- CCball --
 ------------
 
+acbT = voidstar
 CCball = new SelfInitializingType of BasicList
 
 ForeignPointerType CCball := (T, x) -> x#0
 
-acbRealPtr = foreignFunction(libarb, "acb_real_ptr", voidstar, voidstar)
-acbImagPtr = foreignFunction(libarb, "acb_imag_ptr", voidstar, voidstar)
-net CCball := z -> concatenate(
-    net RRball {acbRealPtr z},
-    "+",
-    net RRball {acbImagPtr z},
-    "*ii")
+acbRealPtr = foreignFunction(libarb, "acb_real_ptr", arbT, acbT)
+acbImagPtr = foreignFunction(libarb, "acb_imag_ptr", arbT, acbT)
+realPart CCball := z -> RRball {acbRealPtr z}
+imaginaryPart CCball := z -> RRball {acbImagPtr z}
 
-acbInit = foreignFunction(libarb, "acb_init", void, voidstar)
-acbClear = foreignFunction(libarb, "acb_clear", void, voidstar)
+net CCball := z -> net realPart z | "+" | net imaginaryPart z | "*ii"
+
+acbInit = foreignFunction(libarb, "acb_init", void, acbT)
+acbClear = foreignFunction(libarb, "acb_clear", void, acbT)
 new CCball := T -> new T from {
     z := getMemory 32;
     acbInit z;
     registerFinalizer(z, acbClear);
     z}
 
-acbSetSi = foreignFunction(libarb, "acb_set_si", void, {voidstar, long})
-new CCball from ZZ := (T, x) -> (
+acbSetArbArb = foreignFunction(libarb, "acb_set_arb_arb", void,
+    {acbT, arbT, arbT})
+new CCball from Number := (T, x) -> (
     z := new T;
-    acbSetSi(z, x);
+    acbSetArbArb(z, RRball realPart x, RRball imaginaryPart x);
     z)
+new CCball from Constant := (T, x) -> T numeric x
 
-acbSetD = foreignFunction(libarb, "acb_set_d", void, {voidstar, double})
-new CCball from RR := (T, x) -> (
-    z := new T;
-    acbSetD(z, x);
-    z)
-new CCball from QQ := new CCball from Constant := (T, x) -> T numeric x
+numeric(ZZ, CCball) := (p, z) -> (
+    numeric(p, realPart z) + ii * numeric(p, imaginaryPart z))
+numeric CCball := z -> numeric(defaultPrecision, z)
 
-acbOnei = foreignFunction(libarb, "acb_onei", void, voidstar)
-acbSetSiSi = foreignFunction(libarb, "acb_set_si_si", void,
-    {voidstar, double, double})
-new CCball from CC := (T, x) -> (
-    z := new T;
-    if x == ii then acbOnei z
-    else acbSetSiSi(z, realPart x, imaginaryPart x);
-    z)
+-- unary methods
+scan({
+	("acb_acos", acos),
+	("acb_acosh", acosh),
+	("acb_asin", asin),
+	("acb_asinh", asinh),
+	("acb_atan", atan),
+	("acb_atanh", atanh),
+	("acb_cos", cos),
+	("acb_cosh", cosh),
+	("acb_cot", cot),
+	("acb_coth", coth),
+	("acb_csc", csc),
+	("acb_csch", csch),
+	("acb_digamma", Digamma),
+	("acb_exp", exp),
+	("acb_expm1", expm1),
+	("acb_gamma", Gamma),
+	("acb_lgamma", lngamma),
+	("acb_log", log),
+	("acb_log1p", log1p),
+	("acb_neg_round", symbol -),
+	("acb_sec", sec),
+	("acb_sech", sech),
+	("acb_sin", sin),
+	("acb_sinh", sinh),
+	("acb_sqrt", sqrt),
+	("acb_tan", tan),
+	("acb_tanh", tanh),
+	("acb_zeta", zeta)
+	}, (acbf, m2f) -> (
+	f := foreignFunction(libarb, acbf, void, {acbT, acbT, long});
+	installMethod(m2f, CCball, x -> (
+		y := new CCball;
+		f(y, x, defaultPrecision);
+		y))))
+
+-- TODO: acb_abs (should return RRball)
 
 end
