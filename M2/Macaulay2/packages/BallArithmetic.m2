@@ -16,36 +16,27 @@ libarb = openSharedLibrary "flint-arb"
 -- RRball --
 --------------
 
--- an RRball is a basic list containing one element, a voidstar object
+-- an RRball is a basic list containing one element, an arbT object
 -- with the address of the corresponding arb_t
+arbT = voidstar
 RRball = new SelfInitializingType of BasicList
 
 ForeignPointerType RRball := (T, x) -> x#0
 
 arbGetStr = foreignFunction(libarb, "arb_get_str", charstar, {
-	voidstar, long, ulong})
+	arbT, long, ulong})
 net RRball := x -> value arbGetStr(x, printingPrecision, 0)
 
--- TODO: maybe make a struct?
-arbT = voidstar
-
-arbInit = foreignFunction(libarb, "arb_init", void, voidstar)
-arbClear = foreignFunction(libarb, "arb_clear", void, voidstar)
+arbInit = foreignFunction(libarb, "arb_init", void, arbT)
+arbClear = foreignFunction(libarb, "arb_clear", void, arbT)
 new RRball := T -> new T from {
     x := getMemory 16;
     arbInit x;
     registerFinalizer(x, arbClear);
     x}
 
--- TODO: how should this work?  arb_bits gives *minimum* precision necessary,
--- so we get small precision for integers
-arbBits = foreignFunction(libarb, "arb_bits", long, arbT)
-precision RRball := x -> (
-    p := value arbBits x;
-    if p > defaultPrecision then p else defaultPrecision)
-
 arbSetIntervalMpfr = foreignFunction(libarb, "arb_set_interval_mpfr",
-    void, {voidstar, mpfrT, mpfrT, long})
+    void, {arbT, mpfrT, mpfrT, long})
 new RRball from RR := (T, x) -> (
     y := new T;
     arbSetIntervalMpfr(y, x, x, precision x);
@@ -59,11 +50,10 @@ new RRball from CC := (T, x) -> error "expected a real number"
 new RRball from Number := new RRball from Constant := (T, x) -> T numeric x
 
 arbGetIntervalMpfr := foreignFunction(libarb, "arb_get_interval_mpfr",
-    void, {mpfrT, mpfrT, voidstar})
+    void, {mpfrT, mpfrT, arbT})
 new RRi from RRball := (T, x) -> (
-    p := precision x;
-    a := mpfrT numeric(p, 0);
-    b := mpfrT numeric(p, 0);
+    a := mpfrT 0;
+    b := mpfrT 0;
     arbGetIntervalMpfr(a, b, x);
     interval(value a, value b))
 
@@ -101,10 +91,10 @@ scan({
 	("arb_tanh", tanh),
 	("arb_zeta", zeta)
 	}, (arbf, m2f) -> (
-	f := foreignFunction(libarb, arbf, void, {voidstar, voidstar, long});
+	f := foreignFunction(libarb, arbf, void, {arbT, arbT, long});
 	installMethod(m2f, RRball, x -> (
 		y := new RRball;
-		f(y, x, precision x);
+		f(y, x, defaultPrecision);
 		y))))
 
 +RRball := identity
@@ -119,10 +109,10 @@ scan({
 	("arb_sub", symbol -)
 	}, (arbf, m2f) -> (
 	f := foreignFunction(libarb, arbf, void,
-	    {voidstar, voidstar, voidstar, long});
+	    {arbT, arbT, arbT, long});
 	g := (x, y) -> (
 	    z := new RRball;
-	    f(z, x, y, min(precision x, precision y));
+	    f(z, x, y, defaultPrecision);
 	    z);
 	installMethod(m2f, RRball, RRball, g);
 	installMethod(m2f, RRball, Number, (x, y) -> g(x, RRball y));
@@ -130,9 +120,9 @@ scan({
 	installMethod(m2f, Number, RRball, (x, y) -> g(RRball x, y));
 	installMethod(m2f, Constant, RRball, (x, y) -> g(RRball x, y))))
 
-arbEq = foreignFunction(libarb, "arb_eq", int, {voidstar, voidstar})
-arbLt = foreignFunction(libarb, "arb_lt", int, {voidstar, voidstar})
-arbGt = foreignFunction(libarb, "arb_gt", int, {voidstar, voidstar})
+arbEq = foreignFunction(libarb, "arb_eq", int, {arbT, arbT})
+arbLt = foreignFunction(libarb, "arb_lt", int, {arbT, arbT})
+arbGt = foreignFunction(libarb, "arb_gt", int, {arbT, arbT})
 RRball == RRball := (x, y) -> value arbEq(x, y) == 1
 RRball ? RRball := (x, y) -> (
     if value arbLt(x, y) == 1 then symbol <
@@ -140,11 +130,11 @@ RRball ? RRball := (x, y) -> (
     else if x == y then symbol ==
     else incomparable)
 
-arbContains = foreignFunction(libarb, "arb_contains", int, {voidstar, voidstar})
+arbContains = foreignFunction(libarb, "arb_contains", int, {arbT, arbT})
 isSubset(RRball, RRball) := (x, y) -> value arbContains(y, x) == 1
 
 arbContainsMpfr := foreignFunction(libarb, "arb_contains_mpfr", int,
-    {voidstar, mpfrT})
+    {arbT, mpfrT})
 isMember(Number, RRball) :=
 isMember(Constant, RRball) := (x, y) -> value arbContainsMpfr(y, x) == 1
 
