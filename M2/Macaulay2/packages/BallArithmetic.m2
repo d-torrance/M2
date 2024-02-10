@@ -49,13 +49,23 @@ new RRball from RRi := (T, x) -> (
 new RRball from CC := (T, x) -> error "expected a real number"
 new RRball from Number := new RRball from Constant := (T, x) -> T numeric x
 
+-- kind of a hack -- relying on the fact that the first member of arb_struct
+-- is an arf_struct
+arfGetMpfr = foreignFunction(libarb, "arf_get_mpfr", int, {mpfrT, arbT, int})
+numeric(ZZ, RRball) := (p, x) -> (
+    r := mpfrT numeric(p, 0);
+    arfGetMpfr(r, x, 0);
+    value r)
+numeric RRball := x -> numeric(defaultPrecision, x)
+
 arbGetIntervalMpfr := foreignFunction(libarb, "arb_get_interval_mpfr",
     void, {mpfrT, mpfrT, arbT})
-new RRi from RRball := (T, x) -> (
-    a := mpfrT 0;
-    b := mpfrT 0;
+numericInterval(ZZ, RRball) := (p, x) -> (
+    a := mpfrT numeric(p, 0);
+    b := mpfrT numeric(p, 0);
     arbGetIntervalMpfr(a, b, x);
     interval(value a, value b))
+numericInterval RRball := x -> numericInterval(defaultPrecision, x)
 
 -- unary methods
 scan({
