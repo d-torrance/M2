@@ -143,7 +143,7 @@ RRball ? RRball := (x, y) -> (
 arbContains = foreignFunction(libarb, "arb_contains", int, {arbT, arbT})
 isSubset(RRball, RRball) := (x, y) -> value arbContains(y, x) == 1
 
-arbContainsMpfr := foreignFunction(libarb, "arb_contains_mpfr", int,
+arbContainsMpfr = foreignFunction(libarb, "arb_contains_mpfr", int,
     {arbT, mpfrT})
 isMember(Number, RRball) :=
 isMember(Constant, RRball) := (x, y) -> value arbContainsMpfr(y, x) == 1
