@@ -61,7 +61,7 @@ numeric(ZZ, RRball) := (p, x) -> (
     r := mpfrT numeric(p, 0);
     arfGetMpfr(r, arbMidPtr x, 0);
     value r)
-numeric RRball := x -> numeric(defaultPrecision, x)
+numeric RRball := x -> numeric(precision x, x)
 
 arbGetIntervalMpfr := foreignFunction(libarb, "arb_get_interval_mpfr",
     void, {mpfrT, mpfrT, arbT})
@@ -165,37 +165,42 @@ isMember(Constant, RRball) := (x, y) -> value arbContainsMpfr(y, x) == 1
 ------------
 
 acbT = voidstar
-CCball = new SelfInitializingType of BasicList
+CCball = new SelfInitializingType of MutableList
 
 ForeignPointerType CCball := (T, x) -> x#0
+precision CCball := x -> x#1
 
 acbInit = foreignFunction(libarb, "acb_init", void, acbT)
 acbClear = foreignFunction(libarb, "acb_clear", void, acbT)
-new CCball := T -> new T from {
-    z := getMemory 32;
-    acbInit z;
-    registerFinalizer(z, acbClear);
-    z}
+new CCball := T -> new T from {(
+	z := getMemory 32;
+	acbInit z;
+	registerFinalizer(z, acbClear);
+	z),
+    defaultPrecision}
 
 acbSetArbArb = foreignFunction(libarb, "acb_set_arb_arb", void,
     {acbT, arbT, arbT})
 new CCball from Number := (T, x) -> (
     z := new T;
+    z#1 = if not isInfinite precision x then precision x else defaultPrecision;
     acbSetArbArb(z, RRball realPart x, RRball imaginaryPart x);
     z)
 new CCball from Constant := (T, x) -> T numeric x
 new CCball from RRball := (T, x) -> (
     z := new T;
+    z#1 = precision x;
     acbSetArbArb(z, x, RRball 0);
     z)
 
 numeric(ZZ, CCball) := (p, z) -> (
     numeric(p, realPart z) + ii * numeric(p, imaginaryPart z))
-numeric CCball := z -> numeric(defaultPrecision, z)
+numeric CCball := z -> numeric(precision z, z)
 
 net CCball := z -> (
     imag := imaginaryPart z;
     net realPart z | (if imag >= 0 then "+" else "-") | net abs imag | "*ii")
+CCball.AfterPrint = InexactNumber.AfterPrint
 
 -- unary methods w/o precision
 scan({
@@ -205,6 +210,7 @@ scan({
 	f := foreignFunction(libarb, acbf, void, {acbT, acbT});
 	installMethod(m2f, CCball, x -> (
 		y := new CCball;
+		y#1 = precision x;
 		f(y, x);
 		y))))
 +CCball := identity
@@ -242,7 +248,8 @@ scan({
 	f := foreignFunction(libarb, acbf, void, {acbT, acbT, long});
 	installMethod(m2f, CCball, x -> (
 		y := new CCball;
-		f(y, x, defaultPrecision);
+		y#1 = precision x;
+		f(y, x, precision y);
 		y))))
 
 -- unary methods returning RRball's
@@ -254,7 +261,8 @@ scan({
 	f := foreignFunction(libarb, acbf, void, {arbT, acbT, long});
 	installMethod(m2f, CCball, x -> (
 		y := new RRball;
-		f(y, x, defaultPrecision);
+		y#1 = precision x;
+		f(y, x, precision y);
 		y))))
 
 -- binary methods
@@ -269,7 +277,8 @@ scan({
 	    {acbT, acbT, acbT, long});
 	g := (x, y) -> (
 	    z := new CCball;
-	    f(z, x, y, defaultPrecision);
+	    z#1 = min(precision x, precision y);
+	    f(z, x, y, precision z);
 	    z);
 	installMethod(m2f, CCball, CCball, g);
 	installMethod(m2f, CCball, Number, (x, y) -> g(x, CCball y));
