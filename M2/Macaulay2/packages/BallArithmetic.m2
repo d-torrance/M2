@@ -70,7 +70,7 @@ numericInterval(ZZ, RRball) := (p, x) -> (
     b := mpfrT numeric(p, 0);
     arbGetIntervalMpfr(a, b, x);
     interval(value a, value b))
-numericInterval RRball := x -> numericInterval(defaultPrecision, x)
+numericInterval RRball := x -> numericInterval(precision x, x)
 
 -- unary methods
 scan({
