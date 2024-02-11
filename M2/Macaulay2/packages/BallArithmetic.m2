@@ -16,35 +16,41 @@ libarb = openSharedLibrary "flint-arb"
 -- RRball --
 --------------
 
--- an RRball is a basic list containing one element, an arbT object
--- with the address of the corresponding arb_t
+-- an RRball is a mutable list containing two elements:
+-- an arbT object with the address of the corresponding arb_t
+-- its precision as a ZZ
 arbT = voidstar
-RRball = new SelfInitializingType of BasicList
+RRball = new SelfInitializingType of MutableList
 
 ForeignPointerType RRball := (T, x) -> x#0
+precision RRball := x -> x#1
 
 arbGetStr = foreignFunction(libarb, "arb_get_str", charstar, {
 	arbT, long, ulong})
-net RRball := x -> value arbGetStr(x, printingPrecision, 0)
+net RRball := x -> value arbGetStr(x, precision x * log 2 / log 10, 0)
+RRball.AfterPrint = InexactNumber.AfterPrint
 
 arbInit = foreignFunction(libarb, "arb_init", void, arbT)
 arbClear = foreignFunction(libarb, "arb_clear", void, arbT)
-new RRball := T -> new T from {
-    x := getMemory 16;
-    arbInit x;
-    registerFinalizer(x, arbClear);
-    x}
+new RRball := T -> new T from {(
+	x := getMemory 16;
+	arbInit x;
+	registerFinalizer(x, arbClear);
+	x),
+    defaultPrecision}
 
 arbSetIntervalMpfr = foreignFunction(libarb, "arb_set_interval_mpfr",
     void, {arbT, mpfrT, mpfrT, long})
 new RRball from RR := (T, x) -> (
     y := new T;
-    arbSetIntervalMpfr(y, x, x, precision x);
+    y#1 = precision x;
+    arbSetIntervalMpfr(y, x, x, precision y);
     y)
 new RRball from RRi := (T, x) -> (
     if left x > right x then error "expected endpoints to be ordered";
     y := new T;
-    arbSetIntervalMpfr(y, left x, right x, precision x);
+    y#1 = precision x;
+    arbSetIntervalMpfr(y, left x, right x, precision y);
     y)
 new RRball from CC := (T, x) -> error "expected a real number"
 new RRball from Number := new RRball from Constant := (T, x) -> T numeric x
@@ -103,7 +109,8 @@ scan({
 	f := foreignFunction(libarb, arbf, void, {arbT, arbT, long});
 	installMethod(m2f, RRball, x -> (
 		y := new RRball;
-		f(y, x, defaultPrecision);
+		y#1 = precision x;
+		f(y, x, precision y);
 		y))))
 
 +RRball := identity
@@ -121,7 +128,8 @@ scan({
 	    {arbT, arbT, arbT, long});
 	g := (x, y) -> (
 	    z := new RRball;
-	    f(z, x, y, defaultPrecision);
+	    z#1 = min(precision x, precision y);
+	    f(z, x, y, precision z);
 	    z);
 	installMethod(m2f, RRball, RRball, g);
 	installMethod(m2f, RRball, Number, (x, y) -> g(x, RRball y));
