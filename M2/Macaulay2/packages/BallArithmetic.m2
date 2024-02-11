@@ -133,11 +133,15 @@ arbEq = foreignFunction(libarb, "arb_eq", int, {arbT, arbT})
 arbLt = foreignFunction(libarb, "arb_lt", int, {arbT, arbT})
 arbGt = foreignFunction(libarb, "arb_gt", int, {arbT, arbT})
 RRball == RRball := (x, y) -> value arbEq(x, y) == 1
+RRball == Number := RRball == Constant := (x, y) -> x == RRball y
+Number == RRball := Constant == RRball := (x, y) -> RRball x == y
 RRball ? RRball := (x, y) -> (
     if value arbLt(x, y) == 1 then symbol <
     else if value arbGt(x, y) == 1 then symbol >
     else if x == y then symbol ==
     else incomparable)
+RRball ? Number := RRball ? Constant := (x, y) -> x ? RRball y
+Number ? RRball := Constant ? RRball := (x, y) -> RRball x ? y
 
 arbContains = foreignFunction(libarb, "arb_contains", int, {arbT, arbT})
 isSubset(RRball, RRball) := (x, y) -> value arbContains(y, x) == 1
@@ -156,13 +160,6 @@ CCball = new SelfInitializingType of BasicList
 
 ForeignPointerType CCball := (T, x) -> x#0
 
-acbRealPtr = foreignFunction(libarb, "acb_real_ptr", arbT, acbT)
-acbImagPtr = foreignFunction(libarb, "acb_imag_ptr", arbT, acbT)
-realPart CCball := z -> RRball {acbRealPtr z}
-imaginaryPart CCball := z -> RRball {acbImagPtr z}
-
-net CCball := z -> net realPart z | "+" | net imaginaryPart z | "*ii"
-
 acbInit = foreignFunction(libarb, "acb_init", void, acbT)
 acbClear = foreignFunction(libarb, "acb_clear", void, acbT)
 new CCball := T -> new T from {
@@ -178,12 +175,31 @@ new CCball from Number := (T, x) -> (
     acbSetArbArb(z, RRball realPart x, RRball imaginaryPart x);
     z)
 new CCball from Constant := (T, x) -> T numeric x
+new CCball from RRball := (T, x) -> (
+    z := new T;
+    acbSetArbArb(z, x, RRball 0);
+    z)
 
 numeric(ZZ, CCball) := (p, z) -> (
     numeric(p, realPart z) + ii * numeric(p, imaginaryPart z))
 numeric CCball := z -> numeric(defaultPrecision, z)
 
--- unary methods
+net CCball := z -> (
+    imag := imaginaryPart z;
+    net realPart z | (if imag >= 0 then "+" else "-") | net abs imag | "*ii")
+
+-- unary methods w/o precision
+scan({
+	("acb_neg", symbol -),
+	("acb_conj", conjugate)
+	}, (acbf, m2f) -> (
+	f := foreignFunction(libarb, acbf, void, {acbT, acbT});
+	installMethod(m2f, CCball, x -> (
+		y := new CCball;
+		f(y, x);
+		y))))
+
+-- unary methods w/ precision
 scan({
 	("acb_acos", acos),
 	("acb_acosh", acosh),
@@ -204,7 +220,6 @@ scan({
 	("acb_lgamma", lngamma),
 	("acb_log", log),
 	("acb_log1p", log1p),
-	("acb_neg_round", symbol -),
 	("acb_sec", sec),
 	("acb_sech", sech),
 	("acb_sin", sin),
@@ -220,6 +235,40 @@ scan({
 		f(y, x, defaultPrecision);
 		y))))
 
--- TODO: acb_abs (should return RRball)
+-- unary methods returning RRball's
+scan({
+	("acb_abs", abs),
+	("acb_get_imag", imaginaryPart),
+	("acb_get_real", realPart)
+	}, (acbf, m2f) -> (
+	f := foreignFunction(libarb, acbf, void, {arbT, acbT, long});
+	installMethod(m2f, CCball, x -> (
+		y := new RRball;
+		f(y, x, defaultPrecision);
+		y))))
+
+-- binary methods
+scan({
+	("acb_add", symbol +),
+	("acb_div", symbol /),
+	("acb_mul", symbol *),
+	("acb_pow", symbol ^),
+	("acb_sub", symbol -)
+	}, (acbf, m2f) -> (
+	f := foreignFunction(libarb, acbf, void,
+	    {acbT, acbT, acbT, long});
+	g := (x, y) -> (
+	    z := new CCball;
+	    f(z, x, y, defaultPrecision);
+	    z);
+	installMethod(m2f, CCball, CCball, g);
+	installMethod(m2f, CCball, Number, (x, y) -> g(x, CCball y));
+	installMethod(m2f, CCball, Constant, (x, y) -> g(x, CCball y));
+	installMethod(m2f, CCball, RRball, (x, y) -> g(x, CCball y));
+	installMethod(m2f, Number, CCball, (x, y) -> g(CCball x, y));
+	installMethod(m2f, Constant, CCball, (x, y) -> g(CCball x, y));
+	installMethod(m2f, RRball, CCball, (x, y) -> g(CCball x, y))))
 
 end
+
+loadPackage("BallArithmetic", Reload => true)
