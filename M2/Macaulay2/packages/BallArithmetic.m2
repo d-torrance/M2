@@ -153,6 +153,7 @@ Number ? RRball := Constant ? RRball := (x, y) -> RRball x ? y
 
 arbContains = foreignFunction(libarb, "arb_contains", int, {arbT, arbT})
 isSubset(RRball, RRball) := (x, y) -> value arbContains(y, x) == 1
+isSubset(RRi, RRball) := (x, y) -> isSubset(RRball x, y)
 
 arbContainsMpfr = foreignFunction(libarb, "arb_contains_mpfr", int,
     {arbT, mpfrT})
@@ -206,6 +207,7 @@ scan({
 		y := new CCball;
 		f(y, x);
 		y))))
++CCball := identity
 
 -- unary methods w/ precision
 scan({
@@ -276,6 +278,30 @@ scan({
 	installMethod(m2f, Number, CCball, (x, y) -> g(CCball x, y));
 	installMethod(m2f, Constant, CCball, (x, y) -> g(CCball x, y));
 	installMethod(m2f, RRball, CCball, (x, y) -> g(CCball x, y))))
+
+acbEq = foreignFunction(libarb, "acb_eq", int, {acbT, acbT})
+CCball == CCball := (x, y) -> value acbEq(x, y) == 1
+CCball == Number   :=
+CCball == Constant :=
+CCball == RRball   := (x, y) -> x == CCball y
+Number   == CCball :=
+Constant == CCball :=
+RRball   == CCball := (x, y) -> CCball x == y
+
+acbContains = foreignFunction(libarb, "acb_contains", int, {acbT, acbT})
+isSubset(CCball, CCball) := (x, y) -> value acbContains(y, x) == 1
+isSubset(RRi,    CCball) :=
+isSubset(RRball, CCball) := (x, y) -> isSubset(CCball x, y)
+
+isMember(Number,   CCball) :=
+isMember(Constant, CCball) := (x, y) -> isSubset(CCball x, y)
+isMember(RRi, RRball) :=
+isMember(RRi, CCball) := (x, y) -> error(
+    "expected argument 1 to be a non-interval type; use 'isSubset' instead")
+
+acbIsReal = foreignFunction(libarb, "acb_is_real", int, acbT)
+isReal RRball := x -> true
+isReal CCball := x -> value acbIsReal x == 1
 
 end
 
