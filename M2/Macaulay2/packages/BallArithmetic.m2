@@ -21,6 +21,7 @@ libarb = openSharedLibrary "flint-arb"
 -- its precision as a ZZ
 arbT = voidstar
 RRball = new SelfInitializingType of MutableList
+RRball.synonym = "real ball"
 
 ForeignPointerType RRball := (T, x) -> x#0
 precision RRball := x -> x#1
@@ -166,6 +167,7 @@ isMember(Constant, RRball) := (x, y) -> value arbContainsMpfr(y, x) == 1
 
 acbT = voidstar
 CCball = new SelfInitializingType of MutableList
+CCball.synonym = "complex ball"
 
 ForeignPointerType CCball := (T, x) -> x#0
 precision CCball := x -> x#1
