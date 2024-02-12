@@ -170,16 +170,16 @@ arbContainsMpfr = foreignFunction(libarb, "arb_contains_mpfr", int,
 isMember(Number, RRball) :=
 isMember(Constant, RRball) := (x, y) -> value arbContainsMpfr(y, x) == 1
 
--- TODO: what to do about empty intersection? unlike RRi, no notion of
--- "empty" ball
+-- empty intersection is null, since by definition no RRball is empty
 arbIntersection = foreignFunction(libarb, "arb_intersection", int,
     {arbT, arbT, arbT, long})
 intersect RRball := {} >> o -> identity
+intersect(Nothing, RRball) := {} >> o -> (x, y) -> null
 intersect(RRball, RRball) := {} >> o -> (x, y) -> (
     z := new RRball;
     z#1 = min(precision x, precision y);
-    arbIntersection(z, x, y, precision z);
-    z)
+    r := value arbIntersection(z, x, y, precision z);
+    if r != 0 then z)
 
 ------------
 -- CCball --
