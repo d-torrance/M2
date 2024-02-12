@@ -323,6 +323,66 @@ acbIsReal = foreignFunction(libarb, "acb_is_real", int, acbT)
 isReal RRball := x -> true
 isReal CCball := x -> value acbIsReal x == 1
 
+TEST ///
+-- RRball
+x = RRball 5
+assert Equation(precision x, defaultPrecision)
+x = RRball 5p100
+assert Equation(precision x, 100)
+assertStrictEquation = (x, y) -> assert BinaryOperation(symbol ===, x, y)
+assertStrictEquation(numeric x, 5p100)
+assertStrictEquation(numeric(53, x), 5p53)
+assertStrictEquation(numericInterval x, interval(5p100, 5p100))
+assertStrictEquation(numericInterval(53, x), interval(5p53, 5p53))
+
+assertNear = (x, y) -> assert BinaryOperation(symbol <, abs(x - y), 1e-15)
+for f in {abs, acos, asin, asinh, atan, atanh, ceiling, cos, cosh,
+    cot, coth, csc, csch, Digamma, exp, expm1, floor, Gamma, lngamma, log,
+    log1p, sec, sech, sin, sinh, sqrt, tan, tanh, zeta} do (
+    x := if f === acosh then 1.5 else 0.5;
+    assertNear(numeric f RRball x, f x))
+assert Equation(+RRball 5, RRball 5)
+assert Equation(-RRball 5, RRball(-5))
+
+assert Equation(RRball 2 + RRball 3, RRball 5)
+assert Equation(RRball 2 + 3, RRball 5)
+assert Equation(2 + RRball 3, RRball 5)
+assert Equation(RRball 2 - RRball 3, RRball (-1))
+assert Equation(RRball 2 - 3, RRball (-1))
+assert Equation(2 - RRball 3, RRball (-1))
+assert Equation(RRball 2 * RRball 3, RRball 6)
+assert Equation(RRball 2 * 3, RRball 6)
+assert Equation(2 * RRball 3, RRball 6)
+assertNear(numeric(RRball 2 / RRball 3), numeric RRball(2/3))
+assertNear(numeric(RRball 2 / 3), numeric RRball(2/3))
+assertNear(numeric(2 / RRball 3), numeric RRball(2/3))
+assert Equation(RRball 2 ^ (RRball 3), RRball 8)
+assert Equation(RRball 2 ^ 3, RRball 8)
+assert Equation(2 ^ (RRball 3), RRball 8)
+assertNear(numeric atan2(RRball 2, RRball 3), atan2(2, 3))
+assertNear(numeric atan2(RRball 2, 3), atan2(2, 3))
+assertNear(numeric atan2(2, RRball 3), atan2(2, 3))
+assert BinaryOperation(symbol <, RRball 2, RRball 3)
+assert BinaryOperation(symbol <, 2, RRball 3)
+assert BinaryOperation(symbol <, RRball 2, 3)
+assert BinaryOperation(symbol <=, RRball 2, RRball 3)
+assert BinaryOperation(symbol <=, 2, RRball 3)
+assert BinaryOperation(symbol <=, RRball 2, 3)
+assert BinaryOperation(symbol >, RRball 3, RRball 2)
+assert BinaryOperation(symbol >, 3, RRball 2)
+assert BinaryOperation(symbol >, RRball 3, 2)
+assert BinaryOperation(symbol >=, RRball 3, RRball 2)
+assert BinaryOperation(symbol >=, 3, RRball 2)
+assert BinaryOperation(symbol >=, RRball 3, 2)
+assert isSubset(RRball interval(2, 3), RRball interval(1, 4))
+assert not isSubset(RRball interval(3, 5), RRball interval(1, 4))
+assert isSubset(interval(2, 3), RRball interval(1, 4))
+assert not isSubset(interval(3, 5), RRball interval(1, 4))
+assert isMember(2, RRball interval(1, 4))
+assert not isMember(5, RRball interval(1, 4))
+///
+
 end
 
 loadPackage("BallArithmetic", Reload => true)
+check oo
