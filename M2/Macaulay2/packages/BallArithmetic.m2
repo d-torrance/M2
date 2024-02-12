@@ -73,9 +73,21 @@ numericInterval(ZZ, RRball) := (p, x) -> (
     interval(value a, value b))
 numericInterval RRball := x -> numericInterval(precision x, x)
 
--- unary methods
+-- unary methods w/o precision
 scan({
-	("arb_abs", abs), -- TODO: this one doesn't take a precision argument
+	("arb_abs", abs),
+	("arb_neg", symbol -)
+	}, (arbf, m2f) -> (
+	f := foreignFunction(libarb, arbf, void, {arbT, arbT});
+	installMethod(m2f, RRball, x -> (
+		y := new RRball;
+		y#1 = precision x;
+		f(y, x);
+		y))))
++RRball := identity
+
+-- unary methods w/ precision
+scan({
 	("arb_acos", acos),
 	("arb_acosh", acosh),
 	("arb_asin", asin),
@@ -97,7 +109,6 @@ scan({
 	("arb_lgamma", lngamma),
 	("arb_log", log),
 	("arb_log1p", log1p),
-	("arb_neg_round", symbol -), -- TODO: maybe use arb_neg instead?
 	("arb_sec", sec),
 	("arb_sech", sech),
 	("arb_sin", sin),
@@ -113,8 +124,6 @@ scan({
 		y#1 = precision x;
 		f(y, x, precision y);
 		y))))
-
-+RRball := identity
 
 -- binary methods
 scan({
