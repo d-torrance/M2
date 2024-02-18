@@ -82,7 +82,8 @@ missingPackages = () -> (
 		    "SecondPackage.m2",
 		    -- false positives
 		    "RisaAsir.m2", -- author field empty
-		    "SchurRingsOld.m2" -- copyright dan, not package authors
+		    "SchurRingsOld.m2", -- copyright dan, not package authors
+		    "ExampleFreeResolutions.m2" -- author field empty
 		    })), f -> replace("\\.m2$", "", f));
     pkgs := sort(distributedPkgs | undistributedPkgs);
     missing := select(pkgs, pkg ->
