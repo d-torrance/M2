@@ -59,6 +59,15 @@ document {
 			which used to be in the ", TO "Dmodules::Dmodules", " package." },
 		    LI { "The package ", TO "Varieties::Varieties", " has been added to encapsulate existing and new functionality for working
 			with affine and projective varieties and coherent sheaves on them. The package adds support for maps of coherent sheaves." },
+		    LI {TO "A1BrouwerDegrees::A1BrouwerDegrees", ", a package by Thomas Brazelton, Frenly Espino, Tom Hagedorn, Zhaobo Han, Jordy Lopez Garcia, Joel Louwsma, Andrew Tawfeek, Wern Juin Gabriel Ong, and Wern Juin Gabriel Ong for for working with A1-Brouwer degree computations, has been added." },
+		    LI {TO "AdjunctionForSurfaces::AdjunctionForSurfaces", ", a package by Frank-Olaf Schreyer for Adjunction for Surfaces, has been added." },
+		    LI {TO "MatrixSchubert::MatrixSchubert", ", a package by Sean Grate, Daoji Huang, Patricia Klein, Adam LaClair, Yuyuan Luo, Joseph McDonough, and Joseph McDonough for functions for investigating ASM and matrix Schubert varieties, has been added." },
+		    LI {TO "OIGroebnerBases::OIGroebnerBases", ", a package by Michael Morrow for OI-modules over Noetherian polynomial OI-algebras, has been added." },
+		    LI {TO "PlaneCurveLinearSeries::PlaneCurveLinearSeries", ", a package by David Eisenbud for Linear series on the normalization of a plane curve, has been added." },
+		    LI {TO "QuadraticIdealExamplesByRoos::QuadraticIdealExamplesByRoos", ", a package by Michael Perlman, Ritvik Ramkumar, Deepak Sireeshan, Aleksandra Sobieska, Teresa Yu, Jacob Zoromski, and Jacob Zoromski for Examples of Quadratic Ideals with Embedding Dimension Four by Jan-Erik Roos, has been added." },
+		    LI {TO "RInterface::RInterface", ", a package by Doug Torrance for interface to R for statistical computing, has been added." },
+		    LI {TO "TerraciniLoci::TerraciniLoci", ", a package by Pierpaola Santarsiero, Doug Torrance, Ettore Teixeira Turatti, and Ettore Teixeira Turatti for Terracini loci of projective varieties, has been added." },
+		    LI {TO "Valuations::Valuations", ", a package by Colin Alstad, Michael Byrd, Ethan Partida, Shelby Cox, Courtney George, Oliver Clarke, and Oliver Clarke for implementation of valuations for rings, has been added." }
 		    }
 	       },
 	  LI { "functionality added or improved:",
