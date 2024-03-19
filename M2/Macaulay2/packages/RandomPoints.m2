@@ -15,7 +15,21 @@ newPackage(
         PackageImports => {"SwitchingFields", "MinimalPrimes", "ConwayPolynomials"}, 
 		DebuggingMode => false, 
 		Reload=>false,
-		AuxiliaryFiles => false -- set to true if package comes with auxiliary files
+		AuxiliaryFiles => false, -- set to true if package comes with auxiliary files
+		Certification => {
+		    "journal name" => "Journal of Software for Algebra and Geometry",
+		    "journal URI" => "https://msp.org/jsag/",
+		    "article title" => "Finding points on varieties with Macaulay2",
+		    "acceptance date" => "2023-05-08",
+		    "published article URI" => "https://msp.org/jsag/2023/13-1/jsag-v13-n1-p03-s.pdf",
+		    "published article DOI" => "https://doi.org/10.2140/jsag.2023.13.33",
+		    "published code URI" => "https://msp.org/jsag/2023/13-1/jsag-v13-n1-x03-RandomPoints.m2",
+		    "repository code URI" => "https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/RandomPoints.m2",
+		    "release at publication" => "e6309b33b380f45c9959574fdfb06717f6ed7dfc",  -- git commit number in hex
+		    "version at publication" => "1.5.3",
+		    "volume number" => "13",
+		    "volume URI" => "https://msp.org/jsag/2023/13-1/"
+		    }
     	)
 
 -- Any symbols or functions that the user is to have access to
