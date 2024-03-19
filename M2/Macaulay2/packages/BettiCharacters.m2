@@ -25,7 +25,21 @@ newPackage(
      	       Email => "galetto.federico@gmail.com",
 	       HomePage => "http://math.galetto.org"}},
      Headline => "finite group characters on free resolutions and graded modules",
-     DebuggingMode => false
+     DebuggingMode => false,
+     Certification => {
+	 "journal name" => "Journal of Software for Algebra and Geometry",
+	 "journal URI" => "https://msp.org/jsag/",
+	 "article title" => "Setting the scene for Betti characters",
+	 "acceptance date" => "2023-05-30",
+	 "published article URI" => "https://msp.org/jsag/2023/13-1/jsag-v13-n1-p04-s.pdf",
+	 "published article DOI" => "https://doi.org/10.2140/jsag.2023.13.45",
+	 "published code URI" => "https://msp.org/jsag/2023/13-1/jsag-v13-n1-x03-BettiCharacters.m2",
+	 "repository code URI" => "https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/BettiCharacters.m2",
+	 "release at publication" => "59befb3f08d6c5f8df8304686f9bb816943ce60c",
+	 "version at publication" => "2.1",
+	 "volume number" => "13",
+	 "volume URI" => "https://msp.org/jsag/2023/13-1/"
+	 }
      )
 
 export {
