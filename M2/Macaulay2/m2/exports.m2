@@ -995,6 +995,8 @@ export {
 	"pad",
 	"pager",
 	"pairs",
+	"parallelApply",
+	"parallelApplyRaw",
 	"parent",
 	"part",
 	"partition",
