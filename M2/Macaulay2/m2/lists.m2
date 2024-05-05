@@ -17,6 +17,11 @@ List ? List := (s,t) -> if class s === class t then toSequence s ? toSequence t 
 Option ? Option := (s,t) -> toSequence s ? toSequence t
 
 VisibleList _ ZZ := (s,i) -> s#i
+VisibleList _<  ZZ := VisibleList => (s, i) -> take(s, max(i, 0))
+VisibleList _<= ZZ := VisibleList => (s, i) -> take(s, max(i + 1, 0))
+VisibleList _>  ZZ := VisibleList => (s, i) -> take(s, {i + 1, #s - 1})
+VisibleList _>= ZZ := VisibleList => (s, i) -> take(s, {i, #s - 1})
+
 String _ ZZ := String => (s,i) -> s#i
 String _ Sequence := String => (s,p) -> substring(p,s)
 
