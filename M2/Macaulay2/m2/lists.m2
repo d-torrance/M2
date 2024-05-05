@@ -23,6 +23,15 @@ VisibleList _>  ZZ := VisibleList => (s, i) -> take(s, {i + 1, #s - 1})
 VisibleList _>= ZZ := VisibleList => (s, i) -> take(s, {i, #s - 1})
 
 String _ ZZ := String => (s,i) -> s#i
+String _<  ZZ := String => (s, i) -> substring(s, 0, i)
+String _<= ZZ := String => (s, i) -> substring(s, 0, i + 1)
+String _>  ZZ := String => (s, i) -> (
+    i = max(i, -1);
+    substring(s, i + 1, #s - i - 1))
+String _>= ZZ := String => (s, i) -> (
+    i = max(i, 0);
+    substring(s, i, #s - i))
+
 String _ Sequence := String => (s,p) -> substring(p,s)
 
 List | List  := List => join
