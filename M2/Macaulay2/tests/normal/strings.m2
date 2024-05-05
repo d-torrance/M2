@@ -75,3 +75,17 @@ assert BinaryOperation(symbol ===, tally "Hello, world!", new Tally from {
 assert Equation(ascii "\"\\\a\b\e\E\f\n\r\t\v",
     {0x22, 0x5c, 0x07, 0x08, 0x1b, 0x1b, 0x0c, 0x0a, 0x0d, 0x09, 0x0b})
 assert Equation("\172\x7a\x7A\u007a\u007A", "zzzzz")
+
+-- truncation
+assert Equation("abc"_<   1, "a")
+assert Equation("abc"_<  -1, "")
+assert Equation("abc"_<   4, "abc")
+assert Equation("abc"_<=  1, "ab")
+assert Equation("abc"_<= -1, "")
+assert Equation("abc"_<=  4, "abc")
+assert Equation("abc"_>   1, "c")
+assert Equation("abc"_>  -1, "abc")
+assert Equation("abc"_>   4, "")
+assert Equation("abc"_>=  1, "bc")
+assert Equation("abc"_>= -1, "abc")
+assert Equation("abc"_>=  4, "")
