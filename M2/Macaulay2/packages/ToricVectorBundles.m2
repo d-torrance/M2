@@ -25,6 +25,7 @@ newPackage("ToricVectorBundles",
 	 "article title" => "Computations with equivariant toric vector bundles",
 	 "acceptance date" => "2010-06-15",
 	 "published article URI" => "https://msp.org/jsag/2010/2-1/p03.xhtml",
+	 "published article DOI" => "10.2140/jsag.2010.2.11",
 	 "published code URI" => "https://msp.org/jsag/2010/2-1/jsag-v2-n1-x03-code.zip",
 	 "repository code URI" => "https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/ToricVectorBundles.m2",
 	 "release at publication" => "314a1e7a1a5f612124f23e2161c58eabeb491f46",
@@ -1246,7 +1247,7 @@ rank ToricVectorBundle := T -> T#"rank of the vector bundle"
 -- PURPOSE : Giving the rays of the underlying Fan of a toric vector bundle
 --   INPUT : 'tvb',  a TorcVectorBundle
 --  OUTPUT : 'L',  a List containing the rays of the Fan underlying the bundle
-rays ToricVectorBundle := tvb -> raySortOfFan tvb#"ToricVariety"
+rays ToricVectorBundle := {} >> o -> tvb -> raySortOfFan tvb#"ToricVariety"
 
 
 -- PURPOSE : Computing the 'l'-th symmetric power of a Toric Vector Bundle
