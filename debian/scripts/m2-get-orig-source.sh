@@ -119,14 +119,11 @@ fi
 git fetch https://github.com/$REMOTE/M2 $REF 2> /dev/null
 
 echo -n "determining version number ... "
-GIT_VERSION=$(git show FETCH_HEAD:M2/VERSION)
-NEW_COMMITS=$(git rev-list \
-		  $(git rev-list -1 FETCH_HEAD M2/VERSION)..FETCH_HEAD --count)
-GIT_COMMIT=$(git rev-parse FETCH_HEAD) # cut -c 1-7 (or 9)
+GIT_DESCRIPTION=$(git describe --tags FETCH_HEAD)
 
 if [ -z $VERSION ]
 then
-    VERSION=$GIT_VERSION+git$NEW_COMMITS.$(echo $GIT_COMMIT | cut -c 1-7)
+    VERSION=$(echo $GIT_DESCRIPTION | sed 's/^release-//')
 fi
 echo $VERSION
 
@@ -212,14 +209,20 @@ then
     echo "debian/changelog already up to date"
     DO_GIT_COMMIT=
 else
-    GIT_DESCRIPTION=version-$GIT_VERSION-$NEW_COMMITS-$(echo $GIT_COMMIT | \
-							cut -c 1-9)
     echo "using git description ... $GIT_DESCRIPTION"
 
     echo -n "updating debian/patches/git-description.patch ... "
     quilt push debian/patches/git-description.patch > /dev/null
-    sed -i "s/^then GIT_DESCRIPTION=.*/then GIT_DESCRIPTION=$GIT_DESCRIPTION/" \
+    sed -i "s/GIT_DESCRIPTION=.*/GIT_DESCRIPTION=$GIT_DESCRIPTION/" \
 	M2/configure.ac
+    if [ $REF = "development" ]
+    then
+	sed -i "s/GIT_BRANCH=.*/GIT_BRANCH=development/" \
+	    M2/configure.ac
+    else
+	sed -i "s/GIT_BRANCH=.*/GIT_BRANCH=master/" \
+	    M2/configure.ac
+    fi
     quilt refresh > /dev/null
     quilt pop -a > /dev/null
     echo "done"
