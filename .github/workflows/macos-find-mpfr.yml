@@ -13,19 +13,22 @@ jobs:
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
           echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH"
           echo "DYLD_FALLBACK_LIBRARY_PATH=$DYLD_FALLBACK_LIBRARY_PATH"
-          ls -l /usr/local/lib/libmpfr.dylib
       - name: Run dlopen
         run: |
-          export DYLD_LIBRARY_PATH="/usr/local/lib"
           cat << EOF > foo.c
           #include <dlfcn.h>
           #include <stdio.h>
           int main(void) {
-            if (!dlopen("libmpfr.dylib", RTLD_LAZY)) {
+            if (!dlopen("libfoo.dylib", RTLD_LAZY))
               puts(dlerror());
-              return 1;
-            } else return 0;
+          return 0;
           }
           EOF
+
           gcc foo.c -o foo
+          echo before:
           ./foo
+          export DYLD_LIBRARY_PATH="/usr/local/lib"
+          echo after:
+          ./foo
+
