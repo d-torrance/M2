@@ -751,7 +751,7 @@ document {
                     LI { "The ", TO "FLINT", " library, and several others, no longer need to be patched while building Macaulay2.
 			 This involved a reorganization of the way memory management is done in the engine and the interpreter.
 		      	 As a result, we can use versions of several basic libraries as provided by the operating system, including ", 
-		      	 TO "GNU MP", ",", TO "MPIR", ",", TO "MPFR", ", and the ", TO "NTL library", "." 
+			 TO "GNU MP", ",", TT "MPIR", ",", TO "MPFR", ", and the ", TO "NTL library", "."
 			 },
 		    LI {
 			 TEX {
@@ -2432,9 +2432,7 @@ document {
 		    TO (symmetricAlgebra,Ring,Nothing,Matrix),
 		    TO (symmetricAlgebra,Ring,Ring,Matrix),
 		    TO (symbol ^, Number, Ring),
-		    TO (symbol ^, Number, RingFamily),
-		    TO (symbol ^, Constant, Ring),
-		    TO (symbol ^, Constant, RingFamily)
+		    TO (symbol ^, Number, RingFamily)
 		    }
 	       },
 	  LI { "new variables:",
