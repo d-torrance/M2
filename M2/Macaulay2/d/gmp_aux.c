@@ -19,6 +19,7 @@ int mpfr_hash(mpfr_srcptr x) {
 
   n = (x->_mpfr_prec+mp_bits_per_limb-1)/mp_bits_per_limb;
   h = mpn_mod_1(x->_mpfr_d, (mp_size_t)n, 2147483647);
+  printf("%d\n", h);
   return 777 + h * 3737 + x->_mpfr_exp + 11 * x->_mpfr_sign;
 }
 
