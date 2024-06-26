@@ -52,6 +52,21 @@ ifeq ($(DISABLE_DOCUMENTATION),)
 	mv node_modules M2/Macaulay2/editors/prism
 endif
 
+# prevent html-check-links from failing to find KaTeX files before
+# they get added by dh_linktree
+KATEX_DIR := $(CURDIR)/M2/Macaulay2/packages/Style/katex
+KATEX_FILES := $(patsubst %, $(KATEX_DIR)/%, \
+	katex.min.css katex.min.js contrib/auto-render.min.js \
+	contrib/copy-tex.min.js contrib/render-a11y-string.min.js)
+
+$(KATEX_DIR):
+	mkdir -p $@/contrib
+
+$(KATEX_DIR)/%: $(KATEX_DIR)
+	touch $@
+
+execute_before_dh_auto_build-indep: $(KATEX_FILES)
+
 # copy cached example output files (for examples known to fail on
 # various architectures) to source directory
 # see generateExamples in debian/scripts/Debian.m2
@@ -64,7 +79,6 @@ $(CURDIR)/M2/Macaulay2/packages/%/examples: $(CURDIR)/debian/examples/%
 	cp -v $</*.out $@
 
 execute_before_dh_auto_build: $(EXAMPLE_DEST)
-	mkdir -p M2/Macaulay2/packages/Style/katex
 	touch M2/Macaulay2/packages/Style/prism.js
 
 # since a "test" target exists, dh_auto_test defaults to using that, but
