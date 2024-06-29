@@ -170,6 +170,12 @@ AC_CHECK_PROGS(OBJDUMP,objdump,false)
 AC_CHECK_PROGS(OBJCOPY,objcopy,false)
 AC_CHECK_PROGS(LDD,ldd,false)
 AC_CHECK_PROGS(GIT,git,false)
+AC_CHECK_PROGS(PATCH,patch,false)
+AS_IF([test $PATCH = false], AC_MSG_ERROR([patch is required]))
+AC_CHECK_PROGS(WHICH,which,false) dnl used by 4ti2
+AS_IF([test $WHICH = false], AC_MSG_ERROR([which is required]))
+AC_CHECK_PROGS(CMP,cmp,false)
+AS_IF([test $CMP = false], AC_MSG_ERROR([cmp is required]))
 
 AC_CHECK_TOOL(AR,ar,false)
 AC_CHECK_TOOL(AS,as,false)
@@ -223,7 +229,12 @@ elif test "$DOCUMENTATION" = yes
 then DOCUMENTATION="html info"
 else for DOCTYPE in $DOCUMENTATION
     do case $DOCTYPE in
-            html|info|pdf)
+            html|pdf)
+                ;;
+            info)
+                AC_CHECK_PROGS([INSTALL_INFO], [install-info], [false])
+                AS_IF([test $INSTALL_INFO = false],
+                    AC_MSG_ERROR([install-info is required]))
                 ;;
             *)
                 AC_MSG_ERROR([unknown documentation type ($DOCTYPE); expected html, info, or pdf])
@@ -261,9 +272,13 @@ AC_PROG_CXX()			# set CXXFLAGS before this
 AC_SUBST(GXX)			# gets set to yes or no by AC_PROG_CXX
 
 AC_PROG_YACC()
-if test "$YACC" = byacc
-then AC_MSG_ERROR([byacc found, but leads to a crash in scc1: install bison instead])
-fi
+AS_IF([test "$YACC" != "bison -y"], [AC_MSG_ERROR([bison is required])])
+
+dnl TODO: once autoconf 2.70 is available everyowhere, use the following:
+dnl AC_PROG_LEX([noyywrap])
+dnl the pre-2.70 version w/o arguments is deprecated and gives a warning
+AC_PROG_LEX()
+AS_IF([test "$LEX" != "flex"], [AC_MSG_ERROR([flex is required])])
 
 AC_PROG_RANLIB()
 AC_PROG_INSTALL()
@@ -640,10 +655,10 @@ AC_SUBST(BUILTLIBS)
 #    (Programs linked by this configure script are linked with the options in LIBS.  This allows libraries
 #    dependent on previously detected libraries to be detected by tests that involve linking.
 
-AC_SUBST(LIBLIST, " gc gdbm gmp mpfr mpfi readline ntl flint factory lapack mpsolve frobby glpk cddlib fplll givaro fflas_ffpack linbox gtest memtailor mathic mathicgb ")
+AC_SUBST(LIBLIST, " gc gdbm gmp mpfr mpfi normaliz readline ntl flint factory lapack mpsolve frobby glpk cddlib fplll givaro fflas_ffpack linbox gtest memtailor mathic mathicgb ")
 # The list LIBLIST is the list of libraries that might be used and linked into M2.
 
-AC_SUBST(PROGLIST, "4ti2 gfan normaliz csdp nauty cddplus lrslib gftables topcom cohomcalg")
+AC_SUBST(PROGLIST, "4ti2 gfan csdp nauty cddplus lrslib gftables topcom cohomcalg")
 # The list PROGLIST is the list of programs and libraries for them that are distributed with M2.
 #     Initially, we offer no option for not compiling some of them.
 
@@ -991,17 +1006,33 @@ else AC_MSG_RESULT([no, will build])
      BUILD_csdp=yes
 fi
 
-AC_MSG_CHECKING(whether the package normaliz is installed)
-if command -v normaliz
-then normaliz_version=`normaliz --version | head -1 | cut -d " " -f 2`
-     AX_COMPARE_VERSION([$normaliz_version], [ge], [2.11],
-          [AC_MSG_RESULT([yes])
-           FILE_PREREQS="$FILE_PREREQS `command -v normaliz`"],
-          [AC_MSG_RESULT([yes, but < 2.11, will build])
-           BUILD_normaliz=yes])
-else AC_MSG_RESULT([no, will build])
-     BUILD_normaliz=yes
-fi
+AS_IF([test $BUILD_normaliz = no],
+    [AC_MSG_CHECKING(whether the package normaliz is installed)
+     AS_IF([command -v normaliz > /dev/null],
+	 [normaliz_version=`normaliz --version | head -1 | cut -d " " -f 2`
+	  AX_COMPARE_VERSION([$normaliz_version], [ge], [2.11],
+	      [AC_MSG_RESULT([yes])
+	       AC_MSG_CHECKING([for libnormaliz])
+	       AC_LANG(C++)
+	       SAVELIBS=$LIBS
+	       LIBS="$LIBS -lnormaliz -lnauty -lgmp"
+	       AC_LINK_IFELSE(
+		   [AC_LANG_PROGRAM([
+		       #include <libnormaliz/libnormaliz.h>
+		       ],
+		       [libnormaliz::Cone<long long>()])],
+		   [AC_MSG_RESULT([yes])
+		    FILE_PREREQS="$FILE_PREREQS `command -v normaliz`"],
+		   [AC_MSG_RESULT([no, will build])
+		    BUILD_normaliz=yes
+		    LIBS=$SAVELIBS])],
+	      [AC_MSG_RESULT([yes, but < 2.11, will build])
+	       BUILD_normaliz=yes])],
+        [AC_MSG_RESULT([no, will build])
+         BUILD_normaliz=yes])])
+
+AS_IF([test $BUILD_normaliz = yes],
+    [BUILTLIBS="-lnormaliz -fopenmp $BUILTLIBS"])
 
 if test "$BUILD_nauty" = no
 then dnl debian/fedora: nauty-
@@ -1095,11 +1126,19 @@ dnl factory needs to know:
 AC_SUBST(BUILD_ntl)
 
 AC_LANG(C++)
-AC_CHECK_HEADER(frobby.h,LIBS="-lfrobby $LIBS",BUILD_frobby=yes)
+AC_CHECK_HEADER([frobby.h],
+    [LIBS="-lfrobby $LIBS"],
+    dnl check /usr/include/frobby (e.g., on Fedora)
+    [SAVECPPFLAGS="$CPPFLAGS"
+     CPPFLAGS="$CPPFLAGS -I/usr/include/frobby"
+     AS_UNSET([ac_cv_header_frobby_h])
+     AC_CHECK_HEADER([frobby.h],
+         [LIBS="-lfrobby $LIBS"],
+         [CPPFLAGS="$SAVECPPFLAGS"
+          BUILD_frobby=yes])])
 if test $BUILD_frobby = yes
 then BUILTLIBS="-lfrobby $BUILTLIBS"
-    dnl uncomment this to [1] when frobby is built from a submodule (?)
-    dnl AC_DEFINE([HAVE_FROBBY_VERSION], [0], [whether frobby has frobby_version])
+    AC_DEFINE([HAVE_FROBBY_VERSION], [1], [whether frobby has frobby_version])
 else
     AC_MSG_CHECKING([whether frobby has frobby_version])
     AC_COMPILE_IFELSE(
@@ -1184,6 +1223,8 @@ then
 else AC_LANG(C++)
     AC_SEARCH_LIBS(MEMTAILOR_VERSION_STRING,memtailor,,BUILD_memtailor=yes)
     AC_CHECK_HEADER(memtailor.h,,BUILD_memtailor=yes)
+    AS_IF([test $BUILD_memtailor = yes],
+          [AC_MSG_WARN([memtailor not found, will build])])
 fi
 
 AC_ARG_WITH([system-mathic],
@@ -1198,6 +1239,8 @@ then
 else AC_LANG(C++)
     AC_SEARCH_LIBS(MATHIC_VERSION_STRING,mathic,,BUILD_mathic=yes)
     AC_CHECK_HEADER(mathic.h,,BUILD_mathic=yes)
+    AS_IF([test $BUILD_mathic = yes],
+          [AC_MSG_WARN([mathic not found, will build])])
 fi
 
 AC_ARG_WITH([system-mathicgb],
@@ -1212,6 +1255,9 @@ then
 else AC_LANG(C++)
     AC_SEARCH_LIBS(MATHICGB_VERSION_STRING,mathicgb,,BUILD_mathicgb=yes)
     AC_CHECK_HEADER(mathicgb.h,,BUILD_mathicgb=yes)
+    AC_CHECK_HEADER(mathicgb/mtbb.hpp,,BUILD_mathicgb=yes)
+    AS_IF([test $BUILD_mathicgb = yes],
+          [AC_MSG_WARN([mathicgb not found, will build])])
 fi
 
 if test $BUILD_gtest = no
