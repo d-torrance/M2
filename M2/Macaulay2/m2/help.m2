@@ -38,7 +38,7 @@ operator := binary + prefix + postfix + augmented
 seeAbout := (f, i) -> (
     if     lastabout === null then error "no previous 'about' response";
     if not lastabout#?i       then error("previous 'about' response contains no entry numbered ", i);
-    f lastabout#i)
+    f lastabout#i#2#0)
 
 -----------------------------------------------------------------------------
 -- these menus have to get sorted, so optTO and optTOCLASS return sequence:
