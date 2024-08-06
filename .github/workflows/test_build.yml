@@ -10,6 +10,7 @@ name: Build and Test Macaulay2
 
 on:
   workflow_dispatch:
+  push:
   pull_request:
     branches:
       - master
@@ -28,7 +29,6 @@ defaults:
 
 jobs:
   build:
-    if: github.repository == 'Macaulay2/M2' || contains(github.ref, 'global')
     name: ${{ matrix.build-system }}-${{ matrix.os }}-${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -36,23 +36,11 @@ jobs:
       matrix:
         build-system:
           - autotools
-          - cmake
         os:
           - ubuntu-24.04
           - macos-13
         compiler:
           - default
-        include:
-          # This build tests Clang rather than AppleClang (keep)
-          - build-system: cmake
-            os: macos-13 # TODO: switch to macos-14 for arm64 testing
-            compiler: clang-15
-            cxx: clang++
-            cc: clang
-        exclude:
-          - build-system: cmake
-            os: macos-13
-            compiler: default
     steps:
       - uses: actions/checkout@v4
 
@@ -160,7 +148,8 @@ jobs:
           export CPPFLAGS="-I`brew --prefix`/include -I`brew --prefix libomp`/include"
           export  LDFLAGS="-L`brew --prefix`/lib -L`brew --prefix libomp`/lib \
             -L/Library/Frameworks/Python.framework/Versions/${PYVERSION}/lib"
-          ../../configure --enable-download --with-python --with-system-gc
+          ../../configure --enable-download --with-python --with-system-gc \
+            --enable-build-libraries=ntl
 
       - name: Build Macaulay2 using Make
         if: matrix.build-system == 'autotools'
