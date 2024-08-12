@@ -812,6 +812,7 @@ export notFun(rhs:Code):Expr := (
      else unarymethod(a,notS));
 setup(notS,notFun);
 EqualEqualEqualfun(lhs:Code,rhs:Code):Expr := (
+    -- # typical value: symbol ===, Thing, Thing, Boolean
      x := eval(lhs);
      when x is Error do x
      else (
@@ -822,6 +823,7 @@ setup(EqualEqualEqualS,EqualEqualEqualfun);
 quicknot(z:Expr):Expr := (
      when z is Error do z else if z == True then False else True
      );
+-- # typical value: symbol =!=, Thing, Thing, Boolean
 notEqualEqualEqualfun(lhs:Code,rhs:Code):Expr := quicknot(EqualEqualEqualfun(lhs,rhs));
 setup(NotEqualEqualEqualS,notEqualEqualEqualfun);
 smallintarrays0 := new array(Expr) len 20 at i do (
@@ -838,6 +840,7 @@ DotDotfun(lhs:Code,rhs:Code):Expr := (
 	  when right
 	  is Error do right
 	  is yy:ZZcell do (
+	      -- # typical value: symbol .., ZZ, ZZ, Sequence
 	       y := yy.v;
 	       if isInt(x) && isInt(y) then (
 	  	    i := toInt(x);
@@ -869,6 +872,7 @@ DotDotLessFun(lhs:Code,rhs:Code):Expr := (
 	  when right
 	  is Error do right
 	  is yy:ZZcell do (
+	      -- # typical value: symbol ..<, ZZ, ZZ, Sequence
 	       y := yy.v;
 	       if isInt(x) && isInt(y) then (
 	  	    i := toInt(x);
@@ -1148,23 +1152,32 @@ lengthFun(rhs:Code):Expr := (
      e := eval(rhs);
      when e
      is Error do e
+     -- # typical value: symbol #, Set, ZZ
+     -- # typical value: symbol #, HashTable, ZZ
      is x:HashTable do (
 	  if (x.Mutable) then lockRead(x.mutex);
 	  res := toExpr(x.numEntries);
 	  if (x.Mutable) then unlock(x.mutex);
 	  res)
+     -- # typical value: symbol #, Sequence, ZZ
      is x:Sequence do toExpr(length(x))
+     -- # typical value: symbol #, Dictionary, ZZ
      is dc:DictionaryClosure do (
 	  table := dc.dictionary.symboltable;
 	  lockRead(table.mutex);
 	  res := toExpr(table.numEntries);
 	  unlock(table.mutex);
 	  res)
+     -- # typical value: symbol #, List, ZZ
+     -- # typical value: symbol #, BasicList, ZZ
      is x:List do toExpr(length(x.v))
+     -- # typical value: symbol #, String, ZZ
      is s:stringCell do toExpr(length(s.v))
+     -- # typical value: symbol #, Net, ZZ
      is n:Net do toExpr(length(n.body))
-     else buildErrorPacket("expected a list, sequence, hash table, or string"));
+     else buildErrorPacket("expected a list, sequence, string, net, hash table, or dictionary"));
 setup(SharpS,lengthFun,subvalue);
+
 subvalueQ(lhs:Code,rhs:Code):Expr := (
      left := eval(lhs);
      when left is Error do left

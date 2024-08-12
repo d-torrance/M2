@@ -22,7 +22,7 @@ needs "installPackage.m2" -- TODO: can this be removed?
 -- set by about and used by (help, ZZ)
 lastabout := null
 
-authorDefaults    := new HashTable from { Name => "Anonymous", Email => null, HomePage => null }
+authorDefaults    := new HashTable from { Name => "Anonymous", Email => null, HomePage => null, Maintainer => false }
 
 binary   := set flexibleBinaryOperators
 prefix   := set flexiblePrefixOperators
@@ -46,12 +46,6 @@ seeAbout := (f, i) -> (
 --   the last member is the corresponding hypertext entry in the UL list
 -----------------------------------------------------------------------------
 
--- we want quotes around elements of the "Ways to use" list so that
--- "* String" works when running "help" inside Macaulay2, but we don't
--- need the quotes otherwise
-MaybeQuotedTT = new IntermediateMarkUpType of TT
-net MaybeQuotedTT := x -> formatNoEscaping x#0
-
 counter := 0
 next := () -> counter = counter + 1
 optTO := key -> (
@@ -64,8 +58,8 @@ optTO := key -> (
 	-- TODO: figure out how to align the lists using padding
 	-- ref = pad(ref, printWidth // 4);
 	(format ptag, fkey, next(), fixup (
-		if currentHelpTag === ptag then MaybeQuotedTT fkey
-		else SPAN {MaybeQuotedTT fkey, " -- see ", TOH{ptag}})))
+		if currentHelpTag === ptag then KBD fkey
+		else SPAN {KBD fkey, " -- see ", TOH{ptag}})))
     -- need an alternative here for secondary tags such as (export,Symbol)
     else (fkey, fkey, next(), TOH{tag}))
 -- this isn't different yet, work on it!
@@ -245,7 +239,8 @@ documentationValue(Symbol, Package)         := (S, pkg) -> if pkg =!= Core then 
 		    (defs, args) := override(authorDefaults, toSequence au);
 		    LI {
 			if defs.HomePage === null then defs.Name else HREF{defs.HomePage, defs.Name},
-			if defs.Email    =!= null then SPAN{" <", HREF{concatenate("mailto:", defs.Email), defs.Email}, ">"}}))
+			if defs.Email    =!= null then SPAN{" <", HREF{concatenate("mailto:", defs.Email), defs.Email}, ">"},
+			if defs.Maintainer        then SPAN{" (maintainer)"}}))
 	    },
 	if (cert := pkg.Options.Certification) =!= null then (
 	    cert  = new HashTable from cert;

@@ -11,8 +11,6 @@ needs "methods.m2"
  MutableList.synonym = "mutable list"
 AngleBarList.synonym = "angle bar list"
 
-List#"major documentation node" = true
-
 List ? List := (s,t) -> if class s === class t then toSequence s ? toSequence t else (class s) ? (class t)
 Option ? Option := (s,t) -> toSequence s ? toSequence t
 
@@ -123,8 +121,14 @@ delete(Thing, BasicList) := (x, v) -> select(v, i -> i =!= x)
 number = x -> # select x
 
 -----------------------------------------------------------------------------
--- all, same, uniform, isMember
+-- any, all, same, uniform, isMember
 -----------------------------------------------------------------------------
+
+-- method defined in actors4.d
+any(ZZ,                   Function) :=
+any(HashTable,            Function) :=
+any(BasicList,            Function) :=
+any(BasicList, BasicList, Function) := Boolean => any
 
 all = method(TypicalValue => Boolean)
 all(ZZ,                   Function) := -- uses 0 .. n-1
@@ -289,6 +293,30 @@ deepApply' = (L, f, g) -> flatten if g L then toList apply(L, e -> deepApply'(e,
 deepApply  = (L, f) ->  deepApply'(L, f, e -> instance(e, BasicList))
 deepScan   = (L, f) -> (deepApply'(L, f, e -> instance(e, BasicList));) -- not memory efficient
 
+-----------------------------------------------------------------------------
+-- Tables (nested lists)
+-----------------------------------------------------------------------------
+
+isTable = L -> instance(L, List) and all(L, row -> instance(row, List)) and same apply(L, length)
+
+table = (rows, cols, f) -> apply(rows, r -> apply(cols, c -> f(r, c)))
+
+subtable = (rows, cols, a) -> table(rows, cols, (r, c) -> a_r_c)
+
+applyTable = (m,f) -> apply(m, v -> apply(v,f))
+
+transpose List := List => L -> if isTable L then pack(#L, mingle L) else error "transpose expected a table"
+
+pack' = pack -- defined in d/actors4.d
+pack = method()
+pack(ZZ, String)    :=
+pack(ZZ, BasicList) := List => pack'
+-- TODO: deprecate these versions
+pack(String,    ZZ) :=
+pack(BasicList, ZZ) := List => (L, n) -> pack'(n, L)
+
+-----------------------------------------------------------------------------
+
 parallelApplyRaw = (L, f) ->
      -- 'reverse's to minimize thread switching in 'taskResult's:
      reverse (taskResult \ reverse apply(L, e -> schedule(f, e)));
@@ -304,6 +332,7 @@ parallelApply(BasicList, Function) := o -> (L, f) -> (
 	  flatten parallelApplyRaw(pack(L, ceiling(n / numChunks)), chunk -> apply(chunk, f));
      allowableThreads = oldAllowableThreads;
      res);
+
 
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/m2 "
