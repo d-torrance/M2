@@ -229,7 +229,14 @@ else
 
     echo -n "updating debian/changelog ... "
     rm -f debian/changelog.dch # dch raises an error if backup file present
-    dch -m -b -v "$FULL_VERSION" "" 2> /dev/null
+    if command -v dch > /dev/null
+    then
+	dch -m -b -v "$FULL_VERSION" ""
+    else
+	echo ""
+	echo "dch not found; install 'devscripts' package"
+	exit 1
+    fi
     echo "done"
 fi
 
