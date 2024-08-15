@@ -112,7 +112,7 @@ export Dictionary := {
 
 export Token := {+		-- a word, as encountered in the input
      word:Word,			--   the word
-     filename:string, line:ushort, column:ushort, loadDepth:ushort, -- position:Position, --   the location where it was encountered
+     position:Position,         --   the location where it was encountered
      dictionary:Dictionary,	--   the dictionary active at the time it was encountered
      entry:Symbol,     	  	--   the symbol table entry, found in the dictionary above, or one for wider lexical scope
      followsNewline:bool        --   whether it followed white space with a newline in it
@@ -132,8 +132,8 @@ export TryThen     := {+ tryToken:Token, primary:ParseTree, thenToken:Token, seq
 export TryElse     := {+ tryToken:Token, primary:ParseTree,                                    elseToken:Token, alternate:ParseTree};
 export Try         := {+ tryToken:Token, primary:ParseTree};
 export Catch := {+ catchToken:Token, primary:ParseTree};
-export IfThen := {+ ifToken:Token, predicate:ParseTree, thenclause:ParseTree };
-export IfThenElse := {+ ifToken:Token, predicate:ParseTree, thenclause:ParseTree, elseClause:ParseTree};
+export IfThen := {+ ifToken:Token, predicate:ParseTree, thenClause:ParseTree };
+export IfThenElse := {+ ifToken:Token, predicate:ParseTree, thenClause:ParseTree, elseClause:ParseTree};
 export New := {+ newtoken:Token, newclass:ParseTree, newparent:ParseTree, newinitializer:ParseTree};
 export Arrow := {+lhs:ParseTree, Operator:Token, rhs:ParseTree, desc:functionDescription};
 export Quote := {+Operator:Token, rhs:Token};
@@ -220,7 +220,7 @@ export evaluatedCode := {+ expr:Expr, position:Position};
 export nullCode := {+};
 export realCode := {+x:RR,position:Position};
 export integerCode := {+x:ZZ,position:Position};
-export stringCode := {+x:string};
+export stringCode := {+x:string,position:Position};
 export unaryCode := {+f:unop,rhs:Code,position:Position};
 export binaryCode := {+f:binop,lhs:Code,rhs:Code,position:Position};
 export adjacentCode := {+lhs:Code,rhs:Code,position:Position};
@@ -256,13 +256,14 @@ export functionDescription := {
      restargs:bool		    -- whether last parm gets rest of args
      };
 export dummyDesc := functionDescription(-1,0,0,false);
-export functionCode := {+
-     arrow:Token,			  -- just for display purposes
-     body:Code, 
+export functionCode := {+ -- this is called FunctionBody in the top-level
+     body:Code,
      desc:functionDescription,
-     hash:hash_t
+     hash:hash_t,
+     position:Position
      };
 export Code := (
+    -- when adding or removing classes of core here, also update debugging.dd
      nullCode or realCode or stringCode or integerCode 
      or globalMemoryReferenceCode or threadMemoryReferenceCode or localMemoryReferenceCode 
      or globalAssignmentCode or localAssignmentCode 
@@ -276,7 +277,8 @@ export Code := (
      or Error						    -- for tail recursion
      or newLocalFrameCode				    -- soon obsolete
      );
-export CodeClosure := {+ frame:Frame, code:Code };
+export PseudocodeClosure := {+ frame:Frame, code:Code };
+export Pseudocode := {+ code:Code };
 
 
 
@@ -380,7 +382,8 @@ export Expr := (
      RRcell or
      RRicell or
      Boolean or
-     CodeClosure or
+     PseudocodeClosure or
+     Pseudocode or
      CompiledFunction or
      CompiledFunctionBody or
      CompiledFunctionClosure or

@@ -1,4 +1,5 @@
 --		Copyright 1994 by Daniel R. Grayson
+use debugging;
 use evaluate;
 use struct;
 use sets;
@@ -63,6 +64,9 @@ toList(e:Expr):Expr := (
 		    	 hash_t(0), false),
 	       	    false)))
      is s:stringCell do list(strtoseq(s))
+     is c:PseudocodeClosure do toList(c.code)
+     is c:Pseudocode do toList(c.code)
+     is s:SpecialExpr do toList(s.e)
      else WrongArg("list, sequence, set, or string"));
 setupfun("toList1",toList);
 values(e:Expr):Expr := (
@@ -661,24 +665,6 @@ unSingleton(e:Expr):Expr := (
      is v:Sequence do if length(v) == 1 then v.0 else e
      else e);
 setupfun("unsequence",unSingleton);
-
-disassemble(e:Expr):Expr := (
-     when e
-     is f:FunctionClosure do toExpr(tostring(Code(f.model)))
-     is f:functionCode do toExpr(tostring(Code(f)))
-     is c:CodeClosure do toExpr(tostring(c.code))
-     is s:SpecialExpr do disassemble(s.e)
-     else WrongArg("pseudocode or a function closure derived from Macaulay 2 code")
-     );
-setupfun("disassemble", disassemble);
-
-pseudocode(e:Expr):Expr := (
-     when e
-     is f:FunctionClosure do Expr(CodeClosure(f.frame, Code(f.model)))
-     is s:SpecialExpr do pseudocode(s.e)
-     else WrongArg("a function closure derived from Macaulay 2 code")
-     );
-setupfun("pseudocode", pseudocode);
 
 cpuTime(e:Expr):Expr := (
      when e

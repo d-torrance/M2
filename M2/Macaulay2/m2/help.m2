@@ -342,6 +342,10 @@ headline = method(Dispatch => Thing)
 headline Thing := key -> getOption(fetchRawDocumentationNoLoad makeDocumentTag key, Headline)
 headline DocumentTag := tag -> getOption(fetchRawDocumentation getPrimaryTag tag, Headline)
 
+headlines = method()
+headlines List := L -> TABLE apply(#L, i -> { pad(floor log_10(#L) + 2, i | "."),
+	TO2(tag := makeDocumentTag L#i, net tag), commentize headline tag })
+
 -- Compare with SYNOPSIS in document.m2
 getSynopsis := (key, tag, rawdoc) -> (
     if rawdoc === null then return null;
@@ -559,7 +563,7 @@ about Symbol   :=
 about Function := o -> f -> about("\\b" | toString f | "\\b", o)
 about String   := o -> re -> lastabout = (
     packagesSeen := new MutableHashTable;
-    NumberedVerticalList apply(sort join(
+    NumberedVerticalList sort join(
         flatten for pkg in loadedPackages list (
             pkgname := pkg#"pkgname";
             if packagesSeen#?pkgname then continue else packagesSeen#pkgname = 1;
@@ -569,7 +573,7 @@ about String   := o -> re -> lastabout = (
                     matchfun_re if o.Body then pkg#rawKeyDB),
                 select(keys pkg#"raw documentation",
                     matchfun_re if o.Body then pkg#"raw documentation"));
-            apply(keyList, key -> (pkgname,key))),
+            apply(keyList, key -> pkgname | " :: " | key )),
         flatten for pkg in getPackageInfoList() list (
             pkgname := pkg#"name";
             if packagesSeen#?pkgname then continue else packagesSeen#pkgname = 1;
@@ -578,10 +582,7 @@ about String   := o -> re -> lastabout = (
             db := if o.Body then openDatabase dbname;
             keyList := select(dbkeys, matchfun_re db);
             if o.Body then close db;
-            apply(keyList, key -> (pkgname,key)))
-	    ),(pkgname,key) -> SPAN { pkgname, " ", TOH {pkgname | "::" | key} }
-	)
-    )
+            apply(keyList, key -> pkgname | " :: " | key ))))
 
 -- TODO: should this go to system?
 pager = x -> if height stdio > 0

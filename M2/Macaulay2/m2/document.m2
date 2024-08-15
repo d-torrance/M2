@@ -137,8 +137,9 @@ DocumentTag ? DocumentTag := (x, y) -> x.Format ? y.Format
 DocumentTag ? String      := (x, y) -> x.Format ? y
 String      ? DocumentTag := (x, y) -> x        ? y.Format
 
--- helper for parsing " pkg :: key " to ("pkg", "key")
+-- helper for parsing " pkg :: key -- headline" to ("pkg", "key")
 parseDocumentTag := key -> (
+    key = first separate(" -- ", key); -- the spaces are there so "--" can be a valid key
     segments := separate("^[[:space:]]*|[[:space:]]*::[[:space:]]*|[[:space:]]*$", key);
     segments  = select(segments, segment -> segment =!= "");
     -- this is important, because the names of info nodes get extracted from text where
@@ -197,7 +198,6 @@ makeDocumentTag String      := opts -> key -> (
     then error ("mismatching packages ", pkg, " and ", toString opts#Package, " specified for key ", key);
     if pkg === null then pkg = opts#Package;
     (makeDocumentTag' new OptionTable from {Package => pkg}) key)
-makeDocumentTag TOH := opts -> first
 
 -- before creating links, we recreate the document tag as a hack to
 -- correct its package, if it is incorrect (e.g. truncate, quotient)
