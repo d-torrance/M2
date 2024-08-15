@@ -213,16 +213,8 @@ else
 
     echo -n "updating debian/patches/git-description.patch ... "
     quilt push debian/patches/git-description.patch > /dev/null
-    sed -i "s/GIT_DESCRIPTION=.*/GIT_DESCRIPTION=$GIT_DESCRIPTION/" \
-	M2/configure.ac
-    if [ $REF = "development" ]
-    then
-	sed -i "s/GIT_BRANCH=.*/GIT_BRANCH=development/" \
-	    M2/configure.ac
-    else
-	sed -i "s/GIT_BRANCH=.*/GIT_BRANCH=master/" \
-	    M2/configure.ac
-    fi
+    sed -i "s/\`\$GIT describe .*/$GIT_DESCRIPTION])/" M2/configure.ac
+    sed -i "s/\`\$GIT branch .*/$REF])/" M2/configure.ac
     quilt refresh > /dev/null
     quilt pop -a > /dev/null
     echo "done"
