@@ -215,3 +215,120 @@ locate(e:Expr):Expr := (
     is s:SpecialExpr do locate(s.e)
     else WrongArg("a function, symbol, sequence, or null"));
 setupfun("locate", locate).Protected = false; -- will be overloaded in m2/methods.m2
+
+address(f:Frame):ulong := Ccode(ulong,"((unsigned long)(intptr_t)",f,")");
+
+showFrames(f:Frame):void := (
+     stdIO << " frames bound :";
+     while (
+	  stdIO << " " << f.frameID << " @" << address(f);
+	  if f.notrecyclable then stdIO << " (NR)";
+	  stdIO << " [" << f.valuesUsed;
+	  if f.valuesUsed != length(f.values) then stdIO << " of " << length(f.values);
+	  stdIO << "]";
+	  f != f.outerFrame ) do (
+	  stdIO << ",";
+	  f = f.outerFrame;
+	  );
+     stdIO << endl;
+     );
+
+showsym(s:Symbol):void := (
+     stdIO
+     << " symbol : " << present(s.word.name) << endl
+     << " position : " << s.position << endl
+     << " frameID : " << s.frameID << endl
+     << " frameindex : " << s.frameindex << endl
+     << " lookupCount : " << s.lookupCount << endl
+     << " protected : " << s.Protected << endl
+     << " thread : " << s.thread << endl;
+     );
+
+examine(e:Expr):Expr := (
+     when e
+     is sc:SymbolClosure do (
+	  f := sc.frame;
+	  s := sc.symbol;
+	  stdIO
+	  << "symbol closure :" << endl;
+     	  showsym(s);
+     	  showFrames(f);
+          if s.frameID != f.frameID then stdIO << " -- warning: incorrect frameID on first frame" << endl;
+	  nullE)
+     is sb:SymbolBody do (
+	  stdIO << "symbol body :" << endl;
+	  showsym(sb.symbol);
+	  nullE)
+     is c:PseudocodeClosure do (
+	  f := c.frame;
+     	  showFrames(f);
+	  nullE)
+     is fc:FunctionClosure do (
+	  f := fc.frame;
+	  model := fc.model;
+	  desc := model.desc;
+	  stdIO
+     	  << "function closure :" << endl
+     	  << " body hash : " << model.hash << endl
+	  << " restargs : " << desc.restargs << endl
+	  << " frameID : " << desc.frameID << endl
+	  << " framesize : " << desc.framesize << endl
+	  << " numparms : " << desc.numparms << endl;
+     	  showFrames(f);
+	  nullE)
+     is model:functionCode do (
+	  desc := model.desc;
+	  stdIO
+     	  << "function body :" << endl
+     	  << " hash : " << model.hash << endl
+	  << " restargs : " << desc.restargs << endl
+	  << " frameID : " << desc.frameID << endl
+	  << " framesize : " << desc.framesize << endl
+	  << " numparms : " << desc.numparms << endl;
+	  nullE)
+     is fn:CompiledFunction do (
+	  stdIO
+	  << "compiled function:" << endl
+	  << " hash : " << fn.hash << endl;
+	  nullE)
+     is fnc:CompiledFunctionClosure do (
+	  stdIO
+	  << "compiled function closure:" << endl
+	  << " hash : " << fnc.hash << endl
+	  << " env : [" << length(fnc.env) << "]" << endl;
+	  nullE)
+     is dc:DictionaryClosure do (
+	  f := dc.frame;
+	  d := dc.dictionary;
+	  stdIO
+	  << "dictionary closure:" <<endl
+	  << " hash : " << d.hash << endl
+	  << " frameID : " << d.frameID << endl
+	  << " framesize : " << d.framesize << endl
+	  << " transient : " << d.transient << endl
+	  << " protected : " << d.Protected << endl
+	  << " local creation allowed : " << d.LocalCreationAllowed << endl
+	  << " symboltable size : " << d.symboltable.numEntries << endl;	-- TODO: lockRead() ?
+     	  showFrames(f);
+          if d.frameID != f.frameID then stdIO << " -- warning: incorrect frameID on first frame" << endl;
+	  nullE)
+     is s:Sequence do (
+	  if length(s) == 0 then (
+     	       showFrames(localFrame);
+	       nullE)
+	  else WrongNumArgs(1))
+     is s:List do (
+	  stdIO
+	  << "basic list:" << endl
+	  << " length: " << length(s.v) << endl
+	  << " hash: " << s.hash << endl
+	  << " mutable: " << s.Mutable << endl;
+	  nullE)
+     is s:SpecialExpr do (
+	  stdIO
+	  << "special expr:" << endl;
+	  examine(s.e);
+	  nullE)
+     is x:xmlNodeCell do (examine(x.v); nullE)
+     else WrongArg("(), a function, a symbol, or a basic list"));
+setupfun("examine",examine);
