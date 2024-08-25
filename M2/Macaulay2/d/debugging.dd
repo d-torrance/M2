@@ -246,6 +246,18 @@ showsym(s:Symbol):void := (
 
 examine(e:Expr):Expr := (
      when e
+     is x:ZZcell do (
+	 stdIO << "ZZ cell (GMP integer): " << endl
+	 << " number of limbs: " << Ccode(int, x.v, "->_mp_size") << endl;
+	 for i from 0 to Ccode(int, "mpz_size(", x.v, ")") - 1 do (
+	     buf := newstring(19);
+	     Ccode(void, "gmp_sprintf((char *)", buf, "->array, \"%#Mx\", ",
+		 x.v, "->_mp_d[", i, "])");
+	     Ccode(void, buf, "->len = strlen((char *)", buf, "->array)");
+	     stdIO << " limb #" << i << ": " << buf << endl);
+	 stdIO  << " number of limbs currently allocated: "
+	 <<  Ccode(int, x.v, "->_mp_alloc") << endl;
+	 nullE)
      is sc:SymbolClosure do (
 	  f := sc.frame;
 	  s := sc.symbol;
