@@ -37,10 +37,8 @@ export anywhereAbort(s:string) ::= Ccode(exits,"err_abort(",s,")");
 -- Typedefs for functions of various numbers of arguments
 export unop := function(Code):Expr;
 export binop := function(Code,Code):Expr;
-export binopExpr := function(Expr,Expr):Expr;
 export ternop := function(Code,Code,Code):Expr;
 export multop := function(CodeSequence):Expr;
-
 
 export TokenFile := {+
      posFile:PosFile,
@@ -244,11 +242,6 @@ export semiCode         := {+w:CodeSequence, position:Position};
 export multaryCode      := {+f:multop, args:CodeSequence, position:Position};
 export forCode          := {+inClause:Code, fromClause:Code, toClause:Code, whenClause:Code, listClause:Code, doClause:Code, frameID:int, framesize:int, position:Position} ;
 
-export newLocalFrameCode := {+
-     frameID:int,
-     framesize:int,
-     body:Code
-     };
 export functionDescription := {
      frameID:int,		    -- seqno of dictionary
      framesize:int,
@@ -275,27 +268,13 @@ export Code := (
      or whileDoCode or whileListCode or whileListDoCode
      or ifCode or tryCode or adjacentCode or functionCode or catchCode
      or Error						    -- for tail recursion
-     or newLocalFrameCode				    -- soon obsolete
      );
 export PseudocodeClosure := {+ frame:Frame, code:Code };
 export Pseudocode := {+ code:Code };
 
-
-
---misc
-
-
-export CompiledFunction := {+fn:fun,hash:hash_t};
-export CompiledFunctionClosure := {+
-     fn:function(Expr,Sequence):Expr,
-     hash:hash_t,
-     env:Sequence
-     };
-export CompiledFunctionBody := {+
-     fn:function(Expr,Sequence):Expr			    -- it's hard to make hash codes for these things!
-     };
-
-
+export CompiledFunction        := {+ fn:function(Expr):Expr,          hash:hash_t };
+export CompiledFunctionBody    := {+ fn:function(Expr,Sequence):Expr }; -- TODO: compute hash
+export CompiledFunctionClosure := {+ fn:function(Expr,Sequence):Expr, hash:hash_t, env:Sequence };
 
 -- Expr
 
@@ -435,7 +414,6 @@ export Expr := (
      pointerCell or
      atomicIntCell
      );
-export fun := function(Expr):Expr;
 
 --Unique True expression
 export True := Expr(Boolean(true));	  -- don't make new ones!
@@ -482,7 +460,7 @@ export HashTable := {+
      mutex:ThreadRWLockPtr
      };
 
---This unfortunately needs to be here as it references Hash Table which needs expr.  
+--This unfortunately needs to be here as it references HashTable which needs expr.
 
 export m2cfile := Pointer "struct M2File*";	
 
