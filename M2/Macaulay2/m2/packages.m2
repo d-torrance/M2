@@ -205,6 +205,7 @@ getpkgNoLoad = pkgname -> if isPackageLoaded pkgname then value PackageDictionar
 -----------------------------------------------------------------------------
 
 newPackage = method(
+    Dispatch => Thing,
     Options => {
 	Authors                   => {},
 	AuxiliaryFiles            => false,
@@ -224,6 +225,7 @@ newPackage = method(
 	UseCachedExampleOutput    => null,
 	Version                   => "0.0"
 	})
+newPackage Sequence := opts -> x -> newPackage splice(nonnull x, opts) -- to allow null entries
 newPackage String := opts -> pkgname -> (
     -- package name must be alphanumeric
     checkPackageName pkgname;
@@ -249,15 +251,14 @@ newPackage String := opts -> pkgname -> (
     then error("newPackage: use the Contributors or Acknowledgement keywords to acknowledge contributors of " | pkgname);
     -- optional package values
     scan({
+	    (Keywords, List),
 	    (Date,     String),
 	    (Headline, String),
 	    (HomePage, String)}, (name, type) -> if opts#name =!= null and not instance(opts#name, type) then
 	error("newPackage: expected ", toString name, " option of class ", toString type));
-    if opts.?Keywords then (
-	 if class opts.Keywords =!= List then error "expected Keywords value to be a list";
-	 if not all(opts.Keywords, k -> class k === String) then error "expected Keywords value to be a list of strings";
-	 );
-    -- TODO: if #opts.Headline > 100 then error "newPackage: Headline is capped at 100 characters";
+    if opts.Keywords =!= null and any(opts.Keywords,
+	keyword -> not instance(keyword, String)) then error "newPackage: expected Keywords to be a list of strings";
+    if opts.Headline =!= null and #opts.Headline > 100 then error "newPackage: expected Headline to be less than 100 characters";
     -- the options coming from loadPackage are stored here
     loadOptions := if loadPackageOptions#?pkgname then loadPackageOptions#pkgname else loadPackageOptions#"default";
     -- the options are stored for readPackage
