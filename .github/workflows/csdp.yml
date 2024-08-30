@@ -1,0 +1,24 @@
+name: Test CSDP
+on:
+  push:
+
+jobs:
+  csdp:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:rawhide
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo dnf -y install 4ti2 TOPCOM autoconf automake bison boost-devel cddlib-devel cohomCalg csdp-tools diffutils eigen3-devel factory-devel fflas-ffpack-devel flex flint-devel g++ gc-devel gcc-gfortran gdbm-devel gfan git glpk-devel gmp-devel lapack-devel libffi-devel libfrobby-devel libnauty-devel libnormaliz-devel libtool libxml2-devel lrslib-utils make mathic-devel mathicgb-devel memtailor-devel mpfi-devel mpfr-devel mpsolve-devel msolve nauty ncurses-devel normaliz ntl-devel patch python3-devel readline-devel tbb-devel which xz-devel zlib-devel
+      - name: Clone repository
+        run: git clone https://github.com/d-torrance/M2 -b csdp --depth 1
+      - name: Build Macaulay2
+        run: |
+          cd M2/M2
+          make
+          cd BUILD
+          ../configure --with-system-gc --with-system-memtailor --with-system-mathic --with-system-mathicgb --with-python --enable-download --disable-documentation
+          make
+      - name: Test Macaulay2
+        run: make -C M2/M2/BUILD/Macaulay2/packages check-SumsOfSquares
