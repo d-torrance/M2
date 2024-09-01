@@ -9,7 +9,8 @@ newPackage(
 	    HomePage => "https://webwork.piedmont.edu/~dtorrance"}},
     Keywords => {"System"},
     PackageImports => {"Parsing"},
-    AuxiliaryFiles => true)
+    AuxiliaryFiles => true,
+    TestFiles => {"test-parse.m2", "test-encode.m2"})
 
 ---------------
 -- ChangeLog --
@@ -357,6 +358,3 @@ for tst in sort select(tsts, f -> match("^y_", f)) do (
     format json << ", " << toExternalString fromJSON json << ")" << endl)
 close outfile
 ///
-
-TEST get(currentPackage#"auxiliary files" | "test-parse.m2")
-TEST get(currentPackage#"auxiliary files" | "test-encode.m2")
