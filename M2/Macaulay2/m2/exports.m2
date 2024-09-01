@@ -411,6 +411,7 @@ export {
 	"TensorProduct",
 	"TeXmacs",
 	"Test",
+	"TestFiles",
 	"TestInput",
 	"Thing",
 	"Threads",

@@ -717,7 +717,15 @@ installPackage Package := opts -> pkg -> (
 		UpdateOnly => true,
 		Verbose    => opts.Verbose or debugLevel > 0))
 	else if pkgopts.AuxiliaryFiles
-	then error("installPackage: package ", toString pkg, " has no directory of auxiliary files, but newPackage was given AuxiliaryFiles => true"));
+	then error("installPackage: package ", toString pkg, " has no directory of auxiliary files, but newPackage was given AuxiliaryFiles => true");
+
+	-- symlink package test files
+	if #pkgopts.TestFiles > 0 then (
+	    testdir := installPrefix | replace("PKG", pkg#"pkgname",
+		installLayout#"packagetests");
+	    makeDirectory testdir;
+	    scan(pkgopts.TestFiles, file -> symlinkFile(
+		    installPrefix | srcDirectory | file, testdir | file))));
 
     if opts.MakeDocumentation then (
 	-- here's where we get the list of nodes from the raw documentation
