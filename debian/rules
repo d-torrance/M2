@@ -12,11 +12,7 @@ endif
 # needed for reproducible-version.patch
 export CURDIR
 
-# When determining the installation directory for the Emacs package, dh-elpa
-# calls (package-version-join (version-to-list VERSION)), which strips leading
-# zeros. So for May releases ending in .05, the Emacs package will be installed
-# in a directory ending in .5
-VERSION := $(patsubst %.05, %.5, $(shell cat M2/VERSION))
+VERSION := $(shell cat M2/VERSION)
 
 %:
 	dh $@ --sourcedirectory=M2 --with linktree
@@ -27,8 +23,12 @@ LIBDIR := \$${exec_prefix}/lib/$(DEB_HOST_MULTIARCH)
 
 # set emacs lisp file installation directory so that the documentation
 # matches where dh_elpa installs them
+ELPA_VERSION := $(shell emacs --batch \
+	--eval '(require (quote package))' \
+	--eval '(princ (package-version-join (version-to-list "$(VERSION)")))' \
+	2> /dev/null)
 EMACSDIR := \
-	\$${prefix}/share/emacs/site-lisp/elpa/macaulay2-$(VERSION)
+	\$${prefix}/share/emacs/site-lisp/elpa/macaulay2-$(ELPA_VERSION)
 
 WITH_PYTHON := $(if $(filter nopython, $(DEB_BUILD_PROFILES)),, --with-python)
 
@@ -135,7 +135,7 @@ override_dh_compress:
 execute_before_dh_elpa: debian/macaulay2-pkg.el
 
 debian/macaulay2-pkg.el: debian/macaulay2-pkg.el.in
-	sed -e 's|@VERSION@|$(VERSION)|g' $< > $@
+	sed -e 's|@VERSION@|$(ELPA_VERSION)|g' $< > $@
 
 # prevent dh_missing from failing when only building arch-dependent packages
 execute_before_dh_missing:
