@@ -212,8 +212,10 @@ else
 
     echo -n "updating debian/patches/git-description.patch ... "
     quilt push debian/patches/git-description.patch > /dev/null
-    sed -i "s/\`\$GIT describe .*/$GIT_DESCRIPTION])/" M2/configure.ac
-    sed -i "s/\`\$GIT branch .*/$REF])/" M2/configure.ac
+    sed -i "s/\(\[GIT_DESCRIPTION\], \).*/\1[$GIT_DESCRIPTION])/" \
+	M2/configure.ac
+    sed -i "s/\(\[GIT_BRANCH\], \).*/\1[$REF])/" \
+	M2/configure.ac
     quilt refresh > /dev/null
     quilt pop -a > /dev/null
     echo "done"
