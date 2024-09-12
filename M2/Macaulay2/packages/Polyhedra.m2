@@ -38,7 +38,7 @@ newPackage("Polyhedra",
         Email => "k.l@fu-berlin.de"
      }
      },
-    PackageImports=>{"IntegralClosure", "ReesAlgebra", "LLLBases"}
+    PackageImports=>{"LLLBases"}
     )
 
 ---------------------------------------------------------------------------
