@@ -78,7 +78,7 @@ Node
     Text
       If the @TT "Height"@ option specifies a number @TT "h"@ and @TT "T"@
       is @TO "ZZ"@ then the integers returned are in the range @TT "[0, h)"@;
-      for @TO "QQ"@ the numerator and denominator are in the range @TT "[1, h]"@.
+      for @TO "QQ"@ the denominator is bounded by @TT "h"@.
     Example
       random RR
       random CC_100
