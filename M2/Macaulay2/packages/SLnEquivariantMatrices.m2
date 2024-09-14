@@ -445,7 +445,7 @@ weightOrder (PolynomialRing,List) := opts -> (C,L) -> (
     n := numgens C;
     if n == 2 then return map(QQ,C,{1,-1});
     
-    W := rsort for i from 1 to n-1 list random(QQ,Height=>opts.Height);
+    W := rsort for i from 1 to n-1 list abs random(QQ,Height=>opts.Height);
     if #(unique W) < #W then return weightOrder(C,L,Height=>opts.Height);
     
     wn := -sum W;
