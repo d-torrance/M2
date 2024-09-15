@@ -29,6 +29,7 @@ TEST /// -- Hankel matrices
     assert(projectiveDegrees psi0(2,ZZ/331) ==    {2, 4, 4, 2})
     assert(projectiveDegrees(psi0(2,ZZ/331),Certify=>true) ==    {2, 4, 4, 2})
     assert(degreeMap phi(2,QQ) == 2)
+    setRandomSeed 1
     assert(projectiveDegrees inverseMap psi'(2,ZZ/101) == reverse {1, 2, 4, 4, 2})
     assert(projectiveDegrees(inverseMap psi'(2,ZZ/5),Certify=>true) == reverse {1, 2, 4, 4, 2})
     assert(projectiveDegrees phi(3,ZZ/3331)  == {1, 3, 9, 17, 21, 15, 5})   
