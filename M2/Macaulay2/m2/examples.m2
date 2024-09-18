@@ -9,6 +9,7 @@
 
 needs "hypertext.m2"
 needs "run.m2"
+needs "document.m2" -- for DocumentTag
 
 processExamplesStrict = true
 
@@ -170,10 +171,15 @@ extractExamples = docBody -> (
 -----------------------------------------------------------------------------
 
 examples = method(Dispatch => Thing)
-examples Hypertext := dom -> raise(stack extractExamplesLoop dom, -1)
+examples Hypertext := stack @@ extractExamplesLoop
 examples Thing     := key -> (
-    rawdoc := fetchAnyRawDocumentation makeDocumentTag key;
-    if rawdoc =!= null and rawdoc.?Description then examples DIV{rawdoc.Description})
+    tag := makeDocumentTag key;
+    rawdoc := fetchAnyRawDocumentation tag;
+    if rawdoc =!= null and rawdoc.?Description
+    then stack(
+	"-- examples for tag: " | format tag,
+	"-- " | net locate tag,
+	examples DIV{rawdoc.Description}))
 
 -----------------------------------------------------------------------------
 -- storeExampleOutput
