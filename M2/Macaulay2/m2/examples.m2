@@ -171,7 +171,9 @@ extractExamples = docBody -> (
 -----------------------------------------------------------------------------
 
 examples = method(Dispatch => Thing)
-examples Hypertext := stack @@ extractExamplesLoop
+examples Hypertext := h -> (
+    ex := extractExamplesLoop h;
+    if #ex == 0 then "-- no examples" else stack ex)
 examples Thing     := key -> (
     tag := makeDocumentTag key;
     rawdoc := fetchAnyRawDocumentation tag;
