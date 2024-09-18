@@ -183,6 +183,13 @@ examples Thing     := key -> (
 	"-- " | net locate tag,
 	examples DIV{rawdoc.Description}))
 
+examples List := L -> (
+    L = sortBy(x -> x#1) \\ nonnull \\ examples \ L; -- sort by location
+    stack apply(#L, i -> (
+	    if i < #L - 1 and L#i#1 == L#(i+1)#1 -- two tags w/ same location
+	    then L#i#0
+	    else if i < #L - 1 then L#i || net HR() else L#i)))
+
 -----------------------------------------------------------------------------
 -- storeExampleOutput
 -----------------------------------------------------------------------------
