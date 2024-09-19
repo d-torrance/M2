@@ -170,6 +170,15 @@ extractExamples = docBody -> (
 -- examples: get a list of examples in a documentation node
 -----------------------------------------------------------------------------
 
+-- low-level unexported method called by getExampleOutput
+examples' := method(Dispatch => Thing)
+examples' Hypertext   := stack @@ extractExamplesLoop
+examples' DocumentTag := tag  -> (
+    rawdoc := fetchAnyRawDocumentation tag;
+    ?? examples' DIV {rawdoc.Description})
+examples' Thing       := examples' @@ makeDocumentTag
+
+-- higher-level exported method w/ nicer output for users
 examples = method(Dispatch => Thing)
 examples Hypertext := h -> (
     ex := extractExamplesLoop h;
@@ -208,7 +217,7 @@ getExampleOutput := (pkg, fkey) -> (
     filename := getExampleOutputFilename(pkg, fkey);
     output := if fileExists filename
     then ( verboseLog("info: reading cached example results from ", filename); get filename )
-    else if width (ex := examples fkey) =!= 0
+    else if width (ex := examples' fkey) =!= 0
     then ( verboseLog("info: capturing example results on-demand"); last capture(ex, UserMode => false, PackageExports => pkg) );
     pkg#"example results"#fkey = if output === null then {} else separateM2output output)
 
