@@ -1665,9 +1665,11 @@ setupop(breakS,breakFun);
 
 addTestS := setupvar("addTest", nullE); -- will be overwritten in testing.m2
 testfun(c:Code):Expr := (
-    r := applyEE(
-	getGlobalVariable(addTestS),
-	seq(eval(c), locate(codePosition(c))));
+    model := functionCode(c, dummyDesc, hash_t(0), codePosition(c));
+    model.hash = hashFromAddress(Expr(model));
+    fc := FunctionClosure(noRecycle(localFrame), model, hash_t(0));
+    fc.hash = hashFromAddress(Expr(fc));
+    r := applyEE(getGlobalVariable(addTestS), Expr(fc));
     when r is Error do r else nullE);
 setupop(TestS, testfun);
 
