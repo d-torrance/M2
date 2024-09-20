@@ -6,8 +6,6 @@ doc ///
     (tests, ZZ, Package)
     (tests, ZZ, String)
     TestInput
-    (code, TestInput)
-    (locate, TestInput)
   Headline
     locate a package's tests
   Usage
