@@ -14,14 +14,14 @@ capture TestInput := t -> null -- TODO
 -- TEST
 -----------------------------------------------------------------------------
 
--- TEST is a keyword that takes an object as input and determines its
--- location.  It then passes the object and its location to addTest.
+-- TEST is a keyword that takes M2 code and turns it into a nullary function,
+-- which it then passes to addTest
+
 addTest = method()
-addTest(String, FilePosition) := (str, loc) -> (
+addTest FunctionClosure := f -> (
     n := #currentPackage#"test inputs";
-    currentPackage#"test inputs"#n = TestInput {
-	"location" => loc,
-	"code" => str})
+    currentPackage#"test inputs"#n = TestInput f)
+
 -- the following is not called by TEST, but called directly when we want to
 -- add a test from a file (used by loadTestDir)
 addTest String := filename -> addTest(get filename,
