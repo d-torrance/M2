@@ -5,16 +5,10 @@ needs "run.m2"
 -----------------------------------------------------------------------------
 -- TestInput
 -----------------------------------------------------------------------------
-TestInput = new SelfInitializingType of HashTable
+TestInput = new SelfInitializingType of FunctionClosure
 TestInput.synonym = "test input"
 
-code TestInput := code @@ locate
-toString TestInput := T -> T#"code"
-locate TestInput := T -> T#"location"
-net TestInput := lookup(net, Function)
-precedence TestInput := lookup(precedence, Function)
-editMethod TestInput := editMethod @@ locate
-capture TestInput := opt -> T -> capture(toString T, opt)
+capture TestInput := t -> null -- TODO
 
 -----------------------------------------------------------------------------
 -- TEST
