@@ -1,8 +1,8 @@
 newPackage(
     "JSON",
     Headline => "JSON encoding and decoding",
-    Version => "0.2",
-    Date => "January 28, 2024",
+    Version => "0.3",
+    Date => "September 21, 2024",
     Authors => {{
 	    Name => "Doug Torrance",
 	    Email => "dtorrance@piedmont.edu",
@@ -16,6 +16,9 @@ newPackage(
 ---------------
 
 -*
+
+0.3 (2024-09-21, M2 1.24.11)
+* stop using removed FileName option to TEST for loading tests
 
 0.2 (2024-01-24, M2 1.23)
 * use single-string version of exportFrom
@@ -358,5 +361,5 @@ for tst in sort select(tsts, f -> match("^y_", f)) do (
 close outfile
 ///
 
-TEST get(currentPackage#"auxiliary files" | "test-parse.m2")
-TEST get(currentPackage#"auxiliary files" | "test-encode.m2")
+TEST get(JSON#"auxiliary files" | "test-parse.m2")
+TEST get(JSON#"auxiliary files" | "test-encode.m2")
