@@ -3,12 +3,12 @@ needs "code.m2"
 needs "run.m2"
 
 -----------------------------------------------------------------------------
--- TestInput
+-- TestClosure
 -----------------------------------------------------------------------------
-TestInput = new SelfInitializingType of FunctionClosure
-TestInput.synonym = "test input"
+TestClosure = new SelfInitializingType of FunctionClosure
+TestClosure.synonym = "test input"
 
-capture TestInput := t -> null -- TODO
+capture TestClosure := t -> null -- TODO
 
 -----------------------------------------------------------------------------
 -- TEST
@@ -20,7 +20,7 @@ capture TestInput := t -> null -- TODO
 addTest = method()
 addTest FunctionClosure := f -> (
     n := #currentPackage#"test inputs";
-    currentPackage#"test inputs"#n = TestInput f)
+    currentPackage#"test inputs"#n = TestClosure f)
 
 -- the following is not called by TEST, but called directly when we want to
 -- add a test from a file (used by loadTestDir)

@@ -6,7 +6,7 @@ TEST "assert Equation(1 + 1, 2)"
 loadPackage("TestPackage", FileName => testpkg)
 check "TestPackage"
 pkgtest = tests(0, "TestPackage")
-assert instance(pkgtest, TestInput)
+assert instance(pkgtest, TestClosure)
 loc = (testpkg, 3, 5, 3, 32, 3, 5)
 assert Equation(toSequence locate pkgtest, loc)
 beginDocumentation()
