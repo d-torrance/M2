@@ -220,9 +220,16 @@ export defaultbinary(lhs:ParseTree, token2:Token, file:TokenFile, prec:int, obey
      	  if ret == errorTree then ret else ParseTree(Adjacent(lhs,ret))));
 export postfixop(lhs:ParseTree, token2:Token, file:TokenFile, prec:int, obeylines:bool):ParseTree := (
      accumulate(ParseTree(Postfix(lhs,token2)),file,prec,obeylines));
+parsedebug(token:Token, prec:int):void := (
+	 stderr << " -- parsing '" << token.word.name <<
+	 "' (precedence: " << token.word.parse.precedence <<
+	 ", binary strength: " << token.word.parse.binaryStrength <<
+	 ", unary strength: " << token.word.parse.unaryStrength <<
+	 "), current level: " << prec << endl);
 export parse(file:TokenFile,prec:int,obeylines:bool):ParseTree := (
      if prec == nopr then return errorTree;		    -- shouldn't ever happen
      token := gettoken(file,false);
+     if debugLevel == 1234 then parsedebug(token, prec);
      if token == errorToken then return errorTree;
      ret := token.word.parse.funs.unary(token,file,prec,obeylines);
      if ret == errorTree then (
@@ -232,6 +239,7 @@ export parse(file:TokenFile,prec:int,obeylines:bool):ParseTree := (
 export nparse(file:TokenFile,prec:int,obeylines:bool):ParseTree := (
      if prec == nopr then return errorTree;		    -- shouldn't ever happen
      token := peektoken(file,obeylines);
+     if debugLevel == 1234 then parsedebug(token, prec);
      if token == errorToken then return errorTree;
      ret := (
 	  if token == errorToken
