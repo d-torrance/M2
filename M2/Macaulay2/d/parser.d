@@ -257,6 +257,11 @@ export nbinaryop(lhs:ParseTree, token2:Token, file:TokenFile, prec:int, obeyline
 export arrowop(lhs:ParseTree, token2:Token, file:TokenFile, prec:int, obeylines:bool):ParseTree := (
      e := parse(file,token2.word.parse.binaryStrength,obeylines);
      if e == errorTree then e else ParseTree(Arrow(lhs, token2, e, dummyDesc)));
+-- "thunk" operator (like TEST) for creating nullary functions
+export thunkop(token1:Token,file:TokenFile,prec:int,obeylines:bool):ParseTree := (
+     ret := parse(file,max(prec,token1.word.parse.unaryStrength),obeylines);
+     if ret == errorTree then ret
+     else ParseTree(Arrow(dummy(dummyPosition), token1, ret, dummyDesc)));
 MatchPair := {left:string, right:string, next:(null or MatchPair)};
 
 matchList := (null or MatchPair)(NULL);

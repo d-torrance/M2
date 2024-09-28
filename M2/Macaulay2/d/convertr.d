@@ -435,10 +435,12 @@ export convert0(e:ParseTree):Code := (
 		  unseq(c2:=convert0(b.rhs)), combinePositionC(codePosition(c1), codePosition(c2), b.Operator.position)))
 	  )
      is a:Arrow do (
-	 p:=treePosition(a.lhs);
-	 fc:=functionCode(
-	     unseq(c:=convert0(a.rhs)),a.desc,hash_t(0),
-	     combinePositionC(p,codePosition(c), a.Operator.position));
+	 c := convert0(a.rhs);
+	 p := codePosition(c);
+	 when a.lhs
+	 is dummy do p = combinePositionL(a.Operator.position, p)
+	 else p = combinePositionC(treePosition(a.lhs), p, a.Operator.position);
+	 fc := functionCode(unseq(c), a.desc, hash_t(0), p, a.Operator.word);
 	 fc.hash = hashFromAddress(Expr(fc));
 	 Code(fc))
      is u:Unary do (
