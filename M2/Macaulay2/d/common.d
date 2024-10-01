@@ -4,50 +4,46 @@ use binding;
 use stdiop0;
 
 export codePosition(c:Code):Position := ( -- TODO retire
-     when c
-     is f:adjacentCode do f.position
-     is f:augmentedAssignmentCode do f.position
-     is f:arrayCode do f.position
-     is f:angleBarListCode do f.position
-     is f:binaryCode do f.position
-     is f:catchCode do f.position
-     is f:Error do f.position
-     is f:evaluatedCode do f.position
-     is f:forCode do f.position
-     is f:functionCode do codePosition(f.body)
-     is f:globalAssignmentCode do f.position
-     is f:globalMemoryReferenceCode do f.position
-     is f:globalSymbolClosureCode do f.position
-     is f:ifCode do f.position
-     is f:integerCode do f.position
-     is f:listCode do f.position
-     is f:localAssignmentCode do f.position
-     is f:localMemoryReferenceCode do f.position
-     is f:localSymbolClosureCode do f.position
-     is f:multaryCode do f.position
-     is f:newCode do f.position
-     is f:newFromCode do f.position
-     is f:newOfCode do f.position
-     is f:newOfFromCode do f.position
-     is f:nullCode do dummyPosition
-     is f:parallelAssignmentCode do f.position
-     is f:realCode do f.position
-     is f:semiCode do f.position
-     is f:sequenceCode do f.position
-     is f:stringCode do f.position
-     is f:ternaryCode do f.position
-     is f:threadMemoryReferenceCode do f.position
-     is f:threadSymbolClosureCode do f.position
-     is f:tryCode do f.position
-     is f:unaryCode do f.position
-     is f:whileDoCode do f.position
-     is f:whileListCode do f.position
-     is f:whileListDoCode do f.position
-     );
-
-export pos(c:Code):void := (					    -- for use in the debugger
-     stdIO << codePosition(c) << endl;
-     );
+    when c
+    is f:nullCode                  do dummyPosition
+    is f:realCode                  do f.position
+    is f:stringCode                do f.position
+    is f:integerCode               do f.position
+    is f:globalMemoryReferenceCode do f.position
+    is f:threadMemoryReferenceCode do f.position
+    is f:localMemoryReferenceCode  do f.position
+    is f:globalAssignmentCode      do f.position
+    is f:localAssignmentCode       do f.position
+    is f:parallelAssignmentCode    do f.position
+    is f:augmentedAssignmentCode   do f.position
+    is f:evaluatedCode             do f.position
+    is f:globalSymbolClosureCode   do f.position
+    is f:threadSymbolClosureCode   do f.position
+    is f:localSymbolClosureCode    do f.position
+    is f:unaryCode                 do f.position
+    is f:binaryCode                do f.position
+    is f:ternaryCode               do f.position
+    is f:multaryCode               do f.position
+    is f:sequenceCode              do f.position
+    is f:listCode                  do f.position
+    is f:arrayCode                 do f.position
+    is f:angleBarListCode          do f.position
+    is f:semiCode                  do f.position
+    is f:newCode                   do f.position
+    is f:newFromCode               do f.position
+    is f:newOfCode                 do f.position
+    is f:newOfFromCode             do f.position
+    is f:forCode                   do f.position
+    is f:whileDoCode               do f.position
+    is f:whileListCode             do f.position
+    is f:whileListDoCode           do f.position
+    is f:ifCode                    do f.position
+    is f:tryCode                   do f.position
+    is f:adjacentCode              do f.position
+    is f:functionCode              do f.position
+    is f:catchCode                 do f.position
+    is f:Error                     do f.position
+    );
 
 export setup(word:Word):void := (
      makeSymbol(word,dummyPosition,globalDictionary);
@@ -161,6 +157,9 @@ export printErrorMessageE(p:Position,message:string):Expr := ( -- for use when w
      Expr(e));
 export printErrorMessageE(c:Token,message:string):Expr := ( -- for use when we have no code
      printErrorMessageE(c.position,message));
+
+-- for use in the debugger
+export printPosition(c:Code):void := ( stdIO << codePosition(c) << endl; );
 
 export returnFromFunction(z:Expr):Expr := when z is err:Error do if err.message == returnMessage then err.value else z else z;
 export returnFromLoop(z:Expr):Expr     := when z is err:Error do if err.message == breakMessage  then if err.value == dummyExpr then nullE else err.value else z else z;
