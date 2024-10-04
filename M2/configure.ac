@@ -851,12 +851,13 @@ fi
 AS_IF([test $BUILD_givaro = no],
     [AC_LANG([C++])
      AC_CHECK_HEADER([givaro/givinteger.h],
-        [AC_MSG_CHECKING([whether givaro library is installed])
+        [AC_MSG_CHECKING([whether givaro library is installed and usable])
          SAVELIBS=$LIBS
          LIBS="$LIBS -lgivaro"
          AC_LINK_IFELSE(
              [AC_LANG_PROGRAM([
                  #include <givaro/givinteger.h>
+                 #include <recint/rfiddling.h> // check for gcc 15 bug (#3507)
                  ], [
                  Givaro::Integer a;])],
              [AC_MSG_RESULT([yes])],
