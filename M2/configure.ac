@@ -1043,7 +1043,7 @@ AS_IF([test $BUILD_normaliz = no],
 	       AC_MSG_CHECKING([for libnormaliz])
 	       AC_LANG(C++)
 	       SAVELIBS=$LIBS
-	       LIBS="$LIBS -lnormaliz -lgmp"
+	       LIBS="$LIBS -lnormaliz -lgmp -lgmpxx"
 	       CHECK_NMZ_PACKAGE([ENFNORMALIZ], [-leantic -leanticxx])
 	       CHECK_NMZ_PACKAGE([NMZ_COCOA], [-lcocoa])
 	       CHECK_NMZ_PACKAGE([NMZ_NAUTY], [-lnauty])
@@ -1063,7 +1063,7 @@ AS_IF([test $BUILD_normaliz = no],
          BUILD_normaliz=yes])])
 
 AS_IF([test $BUILD_normaliz = yes],
-    [BUILTLIBS="-lnormaliz -fopenmp $BUILTLIBS"])
+    [BUILTLIBS="-lnormaliz $OPENMP_CXXFLAGS $OPENMP_LIBS $BUILTLIBS"])
 
 if test "$BUILD_nauty" = no
 then dnl debian/fedora: nauty-

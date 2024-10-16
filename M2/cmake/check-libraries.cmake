@@ -154,7 +154,7 @@ pkg_search_module(GIVARO	IMPORTED_TARGET	givaro>=4.1.1)
 
 set(LIBRARY_OPTIONS
   Eigen3 BDWGC MPFR MPFI NTL Flint Factory Frobby cddlib MPSolve
-  GTest GLPK Givaro FFLAS_FFPACK)
+  GTest GLPK Givaro FFLAS_FFPACK Normaliz)
 
 ###############################################################################
 ## Optional libraries:
@@ -232,7 +232,8 @@ foreach(_library IN LISTS LIBRARY_OPTIONS)
     elseif(BUILD_LIBRARIES MATCHES "(ALL|ON)" OR "${_name}" IN_LIST BUILD_LIBRARIES)
       # exists on the system, but we want to build it
       unset(${_library}_DIR CACHE) # for Eigen3
-      unset(${_name}_FOUND CACHE)
+      unset(${_name}_FOUND CACHE)  # for fflas_ffpack and givaro
+      unset(${_name}_FOUND)        # for everything else
       unset(${_name}_LIBDIR CACHE)
       unset(${_name}_LIBRARY CACHE)
       unset(${_name}_LIBRARIES CACHE)
