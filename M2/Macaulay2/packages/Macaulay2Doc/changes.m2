@@ -50,19 +50,37 @@ document {
 		LI { star, " ", TO "SubalgebraBases::SubalgebraBases", ", a package by Michael Burr, Oliver Clarke, Timothy Duff, Jackson Leaman, Nathan Nichols, and Elise Walker for Canonical subalgebra bases (aka SAGBI/Khovanskii bases), has been published." }
 		}
 	    },
-	LI { "functionality changed in a way that could break code:",
+	LI { "new packages: ",
 	    UL {
-		LI { "The function ", TO remove, ", which previously had no return value, now returns the value that was removed." }
+		LI { TO "Msolve::Msolve", ", a package by Martin Helmer, Mike Stillman, and Anton Leykin for interface to the msolve library for solving multivariate polynomial systems using Groebner Bases, has been added." },
+		LI { TO "MultigradedImplicitization::MultigradedImplicitization", ", a package by Joseph Cummings and Benjamin Hollering for solving implicitization problems using multigradings, has been added." },
+		LI { TO "SCMAlgebras::SCMAlgebras", ", a package by Ernesto Lax for sequentially Cohen-Macaulay modules or ideals, has been added." }
 		}
 	    },
 	LI { "improved packages:",
 	    UL {
 		LI { TO "Jets::Jets", " has been updated to version 1.2 with improvements and new methods for principal jets."},
 		}
+	    },
+	LI { "functionality added or improved:",
+	    UL {
+		LI { "It is now possible to construct an empty matrix by passing an empty list to ", TO matrix, "." },
+		LI { TO LUdecomposition, " now supports empty real and complex matrices." },
+		LI { "The ", TO "version", " hash table now contains a \"git branch\" key." },
+		LI { "The version number displayed in the startup banner now includes git information." },
+		LI { TO copyright, " is now a command that displays the ", TO "Copyright and license", " documentation."},
+		LI { "A number of improvements have been made to methods dealing with ", TO MonomialIdeal, " objects."},
+		LI { "The function ", TO remove, ", which previously had no return value, now returns the value that was removed." },
+		LI { "The function ", TO changeDirectory, ", for changing the working directory, has been added." }
+		}
+	    },
+	LI { "changes to building Macaulay2:",
+	    UL {
+		LI { "Support to building using MPIR instead of GMP for arbitrary precision integers has been removed. " },
+		}
 	    }
 	}
     }
-
 
 document {
     Key => "changes, 1.24.05",
