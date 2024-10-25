@@ -50,19 +50,52 @@ document {
 		LI { star, " ", TO "SubalgebraBases::SubalgebraBases", ", a package by Michael Burr, Oliver Clarke, Timothy Duff, Jackson Leaman, Nathan Nichols, and Elise Walker for Canonical subalgebra bases (aka SAGBI/Khovanskii bases), has been published." }
 		}
 	    },
-	LI { "functionality changed in a way that could break code:",
+	LI { "new packages: ",
 	    UL {
-		LI { "The function ", TO remove, ", which previously had no return value, now returns the value that was removed." }
+		LI { TO "Msolve::Msolve", ", a package by Martin Helmer, Mike Stillman, and Anton Leykin for interfacing with the msolve library for solving multivariate polynomial systems using Groebner Bases, has been added." },
+		LI { TO "MultigradedImplicitization::MultigradedImplicitization", ", a package by Joseph Cummings and Benjamin Hollering for solving implicitization problems using multigradings, has been added." },
+		LI { TO "SCMAlgebras::SCMAlgebras", ", a package by Ernesto Lax for sequentially Cohen-Macaulay modules or ideals, has been added." }
 		}
 	    },
 	LI { "improved packages:",
 	    UL {
 		LI { TO "Jets::Jets", " has been updated to version 1.2 with improvements and new methods for principal jets."},
+		LI { TO "Seminormalization::Seminormalization", " has been updated to version 0.22 with several improvements."},
+		LI { TO "Visualize::Visualize", " has been updated to version 1.6 with improvements to the JavaScript code."},
+		LI { TO "VectorGraphics::VectorGraphics", " has been updated to version 1.1 with several improvements."},
+		LI { TO "PositivityToricBundles::PositivityToricBundles", " has been updated to version 1.8 with a bug fix."},
+		LI { TO "A1BrouwerDegrees::A1BrouwerDegrees", " has been updated to version 1.1 with bug fixes and improved documentation."}
+		}
+	    },
+	LI { "functionality added or improved:",
+	    UL {
+		LI { "It is now possible to construct an empty matrix by passing an empty list to ", TO matrix, "." },
+		LI { TO LUdecomposition, " now supports empty real and complex matrices." },
+		LI { "The ", TO "version", " hash table now contains a \"git branch\" key." },
+		LI { "The version number displayed in the startup banner now includes git information." },
+		LI { TO copyright, " is now a command that displays the ", TO "Copyright and license", " documentation."},
+		LI { "A number of improvements have been made to methods dealing with ", TO MonomialIdeal, " objects."},
+		LI { "The function ", TO remove, ", which previously had no return value, now returns the value that was removed." },
+		LI { "The function ", TO changeDirectory, ", for changing the working directory, has been added." },
+		LI { "Many numerical functions that previously did not accept ", TO CC, " or ", TO RRi, " arguments now do." },
+		LI { "The functions ", TO selectKeys, ", ", TO selectValues, ", and ", TO selectPairs, " for selecting from hash tables have been added." },
+		LI { "It is now possible to edit the list of packages that are loaded when Macaulay2 starts up by modifying the list ", M2CODE "Core#\"preloaded packages\"", " in ", CODE "init.m2", "." },
+		LI { "The classes ", TO Constant, ", ", TO InfiniteNumber, " and ", TO IndeterminateNumber, " are now all subclasses of ", TO Number, "."},
+		LI { "Hash codes are now unsigned 64-bit integers, vastly reducing the probability of running out when creating new types."},
+		LI { "It is now possible to compare ", TO GroebnerBasis, " objects using ", TO symbol ==, "." },
+		LI { "Items in the \"ways to use\" section of documentation pages are now formatted using ", TO "Text::KBD", "."},
+		LI { "It is now possible to use ", TO symbol try, " with ", TO symbol then, ", but without ", TO symbol else, "."},
+		LI { "The function ", TO headlines, " has been added for viewing documentation headlines."}
+		}
+	    },
+	LI { "functionality changed in a way that could break code:",
+	    UL {
+		LI { "Testing equality of zero modules using ", TO symbol ==, " so that two zero modules are equal if they are equal as cosets.  The only implication is that zero submodules of any free module are now the same, but zero submodules of arbitrary modules are only the same if they have the same ambient module." },
+		LI { "The syntactic sugar ", CODE "T OP= f", " for ", TO "installing augmented assignment methods", " has been removed." }
 		}
 	    }
 	}
     }
-
 
 document {
     Key => "changes, 1.24.05",
