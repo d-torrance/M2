@@ -71,7 +71,9 @@ document {
 		LI { TO copyright, " is now a command that displays the ", TO "Copyright and license", " documentation."},
 		LI { "A number of improvements have been made to methods dealing with ", TO MonomialIdeal, " objects."},
 		LI { "The function ", TO remove, ", which previously had no return value, now returns the value that was removed." },
-		LI { "The function ", TO changeDirectory, ", for changing the working directory, has been added." }
+		LI { "The function ", TO changeDirectory, ", for changing the working directory, has been added." },
+		LI { "The classes ", TO Constant, ", ", TO InfiniteNumber, " and ", TO IndeterminateNumber, " are now all subclasses of ", TO Number, "."},
+		
 		}
 	    },
 	LI { "changes to building Macaulay2:",
