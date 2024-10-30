@@ -40,6 +40,8 @@ document {
 	  }
      }
 
+-- see changes-helper.m2 for helper code for listing new/certified packages
+
 document {
     Key => "changes made for the next release",
     UL {
