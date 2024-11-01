@@ -136,66 +136,66 @@ then
     else
 	echo
 	git merge --no-edit FETCH_HEAD
+    fi
 
-	echo -n "refreshing patches ... "
+    echo -n "refreshing patches ... "
 
-	REFRESH_PATCHES=
-	quilt pop -a > /dev/null 2>&1 || true
+    REFRESH_PATCHES=
+    quilt pop -a > /dev/null 2>&1 || true
 
-	while true
-	do
-	    QUILT_PUSH=$(quilt push 2> /dev/null || true)
-	    if echo $QUILT_PUSH | grep "FAILED" > /dev/null
-	    then
-		echo "\ncan't apply patch; refresh manually"
-		exit 1
-	    elif echo $QUILT_PUSH | grep offset > /dev/null
-	    then
-		quilt refresh > /dev/null
-		REFRESH_PATCHES=1
-	    elif [ -z "$QUILT_PUSH" ]
-	    then
-		break
-	    fi
-	done
-
-	quilt pop -a > /dev/null 2>&1 || true
-
-	if [ $REFRESH_PATCHES ]
+    while true
+    do
+	QUILT_PUSH=$(quilt push 2> /dev/null || true)
+	if echo $QUILT_PUSH | grep "FAILED" > /dev/null
 	then
-	    echo "done"
-	    git add debian/patches
-	    git commit -m "Refresh patches for $VERSION"
-	else
-	    echo "not needed"
+	    echo "\ncan't apply patch; refresh manually"
+	    exit 1
+	elif echo $QUILT_PUSH | grep offset > /dev/null
+	then
+	    quilt refresh > /dev/null
+	    REFRESH_PATCHES=1
+	elif [ -z "$QUILT_PUSH" ]
+	then
+	    break
 	fi
+    done
 
-	echo -n "regenerating examples ... "
-	NUM_EXAMPLES=$(
-	    M2 --stop --srcdir M2 --silent --no-debug -e \
-	       'loadPackage("Debian", FileName => "debian/scripts/Debian.m2");
+    quilt pop -a > /dev/null 2>&1 || true
+
+    if [ $REFRESH_PATCHES ]
+    then
+	echo "done"
+	git add debian/patches
+	git commit -m "Refresh patches for $VERSION"
+    else
+	echo "not needed"
+    fi
+
+    echo -n "regenerating examples ... "
+    NUM_EXAMPLES=$(
+	M2 --stop --srcdir M2 --silent --no-debug -e \
+	   'loadPackage("Debian", FileName => "debian/scripts/Debian.m2");
 		print generateExamples();
 		exit 0' 2> /dev/null || true)
-	if [ -z $NUM_EXAMPLES ]
+    if [ -z $NUM_EXAMPLES ]
+    then
+	echo "error -- M2 binary out of date?"
+    else
+	echo "$NUM_EXAMPLES change(s)"
+	if [ $NUM_EXAMPLES -gt 0 ]
 	then
-	    echo "error -- M2 binary out of date?"
-	else
-	    echo "$NUM_EXAMPLES change(s)"
-	    if [ $NUM_EXAMPLES -gt 0 ]
-	    then
-		git add debian/examples
-		git commit -m "Regenerating examples for $VERSION"
-	    fi
+	    git add debian/examples
+	    git commit -m "Regenerating examples for $VERSION"
 	fi
+    fi
 
-	echo -n "checking for new packages not in d/copyright ... "
-	M2 --stop --srcdir M2 --silent -e \
-	   'loadPackage("Debian", FileName => "debian/scripts/Debian.m2");
+    echo -n "checking for new packages not in d/copyright ... "
+    M2 --stop --srcdir M2 --silent -e \
+       'loadPackage("Debian", FileName => "debian/scripts/Debian.m2");
 	    pkgs = missingPackages();
 	    print(#pkgs);
 	    for pkg in pkgs do print("  " | toString pkg);
 	    exit 0' 2> /dev/null || echo "error -- M2 binary out of date?"
-    fi
 fi
 
 CURRENT_VERSION=$(dpkg-parsechangelog | awk '/^Version:/ {print $2}')
