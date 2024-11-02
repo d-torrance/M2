@@ -73,7 +73,8 @@ export format(
      ng := sign(x);
      if isinf(x) then return array(string)(if ng then "-" else "","infinity");
      if isnan(x) then return array(string)(if ng then "-" else "","NotANumber");
-     meaningful := int(floor(precision(x) / log2ten)) + 1;
+     meaningful := Ccode(int,
+	 "mpfr_get_str_ndigits(", base, ", ", precision(x), ")");
      if s == 0 || s > meaningful then s = meaningful; -- print at most the "meaningful" digits
      sgn := "";
      if ng then (
