@@ -42,6 +42,112 @@ void mp_free_str(char *str){
 
 }
 
+char *mpfr_dragon4(mpfr_exp_t *expptr, mpfr_srcptr x)
+{
+  int i, condition;
+  mpfr_exp_t e, k;
+  mpfr_prec_t p;
+  mpz_t f, r, s, m_plus, m_minus, one, tmp_zz;
+  mpfr_t tmp_rr;
+  char *str;
+  void *(*alloc_function)(size_t);
+
+  mp_get_memory_functions(&alloc_function, NULL, NULL);
+  str = alloc_function(mpfr_get_str_ndigits(10, mpfr_get_prec(x)) + 1);
+
+  mpz_inits(f, r, s, m_plus, m_minus, one, tmp_zz, NULL);
+  mpfr_init(tmp_rr);
+
+  p = mpfr_get_prec(x);
+  e = mpfr_get_z_2exp(f, x);
+  mpz_set_ui(one, 1);
+  mpz_mul_2exp(tmp_zz, one, p - 1);
+
+  /* burger/dybvig table 1 */
+  if (e >= 0) {
+    if (mpz_cmp(f, tmp_zz) == 0) {
+      mpz_mul_2exp(r, f, e + 2);
+      mpz_set_ui(s, 4);
+      mpz_mul_2exp(m_plus, one, e + 1);
+      mpz_mul_2exp(m_minus, one, e);
+    } else {
+      mpz_mul_2exp(r, f, e + 1);
+      mpz_set_ui(s, 2);
+      mpz_mul_2exp(m_plus, one, e);
+      mpz_set(m_minus, m_plus);
+    }
+  } else {
+    if ((e > mpfr_get_emin()) && (mpz_cmp(f, tmp_zz) == 0)) {
+      mpz_mul_2exp(r, f, 2);
+      mpz_mul_2exp(s, one, 2 - e);
+      mpz_set_ui(m_plus, 2);
+      mpz_set(m_minus, one);
+    } else {
+      mpz_mul_2exp(r, f, 1);
+      mpz_mul_2exp(s, one, 1 - e);
+      mpz_set(m_minus, one);
+      mpz_set(m_plus, one);
+    }
+  }
+
+  /* TODO: simplify this? see burger/dybvig section 3.2 */
+  mpfr_set_z(tmp_rr, r, MPFR_RNDN);
+  mpfr_add_z(tmp_rr, tmp_rr, m_plus, MPFR_RNDN);
+  mpfr_div_z(tmp_rr, tmp_rr, s, MPFR_RNDN);
+  mpfr_log(tmp_rr, tmp_rr, MPFR_RNDN);
+  mpfr_div_d(tmp_rr, tmp_rr, 2.3025850929940459 /* log 10 */, MPFR_RNDN);
+  mpfr_ceil(tmp_rr, tmp_rr);
+  k = mpfr_get_si(tmp_rr, MPFR_RNDN);
+  *expptr = k;
+
+  if (k >= 0) {
+    mpz_ui_pow_ui(tmp_zz, 10, k);
+    mpz_mul(s, s, tmp_zz);
+  } else {
+    mpz_ui_pow_ui(tmp_zz, 10, -k);
+    mpz_mul(r, r, tmp_zz);
+    mpz_mul(m_plus, m_plus, tmp_zz);
+    mpz_mul(m_minus, m_minus, tmp_zz);
+  }
+
+  for(i = 0; ; i++) {
+    mpz_mul_ui(r, r, 10);
+    mpz_fdiv_qr(tmp_zz, r, r, s);
+    str[i] = '0' + mpz_get_ui(tmp_zz);
+    mpz_mul_ui(m_plus, m_plus, 10);
+    mpz_mul_ui(m_minus, m_minus, 10);
+
+    condition = 0;
+
+    /* condition (1) */
+    if (mpz_cmp(r, m_minus) < 0)
+      condition |= 1;
+
+    /* condition (2) */
+    mpz_add(tmp_zz, r, m_plus);
+    if (mpz_cmp(tmp_zz, s) > 0) /* typo in burger/dybvig -- they use "<" */
+      condition |= 2;
+
+    if (condition == 1) { /* (1) true, (2) false */
+      str[i + 1] = '\0';
+      break;
+    } else if (condition == 2) { /* (1) false, (2) true */
+      str[i]++;
+      str[i + 1] = '\0';
+      break;
+    } else if (condition == 3) { /* (1) & (2) both true */
+      /* TODO */
+      str[i + 1] = '\0';
+      break;
+    }
+  }
+
+  mpz_clears(f, r, s, m_plus, m_minus, tmp_zz, NULL);
+  mpfr_clear(tmp_rr);
+
+  return str;
+}
+
 /*
  Local Variables:
  compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d "

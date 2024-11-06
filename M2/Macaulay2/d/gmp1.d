@@ -1,6 +1,6 @@
 -- this file is small, so the exported definitions can be imported into the engine
 
-header "";
+header "#include \"gmp_aux.h\"";
 
 --This file contains gmp related functions.
 --Functions in this file may make calls to stdio.
@@ -8,6 +8,7 @@ header "";
 use gmp;
 use stdio;
 use err;
+
 
 pow(x:ZZmutable, y:ZZ, n:ulong) ::= Ccode( void, "mpz_pow_ui(", x, ",", y, ",", n, ")" );
 
@@ -62,6 +63,13 @@ getstr(returnexponent:long, base:int, sigdigs:int, x:RRi) ::= (
      Ccode(void, "mpfr_free_str(", strptr, ")");
      ret);
 
+getstr_dragon4(returnexponent:long, x:RR) ::= (
+    strptr := Ccode(charstarOrNull,
+	"mpfr_dragon4(&", returnexponent, ", ", x, ")");
+    ret := tostring(strptr);
+    Ccode(void, "mpfr_free_str(", strptr, ")");
+    ret);
+
 export format(
      s:int,			  -- number of significant digits (0 means all)
      ac:int,	    -- accuracy, how far to right of point to go (-1 means all)
@@ -83,7 +91,10 @@ export format(
 	  );
      if x === 0 then return array(string)(if ng then "-" else "","0");
      ex := long(0);
-     mantissa := getstr(ex, base, s, x);
+     mantissa := (
+	 if s == meaningful
+	 then getstr_dragon4(ex, x)
+	 else getstr(ex, base, s, x));
      nt := 0;
      for i from length(mantissa)-1 to 0 by -1 do (
 	  if mantissa.i != '0' then break;
