@@ -1,0 +1,37 @@
+name: macOS build
+on: push
+
+jobs:
+  macos-build:
+    runs-on: macos-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          brew install autoconf automake make texinfo libomp bdw-gc cddlib \
+              googletest
+          brew install --only-dependencies Macaulay2/tap/M2
+          brew install Macaulay2/tap/memtailor Macaulay2/tap/mathic \
+              Macaulay2/tap/mathicgb
+      - name: Build Macaulay2
+        run: |
+          git clone https://github.com/d-torrance/M2 -b macos-build --depth=1
+          cd M2/M2/BUILD/build
+          ../../autogen.sh
+          ../../configure --enable-download --with-system-gc \
+            --with-system-memtailor --with-system-mathic \
+            --with-system-mathicgb \
+            --with-gtest-include-path="$(brew --prefix googletest)/include" \
+            --with-gtest-source-path="$(brew --prefix googletest)/include/googletest/googletest" \
+            LDFLAGS="-L$(brew --prefix)/lib  \
+              -L$(brew --prefix factory)/lib \
+              -L$(brew --prefix libomp)/lib  \
+              -L$(brew --prefix readline)/lib \
+              -L/Library/Frameworks/Python.framework/Versions/3.13/lib" \
+            CPPFLAGS="-I$(brew --prefix)/include   \
+              -I$(brew --prefix)/include/cddlib    \
+              -I$(brew --prefix factory)/include   \
+              -I$(brew --prefix libomp)/include    \
+              -I$(brew --prefix readline)/include" \
+            F77="gfortran-14"                    \
+            PKG_CONFIG_PATH="$(brew --prefix factory)/lib/pkgconfig"
+          cat config.log
