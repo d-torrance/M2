@@ -1238,7 +1238,8 @@ then # readline on Mac OS X is stuck at version 4.2, which has this bug:
      AC_RUN_IFELSE([AC_LANG_SOURCE([[
 	     #include <stdio.h>
 	     #include <readline/readline.h>
-	     int main () { return ! ( RL_READLINE_VERSION >= 6 * 0x100 ) ; }]])],
+	     int main () { printf("%d\n", RL_READLINE_VERSION);
+	     return ! ( RL_READLINE_VERSION >= 6 * 0x100 ) ; }]])],
 	[ AC_MSG_RESULT([yes]) ],
 	[ AC_MSG_RESULT([no, will build it]) ; BUILD_readline=yes ],
 	[ AC_MSG_RESULT([cross-compiling, test not possible]) ])
