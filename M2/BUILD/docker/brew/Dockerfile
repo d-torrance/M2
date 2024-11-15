@@ -14,6 +14,10 @@ RUN brew install bash-completion && echo '\n\
 	. "`brew --prefix`/etc/profile.d/bash_completion.sh"' >> /home/linuxbrew/.bashrc
 
 # Install dependencies of Macaulay2
-#RUN brew install --only-dependencies Macaulay2/tap/macaulay2
+RUN brew install  autoconf automake bdw-gc bison cddlib flex googletest libomp \
+    make ncurses pkgconf texinfo
+RUN brew install --only-dependencies Macaulay2/tap/M2
+RUN brew install Macaulay2/tap/memtailor Macaulay2/tap/mathic \
+    Macaulay2/tap/mathicgb
 
 WORKDIR /home/linuxbrew
