@@ -5,7 +5,7 @@
 FROM homebrew/brew:latest
 
 # Install optional packages
-RUN apt-get update && apt-get install -y -q --no-install-recommends vim mlocate && apt-get clean
+# RUN apt-get update && apt-get install -y -q --no-install-recommends vim mlocate && apt-get clean
 
 USER 1000:0
 
