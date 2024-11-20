@@ -146,6 +146,7 @@ problemExamples = select({
     ("AssociativeAlgebras", "oppositeRing"),                    -- #2857
     ("SemidefiniteProgramming", "Solver"),                      -- #1149
     ("SuperLinearAlgebra", "superTrace"),                       -- #2111
+    ("ThreadedGB", "ThreadedGB"),                               -- #3238
 }, x -> x =!= null)
 
 generateExamples = () -> (
