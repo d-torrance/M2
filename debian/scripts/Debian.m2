@@ -133,7 +133,7 @@ generateExample = (pkgname, fkey) -> (
     storeExampleOutput(pkg, fkey, outf, printerr);
     true)
 
-problemExamples = {
+problemExamples = select({
     -- load Macaulay2Doc first to avoid #2328
     ("Macaulay2Doc", "applicationDirectory"),                   -- #1149
     ("Macaulay2Doc", "applicationDirectorySuffix"),             -- #1149
@@ -145,8 +145,8 @@ problemExamples = {
     ("Macaulay2Doc", "the debugger"),                           -- #1149
     ("AssociativeAlgebras", "oppositeRing"),                    -- #2857
     ("SemidefiniteProgramming", "Solver"),                      -- #1149
-    ("SuperLinearAlgebra", "superTrace")                        -- #2111
-}
+    ("SuperLinearAlgebra", "superTrace"),                       -- #2111
+}, x -> x =!= null)
 
 generateExamples = () -> (
     n := 0;
