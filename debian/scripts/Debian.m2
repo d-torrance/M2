@@ -144,7 +144,8 @@ problemExamples = {
     ("Macaulay2Doc", "locate"),                                 -- #1149
     ("Macaulay2Doc", "the debugger"),                           -- #1149
     ("AssociativeAlgebras", "oppositeRing"),                    -- #2857
-    ("SemidefiniteProgramming", "Solver")                       -- #1149
+    ("SemidefiniteProgramming", "Solver"),                      -- #1149
+    ("SuperLinearAlgebra", "superTrace")                        -- #2111
 }
 
 generateExamples = () -> (
