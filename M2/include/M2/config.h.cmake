@@ -289,9 +289,6 @@
 /* hostname used for compilation */
 #define NODENAME "${NODENAME}"
 
-/* the list of packages included with the release of Macaulay2 */
-#define PACKAGES "${PACKAGES}"
-
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "${PROJECT_NAME}"
 

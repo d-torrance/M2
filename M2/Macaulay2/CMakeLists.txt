@@ -16,7 +16,9 @@ file(COPY LAYOUT COPYING-GPL-2 COPYING-GPL-3 DESTINATION ${M2_DIST_PREFIX}/${M2_
 # eg: Style Macaulay2Doc ...
 # This will be used by d/CMakeLists.txt and packages/CMakeLists.txt
 # TODO: discontinue using this list
-file(STRINGS "packages/\=distributed-packages" DISTRIBUTED_PACKAGES REGEX "^[a-zA-Z0-9]+$")
+file(GLOB DISTRIBUTED_PACKAGES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/packages/"
+     "${CMAKE_CURRENT_SOURCE_DIR}/packages/*.m2")
+string(REPLACE ".m2" "" DISTRIBUTED_PACKAGES "${DISTRIBUTED_PACKAGES}")
 list(JOIN DISTRIBUTED_PACKAGES " " DISTRIBUTED_PACKAGES)
 
 # This tells CMake how to set the RPATH on the installed executable
