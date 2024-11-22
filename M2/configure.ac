@@ -454,16 +454,9 @@ dnl fi
 test "$MEMDEBUG" = "yes" && DEBUG=yes
 test "$PROFILING" = "yes" && CFLAGS="$CFLAGS -pg" CXXFLAGS="$CXXFLAGS -pg" LDFLAGS="$LDFLAGS -pg" ENABLE_STRIP=no
 
-if <$srcdir/Macaulay2/packages/=distributed-packages sort|uniq -c|grep -v -q ' 1 '
-then echo "error: some packages are listed more than once in Macaulay2/packages/=distributed-packages:"
-     <$srcdir/Macaulay2/packages/=distributed-packages sort|uniq -c|grep -v ' 1 '
-     exit 1
-fi
-AC_SUBST(PACKAGES,`cat $srcdir/Macaulay2/packages/=distributed-packages`)
-[if [ $? != 0 ] ; then exit 1 ; fi]
-# convert the newlines to spaces
-PACKAGES=`echo $PACKAGES`
-AC_DEFINE_UNQUOTED(PACKAGES,"$PACKAGES",the list of packages included with the release of Macaulay2)
+AC_SUBST([PACKAGES],
+    [$(find $srcdir/Macaulay2/packages/ -maxdepth 1 -name "*.m2" \
+       -exec basename -- {} .m2 \; | sort | xargs)])
 
 AC_DEFINE_UNQUOTED(buildsystemtype,"$build",the type of system on which the package was built)
 AC_DEFINE_UNQUOTED(hostsystemtype,"$host",the type of system on which the package runs)
