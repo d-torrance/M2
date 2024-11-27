@@ -159,6 +159,16 @@ gcd(FlintInteger, FlintInteger) := (m, n) -> (
     r)
 gcd(FlintInteger, ZZ) := (m, n) -> gcd(m, flintInteger n)
 gcd(ZZ, FlintInteger) := (m, n) -> gcd(flintInteger m, n)
+gcd FlintInteger := identity
+
+fmpzLcm = foreignFunction("fmpz_lcm", void, {fmpzT, fmpzT, fmpzT})
+lcm(FlintInteger, FlintInteger) := (m, n) -> (
+    r := flintInteger 0;
+    fmpzLcm(r, m, n);
+    r)
+lcm(FlintInteger, ZZ) := (m, n) -> lcm(m, flintInteger n)
+lcm(ZZ, FlintInteger) := (m, n) -> lcm(flintInteger m, n)
+lcm FlintInteger := identity
 
 fmpzEulerPhi = foreignFunction("fmpz_euler_phi", void, {fmpzT, fmpzT})
 eulerPhi = method()
@@ -257,6 +267,12 @@ assert Equation(gcd(flintInteger 6, flintInteger 9), 3)
 assert Equation(gcd(flintInteger 6, 9), 3)
 assert Equation(gcd(6, flintInteger 9), 3)
 assert Equation(gcd(flintInteger 6, flintInteger 9, flintInteger 12), 3)
+assert Equation(gcd flintInteger 3, 3)
+assert Equation(lcm(flintInteger 6, flintInteger 9), 18)
+assert Equation(lcm(flintInteger 6, 9), 18)
+assert Equation(lcm(6, flintInteger 9), 18)
+assert Equation(lcm(flintInteger 6, flintInteger 9, flintInteger 12), 36)
+assert Equation(lcm flintInteger 3, 3)
 ///
 
 end
