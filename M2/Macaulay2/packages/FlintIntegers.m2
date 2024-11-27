@@ -170,6 +170,16 @@ lcm(FlintInteger, ZZ) := (m, n) -> lcm(m, flintInteger n)
 lcm(ZZ, FlintInteger) := (m, n) -> lcm(flintInteger m, n)
 lcm FlintInteger := identity
 
+fmpzXgcd = foreignFunction("fmpz_xgcd", void, toList(5:fmpzT))
+gcdCoefficients(FlintInteger, FlintInteger) := (m, n) -> (
+    r := flintInteger 0;
+    s := flintInteger 0;
+    t := flintInteger 0;
+    fmpzXgcd(r, s, t, m, n);
+    {r, s, t})
+gcdCoefficients(FlintInteger, ZZ) := (m, n) -> gcdCoefficients(m, flintInteger n)
+gcdCoefficients(ZZ, FlintInteger) := (m, n) -> gcdCoefficients(flintInteger m, n)
+
 fmpzEulerPhi = foreignFunction("fmpz_euler_phi", void, {fmpzT, fmpzT})
 eulerPhi = method()
 eulerPhi FlintInteger := m -> (
@@ -273,6 +283,11 @@ assert Equation(lcm(flintInteger 6, 9), 18)
 assert Equation(lcm(6, flintInteger 9), 18)
 assert Equation(lcm(flintInteger 6, flintInteger 9, flintInteger 12), 36)
 assert Equation(lcm flintInteger 3, 3)
+scan({(flintInteger 6, flintInteger 9), (flintInteger 6, 9),
+	(6, flintInteger 9)}, (m, n) -> (
+	(d, s, t) := toSequence gcdCoefficients(m, n);
+	assert Equation(d, 3);
+	assert Equation(d, 6 * s + 9 * t)))
 ///
 
 end
