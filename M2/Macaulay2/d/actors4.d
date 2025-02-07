@@ -1578,6 +1578,12 @@ setupfun("partsRR",partsRR);
 segmentationFault(e:Expr):Expr := (segmentationFault();e);
 setupfun("segmentationFault",segmentationFault);
 
+header "void rust_test(void);";
+rustTest(e:Expr):Expr := (
+    Ccode(void, "rust_test()");
+    nullE);
+setupfun("rustTest", rustTest);
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d actors4.o "
 -- End:
