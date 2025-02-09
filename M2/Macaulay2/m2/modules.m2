@@ -15,6 +15,7 @@ ring Matrix := f -> (
      if R =!= S then error "expected module map with source and target over the same ring";
      if f.?RingMap then error "expected module map with no ring map";
      R)
+-- FIXME: can't set the typical output type because Module isn't defined yet!
 source Matrix := f -> f.source
 target Matrix := f -> f.target
 
@@ -98,6 +99,7 @@ Vector#AfterPrint = Vector#AfterNoPrint = v -> moduleAbbrv(module v, Vector)
 ring Vector := v -> ring class v
 module Vector := v -> target v#0
 leadTerm Vector := v -> new class v from leadTerm v#0
+leadTerm (ZZ, Vector) := (n,v) -> new class v from leadTerm(n,v#0)
 degree Vector := v -> (
      f := ambient v#0;
      first degrees source map(target f,,f))
