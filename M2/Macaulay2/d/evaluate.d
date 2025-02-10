@@ -1343,7 +1343,6 @@ steppingFurther(c:Code):bool := steppingFlag && (
 
 handleError(c:Code,e:Expr):Expr := (
      when e is err:Error do (
-     	  lastError = Expr(stringCell(err.message));
 	  if SuppressErrors then return e;
 	  if err.message == returnMessage
 	  || err.message == continueMessage || err.message == continueMessageWithArg

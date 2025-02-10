@@ -359,6 +359,7 @@ export pseudocodeClosureClass := newtypeof(pseudocodeClass);
 
 --Error Handling 
 export buildErrorPacket(message:string):Expr := (
+    lastError = Expr(stringCell(message));
     Expr(Error(dummyPosition,message,nullE,false,dummyFrame)));
 export buildErrorPacketErrno(msg:string,errnum:int):Expr := buildErrorPacket( msg + ": " + strerror(errnum) );
 
