@@ -433,7 +433,8 @@ export nullE := Expr(Nothing());
 export notfoundE := Expr(Nothing());
 export dummyExpr := Expr(Nothing());
 
-
+-- Error collection
+export lastError := nullE;
 
 -- Expr Functions 
 

@@ -357,11 +357,8 @@ export atomicIntClass := newbasictype();
 export pseudocodeClosureClass := newtypeof(pseudocodeClass);
 -- all new types, dictionaries, and classes go just above this line, if possible, so hash codes don't change gratuitously!
 
-export lastError := nullE;
-
 --Error Handling 
 export buildErrorPacket(message:string):Expr := (
-    lastError = Expr(stringCell(message));
     Expr(Error(dummyPosition,message,nullE,false,dummyFrame)));
 export buildErrorPacketErrno(msg:string,errnum:int):Expr := buildErrorPacket( msg + ": " + strerror(errnum) );
 
