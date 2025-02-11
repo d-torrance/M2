@@ -1,4 +1,4 @@
-#![crate_type = "dylib"]
+#![crate_type = "staticlib"]
 
 #[no_mangle]
 pub extern fn rust_test() {
