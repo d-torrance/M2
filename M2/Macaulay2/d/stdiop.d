@@ -128,6 +128,7 @@ cleanscreen():void := (
     then stdIO << newline << flush;);
 
 export printMessage(position:Position,message:string):void := (
+     lastError = Expr(stringCell(message)); -- Make this an error packet?
      if !SuppressErrors then (
      	  cleanscreen();
 	  stdError << position;
