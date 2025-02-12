@@ -434,7 +434,7 @@ export notfoundE := Expr(Nothing());
 export dummyExpr := Expr(Nothing());
 
 --Error Handling
-export lastError := nullE;
+threadLocal export lastError := nullE;
 
 export dummyFrame := Frame(self,
      -1,                            -- negative frame id's are ignored and give warning messages
