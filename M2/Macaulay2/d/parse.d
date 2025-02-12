@@ -433,8 +433,23 @@ export nullE := Expr(Nothing());
 export notfoundE := Expr(Nothing());
 export dummyExpr := Expr(Nothing());
 
--- Error collection
+--Error Handling
 export lastError := nullE;
+
+export dummyFrame := Frame(self,
+     -1,                            -- negative frame id's are ignored and give warning messages
+     0,
+     true,
+     Sequence());
+
+export buildError(p:Position, message:string):Error := (
+    err := Error(p,
+                 message,
+                 nullE,
+                 false,
+                 dummyFrame);
+    lastError = Expr(err);
+    err);
 
 -- Expr Functions 
 

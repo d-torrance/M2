@@ -128,7 +128,6 @@ cleanscreen():void := (
     then stdIO << newline << flush;);
 
 export printMessage(position:Position,message:string):void := (
-     lastError = Expr(stringCell(message)); -- Make this an error packet?
      if !SuppressErrors then (
      	  cleanscreen();
 	  stdError << position;
@@ -140,11 +139,14 @@ export printMessage(position:Position,message:string):void := (
 	  );
      );
 export printErrorMessage(position:Position,message:string):void := (
+     buildError(position,message);
      printMessage(position, if message.0 == '-' then message else "error: "+message)
      );
 export printWarningMessage(position:Position,message:string):void := printMessage(position,"warning: "+message);
 export printErrorMessage(filename:string,line:ushort,column:ushort,message:string):void := (
-     printErrorMessage(Position(filename,line,column,line,column,line,column,ushort(0)), message);
+     position := Position(filename,line,column,line,column,line,column,ushort(0));
+     buildError(position,message);
+     printErrorMessage(position, message);
      );
 export (o:file) << (p:(null or Position)) : file := when p is null do o is w:Position do o << w;
 export (o:BasicFile) << (p:(null or Position)) : BasicFile := when p is null do o is w:Position do o << w;

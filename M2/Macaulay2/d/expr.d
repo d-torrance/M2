@@ -59,12 +59,6 @@ export newSymbolHashTable():SymbolHashTable := SymbolHashTable(
      do provide NULL,
      0,newThreadRWLock());
 
-export dummyFrame := Frame(self,
-     -1,						    -- negative frame id's are ignored and give warning messages
-     0,
-     true,
-     Sequence());
-
 export dummySymbolFrameIndex := 0;
 export globalFrameID := 0;
 globalFramesize := dummySymbolFrameIndex+1;
@@ -356,14 +350,6 @@ export pointerClass := newbasictype();
 export atomicIntClass := newbasictype();
 export pseudocodeClosureClass := newtypeof(pseudocodeClass);
 -- all new types, dictionaries, and classes go just above this line, if possible, so hash codes don't change gratuitously!
-
-export lastError := nullE; -- This might need to be earlier
-
---Error Handling
-export buildError(p:Position, message:string):Error := (
-    err := Error(p, message, nullE, false, dummyFrame);
-    lastError = Expr(err);
-    err);
 
 export buildErrorPacket(message:string):Expr := (
     Expr(buildError(dummyPosition, message)));
