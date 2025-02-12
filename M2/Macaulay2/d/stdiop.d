@@ -139,13 +139,13 @@ export printMessage(position:Position,message:string):void := (
 	  );
      );
 export printErrorMessage(position:Position,message:string):void := (
+     message = if message.0 == '-' then message else "error: "+message;
      buildError(position,message);
-     printMessage(position, if message.0 == '-' then message else "error: "+message)
+     printMessage(position, message)
      );
 export printWarningMessage(position:Position,message:string):void := printMessage(position,"warning: "+message);
 export printErrorMessage(filename:string,line:ushort,column:ushort,message:string):void := (
      position := Position(filename,line,column,line,column,line,column,ushort(0));
-     buildError(position,message);
      printErrorMessage(position, message);
      );
 export (o:file) << (p:(null or Position)) : file := when p is null do o is w:Position do o << w;
