@@ -937,6 +937,7 @@ export {
 	"multidegree",
 	"multigraded",
 	"mutableIdentity",
+	"mutableList",
 	"mutableMatrix",
 	"nanosleep",
 	"needs",
