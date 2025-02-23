@@ -33,3 +33,21 @@ export getLength(x:MutableList):int := (
 	x = x.cdr;
 	i = i + 1);
     i);
+
+subvalue(x:MutableList, n:int):Expr := (
+    if n < 0 then (
+	lngth := getLength(x);
+	if -n > lngth then return ArrayIndexOutOfBounds(n, lngth - 1);
+	n = n + lngth);
+    i := 0;
+    while i < n do (
+	x = x.cdr;
+	if x == dummyMutableList then return ArrayIndexOutOfBounds(n, i);
+	i = i + 1);
+    x.car);
+export subvalue(x:MutableList, e:Expr):Expr := (
+    when e
+    is n:ZZcell do (
+	if isInt(n.v) then subvalue(x, toInt(n))
+	else WrongArgSmallInteger(2))
+    else WrongArgZZ(2));

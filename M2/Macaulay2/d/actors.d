@@ -2,6 +2,7 @@
 
 use evaluate;
 use struct;
+use linkedlists;
 
 header "#include <assert.h>";
 
@@ -1177,6 +1178,76 @@ flatten(e:Expr):Expr := (
      else WrongArg("a list or sequence"));
 setupfun("flatten",flatten);
 
+getvalue(x:Sequence,i:int):Expr := (
+     if i < -length(x) || i >= length(x)
+     then ArrayIndexOutOfBounds(i, length(x) - 1)
+     else (
+	  if i < 0
+	  then x.(length(x) + i)
+	  else x.i));
+export subvalue(left:Expr,right:Expr):Expr := (
+     -- don't change this without changing subvalueQ below
+     -- # typical value: symbol #, Sequence, ZZ, Thing
+     when left is x:Sequence do (
+	  when right is r:ZZcell do (
+	       if isInt(r) then getvalue(x,toInt(r))
+	       else WrongArgSmallInteger())
+	  else buildErrorPacket("expected subscript to be an integer"))
+     -- # typical value: symbol #, HashTable, Thing, Thing
+     is x:HashTable do lookup1force(x,right)
+     -- # typical value: symbol #, Database, String, String
+     is f:Database do (
+	  when right
+	  is key:stringCell do (
+	       if !f.isopen then return buildErrorPacket("database closed");
+	       when dbmfetch(f.handle,key.v)
+	       is a:string do Expr(stringCell(a))
+	       else KeyNotFound("database", right))
+	  else buildErrorPacket("expected a string as key to database"))
+     -- # typical value: symbol #, List, ZZ, Thing
+     -- # typical value: symbol #, BasicList, ZZ, Thing
+     is x:List do (
+	  when right is r:ZZcell do (
+	       if isInt(r) then getvalue(x.v,toInt(r))
+	       else WrongArgSmallInteger())
+	  else buildErrorPacket("array index not an integer"))
+     -- # typical value: symbol #, Dictionary, String, Symbol
+     is dc:DictionaryClosure do (
+	  when right is s:stringCell do (
+	       d := dc.dictionary;
+	       when lookup(s.v,d.symboltable)
+	       is x:Symbol do Expr(SymbolClosure(if x.thread then threadFrame else dc.frame,x))
+	       else KeyNotFound("dictionary", right)
+	       )
+	  else buildErrorPacket("expected key for dictionary to be a string")
+	  )
+     -- # typical value: symbol #, String, ZZ, String
+     is x:stringCell do (
+	  when right is r:ZZcell do (
+	       if isInt(r) then (
+		    rr := toInt(r);
+		    if rr < 0 then rr = rr + length(x.v);
+		    if rr < 0 || rr >= length(x.v) 
+		    then buildErrorPacket("string index out of bounds")
+		    else Expr(stringCell(string(x.v.rr))))
+	       else buildErrorPacket("string index out of bounds"))
+	  else buildErrorPacket("expected subscript to be an integer"))
+     -- # typical value: symbol #, Net, ZZ, String
+     is n:Net do (
+	  x := n.body;
+	  when right is r:ZZcell do (
+	       if isInt(r) then (
+		    rr := toInt(r);
+		    if rr < 0 then rr = rr + length(x);
+		    if rr < 0 || rr >= length(x) 
+		    then buildErrorPacket("net row index out of bounds")
+		    else Expr(stringCell(x.rr)))
+	       else buildErrorPacket("net row index out of bounds"))
+	  else buildErrorPacket("expected subscript to be an integer"))
+     -- # typical value: symbol #, MutableList, ZZ, Thing
+     is x:MutableList do subvalue(x, right)
+     else buildErrorPacket("expected a list, sequence, string, net, hash table, database, or dictionary"));
+
 subvalue(lhs:Code,rhs:Code):Expr := (
      left := eval(lhs);
      when left is Error do left
@@ -1215,6 +1286,66 @@ lengthFun(rhs:Code):Expr := (
      is x:MutableList do toExpr(getLength(x))
      else buildErrorPacket("expected a list, sequence, string, net, hash table, or dictionary"));
 setup(SharpS,lengthFun,subvalue);
+
+export subvalueQ(left:Expr,right:Expr):Expr := (
+     -- don't change this without changing subvalue above
+     -- # typical value: symbol #?, Sequence, ZZ, Boolean
+     when left is x:Sequence do (
+	  when right is r:ZZcell do (
+	       if isInt(r) then (
+	       	    i := toInt(r);
+		    if i < -length(x) || i >= length(x) then False else True
+		    )
+	       else False)
+	  else False)
+     -- # typical value: symbol #?, Set, Thing, Boolean
+     -- # typical value: symbol #?, HashTable, Thing, Boolean
+     is x:HashTable do if lookup1Q(x,right) then True else False
+     -- # typical value: symbol #?, Dictionary, String, Boolean
+     is dc:DictionaryClosure do (
+	  d := dc.dictionary;
+	  when right is s:stringCell do when lookup(s.v,d.symboltable) is Symbol do True else False
+	  else buildErrorPacket("expected key for dictionary to be a string")
+	  )
+     -- # typical value: symbol #?, Database, String, Boolean
+     is x:Database do (
+	  when right
+	  is key:stringCell do dbmquery(x,key.v)
+	  else buildErrorPacket("expected a string as key to database"))
+     -- # typical value: symbol #?, List, ZZ, Boolean
+     -- # typical value: symbol #?, BasicList, ZZ, Boolean
+     is x:List do (
+	  when right is r:ZZcell do (
+	       if isInt(r) then (
+	       	    i := toInt(r);
+		    if i < -length(x.v) || i >= length(x.v) then False else True
+		    )
+	       else False)
+	  else False)
+     -- # typical value: symbol #?, String, ZZ, Boolean
+     is x:stringCell do (
+	  when right is r:ZZcell do (
+	       if isInt(r) then (
+		    rr := toInt(r);
+		    if rr < 0 || rr >= length(x.v) 
+		    then False
+		    else True)
+	       else False)
+	  else False)
+     -- # typical value: symbol #?, Net, ZZ, Boolean
+     is n:Net do (
+	  x := n.body;
+	  when right is r:ZZcell do (
+	       if isInt(r) then (
+		    rr := toInt(r);
+		    if rr < 0 || rr >= length(x) 
+		    then False
+		    else True)
+	       else False)
+	  else False)
+     -- # typical value: symbol #?, Nothing, Thing, Boolean
+     is Nothing do False				    -- we think of "null" as a universal gadget with no parts
+     else WrongArg(1,"null, a list, sequence, string, net, hash table, database, or dictionary"));
 
 subvalueQ(lhs:Code,rhs:Code):Expr := (
      left := eval(lhs);

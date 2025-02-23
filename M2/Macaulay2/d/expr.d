@@ -421,7 +421,9 @@ export TooManyArgs(name:string,m:int):Expr := (
      then buildErrorPacket(quoteit(name) + " expected at most 1 argument")
      else buildErrorPacket(quoteit(name) + " expected at most " 
 	  + tostring(m) + " arguments"));
-
+export ArrayIndexOutOfBounds(i:int, n:int):Expr := (
+     buildErrorPacket("array index " + tostring(i) + " out of bounds 0 .. " +
+	  tostring(n)));
 
 export MissingMethod(name:string,method:string):Expr := buildErrorPacket(quoteit(name) + " expected item to have a method for " + method);
 export MissingMethod(method:SymbolClosure):Expr := buildErrorPacket("expected a method for "+quoteit(method.symbol.word.name));
