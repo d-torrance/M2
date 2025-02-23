@@ -996,6 +996,7 @@ tostringfun(e:Expr):Expr := (
      is Sequence do toExpr("<<a sequence>>")
      is HashTable do toExpr("<<a hash table>>")
      is List do toExpr("<<a list>>")
+     is MutableList do toExpr("<<a mutable list>>")
      is s:SpecialExpr do tostringfun(s.e)
      is x:RawMonomialCell do toExpr(tostring(x.p))
      is x:RawFreeModuleCell do toExpr(Ccode(string, "IM2_FreeModule_to_string(",x.p,")" ))

@@ -14,6 +14,7 @@ export hash(e:Expr):hash_t := (
      is b:Boolean do Ccode(hash_t, b.v)
      is Nothing do hash_t(333889)
      is x:List do x.hash
+     is x:MutableList do x.hash
      is f:functionCode do f.hash
      is MysqlConnectionWrapper do hash_t(237489) -- improve this later!
      is MysqlFieldWrapper do hash_t(23748) -- improve this later!

@@ -358,6 +358,12 @@ export pointerCell := {+ v:voidPointer };
 
 export atomicIntCell := {+ v:atomicField, hash:hash_t };
 
+export MutableList := {+
+    car:Expr,
+    cdr:MutableList,
+    Class:HashTable,
+    hash:hash_t };
+
 export Expr := (
      CCcell or
      RRcell or
@@ -414,7 +420,8 @@ export Expr := (
      TaskCell or 
      fileOutputSyncState or
      pointerCell or
-     atomicIntCell
+     atomicIntCell or
+     MutableList
      );
 
 --Unique True expression
