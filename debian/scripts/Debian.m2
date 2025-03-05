@@ -129,6 +129,7 @@ generateExample = (pkgname, fkey) -> (
 	hash inputs,
 	() -> null,
 	false);
+    if fileExists errf then error "error generating example";
     topSrcdir = "/top/src/dir/"; -- for reproduciblePaths
     storeExampleOutput(pkg, fkey, outf, printerr);
     true)
