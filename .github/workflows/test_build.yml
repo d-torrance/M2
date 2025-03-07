@@ -131,11 +131,14 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release -DBUILD_NATIVE=OFF \
             -DCMAKE_PREFIX_PATH="`brew --prefix`;`brew --prefix libffi`" \
             -DCMAKE_INSTALL_PREFIX=/usr \
-            --debug-trycompile
+            --debug-trycompile \
+            -DBUILD_LIBRARIES="BDWGC;GLPK;GTEST;MSOLVE" \
+            -DBUILD_PROGRAMS="GFAN;LRSLIB"
 
       - name: Build libraries using Ninja
         if: matrix.build-system == 'cmake'
         run: |
+          cmake --build . --target build-nauty
           cmake --build . --target build-libraries build-programs
 
       - name: Build Macaulay2 using Ninja
@@ -167,7 +170,8 @@ jobs:
             -L/Library/Frameworks/Python.framework/Versions/${PYVERSION}/lib"
           export F77=gfortran-14
           export FC=gfortran-14
-          ../../configure --enable-download --with-system-gc --with-fplll
+          ../../configure --enable-download --with-system-gc --with-fplll \
+            --enable-build-libraries="gc gdbm gfan glpk gtest lapack lrslib msolve nauty tbb"
 
       - name: Build Macaulay2 using Make
         if: matrix.build-system == 'autotools'
