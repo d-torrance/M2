@@ -472,12 +472,22 @@ document {
 
 document {
      Key => Type,
-     Headline => "the class of all types",
-     "Everything in the system is classified, and the class that a thing
-     belongs to is a type.  A type is implemented as a hash table containing
-     method functions for its instances.",
+     Headline => "the class of all mutable types",
+     "Everything in the system is classified, and the class that a thing belongs to is a type. ",
+     "A type is implemented as a ", TO2(MutableHashTable, "mutable hash table"),
+     " containing method functions for its instances.",
      PARA{},
-     "The list of types known to the system is displayed below."
+     "The list of types known to the system is displayed below.",
+     Subnodes => {
+	 "mathematical mutable types",
+	 TO Monoid,
+	 TO Ring,
+	 TO RingFamily,
+	 "other mutable types",
+	 TO SelfInitializingType,
+	 TO WrapperType,
+	 TO HeaderType,
+         },
      }
 
 document {
@@ -487,14 +497,34 @@ document {
      includes numbers, strings, and lists.  More complicated things such as
      polynomials, groups, rings, and chain complexes are implemented
      as ", ITALIC "hash tables", ".  See ", TO "Type", " for information
-     about what types of things there are."
+     about what types of things there are.",
+     Subnodes => TO \ {
+	 --Net,
+	 NetFile,
+	 Boolean,
+	 Dictionary,
+	 Nothing,
+	 Database,
+	 --HashTable,
+	 --Task,
+	 SymbolBody,
+	 --BasicList,
+	 Number,
+	 File,
+	 --Function,
+	 AtomicInt,
+	 Symbol,
+	 Pseudocode,
+	 FunctionBody
      }
+}
 document {
      Key => Nothing,
      Headline => "the empty class",
      "This class is useful for representing the class of an argument
      that is missing.  It is also used as the parent for those things that
-     are not themselves types, i.e., which do not have instances."
+     are not themselves types, i.e., which do not have instances.",
+     Subnodes => { TO "null" },
      }
 
 document {
@@ -549,7 +579,8 @@ document {
 	  "x",
 	  "ab12"
 	  },
-     SeeAlso => {":="}
+     SeeAlso => {":="},
+     Subnodes => TO Keyword,
      }
 
 document {
@@ -565,7 +596,7 @@ document {
      }
 
 document { Key => ImmutableType,
-     Headline => "the class of immutable types",
+     Headline => "the class of all immutable types",
      "All types are implemented as hash tables.  Most types are mutable, so that additional methods for handling their instances can be added
      at any time.  However, if a type has an ancestor where the methods can be stored, then mutability is not needed.",
      PARA{},
@@ -589,7 +620,13 @@ document { Key => ImmutableType,
      EXAMPLE lines ///
 	  ZZ^3_0 + ZZ^3_2
      ///,
-     SeeAlso => {showStructure,parent,class}
+     SeeAlso => {showStructure,parent,class},
+     PARA{},
+     "The list of immutable types known to the system is displayed below.",
+     Subnodes => {
+	 "mathematical immutable types",
+	 TO Module,
+         },
      }
 
 document {

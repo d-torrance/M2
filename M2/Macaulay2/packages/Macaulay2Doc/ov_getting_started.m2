@@ -24,6 +24,7 @@ document {
 	  "
 	  },
      Subnodes => {
+	  TO "invoking the Macaulay2 program",
 	  TO "checking your Macaulay2 installation",
 	  TO "finding the Macaulay2 files",
 	  TO "teaching M2 how to find its shared libraries",
@@ -195,26 +196,6 @@ document { Key => "finding the Macaulay2 files",
      PRE ///     i1 : prefixDirectory
 
      o1 = /foo/bar/ ///,
-     "If you are running M2 and emacs under cygwin on a Windows computer, then that
-     can prevent special difficulties: see ", TO "finding your files under cygwin", "."
-     }
-
-document { Key => "finding your files under cygwin",
-     "In Microsoft Windows, most people run programs by pulling down menus or by clicking on icons
-     that have been carefully placed there by install programs.  Thus the idea of a
-     ", EM "path", " along which to search for programs (such as a browser) is no longer useful in Windows.",
-     PARA{},
-     "On my computer the browser program ", TT "firefox.exe", " is in the following directory.",
-     PRE ///    C:/Program Files/Mozilla Firefox///,
-     "But M2 is a Cygwin program, and it lives in a different world, where paths to
-     files don't ever start out with something like ", TT "C:", ".  In that world, firefox's
-     directory is known instead as:",
-     PRE ///     /cygdrive/c/Program Files/Mozilla Firefox///,
-     "Conversely, the root directory, known in the Cygwin world as ", TT "/", ", could be located
-     anywhere in the Windows world.  On my machine it is at",
-     PRE ///     C:/cygwin///,
-     "Use the ", TT "df", " command or the ", TT "mount", " command in a cygwin command shell window to determine
-     that path: it is the file system on which ", TT "/", " is mounted."
      }
 
 document { Key => "teaching your shell how to find M2",
@@ -829,7 +810,8 @@ document {
 	  generators.",
      PARA{},
      "We can use ", TO "betti", " to see the degrees involved in the Gröbner basis.",
-     EXAMPLE "betti gb j"
+     EXAMPLE "betti gb j",
+     Subnodes => { TO "initial help" }
      }
 
 
@@ -883,7 +865,7 @@ PRE ///f = () -> (
 }
 
 document {
-     Key => "Invoking the program",
+     Key => "invoking the Macaulay2 program",
      "On systems with a command line interface, the following commands
      can be used to start the program.  When the program starts up,
      the ", TO "initialization file", ", ", TT "init.m2", ", will be loaded.",
@@ -1171,7 +1153,7 @@ document {
 	  package called ", TT "Foo", "."
 	  },
      EXAMPLE ///stack apply(prefixPath, p -> p | Layout#1#"info" | "Foo.info")///,
-     SeeAlso => {"commandLine", "Invoking the program", applicationDirectory, "prefixDirectory", "path", searchPath, load, loadPackage, needsPackage}
+     SeeAlso => {"commandLine", "invoking the Macaulay2 program", applicationDirectory, "prefixDirectory", "path", searchPath, load, loadPackage, needsPackage}
      }
 
 doc := new HashTable from {

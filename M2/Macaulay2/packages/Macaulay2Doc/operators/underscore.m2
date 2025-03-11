@@ -4,13 +4,16 @@ undocumented {
      (symbol _, RR, EngineRing),
      (symbol _, RRi, EngineRing),
      (symbol _, ZZ, Monoid),
-     (symbol _, Monoid, ZZ),
      (symbol _, Vector, ZZ),
      (symbol _, Monoid, List),
      (symbol _, Symbol, Monoid),
      (symbol _, IndexedVariable, Monoid),
+     (symbol _, Pseudocode, ZZ),
+     (symbol _, RingElement, Monoid),
+     (symbol _, MonoidElement, Ring),
+     (symbol _, RingElement, Thing),
+     (symbol _, MonoidElement, Thing),
      (symbol _, MonoidElement, Monoid),
-     (symbol _, String, Monoid),
      (symbol _, RingElement, MonoidElement),
      (symbol _, PolynomialRing, List),
      (symbol _, RingElement, RingElement), --coeff of monomials in polynomial -- deprecate or obsolete
@@ -71,24 +74,6 @@ document {
      }
 
 document { 
-     Key => (symbol _, VirtualTally, Thing),
-     Headline => "get a count from a tally",
-     Usage => "t_x",
-     Inputs => {
-	  "t","x"
-	  },
-     Outputs => {
-	  ZZ => {"the number of times ", TT "x", " is counted by ", TT "t"}
-	  },
-     EXAMPLE lines ///
-     	  t = tally apply(1..10000, i -> # factor i)
-	  t_5
-	  t_6
-	  ///,
-     SeeAlso => {Tally}
-     }
-
-document { 
      Key => (symbol _, String, ZZ),
      Headline => "get element from string",
      Usage => "s_i",
@@ -138,7 +123,11 @@ document {
      SeeAlso => {"lists and sequences", partitions, toList}
      }
 document { 
-     Key => (symbol _, Ring, ZZ),             -- ring variable by index
+    Key => {
+	"get a ring variable by index",
+	(symbol _, Ring, ZZ),
+	(symbol _, Monoid, ZZ),
+    },
      Headline => "get a ring variable by index",
      Usage => "R_i",
      Inputs => {
@@ -165,7 +154,11 @@ document {
      SeeAlso => {generators, (symbol _, String, Ring)}
      }
 document { 
-     Key => (symbol _, String, Ring), -- ring variable by name
+    Key => {
+	"get a ring variable by name",
+	(symbol _, String, Ring),
+	(symbol _, String, Monoid),
+    },
      Headline => "get a ring variable by name",
      Usage => ///"x"_R///,
      Inputs => {
@@ -189,10 +182,14 @@ document {
 	  use R;
 	  x
 	  ///,
-     SeeAlso => {(symbol _, Ring, ZZ), (symbol _, Symbol, Ring), (use,Ring)}
+     SeeAlso => { (symbol _, Ring, ZZ), (use, Ring) },
+     Subnodes => {
+	 TO (symbol _, Symbol, Ring),
+	 TO (symbol _, IndexedVariable, Ring),
+         }
      }
 document { 
-     Key => {(symbol _, Symbol, Ring) },
+     Key => (symbol _, Symbol, Ring),
      Headline => "get a ring variable by name",
      Usage => ///x_R///,
      Inputs => {
@@ -220,7 +217,10 @@ document {
      SeeAlso => {(symbol _, Ring, ZZ), (symbol _, String, Ring), (use,Ring)}
      }
 document { 
-     Key => (symbol _, Ring, List),           -- make monomial
+     Key => {
+	 "get a monomial by exponent vector",
+	 (symbol _, Ring, List),
+     },
      Headline => "make a monomial from a list of exponents",
      Usage => "R_w",
      Inputs => {
@@ -239,7 +239,6 @@ document {
 	  S_{1,1,1}
 	  S_{1,1,1,4}
 	  ///,
-     SeeAlso => {}
      }
 document { 
      Key => (symbol _, IndexedVariable, Ring), -- ring variable by name
@@ -315,29 +314,44 @@ document {
      }
 
 document { 
-     Key => {"generators of ideals and modules",
+     Key => {"generators of rings, ideals, and modules",
 	  (symbol _, Ideal, ZZ),
 	  (symbol _, Module, ZZ),
-	  (symbol _, Matrix, ZZ)},
+	  (symbol _, Matrix, ZZ),
+	  (symbol _*, Ring),
+	  (symbol _*, Ideal),
+	  (symbol _*, Module),
+	  (symbol _*, Monoid),
+      },
      Headline => "",
      SYNOPSIS {
-	  Heading => "Synopsis",
+	  Heading => "get a single generator of a ring, ideal, or module",
      	  Usage => "L_i",
      	  Inputs => {
-	       "L" => ofClass{Ideal,Module,Matrix},
+	       "L" => ofClass{Ring,Ideal,Module,Matrix},
 	       "i" => ZZ
 	       },
      	  Outputs => {
 	       {ofClass{RingElement,Vector}, " the ", TT "i", "-th generator or column of ", TT "L"}
 	       },
 	  },
+     SYNOPSIS {
+	  Heading => "get the list of generators of a ring, ideal, or module",
+	  Usage => "M_*",
+	  Inputs => { "M" => ofClass{Ring,Ideal,Module} },
+	  Outputs => { List }
+	  },
      	  "As usual in Macaulay2, the first generator has index zero.",
 	  PARA{},
      	  EXAMPLE lines ///
 	       R = QQ[a..d];
+	       numgens R
+	       R_2
+	       R_*
 	       I = ideal(a^3, b^3-c^3, a^4, a*c);
 	       numgens I
 	       I_0, I_2
+	       I_*
 	  ///,
 	  PARA{},
 	  "Notice that the generators are the ones provided.  Alternatively we can
@@ -351,6 +365,7 @@ document {
 	  EXAMPLE lines ///
 	       M = cokernel matrix{{a,b},{c,d}}
 	       M_0
+	       M_*
 	       M/M_0
 	       N = M/(a*M + R*M_0)
      	       N_0 == 0_N

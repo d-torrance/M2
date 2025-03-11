@@ -33,7 +33,8 @@ document {
 	  TO "symmetric algebras",
 	  TO "tensor products of rings",
 	  TO "Weyl algebras",
-	  -- TO "Schur rings", 
+	  TO "local rings",
+	  TO "Schur rings",
 	  TO "associative algebras",
        	  },
      PARA{},
@@ -49,10 +50,8 @@ document {
 	  TO "ZZ", 
 	  TO "QQ", 
 	  TO "RR",
-	  TO "RR'",
 	  TO "RRi",
 	  TO "CC",
-	  TO "CC'",
 	  },
      "The names of some of these rings are double letters so the corresponding symbols
      with single letters are preserved for use as variables.",
@@ -109,6 +108,47 @@ document {
 	  TO "CC",
      }
 }
+
+document {
+    Key => Number,
+    Headline => "the class of all numbers",
+    Subnodes => {
+	TO InfiniteNumber,
+	TO IndeterminateNumber,
+	TO InexactNumber,
+	TO InexactNumber'
+    }}
+
+document {
+    Key => InfiniteNumber,
+    Headline => "the class of all infinite numbers",
+    Subnodes => { TO infinity } }
+
+document {
+    Key => infinity,
+    Headline => "infinity" }
+
+document {
+    Key => IndeterminateNumber,
+    Headline => "the class of all indeterminate numbers",
+    "Indeterminate numbers result, for example, from multiplying 0 by infinity.
+    There is only one instance of this class.",
+    Subnodes => { TO indeterminate } }
+
+document {
+    Key => indeterminate,
+    Headline => "an indeterminate number",
+    TT "indeterminate", " -- a representation of an indeterminate number, ",
+    "such as might result from multiplying 0 by infinity." }
+
+document {
+    Key => InexactNumber,
+    "This type of number is intended to serve as a parent class for those types of numbers ",
+    "that are inexactly represented in the computer." }
+
+document {
+    Key => InexactNumber',
+    "This class is the common parent of the classes of complex fields and real fields." }
 
 document {
      Key => ZZ,
@@ -600,6 +640,11 @@ document {
        	  },
      SeeAlso => {"heft vectors", "division in polynomial rings with monomials less than 1"},
      Subnodes => {
+	 TO (symbol SPACE, Ring, Array),
+	 TO (symbol SPACE, Ring, Monoid),
+	 TO "get a ring variable by index",
+	 TO "get a ring variable by name",
+	 TO "get a monomial by exponent vector",
 	 TO "graded and multigraded polynomial rings",
 	 TO "monomial orderings",
          }
@@ -736,7 +781,10 @@ document {
 	  "R = ZZ/101[x,y,z]/(x-y,y-z,z-x)",
       	  "trim R"
 	  },
-     "For more information see ", TO "QuotientRing", "."
+     "For more information see ", TO "QuotientRing", ".",
+     Subnodes => {
+	 TO (symbol /, Ring, Ideal),
+         },
      }
 
 document {
@@ -1143,6 +1191,22 @@ document {
     Key => "associative algebras",
     "Associative (i.e., not necessarily commutative) algebras are implemented in
     the ", TO "AssociativeAlgebras::AssociativeAlgebras", " package."
+    }
+
+document {
+    Key => "local rings",
+    "Localizations of polynomial rings with respect to prime ideals are implemented in
+    the ", TO "LocalRings::LocalRings", " package.",
+    Subnodes => {
+	"alternative ways to construct a local ring",
+	TO (symbol SPACE, Ring, List),
+        },
+    }
+
+document {
+    Key => "Schur rings",
+    "Representation rings of general linear groups and of symmetric groups are implemented in
+    the ", TO "SchurRings::SchurRings", " package."
     }
 
 -*

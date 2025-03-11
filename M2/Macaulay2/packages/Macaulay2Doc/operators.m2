@@ -1,40 +1,20 @@
 load "./operators/dotdot.m2"
 load "./operators/caret.m2"
 load "./operators/shift.m2"
+load "./operators/plus.m2"
+load "./operators/minus.m2"
+load "./operators/times.m2"
+load "./operators/tensor.m2"
 load "./operators/equality.m2"
+load "./operators/quotient.m2"
+load "./operators/division.m2"
+load "./operators/remainder.m2"
+load "./operators/factoring.m2"
 load "./operators/comparison.m2"
+load "./operators/underscore.m2"
 load "./operators/assignment.m2"
 load "./operators/augmented_assignment.m2"
-
-document {
-     Key => Number,
-     Headline => "the class of all numbers"
-     }
-
-document {
-     Key => plus,
-     Headline => "addition",
-     TT "plus(x,y,...)", " -- yields the sum of its arguments.",
-     PARA{},
-     "If there are no arguments, the answer is the integer 0."
-     }
-
-document {
-     Key => times,
-     Headline => "multiplication",
-	Usage => "times(x,y, ...)",
-     TT "times(x,y, ...)", " yields the product of its arguments.
-	If there are no arguments, the value is the integer 1."
-     }
-
-document {
-     Key => power,
-     Headline => "power",
-	Usage => "(x,n)",
-     TT "power(x,n)", " yields the ", TT "n", "-th power of ", TT "x", ".",
-     PARA{},
-     SeeAlso => "^"
-     }
+load "./operators/concatenate.m2"
 
 document {
      Key => {powermod,(powermod,ZZ,ZZ,ZZ)},
@@ -55,22 +35,6 @@ document {
 	  powermod(2,30000,100000000000000000000)
 	  powermod(2,3331333,3331333)
      ///
-     }
-
-document {
-     Key => difference,
-     Headline => "difference",
-	Usage => "difference(x,y)",
-     TT "difference(x,y)", " returns ", TT "x-y", "."
-     }
-
-document {
-     Key => minus,
-     Headline => "additive inverse",
-	Usage => "minus(x)",
-     TT "minus(x)", " yields ", TT "-x", ".",
-     PARA{},
-     "See also ", TO "difference", "."
      }
 
 document {
@@ -260,6 +224,24 @@ document {
      }
 
 document {
+    Key => symbol |,
+    Headline => "a binary operator, often used for horizontal concatenation",
+    SeeAlso => {"||"}
+}
+
+document {
+    Key => (symbol |, ZZ, ZZ),
+    Headline => "logical or",
+    Usage => "m | n",
+    Inputs => {"m", "n"},
+    Outputs => {
+	ZZ => {"obtained from the bits of the integers ", TT "m", " and ", TT "n", " by logical 'or'."}
+    },
+    EXAMPLE "2^42 | 2^15 == 2^42 + 2^15",
+    SeeAlso => {(symbol &,ZZ,ZZ),(symbol ^^,ZZ,ZZ), (symbol ~, ZZ)}
+}
+
+document {
      Key => "and",
      Headline => "conjunction",
      TT "t and u", " -- returns true if ", TT "t", " is true and ", TT "u", "
@@ -267,6 +249,24 @@ document {
      PARA{},
      "If ", TT "t", " is false, then the code in ", TT "u", " is not evaluated.",
      SeeAlso =>{ "or", "not", "xor" }
+     }
+
+document {
+     Key => symbol &,
+     Headline => "a binary operator",
+     }
+
+document {
+     Key => (symbol &, ZZ, ZZ),
+     Headline => "logical and",
+     Usage => "m & n",
+     Inputs => {"m", "n"},
+     Outputs => {
+	  ZZ => {"obtained from the bits of the
+	       integers ", TT "m", " and ", TT "n", " by logical 'and'."}
+	  },
+     EXAMPLE "(2^15 + 2^13 + 2^42) & (2^15 + 2^23 + 2^42) == 2^15 + 2^42",
+     SeeAlso => {(symbol |,ZZ,ZZ),(symbol ^^,ZZ,ZZ), (symbol ~, ZZ)}
      }
 
 document {
@@ -296,6 +296,61 @@ doc ///
 ///
 
 document {
+     Key => symbol \,
+     Headline => "a binary operator",
+     }
+
+document {
+     Key => symbol \\,
+     Headline => "a binary operator"
+     }
+
+document {
+     Key => {symbol !, (symbol !, ZZ), (symbol !, QQ), (symbol !, RR),(symbol !,Constant)},
+     Headline => "factorial",
+     Usage => "n!",
+     Inputs => {"n"=>ZZ},
+     Outputs => { ZZ => "n factorial, 1*2*3*...*n."},
+     EXAMPLE lines ///
+     	  30!
+     	  30.!
+	  30.01!
+     ///
+     }
+
+
+doc ///
+  Key
+    (symbol ~, ZZ)
+  Headline
+    logical not
+  Usage
+    n~
+  Inputs
+    n:ZZ
+  Outputs
+    :ZZ -- the bitwise complement of @TT "n"@
+  Description
+    Example
+      7~
+    Text
+      Note that @TT "~"@ has @TO2 {"precedence of operators",
+      "higher precedence"}@ than @TT "-"@, so enclose negative integers in
+      parentheses.
+    Example
+      (-12)~
+  SeeAlso
+    (symbol &, ZZ, ZZ)
+    (symbol |, ZZ, ZZ)
+    (symbol ^^, ZZ, ZZ)
+///
+
+document {
+    Key => symbol ||,
+    Headline => "a binary operator, often used for vertical concatenation"
+}
+
+document {
      Key => symbol :,
      Headline => "a binary operator, uses include repetition; ideal quotients",
      }
@@ -306,7 +361,7 @@ document {
      }
 
 document {
-    Key => symbol SPACE, 
+    Key => symbol SPACE,
     Headline => "blank operator; often used for function application, making polynomial rings",
     SeeAlso =>(symbol SPACE, Function, Thing)		    -- not really a method
 }
@@ -424,3 +479,106 @@ document {
      Headline => "a binary operator",
      "This operator is right associative."
      }
+
+document {
+     Key => { (symbol /,VisibleList,Function),
+	  (symbol /,List,Function),
+	  (symbol \,Function,VisibleList),
+	  (symbol \,Function,VirtualTally),
+	  (symbol \,SelfInitializingType,VisibleList),
+	  (symbol \,Command,VisibleList),
+	  (symbol \,RingMap,VisibleList),
+	  (symbol \,Command,VirtualTally),
+	  (symbol /, List, SelfInitializingType),
+	  (symbol /,VisibleList,SelfInitializingType),
+	  (symbol /,List,Command),
+	  (symbol /, Set, Command),
+	  (symbol /, Set, Function),
+	  (symbol \, Command, Set),
+	  (symbol \, Function, Set),
+	  (symbol /,VirtualTally,Command),
+	  (symbol /,VirtualTally,Function),
+	  (symbol /,VisibleList,RingMap),
+	  (symbol /,VisibleList,Command),
+	  (symbol /,String,Command),
+	  (symbol /,String,Function),
+	  (symbol \,Command,String),
+	  (symbol \,Function,String)
+	  },
+     Headline => "apply a function to elements of a list",
+     Usage => "x/f\nf\\x",
+     Inputs => { "x" => Nothing => {ofClass{VisibleList,List,Sequence,Array,Tally,Set,String}}, "f" => Nothing => {ofClass{Function,Command,SelfInitializingType,RingMap}} },
+     Outputs => {{ "the list, tally, or set obtained by applying ", TT "f", " to each element of ", TT "x", "; it has the same type as ", TT "x", " has" }},
+     PARA {
+	  "The function ", TO "apply", " does the same thing."
+	  },
+     PARA {
+     	  "The operator ", TO "/", " is left associative, which means that ", TT "w / f / g", " is interpreted as ", TT "(w / f) / g", ".
+     	  The operator ", TO "\\", " is right associative, so ", TT ///g \ f \ w///, " is interpreted as ", TT ///g \ (f \ w)///, ".
+	  Both operators have parsing precedence lower than that of ", TO "@@", ", which means that the previous two expressions are equivalent to ", TT "w / g @@ f", "
+	  and ", TT "g @@ f \\ w", ", respectively. See ", TO "precedence of operators", "."
+	  },
+     EXAMPLE lines ///
+     	  f = x -> x+1
+	  g = x -> 2*x
+     	  g \ (1 .. 10)
+     	  (1 .. 10) / g
+     	  f \ g \ (1 .. 10)
+     	  f @@ g \ (1 .. 10)
+	  set (1 .. 10)
+	  g \ oo
+	  R = QQ[x];
+	  f = map(R,R,{x^2})
+	  f \ {x,x^2,x^3,x^4}
+     ///,
+     SourceCode => {(symbol /,VisibleList,Function)},
+     }
+
+document {
+     Key => { (symbol /,Ideal,Function),
+	  (symbol \,Function,Ideal)},
+     Headline => "apply a function to generators of an ideal",
+     Usage => "I/f\nf\\I",
+     Inputs => { "I","f"},
+     Outputs => {List => { "obtained by applying the function ", TT "f", " to each generator of ", TT "I"}},
+     PARA {
+     	  "The operator ", TO "/", " is left associative, which means that ", TT "w / f / g", " is interpreted as ", TT "(w / f) / g", ".
+     	  The operator ", TO "\\", " is right associative, so ", TT ///g \ f \ w///, " is interpreted as ", TT ///g \ (f \ w)///, ".
+	  Both operators have parsing precedence lower than that of ", TO "@@", ", which means that the previous two expressions are
+	  equivalent to ", TT "w / g @@ f", "
+	  and ", TT "g @@ f \\ w", ", respectively. See ", TO "precedence of operators", "."
+	  },
+     EXAMPLE lines ///
+     	  R = ZZ[a..d];
+	  I = ideal"abc-d3,ab-d-1,a2+b2+c3-14d-3"
+     	  I/size
+	  (f->f+a*b-1)\I
+	  I/leadTerm/support/set//sum
+     ///,
+     }
+
+document {
+    Key => {
+	(symbol //, Thing, Function),
+	(symbol //, Thing, Command),
+	(symbol //, Thing, SelfInitializingType),
+	(symbol \\, Function, Thing),
+	(symbol \\, Command, Thing),
+	(symbol \\, SelfInitializingType, Thing)
+    },
+    Headline => "apply a function",
+    Usage => "x // f\nf \\\\ x",
+    Inputs => { "x", "f" => Nothing => {ofClass{Function,Command,SelfInitializingType}}},
+    Outputs => {{ "the result of applying ", TT "f", " to ", TT "x", ", i.e., ", TT "f x" }},
+    SeeAlso => {(symbol /,VisibleList,Function)},
+    PARA {
+	"The parsing precedence of the operators ", TT "//", " and ", TT "\\\\", " is rather low, which makes
+	them useful for avoiding parentheses.  See ", TO "precedence of operators", "."
+    },
+    EXAMPLE lines ///
+     	  toList \\ sin \ ( 1 .. 5 )
+     	  ( 1 .. 5 ) / sin // toList
+	  (x -> (x,x)) \ (a,b,c,d)
+	  splice \\ (x -> (x,x)) \ (a,b,c,d)
+    ///
+    }

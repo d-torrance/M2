@@ -497,7 +497,25 @@ document {
 	  "L = new Type of BasicList",
 	  "x = new L from {a,b,c,d}",
 	  "join(x,x)"
-	  }
+	  },
+     "Here are the core types that inherit from ", TT "BasicList", ":",
+     Subnodes => TO \ {
+	 FilePosition,
+	 --Eliminate,
+	 Command,
+	 --VisibleList,
+	 --ProductOrder,
+	 URL,
+	 --MutableList,
+	 RingElement,
+	 --Time,
+	 Option,
+	 Vector,
+	 --Partition,
+	 Expression,
+	 Manipulator,
+	 IndexedVariable
+         },
      }
 
 document {
@@ -541,8 +559,8 @@ document {
      ///,
      PARA {"For an overview of lists and sequences, see ", TO "lists and sequences", "."},
      Subnodes => {
+	 -- TO Hybrid, -- this is documented in MinimalPrimes
 	 TO VerticalList,
-	 TO NumberedVerticalList
      }
 }
 
@@ -563,7 +581,7 @@ document { Key => VerticalList,
      EXAMPLE lines ///
 	 toList v
      ///,
-     SeeAlso => { NumberedVerticalList }
+     Subnodes => TO NumberedVerticalList,
      }
 
 document { Key => NumberedVerticalList,
@@ -737,7 +755,8 @@ document {
 	  "s",
       	  "peek s",
 	  },
-     SeeAlso => {"BasicList"}
+     SeeAlso => {"BasicList"},
+     Subnodes => { TO Bag },
      }
  
 document {

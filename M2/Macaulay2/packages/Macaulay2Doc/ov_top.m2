@@ -26,6 +26,7 @@ Node
       "ideals"
       "matrices"
       "modules"
+      "morphisms"
       "chain complexes"
       "Varieties :: Varieties"
     :Some Mathematical Computations
@@ -52,6 +53,8 @@ Node
       -- Mike wanted this: TO "frequently encountered problems"
       "replacements for commands and scripts from Macaulay"
     :Reference material
+      "Thing"
       "Type"
+      "ImmutableType"
       "Function"
 ///

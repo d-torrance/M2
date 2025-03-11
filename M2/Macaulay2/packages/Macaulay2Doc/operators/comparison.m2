@@ -39,27 +39,15 @@ undocumented {
      (symbol >=, Thing, Thing)
      }
 
-undocumented {
-     (symbol ?, TO2, TO2),
-     (symbol ?, TO2, TO),
-     (symbol ?, TO, TO2),
-     (symbol ?, TOH, TO2),
-     (symbol ?, TO2, TOH),
-     (symbol ?, TO, TO),
-     (symbol ?, String, DocumentTag),
-     (symbol ?, DocumentTag, String),
-     (symbol ?, TOH, TO),
-     (symbol ?, TO, TOH),
-     (symbol ?, InfiniteNumber, InfiniteNumber),
-     (symbol ?, DocumentTag, DocumentTag),
-     (symbol ?, Thing, InfiniteNumber),
-     (symbol ?, TOH, TOH),
-     (symbol ?, InfiniteNumber, Thing),
-     (symbol ?, ZZ, MonoidElement),
-     (symbol ?, MonoidElement, ZZ),
-     (symbol ?, RingElement, ZZ),
-     (symbol ?, ZZ, RingElement)
-     }
+document {
+    Key => (symbol <<, List, List),
+    Headline => "component-wise comparison of lists",
+    Usage => "L1 << L2",
+    Inputs => { "L1" => List, "L2" => List },
+    Outputs => { Boolean => "whether the first list is less than or equal to the second list in each component" },
+    SourceCode => (symbol <<, List, List),
+    SeeAlso => (symbol ?, List, List)
+    }
 
 document {
      Key => {symbol ?,
@@ -107,3 +95,7 @@ document {
      TT "incomparable", " a symbol that may be returned by ", TO "?", "
      when the two things being compared are incomparable."
      }
+
+-- this should be at the end
+undocumented select(makeDocumentTag \ methods symbol ?,
+    m -> package m === Macaulay2Doc and not isUndocumented m and isMissingDoc m)

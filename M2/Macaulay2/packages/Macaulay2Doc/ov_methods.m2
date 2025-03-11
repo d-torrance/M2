@@ -155,7 +155,12 @@ document {
      "where ", TT "( ... )", " represents suitable code for the operation at hand.",
      PARA{},
      "The routine for making new methods is ", TO "method", ".",
-     SeeAlso =>{"binary methods"}
+     SeeAlso =>{"binary methods"},
+     Subnodes => {
+	 TO "installing assignment methods",
+	 TO "installing augmented assignment methods",
+         TO installMethod,
+         },
      }
 
 document {
@@ -256,7 +261,8 @@ document {
 	  "making functions with a variable number of arguments",
 	  "making functions with multiple return values",
 	  "making new functions with optional arguments"
-	  }
+	  },
+     Subnodes => TO \ { FunctionClosure, CompiledFunction, CompiledFunctionClosure },
      }
 document {
      Key => "->",
@@ -288,7 +294,10 @@ document {
 	  "f = x -> 2*x+1",
 	  "f 100"
 	  },
-     "The class of all functions is ", TO "Function", "."
+     "The class of all functions is ", TO "Function", ".",
+     Subnodes => {
+	 TO (options, Function),
+         },
      }
 
 document {
@@ -416,7 +425,11 @@ document {
 document {
      Key => OptionTable,
      Headline => "the class of hash tables for optional arguments",
-     SeeAlso => ">>" }
+     Subnodes => {
+	 TO (symbol >>, OptionTable, Function),
+	 TO (symbol ++, OptionTable, OptionTable),
+         }
+     }
 document {
      Key => {(symbol >>, OptionTable, Function),
 	  (symbol >>, List, Function),(symbol >>, Boolean, Function)},
