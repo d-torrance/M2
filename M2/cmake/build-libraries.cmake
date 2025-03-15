@@ -376,10 +376,11 @@ _ADD_COMPONENT_DEPENDENCY(libraries flint "gmp;mpfr;ntl" FLINT_FOUND)
 # https://service.mathematik.uni-kl.de/ftp/pub/Math/Singular/Factory/
 # TODO: what is ftmpl_inst.o?
 ExternalProject_Add(build-factory
-  URL               https://www.singular.uni-kl.de/ftp/pub/Math/Factory/factory-4.4.0.tar.gz
-  URL_HASH          SHA256=baf31159578463e26bf18ec68ec901228d79a819866dd96c02d85c73dfbaf030
+  URL               https://www.singular.uni-kl.de/ftp/pub/Math/Singular/SOURCES/4-4-1/singular-4.4.1.tar.gz
+  URL_HASH          SHA256=6a4fbaaed05b89c35bff3b1c5e124344a088097f81affe129c9ae619b282b49b
   PREFIX            libraries/factory
   SOURCE_DIR        libraries/factory/build
+  SOURCE_SUBDIR     factory
   DOWNLOAD_DIR      ${CMAKE_SOURCE_DIR}/BUILD/tarfiles
   BUILD_IN_SOURCE   ON
 #  PATCH_COMMAND     patch --batch < ${CMAKE_SOURCE_DIR}/libraries/factory/patch-4.4.0
