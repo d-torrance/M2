@@ -730,6 +730,7 @@ export {
 	"getIOThreadMode",
 	"getNetFile",
 	"getNonUnit",
+	"getPeerName",
 	"getPrimeWithRootOfUnity",
 	"getSymbol",
 	"getWWW",
