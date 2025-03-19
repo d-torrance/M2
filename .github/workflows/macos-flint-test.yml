@@ -1,0 +1,29 @@
+name: macOS FLINT test
+on: push
+
+jobs:
+  macos-flint-test:
+    runs-on: macos-13
+    steps:
+      - name: Install dependencies
+        run: brew install flint
+      - name: Create source file
+        run: |
+          cat << EOF > flint-test.c
+          #include <flint/fmpq.h>
+          int main(void)
+          {
+          int i;
+          fmpq_t x;
+          flint_rand_t state;
+          fmpq_init(x);
+          /* flint_randinit(state); */
+          for (i = 0; i < 1000; i++)
+            fmpq_randtest(x, state, 50);
+          return 0;
+          }
+          EOF
+      - name: Compile
+        run: gcc flint-test.c -lflint -o flint-test
+      - name: Run
+        run: ./flint-test
