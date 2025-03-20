@@ -6,6 +6,7 @@ newPackage("Transports",
 	    Name => "Doug Torrance",
 	    Email => "dtorrance@piedmont.edu",
 	    HomePage => "http://www.piedmont.edu/~dtorrance"}},
+    PackageImports => {"Parsing"},
     Keywords => {"System"})
 
 export {
@@ -185,6 +186,76 @@ makeClickableLink = method()
 makeClickableLink String := href -> makeClickableLink(href, href)
 makeClickableLink(String, String) := (href, inner) -> concatenate(
     "\e]8;;", href, "\e\\", inner, "\e]8;;\e\\")
+
+-------------------------------------------------------------------
+-- parser based on https://datatracker.ietf.org/doc/html/rfc2616 --
+-------------------------------------------------------------------
+
+-- generates a parser that accepts ascii values between lo and hi
+asciiParser = (lo, hi) -> Parser(c ->
+    if c === null then null
+    else (
+	a := first ascii c;
+	if lo <= a and a <= hi then terminalParser c))
+
+-- TODO: move to Parsing?
+Parser - Parser := (p, q) -> Parser(c -> if q c === null then p c)
+
+octetP = asciiParser(0, 255)
+charP = asciiParser(0, 127)
+upalphaP = asciiParser(65, 90)
+loalphaP = asciiParser(97, 122)
+alphaP = upalphaP | loalphaP
+digitP = asciiParser(48, 57)
+ctlP = asciiParser(0, 31) | constParser "\x7f"
+crP = constParser "\r"
+lfP = constParser "\n"
+spP = constParser " "
+htP = constParser "\t"
+quoteP = constParser "\""
+crlfP = concatenate % crP @ lfP
+lwsP = (x -> " ") % optP crlfP @ +(spP | htP)
+textP = (octetP - ctlP) | lwsP
+hexP = asciiParser(65, 70) | asciiParser(97, 102) | digitP
+separatorP = orP("(", ")", "<", ">", "@", ",", ";", ":", "\"", "/", "[", "]",
+    "?", "=", "{", "}", " ", "\t")
+tokenP = concatenate % +(charP - (ctlP | separatorP))
+ctextP = textP - (constParser "(" | constParser ")")
+qdtextP = textP - quoteP
+quotedPairP = concatenate % "\\" @ charP
+commentP = symbol commentP -- remove me
+commentP = concatenate % andP("(",
+    *(ctextP | quotedPairP | futureParser commentP),
+    ")")
+quotedStringP = concatenate % andP("\"", *(qdtextP | quotedPairP), "\"")
+
+methodP = orP("OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE",
+    "CONNECT", tokenP)
+
+-- URI syntax
+-- https://datatracker.ietf.org/doc/html/rfc2396
+schemeP = concatenate % alphaP @ *(alphaP | digitP | "+" | "-" | ".")
+alphanumP = alphaP | digitP
+markP = orP("-", "_", ".", "!", "~", "*", "'", "(", ")")
+unreservedP = alphanumP | markP
+escapedP = concatenate % "%" @ hexP @ hexP
+userinfoP = concatenate % *orP(unreservedP, escapedP, ";", ":", "&", "=")
+-- slight refactoring to avoid ambiguity:
+domainlabelP = concatenate % alphanumP @ *(alphanumP | "-" @ alphanumP)
+toplabelP = concatenate % alphaP @ *(alphanumP | "-" @ alphanumP)
+
+nonnil = x -> select(x, y -> y =!= nil)
+hostnameP = concatenate @@ nonnil @@ deepSplice % (
+    *(domainlabelP @ ".") @ toplabelP @ optP ".")
+ipv4addressP = concatenate % andP(
+    +digitP, ".", +digitP, ".", +digitP, ".", +digitP)
+hostP = hostnameP |ipv4addressP
+hostportP = concatenate @@ nonnil @@ deepSplice  % hostP @ (optP ":" @ *digitP)
+serverP = concatenate % userinfoP @ "@" @ hostportP | hostportP
+regnameP = concatenate % +orP(unreservedP, escapedP, "$", ",", ";", ":", "@",
+    "&", "=", "+")
+authorityP = serverP | regnameP
+
 
 end
 
