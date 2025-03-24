@@ -79,6 +79,11 @@ document {
 	  },
      Subnodes => {
 	 TO (symbol SPACE, RingMap, RingElement),
+        TO (kernel, RingMap),
+        TO (source, RingMap),
+        TO (target, RingMap),
+        TO (symbol ^, RingMap, ZZ),
+	TO newCoordinateSystem,
          }
      }
 
@@ -125,6 +130,7 @@ document {
 	  }
      }
 
+-- TODO: mention lift and promote in this node
 document {
      Key => "working with multiple rings",   -- DOUBLE CHECK BEING DONE WITH THIS ONE!
      "Working with multiple rings is more subtle than simply
@@ -260,10 +266,15 @@ document {
 	       EXAMPLE {
 	       	    "substitute(f,vars R3)",
 	       	    ///try substitute(f,vars R5) else "found error"///
-	       	    }
-	       
-     	  
-     }
+        },
+    Subnodes => {
+	TO(use, Ring),
+	TO lift,
+	TO promote,
+	TO newRing, -- TODO: move?
+	TO commonRing,
+        },
+    }
 
 document {
      Key => "basic construction, source and target of a ring map",

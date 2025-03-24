@@ -9,7 +9,20 @@ doc ///
   Headline
     select from a list, hash table, or string
   SeeAlso
+    positions
     partition
+    selectInSubring
+    selectVariables
+    selectKeys
+    selectValues
+    selectPairs
+    sublists
+  Subnodes
+    (select, BasicList, Type)
+    (select, BasicList, Function)
+    (select, Thing, Function)
+    (select, ZZ, BasicList, Function)
+    (select, ZZ, Function)
 ///
 
 doc ///
@@ -282,15 +295,14 @@ doc ///
 
 doc ///
   Key
-    (select, ZZ, Set, Function)
     (select, Set, Function)
+    (select, ZZ, Set, Function)
   Headline
     select a part of a set
   Usage
     select(x, f)
     select(n, x, f)
   Inputs
-    n:ZZ
     x:Set
     f:Function
   Outputs

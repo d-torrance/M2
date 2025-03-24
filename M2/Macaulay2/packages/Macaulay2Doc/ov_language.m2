@@ -50,30 +50,18 @@ document {
 	      TO "making functions with a variable number of arguments",
 	      TO "making functions with multiple return values",
 	      TO "making new functions with optional arguments",
+	      TO "caching computation results",
 	      TO "using hooks",
 	      --TO "code",
 	  "classes and types",
 	      TO "what a class is",
 	      TO "installing methods",
-	      TO "binary methods",
 	      TO "inheritance",
 	      TO "making new classes",
 	      TO "making a new method function",
 	      --TO "methods",
 	  "debugging Macaulay2 programs",
 	      TO "debugging",
-	      TO "the debugger",
-	  "input and output",
-	      TO "printing to the screen",
-	      TO "printing to a file",
-	      TO "reading files",
-	      TO "getting input from the user",
-	      TO "creating and writing files",
-	      TO "saving polynomials and matrices in files",
-	      TO "two dimensional formatting",
-	      TO "file manipulation",
-	      TO "communicating with programs",
-	      TO "using sockets",
      	  "packages",
 	      TO "packages",
 	      TO "creating a package",
@@ -945,6 +933,68 @@ document {
 	  }
      }
 
+document {
+    Key => Symbol,
+    Headline => "the class of all symbols",
+    "Symbols are entered as an alphabetic character followed by a
+    sequence of alphanumeric characters; case is significant.
+    The single symbol character ' is regarded as alphabetic, so that
+    symbols such as ", TT "x'", " may be used.",
+    PARA{},
+    "Symbols are used as names for values to be preserved, as indeterminates
+    in polynomial rings, and as keys in hash tables.  They may have
+    global scope, meaning they are visible from every line of code,
+    or local scope, with visibility restricted to a single file or
+    function body.",
+    EXAMPLE {
+	"x",
+	"ab12"
+    },
+    SeeAlso => {
+	":=",
+	"<-",
+	"threadLocal",
+    },
+    Subnodes => {
+	TO Keyword,
+	TO SymbolBody,
+	TO "symbol",
+	TO "global",
+	TO "local",
+	TO getSymbol,
+	TO getGlobalSymbol,
+	TO isGlobalSymbol,
+	TO erase,
+	TO protect,
+	TO (value, Symbol),
+	TO (findSynonyms, Symbol),
+	TO "globalAssign",
+	TO "globalAssignFunction",
+	TO "GlobalAssignHook",
+	TO "globalAssignment",
+	TO "globalAssignmentHooks",
+	TO "globalReleaseFunction",
+	TO "GlobalReleaseHook",
+	TO ((symbol _, symbol =), Symbol, Thing),
+	TO (symbol .., Symbol, Symbol),
+	TO (symbol ..<, Symbol, Symbol),
+	-- TO (symbol _, Symbol, Ring),
+	TO (symbol _, Symbol, Thing),
+    },
+}
+
+document {
+    Key => Keyword,
+    Headline => "the class of all keywords",
+    PARA {
+	"Keywords are symbols that are treated specially by the system while parsing user input.  Some of them,
+	such as ", TO "and", ", consist of alphanumeric characters and look just like
+	ordinary symbols.  Others, such as ", TO "==>", ", consist of special characters
+	and are called operators."
+    },
+    SeeAlso => {"precedence of operators"}
+}
+
 binaryOperators := core "binaryOperators"
 prefixOperators := core "prefixOperators"
 postfixOperators := core "postfixOperators"
@@ -996,6 +1046,7 @@ document {
      "predicates",
 	  TO symbol and ,
 	  TO symbol or ,
+	  TO symbol xor ,
 	  TO symbol not ,
      "functions",
           TO symbol SPACE,

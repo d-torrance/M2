@@ -5,7 +5,7 @@ star := IMG { "src" => replace("PKG","Style",currentLayout#"package") | "GoldSta
 document {
      Key => "changes to Macaulay2, by version",
      Subnodes => {
-	  -- TO "changes made for the next release",
+	  TO "changes made for the next release",
 	  TO "changes, 1.24.11",
 	  TO "changes, 1.24.05",
 	  TO "changes, 1.23",
@@ -1038,7 +1038,7 @@ document {
 	       },
 	  LI { "new constants and operators:",		    -- get this with : git diff version-1.9.2 ../../m2/exports.m2
 	       UL {
-		    LI { "The type ", TO "Describe", ", ", TO "MapExpression", ", ", TO "MatrixDegreeExpression", ", ", TO "SheafExpression", ", and ", TO "VectorExpression", "
+		    LI { "The type ", TO "Describe", ", ", TO "MapExpression", ", ", TT "MatrixDegreeExpression", ", ", TT "SheafExpression", ", and ", TO "VectorExpression", "
 			 have been added." },
 		    LI { "The top level mode ", TO "WebApp", " has been added." },
 		    LI { "The function ", TT "htmlWithTex", " has been added." },
@@ -2803,7 +2803,7 @@ document {
 	  with algebraic algorithms that mix symbolic and numeric techniques.  Basic
 	  transcendental functions are also provided, and pi is now a symbolic
 	  constant usable in numeric expressions of any precision.  An interface to
-	  lapack routines for singular value decomposition and eigenvectors is
+	  LAPACK routines for singular value decomposition and eigenvectors is
 	  provided (but they operate only with 53 bits of precision).
 	  "},
      PARA ///

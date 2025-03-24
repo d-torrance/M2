@@ -62,6 +62,9 @@ Node
     "hypertext list format"
     "handling hypertext"
     document
+    tutorial
+    undocumented
+    ofClass
     EXAMPLE
     SYNOPSIS
     :For programmers
@@ -248,11 +251,14 @@ Node
 
 document {
     Key => "handling hypertext",
-    "Output formatting routines:",
     Subnodes => {
+	"Creating hypertext objects:",
+	TO hypertext,
+	"Printing hypertext objects:",
 	TOH "html",
 	TOH "mathML",
 	TOH "tex",
+	TOH "texMath",
 	TOH "info",
 	TOH "net"
     }

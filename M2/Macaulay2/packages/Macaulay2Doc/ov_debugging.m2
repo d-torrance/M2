@@ -8,20 +8,47 @@ document {
     },
     "Here are some other debugging tools.",
     Subnodes => {
+	TO "the debugger",
+	TO "debug",
 	TO "assert",
+	TO "generateAssertions",
 	TO "benchmark",
 	TO "Browse::browse",
 	TO "code",
 	TO "current",
+	TO "currentPosition",
+	TO "lineNumber", -- TODO: rename to currentLineNumber
+	TO "currentRowNumber",
+	TO "currentColumnNumber",
 	TO "currentFileName",
+	TO "currentFileDirectory",
+	-- TO "currentDirectory",
 	TO "pseudocode",
 	TO "disassemble",
+	TO "frames",
+	TO functionBody,
+	TO dictionary,
+	TO "dictionaryPath",
+	TO localDictionaries,
+	TO "fileDictionaries",
 	TO "edit",
 	--TO "error",
+	TO "backtrace",
+	TO "stopIfError",
+	TO "handleInterrupts",
+	TO "debuggingMode",
+	TO "debugError",
 	TO "errorDepth",
+	TO "debugLevel",
+	TO "engineDebugLevel",
+	TO "loadDepth",
+	TO "interpreterDepth",
+	TO "recursionDepth",
+	TO "recursionLimit",
 	TO "flagLookup",
 	TO "listLocalSymbols",
 	TO "listUserSymbols",
+	TO "commandInterpreter",
 	TO "locate",
 	TO "methods",
 	TO "on",
@@ -30,8 +57,12 @@ document {
 	TO "profile",
 	TO "shield",
 	TO "showStructure",
+	TO "showClassStructure",
 	TO "showUserStructure",
-	TO "userSymbols"
+	TO "userSymbols",
+	TO "listSymbols",
+	TO "lookupCount",
+	TO "serialNumber",
     },
     SeeAlso => {
 	"error handling"
@@ -76,12 +107,14 @@ document {
     with ", TO "break", ".",
     EXAMPLE "break",
     "The variable ", TO "errorDepth", " can be used to control how deep inside the code the debugger should be activated.",
-    SeeAlso => { "break", "end", "step", "continue", "return", "listLocalSymbols", "listUserSymbols", "code", "value", "pseudocode", "disassemble", "errorDepth" }
+    SeeAlso => { "break", "end", "step", "continue", "return", "listLocalSymbols", "listUserSymbols", "code", "value", "pseudocode", "disassemble", "errorDepth" },
+    Subnodes => {
+	TO "step",
+    },
 }     
 
 doc ///
   Key
-     debug
     (debug, Package)
   Headline
     open the private dictionary of a package
@@ -106,7 +139,10 @@ doc ///
       raw R
   SeeAlso
     export
+    exportFrom
+    importFrom
     "dictionaryPath"
+    (debug, GlobalDictionary)
 ///
 
 doc ///
@@ -183,10 +219,12 @@ document { Key => "debuggingMode",
      Usage => "debuggingMode = true",
      Consequences => {{"the debugger will be entered when an error occurs"}}}
 document { Key => "debugLevel",
-     Headline => "current level debugging",
+     Headline => "current debugging level",
      Usage => "debugLevel = n",
      Inputs => {"n" => ZZ },
-     "Some M2 routines will display debugging information if ", TO "debugLevel", " is set to a value greater than 0."}
+     "Some M2 routines will display debugging information if ", TO "debugLevel", " is set to a value greater than 0.",
+    SeeAlso => { "gbTrace", "engineDebugLevel" },
+    }
 document { Key => "debugError",
      Headline => "a function to debug",
      Usage => "debugError()",
@@ -725,7 +763,7 @@ document {
     PARA "A bag can be used for enclosing something in a container to prevent it from being printed, in normal circumstances.
     Any mutable list can be used for this purpose, but bags are designed for this purpose.  In comparison and sorting, they
     are declared to be incomparable.",
-    SeeAlso => {unbag}
+    Subnodes => { TO unbag },
 }
 document {
     Key => {

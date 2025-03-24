@@ -9,6 +9,10 @@ document {
 	 TO OrderedMonoid,
 	 TO GeneralOrderedMonoid,
 	 TO MonoidElement,
+        TO (generators, Monoid),
+        TO (numgens, Monoid),
+        TO (tensor, Monoid, Monoid),
+        TO (vars, Monoid),
          },
      }
 document {
@@ -31,7 +35,7 @@ document {
     Key => GeneralOrderedMonoid,
     Headline => "the class of all ordered free commutative monoids",
     "This is the class of free monoids that can be handled by
-    the ", TO "engine", ".  Elements of such monoids are implemented
+    the ", TO "the engine of Macaulay2", ".  Elements of such monoids are implemented
     as instances of ", TO "MonoidElement", ".",
     PARA{},
     SeeAlso => { "monoid" }
@@ -87,21 +91,43 @@ document {
 	  TO (symbol ^, Ring, List),
 	  TO (vars, Ring),
 	  },
+    -- TODO: merge these with the above
      Subnodes => {
 	 TO EngineRing,
 	 TO ring,
+	 TO isRing,
+        TO (ambient, Ring),
+	TO (baseRing, Ring),
+        TO (degree, Ring),
+	TO (degreeLength, Ring),
+	TO degrees,
+        TO (degrees, Ring),
+	TO (degreesRing, Ring),
+        TO (numgens, Ring),
+        TO (dim, Ring),
+        TO (vars, Ring),
+        TO (generators, Ring),
+        TO (hilbertPolynomial, Ring),
+        TO (jacobian, Ring),
+        TO (minimalPresentation, Ring),
+	TO selectVariables,
+	TO flattenRing,
+	TO generators,
         },
      }
 document {
     Key => RingFamily,
     "This family is used to contain classes that correspond to a family of similar rings with a default member.",
-    Subnodes => TO InexactFieldFamily,
+    Subnodes => {
+	TO InexactFieldFamily,
+	TO default,
+        },
     }
 document {
     Key => Engine,
     Headline => "specify whether a ring is handled by the engine",
     TT "Engine", " -- a key for rings that yields the value ", TT "true", " if this
-    ring is supported by the ", TO "engine", "."}
+    ring is supported by the ", TO "the engine of Macaulay2", "."}
 document {
     Key => EngineRing,
     Headline => "the class of rings handled by the engine",
@@ -120,6 +146,7 @@ document {
 	"the handle of on engine ring"
 	},
     Subnodes => {
+	TO Engine,
         TO InexactField,
 	TO GaloisField,
 	TO FractionField,
@@ -130,15 +157,38 @@ document {
 document {
     Key => RingElement,
     Headline => "the class of all ring elements handled by the engine",
-    SeeAlso => "engine"}
+    SeeAlso => EngineRing,
+    Subnodes => {
+	TO isUnit,
+	TO (leadTerm, RingElement),
+        TO (leadTerm, ZZ, RingElement),
+        TO (quotientRemainder, RingElement, RingElement),
+        TO (degree, RingElement),
+        TO (degree, RingElement, RingElement),
+        TO (factor, RingElement),
+        TO (indices, RingElement),
+        TO (symbol ^, RingElement, ZZ),
+        TO (symbol /, RingElement, RingElement),
+        TO (symbol .., RingElement, RingElement),
+        TO (symbol ..<, RingElement, RingElement),
+        },
+    }
 document {
     Key => PolynomialRing,
     Headline => "the class of all ordered monoid rings",
     "Every element of a polynomial ring is also a ", TO "RingElement", ".",
-    SeeAlso => "polynomial rings"}
+    SeeAlso => "polynomial rings",
+    Subnodes => {
+	TO (hilbertSeries, PolynomialRing),
+        },
+    }
 document {
     Key => QuotientRing,
-    Headline => "the class of all quotient rings"
+    Headline => "the class of all quotient rings",
+    Subnodes => {
+        TO (codim, QuotientRing),
+        TO (presentation, PolynomialRing, QuotientRing),
+        },
     }
 document {
     Key => FractionField,
@@ -166,6 +216,15 @@ document {
 	TO lift
 	}
     }
+document {
+     Key => GaloisField,
+     Headline => "the class of all Galois fields",
+     Subnodes => {
+	 TO GF,
+	 TO order,
+         TO (ambient, GaloisField),
+         },
+     }
 
 document {
      Key => {(symbol SPACE, Ring, Array), (symbol SPACE,InexactFieldFamily, Array)},
@@ -211,7 +270,13 @@ document {
 	"(t_0 -  2*t_1)^3",
 	},
     "Warning: the values of the indexed variables ", TT "t_i", " are stored in a global location,
-    behind the scenes, so may not get garbage collected, even if ", TT "t", " is a local variable."
+    behind the scenes, so may not get garbage collected, even if ", TT "t", " is a local variable.",
+    Subnodes => {
+	TO (value, IndexedVariable),
+        TO (symbol .., IndexedVariable, IndexedVariable),
+        TO (symbol ..<, IndexedVariable, IndexedVariable),
+	TO baseName,
+        },
     }
 
 undocumented {(NewFromMethod,IndexedVariableTable,Symbol)}

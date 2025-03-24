@@ -1,5 +1,5 @@
 document {
-     Key => "mathematical examples",
+     Key => "mathematical tutorials",
      "In this section we present some tutorials that aim to introduce
      the user to some mathematical ways of using Macaulay2.  The tutorials
      are relatively independent of each other, and each one introduces the use
@@ -13,6 +13,106 @@ document {
 	  TO "Tutorial: Divisors",
 	  }
      }
+
+doc ///
+Node
+  Key
+    "arithmetic functions"
+  Subnodes
+    mod
+    plus
+    minus
+    difference
+    times
+    power
+    powermod
+    lcm
+    gcd
+    gcdCoefficients
+    factor
+
+Node
+  Key
+    "commutative algebra functions"
+  Subnodes
+    hilbertFunction
+    hilbertSeries
+    hilbertPolynomial
+    syz
+    koszul
+    eagonNorthcott
+    regularity
+    presentation
+    resolution
+    quotient
+    quotient'
+    quotientRemainder
+    quotientRemainder'
+    remainder
+    remainder'
+    pseudoRemainder
+    rank
+    dim
+    codim
+    pdim
+    depth -- contains link to package Depth
+    height -- TODO
+    length
+    trim
+    prune
+    numgens
+    mingens
+    minimize
+    minimalPresentation
+    tensor
+    directSum
+    monomialCurveIdeal
+    syzygyScheme
+    isBorel
+    isCommutative
+    isAffineRing
+
+Node
+  Key
+    "homological algebra functions"
+  Subnodes
+    kernel
+    cokernel
+    image
+    coimage
+    preimage
+    pullback
+    pushout
+    extend
+    nullhomotopy
+    isInjective
+    isSurjective
+    isIsomorphism
+    inverse
+    ScriptedFunctor
+    id
+    HH
+    Tor
+    Ext
+
+Node
+  Key
+    "algebraic geometry functions"
+  Subnodes
+    singularLocus
+    Grassmannian
+    Schubert
+    Fano
+    isNormal
+    isSmooth
+    isVeryAmple
+    randomKRationalPoint
+    chi
+    euler
+    eulers
+    genus
+    genera
+///
 
 document {
      Key => "basic commutative algebra",

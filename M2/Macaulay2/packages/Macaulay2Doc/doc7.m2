@@ -158,25 +158,6 @@ document {
      }
 
 document {
-     Key => SubringLimit,
-     Headline => "stop after finding enough elements of a subring",
-     TT "SubringLimit", " -- an option for  ", TO "kernel", " and ", TO "gb", "
-     which can stop the computation after a certain number of basis elements in
-     a subring have been found.",
-     SeeAlso => "Gröbner bases"
-     }
-document {
-     Key => [kernel,SubringLimit],
-     TT "SubringLimit => n", " -- an option for ", TO "kernel", " which
-     causes the computation of the kernel of a ring map to stop after ", TT "n", "
-     elements have been discovered."
-     }
-document {
-     Key => (dual, Matrix),
-     Headline => "dual of a map",
-     TT "dual f", " -- the dual (transpose) of a homomorphism."
-     }
-document {
      Key => {singularLocus, (singularLocus, Ideal), (singularLocus, Ring)},
      Headline => "singular locus",
      TT "singularLocus R", " -- produce the singular locus of a ring, which is assumed to be integral.",
@@ -202,18 +183,6 @@ document {
      Key => {isSurjective,(isSurjective, Matrix)},
      Headline => "whether a map is surjective",
      SeeAlso => "isInjective"
-     }
-document {
-     Key => {isQuotientOf},
-     Headline => "whether one thing is a quotient of another"
-     }
-document {
-     Key => {(isQuotientOf, Ring, Ring),(isQuotientOf, Ring, QuotientRing)},
-     Headline => "whether one ring is a quotient of another"
-     }
-document {
-     Key => {(isQuotientOf, Type, Ring),(isQuotientOf, Type, QuotientRing)},
-     Headline => "whether one ring is a quotient of a ring of a given type"
      }
 
 doc ///
@@ -294,7 +263,8 @@ document {
 document {
      Key => exteriorPower,
      Headline => "exterior power",
-     SeeAlso => {"minors", "det", "wedgeProduct"}
+     SeeAlso => {"minors", "det", "wedgeProduct"},
+     Subnodes => { TO [exteriorPower, Strategy] },
      }
 document {
      Key => {(trace, Matrix),trace},
@@ -329,18 +299,6 @@ document {
      "The two modules should be submodules of the same module."
      }
 document {
-     Key => Order,
-     Headline => "specify the order of a Hilbert series required",
-     TT "Order", " -- an optional argument used with ", TO "hilbertSeries", "
-     to specify the order of the series requested."
-     }
-document {
-     Key => Projective,
-     Headline => "whether to produce a projective Hilbert polynomial",
-     TT "Projective", " -- an optional argument used with ", TO "hilbertPolynomial", 
-     " to specify the way the Hilbert Polynomial is expressed."
-     }
-document {
      Key => ProjectiveHilbertPolynomial,
      Headline => "the class of all Hilbert polynomials",
      "For convenience, these polynomials are expressed in terms of the Hilbert 
@@ -352,7 +310,14 @@ document {
      EXAMPLE {
 	  "Z = Proj(QQ[x_0..x_12]/(x_0^3+x_12^3))",
 	  "hilbertPolynomial Z"
-	  }
+	  },
+    Subnodes => {
+	TO (symbol SPACE, ProjectiveHilbertPolynomial, ZZ),
+        TO (degree, ProjectiveHilbertPolynomial),
+        TO (dim, ProjectiveHilbertPolynomial),
+        TO (euler, ProjectiveHilbertPolynomial),
+        TO (hilbertSeries, ProjectiveHilbertPolynomial),
+        },
      }
 document {
      Key => (symbol SPACE, ProjectiveHilbertPolynomial, ZZ),
@@ -377,15 +342,6 @@ document {
      of dimension n, but with its generator in degree -d.",
      PARA{},
      SeeAlso => "ProjectiveHilbertPolynomial"
-     }
-document {
-     Key => dual,
-     Headline => "dual module or map",
-     }
-document {
-     Key => (dual, Module),
-     Headline => "dual module",
-     TT "dual M", " -- the dual of a module."
      }
 
 -- Local Variables:

@@ -30,7 +30,7 @@ Node
       "chain complexes"
       "Varieties :: Varieties"
     :Some Mathematical Computations
-      "mathematical examples"
+      "mathematical tutorials"
       "Gröbner bases"
       "normal forms"
       -- Mike wanted this: TO "Hilbert functions"
@@ -41,7 +41,13 @@ Node
       -- Mike wanted this: TO "solving systems of polynomial equations"
       "IntegralClosure :: IntegralClosure"
       "PrimaryDecomposition :: primaryDecomposition"
+      --
+      "arithmetic functions"
+      "commutative algebra functions"
+      "homological algebra functions"
+      "algebraic geometry functions"
       "combinatorial functions"
+      "analytical functions"
     :The Macaulay2 Language
       "The Macaulay2 language"
     :Packages

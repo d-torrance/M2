@@ -6,12 +6,21 @@ document {
      associated with the symbol ", TO "Print", " is applied to perform the printing,
      unless the printing is to be suppressed, as indicated by a semicolon at the end
      of the statement, in which case the ", TO "NoPrint", " method is applied.",
-     Subnodes => {TO "capture"},
+     Subnodes => {
+	 TO "value",
+	 TO "capture",
+	 TO "oo",
+	 TO "ooo",
+	 TO "oooo",
+	 TO "OutputDictionary",
+	 TO "clearAll",
+	 TO "clearOutput",
+	 TO "topLevelMode",
+         },
      SeeAlso => {
 	  "Print",
 	  "NoPrint",
 	  "BeforePrint",
-	  "AfterEval",
 	  "AfterPrint",
 	  "AfterNoPrint"
 	  }
@@ -291,7 +300,8 @@ document {
 	  { "at top level, whenever it is time to print an output value of type ", TT "X", ", the function ", TT "f", " will be called" }
 	  },
      "The function ", TT "f", " is responsible for printing the output prompt and for applying the ", TO "BeforePrint", " and ", TO "AfterPrint", " methods, if desired.",
-     EXAMPLE "code Thing#{Standard,Print}"
+     EXAMPLE "code Thing#{Standard,Print}",
+     Subnodes => { TO Wrap },
      }
 document {
      Key => NoPrint,
@@ -377,7 +387,20 @@ document {
 	  {"the interpreter will produce input and output prompts appropriate for the mode, and will
 	       format output values appropriately"}
 	  },
-     PARA "This variable is intended for internal use only."
+     PARA "This variable is intended for internal use only.",
+     Subnodes => {
+	 "Keys for top level modes:",
+	 TO Standard,
+	 TO WebApp,
+	 TO TeXmacs,
+	 "Keys for mode-dependent printing methods:",
+	 TO Print,
+	 TO NoPrint,
+	 TO AfterEval,
+	 TO BeforePrint,
+	 TO AfterPrint,
+	 TO AfterNoPrint,
+         },
      }
 document {
      Key => Standard,
@@ -443,7 +466,15 @@ document { Key => {localDictionaries,(localDictionaries, Symbol), (localDictiona
 	  d#0#"y"
 	  value d#0#"y"
 	  peek localDictionaries()
-     ///
+     ///,
+     SeeAlso => { "fileDictionaries" },
+     }
+document { Key => "fileDictionaries",
+     Headline => "local dictionaries for loaded files",
+     Usage => "fileDictionaries#fn",
+     Inputs => { "fn" => String },
+     Outputs => {{"the local dictionary in effect for the scope of the file loaded from the path ", TT "fn"}},
+     SeeAlso => { "localDictionaries" },
      }
 
 document { Key => {listSymbols,(listSymbols, Dictionary), (listSymbols, List)},
@@ -705,7 +736,12 @@ document {
      EXAMPLE {
 	  "Core.Dictionary # \"sin\"",
 	  "Core.Dictionary #? \"sin\""
-	  }
+	  },
+    Subnodes => {
+	TO GlobalDictionary,
+	TO LocalDictionary,
+	TO(length, Dictionary),
+    }
      }
 
 document {
@@ -745,7 +781,7 @@ document {
 	  "compactMatrixForm = false;",
 	  "f"
 	  },
-      Caveat => {"This flag currently has no effect outside of ", TO "Standard"," output mode."}
+     SeeAlso => { "blockMatrixForm" },
      }
 
 document {
@@ -762,7 +798,8 @@ document {
 	  "f = random(M,M)",
 	  "blockMatrixForm = true;",
 	  "f"
-	  }
+	  },
+     SeeAlso => { "compactMatrixForm" },
      }
     
 
@@ -914,10 +951,10 @@ document { Key => functionBody,
 	  f 1 === f 2
 	  functionBody f 1 === functionBody f 2
      ///,
-     SeeAlso => FunctionBody }
+     Subnodes => { TO FunctionBody, TO CompiledFunctionBody },
+}
 document { Key => FunctionBody,
-     Headline => "the class of function bodies",
-     SeeAlso => functionBody }
+     Headline => "the class of function bodies" }
 
 document { Key => symbol OutputDictionary,
      Headline => "the dictionary for output values",
@@ -940,7 +977,8 @@ document { Key => {Pseudocode, PseudocodeClosure},
      the function ", TO "value", " can evaluate it (bindings of values to local symbols
      are enclosed with the pseudocode), the operator ", TO "===", " can be used for equality testing,
      and when the debugger is activated after an error, the variable ", TO "current", " contains the pseudocode step whose execution produced the error.",
-     SeeAlso => { "disassemble" }
+     SeeAlso => { "disassemble" },
+     Subnodes => { TO (value, Pseudocode) },
      }
 document { Key => pseudocode,
      Headline => "produce the pseudocode for a function",

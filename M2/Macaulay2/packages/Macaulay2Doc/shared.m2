@@ -2,6 +2,14 @@
 
 methodstr := PARA { "This function is a method function, defined in the core so multiple packages can add methods to it." }
 
+document { Key => height, Headline => "height of an object", methodstr,
+    SeeAlso => { "Posets::height(Poset)" } }
+document { Key => depth,  Headline => "depth of an object",  methodstr,
+    SeeAlso => { "Depth::Depth", "SLPexpressions::SLPexpressions" } }
+document { Key => width,  Headline => "width of an object",  methodstr }
+document { Key => length, Headline => "length of an object", methodstr,
+    SeeAlso => { "Complexes::length(Complex)", "Permutations::length(Permutation)" } }
+
 document { Key => minimize,     methodstr, SeeAlso => { "Complexes::minimize(Complex)" } }
 document { Key => decompose,    methodstr, SeeAlso => { "MinimalPrimes::MinimalPrimes" } }
 document { Key => truncate,     methodstr, SeeAlso => { "Truncations::Truncations" } }
@@ -14,7 +22,6 @@ document { Key => euler,        methodstr, SeeAlso => {
 document { Key => eulers,       methodstr }
 document { Key => genera,       methodstr }
 document { Key => genus,        methodstr }
-document { Key => isEmpty,      methodstr, SeeAlso => { "Polyhedra::Polyhedra",(isEmpty, RRi)} }
 document { Key => isSmooth,     methodstr, SeeAlso => {
 	"Divisor::isSmooth(Ideal)", "LatticePolytopes::isSmooth(Polyhedron)",
 	"Varieties::isSmooth(Variety)", "SpaceCurves::isSmooth(Curve)",
@@ -33,6 +40,10 @@ document { Key => normalCone,   methodstr, SeeAlso => {
 	"Polyhedra::normalCone(Polyhedron,Polyhedron)",
 	"ReesAlgebra::normalCone(Ideal)",
     } }
+
+document { Key => { isEmpty, (isEmpty, Thing) },
+    Headline => "whether an object is empty",
+    SeeAlso => { "Polyhedra::Polyhedra" } }
 
 document { Key => { isIsomorphism, (isIsomorphism, Matrix) },
     Headline => "whether a map is an isomorphism",
@@ -131,11 +142,3 @@ document {
 	-- add references to tensor methods installed in packages _other than Core_ here
 	}
     }
-
-document {
-     Key => Jacobian,
-     PARA {
-	  "This symbol is defined in the core so it can be used as the name of an optional argument by multiple packages."
-	  },
-     SeeAlso => { "ReesAlgebra::ReesAlgebra" }
-     }

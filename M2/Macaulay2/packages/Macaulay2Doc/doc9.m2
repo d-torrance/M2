@@ -27,13 +27,31 @@ document {
      The i-th module can be installed with a statement like ", TT "M#i=N", ",
      and can be retrieved with an expression like ", TT "M_i", ".  The ground
      ring should be installed with a statement like ", TT "M.ring = R", ".",
-     SeeAlso => "GradedModuleMap"
+     SeeAlso => "GradedModuleMap",
+    Subnodes => {
+	TO gradedModule,
+	TO (symbol SPACE, GradedModule, Array),
+        TO (max, GradedModule),
+        TO (min, GradedModule),
+        TO (symbol **, GradedModule, GradedModule),
+        TO (symbol **, ChainComplex, GradedModule),
+        TO (symbol **, GradedModule, ChainComplex),
+        TO (symbol **, GradedModule, Module),
+        TO (length, GradedModule),
+        },
      }
 
 document {
      Key => GradedModuleMap,
      Headline => "the class of all maps between graded modules",
-     SeeAlso => "GradedModule"
+     SeeAlso => "GradedModule",
+    Subnodes => {
+	TO gradedModuleMap,
+	TO (symbol |, GradedModuleMap, GradedModuleMap),
+        TO (symbol ||, GradedModuleMap, GradedModuleMap),
+        TO (source, GradedModuleMap),
+        TO (target, GradedModuleMap),
+        },
      }
 
 document {
@@ -93,6 +111,33 @@ document {
 	  TO (Hom,ChainComplex,Module),
 	  TO (symbol SPACE, ChainComplex, Array)
 	  },
+     SeeAlso => {
+	 (map,ChainComplex,ChainComplex,Function),
+         },
+     Subnodes => {
+	 TO chainComplex,
+	 -- TO (NewFromMethod, ChainComplex, Resolution),
+	TO dd,
+	TO status,
+	TO complete,
+        TO (complete, ChainComplex),
+        TO (length, ChainComplex),
+        TO (symbol ++, ChainComplex, ChainComplex),
+        TO (components, ChainComplex),
+        TO (symbol SPACE, ChainComplex, Array),
+        TO (dual, ChainComplex),
+        TO (sum, ChainComplex),
+        TO (NewMethod, ChainComplex),
+        TO (symbol **, ChainComplex, ChainComplex),
+        TO (symbol **, ChainComplex, Ring),
+        TO (cohomology, ZZ, ChainComplex),
+        TO (homology, ChainComplex),
+        TO (homology, ZZ, ChainComplex),
+        TO (poincare, ChainComplex),
+        TO (symbol ^, ChainComplex, ZZ),
+        TO (symbol _, ChainComplex, ZZ),
+        TO ((symbol _, symbol =), ChainComplex, ZZ),
+        },
      }
 
 document {
@@ -148,7 +193,26 @@ document {
      chain complex to itself can be produced with ", TO "id", ".  An
      attempt to add (subtract, or compare) a ring element to a chain complex
      will result in the ring element being multiplied by the appropriate
-     identity map."
+     identity map.",
+    Subnodes => {
+	TO (cone, ChainComplexMap),
+        TO (symbol SPACE, ChainComplexMap, Array),
+        TO (sum, ChainComplexMap),
+        TO (symbol **, ChainComplexMap, ChainComplex),
+        TO (symbol **, ChainComplex, ChainComplexMap),
+        TO (symbol **, ChainComplexMap, ChainComplexMap),
+        TO (dual, ChainComplexMap),
+        TO (cohomology, ZZ, ChainComplexMap),
+        TO (homology, ZZ, ChainComplexMap),
+        TO (homology, ChainComplexMap),
+        TO (kernel, ChainComplexMap),
+        TO (source, ChainComplexMap),
+        TO (target, ChainComplexMap),
+        TO (transpose, ChainComplexMap),
+        TO (symbol ^, ChainComplexMap, ZZ),
+        TO (symbol _, ChainComplexMap, ZZ),
+        TO ((symbol _, symbol =), ChainComplexMap, ZZ),
+        },
      }
 
 
@@ -288,6 +352,11 @@ document {
      ", TT "D", " in which ", TT "D_j", " is ", TT "C_(i+j)", "."
      }
 
+undocumented {
+    [(dual, ChainComplex), Strategy],
+    [(dual, ChainComplex), DegreeLimit],
+    [(dual, ChainComplex), MinimalGenerators],
+}
 document {
      Key => (dual, ChainComplex),
      Headline => "dual",
@@ -413,19 +482,6 @@ document {
      Headline => "tensor product",
      TT "f ** g", " -- tensor product of two maps of chain complexes.",
      SeeAlso => "ChainComplexMap"
-     }
-
-document {
-     Key => {tensorAssociativity,
-	  (tensorAssociativity, Module, Module, Module),
-	  (tensorAssociativity, ChainComplex, ChainComplex, ChainComplex),
-	  (tensorAssociativity, GradedModule, GradedModule, GradedModule)},
-     Headline => "associativity isomorphisms for tensor products",
-     TT "tensorAssociativity(A,B,C)", " -- produces the isomorphism from
-     A**(B**C) to (A**B)**C.",
-     PARA{},
-     "Currently implemented for modules, graded modules, and chain complexes.",
-     SeeAlso => {"ChainComplex", "Module"}
      }
 
 document {

@@ -243,6 +243,7 @@ newPackage String := opts -> pkgname -> (
     -- TODO: add a general type checking mechanism
     scan({Certification, Configuration}, name -> if opts#name =!= null and not isOptionList opts#name then
 	error("newPackage: expected ", toString name, " option to be a list of options"));
+    opts = first override(opts, ( Authors => nonnull opts.Authors ));
     if opts.Authors =!= null and any(opts.Authors, author -> not isOptionList author)
     then error("newPackage: expected Authors option to be a list of zero or more lists of options");
     if opts.Authors =!= null and any(opts.Authors, author -> (
@@ -569,8 +570,14 @@ use Package := pkg -> (
     if pkg.?use then pkg.use pkg else pkg)
 
 debug ZZ      := i   -> debugWarningHashcode = i
-debug Package := pkg -> (
-    dict := pkg#"private dictionary";
+debug String  := file -> debug fileDictionaries#(relativizeFilename file)
+debug Package := pkg  -> debug pkg#"private dictionary"
+-- TODO: debug(Function) for accessing the local dictionary of a function closure
+debug LocalDictionary  := dict -> (
+    -- FIXME: this works, but the original location of the symbols is lost
+    apply(pairs dict, (str, symb) -> globalAssign(getSymbol str, value symb));
+    checkShadow())
+debug GlobalDictionary := dict -> (
     if not isMember(dict, dictionaryPath) then dictionaryPath = prepend(dict, dictionaryPath);
     checkShadow())
 

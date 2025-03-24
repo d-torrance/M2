@@ -6,6 +6,8 @@ document {
      "In Macaulay2, each matrix is defined over a ring, (see ", TO "rings", "). 
      Matrices are perhaps the most common data type in Macaulay2.",
      Subnodes => {
+	 TO Matrix,
+	 TO matrix,
 	  "making matrices", 
 	  TO "inputting a matrix",
    	  TO "projections, inclusions, and permutations",
@@ -17,6 +19,10 @@ document {
 	  TO "concatenating matrices",
 	  TO "submatrices",
 	  TO "diff and contract",
+	  "matrix decompositions",
+	  TO LUdecomposition,
+	  TO QRDecomposition,
+	  TO SVD,
 	  "determinants and related computations",
 	  TO "rank of a matrix",
 	  TO "determinants and minors",
@@ -129,7 +135,15 @@ document {
        size of the matrix.",
        EXAMPLE { 
 	    "genericSkewMatrix(S,u,3)"
-	    }     
+	    },
+    SeeAlso => {
+	(random, Module, Module),
+        },
+    Subnodes => {
+	TO genericMatrix,
+	TO genericSymmetricMatrix,
+	TO genericSkewMatrix,
+    }
      }
 
 document {
@@ -614,7 +628,15 @@ document {
 	 "minors(2,M,First => {{0,1},{1,2}}, Limit => 3)"
 	 },
      "The argument to the optional argument ", TO "First", " is the list of row and column positions
-     to use for the first minor.  Starting at this first minor, we then compute three minors."
+     to use for the first minor.  Starting at this first minor, we then compute three minors.",
+     Subnodes => {
+	 TO trace,
+	 TO minors,
+	 TO determinant,
+	 TO permanents,
+	 TO pfaffians,
+	 TO fittingIdeal,
+         },
      }
 
 document {
@@ -644,7 +666,11 @@ document {
 	 "N = transpose genericMatrix(S,y_(1,1),4,5)",
 	 "exteriorPower(3,M*N) == exteriorPower(3,M) * exteriorPower(3,N)"
 	 },
-     SeeAlso => "exterior power of a module"
+     SeeAlso => "exterior power of a module",
+     Subnodes => {
+	 TO exteriorPower,
+	 TO(exteriorPower, ZZ, Matrix),
+         },
      }
 
 document { -- something should be said about the degrees
@@ -675,14 +701,22 @@ document { -- something should be said about the degrees
 	  "compactMatrixForm = true",
 	  "matrix{{x^2 + 3, x^4 + 1},{x^13 - 5, x^7 - 1}}"
 	  },
+     Subnodes => {
+	 TO "blockMatrixForm",
+	 TO "compactMatrixForm",
+	 TO "printingAccuracy",
+	 TO "printingLeadLimit",
+	 TO "printingPrecision",
+	 TO "printingSeparator",
+	 TO "printingTimeLimit",
+	 TO "printingTrailLimit ",
+},
      }
 
 document {
      Key => "importing and exporting matrices",
-     
-     SUBSECTION "toString",
-
-     SUBSECTION "toExternalString"
+     TO "toString",
+     TO "toExternalString"
      }
 
 -- Local Variables:

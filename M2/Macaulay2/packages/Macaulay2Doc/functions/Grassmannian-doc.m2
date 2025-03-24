@@ -1,10 +1,12 @@
 -- -*- coding: utf-8 -*-
-document { Key => {(Grassmannian, ZZ, ZZ), 
-	  Grassmannian, 
+document {
+    Key => {
+	 Grassmannian,
+	(Grassmannian, ZZ, ZZ), 
 	  (Grassmannian, ZZ, ZZ, PolynomialRing),
 	  [Grassmannian, CoefficientRing],
 	  [Grassmannian, Variable]},
-     Headline => "the Grassmannian of linear subspaces of a vector space",
+     Headline => "compute the ideal of the Grassmannian of linear subspaces of a vector space",
      Usage => "Grassmannian(k,r)\nGrassmannian(k,r,R)",
      Inputs => { 
 	  "k", 
@@ -33,11 +35,12 @@ document { Key => {(Grassmannian, ZZ, ZZ),
      }
 
 document { 
-     Key => {(Schubert,ZZ,ZZ,VisibleList), 
-	  Schubert,
+    Key => {
+	 Schubert,
+	(Schubert,ZZ,ZZ,VisibleList), 
 	  [Schubert,CoefficientRing],
 	  [Schubert,Variable]},
-     Headline => "find the Plücker ideal of a Schubert variety",
+     Headline => "compute the Plücker ideal of a Schubert variety",
      Usage => "Schubert(k,n,sigma)",
      Inputs => { 
 	  "k", 
@@ -69,7 +72,7 @@ document {
 	Fano,
        (Fano, ZZ, Ideal),
        (Fano, ZZ, Ideal, Ring)},
-    Headline => "Fano scheme",
+    Headline => "compute the ideal of a Fano scheme in the Grassmannian",
     SYNOPSIS (
 	Heading => "Fano scheme",
 	Usage => "Fano(k,I)",

@@ -103,20 +103,33 @@ fghij"///,
 	  TO concatenate,
 	  TO format,
 	  TO lines,
+	  TO characters,
+	  TO demark,
 	  TO ascii,
 	  TO utf8,
+	  TO utf8substring,
+	  TO toLower,
+	  TO toUpper,
+	  TO urlEncode,
 	  TO substring,
+	  TO (value, String),
 	  TO (symbol _, String, ZZ),
 	  TO (symbol _, String, Sequence),
+	  TO (symbol .., String, String),
+	  TO (symbol ..<, String, String),
+	  TO (symbol ^, String, Sequence),
 	  "functions for handling nets",
 	  TO horizontalJoin,
 	  TO pad,
+	  TO wrap,
+	  TO centerString,
 	  TO columnate,
 	  TO stack,
 	  TO unstack,
 	  "more information",
      	  TO String,
-	  TO Net
+	  TO Net,
+	  TO "newline",
 	  }
      }
 
@@ -160,7 +173,16 @@ document {
      "Warning: if so many characters are written to a file that an internal buffer
      is filled before the line ends or first net is seen, then the buffer will be 
      flushed, and writing a net subsequently will produce an unexpected result.",
-     Subnodes => TO \ {(width, Net), (height, Net), (depth, Net)}
+    Subnodes => {
+	TO width,
+	TO (width, Net),
+	TO (height, Net),
+	TO (depth, Net),
+	TO (length, Net),
+        TO (symbol ^, Net, ZZ),
+	TO (symbol ||, Net, Net),
+        TO (symbol |, Net, Net),
+        },
      }
 
 document {
@@ -260,12 +282,7 @@ document {
      }
 
 document {
-     Key => width,
-     Headline => "width of a file or net"
-     }
-
-document {
-     Key => {height,(height,Net),(height,String)},
+     Key => {(height,Net),(height,String)},
      Headline => "height of a net",
      TT "height n", " -- the height of a net ", TT "n", ".",
      PARA{},
@@ -299,7 +316,7 @@ document { Key => (width,File),
      Outputs => { ZZ => {"the width of the window or terminal attached to the file ", TT "f", ", if any, else 0" }}}
 
 document {
-     Key => {depth,(depth, Net),(depth, String)},
+     Key => {(depth, Net),(depth, String)},
      Headline => "depth of a net",
      TT "depth n", " -- the depth of a net or string ", TT "n", ".",
      PARA{},
@@ -310,7 +327,10 @@ document {
      }
 
 document {
-     Key => (length, String),
+    Key => {
+	(length, String),
+	(length, Net),
+    },
      Headline => "length of a string",
      Usage => "n = length s",
      Inputs => { "s" },

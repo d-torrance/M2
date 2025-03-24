@@ -144,6 +144,8 @@ Node
     uninstallAllPackages
     :Interacting with packages
     importFrom
+    tests
+    use
     (use, Package)
     (check, Package)
     (debug, Package)
