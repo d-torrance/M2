@@ -775,16 +775,13 @@ logorfun(lhs:Code,rhs:Code):Expr := (
      is Error do left
      else (
 	  -- # typical value: symbol or, Boolean, Boolean, Boolean
-	  if left == True then True
-	  else if left == False then (
-	       right := eval(rhs);
-	       when right
-	       is Error do right
-	       else (
-		    if right == True then True
-		    else if right == False then False
-		    else binarymethod(left,right,orS)))
-	  else binarymethod(left,rhs,orS)));
+	  y := truthy(left);
+	  when y
+	  is Boolean do if y == True then left else eval(rhs)
+	  is Nothing do binarymethod(left, rhs, orS)
+	  is Error do y
+	  -- shouldn't get this far
+	  else buildErrorPacket("internal error")));
 setup(orS,logorfun);
 logxorfun(lhs:Code,rhs:Code):Expr := binarymethod(lhs,rhs,xorS);
 setup(xorS,logxorfun);
@@ -795,17 +792,14 @@ logandfun(lhs:Code,rhs:Code):Expr := (
      when a
      is Error do a
      else (
-	  -- # typical value: symbol and, Boolean, Boolean, Boolean
-	  if a == False then False
-	  else if a == True then (
-	       b := eval(rhs);
-	       when b
-	       is Error do b
-	       else (
-		    if b == True then True
-		    else if b == False then False
-		    else binarymethod(a,b,andS)))
-	  else binarymethod(a,rhs,andS)));
+	 -- # typical value: symbol and, Boolean, Boolean, Boolean
+	 y := truthy(a);
+	 when y
+	 is Boolean do if y == False then a else eval(rhs)
+	 is Nothing do binarymethod(a, rhs, andS)
+	 is Error do y
+	 -- shouldn't get this far
+	 else buildErrorPacket("internal error")));
 setup(andS,logandfun);
 export notFun(rhs:Code):Expr := (
      a := eval(rhs);

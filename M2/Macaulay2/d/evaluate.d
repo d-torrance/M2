@@ -35,19 +35,37 @@ export nextS := setupvar("next", nullE);
 export applyIteratorS := setupvar("applyIterator", nullE);
 export joinIteratorsS := setupvar("joinIterators", nullE);
 export pairsIteratorS := setupvar("pairsIterator", nullE);
+export truthyS := setupvar("truthy", nullE);
 
 eval(c:Code):Expr;
 applyEE(f:Expr,e:Expr):Expr;
+
+export truthy(e:Expr):Expr := (
+    if e
+    is Boolean do e
+    else (
+	f := lookup(Class(e), getGlobalVariable(truthyS));
+	when f
+	is Nothing do f
+	else (
+	    r := applyEE(f, e);
+	    when r
+	    is Boolean do r
+	    is Error do r
+	    else buildErrorPacket("expected 'truthy' to return a boolean"))));
+
 export evalAllButTail(c:Code):Code := while true do c = (
      when c
      is i:ifCode do (
 	  p := eval(i.predicate);
 	  when p is e:Error do Code(e)
-	  else if p == True then i.thenClause
-	  else if p == False then i.elseClause
 	  else (
-	       return Code(Error(codePosition(i.predicate),"expected true or false",nullE,false,dummyFrame));
-	       dummyCode))
+	      y := truthy(p);
+	      when y
+	      is Boolean do if y == True then i.thenClause else i.elseClause
+	      is err:Error do Code(err)
+	      else Code(Error(codePosition(i.predicate),
+		      "expected true or false",nullE,false,dummyFrame))))
      is v:semiCode do (
 	  w := v.w;
 	  n := length(w);				    -- at least 2
@@ -177,20 +195,36 @@ assignquotedelemfun(lhsarray:Code,lhsindex:Code,rhs:Code):Expr := (
      );
 
 evalWhileDoCode(c:whileDoCode):Expr := (
-     while true do (
-	  p := eval(c.predicate);
-	  when p is err:Error 
-	  do return if err.message == breakMessage then if err.value == dummyExpr then nullE else err.value else p
-	  else if p == True then (
-	       b := eval(c.doClause);
-	       when b is err:Error 
-	       do if err.message == continueMessage then nothing
-	       else return if err.message == breakMessage then if err.value == dummyExpr then nullE else err.value else b 
-	       else nothing;
-	       )
-	  else if p == False then break
-	  else return printErrorMessageE(c.predicate,"expected true or false"));
-     nullE);
+    while true do (
+	p := eval(c.predicate);
+	when p
+	is err:Error do return (
+	    if err.message == breakMessage
+	    then (
+		if err.value == dummyExpr
+		then nullE
+		else err.value)
+	    else p)
+	is Boolean do nothing
+	else p = truthy(p);
+	when p
+	is Boolean do (
+	    if p == True then (
+		b := eval(c.doClause);
+		when b is err:Error do (
+		    if err.message == continueMessage then nothing
+		    else return (
+			if err.message == breakMessage
+			then (
+			    if err.value == dummyExpr
+			    then nullE
+			    else err.value)
+			else b))
+		else nothing)
+	    else break)
+	is Error do return p
+	else return printErrorMessageE(c.predicate,"expected true or false"));
+    nullE);
 
 evalWhileListCode(c:whileListCode):Expr := (
      n := 1;
@@ -1489,9 +1523,16 @@ export evalraw(c:Code):Expr := (
 	  is c:ifCode do (
 	       p := eval(c.predicate);
 	       when p is Error do p
-	       else if p == True then eval(c.thenClause)
-	       else if p == False then eval(c.elseClause)
-	       else printErrorMessageE(c.predicate,"expected true or false"))
+	       else (
+		   y := truthy(p);
+		   when y
+		   is Boolean do (
+		       if y == True
+		       then eval(c.thenClause)
+		       else eval(c.elseClause))
+		   is Error do y
+		   else printErrorMessageE(
+		       c.predicate,"expected true or false")))
 	  is r:localSymbolClosureCode do (
 	       f := localFrame;
 	       nd := r.nestingDepth;

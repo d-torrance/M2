@@ -87,6 +87,7 @@ random(ZZ,ZZ) := ZZ => opts -> (min,max) -> (
      )
 isUnit ZZ := x -> x == 1 or x == -1
 
+-- boolean-related methods
 ZZ & ZZ := ZZ => lookup(symbol &, ZZ, ZZ)
 
 ZZ ^^ ZZ := bitxorfun
@@ -98,6 +99,18 @@ Function xor Function := (f, g) -> s -> f s xor g s
 not Function := f -> s -> not f s
 
 ZZ~ := bitnotfun
+
+truthy = method()
+truthy Boolean     := identity
+truthy Nothing     := x -> true
+truthy BasicList   :=
+truthy String      :=
+truthy HashTable   := x -> #x > 0
+-- TODO: is there an automatic way to get the types for which T == ZZ works?
+truthy Number      :=
+truthy RingElement :=
+truthy Matrix      :=
+truthy Ideal       := not zero
 
 changeBase = method()
 changeBase(ZZ,     ZZ)     := String =>

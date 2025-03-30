@@ -1227,6 +1227,7 @@ export {
 	"true",
 	"truncate",
 	"truncateOutput",
+	"truthy",
 	"try",
 	"tutorial",
 	"typicalValues",
