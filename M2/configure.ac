@@ -12,7 +12,6 @@ AC_SUBST(CONFIG_CMD,"'$0' $ac_configure_args")
 
 m4_include(m4/ax_compare_version.m4)
 m4_include(m4/ax_recursive_eval.m4)
-m4_include(m4/gtest.m4)
 m4_include(m4/openmp.m4)
 m4_include(m4/search-libraries.m4)
 m4_include(m4/ax_boost_base.m4)
@@ -1125,6 +1124,7 @@ found and $msolve_min_version is required; will build])
          [AC_MSG_RESULT([no, will build])
           BUILD_msolve=yes])])
 
+AC_LANG([C++])
 AS_IF([test $BUILD_eigen = no],
   [AC_MSG_CHECKING([whether pkg-config provides flags for eigen])
    AS_IF([$PKG_CONFIG --exists eigen3],
@@ -1338,23 +1338,26 @@ else AC_LANG(C++)
           [AC_MSG_WARN([mathicgb not found, will build])])
 fi
 
-if test $BUILD_gtest = no
-then
-    CHECK_GTEST
-    if test $have_gtest = yes
-    then
-        CPPFLAGS="$GTEST_CPPFLAGS $CPPFLAGS"
-        GTEST_PATH=$GTEST_SOURCE
-	AC_MSG_NOTICE(we have found gtest)
-    else
-        BUILD_gtest=yes
-        GTEST_PATH="\$(BUILTLIBPATH)/include/gtest"
-	AC_MSG_NOTICE(we will build gtest)
-    fi
-else
-    GTEST_PATH="\$(BUILTLIBPATH)/include/gtest"
-fi
-AC_SUBST(GTEST_PATH)
+AS_IF([test "x$BUILD_gtest" = "xno"],
+    [AC_LANG([C++])
+     AC_CHECK_HEADER([gtest/gtest.h],
+        [AC_MSG_CHECKING([whether gtest library is installed])
+         SAVELIBS=$LIBS
+         LIBS="$LIBS -lgtest"
+         AC_LINK_IFELSE(
+             [AC_LANG_PROGRAM([
+                 #include <gtest/gtest.h>
+                 ], [
+                 testing::InitGoogleTest()])],
+             [AC_MSG_RESULT([yes])],
+             [AC_MSG_RESULT([no; will build])
+              BUILD_gtest=yes])
+         LIBS=$SAVELIBS],
+        [AC_MSG_NOTICE([gtest headers not found; will build])
+         BUILD_gtest=yes])])
+AS_IF([test "x$BUILD_gtest" = "xyes"],
+     AS_IF([test "x$CMAKE" = "xfalse"],
+        [AC_MSG_ERROR([cmake is required to build gtest])]))
 
 AC_SUBST([PYTHON])
 AC_ARG_WITH(python, AS_HELP_STRING(--with-python@<:@=3.x@:>@.,

@@ -211,8 +211,8 @@ _ADD_COMPONENT_DEPENDENCY(libraries bdwgc "" BDWGC_FOUND)
 # NOTE: mpfr puts pointers to gmp numbers in thread local variables, unless
 # specially configured, so we shouldn't tell gmp to use libgc (we used to do that)
 ExternalProject_Add(build-mpfr
-  URL               https://www.mpfr.org/mpfr-current/mpfr-4.1.0.tar.xz
-  URL_HASH          SHA256=0c98a3f1732ff6ca4ea690552079da9c597872d30e96ec28414ee23c95558a7f
+  URL               https://www.mpfr.org/mpfr-current/mpfr-4.2.1.tar.xz
+  URL_HASH          SHA256=277807353a6726978996945af13e52829e3abd7a9a5b7fb2793894e18f1fcbb2
   PREFIX            libraries/mpfr
   SOURCE_DIR        libraries/mpfr/build
   DOWNLOAD_DIR      ${CMAKE_SOURCE_DIR}/BUILD/tarfiles
@@ -498,7 +498,7 @@ ExternalProject_Add(build-msolve
                       $<$<BOOL:${OpenMP_FOUND}>:--enable-openmp>
                       "CPPFLAGS=${CPPFLAGS} -I${GMP_INCLUDE_DIRS} -I${MPFR_INCLUDE_DIRS} -I${FLINT_INCLUDE_DIR}"
                       CFLAGS=${CFLAGS}
-                      "LDFLAGS=${LDFLAGS} -L${GMP_LIBRARY_DIRS} ${MPFR_LIBRARIES} ${FLINT_LIBRARIES}"
+		      "LDFLAGS=${LDFLAGS} -L${GMP_LIBRARY_DIRS} -L${MPFR_LIBRARIES} -L${FLINT_LIBRARIES}"
                       CC=${CMAKE_C_COMPILER}
 		      "OPENMP_CFLAGS=${OpenMP_C_FLAGS} ${OpenMP_C_LDLIBS}"
   BUILD_COMMAND     ${MAKE} -j${PARALLEL_JOBS}
@@ -511,7 +511,7 @@ ExternalProject_Add(build-msolve
   TEST_EXCLUDE_FROM_MAIN ON
   STEP_TARGETS      install test
   )
-#_ADD_COMPONENT_DEPENDENCY(libraries msolve "gmp;mpfr;flint" MSOLVE_FOUND)
+_ADD_COMPONENT_DEPENDENCY(programs msolve "gmp;mpfr;flint" MSOLVE_FOUND)
 
 
 # https://numpi.dm.unipi.it/software/mpsolve
@@ -953,9 +953,10 @@ ExternalProject_Add(build-nauty
                       RANLIB=${CMAKE_RANLIB}
   BUILD_COMMAND     ${MAKE} -j${PARALLEL_JOBS} prefix=${M2_HOST_PREFIX}
   # TODO: put nauty programs in a folder?
-  INSTALL_COMMAND   ${CMAKE_STRIP} ${nauty_BINARIES}
+  INSTALL_COMMAND   ${MAKE} -j${PARALLEL_JOBS} install includedir=${M2_HOST_PREFIX}/include/nauty
+          COMMAND   ${CMAKE_STRIP} ${nauty_BINARIES}
           COMMAND   ${CMAKE_COMMAND} -E make_directory ${M2_INSTALL_LICENSESDIR}/nauty
-          COMMAND   ${CMAKE_COMMAND} -E copy_if_different nauty.h ${M2_INSTALL_LICENSESDIR}/nauty
+          COMMAND   ${CMAKE_COMMAND} -E copy_if_different LICENSE-2.0.txt ${M2_INSTALL_LICENSESDIR}/nauty
           COMMAND   ${CMAKE_COMMAND} -E copy_if_different ${nauty_BINARIES} ${M2_INSTALL_PROGRAMSDIR}/
   TEST_COMMAND      ${MAKE} -j${PARALLEL_JOBS} check
   EXCLUDE_FROM_ALL  ON
