@@ -928,11 +928,28 @@ then BUILTLIBS="-lflint $BUILTLIBS -lm"
      AC_DEFINE([HAVE_FLINT_NMOD_H])
      AC_DEFINE([HAVE_FLINT_ARB_H])
      AS_IF([test $BUILD_gmp = no],
-         [AC_SEARCH_LIBS([__gmpn_gcd_11], [gmp], [],
-             [AC_MSG_WARN([flint requires __gmp_gcd_11, so we will build gmp])
-              BUILD_gmp=yes
-              LIBS_GMP="-lgmpxx -lgmp"
-              BUILTLIBS="$LIBS_GMP $BUILTLIBS"])])
+         [AC_LANG([C])
+          AC_MSG_CHECKING([if gmp >= 6.2.1 (needed to build flint)])
+          AC_RUN_IFELSE(
+              [AC_LANG_PROGRAM([
+                   #include <gmp.h>
+                   ], [
+                   #if (__GNU_MP_VERSION            < 6) || \
+                       (__GNU_MP_VERSION           == 6  && \
+                        __GNU_MP_VERSION_MINOR      < 2) || \
+                       (__GNU_MP_VERSION           == 6  && \
+                        __GNU_MP_VERSION_MINOR     == 2  && \
+                        __GNU_MP_VERSION_PATCHLEVEL < 1)
+                     return 1;
+                   #else
+                     return 0;
+                   #endif
+                   ])],
+              [AC_MSG_RESULT([yes])],
+              [AC_MSG_RESULT([no; will build gmp])
+                  BUILD_gmp=yes
+                  LIBS_GMP="-lgmpxx -lgmp"
+                  BUILTLIBS="$LIBS_GMP $BUILTLIBS"])])
 fi
 
 dnl debian: 4ti2-
@@ -1343,7 +1360,7 @@ AS_IF([test "x$BUILD_gtest" = "xno"],
      AC_CHECK_HEADER([gtest/gtest.h],
         [AC_MSG_CHECKING([whether gtest library is installed])
          SAVELIBS=$LIBS
-         LIBS="$LIBS -lgtest"
+         LIBS="-lgtest $LIBS"
          AC_LINK_IFELSE(
              [AC_LANG_PROGRAM([
                  #include <gtest/gtest.h>
@@ -1388,9 +1405,17 @@ then AC_DEFINE(WITH_PYTHON,1,[whether we are linking with the python library])
 	print(get_config_var('CONFINCLUDEPY'))"`
     CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDE_DIR"
     AC_CHECK_HEADER(Python.h,,AC_MSG_ERROR(Python.h not found))
-    AC_SEARCH_LIBS(Py_Initialize,
-	python${PYTHON_VERSION} python${PYTHON_VERSION}m,,
-	AC_MSG_ERROR(libpython not found))
+    AC_SEARCH_LIBS([Py_Initialize],
+	[python${PYTHON_VERSION} python${PYTHON_VERSION}m],,
+	[PYTHON_LIBDIR=`$PYTHON_BIN -c \
+	    "from sysconfig import get_config_var; \
+	    print(get_config_var('LIBDIR'))"`
+	 AC_MSG_NOTICE([adding -L$PYTHON_LIBDIR to LDFLAGS and trying again...])
+	 AS_UNSET([ac_cv_search_Py_Initialize])
+	 LDFLAGS="$LDFLAGS -L$PYTHON_LIBDIR"
+	 AC_SEARCH_LIBS([Py_Initialize],
+	     [python${PYTHON_VERSION} python${PYTHON_VERSION}m],,
+	     [AC_MSG_ERROR(libpython not found)])])
 fi
 
 dnl boost 1.65 was the first release containing the stacktrace library
