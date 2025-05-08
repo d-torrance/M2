@@ -146,6 +146,7 @@ headlineToTex Package := P -> (
 -- the cite method
 iCite = method (TypicalValue => String)
 iCite Package := P -> (
+    if P#?"citation" then return P#"citation"; -- only works of docs loaded!
     T := P#"pkgname"; -- package title
     V := concatenate("Version~", P#Options#Version); -- package version
     isInternalPackage := member(T, separate (" ", version#"packages"));

@@ -610,6 +610,11 @@ getSourceCode :=  val         -> DIV {"class" => "waystouse",
 		f := lookup m; if f === null then error("SourceCode: ", toString m, ": not a method");
 		c := code f;   if c === null then error("SourceCode: ", toString m, ": code for method not found");
 		reproduciblePaths toString net c))}}
+getCitation := val -> fixup DIV {
+    SUBSECTION "Citation",
+    PARA "Please cite this as:",
+    TABLE {"class" => "examples",
+	TR TD PRE prepend("class" => "language-bib", CODE val)}}
 getSubnodes := val -> (
     if #val == 0 then error "encountered empty Subnodes list"
     else MENU apply(val, x -> fixup (
@@ -644,7 +649,7 @@ KeywordFunctions := new HashTable from {
     Acknowledgement => val -> getSubsection(val, "Acknowledgement"),
     Contributors    => val -> getSubsection(val, "Contributors"),
     References      => val -> getSubsection(val, "References"),
-    Citation        => val -> getSubsection(val, "Citation"),
+    Citation        => val -> getCitation val,
     Caveat          => val -> getSubsection(val, "Caveat"),
     SeeAlso         => val -> getSubsection(UL (TO \ enlist val), "See also"),
     Subnodes        => val -> getSubnodes enlist val,
@@ -722,6 +727,11 @@ document List := opts -> args -> (
     if o.Headline === ""                        then remove(o, Headline);
     if o.?Usage        and o.Usage === ""       then remove(o, Usage);
     if o.?Consequences and #o.Consequences == 0 then remove(o, Consequences);
+    if toString key == currentPackage#"pkgname" then (
+	if o.?Citation then currentPackage#"citation" = o.Citation
+	else (
+	   cite := value (needsPackage "PackageCitations").Dictionary#"cite";
+	   o.Citation = cite currentPackage));
     -- Process all keywords
     scan(keys o, key -> if o#key =!= {} then o#key = KeywordFunctions#key o#key);
     -- Process Inputs, Outputs, Options

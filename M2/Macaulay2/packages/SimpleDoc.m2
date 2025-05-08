@@ -88,7 +88,7 @@ NodeFunctions = new HashTable from {
     "Acknowledgement" => (textlines, keylinenum) -> Acknowledgement => DIV markup(textlines, keylinenum),
     "Contributors"    => (textlines, keylinenum) -> Contributors    => DIV markup(textlines, keylinenum),
     "References"      => (textlines, keylinenum) -> References      => DIV markup(textlines, keylinenum),
-    "Citation"        => (textlines, keylinenum) -> Citation        => DIV markup(textlines, keylinenum),
+    "Citation"        => (textlines, keylinenum) -> Citation        => getCitation textlines,
     "Caveat"          => (textlines, keylinenum) -> Caveat          => DIV markup(textlines, keylinenum),
     "SeeAlso"         => (textlines, keylinenum) -> SeeAlso         => apply(getNonempty textlines, value),
     "Subnodes"        => (textlines, keylinenum) -> Subnodes        => submenu(textlines, keylinenum),
@@ -279,6 +279,8 @@ getCode = (textlines, keylinenum) -> (
 getExample = (textlines, keylinenum, canned) -> (
     EXAMPLE if canned then { PRE reassemble(getIndent textlines#0, textlines) }
     else apply(splitByIndent(textlines, false), (i, j) -> reassemble(getIndent textlines#0, take(textlines, {i,j}))))
+
+getCitation = textlines -> reassemble(getIndent textlines#0, textlines)
 
 -- Checking for common errors in a processed documentation node
 nodeCheck = (processed, keylinenum) -> (
