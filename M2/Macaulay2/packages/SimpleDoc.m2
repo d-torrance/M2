@@ -16,6 +16,13 @@ newPackage(
     AuxiliaryFiles => true
     )
 
+-- TODO: a typo under SubNodes produces an error with unhelpful location:
+-- Macaulay2Doc.m2:30:10:(3):[8]: error: global symbols inadvertently defined by package Macaulay2Doc: 'blah'
+-- currentString:1:0-1:10: here is the first use of 'blah'
+
+-- similarly a broken link like @TO blah@ produces the following:
+-- error: documentation key for "resolution(Complex)" encountered at currentString:2:0 but no method installed
+
 export {"doc", "multidoc", "packageTemplate", -- functions
     "arXiv", "stacksProject", "wikipedia", -- helper functions
     "docTemplate", "docExample", "testExample", "simpleDocFrob" -- templates and examples
@@ -75,12 +82,13 @@ NodeFunctions = new HashTable from {
     "Usage"           => (textlines, keylinenum) -> Usage           => multiString(Usage, textlines, keylinenum),
     "Inputs"          => (textlines, keylinenum) -> Inputs          => items(textlines, keylinenum),
     "Outputs"         => (textlines, keylinenum) -> Outputs         => items(textlines, keylinenum),
-    "Consequences"    => (textlines, keylinenum) -> Consequences    => applySplit(ConsequencesFuntions, textlines),
+    "Consequences"    => (textlines, keylinenum) -> Consequences    => applySplit(ConsequencesFunctions, textlines),
     "Description"     => (textlines, keylinenum) -> toSequence applySplit(DescriptionFunctions, textlines),
     "Synopsis"        => (textlines, keylinenum) -> SYNOPSIS   applySplit(SynopsisFunctions, textlines),
     "Acknowledgement" => (textlines, keylinenum) -> Acknowledgement => DIV markup(textlines, keylinenum),
     "Contributors"    => (textlines, keylinenum) -> Contributors    => DIV markup(textlines, keylinenum),
     "References"      => (textlines, keylinenum) -> References      => DIV markup(textlines, keylinenum),
+    "Citation"        => (textlines, keylinenum) -> Citation        => getTeX(textlines, keylinenum), -- TODO: return TEX?
     "Caveat"          => (textlines, keylinenum) -> Caveat          => DIV markup(textlines, keylinenum),
     "SeeAlso"         => (textlines, keylinenum) -> SeeAlso         => apply(getNonempty textlines, value),
     "Subnodes"        => (textlines, keylinenum) -> Subnodes        => submenu(textlines, keylinenum),
@@ -108,7 +116,7 @@ DescriptionFunctions = new HashTable from {
     "Code"          => (textlines, keylinenum) -> getCode(textlines, keylinenum),
     }
 
-ConsequencesFuntions = new HashTable from {
+ConsequencesFunctions = new HashTable from {
     "Item" => (textlines, keylinenum) -> flatten \\ toList \ markup(textlines, keylinenum)
     }
 
@@ -271,6 +279,9 @@ getCode = (textlines, keylinenum) -> (
 getExample = (textlines, keylinenum, canned) -> (
     EXAMPLE if canned then { PRE reassemble(getIndent textlines#0, textlines) }
     else apply(splitByIndent(textlines, false), (i, j) -> reassemble(getIndent textlines#0, take(textlines, {i,j}))))
+
+-- TODO: use keylinenum for error reporting
+getTeX = (textlines, keylinenum) -> reassemble(getIndent textlines#0, textlines)
 
 -- Checking for common errors in a processed documentation node
 nodeCheck = (processed, keylinenum) -> (

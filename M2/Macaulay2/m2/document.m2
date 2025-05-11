@@ -33,6 +33,8 @@ indefinite        = s -> concatenate(indefiniteArticle s, s)
 
 enlist := x -> if instance(x, List) then nonnull x else {x}
 
+errorLocation := () -> minimizeFilename toString currentPosition()
+
 -----------------------------------------------------------------------------
 -- verifying the document Key
 -----------------------------------------------------------------------------
@@ -41,15 +43,18 @@ enlist := x -> if instance(x, List) then nonnull x else {x}
 verifyKey = method(Dispatch => Thing)
 verifyKey Thing    := key -> key
 verifyKey Sequence := key -> ( -- e.g., (res, Module) or (symbol **, Module, Module)
-    if      #key == 0 then error "documentation key () encountered"
+    if      #key == 0 then error("documentation key () encountered at ", errorLocation())
     else if #key == 1 and not instance(key#0, Function)
     then if signalDocumentationError key
-    then printerr("error: documentation key ", format toString key, " encountered, but ", format toString key#0, " is not a function")
+    then printerr("error: documentation key ", format toString key,
+	" encountered at ", errorLocation(), " but ", format toString key#0, " is not a function")
     else if #key  > 1
     and not any({Keyword, Command, Function, ScriptedFunctor}, type -> instance(key#0, type)) and not methodNames#?(key#0)
     and not (instance(key#0, Sequence) and 2 == #key#0 and key#0#1 === symbol= and instance(key#0#0, Keyword))
     then if signalDocumentationError key
-    then printerr("error: documentation key ", format toString key, " encountered, but ", format toString key#0, " is not a function, command, scripted functor, or keyword");
+    then printerr("error: documentation key ", format toString key,
+	" encountered at ", errorLocation(), " but ", format toString key#0,
+	" is not a function, command, scripted functor, or keyword");
     --
     if  isUnaryAssignmentOperator key           -- e.g., ((?, =), Type), or (?, =)
     or isBinaryAssignmentOperator key then true -- e.g., ((?, =), Type, Type)
@@ -61,7 +66,8 @@ verifyKey Sequence := key -> ( -- e.g., (res, Module) or (symbol **, Module, Mod
 	else false) then null
     else if #key > 1 and instance(key#0, Command) then verifyKey prepend(key#0#0, drop(key, 1))
     else if signalDocumentationError key
-    then printerr("error: documentation key for ", format formatDocumentTag key, " encountered, but no method installed"))
+    then printerr("error: documentation key for ", format formatDocumentTag key,
+	" encountered at ", errorLocation(), " but no method installed"))
 verifyKey Array    := key -> (
     (nkey, opt) := (key#0, key#1);                    -- e.g., [(res, Module), Strategy]
     if instance(opt,  Option)   then opt = first opt; -- e.g., [(res, Module), Strategy => FastNonminimal]
@@ -487,6 +493,9 @@ processSignature := (tag, fn) -> (type0, item) -> (
 	    else if  isInputText y then    text = y --   description, e.g {"hypertext sequence"}
 	    else error("encountered unrecognizable synopsis item ", toString y, " in documentation for ", format tag))
 	) item;
+    -- if no type information is provided,
+    -- get type from the method sequence
+    if type === null then type = type0;
     if debugLevel > 1 then printerr("parsed synopsis item:\t", toExternalString (optsymb, inpname, type, text));
 
     result := if optsymb === null then {
@@ -638,6 +647,7 @@ KeywordFunctions := new HashTable from {
     Acknowledgement => val -> getSubsection(val, "Acknowledgement"),
     Contributors    => val -> getSubsection(val, "Contributors"),
     References      => val -> getSubsection(val, "References"),
+    Citation        => identity, -- TODO: eventually might want to process this
     Caveat          => val -> getSubsection(val, "Caveat"),
     SeeAlso         => val -> getSubsection(UL (TO \ enlist val), "See also"),
     Subnodes        => val -> getSubnodes enlist val,
@@ -656,6 +666,7 @@ documentOptions := new OptionTable from {
     Acknowledgement => null,
     Contributors => null,
     References => null,
+    Citation => null,
     Caveat => null,
     SeeAlso => null,
     Subnodes => null,

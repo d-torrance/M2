@@ -219,6 +219,8 @@ documentationValue(Symbol, Package)         := (S, pkg) -> if pkg =!= Core then 
     fn := pkg#"pkgname" | ".m2";
     -- authors
     au := pkg.Options.Authors;
+    -- citation
+    ci := citePackage pkg;
     -- exported symbols
     -- TODO: this misses exported symbols from Macaulay2Doc; is this intentional?
     e := toSequence pkg#"exported symbols";
@@ -249,25 +251,32 @@ documentationValue(Symbol, Package)         := (S, pkg) -> if pkg =!= Core then 
 	    cert  = new HashTable from cert;
 	    -- TODO: compare with the one in installPackage.m2
 	    star := IMG { "src" => replace("PKG", "Style",currentLayout#"package") | "GoldStar.png", "alt" => "a gold star"};
-	    commit := replace("(?<=/blob/)master", toString cert#"release at publication", cert#"repository code URI");
 	    DIV {
 		SUBSECTION {"Certification ", star},
 		PARA {
-		    "Version ", BOLD cert#"version at publication", " of this package was accepted for publication",
+		    "Version ", BOLD cert#"version at publication", " of this package",
+		    if cert#?"legacy name"
+		    then (" (under the name \"", cert#"legacy name", "\")"),
+		    " was accepted for publication",
 		    " in ",     HREF{cert#"volume URI", "volume " | cert#"volume number"},
 		    " of ",     HREF{cert#"journal URI",            cert#"journal name"},
 		    " on ",          cert#"acceptance date", ", in the article ",
 		                HREF{cert#"published article URI",  cert#"article title"},
 		    " (DOI: ",  HREF{"https://doi.org/" | cert#"published article DOI", cert#"published article DOI"},
 		    "). That version can be obtained",
-		    " from ",   HREF{cert#"published code URI", "the journal"}, " or",
-		    " from ",   HREF{commit, SPAN{"the ", EM "Macaulay2", " source code repository"}},
+		    " from ",   HREF{cert#"published code URI", "the journal"},
 		    "."}}
 	    ),
 	DIV {
 	    SUBSECTION "Version",
 	    PARA { "This documentation describes version ", BOLD pkg.Options.Version, " of ",
 		if pkg#"pkgname" === "Macaulay2Doc" then "Macaulay2" else pkg#"pkgname", "." }},
+	if instance(ci, DIV) then ci else DIV {
+	    SUBSECTION "Citation",
+	    PARA "If you have used this package in your research, please cite it as follows:",
+	    TABLE {"class" => "examples",
+		TR TD PRE prepend("class" => "language-bib", CODE ci)}
+	    },
 	if pkg#"pkgname" =!= "Macaulay2Doc" and #e + #m > 0 then DIV {
 	    SUBSECTION "Exports",
 	    DIV { "class" => "exports",
@@ -429,6 +438,7 @@ getData = (key, tag, rawdoc) -> (
 	Acknowledgement => getOption(rawdoc, Acknowledgement),
 	Contributors    => getOption(rawdoc, Contributors),
 	References      => getOption(rawdoc, References),
+	Citation        => getOption(rawdoc, Citation),
 	Caveat          => getOption(rawdoc, Caveat),
 	SeeAlso         => getOption(rawdoc, SeeAlso),
 	Subnodes        => getOption(rawdoc, Subnodes),
@@ -461,8 +471,8 @@ getBody := (key, tag, rawdoc) -> (
     DIV nonnull splice (
 	data := getData(key, tag, rawdoc);
 	HEADER1 toList data.Headline,
-	apply(("Synopsis", Description, SourceCode, Acknowledgement,
-		Contributors, References, Caveat, SeeAlso, Subnodes, "WaysToUse"),
+	apply(("Synopsis", Description, SourceCode, Acknowledgement, Contributors,
+		References, Caveat, SeeAlso, Subnodes, "WaysToUse"),
 	    section -> if data#?section then data#section)
         )
     )
@@ -581,6 +591,15 @@ briefDocumentation = key -> (
 ? Symbol   :=
 ? Thing    := -- TODO: does this interfere with anything?
 ? Type     := briefDocumentation
+
+-----------------------------------------------------------------------------
+-- extract the citation guide from the documentation or package info
+-----------------------------------------------------------------------------
+-- this is used by cite from PackageCitations
+citePackage = pkg -> (
+    tag := makeDocumentTag pkg;
+    rawdoc := fetchAnyRawDocumentation tag;
+    getOption(rawdoc, Citation) ?? (symbolFrom("PackageCitations", "iCite")) pkg)
 
 -----------------------------------------------------------------------------
 -- get a list of commands whose name matches the regex

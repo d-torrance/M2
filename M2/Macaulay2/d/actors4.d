@@ -99,12 +99,23 @@ setupfun("setGroupID",setpgidfun);
 absfun(e:Expr):Expr := (
      when e
      is i:ZZcell do toExpr(abs(i.v))
-     is x:RRcell do toExpr(if sign(x.v) then -x.v else x.v)
+     is x:RRcell do toExpr(if signbit(x.v) then -x.v else x.v)
      is x:RRicell do toExpr(abs(x.v))
      is x:CCcell do toExpr(abs(x.v))
      is r:QQcell do toExpr(abs(r.v))
      else WrongArg("a number, real or complex"));
 setupfun("abs0",absfun);
+
+sign(e:Expr):Expr := (
+    when e
+    is x:ZZcell do toExpr(sign(x.v))
+    is x:QQcell do toExpr(sign(x.v))
+    is x:RRcell do toExpr(sign(x.v))
+    is x:CCcell do (
+	if isZero(x.v) then toExpr(toCC(0, 0, precision(x.v)))
+	else toExpr(x.v / abs(x.v)))
+    else WrongArg("a number, real or complex"));
+setupfun("sign0", sign);
 
 select(a:Sequence,f:Expr):Expr := (
      b := new array(bool) len length(a) do provide false;
@@ -1550,9 +1561,12 @@ powermod(e:Expr):Expr := (
      if length(s) == 3 then
      when s.0 is base:ZZcell do
      when s.1 is exp:ZZcell do
-     when s.2 is mod:ZZcell do
-     -- # typical value: powermod, ZZ, ZZ, ZZ, ZZ
-     toExpr(powermod(base.v,exp.v,mod.v))
+     when s.2 is mod:ZZcell do (
+	 -- # typical value: powermod, ZZ, ZZ, ZZ, ZZ
+	 if isNegative(exp.v) && !isInvertible(base.v, mod.v)
+	 then buildErrorPacket(
+	     tostring(base.v) + " is not invertible mod " + tostring(mod.v))
+	 else toExpr(powermod(base.v,exp.v,mod.v)))
      else WrongArgZZ(3)
      else WrongArgZZ(2)
      else WrongArgZZ(1)

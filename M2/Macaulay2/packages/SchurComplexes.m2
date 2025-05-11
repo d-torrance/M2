@@ -35,7 +35,6 @@ newPackage(
 	     "published article URI" => "https://msp.org/jsag/2019/9-2/p02.xhtml",
 	     "published article DOI" => "10.2140/jsag.2019.9.111",
 	     "published code URI" => "https://msp.org/jsag/2019/9-2/jsag-v9-n2-x02-SchurComplexes.m2",
-	     "repository code URI" => "https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/SchurComplexes.m2",
 	     "release at publication" => "61384b8d76f8bfef42010911dae401d24bcc6ebe",	    -- git commit number in hex
 	     "version at publication" => "1.1",
 	     "volume number" => "9",
@@ -251,7 +250,7 @@ homologicalDegree(HashTable,List,List) := (T,evengen,oddgen) -> sum for b in key
 ------Straightening algorithm
 
 --Inputs: U= List, V= permutation represented as a list. Outputs: sign of the induced permutation on the unmarked elements of U.
-sign = (U,V)-> (
+sgn = (U,V)-> (
     n:=#U;
     answer:=1;
     for i from 0 to n-2 do (
@@ -288,7 +287,7 @@ shuffle = (T, vio, downCol2, lambdaprime) -> (
     indicesofL:=toList (0..(#L-1));
     subsetsofLofsizetruncatedcol1:=subsets(indicesofL,#truncatedcol1);
     pairs1:=apply(subsetsofLofsizetruncatedcol1, x-> (x, indicesofL-(set x)));
-    signs:=apply(pairs1, x-> sign(L,join(x)));
+    signs:=apply(pairs1, x-> sgn(L,join(x)));
     outputlist:={}; 
     dividedContributions := for i from 0 to (#pairs1-1) list (
 	dividedContribution := 1; --contribution from divided power multiplication

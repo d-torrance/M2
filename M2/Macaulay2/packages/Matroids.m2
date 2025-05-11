@@ -17,7 +17,6 @@ newPackage("Matroids",
 	     "published article URI" => "https://msp.org/jsag/2019/9-1/p03.xhtml",
 	     "published article DOI" => "10.2140/jsag.2019.9.19",
 	     "published code URI" => "https://msp.org/jsag/2019/9-1/jsag-v9-n1-x03-Matroids.m2",
-	     "repository code URI" => "https://github.com/Macaulay2/M2/blob/master/M2/Macaulay2/packages/Matroids.m2",
 	     "release at publication" => "cf37f5a1eefc2fe7e6eef2868718256106805027",	    -- git commit number in hex
 	     "version at publication" => "0.9.7",
 	     "volume number" => "9",
@@ -772,7 +771,7 @@ getIsos (Matroid, Matroid) := List => (M, N) -> (
 	) else select(permutations(e), p -> all(C, c -> member(c/(i -> p#i), D)))
 )
 
-isomorphism (Matroid, Matroid) := HashTable => (M, N) -> ( -- assumes (M, N) satisfy "Could be isomorphic" by quickIsomorphismTest
+isomorphism (Matroid, Matroid) := HashTable => o -> (M, N) -> ( -- assumes (M, N) satisfy "Could be isomorphic" by quickIsomorphismTest
 	if M == N then return hashTable apply(#M_*, i -> (i, i));
 	-------------------------------
 	-- DFS: 9/12/23
