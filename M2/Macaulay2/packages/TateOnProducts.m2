@@ -21,8 +21,8 @@ newPackage(
 	{ Name => "Yeongrak Kim",     	 Email => "kim@math.uni-sb.de",      HomePage => "http://sites.google.com/view/yeongrak/"}
 	},
     Keywords => {"Commutative Algebra"},
-    PackageImports => {"Truncations", "SVDComplexes", "Complexes"},
-    PackageExports => {"Isomorphism", "SVDComplexes"},
+    PackageImports => { "Truncations" },
+    PackageExports => { "Isomorphism", "SVDComplexes", "OldChainComplexes" },
     DebuggingMode => false
     )
 
@@ -1219,7 +1219,7 @@ minimize ChainComplex := o -> E ->(
     )
 *-
 --isExact=method()
-isExact(ChainComplex):=(C) -> (
+isExact(ChainComplex) := {} >> o -> (C) -> (
    if (all((min C,max C), i -> (prune HH_i(C) == 0))) then true else false
 )
 
@@ -6065,7 +6065,7 @@ doc ///
  Caveat
      Note that the resulting complex is a chain complex instead of a cochain complex,
      so that for example HH^i RpiM = HH_{-i} RpiM. Also note that this requires a pseudo-inverse computation
-     of a split exact sequence, which might fail over finite fields (see SVDComplexes.m2 and its documentations).
+     of a split exact sequence, which might fail over finite fields (see @TO "SVDComplexes :: SVDComplexes"@).
  SeeAlso
       directImageComplex
 ///

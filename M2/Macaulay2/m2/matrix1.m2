@@ -4,6 +4,8 @@ needs "matrix.m2"
 needs "modules.m2"
 needs "quotient.m2"
 
+-----------------------------------------------------------------------------
+
 notsamering := (X,Y) -> (
      if X === Y then error("expected ",pluralsynonym X, " for the same ring")
      else error("expected ",X.synonym," and ",Y.synonym," for the same ring"))
@@ -394,13 +396,13 @@ Number ** RingElement :=
 RingElement ** Number := 
 RingElement ** RingElement := (r,s) -> matrix {{r}} ** matrix {{s}}
 
-Matrix#AfterPrint = Matrix#AfterNoPrint = f -> (
+Matrix.AfterPrint = Matrix.AfterNoPrint = f -> (
     class f,
     (
-	(tar, src) := apply((target f, source f), M -> moduleAbbrv(M, null));
+	(tar, src) := apply((target f, source f), moduleAbbrv);
 	if tar =!= null and src =!= null
-	then (" ", new MapExpression from expression \ {tar, src}))
-    )
+	then (" ", MapExpression(tar, src))
+    ))
 
 -- precedence Matrix := x -> precedence symbol x
 
@@ -575,6 +577,28 @@ Ideal ^ Array := (I, e) -> (
    -- apply the ring homomorphism and create the new ideal
    ideal phi generators I
 )
+
+-----------------------------------------------------------------------------
+-- kernel and homology
+-----------------------------------------------------------------------------
+
+kernel = method(Options => {
+	DegreeLimit  => {},
+	Strategy     => {},
+	SubringLimit => infinity, -- stop after finding enough elements of a subring
+    })
+kernel Matrix := Module => opts -> g -> g.cache.kernel ??= if g == 0 then source g else tryHooks(
+    (kernel, Matrix), (opts, g), (opts, g) -> (
+	-- this is the default algorithm
+	-- compare with homology below
+	N := source g;
+	P := target g;
+	g = matrix g;
+	if P.?generators then g = P.generators * g;
+	h := modulo(g, if P.?relations then P.relations);
+	if N.?generators then h = N.generators * h;
+	subquotient(h, if N.?relations then N.relations)))
+kernel RingElement := Module => opts -> f -> kernel(matrix {{f}}, opts)
 
 homology(Matrix,Matrix) := Module => opts -> (g,f) -> (
      if g == 0 then cokernel f

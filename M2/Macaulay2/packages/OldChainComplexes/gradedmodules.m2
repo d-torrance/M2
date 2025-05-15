@@ -1,7 +1,12 @@
 --		Copyright 1997-2002 by Daniel R. Grayson
 
-needs "modules.m2"
-needs "ringmap.m2"
+-- needs "modules.m2"
+-- needs "ringmap.m2"
+
+importFrom_Core {
+    "ZERO",
+    "ggConcatBlocks",
+}
 
 GradedModule = new Type of MutableHashTable
 GradedModule.synonym = "graded module"
@@ -81,6 +86,9 @@ texMath GradedModuleMap := f -> (
      texMath if #s === 0 then ZERO else new VerticalList from apply(s,i-> expression(i+d) : MapExpression { target f_i, source f_i, f_i } : expression i)
 )
 
+-- used to be in mathml.m2
+mathML GradedModule    :=
+mathML GradedModuleMap := lookup(mathML, Thing)
 
 GradedModuleMap _ ZZ := Matrix => (f,i) -> (
      if f#?i then f#i else map((target f)_(i+f.degree),(source f)_i,0)
@@ -295,8 +303,6 @@ Module ** GradedModule := GradedModule => (M,C) -> (
      scan(spots C, i -> D#i = M ** C#i);
      D)
 
-gradedModule = method(Dispatch => Thing)
-
 gradedModule Sequence := gradedModule List := GradedModule => modules -> (
      C := new GradedModule;
      R := C.ring = ring modules#0;
@@ -462,7 +468,6 @@ map(GradedModule,GradedModule,Function) := GradedModuleMap => options -> (C,D,f)
      h
      )
 
-tensorAssociativity = method()
 tensorAssociativity(GradedModule,GradedModule,GradedModule) := GradedModuleMap => (A,B,C) -> (
      R := ring A;
      map(

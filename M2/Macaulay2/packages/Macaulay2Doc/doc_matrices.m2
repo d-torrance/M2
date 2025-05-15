@@ -63,7 +63,7 @@ document {
 	TO (dual, Matrix),
 	TO (modulo, Matrix, Matrix),
 	TO (complement, Matrix),
-	TO (extend, ChainComplex, ChainComplex, Matrix),
+	TO "Complexes :: extend(Complex,Complex,Matrix)",
 	TO (symbol **, Matrix, RingElement),
 	TO (ambient, Matrix),
 	TO (contract, Matrix, Matrix),

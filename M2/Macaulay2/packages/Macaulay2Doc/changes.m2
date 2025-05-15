@@ -67,6 +67,21 @@ changesHelper List := opt -> pkgnames -> (
 document {
     Key => "changes made for the next release",
     UL {
+	LI { BOLD "upcoming breaking changes:",
+	    UL {
+		LI { "Beginning in the 1.25.11 release, current routines involving chain complexes and graded modules
+		    will be superseded by new functorial homological algebra routines in the ", TO "Complexes::Complexes",
+		    " package. Users and package developers are encouraged to preview the upcoming changes by adding ",
+		    TT "HomologicalAlgebraPackage = \"Complexes\"", " to their ", TO "initialization file", " and
+		    reporting any bugs via email or ", HREF{"https://github.com/Macaulay2/M2/issues/3778", "GitHub"}, "." },
+	    }
+	},
+	LI { "new packages:",
+	    UL {
+		LI { "The package ", TO "OldChainComplexes::OldChainComplexes", " has been added to preserve the existing
+		    functionality of chain complexes, graded modules, and resolutions for backwards compatibility." },
+		}
+	    },
 	LI { "functionality changed in a way that could break code:",
 	    UL {
 		LI { "The method ", TO "Isomorphism :: isIsomorphism", " now only returns true or false. ",
@@ -1121,16 +1136,16 @@ document {
 			 See ", TO "Layout", "."
 			 },
 		    LI {
-			 "Functionality for fast nonminimal free resolutions, ", TO "FastNonminimal", " has a number of bug fixes and
+			 "Functionality for fast nonminimal free resolutions, ", TO "OldChainComplexes :: FastNonminimal", " has a number of bug fixes and
 			 improvements: (1) it now works for input modules, not just ideals (there was a monomial order mismatch which
 			     would often cause it to fail), (2) multigraded and inhomogeneous ideals/modules are allowed, 
 			 (3) this function works over the exterior algebra as well (it has always done so, but that was not
 			     always realized), (4) it is possible to have M2 use an already created Gröbner basis, instead of recomputing
-			 one.  Use Strategy=>5 in the ", TO "resolution", " command, to tell the command that the 
+			 one.  Use Strategy=>5 in the ", TO "OldChainComplexes :: resolution", " command, to tell the command that the
 			 provided ideal has generators which already form a Gröbner basis, not necessarily a reduced
 			 Gröbner basis, or a quotient module, whose presentation matrix forms a Gröbner basis.
 			 If the input is not, then this function can give incorrect answers or fail.  See ",
-			 TO "FastNonminimal", " for details and examples."
+			 TO "OldChainComplexes :: FastNonminimal", " for details and examples."
 			 },
 		    LI {
 			 "New types ", TO "MethodFunctionSingle", " and ", TO "MethodFunctionBinary", " were introduced to serve as classes of
@@ -1434,8 +1449,8 @@ document {
 	  --     },
 	  LI { "functionality added or improved:",		    -- get this with : git diff version-1.8.2 ../../m2/exports.m2
 	       UL {
-		   LI { "The new function ", TO "minimalBetti", " finds minimal Betti numbers of an ideal or module
-		       using the new ", TO "FastNonminimal", " functionality, avoiding unneeded computation of matrices in the
+		   LI { "The new function ", TO minimalBetti, " finds minimal Betti numbers of an ideal or module
+		       using the new ", TO "OldChainComplexes :: FastNonminimal", " functionality, avoiding unneeded computation of matrices in the
 		       free resolution."},
 		   LI { "The new function ", TO "roots", ", provided by Guillem Blanco, finds roots of univariate polynomials numerically." },
 		   LI { "the new function ", TO "splitWWW", " takes an http response, e.g. from ", TO "getWWW", " and unpacks it into
@@ -1467,7 +1482,7 @@ document {
 	        UL {
                 LI { "Fast minimal betti number and non-minimal resolution code, for homogeneous ideals and modules over 
                     polynomial rings over finite prime fields.  Also is functional for ideals and
-                    modules over exterior algebras.  See ", TO "FastNonminimal", " and ", TO [betti,Minimize], ".  For 
+                    modules over exterior algebras.  See ", TO "OldChainComplexes :: FastNonminimal", " and ", TO "OldChainComplexes :: betti(...,Minimize=>...)", ".  For
                     computing minimal betti numbers, on larger examples, this code is often hundreds to thousands of times faster than 
                     standard use of ", TO "resolution", " and is also, in many cases, much faster than the 
                     similar code in Singular version 4.0.2 described in Erocal, Motsak, Schreyer, Steenpass, Refined Algorithms to
@@ -2505,8 +2520,6 @@ document {
 		    TO (map,Module,Nothing,RingMap,Matrix),
 		    TO (map,Module,RingMap),
 		    TO (map,Module,ZZ,ZZ),
-		    TO (max,GradedModule),
-		    TO (min,GradedModule),
 		    TO (part,InfiniteNumber,InfiniteNumber,VisibleList,RingElement),
 		    TO (part,InfiniteNumber,InfiniteNumber,RingElement),
 		    TO (part,InfiniteNumber,ZZ,VisibleList,RingElement),
@@ -2529,7 +2542,6 @@ document {
 		    TO (support,Matrix),
 		    TO (symbol <-,Sequence),
 		    TO (symbol _,Number,Ring),
-		    TO (symbol |,GradedModuleMap,GradedModuleMap),
 		    TO (symmetricAlgebra,Matrix),
 		    TO (symmetricAlgebra,Nothing,Nothing,Matrix),
 		    TO (symmetricAlgebra,Nothing,Ring,Matrix),

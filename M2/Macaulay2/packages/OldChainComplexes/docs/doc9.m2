@@ -29,7 +29,8 @@ document {
      ring should be installed with a statement like ", TT "M.ring = R", ".",
      SeeAlso => "GradedModuleMap",
     Subnodes => {
-	TO gradedModule,
+	TO (gradedModule, List),
+	TO (complete, GradedModule),
 	TO (symbol SPACE, GradedModule, Array),
         TO (max, GradedModule),
         TO (min, GradedModule),
@@ -38,6 +39,7 @@ document {
         TO (symbol **, GradedModule, ChainComplex),
         TO (symbol **, GradedModule, Module),
         TO (length, GradedModule),
+	TO (betti, ChainComplex),
         },
      }
 
@@ -55,7 +57,12 @@ document {
      }
 
 document {
-     Key => {gradedModule,(gradedModule, Module), (gradedModule, List), (gradedModule, Sequence), (gradedModule, ChainComplex)},
+    Key => {
+	(gradedModule, List),
+	(gradedModule, Module),
+	(gradedModule, Sequence),
+	(gradedModule, ChainComplex),
+    },
      Headline => "make a graded module",
      Usage => "gradedModule v",
      Inputs => { "v" => List => "a module, or a list or sequence of modules" },
@@ -118,8 +125,7 @@ document {
 	 TO chainComplex,
 	 -- TO (NewFromMethod, ChainComplex, Resolution),
 	TO dd,
-	TO status,
-	TO complete,
+	TO (status, ChainComplex),
         TO (complete, ChainComplex),
         TO (length, ChainComplex),
         TO (symbol ++, ChainComplex, ChainComplex),
@@ -134,14 +140,21 @@ document {
         TO (homology, ChainComplex),
         TO (homology, ZZ, ChainComplex),
         TO (poincare, ChainComplex),
+        TO (poincareN, ChainComplex),
+	TO (regularity, ChainComplex),
         TO (symbol ^, ChainComplex, ZZ),
         TO (symbol _, ChainComplex, ZZ),
         TO ((symbol _, symbol =), ChainComplex, ZZ),
+	TO (symbol ^, ChainComplex, Array),
+	TO (symbol _, ChainComplex, Array),
         },
      }
 
 document {
-     Key => {complete,(complete, GradedModule),(complete, ChainComplexMap)},
+    Key => {
+	(complete, GradedModule),
+	(complete, ChainComplexMap),
+    },
      TT "complete C", " -- completely fills out the chain complex C by
      calling upon the engine to provide the maps and modules computed
      by ", TO "resolution", ".",
@@ -211,13 +224,15 @@ document {
         TO (transpose, ChainComplexMap),
         TO (symbol ^, ChainComplexMap, ZZ),
         TO (symbol _, ChainComplexMap, ZZ),
+	TO (symbol _, ChainComplexMap, Array),
         TO ((symbol _, symbol =), ChainComplexMap, ZZ),
+	TO (extend,ChainComplex,ChainComplex,Matrix),
+	TO (Hom,Module,ChainComplex),
+	TO (map,ChainComplex,ChainComplex,Function),
+	TO nullhomotopy,
         },
      }
 
-
-document { Key => {extend},
-     Headline => "extend a module map to a chain map, if possible" }
 document {
      Key => {(extend,ChainComplex,ChainComplex,Matrix),[extend,Verify]},
      Usage => "extend(D,C,f0)",
@@ -483,16 +498,6 @@ document {
      TT "f ** g", " -- tensor product of two maps of chain complexes.",
      SeeAlso => "ChainComplexMap"
      }
-
-document {
-     Key => (symbol SPACE, Module, Array),
-     Headline => "make a chain complex from a module",
-     TT "M[n]", " -- create a chain complex with the module M concentrated
-     in degree -n.",
-     PARA{},
-     SeeAlso => "ChainComplex"
-     }
-
 
 document {
      Key => (dual,ChainComplexMap),

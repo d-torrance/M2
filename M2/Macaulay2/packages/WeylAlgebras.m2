@@ -16,6 +16,9 @@ newPackage("WeylAlgebras",
 	 "ReesAlgebra",
 	 "Elimination",
 	 "FourTiTwo"
+         },
+     PackageExports => {
+	 "OldChainComplexes",
 	 }
      )
 

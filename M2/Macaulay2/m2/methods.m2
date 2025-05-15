@@ -269,10 +269,10 @@ setupMethods := (args, symbols) -> (
 setupMethods((), { 
 	  entries, baseName, borel, gcdCoefficients,
 	  diff, diff', contract, contract', isMember,
-	  koszul, target, source,
+	  target, source,
 	  getChangeMatrix, cover, coverMap, super, terms,
 	  cokernel, coimage, comodule, image, someTerms, scanKeys, scanValues,
-	  substitute, complete, ambient, remainder, quotientRemainder, remainder', quotientRemainder',
+	  substitute, ambient, remainder, quotientRemainder, remainder', quotientRemainder',
 	  coefficients, monomials, size, sum, product, nullhomotopy, module, raw,
 	  content, leadTerm, leadCoefficient, leadMonomial, components,
 	  assign, realPart, imaginaryPart, conjugate,
@@ -283,6 +283,8 @@ setupMethods((), {
       isBasicMatrix, basicDet, basicInverse, basicKernel, basicRank, basicSolve, basicRankProfile,
       minimize
 	  })
+
+gradedModule = method(Dispatch => Thing)
 
 assert = method()
 assert Thing := x -> assert' x

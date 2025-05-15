@@ -58,7 +58,7 @@ doc ///
 	Text
     	    @UL {
                 TO (freeResolution, Module),
-                TO (resolution, Complex),
+                TO (freeResolution, Complex),
                 TO (homology, Complex)
             }@
     	Text
@@ -948,6 +948,7 @@ doc ///
 
 doc ///
     Key
+        "Options for free resolutions"
         [freeResolution, LengthLimit]
         [freeResolution, DegreeLimit]
         [freeResolution, HardDegreeLimit]
@@ -1106,7 +1107,7 @@ doc ///
         "Making chain complexes"
         (augmentationMap, Complex)
         (cone, ComplexMap)
-        (resolution, Complex)
+        (freeResolution, Complex)
         (resolutionMap, Complex)
         (betti, Complex)
 ///
@@ -3231,7 +3232,7 @@ doc ///
 
 doc ///
     Key
-        (resolution, Complex)
+        (freeResolution, Complex)
     Headline
         minimal free resolution of a complex
     Usage
@@ -3452,7 +3453,7 @@ doc ///
             prune HH D == prune HH CJ
    SeeAlso
        freeResolution
-       (resolution, Complex)
+       (freeResolution, Complex)
        (resolutionMap, Complex)
        (minimalPresentation, Complex)
 ///
@@ -3491,12 +3492,11 @@ doc ///
 
 doc ///
    Key
-     isExact
-     (isExact, Complex)
-     (isExact, Complex, InfiniteNumber, InfiniteNumber)
-     (isExact, Complex, InfiniteNumber, Number)
-     (isExact, Complex, Number, InfiniteNumber)
      (isExact, Complex, Number, Number)
+     (isExact, Complex, Number, InfiniteNumber)
+     (isExact, Complex, InfiniteNumber, Number)
+     (isExact, Complex, InfiniteNumber, InfiniteNumber)
+     (isExact, Complex)
    Headline
      whether a complex is exact
    Usage

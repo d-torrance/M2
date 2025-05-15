@@ -77,7 +77,7 @@ document {
     },
     "Common homological computations:",
     UL {
-	TO (res, Module),
+	TO "OldChainComplexes :: resolution(Module)",
 	TO (pdim, Module),
 	TO "Hom",
 	TO (homomorphism,Matrix),
@@ -138,6 +138,15 @@ document {
 }
 
 document {
+    Key => gradedModule,
+    Headline => "make a graded module",
+    SeeAlso => {
+	"Complexes :: gradedModule(Complex)",
+	"OldChainComplexes :: gradedModule(List)",
+    },
+}
+
+document {
      Key => module,
      Headline => "make or get a module",
     Subnodes => {
@@ -168,6 +177,18 @@ document { Key => (module, Vector),
 	  module v
 	  class v
      ///}
+
+
+document {
+    Key => (symbol SPACE, Module, Array),
+    Headline => "make a chain complex from a module",
+    TT "M[n]", " -- create a chain complex with the module M concentrated in degree -n.",
+    PARA{},
+    SeeAlso => {
+	"Complexes :: Complex",
+	"OldChainComplexes :: ChainComplex",
+    },
+}
 
 document {
      Key => {relations,(relations, Module)},
@@ -268,13 +289,3 @@ doc ///
       vector(R, {1, 2, 3})
       vector(R, 2)
 ///
-
-document {
-     Key => {super,(super, GradedModule),(super, Matrix),(super, Module),(super,Vector)},
-     Headline => "get the ambient module",
-     TT "super M", " -- yields the module that the module ", TT "M", " is a submodule of.",
-     BR{},
-     TT "super f", " -- if ", TT "f", " is a map whose target is a submodule 
-     of ", TT "M", ", yields the composite of ", TT "f", " with the inclusion into ", TT "M", ".",
-     PARA{},
-     SeeAlso => { "cover", "ambient" }}

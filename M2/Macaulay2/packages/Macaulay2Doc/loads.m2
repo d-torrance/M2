@@ -19,7 +19,6 @@ load "./ov_ringmaps.m2"
 load "./ov_ideals.m2"
 load "./ov_matrices.m2"
 load "./ov_modules.m2"
-load "./ov_chaincomplexes.m2"
 load "./ov_examples.m2"
 load "./ov_groebner_bases.m2"
 load "./ov_analytic_functions.m2"
@@ -44,8 +43,6 @@ load "./macaulay.m2"
 
 load "./doc3.m2"
 load "./doc7.m2"
-load "./doc9.m2" -- ChainComplex methods, to be replaced
-load "./doc10.m2"
 load "./doc12.m2"
 load "./doc14.m2"
 

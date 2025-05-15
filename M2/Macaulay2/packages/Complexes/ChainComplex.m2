@@ -266,6 +266,11 @@ isWellDefined Complex := Boolean => C -> (
     true
     )
 
+Module Array := Complex => (M, v) -> (
+    if  length v =!= 1  then error "expected array of length 1";
+    if class v#0 =!= ZZ then error "expected [n] with n an integer";
+    complex(M, Base => v#0))
+
 Complex _ ZZ := Module => (C,i) -> if C.module#?i then C.module#i else (ring C)^0
 Complex ^ ZZ := Module => (C,i) -> C_(-i)
 
@@ -306,19 +311,19 @@ isFree Complex := Boolean => C -> (
     all(lo..hi, i -> isFreeModule C_i)
     )
 
-isExact = method()
+--isExact = method()
 isExact(Complex, Number, Number) := 
 isExact(Complex, Number, InfiniteNumber) := 
 isExact(Complex, InfiniteNumber, Number) := 
-isExact(Complex, InfiniteNumber, InfiniteNumber) := Boolean => (C, lo, hi) -> (
+isExact(Complex, InfiniteNumber, InfiniteNumber) := Boolean => {} >> o -> (C, lo, hi) -> (
     (loC,hiC) := concentration C;
     lo = max(lo,loC);
     hi = min(hi, hiC);
     all(lo..hi, i -> kernel dd^C_i == image dd^C_(i+1))
     )
-isExact Complex := Boolean => C -> (
+isExact Complex := Boolean => {} >> o -> C -> (
     (lo,hi) := concentration C;
-    isExact(C, lo, hi)
+    isExact(C, lo, hi, o)
     )
 
 sum Complex := Module => C -> (
@@ -359,12 +364,14 @@ Complex.directSum = args -> (
         complex maps
         );
     D.cache.components = toList args;
+    D.cache.formation = FunctionApplication { directSum, args };
     D    
     )
 Complex ++ Complex := Complex => (C,D) -> directSum(C,D)
 directSum Complex := C -> directSum(1 : C)
 
 components Complex := C -> if C.cache.?components then C.cache.components else {C}
+formation  Complex := C -> if C.cache.?formation  then C.cache.formation
 
 trans := (C,v) -> (
     if C.cache.?indexComponents then (
@@ -420,7 +427,7 @@ Complex#id = (C) -> (
     result
     )
 
-importFrom(Core, {"moduleAbbrv"})
+importFrom(Core, "short")
 net Complex := C -> (
      (lo,hi) := C.concentration;
      if lo > hi then 
@@ -431,7 +438,7 @@ net Complex := C -> (
      else
          horizontalJoin between(" <-- ", 
              for i from lo to hi list
-                 stack (net moduleAbbrv(C_i, C_i), " ", net i))
+                 stack (net short C_i, " ", net i))
      )
 
 texUnder := (x,y) -> "\\underset{\\vphantom{\\Bigg|}"|y|"}{"|x|"}"
@@ -467,16 +474,24 @@ texMath Complex := String => C -> (
     else (
         concatenate for i from lo to hi list (
             if i === lo then 
-                texUnder(texMath moduleAbbrv(C_i, C_i),i) 
+                texUnder(texMath short C_i, i) 
             else (
                 "\\,\\xleftarrow{\\scriptsize " 
                 | texMatrixShort dd^C_i 
                 | "}\\," 
-                | texUnder(texMath moduleAbbrv(C_i, C_i),i)
+                | texUnder(texMath short C_i, i)
                 )
             )
         )
     )
+
+importFrom(Core, {"leftarrow", "mtable"})
+mathML Complex := C -> (
+    if C == 0 then mathML "0"
+    else (
+	(lo, hi) := concentration C;
+	mtable transpose between({leftarrow, "", ""},
+	    toList apply(lo..hi, i -> {mathML short C_i, "", mathML i}))))
 
 gradedModule Complex := Complex => C -> (
     (lo,hi) := concentration C;
@@ -579,6 +594,7 @@ heftfun = (wt1,wt2) -> (
      else d -> 0
      )
 
+betti Matrix  := opts -> f -> betti(complex f, opts)
 betti Complex := opts -> C -> (
     heftfn := heftfun(opts.Weights, heft ring C);
     (lo,hi) := C.concentration;
@@ -586,6 +602,16 @@ betti Complex := opts -> C -> (
         apply(pairs tally degrees C_i, (d,n) -> (i,d,heftfn d) => n)
         )
     )
+
+pdim Module := M -> length freeResolution minimalPresentation M
+
+regularity Ideal  := opts -> I -> (
+    if I == 0 then -infinity else if I == 1 then 0
+    else 1 + regularity betti(freeResolution comodule I, opts))
+
+regularity Module := opts -> M -> (
+    if not isHomogeneous M then error "regularity: expected homogeneous module";
+    regularity betti(freeResolution minimalPresentation M, opts))
 
 regularity Complex := opts -> C -> (
     if numgens degreesRing ring C =!= 1 then 
@@ -1050,11 +1076,7 @@ resolutionMap Complex := ComplexMap => opts -> C -> resolutionMapPrivate(C, fals
 epicResolutionMap = method(Options => options freeResolution)
 epicResolutionMap Complex := ComplexMap => opts -> C -> resolutionMapPrivate(C, true, opts)
 
-resolution Complex := opts -> C -> (
-    -- TODO: remove this hack once resolution doesn't have FastNonminimal anymore and is defined in Complexes).
-    opts1 := new OptionTable from for k in keys opts list if k === FastNonminimal then continue else k => opts#k;
-    source resolutionMap(C, opts1)
-    )
+freeResolution Complex := opts -> C -> source resolutionMap(C, opts)
 
 augmentationMap = method()
 augmentationMap Complex := ComplexMap => 
@@ -1089,7 +1111,7 @@ minimize Complex := C -> (
 --------------------------------------------------------------------
 -- Yoneda ext ------------------------------------------------------
 --------------------------------------------------------------------
--- WARNING: this function replaces the one in m2/ext.m2
+
 Ext(ZZ, Module, Module) := Module => opts -> (i,M,N) -> (
     H := null; -- result
     liftmap := null; -- given f : R^1 --> H, returns g : R^1 --> Hom(FM_i, N)

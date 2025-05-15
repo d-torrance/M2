@@ -2,10 +2,21 @@
 -- TODO:
 -- 1. support QQ in rawResolutionGetMatrix, then enable FastNonminimal for QQ
 
-needs "gradedmodules.m2"
-needs "hilbert.m2"
-needs "modules2.m2"
-needs "Hom.m2"
+-- needs "gradedmodules.m2"
+-- needs "hilbert.m2"
+-- needs "modules2.m2"
+-- needs "Hom.m2"
+
+importFrom_Core {
+    "short",
+    "rawTensor",
+    "concatBlocks",
+    "moduleAbbrv",
+    "rawResolutionGetMatrix",
+    "RawComputation",
+    "RawMatrix",
+    "rawResolutionGetFree",
+}
 
 -----------------------------------------------------------------------------
 -- Local utilities
@@ -15,22 +26,13 @@ union := (x,y) -> keys(set x + set y)
 intersection := (x,y) -> keys(set x * set y)
 
 -----------------------------------------------------------------------------
--- Categories for which complexes are currently implemented in Macaulay2
------------------------------------------------------------------------------
--- SheafMap and CoherentSheaf are added later in Varieties
-
-isMorphism Thing    := x -> false
-isMorphism Matrix   := f -> true
-
-isAbelianCategory Thing         := x -> false
-isAbelianCategory Module        := M -> true
-
------------------------------------------------------------------------------
 -- ChainComplex, ChainComplexMap, and Resolution type declarations and basic constructors
 -----------------------------------------------------------------------------
 
-Resolution = new Type of MutableHashTable
-Resolution.synonym = "resolution"
+-- Resolution = new Type of MutableHashTable
+-- Resolution.synonym = "resolution"
+-- moved back to Core because Complexes needs it, too
+exportFrom_Core "Resolution"
 
 toString Resolution := C -> toString raw C
 
@@ -137,7 +139,7 @@ net ChainComplex := C -> (
 	  a := s#0;
 	  b := s#-1;
 	  horizontalJoin between(" <-- ", apply(a .. b,i ->
-		  stack (net moduleAbbrv(C_i, C_i)," ",net i)))))
+		  stack (net short C_i, " ", net i)))))
 
 texMath ChainComplex := C -> (
      complete C;
@@ -145,9 +147,17 @@ texMath ChainComplex := C -> (
      if # s === 0 then "0" else
      concatenate apply(s,i->(
 	     if i>s#0 then "\\,\\xleftarrow{" | texMath short C.dd_i | "}\\,",
-	     texUnder(texMath moduleAbbrv(C_i, C_i),i)
+	     texUnder(texMath short C_i, i)
 	     ))
       )
+
+-- used to be in mathml.m2
+mathML ChainComplex := C -> (
+    complete C;
+    s := sort spots C;
+    if #s === 0 then mathML "0"
+    else mtable transpose between({leftarrow,"",""}, toList apply(s#0 .. s#-1,i -> {mathML C_i,"",mathML i})))
+mathML ChainComplexMap := lookup(mathML, Thing)
 
 -----------------------------------------------------------------------------
 
@@ -405,8 +415,6 @@ ChainComplexMap * ChainComplexMap := ChainComplexMap => (g,f) -> (
 	  i -> h#i = g_(i+f.degree) * f_i);
      h)
 
-extend = method(Options => {Verify => true})
-
 extend(ChainComplex,ChainComplex,Matrix) := ChainComplexMap => opts -> (D,C,fi)-> (
      i := 0;
      j := 0;
@@ -495,9 +503,6 @@ poincare ChainComplex := C -> (
      scan(keys C, i -> if class i === ZZ then scanPairs(tally degrees C_i, (d,m) -> f = f + m * (-1)^i * product(# d, j -> S_j^(d_j))));
      f)
 
--- TODO: make poincareN return in variables of (degreesRing R)[S],
--- so that sub(poincareN C, S => -1) == poincare C holds
-poincareN = method(TypicalValue => RingElement)
 poincareN ChainComplex := (C) -> (
      s := getSymbol "S";
      t := getSymbol "T";
@@ -745,8 +750,6 @@ ChainComplex ** ChainComplexMap := ChainComplexMap => (C,f) -> id_C ** f
 -- min ChainComplex := C -> min spots C
 -- max ChainComplex := C -> max spots C
 
-tensorAssociativity(Module,Module,Module) := Matrix => (A,B,C) -> map((A**B)**C,A**(B**C),1)
-
 tensorAssociativity(ChainComplex,ChainComplex,ChainComplex) := ChainComplexMap => (A,B,C) -> (
      R := ring A;
      map(
@@ -889,7 +892,6 @@ minimalPresentation ChainComplexMap := prune ChainComplexMap := ChainComplexMap 
      )
 ----------------------------------------
 
-eagonNorthcott = method(TypicalValue => ChainComplex)
 eagonNorthcott Matrix := f -> (
      -- code is by GREG SMITH, but is experimental, and 
      -- should be replaced by engine code
@@ -920,9 +922,6 @@ eagonNorthcott Matrix := f -> (
       chainComplex d);
 
 ------ koszul
-
-koszul(ZZ, Matrix) := Matrix => (i,m) -> map(ring m, rawKoszul(i, raw m))
-
 koszul Matrix := ChainComplex => f ->(
      n := rank source f;
      chainComplex toList apply(1 .. n, i -> koszul(i,f)))

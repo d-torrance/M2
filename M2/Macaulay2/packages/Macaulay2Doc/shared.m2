@@ -9,7 +9,15 @@ document { Key => depth,  Headline => "depth of an object",  methodstr,
 document { Key => width,  Headline => "width of an object",  methodstr }
 document { Key => length, Headline => "length of an object", methodstr,
     SeeAlso => { "Complexes::length(Complex)", "Permutations::length(Permutation)" } }
+document { Key => extend, Headline => "extend an object",    methodstr,
+    SeeAlso => {
+	"Permutations :: extend(Permutation,ZZ)",
+	"Complexes :: extend(Complex,Complex,Matrix)",
+	"OldChainComplexes :: extend(ChainComplex,ChainComplex,Matrix)",
+    },
+}
 
+document { Key => complete,     methodstr, SeeAlso => { "OldChainComplexes::complete(ChainComplex)" } }
 document { Key => minimize,     methodstr, SeeAlso => { "Complexes::minimize(Complex)" } }
 document { Key => decompose,    methodstr, SeeAlso => { "MinimalPrimes::MinimalPrimes" } }
 document { Key => truncate,     methodstr, SeeAlso => { "Truncations::Truncations" } }
@@ -22,6 +30,9 @@ document { Key => euler,        methodstr, SeeAlso => {
 document { Key => eulers,       methodstr }
 document { Key => genera,       methodstr }
 document { Key => genus,        methodstr }
+document { Key => isExact,      methodstr, SeeAlso => {
+	"ChainComplexExtras :: isExact(ChainComplex)",
+	"Complexes :: isExact(Complex)" } }
 document { Key => isSmooth,     methodstr, SeeAlso => {
 	"Divisor::isSmooth(Ideal)", "LatticePolytopes::isSmooth(Polyhedron)",
 	"Varieties::isSmooth(Variety)", "SpaceCurves::isSmooth(Curve)",
@@ -59,7 +70,6 @@ document { Key => { isIsomorphism, (isIsomorphism, Matrix) },
 document { Key => cone,
     Headline => "mapping cone or polyhedral cone",
     SeeAlso => {
-	(cone, ChainComplexMap),
 	"Complexes::cone(ComplexMap)",
 	"Polyhedra::cone(Polyhedron)",
 	}
@@ -160,3 +170,16 @@ doc ///
     "Polyhedra::directProduct(Fan,Fan)"
     "Graphs::directProduct(Graph,Graph)"
 ///
+
+document {
+    Key => status,
+    Headline => "get the status of a computation",
+    SeeAlso => {
+	(status, GroebnerBasis),
+	"OldChainComplexes :: status(ChainComplex)",
+	"SubalgebraBases :: status(SAGBIBasis)",
+	"SumsOfSquares :: status(SDPResult)",
+	-- this one is used in a different sense
+	-- "NAGtypes :: status(AbstractPoint)",
+    },
+}

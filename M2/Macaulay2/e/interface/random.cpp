@@ -158,25 +158,32 @@ gmp_QQ rawFareyApproximation(gmp_RR x, gmp_ZZ height)
 }
 
 void rawSetRandomQQ(mpq_ptr result, gmp_ZZ height)
-/* sets result = a sample from the uniform distribution on [0, height], */
-/* rounded to the nearest rational number with denominator bounded by height */
+/* returns random a/b, where 1 <= b <= height, 1 <= a <= height */
+/* if height is the null pointer, use the default height */
 {
-  mpfr_t x;
+  mpz_t d;
 
+  mpz_init(d);
   if (height == nullptr) height = maxHeight;
   if (mpz_cmp_si(height, 0) <= 0)
     throw exc::engine_error("expected a positive height");
 
-  mpfr_init2(x, gmp_defaultPrecision);
-  mpfr_urandomb(x, state);
-  mpfr_mul_z(x, x, height, MPFR_RNDN);
-  rawSetFareyApproximation(result, x, height);
-  mpfr_clear(x);
+  while (true) {
+    mpz_urandomm(mpq_numref(result), state, height);
+    mpz_urandomm(mpq_denref(result), state, height);
+    mpz_add_ui(mpq_numref(result), mpq_numref(result), 1);
+    mpz_add_ui(mpq_denref(result), mpq_denref(result), 1);
+    mpz_gcd(d, mpq_numref(result), mpq_denref(result));
+    if (mpz_cmp_ui(d, 1) == 0)
+      break;
+  }
+
+  mpz_clear(d);
 }
 
 gmp_QQ rawRandomQQ(gmp_ZZ height)
-/* returns a  sample from the uniform distribution on [0, height], */
-/* rounded to the nearest rational number with denominator bounded by height */
+/* returns random a/b, where 1 <= b <= height, 1 <= a <= height */
+/* if height is the null pointer, use the default height */
 {
   mpq_ptr result = getmemstructtype(mpq_ptr);
   mpq_init(result);

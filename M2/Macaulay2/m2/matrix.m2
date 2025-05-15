@@ -223,22 +223,37 @@ blocks := m -> if m.cache.?components then flatten apply(m.cache.components,bloc
 
 protect Blocks
 blockMatrixForm=false;  -- governs expression Matrix inclusion of blocks
-expression Matrix := m -> (
-    x := applyTable(entries m, expression);
-    d := degrees -* cover *- target m;
-    if not all(d, i -> all(i, j -> j == 0)) then x=append(x,Degrees=>{d, degrees source m});
-    if blockMatrixForm then (
-    	b1 := blocks target m;
-    	b2 := blocks source m;
-    	if #b1>1 or #b2>1 then x=append(x,Blocks=>{b1,b2});
-	);
-    MatrixExpression x
+expression Matrix := m -> MatrixExpression (
+    if m == 0 then {symbol zero => (target m, source m)}
+    else (
+	x := applyTable(entries m, expression);
+	d := degrees -* cover *- target m;
+	if not all(d, i -> all(i, j -> j == 0)) then x=append(x,Degrees=>{d, degrees source m});
+	if blockMatrixForm then (
+	    b1 := blocks target m;
+	    b2 := blocks source m;
+	    if #b1>1 or #b2>1 then x=append(x,Blocks=>{b1,b2});
+	    );
+	x)
     )
 
 net Matrix := net @@ expression
 toString Matrix := toString @@ expression
 texMath Matrix := texMath @@ expression
-short Matrix := short @@ expression
+short Matrix := m -> MatrixExpression ( -- can't go thru MatrixExpression
+    if m==0 then {symbol zero => (target m, source m)} else (
+	n1:=rank target m;
+	n2:=rank source m;
+	if n1>shortLength then
+	if n2>shortLength then
+	{{short m_(0,0),cdots,short m_(0,n2-1)},{vdots,ddots,vdots},{short m_(n1-1,0),cdots,short m_(n1-1,n2-1)}}
+	else
+	{apply(n2,i->short m_(0,i)),toList(n2:vdots),apply(n2,i->short m_(n1-1,i))}
+	else if n2>shortLength then
+	apply(n1,i->{short m_(i,0),cdots,short m_(i,n2-1)})
+	else applyTable(entries m,short)
+	)
+    )
 
 describe Matrix := m -> (
     args:=(describe target m,describe source m);

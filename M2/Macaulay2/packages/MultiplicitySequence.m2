@@ -20,10 +20,10 @@ newPackage(
     PackageExports => {
         "ReesAlgebra", 
         "TangentCone", 
-        "OldPolyhedra",
         "Normaliz",
         "PrimaryDecomposition",
-        "MinimalPrimes"
+        "MinimalPrimes",
+        "OldPolyhedra",
     },
     Certification => {
 	"journal name" => "Journal of Software for Algebra and Geometry",
@@ -57,11 +57,6 @@ export {
  }
 
 -- installMinprimes() -- for MinimalPrimes.m2
-
-randomSubset := (L, k) -> (
-    i := random(#L);
-    if k == 1 then {L#i} else {L#i} | randomSubset(L_(delete(i, toList(0..<#L))), k-1)
-)
 
 getGenElts = method(Options => {symbol minTerms => -1, symbol numCandidates => 3})
 getGenElts (Ideal, ZZ) := List => opts -> (I, n) -> (

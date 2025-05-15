@@ -36,13 +36,10 @@ newPackage(
 	    HomePage => "https://johndcobb.github.io"}
 	},
     PackageExports => {
---	"Complexes",
+	HomologicalAlgebraPackage,
 	"Saturation",
 	"Truncations",
-	},
-    PackageImports => {
 	"Isomorphism",
---	"Complexes",
 	},
     AuxiliaryFiles => true
     )
