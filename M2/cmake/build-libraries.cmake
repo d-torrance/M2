@@ -147,8 +147,8 @@ else()
   set(EIGEN_BUILD_TYPE Release)
 endif()
 ExternalProject_Add(build-eigen
-  URL               https://gitlab.com/libeigen/eigen/-/archive/3.3.9/eigen-3.3.9.tar.bz2
-  URL_HASH          SHA256=0fa5cafe78f66d2b501b43016858070d52ba47bd9b1016b0165a7b8e04675677
+  URL               https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.bz2
+  URL_HASH          SHA256=b4c198460eba6f28d34894e3a5710998818515104d6e74e5cc331ce31e46e626
   PREFIX            libraries/eigen
   BINARY_DIR        libraries/eigen/build
   DOWNLOAD_DIR      ${CMAKE_SOURCE_DIR}/BUILD/tarfiles
@@ -485,8 +485,8 @@ endif()
 
 # https://github.com/algebraic-solving/msolve
 ExternalProject_Add(build-msolve
-  URL               https://github.com/algebraic-solving/msolve/archive/refs/tags/v0.7.5.tar.gz
-  URL_HASH          SHA256=e88368abfd1e1918329ff9444164ca0e304835794fec68d192a63c845ae63128
+  URL               https://github.com/algebraic-solving/msolve/archive/refs/tags/v0.8.0.tar.gz
+  URL_HASH          SHA256=d84f0bdefe0e09b23721fbd3b7e2f626e3206602bd245456f4ebfab445f05eb3
   PREFIX            libraries/msolve
   SOURCE_DIR        libraries/msolve/build
   DOWNLOAD_DIR      ${CMAKE_SOURCE_DIR}/BUILD/tarfiles
@@ -767,13 +767,12 @@ set(4ti2_PROGRAMS
   qsolve rays walk zbasis zsolve hilbert graver ppi genmodel gensymm output)
 list(TRANSFORM 4ti2_PROGRAMS PREPEND ${M2_HOST_PREFIX}/bin/ OUTPUT_VARIABLE 4ti2_PROGRAMS)
 ExternalProject_Add(build-4ti2
-  URL               https://github.com/4ti2/4ti2/releases/download/Release_1_6_10/4ti2-1.6.10.tar.gz
-  URL_HASH          SHA256=f7c191beb14246b643e4fd5b18b53d9966693b9e6d3a569441a0e3ca14b1a86b
+  URL               https://github.com/4ti2/4ti2/releases/download/Release_1_6_12/4ti2-1.6.12.tar.gz
+  URL_HASH          SHA256=5c72266610a18f39c6dfda62fb3af40482d083739f87e5240ae4f9a5b9d402dd
   PREFIX            libraries/4ti2
   SOURCE_DIR        libraries/4ti2/build
   DOWNLOAD_DIR      ${CMAKE_SOURCE_DIR}/BUILD/tarfiles
   BUILD_IN_SOURCE   ON
-  PATCH_COMMAND     mkdir swig # needed because the tar doesn't have a swig directory but 4ti2's Makefile.am seems to need it
   CONFIGURE_COMMAND autoreconf -vif
             COMMAND ${CONFIGURE} --prefix=${M2_HOST_PREFIX}
                       #-C --cache-file=${CONFIGURE_CACHE}
@@ -791,7 +790,7 @@ ExternalProject_Add(build-4ti2
   BUILD_COMMAND     ${MAKE} -j${PARALLEL_JOBS}
   INSTALL_COMMAND   ${MAKE} -j${PARALLEL_JOBS} -C src install-strip
           COMMAND   ${CMAKE_COMMAND} -E make_directory ${M2_INSTALL_LICENSESDIR}/4ti2
-          COMMAND   ${CMAKE_COMMAND} -E copy_if_different README ${M2_INSTALL_LICENSESDIR}/4ti2
+          COMMAND   ${CMAKE_COMMAND} -E copy_if_different README.md ${M2_INSTALL_LICENSESDIR}/4ti2
           COMMAND   ${CMAKE_COMMAND} -E copy_if_different ${4ti2_PROGRAMS} ${M2_INSTALL_PROGRAMSDIR}/
           COMMAND   ${CMAKE_COMMAND} -E remove -f ${4ti2_PROGRAMS}
   TEST_COMMAND      ${MAKE} -j${PARALLEL_JOBS} check
@@ -871,6 +870,7 @@ ExternalProject_Add(build-lrslib
   SOURCE_DIR        libraries/lrslib/build
   DOWNLOAD_DIR      ${CMAKE_SOURCE_DIR}/BUILD/tarfiles
   BUILD_IN_SOURCE   ON
+  PATCH_COMMAND     patch --batch -p1 < ${CMAKE_SOURCE_DIR}/libraries/lrslib/patch-073
   CONFIGURE_COMMAND true
   BUILD_COMMAND     ${MAKE} -j${PARALLEL_JOBS} prefix=${M2_HOST_PREFIX} lrs # all-shared
                       INCLUDEDIR=${GMP_INCLUDE_DIRS}
