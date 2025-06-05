@@ -8,7 +8,7 @@ echo "done"
 
 ORIGINAL_BRANCH=$(git symbolic-ref --short HEAD)
 
-BRANCHES="debian/development ppa/bionic"
+BRANCHES="debian/development"
 
 for BRANCH in $BRANCHES
 do
@@ -55,16 +55,5 @@ push() {
 }
 
 push "debian/development"
-
-if [ $(git rev-parse debian/development) != \
-     $(git merge-base debian/development ppa/bionic) ]
-then
-    checkout "ppa/bionic"
-    echo -n "merging debian/development into ppa/bionic ... "
-    git merge -q --no-edit debian/development
-    echo "done"
-fi
-
-push "ppa/bionic"
 
 checkout $ORIGINAL_BRANCH
