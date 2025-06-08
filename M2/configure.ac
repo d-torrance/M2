@@ -115,7 +115,7 @@ then if test -f /usr/bin/sw_vers
      fi
      # translate to something standard (for us), and verify :
      case $ISSUE_FLAVOR in
-         "Mac OS X") ISSUE_FLAVOR=MacOS ;;
+         "Mac OS X"|"macOS") ISSUE_FLAVOR=MacOS ;;
 	 "debian"|"Debian"*) ISSUE_FLAVOR=Debian ;;
          "ubuntu"|"Ubuntu") ISSUE_FLAVOR=Ubuntu ;;
 	 "FedoraCore"*) ISSUE_FLAVOR=FedoraCore ;;
@@ -262,7 +262,7 @@ AC_SUBST(M2_CFLAGS)
 AC_SUBST(M2_CXXFLAGS)
 
 dnl Fix standards, apply everywhere
-CXXFLAGS="-std=gnu++14 $CXXFLAGS"
+CXXFLAGS="-std=gnu++17 $CXXFLAGS"
 CFLAGS="-std=gnu11 $CFLAGS"
 
 AC_PROG_CC() 			# set CFLAGS before this
@@ -1226,8 +1226,11 @@ AC_ARG_WITH(unbuilt-programs,
 	esac
      done])
 
-AC_SUBST(DOWNLOAD,no)
-AC_ARG_ENABLE(download, AS_HELP_STRING(--enable-download,enable automatic downloading of needed third-party libraries), DOWNLOAD=$enableval)
+AC_SUBST([DOWNLOAD], [yes])
+AC_ARG_ENABLE([download],
+    [AS_HELP_STRING([--disable-download],
+        [disable automatic downloading of needed third-party libraries])],
+    [DOWNLOAD=$enableval])
 AC_CHECK_PROGS(WGET,wget,false)
 AC_CHECK_PROGS(CURL,curl,false)
 if test $DOWNLOAD = yes
