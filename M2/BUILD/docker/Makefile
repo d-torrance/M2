@@ -27,7 +27,7 @@ build-image:;	docker build $(BUILD_ARGS) --tag $(TAG) .
 
 run: run-emacs
 run-M2:;	docker run $(VOLUME) -it --entrypoint M2 $(TAG)
-run-M2-safe:;	docker run $(VOLUME) -it --entrypoint M2 $(TAG) -q --int --no-readline --no-randomize --no-threads
+run-M2-safe:;	docker run $(VOLUME) -it --entrypoint $(M2_HOME)/M2/$(BUILD_DIR)/M2 $(TAG) $(TAG) -q --int --no-readline --no-randomize --no-threads
 run-emacs-tui:;	docker run $(VOLUME) -it --entrypoint emacs $(TAG)
 run-emacs:;	docker run $(VOLUME) --entrypoint emacs --net=host --env="DISPLAY" $(TAG)
 
