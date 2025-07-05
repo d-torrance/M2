@@ -535,7 +535,9 @@ package Thing    := x -> if (d := dictionary x)                               =!
 -- TODO: oo belongs in Core, but where do o1, etc. belong to?
 package Symbol   := s -> if instance(obj := value s, Package) then obj else
     scan(implicitlyLoadedDictionaries(),
-	dict -> try if value dict#(toString s) === obj then break package dict)
+	dict -> (
+	    key := toString s;
+	    if dict#?key and value dict#key === obj then break package dict))
 package Function   :=
 package HashTable  := x -> if hasAttribute(x, ReverseDictionary) then package getAttribute(x, ReverseDictionary)
 -- TODO: where do OutputDictionary and PackageDictionary belong to?
