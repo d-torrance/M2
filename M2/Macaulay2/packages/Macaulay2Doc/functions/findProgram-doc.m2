@@ -143,7 +143,7 @@ doc ///
       If @TT "cmd"@ is not provided, then @TT "name"@ is run with the common
       @TT "--version"@ command line option.
     Example
-      findProgram "normaliz"
+      findProgram("normaliz", Verbose => true)
     Text
       One program that is shipped with a variety of prefixes in
       different distributions and for which the @TT "Prefix"@ option
