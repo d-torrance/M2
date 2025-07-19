@@ -1341,12 +1341,7 @@ Node
 	    I=ideal(y^2+x^3-x^2*z^2)
 	    WS3=whitneyStratifyPol(I,Algorithm=>"M2F4")
 	Text 
-	    On harder examples the whitneyStratifyPol can be much faster than other methods. The following example, while taking some seconds below, takes many minutes or hours with other methods. In the example below the output is in fact the minimal Whitney stratification (though more often the output Whitney stratification returned by whitneyStratifyPol is not minimal). 
-	Example 
-	    R=QQ[x..z,t]
-	    I=ideal(z^3+t*y^3*z+y^4*x+x^9)
-	    elapsedTime W=whitneyStratifyPol(I,Algorithm=>"msolve")
-	    peek W
+	    On harder examples the whitneyStratifyPol can be much faster than other methods and often the option Algorithm=>"msolve" will be the fastest (the msolve option is not currently set as default since the msolve package is a new addition to M2). 
 	    
 	    
 Node 
