@@ -10,6 +10,8 @@ isMorphism MackeyFunctorHomomorphism := f -> true
 ring MackeyFunctorHomomorphism := f -> ZZ
 -- Hack to make matrix() work; unclear if this is justified.
 promote (MackeyFunctorHomomorphism, ZZ) := (f,R) -> f
+-- This is true, we don't have gradings
+degree MackeyFunctorHomomorphism := f -> 0
 
 isWellDefined MackeyFunctorHomomorphism := Boolean => F ->(
     -- Verify the keys are correct
