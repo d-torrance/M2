@@ -106,6 +106,17 @@ TEST ///
 ///
 
 TEST ///
+R=QQ[x,y,z];
+I = ideal {(x^3-z)*(x^2-y)};
+S = ideal {z-2,y-1};
+rur = msolveRUR(I+S);
+p = matrix{{1}};
+assert(apply(rur#"numerator", n->sub(-n,p)) / sub(rur#"denominator",p)=={1,1,2});
+p = matrix{{-1}};
+assert(apply(rur#"numerator", n->sub(-n,p)) / sub(rur#"denominator",p)=={-1,1,2});
+///
+
+TEST ///
   debugLevel=1
   R = QQ[x..z,t]
   K = ideal(x^6+y^6+x^4*z*t+z^3,36*x^5+60*y^5+24*x^3*z*t,
