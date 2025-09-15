@@ -113,9 +113,9 @@ cd M2
 ./autogen.sh
 
 %if 0%{?fedora}
-%global config_args --with-system-libs --prefix=/usr
+%global config_args --with-system-libs --prefix=/usr --enable-download
 %else
-%global config_args --prefix=/usr
+%global config_args --prefix=/usr --enable-download
 %endif
 
 %build
