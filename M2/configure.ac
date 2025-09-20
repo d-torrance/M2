@@ -161,7 +161,6 @@ AC_CHECK_PROGS(ETAGS,etags ctags,false)
 if test "$ETAGS" = false; then AC_MSG_WARN(without etags no TAGS files will be made); fi
 AC_CHECK_PROGS(LINTIAN,lintian,false)
 AC_CHECK_PROGS(OTOOL,otool,false)
-AC_CHECK_PROGS(RPMLINT,rpmlint,false)
 AC_CHECK_PROGS(TAR,gtar gnutar tar,false)
 AC_CHECK_PROGS(FIND,gfind find,false)
 AC_CHECK_PROGS(OBJDUMP,objdump,false)
@@ -176,6 +175,7 @@ AC_CHECK_PROGS(CMP,cmp,false)
 AS_IF([test $CMP = false],
     AC_MSG_ERROR([cmp is required (try installing 'diffutils' package)]))
 AC_CHECK_PROGS([CMAKE], [cmake], [false])
+AC_CHECK_PROGS([CHRPATH], [chrpath], [false])
 
 AC_CHECK_TOOL(AR,ar,false)
 AC_CHECK_TOOL(AS,as,false)
@@ -393,7 +393,6 @@ test "$DEBUG" = "yes" && ENABLE_STRIP=no
 # note: we build many programs for inclusion in the distribution -- stripping them saves 9MB of 70
 
 AC_SUBST(MEMDEBUG,no)  AC_ARG_ENABLE(memdebug, AS_HELP_STRING(--enable-memdebug,enable memory allocation debugging), MEMDEBUG=$enableval)
-AC_SUBST(ENCAP,no)     AC_ARG_ENABLE(encap, AS_HELP_STRING(--enable-encap,encapsulate all files in a subdirectory at installation time), ENCAP=$enableval)
 AC_SUBST(XCODE,no)     AC_ARG_ENABLE(xcode, AS_HELP_STRING(--enable-xcode,create Macaulay2/d/interpret.a for use with xcode), XCODE=$enableval)
 
 AC_SUBST(CC_THREAD_SUPPORT)
@@ -528,17 +527,6 @@ then if test "$OPTIMIZE" = no
      fi
      if test "$DEBUG" = yes
      then AC_MSG_ERROR([--enable-debug and --enable-freebsd both specified])
-     fi
-fi
-
-AC_SUBST(RPM,no)
-AC_ARG_ENABLE(rpm,  AS_HELP_STRING(--enable-rpm,prepare a *.rpm package (for red hat based systems)), RPM=$enableval)
-if test "$RPM" = yes 
-then if test "$OPTIMIZE" = no
-     then AC_MSG_ERROR([--disable-optimize and --enable-rpm both specified])
-     fi
-     if test "$DEBUG" = yes
-     then AC_MSG_ERROR([--enable-debug and --enable-rpm both specified])
      fi
 fi
 
@@ -1970,8 +1958,6 @@ test "$prefix" || prefix=/usr/local
 # for some distributions, we know what the prefix should be:
 test "$DEB"     = yes && test "$prefix" != /usr && 
      AC_MSG_ERROR(--enable-deb specified and --prefix not set to /usr)
-test "$RPM"     = yes && test "$prefix" != /usr && 
-     AC_MSG_ERROR(--enable-rpm specified and --prefix not set to /usr)
 
 if test "$prefix" != /usr/local
 then test "$FREEBSD" = yes && AC_MSG_ERROR(--enable-freebsd specified and --prefix not set to /usr/local)

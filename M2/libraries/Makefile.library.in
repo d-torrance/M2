@@ -122,7 +122,15 @@ PACKAGE-DISTCLEAN-TARGET := distclean
 package-distclean: unmark ; if [ -d $(BUILDDIR) ]; then $(MAKE) $(NOTPARALLEL) -C $(BUILDDIR) $(PACKAGE-DISTCLEAN-TARGET) ; fi
 fetch: download-enabled
 ifeq ($(SUBMODULE),true)
-fetch: update-submodule
+fetch: .submodule-updated
+.submodule-updated:
+	$(MAKE) update-submodule
+	touch $@
+update-submodule:
+	@GIT@ submodule update --init @abs_top_srcdir@/submodules/$(LIBNAME)
+clean::
+	rm -f .submodule-updated
+	@GIT@ submodule deinit @abs_top_srcdir@/submodules/$(LIBNAME)
 else
 fetch: $(TARFILE_DIR)/$(TARFILE)
 endif
@@ -132,8 +140,6 @@ $(LICENSE_DIR):; $(MKDIR_P) $(LICENSE_DIR)
 compile: config-chk .compiled-$(VERSION) 
 configure: .configured-$(VERSION) config-chk 
 config-chk:
-update-submodule:
-	git submodule update --init @abs_top_srcdir@/submodules/$(LIBNAME)
 
 PROGRAMS ?=
 LICENSEFILES ?=
@@ -299,14 +305,19 @@ help:;
 	@ echo "targets:"
 	@ echo ""
 	@ echo "  all                         build/compile all files [the default target]"
+	@ echo "  fetch                       fetch the library source"
 	@ echo "  reconfigure                 remake configuration files for library"
 	@ echo "  diffs                       create diff file for changes to library sources"
-	@ echo "  clean                       remove most created files, except Makefiles and dowloaded tarfiles"
+	@ echo "  clean                       remove most created files, except Makefiles and"
+	@ echo "                              dowloaded tarfiles"
 	@ echo "  distclean                   remove all created files"
-	@ echo "  package-clean               remove most created files in the package's directory tree, except Makefiles"
-	@ echo "  package-distclean           remove all created files in the package's directory tree"
+	@ echo "  package-clean               remove most created files in the package's"
+	@ echo "                              directory tree, except Makefiles"
+	@ echo "  package-distclean           remove all created files in the package's"
+	@ echo "                              directory tree"
 	@ echo "  check                       check whether library compiled correctly"
 	@ echo "  recheck                     check, even if we've checked before"
+	@ echo "  update-submodule            update git submodule for library (if applicable)"
 	@ echo ""
 autotool-versions:
 	whereis autoconf
