@@ -58,6 +58,7 @@ check_include_files(boost/math/tools/atomic.hpp
 # TODO: replace gdbm, see https://github.com/Macaulay2/M2/issues/594
 find_package(GDBM	REQUIRED QUIET) # See FindGDBM.cmake
 
+list(APPEND CMAKE_PREFIX_PATH "$(brew --prefix libomp)")
 if(WITH_OMP)
   find_package(OpenMP REQUIRED)
 else()
