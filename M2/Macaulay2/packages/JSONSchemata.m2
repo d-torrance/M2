@@ -21,8 +21,30 @@ JSONSchema_ZZ := (schema, i) -> schema#0#i
 
 new JSONSchema from String := (T, str) -> T {fromJSON str}
 
+
+verboseLog = x -> if debugLevel > 0 then printerr x
+
+getType = method()
+getType String    := x -> "string"
+getType Number    := x -> "number"
+getType HashTable := x -> "object"
+getType List      := x -> "array"
+getType Boolean   := x -> "boolean"
+getType Symbol    := x -> "null"  -- assumes symbol is "nil"
+
+validateType = (x, y) -> (
+    if x#?"type" then (
+	expected := x#"type";
+	actual := getType y;
+	r := (expected == actual),
+	if not r then verboseLog("expected ", expected, " but got ", actual);
+	r)
+    else true)
+
 validate(JSONSchema, String) := (schema, str) -> (
-    if 
+    parsed := fromJSON str;
+    valid := validateType(schema#0, parsed);
+    valid)
 
 end
 
@@ -41,3 +63,15 @@ schema = JSONSchema ///
   }
 }
 ///
+
+str = ///
+{
+  "name": "John Doe",
+  "age": 25
+}
+///
+
+errorDepth = 2
+debugLevel = 1
+validate_schema str
+schema#0#"type"
