@@ -233,6 +233,7 @@ bumpPrecedence();
      inW = token("in"); makeKeyword(inW);
      fromW = token("from"); makeKeyword(fromW);
      toW = token("to"); makeKeyword(toW);
+     byW = token("by"); makeKeyword(byW);
      narrow := prec;
 bumpPrecedence();
      export LessLessS := makeKeyword(unarybinaryleft("<<"));	    -- also binary
@@ -876,6 +877,7 @@ export bind(e:ParseTree,dictionary:Dictionary):void := (
 	  bind(w.inClause,dictionary);
 	  bind(w.fromClause,dictionary);
 	  bind(w.toClause,dictionary);
+	  bind(w.byClause,dictionary);
 	  newdict := newLocalDictionary(dictionary);
 	  bindSingleParm(w.variable,newdict);
 	  bind(w.whenClause,newdict);

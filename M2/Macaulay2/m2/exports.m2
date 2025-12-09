@@ -527,6 +527,7 @@ export {
 	"borel",
 	"break",
 	"breakpoint",
+	"by",
 	"cache",
 	"cacheValue",
 	"cancelTask",

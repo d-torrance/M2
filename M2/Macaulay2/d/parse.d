@@ -119,7 +119,7 @@ export Token := {+		-- a word, as encountered in the input
 -- ParseTree
 
 export Adjacent := {+lhs:ParseTree, rhs:ParseTree};
-export For := {+ forToken:Token, variable:ParseTree, inClause:ParseTree, fromClause:ParseTree, toClause:ParseTree, whenClause:ParseTree, listClause:ParseTree, doClause:ParseTree, 
+export For := {+ forToken:Token, variable:ParseTree, inClause:ParseTree, fromClause:ParseTree, toClause:ParseTree, byClause:ParseTree, whenClause:ParseTree, listClause:ParseTree, doClause:ParseTree, 
      dictionary:Dictionary 					    -- filled in later
      };
 export WhileDo := {+ whileToken:Token, predicate:ParseTree, dotoken:Token, doClause:ParseTree};
@@ -242,7 +242,7 @@ export arrayCode        := {+z:CodeSequence, position:Position};
 export angleBarListCode := {+t:CodeSequence, position:Position};
 export semiCode         := {+w:CodeSequence, position:Position};
 export multaryCode      := {+f:multop, args:CodeSequence, position:Position};
-export forCode          := {+inClause:Code, fromClause:Code, toClause:Code, whenClause:Code, listClause:Code, doClause:Code, frameID:int, framesize:int, position:Position} ;
+export forCode          := {+inClause:Code, fromClause:Code, toClause:Code, byClause:Code, whenClause:Code, listClause:Code, doClause:Code, frameID:int, framesize:int, position:Position} ;
 
 export functionDescription := {
      frameID:int,		    -- seqno of dictionary

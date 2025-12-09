@@ -340,6 +340,7 @@ export convert0(e:ParseTree):Code := (
     is f:For         do Code(
 	forCode(
 	    convert(f.inClause),   convert(f.fromClause), convert(f.toClause),
+	    convert(f.byClause),
 	    convert(f.whenClause), convert(f.listClause), convert(f.doClause),
 	    f.dictionary.frameID, f.dictionary.framesize, pos))
     is n:New do (

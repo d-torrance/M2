@@ -314,6 +314,7 @@ evalForCode(c:forCode):Expr := (
      j := 0;				    -- the value of the loop variable if it's an integer loop, else the index in the list if it's "for i in w ..."
      w := emptySequence;				    -- the list x when it's "for i in w ..."
      n := 0;				    -- the upper bound on j, if there is a toClause.
+     step := 1;                             -- the amount to increment by, if there is a byClause
      iter := nullE;                         -- iterator
      nextfunc := nullE;                     -- next function for iterator
      listLoop := false;
@@ -354,10 +355,19 @@ evalForCode(c:forCode):Expr := (
 		    if isInt(f) then n = toInt(f)
 		    else return printErrorMessageE(c.toClause,"expected a small integer"))
 	       else return printErrorMessageE(c.toClause,"expected an integer"));
+	  if c.byClause != dummyCode then (
+	       byvalue := eval(c.byClause);
+	       when byvalue
+	       is Error do return byvalue
+	       is f:ZZcell do (
+		    if isInt(f) then step = toInt(f)
+		    else return printErrorMessageE(c.byClause,"expected a small integer");
+		    if step == 0 then return printErrorMessageE(c.byClause, "expected a nonzero integer"))
+	       else return printErrorMessageE(c.byClause,"expected an integer"));
 	  );
      localFrame = Frame(localFrame,c.frameID,c.framesize,false,new Sequence len c.framesize do provide nullE);
      while true do (
-	  if toLimit && j > n then break;
+	  if toLimit && (step > 0 && j > n || step < 0 && j < n) then break;
 	  if listLoop && j >= length(w) then break;
 	  localFrame.values.0 = ( -- should be the frame spot for the loop var
 	      if listLoop then w.j
@@ -366,7 +376,7 @@ evalForCode(c:forCode):Expr := (
 		  if tmp == StopIterationE then break;
 		  tmp)
 	      else Expr(ZZcell(toInteger(j))));
-	  j = j+1;
+	  j = j+step;
 	  if c.whenClause != dummyCode then (
 	       p := eval(c.whenClause);
 	       when p is err:Error do (

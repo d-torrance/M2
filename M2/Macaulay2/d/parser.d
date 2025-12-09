@@ -129,6 +129,7 @@ export listW := Word("-*dummy word: list*-",TCnone,hash_t(0),newParseinfo());		 
 export fromW := Word("-*dummy word: from*-",TCnone,hash_t(0),newParseinfo());		  -- filled in by binding.d
 export inW := Word("-*dummy word: in*-",TCnone,hash_t(0),newParseinfo());		  -- filled in by binding.d
 export toW := Word("-*dummy word: to*-",TCnone,hash_t(0),newParseinfo());		  -- filled in by binding.d
+export byW := Word("-*dummy word: by*-",TCnone,hash_t(0),newParseinfo());		  -- filled in by binding.d
 export debug := false;
 export tracefile := dummyfile;
 export openTokenFile(filename:string):(TokenFile or errmsg) := (
@@ -318,6 +319,7 @@ export unaryfor(forToken:Token,file:TokenFile,prec:int,obeylines:bool):ParseTree
      inClause := dummyTree;
      fromClause := dummyTree;
      toClause := dummyTree;
+     byClause := dummyTree;
      whenClause := dummyTree;
      listClause := dummyTree;
      doClause := dummyTree;
@@ -346,6 +348,11 @@ export unaryfor(forToken:Token,file:TokenFile,prec:int,obeylines:bool):ParseTree
 	       if toClause == errorTree then return errorTree;
 	       token2 = gettoken(file,false);
 	       );
+	  if token2.word == byW then (
+	       byClause = parse(file,byW.parse.unaryStrength,false);
+	       if byClause == errorTree then return errorTree;
+	       token2 = gettoken(file,false);
+	       );
 	  );
      --handle when clause
      if token2.word == whenW then (
@@ -357,7 +364,7 @@ export unaryfor(forToken:Token,file:TokenFile,prec:int,obeylines:bool):ParseTree
      if token2.word == doW then (
 	  doClause = parse(file,doW.parse.unaryStrength,obeylines);
 	  if doClause == errorTree then return errorTree;
-	  r := ParseTree(For( forToken, var, inClause, fromClause, toClause, whenClause, listClause,doClause, dummyDictionary ));
+	  r := ParseTree(For( forToken, var, inClause, fromClause, toClause, byClause, whenClause, listClause,doClause, dummyDictionary ));
 	  accumulate(r,file,prec,obeylines))
      else if token2.word == listW then (
 	  listClause = parse(file,listW.parse.unaryStrength,obeylines);
@@ -367,7 +374,7 @@ export unaryfor(forToken:Token,file:TokenFile,prec:int,obeylines:bool):ParseTree
 	       doClause = parse(file,doW.parse.unaryStrength,obeylines);
 	       if doClause == errorTree then return errorTree;
 	       );
-	  r := ParseTree(For(forToken, var, inClause, fromClause, toClause,whenClause, listClause, doClause, dummyDictionary));
+	  r := ParseTree(For(forToken, var, inClause, fromClause, toClause, byClause, whenClause, listClause, doClause, dummyDictionary));
 	  accumulate(r,file,prec,obeylines))
      --if there is no do clause then it is an error
      else (
@@ -543,7 +550,7 @@ export size(e:ParseTree):int := (
     is x:TryElse     do Ccode(int,"sizeof(*",x,")") + size(x.tryToken) + size(x.primary)                                      + size(x.elseToken) + size(x.alternate)
     is x:Try         do Ccode(int,"sizeof(*",x,")") + size(x.tryToken) + size(x.primary)
      is x:Catch do Ccode(int,"sizeof(*",x,")") + size(x.catchToken) + size(x.primary)
-     is x:For do Ccode(int,"sizeof(*",x,")")+ size(x.forToken) + size(x.variable) + size(x.inClause) + size(x.fromClause) + size(x.toClause) + size(x.whenClause) + size(x.listClause) + size(x.doClause)
+     is x:For do Ccode(int,"sizeof(*",x,")")+ size(x.forToken) + size(x.variable) + size(x.inClause) + size(x.fromClause) + size(x.toClause) + size(x.byClause) + size(x.whenClause) + size(x.listClause) + size(x.doClause)
      is x:WhileDo do Ccode(int,"sizeof(*",x,")") + size(x.whileToken) + size(x.predicate) + size(x.dotoken) + size(x.doClause)
      is x:WhileList do Ccode(int,"sizeof(*",x,")") + size(x.whileToken) + size(x.predicate) + size(x.listtoken) + size(x.listClause)
      is x:WhileListDo do Ccode(int,"sizeof(*",x,")") + size(x.whileToken) + size(x.predicate) + size(x.dotoken) + size(x.doClause) + size(x.listtoken) + size(x.listClause)
