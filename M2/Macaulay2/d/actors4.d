@@ -742,7 +742,7 @@ getfun(e:Expr):Expr := (
 	  is e:errmsg do buildErrorPacket(e.message)
 	  is s:stringCell do toExpr(s.v))
      else WrongArg("a string as filename"));
-setupfun("get",getfun);
+setupfun("get",getfun).Protected=false;
 
 readprompt := "";
 readpromptfun():string := readprompt;
