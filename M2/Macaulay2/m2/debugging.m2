@@ -3,8 +3,24 @@
 needs "nets.m2"
 needs "methods.m2"
 
+processArgs := (meth, args) -> (
+    f := lookup({topLevelMode, meth}, class args);
+    f args)
+
+Thing#{Standard, ErrorPrint} = x -> silentRobustString(40, 3, x)
+String#{Standard, ErrorPrint} = identity
+Symbol#{Standard, ErrorPrint} = x -> "'" | toString x | "'"
+Sequence#{Standard, ErrorPrint} = args -> (
+    concatenate apply(args, processArgs_ErrorPrint))
+
+Thing#{Standard, AfterErrorPrint} = x -> ""
+Symbol#{Standard, AfterErrorPrint} = x -> concatenate(newline,
+    toString locate x, ": here is the first use of '", toString x, "'")
+Sequence#{Standard, AfterErrorPrint} = args -> (
+    concatenate apply(args, processArgs_AfterErrorPrint))
+
 warningMessage0 = (args,deb) -> (
-     args = processErrorArgs args;
+     args = processArgs(ErrorPrint, args);
      h := hash args % 10000;
      if debugWarningHashcode === h
      then error args

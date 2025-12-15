@@ -410,8 +410,20 @@ export RobustPrintNetE := Expr(RobustPrintNetS);
 export RobustPrintStringS := makeProtectedSymbolClosure("RobustPrintStringMethod");
 export RobustPrintStringE := Expr(RobustPrintStringS);
 
+export ErrorPrintS := makeProtectedSymbolClosure("ErrorPrint");
+export ErrorPrintE := Expr(ErrorPrintS);
+
+export AfterErrorPrintS := makeProtectedSymbolClosure("AfterErrorPrint");
+export AfterErrorPrintE := Expr(AfterErrorPrintS);
+
 export StopIterationS := makeProtectedSymbolClosure("StopIteration");
 export StopIterationE := Expr(StopIterationS);
+
+export StandardS := makeProtectedSymbolClosure("Standard");
+export StandardE := Expr(StandardS);
+
+export topLevelMode := Expr(StandardS);
+export topLevelModeS := dummySymbol;
 
 -----------------------------------------------------------------------------
 export makeSymbol(t:Token):Symbol := (

@@ -1812,11 +1812,6 @@ readonlyfilesS := dummySymbol;
 setupconst("minExponent",toExpr(minExponent));
 setupconst("maxExponent",toExpr(maxExponent));
 
-StandardS := makeProtectedSymbolClosure("Standard");
-export StandardE := Expr(StandardS);
-export topLevelMode := Expr(StandardS);
-topLevelModeS := dummySymbol;
-
 initialRandomSeed := zeroZZ;
 initialRandomHeight := toInteger(10);
 
