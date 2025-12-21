@@ -1,4 +1,4 @@
-import 'd3';
+import * as d3 from 'd3';
 
   // Initialize variables.
   var width  = null,
@@ -56,7 +56,7 @@ function initializeBuilder() {
   // Set up SVG for D3.
   width  = window.innerWidth-document.getElementById("side").clientWidth;
   height = window.innerHeight-10;
-  colors = d3.scale.category10();
+  colors = d3.scaleOrdinal(d3.schemeCategory10);
 
   svg = d3.select('body')
     .append('svg')

@@ -2766,3 +2766,15 @@ visualize(I)
 R = QQ[x,y,z]
 J = ideal"x4,xyz3,yz2,xz3,z6,y5"
 visualize(J)
+
+
+---------------
+-- d3 update --
+---------------
+
+-- code to generate data for graph
+toJSON(hashTable {
+	("nodes", apply(vertices G, v -> hashTable{("id", toString v)})),
+	("links", apply(edges G, e -> (
+		    (src, targ) := toString \ toSequence toList e;
+		    hashTable{("source", src), ("target", targ)})))})
