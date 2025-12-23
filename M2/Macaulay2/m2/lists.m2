@@ -304,6 +304,9 @@ replace(ZZ,Thing,BasicList) := BasicList => {} >> o -> (i,x,s) -> (
      if j < 0 then j = j + #s;
      if j < 0 or j >= #s then error("replace: index ", toString i, " out of bounds: 0..", toString (length s - 1));
      join(take(s,{0,j-1}),{x},take(s,{j+1,#s-1})))
+replace(ZZ,Thing,MutableList) := MutableList => {} >> o -> (i,x,s) -> (
+    s#i = x;
+    s)
 
 isSorted = method(Dispatch => Thing)
 isSorted VisibleList := s -> all(#s-1, i -> s#i <= s#(i+1))

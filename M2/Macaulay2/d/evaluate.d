@@ -1,6 +1,7 @@
 --		Copyright 1994-2003 by Daniel R. Grayson
 -- put bindings to variables before the forward references, for safety
 use hashtables;
+use linkedlists;
 use convertr;
 use debugging;
 
@@ -148,6 +149,7 @@ assignelemfun(lhsarray:Code,lhsindex:Code,rhs:Code):Expr := (
      is x:Sequence do buildErrorPacket("assignment attempted to element of sequence")
      is x:HashTable do storeInHashTable(x,lhsindex,rhs)
      is x:Database do dbmstore(x,lhsindex,rhs)
+     is x:MutableList do storeInMutableList(x, eval(lhsindex), eval(rhs))
      is dc:DictionaryClosure do (
 	  if dc.dictionary.Protected then printErrorMessageE(lhsarray,"attempted to create symbol in protected dictionary")
 	  else storeInDictionary(dc,lhsindex,rhs))

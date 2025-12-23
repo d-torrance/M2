@@ -67,3 +67,25 @@ export subvalueQ(x:MutableList, e:Expr):Expr := (
 	if isInt(n.v) then subvalueQ(x, toInt(n))
 	else WrongArgSmallInteger(2))
     else WrongArgZZ(2));
+
+storeInMutableList(x:MutableList, n:int, e:Expr):Expr := (
+    if n < 0 then (
+	lngth := getLength(x);
+	if -n > lngth then return ArrayIndexOutOfBounds(n, lngth - 1);
+	n = n + lngth);
+    i := 0;
+    while i < n do (
+	if x.cdr == dummyMutableList
+	then x.cdr = mutableList(nullE, dummyMutableList);
+	x = x.cdr;
+	i = i + 1);
+    x.car = e;
+    e);
+export storeInMutableList(x:MutableList, y:Expr, e:Expr):Expr := (
+    when e is Error do return e else nothing;
+    when y
+    is n:ZZcell do (
+	if isInt(n.v) then storeInMutableList(x, toInt(n.v), e)
+	else WrongArgSmallInteger(2))
+    is Error do y
+    else WrongArgZZ(2));
