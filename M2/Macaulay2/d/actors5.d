@@ -69,6 +69,7 @@ prependfun(e:Expr):Expr := (
 			      ),
 			 hash_t(0),y.Mutable);
 		    Expr(sethash(r,y.Mutable)))
+	       is y:MutableList do insert(0, elem, y)
 	       else WrongArg(1+1,"a list or sequence")
 	       )
 	  )
@@ -99,6 +100,7 @@ appendfun(e:Expr):Expr := (
 			      ),
 			 hash_t(0),y.Mutable);
 		    Expr(sethash(r,y.Mutable)))
+	       is y:MutableList do append(y, elem)
 	       else WrongArg(0+1,"a list or sequence")
 	       )
 	  )

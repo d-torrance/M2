@@ -291,6 +291,7 @@ insert(ZZ,Thing,BasicList) := BasicList => (i,x,s) -> (
      if j < 0 then j = j + #s + 1;
      if j < 0 or j > #s then error("insert: index ", toString i, " out of bounds: 0..", toString length s);
      join(take(s,{0,j-1}),{x},take(s,{j,#s-1})))
+insert(ZZ,Thing,MutableList) := insert0
 switch = method()
 switch(ZZ,ZZ,BasicList) := BasicList => (i,j,s) -> (
      t := new MutableList from s;

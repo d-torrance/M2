@@ -96,3 +96,45 @@ export mutableListToSequence(x:MutableList):Sequence := (
 	r := x.car;
 	x = x.cdr;
 	provide r));
+
+export append(x:MutableList, e:Expr):Expr := (
+    r := x;
+    while x.cdr != dummyMutableList do x = x.cdr;
+    x.cdr = mutableList(e, dummyMutableList);
+    r);
+
+export insert(n:int, e:Expr, x:MutableList):Expr := (
+    r := x;
+    if n < 0 then (
+	if n == -1 then return append(x, e);
+	lngth := getLength(x) + 1;
+	if -n > lngth then return ArrayIndexOutOfBounds(n, lngth - 1);
+	n = n + lngth);
+    i := 0;
+    while i < n  do (
+	if i == n - 1 && x.cdr == dummyMutableList then (
+	    x.cdr = mutableList(e, dummyMutableList);
+	    return r);
+	x = x.cdr;
+	if x == dummyMutableList then return ArrayIndexOutOfBounds(n, i);
+	i = i + 1);
+    y := mutableList(x.car, x.cdr);
+    x.car = e;
+    x.cdr = y;
+    r);
+
+insert(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 3 then (
+	    when a.0
+	    is n:ZZcell do (
+		if isInt(n.v) then (
+		    when a.2
+		    is x:MutableList do insert(toInt(n.v), a.1, x)
+		    else WrongArg(3, "a mutable list"))
+		else WrongArgSmallInteger(1))
+	    else WrongArgZZ(1))
+	else WrongNumArgs(3))
+    else WrongNumArgs(3));
+setupfun("insert0", insert);
