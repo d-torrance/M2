@@ -150,6 +150,16 @@ export AngleBarList(a:Sequence):Expr := (
      Expr(r));
 export emptyAngleBarList := AngleBarList(Sequence());
 
+export chars := new array(Expr) len 256 do (
+    i := 0;
+    while i<256 do (
+	provide Expr(stringCell(string(char(i))));
+	i = i+1;
+	));
+export strtoseq(s:string):Sequence := (
+    new Sequence len length(s)
+    do foreach c in s do provide chars.(int(uchar(c))));
+
 -- Local Variables:
 -- compile-command: "echo \"make: Entering directory \\`$M2BUILDDIR/Macaulay2/d'\" && make -C $M2BUILDDIR/Macaulay2/d basic.o "
 -- End:

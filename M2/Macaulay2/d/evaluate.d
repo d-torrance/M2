@@ -22,12 +22,6 @@ threadLocal export backtrace := true;
 threadLocal export profiling := false;
 threadLocal lastCode := dummyCode;
 threadLocal lastCodePosition := Position("",ushort(0),ushort(0),ushort(0),ushort(0),ushort(0),ushort(0),ushort(0));
-export chars := new array(Expr) len 256 do (
-    i := 0;
-    while i<256 do (
-	provide Expr(stringCell(string(char(i))));
-	i = i+1;
-	));
 
 -- symbols for iteration; will be reassigned at top level
 export iteratorS := setupvar("iterator", nullE);
@@ -305,8 +299,7 @@ export getNextFunction(e:Expr):Expr := (
     is Nothing do nullE
     else f);
 
-export strtoseq(s:stringCell):Sequence := new Sequence len length(s.v) do
-    foreach c in s.v do provide chars.(int(uchar(c)));
+export strtoseq(s:stringCell):Sequence := strtoseq(s.v);
 
 evalForCode(c:forCode):Expr := (
      r := if c.listClause == dummyCode then emptySequence else new Sequence len 1 do provide nullE;
