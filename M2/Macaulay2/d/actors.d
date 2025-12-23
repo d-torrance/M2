@@ -1211,6 +1211,8 @@ lengthFun(rhs:Code):Expr := (
      is s:stringCell do toExpr(length(s.v))
      -- # typical value: symbol #, Net, ZZ
      is n:Net do toExpr(length(n.body))
+     -- # typical value: symbol #, MutableList, ZZ
+     is x:MutableList do toExpr(getLength(x))
      else buildErrorPacket("expected a list, sequence, string, net, hash table, or dictionary"));
 setup(SharpS,lengthFun,subvalue);
 

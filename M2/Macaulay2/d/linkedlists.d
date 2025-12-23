@@ -26,3 +26,10 @@ mutableList(e:Expr):Expr := (
 -- installMethod(NewFromS, mutableListClass, stringClass, mutableList);
 -- and remove this:
 setupfun("mutableList", mutableList);
+
+export getLength(x:MutableList):int := (
+    i := 0;
+    while x != dummyMutableList do (
+	x = x.cdr;
+	i = i + 1);
+    i);
