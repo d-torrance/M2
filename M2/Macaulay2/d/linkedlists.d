@@ -1,4 +1,10 @@
-use common;
+-- TODO:
+-- rethink how this is implemented
+-- idea: MutableList contains a ConsCell (Expr & ConsCell)
+-- so we only store one hash and one class
+-- also store a read/write lock for thread safety
+
+use hashtables;
 
 -- signals the end of the linked list
 dummyMutableList := MutableList(dummyExpr, self, mutableListClass, hash_t(0));
@@ -14,18 +20,39 @@ mutableList(i:int, a:Sequence):MutableList := (
     else mutableList(a.i, mutableList(i + 1, a)));
 
 mutableList(a:Sequence):MutableList := mutableList(0, a);
+mutableList(a:Sequence, Class:HashTable):MutableList := (
+    x := mutableList(a);
+    x.Class = Class;
+    x);
+
+copy(x:MutableList):MutableList := (
+    if x == dummyMutableList then dummyMutableList
+    else mutableList(copy(x.car), copy(x.cdr)));
+
+copy(x:MutableList, Class:HashTable):MutableList := (
+    y := copy(x);
+    y.Class = Class;
+    y);
 
 mutableList(e:Expr):Expr := (
     when e
-    is a:Sequence do Expr(mutableList(a))
-    is a:List do Expr(mutableList(a.v))
-    is s:stringCell do Expr(mutableList(strtoseq(s.v)))
-    else WrongArg("a basic list"));
--- TODO: make these work:
--- installMethod(NewFromS, mutableListClass, basicListClass, mutableList);
--- installMethod(NewFromS, mutableListClass, stringClass, mutableList);
--- and remove this:
-setupfun("mutableList", mutableList);
+    is a:Sequence do (
+	if length(a) == 2 then (
+	    when a.0
+	    is T:HashTable do (
+		if ancestor(T, mutableListClass) then (
+		    when a.1
+		    is b:Sequence do Expr(mutableList(b, T))
+		    is b:List do Expr(mutableList(b.v, T))
+		    is s:stringCell do Expr(mutableList(strtoseq(s.v), T))
+		    is x:MutableList do Expr(copy(x, T))
+		    else WrongArg(2, "a basic list or string"))
+		else WrongArg(1, "a type of mutable list"))
+	    else WrongArgHashTable(1))
+	else WrongNumArgs(2))
+    else WrongNumArgs(2));
+installMethod(NewFromS, mutableListClass, basicListClass, mutableList);
+installMethod(NewFromS, mutableListClass, stringClass, mutableList);
 
 export getLength(x:MutableList):int := (
     i := 0;
