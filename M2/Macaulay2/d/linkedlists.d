@@ -51,3 +51,19 @@ export subvalue(x:MutableList, e:Expr):Expr := (
 	if isInt(n.v) then subvalue(x, toInt(n))
 	else WrongArgSmallInteger(2))
     else WrongArgZZ(2));
+
+subvalueQ(x:MutableList, n:int):Expr := (
+    if n < 0 then toExpr(-n <= getLength(x))
+    else (
+	i := 0;
+	while i < n do (
+	    x = x.cdr;
+	    if x == dummyMutableList then return False;
+	    i = i + 1);
+	True));
+export subvalueQ(x:MutableList, e:Expr):Expr := (
+    when e
+    is n:ZZcell do (
+	if isInt(n.v) then subvalueQ(x, toInt(n))
+	else WrongArgSmallInteger(2))
+    else WrongArgZZ(2));

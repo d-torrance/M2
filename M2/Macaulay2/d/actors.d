@@ -1343,6 +1343,8 @@ export subvalueQ(left:Expr,right:Expr):Expr := (
 		    else True)
 	       else False)
 	  else False)
+     -- # typical value: symbol #?, MutableList, Boolean
+     is x:MutableList do subvalueQ(x, right)
      -- # typical value: symbol #?, Nothing, Thing, Boolean
      is Nothing do False				    -- we think of "null" as a universal gadget with no parts
      else WrongArg(1,"null, a list, sequence, string, net, hash table, database, or dictionary"));
