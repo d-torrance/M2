@@ -138,3 +138,27 @@ insert(e:Expr):Expr := (
 	else WrongNumArgs(3))
     else WrongNumArgs(3));
 setupfun("insert0", insert);
+
+
+iterator0(e:Expr, env:Sequence):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 0 then (
+	    if length(env) == 1 then (
+		when env.0
+		is x:MutableList do (
+		    if x == dummyMutableList then StopIterationE
+		    else (
+			env.0 = Expr(x.cdr);
+			x.car))
+		else buildErrorPacket("internal error")) -- shouldn't happen
+	    else buildErrorPacket("internal error")) -- shouldn't happen
+	else WrongNumArgs(0))
+    else WrongNumArgs(0));
+
+iterator(e:Expr):Expr := (
+    when e
+    is x:MutableList
+    do Expr(CompiledFunctionClosure(iterator0, nextHash(), Sequence(e)))
+    else WrongArg("a mutable list"));
+setupfun("iterator0", iterator);

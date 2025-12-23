@@ -25,6 +25,7 @@ iterator String      := x -> Iterator (
 	    r := x#i;
 	    i += 1;
 	    r)))
+iterator MutableList := x -> Iterator(i := iterator0 x; () -> i())
 
 toList Thing := x -> for y in x list y
 
