@@ -89,3 +89,10 @@ export storeInMutableList(x:MutableList, y:Expr, e:Expr):Expr := (
 	else WrongArgSmallInteger(2))
     is Error do y
     else WrongArgZZ(2));
+
+export mutableListToSequence(x:MutableList):Sequence := (
+    n := getLength(x);
+    new Sequence len n do (
+	r := x.car;
+	x = x.cdr;
+	provide r));

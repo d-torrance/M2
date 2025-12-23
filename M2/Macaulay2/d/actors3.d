@@ -1317,6 +1317,7 @@ export toSequence(e:Expr):Expr := (
 	  else Expr(b.v)
 	  )
      is s:stringCell do Expr(strtoseq(s))
+     is x:MutableList do Expr(mutableListToSequence(x))
      else (
 	 iter := getIterator(e);
 	 if iter != nullE
