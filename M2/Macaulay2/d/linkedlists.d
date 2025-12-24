@@ -155,8 +155,10 @@ export mutableListToSequence(x:MutableList):Sequence := (
 export append(x:MutableList, e:Expr):Expr := (
     lockWrite(x.mutex);
     node := x.head;
-    while node.cdr != dummyConsCell do node = node.cdr;
-    node.cdr = ConsCell(e, dummyConsCell);
+    if node == dummyConsCell then x.head = ConsCell(e, dummyConsCell)
+    else (
+	while node.cdr != dummyConsCell do node = node.cdr;
+	node.cdr = ConsCell(e, dummyConsCell));
     unlock(x.mutex);
     x);
 
@@ -181,9 +183,10 @@ export insert(n:int, e:Expr, x:MutableList):Expr := (
 	    unlock(x.mutex);
 	    return ArrayIndexOutOfBounds(n, i));
 	i = i + 1);
-    y := ConsCell(node.car, node.cdr);
-    node.car = e;
-    node.cdr = y;
+    if node == dummyConsCell then x.head = ConsCell(e, dummyConsCell)
+    else (
+	node.cdr = ConsCell(node.car, node.cdr);
+	node.car = e);
     unlock(x.mutex);
     x);
 
