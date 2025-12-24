@@ -73,14 +73,12 @@ subvalue(x:MutableList, n:int):Expr := (
 	    unlock(x.mutex);
 	    return ArrayIndexOutOfBounds(n, lngth - 1));
 	n = n + lngth);
-    i := 0;
     node := x.head;
-    while i < n do (
+    for i from 0 to n - 1 do (
 	node = node.cdr;
 	if node == dummyConsCell then (
 	    unlock(x.mutex);
-	    return ArrayIndexOutOfBounds(n, i));
-	i = i + 1);
+	    return ArrayIndexOutOfBounds(n, i)));
     r := node.car;
     unlock(x.mutex);
     r);
@@ -96,14 +94,12 @@ subvalueQ(x:MutableList, n:int):Expr := (
     if n < 0 then toExpr(-n <= getLength(x))
     else (
 	lockRead(x.mutex);
-	i := 0;
 	node := x.head;
-	while i < n do (
+	for i from 0 to n - 1 do (
 	    node = node.cdr;
 	    if node == dummyConsCell then (
 		unlock(x.mutex);
-		return False);
-	    i = i + 1);
+		return False));
 	unlock(x.mutex);
 	True));
 
@@ -122,13 +118,11 @@ storeInMutableList(x:MutableList, n:int, e:Expr):Expr := (
 	    unlock(x.mutex);
 	    return ArrayIndexOutOfBounds(n, lngth - 1));
 	n = n + lngth);
-    i := 0;
     node := x.head;
-    while i < n do (
+    for i from 0 to n - 1 do (
 	if node.cdr == dummyConsCell
 	then node.cdr = ConsCell(nullE, dummyConsCell);
-	node = node.cdr;
-	i = i + 1);
+	node = node.cdr);
     node.car = e;
     unlock(x.mutex);
     e);
@@ -171,9 +165,8 @@ export insert(n:int, e:Expr, x:MutableList):Expr := (
 	    unlock(x.mutex);
 	    return ArrayIndexOutOfBounds(n, lngth - 1));
 	n = n + lngth);
-    i := 0;
     node := x.head;
-    while i < n  do (
+    for i from 0 to n - 1 do (
 	if i == n - 1 && node.cdr == dummyConsCell then (
 	    node.cdr = ConsCell(e, dummyConsCell);
 	    unlock(x.mutex);
@@ -181,8 +174,7 @@ export insert(n:int, e:Expr, x:MutableList):Expr := (
 	node = node.cdr;
 	if node == dummyConsCell then (
 	    unlock(x.mutex);
-	    return ArrayIndexOutOfBounds(n, i));
-	i = i + 1);
+	    return ArrayIndexOutOfBounds(n, i)));
     if node == dummyConsCell then x.head = ConsCell(e, dummyConsCell)
     else (
 	node.cdr = ConsCell(node.car, node.cdr);
