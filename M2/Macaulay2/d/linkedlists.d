@@ -208,6 +208,8 @@ setupfun("insert0", insert);
 
 -- hack since ConsCell isn't in the Expr union and we can't stuff it
 -- in a sequence: put its address in a pointerCell and use that
+-- TODO: thread safety -- maybe include the mutable list in env
+-- so we can read lock it
 iterator0(e:Expr, env:Sequence):Expr := (
     when e
     is a:Sequence do (
