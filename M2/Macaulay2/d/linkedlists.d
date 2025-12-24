@@ -1,38 +1,23 @@
--- TODO:
--- rethink how this is implemented
--- idea: MutableList contains a ConsCell (Expr & ConsCell)
--- so we only store one hash and one class
--- also store a read/write lock for thread safety
-
 use hashtables;
 
 -- signals the end of the linked list
-dummyMutableList := MutableList(dummyExpr, self, mutableListClass, hash_t(0));
-dummyMutableList.hash = hashFromAddress(Expr(dummyMutableList));
+dummyConsCell := ConsCell(dummyExpr, self);
 
-mutableList(car:Expr, cdr:MutableList):MutableList := (
-    r := MutableList(car, cdr, mutableListClass, hash_t(0));
+cons(i:int, a:Sequence):ConsCell := (
+    if i < 0 || i >= length(a) then dummyConsCell
+    else ConsCell(a.i, cons(i + 1, a)));
+cons(a:Sequence):ConsCell := cons(0, a);
+
+copy(cons:ConsCell):ConsCell := (
+    if cons == dummyConsCell then dummyConsCell
+    else ConsCell(copy(cons.car), copy(cons.cdr)));
+
+mutableList(head:ConsCell, Class:HashTable):MutableList := (
+    r := MutableList(head, Class, newThreadRWLock(), hash_t(0));
     r.hash = hashFromAddress(Expr(r));
     r);
-
-mutableList(i:int, a:Sequence):MutableList := (
-    if i < 0 || i >= length(a) then dummyMutableList
-    else mutableList(a.i, mutableList(i + 1, a)));
-
-mutableList(a:Sequence):MutableList := mutableList(0, a);
 mutableList(a:Sequence, Class:HashTable):MutableList := (
-    x := mutableList(a);
-    x.Class = Class;
-    x);
-
-copy(x:MutableList):MutableList := (
-    if x == dummyMutableList then dummyMutableList
-    else mutableList(copy(x.car), copy(x.cdr)));
-
-copy(x:MutableList, Class:HashTable):MutableList := (
-    y := copy(x);
-    y.Class = Class;
-    y);
+    mutableList(cons(a), Class));
 
 mutableList(e:Expr):Expr := (
     when e
@@ -45,7 +30,7 @@ mutableList(e:Expr):Expr := (
 		    is b:Sequence do Expr(mutableList(b, T))
 		    is b:List do Expr(mutableList(b.v, T))
 		    is s:stringCell do Expr(mutableList(strtoseq(s.v), T))
-		    is x:MutableList do Expr(copy(x, T))
+		    is x:MutableList do Expr(mutableList(copy(x.head), T))
 		    else WrongArg(2, "a basic list or string"))
 		else WrongArg(1, "a type of mutable list"))
 	    else WrongArgHashTable(1))
@@ -54,24 +39,37 @@ mutableList(e:Expr):Expr := (
 installMethod(NewFromS, mutableListClass, basicListClass, mutableList);
 installMethod(NewFromS, mutableListClass, stringClass, mutableList);
 
-export getLength(x:MutableList):int := (
+getLength(x:MutableList, lock:bool):int := (
+    if lock then lockRead(x.mutex);
+    node := x.head;
     i := 0;
-    while x != dummyMutableList do (
-	x = x.cdr;
+    while node != dummyConsCell do (
+	node = node.cdr;
 	i = i + 1);
+    if lock then unlock(x.mutex);
     i);
+export getLength(x:MutableList):int := getLength(x, true);
 
 subvalue(x:MutableList, n:int):Expr := (
+    lockRead(x.mutex);
     if n < 0 then (
-	lngth := getLength(x);
-	if -n > lngth then return ArrayIndexOutOfBounds(n, lngth - 1);
+	lngth := getLength(x, false);
+	if -n > lngth then (
+	    unlock(x.mutex);
+	    return ArrayIndexOutOfBounds(n, lngth - 1));
 	n = n + lngth);
     i := 0;
+    node := x.head;
     while i < n do (
-	x = x.cdr;
-	if x == dummyMutableList then return ArrayIndexOutOfBounds(n, i);
+	node = node.cdr;
+	if node == dummyConsCell then (
+	    unlock(x.mutex);
+	    return ArrayIndexOutOfBounds(n, i));
 	i = i + 1);
-    x.car);
+    r := node.car;
+    unlock(x.mutex);
+    r);
+
 export subvalue(x:MutableList, e:Expr):Expr := (
     when e
     is n:ZZcell do (
@@ -82,12 +80,18 @@ export subvalue(x:MutableList, e:Expr):Expr := (
 subvalueQ(x:MutableList, n:int):Expr := (
     if n < 0 then toExpr(-n <= getLength(x))
     else (
+	lockRead(x.mutex);
 	i := 0;
+	node := x.head;
 	while i < n do (
-	    x = x.cdr;
-	    if x == dummyMutableList then return False;
+	    node = node.cdr;
+	    if node == dummyConsCell then (
+		unlock(x.mutex);
+		return False);
 	    i = i + 1);
+	unlock(x.mutex);
 	True));
+
 export subvalueQ(x:MutableList, e:Expr):Expr := (
     when e
     is n:ZZcell do (
@@ -96,18 +100,24 @@ export subvalueQ(x:MutableList, e:Expr):Expr := (
     else WrongArgZZ(2));
 
 storeInMutableList(x:MutableList, n:int, e:Expr):Expr := (
+    lockWrite(x.mutex);
     if n < 0 then (
-	lngth := getLength(x);
-	if -n > lngth then return ArrayIndexOutOfBounds(n, lngth - 1);
+	lngth := getLength(x, false);
+	if -n > lngth then (
+	    unlock(x.mutex);
+	    return ArrayIndexOutOfBounds(n, lngth - 1));
 	n = n + lngth);
     i := 0;
+    node := x.head;
     while i < n do (
-	if x.cdr == dummyMutableList
-	then x.cdr = mutableList(nullE, dummyMutableList);
-	x = x.cdr;
+	if node.cdr == dummyConsCell
+	then node.cdr = ConsCell(nullE, dummyConsCell);
+	node = node.cdr;
 	i = i + 1);
-    x.car = e;
+    node.car = e;
+    unlock(x.mutex);
     e);
+
 export storeInMutableList(x:MutableList, y:Expr, e:Expr):Expr := (
     when e is Error do return e else nothing;
     when y
@@ -118,37 +128,49 @@ export storeInMutableList(x:MutableList, y:Expr, e:Expr):Expr := (
     else WrongArgZZ(2));
 
 export mutableListToSequence(x:MutableList):Sequence := (
-    n := getLength(x);
-    new Sequence len n do (
-	r := x.car;
-	x = x.cdr;
-	provide r));
+    lockRead(x.mutex);
+    node := x.head;
+    r := new Sequence len getLength(x, false) do (
+	s := node.car;
+	node = node.cdr;
+	provide s);
+    unlock(x.mutex);
+    r);
 
 export append(x:MutableList, e:Expr):Expr := (
-    r := x;
-    while x.cdr != dummyMutableList do x = x.cdr;
-    x.cdr = mutableList(e, dummyMutableList);
-    r);
+    lockWrite(x.mutex);
+    node := x.head;
+    while node.cdr != dummyConsCell do node = node.cdr;
+    node.cdr = ConsCell(e, dummyConsCell);
+    unlock(x.mutex);
+    x);
 
 export insert(n:int, e:Expr, x:MutableList):Expr := (
-    r := x;
+    if n == -1 then return append(x, e);
+    lockWrite(x.mutex);
     if n < 0 then (
-	if n == -1 then return append(x, e);
-	lngth := getLength(x) + 1;
-	if -n > lngth then return ArrayIndexOutOfBounds(n, lngth - 1);
+	lngth := getLength(x, false) + 1;
+	if -n > lngth then (
+	    unlock(x.mutex);
+	    return ArrayIndexOutOfBounds(n, lngth - 1));
 	n = n + lngth);
     i := 0;
+    node := x.head;
     while i < n  do (
-	if i == n - 1 && x.cdr == dummyMutableList then (
-	    x.cdr = mutableList(e, dummyMutableList);
-	    return r);
-	x = x.cdr;
-	if x == dummyMutableList then return ArrayIndexOutOfBounds(n, i);
+	if i == n - 1 && node.cdr == dummyConsCell then (
+	    node.cdr = ConsCell(e, dummyConsCell);
+	    unlock(x.mutex);
+	    return x);
+	node = node.cdr;
+	if node == dummyConsCell then (
+	    unlock(x.mutex);
+	    return ArrayIndexOutOfBounds(n, i));
 	i = i + 1);
-    y := mutableList(x.car, x.cdr);
-    x.car = e;
-    x.cdr = y;
-    r);
+    y := ConsCell(node.car, node.cdr);
+    node.car = e;
+    node.cdr = y;
+    unlock(x.mutex);
+    x);
 
 insert(e:Expr):Expr := (
     when e
@@ -174,18 +196,24 @@ iterator0(e:Expr, env:Sequence):Expr := (
 	    if length(env) == 1 then (
 		when env.0
 		is x:MutableList do (
-		    if x == dummyMutableList then StopIterationE
+		    if x.head == dummyConsCell then StopIterationE
 		    else (
-			env.0 = Expr(x.cdr);
-			x.car))
+			r := x.head.car;
+			x.head = x.head.cdr;
+			r))
 		else buildErrorPacket("internal error")) -- shouldn't happen
 	    else buildErrorPacket("internal error")) -- shouldn't happen
 	else WrongNumArgs(0))
     else WrongNumArgs(0));
 
+-- current approach: copy the mutable list and update its head at each
+-- step of the iteration
+-- it would be cool to just copy the head itself, but it isn't an Expr so
+-- we can't store it in a sequence
 iterator(e:Expr):Expr := (
     when e
     is x:MutableList
-    do Expr(CompiledFunctionClosure(iterator0, nextHash(), Sequence(e)))
+    do Expr(CompiledFunctionClosure(iterator0, nextHash(),
+	    Sequence(mutableList(copy(x.head), x.Class))))
     else WrongArg("a mutable list"));
 setupfun("iterator0", iterator);

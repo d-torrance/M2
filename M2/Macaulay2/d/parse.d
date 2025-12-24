@@ -358,10 +358,11 @@ export pointerCell := {+ v:voidPointer };
 
 export atomicIntCell := {+ v:atomicField, hash:hash_t };
 
+export ConsCell := {+ car:Expr, cdr:ConsCell };
 export MutableList := {+
-    car:Expr,
-    cdr:MutableList,
+    head:ConsCell,
     Class:HashTable,
+    mutex:ThreadRWLockPtr,
     hash:hash_t };
 
 export Expr := (
