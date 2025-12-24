@@ -188,32 +188,29 @@ insert(e:Expr):Expr := (
     else WrongNumArgs(3));
 setupfun("insert0", insert);
 
-
+-- hack since ConsCell isn't in the Expr union and we can't stuff it
+-- in a sequence: put its address in a pointerCell and use that
 iterator0(e:Expr, env:Sequence):Expr := (
     when e
     is a:Sequence do (
 	if length(a) == 0 then (
 	    if length(env) == 1 then (
 		when env.0
-		is x:MutableList do (
-		    if x.head == dummyConsCell then StopIterationE
+		is ptr:pointerCell do (
+		    node := Ccode(ConsCell, ptr.v);
+		    if node == dummyConsCell then StopIterationE
 		    else (
-			r := x.head.car;
-			x.head = x.head.cdr;
-			r))
+			env.0 = Expr(pointerCell(Ccode(voidPointer, node.cdr)));
+			node.car))
 		else buildErrorPacket("internal error")) -- shouldn't happen
 	    else buildErrorPacket("internal error")) -- shouldn't happen
 	else WrongNumArgs(0))
     else WrongNumArgs(0));
 
--- current approach: copy the mutable list and update its head at each
--- step of the iteration
--- it would be cool to just copy the head itself, but it isn't an Expr so
--- we can't store it in a sequence
 iterator(e:Expr):Expr := (
     when e
     is x:MutableList
     do Expr(CompiledFunctionClosure(iterator0, nextHash(),
-	    Sequence(mutableList(copy(x.head), x.Class))))
+	    Sequence(Expr(pointerCell(Ccode(voidPointer, x.head))))))
     else WrongArg("a mutable list"));
 setupfun("iterator0", iterator);
