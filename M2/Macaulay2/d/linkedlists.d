@@ -18,6 +18,10 @@ mutableList(head:ConsCell, Class:HashTable):MutableList := (
     r);
 mutableList(a:Sequence, Class:HashTable):MutableList := (
     mutableList(cons(a), Class));
+mutableList(n:int, Class:HashTable):MutableList := (
+    x := mutableList(dummyConsCell, Class);
+    for i from 1 to n do x.head = ConsCell(nullE, x.head);
+    x);
 
 mutableList(e:Expr):Expr := (
     when e
@@ -31,13 +35,24 @@ mutableList(e:Expr):Expr := (
 		    is b:List do Expr(mutableList(b.v, T))
 		    is s:stringCell do Expr(mutableList(strtoseq(s.v), T))
 		    is x:MutableList do Expr(mutableList(copy(x.head), T))
-		    else WrongArg(2, "a basic list or string"))
+		    is n:ZZcell do (
+			if isInt(n.v) then (
+			    if n.v < 0 then WrongArg(2, "a nonnegative integer")
+			    else Expr(mutableList(toInt(n), T)))
+			else WrongArgSmallInteger(2))
+		    else WrongArg(2, "a basic list, string, or integer"))
 		else WrongArg(1, "a type of mutable list"))
 	    else WrongArgHashTable(1))
 	else WrongNumArgs(2))
-    else WrongNumArgs(2));
+    is T:HashTable do (
+	if ancestor(T, mutableListClass)
+	then Expr(mutableList(dummyConsCell, T))
+	else WrongArg("a type of mutable list"))
+    else WrongArg("a sequence or hash table"));
 installMethod(NewFromS, mutableListClass, basicListClass, mutableList);
 installMethod(NewFromS, mutableListClass, stringClass, mutableList);
+installMethod(NewFromS, mutableListClass, ZZClass, mutableList);
+installMethod(NewS, mutableListClass, mutableList);
 
 getLength(x:MutableList, lock:bool):int := (
     if lock then lockRead(x.mutex);
