@@ -1,7 +1,7 @@
 use hashtables;
 
 -- signals the end of the linked list
-dummyConsCell := ConsCell(dummyExpr, self);
+export dummyConsCell := ConsCell(dummyExpr, self);
 
 cons(i:int, a:Sequence):ConsCell := (
     if i < 0 || i >= length(a) then dummyConsCell
@@ -12,7 +12,7 @@ copy(cons:ConsCell):ConsCell := (
     if cons == dummyConsCell then dummyConsCell
     else ConsCell(copy(cons.car), copy(cons.cdr)));
 
-mutableList(head:ConsCell, Class:HashTable):MutableList := (
+export mutableList(head:ConsCell, Class:HashTable):MutableList := (
     r := MutableList(head, Class, newThreadRWLock(), hash_t(0));
     r.hash = hashFromAddress(Expr(r));
     r);

@@ -117,6 +117,8 @@ sign(e:Expr):Expr := (
     else WrongArg("a number, real or complex"));
 setupfun("sign0", sign);
 
+SelectError := buildErrorPacket("expected predicate to yield true or false");
+
 select(a:Sequence,f:Expr):Expr := (
      b := new array(bool) len length(a) do provide false;
      found := 0;
@@ -127,10 +129,36 @@ select(a:Sequence,f:Expr):Expr := (
 	       b.i = true;
 	       found = found + 1;
 	       )
-	  else if y != False then return buildErrorPacket("select: expected predicate to yield true or false");
+	  else if y != False then return SelectError;
 	  );
      new Sequence len found do (
 	  foreach p at i in b do if p then provide a.i));
+
+select(x:MutableList, f:Expr):Expr := (
+    r := mutableList(dummyConsCell, x.Class);
+    lockRead(x.mutex);
+    inNode := x.head;
+    outNode := r.head;
+    while inNode != dummyConsCell do (
+	y := applyEE(f, inNode.car);
+	when y is err:Error do (
+	    unlock(x.mutex);
+	    if err.message == breakMessage
+	    then return if err.value == dummyExpr then nullE else err.value
+	    else return y)
+	else nothing;
+	if y == True then (
+	    newNode := ConsCell(inNode.car, dummyConsCell);
+	    if r.head == dummyConsCell then r.head = newNode
+	    else outNode.cdr = newNode;
+	    outNode = newNode)
+	else if y != False then (
+	    unlock(x.mutex);
+	    return SelectError);
+	inNode = inNode.cdr);
+    unlock(x.mutex);
+    Expr(r));
+
 foo := array(string)();
 select(n:int,f:Expr):Expr := (
      b := new array(bool) len n do provide false;
@@ -142,7 +170,7 @@ select(n:int,f:Expr):Expr := (
 	       b.i = true;
 	       found = found + 1;
 	       )
-	  else if y != False then return buildErrorPacket("select: expected predicate to yield true or false");
+	  else if y != False then return SelectError;
 	  );
      Expr(list(new Sequence len found do foreach p at i in b do if p then provide toExpr(i))));
 select(e:Expr,f:Expr):Expr := (
@@ -160,6 +188,7 @@ select(e:Expr,f:Expr):Expr := (
 	  then select(toInt(n),f)
 	  else WrongArgSmallInteger(1)
 	  )
+     is x:MutableList do select(x, f)
      else WrongArg(0+1,"a list or a string"));
 select(n:int,a:Sequence,f:Expr):Expr := (
      b := new array(bool) len length(a) do provide false;
@@ -172,11 +201,39 @@ select(n:int,a:Sequence,f:Expr):Expr := (
 		    b.i = true;
 		    found = found + 1;
 		    )
-	       else if y != False then return buildErrorPacket("select: expected predicate to yield true or false");
+	       else if y != False then return SelectError;
 	       )
 	  else b.i = false);
      new Sequence len found do (
 	  foreach p at i in b do if p then provide a.i));
+
+select(n:int, x:MutableList, f:Expr):Expr := (
+    i := 0;
+    r := mutableList(dummyConsCell, x.Class);
+    lockRead(x.mutex);
+    inNode := x.head;
+    outNode := r.head;
+    while inNode != dummyConsCell && i < n do (
+	y := applyEE(f, inNode.car);
+	when y is err:Error do (
+	    unlock(x.mutex);
+	    if err.message == breakMessage
+	    then return if err.value == dummyExpr then nullE else err.value
+	    else return y)
+	else nothing;
+	if y == True then (
+	    newNode := ConsCell(inNode.car, dummyConsCell);
+	    if r.head == dummyConsCell then r.head = newNode
+	    else outNode.cdr = newNode;
+	    outNode = newNode;
+	    i = i + 1)
+	else if y != False then (
+	    unlock(x.mutex);
+	    return SelectError);
+	inNode = inNode.cdr);
+    unlock(x.mutex);
+    Expr(r));
+
 select(n:Expr,e:Expr,f:Expr,g:Expr,h:Expr):Expr := (
      when n
      is regexp:stringCell do (
@@ -199,6 +256,7 @@ select(n:Expr,e:Expr,f:Expr,g:Expr,h:Expr):Expr := (
 	  is v:Sequence do list(b.Class,v,b.Mutable)
 	  else e			  -- shouldn't happen
 	  )
+     is x:MutableList do select(toInt(n), x, f)
      else WrongArg(1+1,"a list")
      else WrongArg(0+1,"an integer or string")
      else WrongArgZZ(0+1));
@@ -237,8 +295,7 @@ selectPairs(nval:int, obj:HashTable, f:Expr):Expr := (
 		)
 	    else (
 		if newvalue != False
-		then return buildErrorPacket(
-		    "expected predicate to yield true or false"));
+		then return SelectError);
 	    p = p.next));
     Expr(sethash(u,obj.Mutable)));
 -- TODO: support iterators
