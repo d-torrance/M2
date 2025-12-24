@@ -198,24 +198,31 @@ insert(e:Expr):Expr := (
     else WrongNumArgs(3));
 setupfun("insert0", insert);
 
--- hack since ConsCell isn't in the Expr union and we can't stuff it
--- in a sequence: put its address in a pointerCell and use that
--- TODO: thread safety -- maybe include the mutable list in env
--- so we can read lock it
+-- env contains two elements:
+-- the mutable list we're iterating over (so we can lock it)
+-- pointer to the current node (use pointerCell since ConsCell isn't an Expr)
 iterator0(e:Expr, env:Sequence):Expr := (
     when e
     is a:Sequence do (
 	if length(a) == 0 then (
-	    if length(env) == 1 then (
+	    if length(env) == 2 then (
 		when env.0
-		is ptr:pointerCell do (
-		    node := Ccode(ConsCell, ptr.v);
-		    if node == dummyConsCell then StopIterationE
-		    else (
-			env.0 = Expr(pointerCell(Ccode(voidPointer, node.cdr)));
-			node.car))
-		else buildErrorPacket("internal error")) -- shouldn't happen
-	    else buildErrorPacket("internal error")) -- shouldn't happen
+		is x:MutableList do (
+		    when env.1
+		    is ptr:pointerCell do (
+			lockRead(x.mutex);
+			node := Ccode(ConsCell, ptr.v);
+			r := (
+			    if node == dummyConsCell then StopIterationE
+			    else (
+				env.1 = Expr(pointerCell(
+					Ccode(voidPointer, node.cdr)));
+				node.car));
+			unlock(x.mutex);
+			r)
+		    else buildErrorPacket("internal error"))
+		else buildErrorPacket("internal error"))
+	    else buildErrorPacket("internal error"))
 	else WrongNumArgs(0))
     else WrongNumArgs(0));
 
@@ -223,6 +230,6 @@ iterator(e:Expr):Expr := (
     when e
     is x:MutableList
     do Expr(CompiledFunctionClosure(iterator0, nextHash(),
-	    Sequence(Expr(pointerCell(Ccode(voidPointer, x.head))))))
+	    Sequence(e, Expr(pointerCell(Ccode(voidPointer, x.head))))))
     else WrongArg("a mutable list"));
 setupfun("iterator0", iterator);
