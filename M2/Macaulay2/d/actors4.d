@@ -117,7 +117,7 @@ sign(e:Expr):Expr := (
     else WrongArg("a number, real or complex"));
 setupfun("sign0", sign);
 
-SelectError := buildErrorPacket("expected predicate to yield true or false");
+PredicateError := buildErrorPacket("expected predicate to yield true or false");
 
 select(a:Sequence,f:Expr):Expr := (
      b := new array(bool) len length(a) do provide false;
@@ -129,7 +129,7 @@ select(a:Sequence,f:Expr):Expr := (
 	       b.i = true;
 	       found = found + 1;
 	       )
-	  else if y != False then return SelectError;
+	  else if y != False then return PredicateError;
 	  );
      new Sequence len found do (
 	  foreach p at i in b do if p then provide a.i));
@@ -154,7 +154,7 @@ select(x:MutableList, f:Expr):Expr := (
 	    outNode = newNode)
 	else if y != False then (
 	    unlock(x.mutex);
-	    return SelectError);
+	    return PredicateError);
 	inNode = inNode.cdr);
     unlock(x.mutex);
     Expr(r));
@@ -170,7 +170,7 @@ select(n:int,f:Expr):Expr := (
 	       b.i = true;
 	       found = found + 1;
 	       )
-	  else if y != False then return SelectError;
+	  else if y != False then return PredicateError;
 	  );
      Expr(list(new Sequence len found do foreach p at i in b do if p then provide toExpr(i))));
 select(e:Expr,f:Expr):Expr := (
@@ -201,7 +201,7 @@ select(n:int,a:Sequence,f:Expr):Expr := (
 		    b.i = true;
 		    found = found + 1;
 		    )
-	       else if y != False then return SelectError;
+	       else if y != False then return PredicateError;
 	       )
 	  else b.i = false);
      new Sequence len found do (
@@ -229,7 +229,7 @@ select(n:int, x:MutableList, f:Expr):Expr := (
 	    i = i + 1)
 	else if y != False then (
 	    unlock(x.mutex);
-	    return SelectError);
+	    return PredicateError);
 	inNode = inNode.cdr);
     unlock(x.mutex);
     Expr(r));
@@ -295,7 +295,7 @@ selectPairs(nval:int, obj:HashTable, f:Expr):Expr := (
 		)
 	    else (
 		if newvalue != False
-		then return SelectError);
+		then return PredicateError);
 	    p = p.next));
     Expr(sethash(u,obj.Mutable)));
 -- TODO: support iterators
@@ -332,7 +332,7 @@ any(f:Expr,n:int):Expr := (
 	  v := applyEE(f,toExpr(i));
 	  when v is err:Error do if err.message == breakMessage then return if err.value == dummyExpr then nullE else err.value else return v else nothing;
 	  if v == True then return True;
-	  if v != False then return buildErrorPacket("any: expected true or false");
+	  if v != False then return PredicateError;
 	  );
      False);
 any(f:Expr,obj:HashTable):Expr := (
@@ -353,16 +353,38 @@ any(f:Expr,obj:HashTable):Expr := (
 	  if err.message == breakMessage then if err.value == dummyExpr then nullE else err.value
 	  else v
      else nothing;
-     if v != True && v != False then return buildErrorPacket("any: expected true or false");
+     if v != True && v != False then return PredicateError;
      v);
 any(f:Expr,a:Sequence):Expr := (
      foreach x at i in a do (
 	  y := applyEE(f,x);
 	  when y is err:Error do if err.message == breakMessage then return if err.value == dummyExpr then nullE else err.value else return y else nothing;
 	  if y == True then return True;
-	  if y != False then return buildErrorPacket("any: expected true or false");
+	  if y != False then return PredicateError;
 	  );
      False);
+
+any(f:Expr, x:MutableList):Expr := (
+    lockRead(x.mutex);
+    node := x.head;
+    while node != dummyConsCell do (
+	y := applyEE(f, node.car);
+	when y is err:Error do (
+	    unlock(x.mutex);
+	    if err.message == breakMessage
+	    then return if err.value == dummyExpr then nullE else err.value
+	    else return y)
+	else nothing;
+	if y == True then (
+	    unlock(x.mutex);
+	    return True);
+	if y!= False then (
+	    unlock(x.mutex);
+	    return PredicateError);
+	node = node.cdr);
+    unlock(x.mutex);
+    False);
+
 any(f:Expr,e:Expr):Expr := (
      when e
      is a:Sequence do Expr(any(f,a))
@@ -371,6 +393,7 @@ any(f:Expr,e:Expr):Expr := (
      is c:HashTable do
      if c.Mutable then WrongArgImmutableHashTable(1) else
      Expr(any(f,c))
+     is x:MutableList do any(f, x)
      else WrongArg("a list or a hash table"));
 any(f:Expr,a:Sequence,b:Sequence):Expr := (
      if length(a) != length(b) then return buildErrorPacket("expected lists of the same length");
@@ -378,7 +401,7 @@ any(f:Expr,a:Sequence,b:Sequence):Expr := (
 	  y := applyEEE(f,x,b.i);
 	  when y is err:Error do if err.message == breakMessage then return if err.value == dummyExpr then nullE else err.value else return y else nothing;
 	  if y == True then return True;
-	  if y != False then return buildErrorPacket("any: expected true or false");
+	  if y != False then return PredicateError;
 	  );
      False);
 any(f:Expr,a:Sequence,y:Expr):Expr := (
