@@ -34,6 +34,7 @@ newPackage(
     	Headline => "interactive visualization and manipulation of combinatorial objects in a browser",
 	Keywords => {"Graphics"},
 	PackageExports => {"Graphs", "Posets", "SimplicialComplexes"},
+	PackageImports => {"JSON"},
 	AuxiliaryFiles => true,
 	Configuration => {"DefaultPath" => null }
     	)
@@ -47,7 +48,8 @@ export {
      "FixExtremeElements",
 
     -- Methods
-     "visualize",
+    "plot",
+    "visualize",
 
     -- Helpers
 --     "toArray", -- Don't need to export?
@@ -502,6 +504,34 @@ visualize(SimplicialComplex) := commonVisOpts|{VisTemplate => basePath | "Visual
 
     return browserOutput;
 )
+
+plot = method()
+
+plot(List, HashTable, HashTable) := (data, layout, config) -> (
+    visTemp := copyTemplate(
+	basePath | "Visualize/templates/visPlot/visPlot-template.html");
+    copyJS replace(baseFilename visTemp, "", visTemp);
+    searchReplace("visData", toJSON data, visTemp);
+    searchReplace("visLayout", toJSON layout, visTemp);
+    searchReplace("visConfig", toJSON config, visTemp);
+
+    show URL(rootURI | visTemp))
+
+plot List := data -> plot(data, hashTable {}, hashTable {})
+
+plot Function := f -> (
+    XY := f \ apply(200, i -> -10 + 0.1*i);
+    plot {hashTable {
+	    "x" => apply(XY, first),
+	    "y" => apply(XY, last),
+	    "type" => "scatter"}})
+
+plot RingMap := f -> (
+    R := target f;
+    S := source f;
+    g := flatten entries matrix f;
+    -- affine plane curve
+    if numgens R == 1 and numgens S == 2 then plot (t -> (g#0 t, g#1 t)))
 
 -*
 --input: A parameterized surface in RR^3
