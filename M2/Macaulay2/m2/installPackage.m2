@@ -630,6 +630,19 @@ checkForErrors := pkg -> (
 -- installPackage
 -----------------------------------------------------------------------------
 
+gitClone = method()
+gitClone String := url -> (
+    dir := makeDirectory temporaryFileName() | "/";
+    getBranch := separate("@", url);
+    branch := (
+	if #getBranch == 1 then null
+	else if #getBranch == 2 then (url = getBranch#0; getBranch#1)
+	else error "expected no more than one '@' in url");
+    run concatenate(
+	"git clone ", url, if branch =!= null then (" -b ", branch), " ", dir,
+	" 2> /dev/null");
+    dir)
+
 installPackage = method(
     TypicalValue => Package,
     Options => {
@@ -651,7 +664,8 @@ installPackage = method(
 	RunExamples            => true,
 	SeparateExec           => false,
 	UserMode               => null,
-	Verbose                => false
+	Verbose                => false,
+	GitRepository          => null
 	})
 
 installPackage String := opts -> pkg -> (
@@ -660,6 +674,14 @@ installPackage String := opts -> pkg -> (
     -- -- its documentation the first time, it might have been loaded at a time when the core documentation
     -- -- in the "Macaulay2Doc" package was not yet loaded
     -- ... but we want to build the package Style without loading any other packages
+    if opts.GitRepository =!= null
+    then (
+	dir := gitClone opts.GitRepository;
+	return installPackage(pkg, opts ++ {
+	    GitRepository => null,
+	    FileName => (
+		if opts.FileName =!= null then dir | opts.FileName
+		else dir | pkg | ".m2")}));
     pkg = loadPackage(pkg,
 	FileName          => opts.FileName,
 	DebuggingMode     => opts.DebuggingMode,

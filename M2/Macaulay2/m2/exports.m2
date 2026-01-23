@@ -188,6 +188,7 @@ export {
 	"GeneralOrderedMonoid",
 	"GenerateAssertions",
 	"Generic",
+	"GitRepository",
 	"Global",
 	"GlobalAssignHook",
 	"GlobalDictionary",
