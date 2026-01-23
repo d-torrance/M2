@@ -123,6 +123,12 @@ Nothing#{Standard,Print} = identity
 searchPath' = (path, name) -> select(path, dir -> fileExists concatPath(dir, name))
 loadPath := (path, filename, loadfun, notify) -> (
     if class filename =!= String then error "expected a string";
+    if match("^https?://", filename) then (
+	dir := makeDirectory temporaryFileName() | "/";
+	file := dir | baseFilename filename;
+	(head, body) := splitWWW getWWW filename;
+	file << body << close;
+	return loadPath(path, file, loadfun, notify));
     ret := if isAbsolutePath filename then ( if first tryLoad(filename, filename, loadfun, notify) then "" )
     else scan(if isStablePath filename then {currentFileDirectory} else path, dir -> (
 	    if class dir =!= String then error "member of 'path' not a string";
