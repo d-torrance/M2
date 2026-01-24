@@ -1283,6 +1283,50 @@ take(e:Expr):Expr := (
      else WrongNumArgs(2));
 setupfun("take",take);
 
+insert(i:int, e:Expr, v:Sequence):Expr := (
+    n := length(v) + 1;
+    if i >= n || i < -n then ArrayIndexOutOfBounds(i, n - 1)
+    else (
+	if i < 0 then i = i + n;
+	Expr(new Sequence len length(v) + 1 at j do provide (
+	    if j < i then v.j
+	    else if j == i then e
+	    else v.(j - 1)))));
+
+insertMutable(i:int, e:Expr, x:List):Expr := (
+    n := length(x.v) + 1;
+    if i >= n || i < -n then ArrayIndexOutOfBounds(i, n - 1)
+    else (
+	if i < 0 then i = i + n;
+	changeLength(x, n);
+	for j from 1 to n - i - 1 do x.v.(n - j) = x.v.(n - j - 1);
+	x.v.i = e;
+	Expr(x)));
+
+insert(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 3 then (
+	    when a.0
+	    is i:ZZcell do (
+		if isInt(i) then (
+		    when a.2
+		    is v:Sequence do insert(toInt(i), a.1, v)
+		    is x:List do (
+			if x.Mutable then insertMutable(toInt(i), a.1, x)
+			else (
+			    r := insert(toInt(i), a.1, x.v);
+			    when r
+			    is err:Error do r
+			    is w:Sequence do list(x.Class, w)
+			    else nullE)) -- shouldn't happen
+		    else WrongArg(3, "a list or sequence"))
+		else WrongArgSmallInteger(1))
+	    else WrongArgZZ(1))
+	else WrongNumArgs(3))
+    else WrongNumArgs(3));
+setupfun("insert0", insert);
+
 anyhex(s:string):bool := (
      foreach c in s do if c == '+' || c == '%' then return true;
      false);
