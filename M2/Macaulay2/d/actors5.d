@@ -1107,18 +1107,56 @@ drop(v:Sequence,b:Expr):Expr := (
 	       else WrongArg("a list of integers"))
 	  else WrongArg("a list of two integers"))
      else WrongArg(2,"an integer or list of integers"));
+
+dropMutable(x:List, b:Expr):Expr := (
+    when b
+    is n:ZZcell do (
+	if isInt(n) then (
+	    m := toInt(n);
+	    if m < 0 then changeLength(x, max(0, length(x.v) + m))
+	    else if 0 < m && m < length(x.v) then (
+		for i from 0 to length(x.v) - m - 1 do x.v.i = x.v.(i + m);
+		changeLength(x, length(x.v) - m))
+	    else if m >= length(x.v) then changeLength(x, 0);
+	    Expr(x))
+	else WrongArgSmallInteger(2))
+    is w:List do (
+	if length(w.v) == 2 then (
+	    when w.v.0
+	    is ii:ZZcell do (
+		if isInt(ii) then (
+		    when w.v.1
+		    is jj:ZZcell do (
+			if isInt(jj) then (
+			    i := max(0, toInt(ii));
+			    j := min(length(x.v) - 1, toInt(jj));
+			    if i <= j then (
+				m := j - i + 1;
+				for k from i to length(x.v) - m - 1
+				do x.v.k = x.v.(k + m);
+				changeLength(x, length(x.v) - m));
+			    Expr(x))
+			else WrongArg("a list of small integers"))
+		    else WrongArg("a list of integers"))
+		else WrongArg("a list of small integers"))
+	    else WrongArg("a list of integers"))
+	else WrongArg("a list of two integers"))
+    else WrongArg(2,"an integer or list of integers"));
+
 drop(e:Expr):Expr := (
      when e
      is args:Sequence do 
      if length(args) == 2 then (
 	  when args.0
 	  is x:List do (
+	      if x.Mutable then dropMutable(x, args.1)
+	      else (
 	       vv := drop(x.v,args.1);
 	       when vv
 	       is v:Sequence do (
 	       	    if v == x.v && x.Mutable then v = copy(v);
 	       	    list(x.Class,v,x.Mutable))
-	       else vv)
+	       else vv))
 	  is v:Sequence do drop(v,args.1)
 	  else WrongArg(1,"a list or sequence"))
      else WrongNumArgs(2)
