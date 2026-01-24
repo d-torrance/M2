@@ -1139,6 +1139,14 @@ denfun(e:Expr):Expr := (
      else WrongArg("a rational number"));
 setupfun("denominator",denfun);
 
+join(a:Sequence, newlen:int):Sequence := (
+    new Sequence len newlen do (
+	foreach x in a do (
+	    when x
+	    is b:Sequence do foreach y in b do provide y
+	    is c:List do foreach y in c.v do provide y
+	    else nothing)));
+
 join(a:Sequence):Expr := (
      newlen := 0;
      foreach x at i in a do (
@@ -1159,16 +1167,23 @@ join(a:Sequence):Expr := (
 	      else return buildErrorPacket(
 		  "unknown error converting argument " + tostring(i + 1) +
 		  " to a sequence")));
-     z := new Sequence len newlen do (
-	  foreach x in a do (
-	       when x
-	       is b:Sequence do foreach y in b do provide y
-	       is c:List do foreach y in c.v do provide y
-	       else nothing;
-	       ));
      when a.0
-     is Sequence do Expr(z)
-     is c:List do list(c.Class,z,c.Mutable)
+     is Sequence do Expr(join(a, newlen))
+     is c:List do (
+	 if c.Mutable then (
+	     i := length(c.v);
+	     for j from 1 to length(a) - 1 do (
+		 when a.j
+		 is b:Sequence do foreach x in b do (
+		     c.v.i = x;
+		     i = i + 1)
+		 is d:List do foreach x in d.v do (
+		     c.v.i = x;
+		     i = i + 1)
+		 else nothing); -- shouldn't happen
+	     changeLength(c, newlen);
+	     Expr(c))
+	 else list(c.Class, join(a, newlen)))
      else nullE			    -- shouldn't happen anyway
      );
 

@@ -23,6 +23,7 @@ String _ Sequence := String => (s,p) -> substring(p,s)
 List | List  := List => join
 Array | Array  := Array => join
 Sequence | Sequence := Sequence => join
+installMethod(symbol |=, MutableList, join)
 
 List + List  := List => (v,w) -> apply(v,w,plus)
      - List  := List => v -> apply(v,minus)
@@ -119,6 +120,7 @@ minPosition BasicList := ZZ => x -> (
 
 delete = method()
 delete(Thing, BasicList) := (x, v) -> select(v, i -> i =!= x)
+delete(Thing, MutableList) := delete0
 
 number = x -> # select x
 

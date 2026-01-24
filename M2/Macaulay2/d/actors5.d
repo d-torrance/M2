@@ -60,13 +60,19 @@ prependfun(e:Expr):Expr := (
 			 foreach t in y do provide t;
 			 )		    
 		    )
-	       is y:List do list(
+	       is y:List do (
+		   if y.Mutable then (
+		       n := length(y.v);
+		       changeLength(y, n + 1);
+		       for i from 0 to n - 1 do y.v.(n - i) = y.v.(n - i - 1);
+		       y.v.0 = elem;
+		       Expr(y))
+		   else list(
 			 y.Class,
 			 new Sequence len length(y.v) + 1 do (
 			      provide elem;
 			      foreach t in y.v do provide t;
-			      ),
-			 y.Mutable)
+			      )))
 	       else WrongArg(1+1,"a list or sequence")
 	       )
 	  )
@@ -88,13 +94,17 @@ appendfun(e:Expr):Expr := (
 			 provide elem;
 			 )		    
 		    )
-	       is y:List do list(
+	       is y:List do (
+		   if y.Mutable then (
+		       changeLength(y, length(y.v) + 1);
+		       y.v.(length(y.v) - 1) = elem;
+		       Expr(y))
+		   else list(
 			 y.Class,
 			 new Sequence len length(y.v) + 1 do (
 			      foreach t in y.v do provide t;
 			      provide elem;
-			      ),
-			 y.Mutable)
+			      )))
 	       else WrongArg(0+1,"a list or sequence")
 	       )
 	  )
@@ -653,6 +663,26 @@ removefun(e:Expr):Expr := (
 	       else WrongArg(1,"a hash table or database")))
      else WrongNumArgs(2));
 setupfun("remove",removefun);
+
+delete(e:Expr):Expr := (
+    when e
+    is a:Sequence do (
+	if length(a) == 2 then (
+	    when a.1
+	    is x:List do (
+		if x.Mutable then (
+		    newlen := 0;
+		    for i from 0 to length(x.v) - 1 do (
+			if equal(a.0, x.v.i) == False then (
+			    x.v.newlen = x.v.i;
+			    newlen = newlen + 1));
+		    changeLength(x, newlen);
+		    Expr(x))
+		else WrongArg(2, "a mutable list"))
+	    else WrongArg(2, "a mutable list"))
+	else WrongNumArgs(2))
+    else WrongNumArgs(2));
+setupfun("delete0", delete);
 
 erase(e:Expr):Expr :=
      when e is t:SymbolClosure do (
