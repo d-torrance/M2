@@ -1313,6 +1313,7 @@ short Set := H -> hold ( if #H <= shortLength then H else (
 Abbreviate = new WrapperType of Holder -- only used once, for listSymbols
 net Abbreviate := y -> silentRobustNet(55,4,3,y#0)
 html Abbreviate := y -> html short y#0
+mathML Abbreviate := y -> mathML short y#0
 
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/m2 "

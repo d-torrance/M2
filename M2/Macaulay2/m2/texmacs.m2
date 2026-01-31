@@ -39,6 +39,19 @@ Thing#{TeXmacs,AfterNoPrint} = x -> (
     s := l x;
     if s =!= null then tmAfterPrint s)
 
+Thing#{TeXmacs, ErrorPrint}    = x -> mathML Abbreviate {x}
+String#{TeXmacs, ErrorPrint}   = mathML
+Symbol#{TeXmacs, ErrorPrint}   = x -> mathML("'" | toString x | "'")
+Sequence#{TeXmacs, ErrorPrint} = args -> (
+    concatenate apply(args, processArgs_ErrorPrint))
+
+Thing#{TeXmacs, AfterErrorPrint}    = x -> ""
+Symbol#{TeXmacs, AfterErrorPrint}   = x -> concatenate(newline,
+    toString locate x, ": here is the first use of '", toString x, "'")
+Sequence#{TeXmacs, AfterErrorPrint} = args -> (
+    concatenate apply(args, processArgs_AfterErrorPrint))
+
+
 -- Local Variables:
 -- compile-command: "make -C $M2BUILDDIR/Macaulay2/m2 "
 -- End:
