@@ -895,6 +895,31 @@ else if test $SHARED = no -a $TRY_STATIC = yes
      fi
 fi
 
+AS_IF([test $BUILD_msolve = no],
+    [AC_MSG_CHECKING([whether msolve is installed])
+     AS_IF([command -v msolve > /dev/null],
+         [AS_IF([msolve -V > /dev/null 2>&1],
+             [msolve_actual_version=$(msolve -V)
+              dnl keep in sync with msolveMinimumVersion in Msolve.m2
+              msolve_min_version=0.7.0
+              AX_COMPARE_VERSION(
+                  [$msolve_actual_version], [ge], [$msolve_min_version],
+                  [AC_MSG_RESULT([yes])
+                   FILE_PREREQS="$FILE_PREREQS `command -v msolve`"],
+                  [AC_MSG_RESULT([yes, but version $msolve_actual_version was \
+found and $msolve_min_version is required; will build])
+                   BUILD_msolve=yes])],
+             [AC_MSG_RESULT([yes, but cannot detect version; will build])
+              BUILD_msolve=yes])],
+         [AC_MSG_RESULT([no, will build])
+          BUILD_msolve=yes])])
+
+dnl if we're building msolve, then we need a recent flint
+AS_IF([test "x$BUILD_msolve" = xyes -a "x$BUILD_flint" = xno],
+    [AC_CHECK_HEADERS([flint/nmod_types.h],,
+        [AC_MSG_NOTICE([we will build flint so we can build msolve])
+	 BUILD_flint=yes])])
+
 dnl factory needs to know:
 AC_SUBST(BUILD_flint)
 if test $BUILD_flint = no
@@ -1133,25 +1158,6 @@ if test $FOUND_topcom = no
 then AC_MSG_RESULT([no, will build])
      BUILD_topcom=yes
 fi
-
-AS_IF([test $BUILD_msolve = no],
-    [AC_MSG_CHECKING([whether msolve is installed])
-     AS_IF([command -v msolve > /dev/null],
-         [AS_IF([msolve -V > /dev/null 2>&1],
-             [msolve_actual_version=$(msolve -V)
-              dnl keep in sync with msolveMinimumVersion in Msolve.m2
-              msolve_min_version=0.7.0
-              AX_COMPARE_VERSION(
-                  [$msolve_actual_version], [ge], [$msolve_min_version],
-                  [AC_MSG_RESULT([yes])
-                   FILE_PREREQS="$FILE_PREREQS `command -v msolve`"],
-                  [AC_MSG_RESULT([yes, but version $msolve_actual_version was \
-found and $msolve_min_version is required; will build])
-                   BUILD_msolve=yes])],
-             [AC_MSG_RESULT([yes, but cannot detect version; will build])
-              BUILD_msolve=yes])],
-         [AC_MSG_RESULT([no, will build])
-          BUILD_msolve=yes])])
 
 AC_LANG([C++])
 AS_IF([test $BUILD_eigen = no],
