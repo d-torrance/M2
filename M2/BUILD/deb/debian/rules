@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --sourcedirectory=M2
+
+# set emacs lisp file installation directory so that the documentation
+# matches where dh_elpa installs them
+ELPA_VERSION := $(shell emacs --batch \
+	--eval '(require (quote package))' \
+	--eval '(princ (package-version-join (version-to-list "$(VERSION)")))' \
+	2> /dev/null)
+EMACSDIR := \
+	\$${prefix}/share/emacs/site-lisp/elpa-src/macaulay2-$(ELPA_VERSION)
+export ELPA_NAME = M2
+
+override_dh_auto_configure:
+	dh_auto_configure --                \
+		--with-emacsdir=$(EMACSDIR) \
+		--with-system-libs
+
+execute_before_dh_elpa: debian/M2-pkg.el
+
+debian/M2-pkg.el: debian/M2-pkg.el.in
+	sed -e 's|@VERSION@|$(ELPA_VERSION)|g' $< > $@
