@@ -2,37 +2,40 @@
 # Net usage:  ~
 # Disk usage: <
 
-FROM debian:buster
+ARG RELEASE=latest
+
+FROM debian:$RELEASE
 
 # Programs we require to build
 RUN apt-get update && \
-    apt-get install -y apt-transport-https bison build-essential curl git gnupg wget && \
-    wget -c https://github.com/Kitware/CMake/releases/download/v3.17.2/cmake-3.17.2-Linux-x86_64.tar.gz -O - | \
-	tar xz -C /usr --strip 1 && \
-    apt-get update && apt-get install -y autoconf ccache libtool lintian ninja-build python yasm && apt-get clean
+    apt-get install -y bison build-essential ca-certificates curl flex       \
+    gfortran git gnupg wget cmake autoconf automake ccache debhelper dh-elpa \
+    dpkg-dev install-info libtool libtool-bin lintian lsb-release make       \
+    ninja-build patch pkgconf python3 r-base shtool time && apt-get clean
 
 # Libraries we require
-RUN apt-get install -y libopenblas-dev libxml2-dev libreadline-dev libgdbm-dev \
-	libboost-regex-dev libboost-stacktrace-dev libomp-dev libtbb-dev && \
-	apt-get clean
+RUN apt-get install -y libffi-dev liblzma-dev libncurses-dev libopenblas-dev  \
+    libpython3-dev libxml2-dev libreadline-dev libgdbm-dev libboost-math-dev  \
+    libboost-regex-dev libboost-stacktrace-dev libomp-dev libtbb-dev &&       \
+    apt-get clean
 
-# Libraries we can build (factory not available on ubuntu)
-RUN apt-get install -y libeigen3-dev  libglpk-dev libgmp3-dev libmpfr-dev \
-      libntl-dev libnauty-dev libnormaliz-dev libfrobby-dev libgc-dev && apt-get clean
+# Libraries we can build
+RUN apt-get install -y fflas-ffpack libeigen3-dev libflint-dev libfplll-dev \
+    libgivaro-dev libglpk-dev libgmp-dev libgtest-dev libmathic-dev         \
+    libmathicgb-dev libmemtailor-dev libmpfi-dev libmpfr-dev libmps-dev     \
+    libntl-dev libnauty-dev libnormaliz-dev libsingular-dev libfrobby-dev   \
+    libgc-dev singular-data zlib1g-dev && apt-get clean
 
 # Programs we can build
-# TODO: cohomcalg available soon. Polymake requires firefox???
-# RUN apt-get install -y libcdd-dev 4ti2 gfan normaliz coinor-csdp nauty lrslib && apt-get clean
-
-# Optional packages
-RUN apt-get install -y mlocate bash-completion
+RUN apt-get install -y libcdd-dev 4ti2 cohomcalg gfan normaliz coinor-csdp \
+    nauty lrslib topcom && apt-get clean
+RUN if test $(lsb_release -r | awk '{print $2}') -ge 13; \
+    then apt-get install -y msolve; fi
 
 # Add non-root user for building and running Macaulay2
 RUN useradd -G sudo -g root -u 1000 -m macaulay && echo "macaulay ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 USER 1000:0
 
-ENV PKG_CONFIG_PATH /usr/lib/x86_64-linux-gnu/pkgconfig
-ENV LDFLAGS         -L/usr/lib/x86_64-linux-gnu
 ENV PATH            /home/macaulay/M2/M2/BUILD/build-docker:${PATH}
 
 WORKDIR /home/macaulay
