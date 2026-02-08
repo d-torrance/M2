@@ -1,0 +1,33 @@
+name: Build deb packages
+# on: workflow_dispatch
+on: push
+
+jobs:
+  build-deb:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+#          - ubuntu-24.04-arm
+        release:
+          - 11
+          - 12
+          - 13
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build deb
+        run: |
+          cd M2/BUILD/deb
+          make deb RELEASE=${{ matrix.release }}
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.os }}-debian-${{ matrix.release }}
+          path: |
+            M2/BUILD/deb/macaulay2-*/M2/config.log
+            M2/BUILD/deb/macaulay2-*/M2/libraries/*/build/*/config.log
+            M2/BUILD/deb/macaulay2-*/M2/usr-dist/common/share/doc/Macaulay2/*/example-output/*.errors
+            M2/BUILD/deb/*.deb
