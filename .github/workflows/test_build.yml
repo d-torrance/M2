@@ -139,10 +139,17 @@ jobs:
       - name: Configure Macaulay2 using CMake
         if: matrix.build-system == 'cmake'
         run: |
+          # gfan requires gcc
+          if test ${{ runner.os }} = "macOS"; then
+            if grep -q '^BUILDLIST=.*gfan' config.log; then
+              GFAN_CXX="-DGFAN_CXX=g++-15"
+            fi
+          fi
           cmake -S../.. -B. -GNinja \
             -DCMAKE_BUILD_TYPE=Release -DBUILD_NATIVE=OFF \
             -DCMAKE_PREFIX_PATH="`brew --prefix`;`brew --prefix libffi`" \
             -DCMAKE_INSTALL_PREFIX=/usr \
+            $GFAN_CXX \
             --debug-trycompile -DBUILD_PROGRAMS=gfan
 
       - name: Build libraries using Ninja
@@ -181,6 +188,12 @@ jobs:
       - name: Build libraries using Make
         if: matrix.build-system == 'autotools'
         run: |
+          # gfan requires gcc
+          if test ${{ runner.os }} = "macOS"; then
+            if grep -q '^BUILDLIST=.*gfan' config.log; then
+              make -C libraries/gfan CXX=g++-15
+            fi
+          fi
           make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu) -C libraries
 
       - name: Build Macaulay2 using Make
