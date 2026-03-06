@@ -837,6 +837,8 @@ _ADD_COMPONENT_DEPENDENCY(programs cohomcalg "" COHOMCALG)
 # https://users-math.au.dk/~jensen/software/gfan/gfan.html
 # gfan needs cddlib and is used by the packages gfanInterface and StatePolytopes
 # TODO: would gfan benefit from enabling the USEFACTORY option?
+set(GFAN_CXX "${CMAKE_CXX_COMPILER}" CACHE STRING
+    "C++ compiler used to build gfan")
 ExternalProject_Add(build-gfan
   URL               https://users-math.au.dk/jensen/software/gfan/gfan0.7+g3bad3a8f69.tar.gz
   URL_HASH          SHA256=1d4d54a2557c681f5bf7bad1d15eb4c1de1f4e68f17ddc71a5296880a75552ea
@@ -852,7 +854,7 @@ ExternalProject_Add(build-gfan
                       "GMP_INCLUDEOPTIONS=-I${GMP_INCLUDE_DIRS}"
                       "OPTFLAGS=${CPPFLAGS} -DGMPRATIONAL -I${CDDLIB_INCLUDE_DIR}"
                       "CCLINKER=${CMAKE_CXX_COMPILER} ${LDFLAGS} -L${CDDLIB_LIBRARY_DIR}"
-                      "CXX=${CMAKE_CXX_COMPILER}"
+                      "CXX=${GFAN_CXX}"
   INSTALL_COMMAND   ${CMAKE_STRIP} gfan
           COMMAND   ${CMAKE_COMMAND} -E make_directory ${M2_INSTALL_LICENSESDIR}/gfan
           COMMAND   ${CMAKE_COMMAND} -E copy_if_different LICENSE COPYING ${M2_INSTALL_LICENSESDIR}/gfan
