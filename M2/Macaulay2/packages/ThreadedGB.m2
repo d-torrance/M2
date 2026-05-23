@@ -54,6 +54,7 @@ export {
     }
 endGB = local endGB;
 tasks = local tasks;
+endGBMutex = local endGBMutex;
 
 
 --***************************************************************************--
@@ -100,13 +101,15 @@ tgb (List) := LineageTable => o -> (basisList) -> (
     -- Creating tasks and distributing the computation:
     tasks = new MutableHashTable;
     endGB = new MutableHashTable from lineageTable(basisList);
-    
-    -- go through all the base pairs and schedule a task for reducing their S-polynomial: 
+    endGBMutex = new Mutex;
+    initialBasis := values endGB;
+
+    -- go through all the base pairs and schedule a task for reducing their S-polynomial:
     apply(#basisList-1,i-> apply(i+1..#basisList-1, j-> (
 		-- but only schedule tasks that fail the LCM criterion: 
 		if not manualGCD(leadTerm basisList_i, leadTerm basisList_j)==1 then (
 		    currentPairKey := (i,j);
-      		    tasks#currentPairKey = createTask taskFn (basisList_i, basisList_j, currentPairKey, Verbose=>o.Verbose);
+      		    tasks#currentPairKey = createTask taskFn (basisList_i, basisList_j, initialBasis, currentPairKey, Verbose=>o.Verbose);
       		    if o.Verbose then << "Scheduling a task for lineage " << toString currentPairKey << endl;
       		    schedule tasks#currentPairKey)))
     );
@@ -125,7 +128,7 @@ tgb (List) := LineageTable => o -> (basisList) -> (
     allReady := false;
     while not allReady do(
       allReady = true;
-      tasksValues := values(tasks);
+      lock endGBMutex; tasksValues := values(tasks); unlock endGBMutex;
       for i to #tasksValues-1 do(
         if not isReady(tasksValues_i) then allReady = false;
     	);
@@ -133,19 +136,24 @@ tgb (List) := LineageTable => o -> (basisList) -> (
     );
 
     -- final clean up:
-    if endGB#?"trivial" then (
+    lock endGBMutex;
+    trivialKey := if endGB#?"trivial" then endGB#"trivial" else null;
+    unlock endGBMutex;
+    if trivialKey =!= null then (
 	-- endGB#"trivial" contains the key of the (first) element that produced  a unit remainder
-	-- here, we turn every element from endGB, except endGB#(endGB#"trivial"), equal to NULL:  
-	if o.Verbose then << "Found a unit in the Groebner basis; reducing now." << endl; 
+	-- here, we turn every element from endGB, except endGB#(endGB#"trivial"), equal to NULL:
+	if o.Verbose then << "Found a unit in the Groebner basis; reducing now." << endl;
+	lock endGBMutex;
 	scan(delete("trivial",keys endGB),k-> endGB#k = null); -- null everyone first
-	endGB#(endGB#"trivial") = 1; -- keep the one that produced  a trivial GB
+	endGB#trivialKey = 1; -- keep the one that produced  a trivial GB
 	remove(endGB,"trivial"); -- kill the list of trivial keys  - this really has no further info now.
+	unlock endGBMutex;
 	return new LineageTable from endGB
 	-- Caveat (non-critical):
-	-- if  two different elements return 1 (b/c parallel threads), then I guess 
-	-- the one that came in last is the one that got preserved? 
-	-- but  it really doesn't matter, does it?:  if they were sent out as tasks and  
-	-- were running at the same time, it'a  a matter of luck - not necessarily design - which one produced a  1. 
+	-- if  two different elements return 1 (b/c parallel threads), then I guess
+	-- the one that came in last is the one that got preserved?
+	-- but  it really doesn't matter, does it?:  if they were sent out as tasks and
+	-- were running at the same time, it'a  a matter of luck - not necessarily design - which one produced a  1.
 	);
     if o.Minimal then  minimize new LineageTable from endGB  else  new LineageTable from endGB
 );
@@ -256,36 +264,44 @@ spoly(RingElement, RingElement) := RingElement => (f, g) -> (
 --         taskFn
 ---------------------------------------------------------------------------------------------
 -- taskFn is the function used in scheduled tasks for threads to compute.
--- It takes in a pair of polynomials with the key from endGB and places the remainder of their
--- S-polynomial on division by endGB (the current master copy of the Groebner basis).
+-- It takes in a pair of polynomials, a pre-captured reduction basis, and the key from endGB,
+-- and places the remainder of their S-polynomial on division by reductionBasis.
 -- The method taskFn then schedules a new set of tasks based on a new remainder
 -- (one task for each new pair with an existing endGB polynomial and the current remainder).
 -- If the remainder is 1, then endGB is replaced with 1 (but lineage keys of all non-zero remainders
 -- computed so far are saved).
--- Polynomials whose initial terms are relatively prime are not considered. 
+-- All accesses to the shared tables endGB and tasks are protected by endGBMutex.
+-- Polynomials whose initial terms are relatively prime are not considered.
 ---------------------------------------------------------------------------------------------
-taskFn = {Verbose=>false} >> o-> (f1,f2,currentPairKey) -> () -> (
-    r := 0; 
-    if not endGB#?"trivial" then if manualGCD(leadTerm f1, leadTerm f2)==1 then r=0 else r = remainderFn(spoly(f1,f2), values endGB);
-    -- note if LCM criterion holds we know remainder = 0 so nothing gets scheduled. 
+taskFn = {Verbose=>false} >> o-> (f1,f2,reductionBasis,currentPairKey) -> () -> (
+    lock endGBMutex; trivialFlag := endGB#?"trivial"; unlock endGBMutex;
+    r := 0;
+    if not trivialFlag then if manualGCD(leadTerm f1, leadTerm f2)==1 then r=0 else r = remainderFn(spoly(f1,f2), reductionBasis);
+    -- note if LCM criterion holds we know remainder = 0 so nothing gets scheduled.
 
     if r!=0 and r!=1 and r!=-1 then (
-      scan(delete ("trivial", keys endGB),i-> (
-        currentPairKeyChild := (currentPairKey,i); 
-        tasks#currentPairKeyChild = createTask taskFn (r,endGB#i,currentPairKeyChild,Verbose=>o.Verbose);
-	if o.Verbose then << "Scheduling task for lineage " <<  toString currentPairKeyChild << endl; 
-        schedule tasks#currentPairKeyChild
-		    )
+      lock endGBMutex;
+      cKeys  := delete("trivial", keys endGB);
+      cPolys := apply(cKeys, i -> endGB#i);  -- read under lock: no stale value
+      cBasis := values endGB;               -- consistent snapshot for child reductions
+      endGB#currentPairKey = r;             -- write under lock: visible to all later scans
+      cPairKeys := apply(cKeys, i -> (currentPairKey,i));
+      cTasks := apply(#cKeys, i -> createTask taskFn (r, cPolys#i, cBasis, cPairKeys#i, Verbose=>o.Verbose));
+      scan(#cPairKeys, i -> tasks#(cPairKeys#i) = cTasks#i);
+      unlock endGBMutex;
+      if o.Verbose then << "Adding the following remainder to GB: " << toString r << " from lineage " << toString currentPairKey << endl;
+      scan(#cTasks, i -> (
+	if o.Verbose then << "Scheduling task for lineage " << toString cPairKeys#i << endl;
+	schedule cTasks#i));
       );
-	endGB#currentPairKey = r;
-	if o.Verbose then << "Adding the following remainder to GB: " << toString r << " from lineage " << toString currentPairKey << endl;
-	);
-    
+
     if r==1 or r==-1 then (
+	lock endGBMutex;
 	endGB#currentPairKey = r/leadCoefficient r;
-	endGB#"trivial" = currentPairKey; -- tell "trivial" which lineage produced a unit! 
-        if o.Verbose then  << "Adding the following remainder to GB: " << toString r << " from lineage " << toString currentPairKey << endl;
-	);
+	endGB#"trivial" = currentPairKey; -- tell "trivial" which lineage produced a unit!
+	unlock endGBMutex;
+	if o.Verbose then  << "Adding the following remainder to GB: " << toString r << " from lineage " << toString currentPairKey << endl;
+      );
 
 )
 ---------------------------------------------------------------------------------------------
