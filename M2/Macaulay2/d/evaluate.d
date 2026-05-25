@@ -1623,6 +1623,153 @@ handleError(c:Code,e:Expr):Expr := (
 	       e))
      else e);
 
+evalAdjacentCode(b:adjacentCode):Expr := (
+     left := eval(b.lhs);
+     when left
+     is fc:FunctionClosure do applyFCC(fc,b.rhs)
+     is ff:CompiledFunction do (
+	  z := eval(b.rhs);
+	  when z is Error do z
+	  else ff.fn(z))
+     is ff:CompiledFunctionClosure do (
+	  z := eval(b.rhs);
+	  when z is Error do z
+	  else ff.fn(z,ff.env))
+     is s:SpecialExpr do (
+	  when s.e
+	  is fc:FunctionClosure do applyFCC(fc,b.rhs)
+	  is ff:CompiledFunction do ( z := eval(b.rhs); when z is Error do z else ff.fn(z))
+	  is ff:CompiledFunctionClosure do ( z := eval(b.rhs); when z is Error do z else ff.fn(z,ff.env))
+	  else binarymethod(left,b.rhs,AdjacentS))
+     is Error do left
+     else binarymethod(left,b.rhs,AdjacentS));
+
+evalFunctionCode(m:functionCode):Expr := (
+     fc := FunctionClosure(noRecycle(localFrame),m,hash_t(0));
+     fc.hash = hashFromAddress(Expr(fc));
+     Expr(fc));
+
+evalLocalMemoryReference(r:localMemoryReferenceCode):Expr := (
+     f := localFrame;
+     nd := r.nestingDepth;
+     if nd == 0 then nothing
+     else if nd == 1 then f = f.outerFrame
+     else if nd == 2 then f = f.outerFrame.outerFrame
+     else (
+	  f = f.outerFrame.outerFrame.outerFrame;
+	  nd = nd - 3;
+	  while nd > 0 do ( nd = nd - 1; f = f.outerFrame );
+	  );
+     if r.frameindex>=length(f.values) then buildErrorPacket("frame error")
+     else f.values.(r.frameindex));
+
+evalThreadMemoryReference(r:threadMemoryReferenceCode):Expr := (
+     i := r.var.frameindex;
+     v := threadFrame.values;
+     if i < length(v) then v.i else nullE);
+
+evalLocalAssignment(x:localAssignmentCode):Expr := (
+     newvalue := eval(x.rhs);
+     when newvalue is Error do newvalue
+     else localAssignment(x.nestingDepth,x.frameindex,newvalue));
+
+evalCatchCode(c:catchCode):Expr := (
+     p := eval(c.code);
+     when p is err:Error do if err.message == throwMessage then err.value else p
+     else p);
+
+evalIfCode(c:ifCode):Expr := (
+     p := eval(c.predicate);
+     when p is Error do p
+     else if p == True then eval(c.thenClause)
+     else if p == False then eval(c.elseClause)
+     else printErrorMessageE(c.predicate,"expected true or false"));
+
+evalLocalSymbolClosure(r:localSymbolClosureCode):Expr := (
+     f := localFrame;
+     nd := r.nestingDepth;
+     if nd == 0 then nothing
+     else if nd == 1 then f = f.outerFrame
+     else if nd == 2 then f = f.outerFrame.outerFrame
+     else (
+	  f = f.outerFrame.outerFrame.outerFrame;
+	  nd = nd - 3;
+	  while nd > 0 do ( nd = nd - 1; f = f.outerFrame );
+	  );
+     noRecycle(f);
+     Expr(SymbolClosure(f,r.symbol)));
+
+evalSemiCode(v:semiCode):Expr := (
+     w := v.w;
+     n := length(w);				    -- at least 2
+     r := eval(w.0);
+     when r is Error do r else (
+	  r = eval(w.1);
+	  when r is Error do r else (
+	       if n == 2 then return r;
+	       r = eval(w.2);
+	       when r is Error do r else (
+		    if n == 3 then return r;
+		    r = eval(w.3);
+		    when r is Error do r else (
+			 if n == 4 then return r;
+			 r = eval(w.4);
+			 when r is Error do r else (
+			      i := 5;
+			      while i < n do (
+				   r = eval(w.i);
+				   i = when r is Error do n else i+1;
+				   );
+			      r))))));
+
+evalSequenceCode(v:sequenceCode):Expr := (
+     if length(v.x) == 0 then emptySequenceE
+     else (
+	  r := evalSequence(v.x);
+	  if evalSequenceHadError
+	  then (
+	       tmp := evalSequenceErrorMessage;
+	       evalSequenceHadError = false;
+	       evalSequenceErrorMessage = nullE;
+	       tmp)
+	  else Expr(r)));
+
+evalListCode(v:listCode):Expr := (
+     if length(v.y) == 0 then emptyList
+     else (
+	  r := evalSequence(v.y);
+	  if evalSequenceHadError
+	  then (
+	       tmp := evalSequenceErrorMessage;
+	       evalSequenceHadError = false;
+	       evalSequenceErrorMessage = nullE;
+	       tmp)
+	  else list(r)));
+
+evalArrayCode(v:arrayCode):Expr := (
+     if length(v.z) == 0 then emptyArray
+     else (
+	  r := evalSequence(v.z);
+	  if evalSequenceHadError
+	  then (
+	       tmp := evalSequenceErrorMessage;
+	       evalSequenceHadError = false;
+	       evalSequenceErrorMessage = nullE;
+	       tmp)
+	  else Array(r)));
+
+evalAngleBarListCode(v:angleBarListCode):Expr := (
+     if length(v.t) == 0 then emptyAngleBarList
+     else (
+	  r := evalSequence(v.t);
+	  if evalSequenceHadError
+	  then (
+	       tmp := evalSequenceErrorMessage;
+	       evalSequenceHadError = false;
+	       evalSequenceErrorMessage = nullE;
+	       tmp)
+	  else AngleBarList(r)));
+
 export eval(c:Code):Expr := (
     if profiling -- see evalprof in profiling.dd
     then Ccode(Expr, "evaluate_evalprofpointer(", c, ")")
@@ -1652,81 +1799,21 @@ export evalraw(c:Code):Expr := (
 	  else when c
 	  is u:unaryCode do u.oper.unary(u.rhs)
 	  is b:binaryCode do b.oper.binary(b.lhs,b.rhs)
-	  is b:adjacentCode do (
-	       left := eval(b.lhs);
-	       when left
-	       is fc:FunctionClosure do applyFCC(fc,b.rhs)
-	       is ff:CompiledFunction do (
-		    z := eval(b.rhs);
-		    when z is Error do z
-		    else ff.fn(z))
-	       is ff:CompiledFunctionClosure do (
-		    z := eval(b.rhs);
-		    when z is Error do z
-		    else ff.fn(z,ff.env))
-	       is s:SpecialExpr do (
-		    when s.e
-		    is fc:FunctionClosure do applyFCC(fc,b.rhs)
-		    is ff:CompiledFunction do ( z := eval(b.rhs); when z is Error do z else ff.fn(z))
-		    is ff:CompiledFunctionClosure do ( z := eval(b.rhs); when z is Error do z else ff.fn(z,ff.env))
-     	       	    else binarymethod(left,b.rhs,AdjacentS))
-	       is Error do left
-	       else binarymethod(left,b.rhs,AdjacentS))
-	  is m:functionCode do (
-	       fc := FunctionClosure(noRecycle(localFrame),m,hash_t(0));
-	       fc.hash = hashFromAddress(Expr(fc));
-	       return Expr(fc))
-	  is r:localMemoryReferenceCode do (
-	       f := localFrame;
-	       nd := r.nestingDepth;
-	       if nd == 0 then nothing
-	       else if nd == 1 then f = f.outerFrame
-	       else if nd == 2 then f = f.outerFrame.outerFrame
-	       else (
-		    f = f.outerFrame.outerFrame.outerFrame;
-		    nd = nd - 3;
-		    while nd > 0 do ( nd = nd - 1; f = f.outerFrame );
-		    );
-	       if r.frameindex>=length(f.values) then buildErrorPacket("frame error")
-	       else return f.values.(r.frameindex))
+	  is b:adjacentCode do evalAdjacentCode(b)
+	  is m:functionCode do return evalFunctionCode(m)
+	  is r:localMemoryReferenceCode do evalLocalMemoryReference(r)
 	  is r:globalMemoryReferenceCode do return globalFrame.values.(r.var.frameindex)
-	  is r:threadMemoryReferenceCode do return (
-	       i := r.var.frameindex;
-	       v := threadFrame.values;
-	       if i < length(v) then v.i else nullE)
-	  is x:localAssignmentCode do (
-	       newvalue := eval(x.rhs);
-	       when newvalue is Error do return newvalue 
-	       else localAssignment(x.nestingDepth,x.frameindex,newvalue))
+	  is r:threadMemoryReferenceCode do evalThreadMemoryReference(r)
+	  is x:localAssignmentCode do evalLocalAssignment(x)
 	  is a:globalAssignmentCode do globalAssignmentFun(a)
 	  is p:parallelAssignmentCode do parallelAssignmentFun(p)
 	  is c:augmentedAssignmentCode do augmentedAssignmentFun(c)
 	  is c:globalSymbolClosureCode do return Expr(SymbolClosure(globalFrame,c.symbol))
 	  is c:threadSymbolClosureCode do return Expr(SymbolClosure(threadFrame,c.symbol))
 	  is c:tryCode do evalTryCode(c)
-	  is c:catchCode do (
-	       p := eval(c.code);
-	       when p is err:Error do if err.message == throwMessage then err.value else p
-	       else p)
-	  is c:ifCode do (
-	       p := eval(c.predicate);
-	       when p is Error do p
-	       else if p == True then eval(c.thenClause)
-	       else if p == False then eval(c.elseClause)
-	       else printErrorMessageE(c.predicate,"expected true or false"))
-	  is r:localSymbolClosureCode do (
-	       f := localFrame;
-	       nd := r.nestingDepth;
-	       if nd == 0 then nothing
-	       else if nd == 1 then f = f.outerFrame
-	       else if nd == 2 then f = f.outerFrame.outerFrame
-	       else (
-		    f = f.outerFrame.outerFrame.outerFrame;
-		    nd = nd - 3;
-		    while nd > 0 do ( nd = nd - 1; f = f.outerFrame );
-		    );
-	       noRecycle(f);
-	       return Expr(SymbolClosure(f,r.symbol)))
+	  is c:catchCode do evalCatchCode(c)
+	  is c:ifCode do evalIfCode(c)
+	  is r:localSymbolClosureCode do evalLocalSymbolClosure(r)
 	  is b:ternaryCode do b.f(b.arg1,b.arg2,b.arg3)
 	  is b:multaryCode do b.f(b.args)
 	  is c:evaluatedCode do return c.expr
@@ -1743,70 +1830,11 @@ export evalraw(c:Code):Expr := (
 	  is v:integerCode do return Expr(ZZcell(v.x))
 	  is v:stringCode do return Expr(stringCell(v.x))
      	  is v:Error do Expr(v)
-	  is v:semiCode do (
-	       w := v.w;
-	       n := length(w);				    -- at least 2
-	       r := eval(w.0);
-	       when r is Error do r else (
-	       	    r = eval(w.1);
-	       	    when r is Error do r else (
-	       		 if n == 2 then return r;
-	       		 r = eval(w.2);
-	       		 when r is Error do r else (
-			      if n == 3 then return r;
-			      r = eval(w.3);
-			      when r is Error do r else (
-				   if n == 4 then return r;
-				   r = eval(w.4);
-				   when r is Error do r else (
-					i := 5;
-					while i < n do (
-					     r = eval(w.i);
-					     i = when r is Error do n else i+1;
-					     );
-					r))))))
-	  is v:sequenceCode do (
-	       if length(v.x) == 0 then return emptySequence;
-	       r := evalSequence(v.x);
-	       if evalSequenceHadError 
-	       then (
-	       	    tmp := evalSequenceErrorMessage;
-	       	    evalSequenceHadError = false;
-	       	    evalSequenceErrorMessage = nullE;
-	       	    tmp)
-	       else Expr(r))
-	  is v:listCode do (
-	       if length(v.y) == 0 then return emptyList;
-	       r := evalSequence(v.y);
-	       if evalSequenceHadError 
-	       then (
-	       	    tmp := evalSequenceErrorMessage;
-	       	    evalSequenceHadError = false;
-	       	    evalSequenceErrorMessage = nullE;
-	       	    tmp)
-	       else list(r))
-	  is v:arrayCode do (
-	       if length(v.z) == 0 then return emptyArray;
-	       r := evalSequence(v.z);
-	       if evalSequenceHadError 
-	       then (
-	       	    tmp := evalSequenceErrorMessage;
-	       	    evalSequenceHadError = false;
-	       	    evalSequenceErrorMessage = nullE;
-	       	    tmp)
-	       else Array(r)
-	       )
-	  is v:angleBarListCode do (
-	       if length(v.t) == 0 then return emptyAngleBarList;
-	       r := evalSequence(v.t);
-	       if evalSequenceHadError 
-	       then (
-	       	    tmp := evalSequenceErrorMessage;
-	       	    evalSequenceHadError = false;
-	       	    evalSequenceErrorMessage = nullE;
-	       	    tmp)
-	       else AngleBarList(r)
-	       ));
+	  is v:semiCode do evalSemiCode(v)
+	  is v:sequenceCode do evalSequenceCode(v)
+	  is v:listCode do evalListCode(v)
+	  is v:arrayCode do evalArrayCode(v)
+	  is v:angleBarListCode do evalAngleBarListCode(v));
      when e is Error do handleError(c,e) else e);
 
 export evalexcept(c:Code):Expr := (
