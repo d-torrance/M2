@@ -494,16 +494,31 @@ validateObject = x -> scanKeys(x, k -> (
 
 validateData = method()
 validateData Thing := x -> error("invalid data: ", x)
-validateData String := x -> null
+validateData Boolean :=
+validateData Nothing :=
+validateData String  := x -> null
 validateData HashTable := x -> (
     validateObject x;
-    scanKeys(x, k -> if not match("^[a-zA-Z0-9_]*", k)
-	then error("expected an alphanumeric key, but got ", k)))
-validateData List := x -> validateData \ x
+    scan({"_ns", "_type"},
+         k -> if x#?k then error("data cannot have a '", k, "' key"));
+    scanPairs(x, (k, v) -> (
+	    if not match("^[a-zA-Z0-9_]*", k)
+	    then error("expected an alphanumeric key, but got ", k);
+	    validateData v)))
+validateData List := x -> scan(x, validateData)
 -- TODO: validate polymake schema
 
+validateParams = method()
+validateParams Thing := validateData
+validateParams List := x -> scan(x, validateParams)
+validateParams HashTable := x -> (
+    validateObject x;
+    if x#?"_type" then validateMRDI x
+    else scanValues(x, validateParams))
+
 validateMRDI = method()
-validateMRDI Thing := x -> error("expected an object, but got ", x)
+validateMRDI Thing := x -> error("expected an object, but got a(n) ",
+                                 synonym class x)
 validateMRDI String := validateMRDI @@ fromJSON
 validateMRDI HashTable := x -> (
     validateObject x;
@@ -513,19 +528,19 @@ validateMRDI HashTable := x -> (
 	validateObject x#"_type";
 	if x#"_type"#?"name" then (
 	    if not instance(x#"_type"#"name", String)
-	    then error("expected value of 'name' to be a string"));
-	if x#"_type"#?"params" then validateData x#"_type"#"params")
+	    then error("expected value of 'name' to be a string"))
+	else error "expected '_type' to have a 'name' key";
+	if x#"_type"#?"params" then validateParams x#"_type"#"params")
     else error("expected value of '_type' to be a string or object");
     scan({"_ns", "_refs"}, k -> (
 	    if x#?k then (
 		if not instance(x#k, HashTable)
 		then error("expected value of '", k, "' to be an object");
 		validateObject x#k)));
-    if x#?"_refs" then scanPairs(x#"_refs", (k, v) -> (
-	    if not isUuid k
-	    then error("expected all keys of '_refs' to be UUID's, but got ", k);
-	    validateMRDI v));
-    )
+    if x#?"_refs" then scanValues(x#"_refs", validateMRDI);
+    if x#?"data" then validateData x#"data";
+    if x#?"id" and not isUuid x#"id"
+    then error("expected value of \"id\" to be a UUID"))
 
 -------------------
 -- documentation --
@@ -940,7 +955,6 @@ Description
 	LI {"the presence of a ", TT "_type", " key"},
 	LI {"that ", TT "_type", " is a string or an object with string-valued ", TT "name"},
 	LI {"that ", TT "_ns", " and ", TT "_refs", " are objects (if present)"},
-	LI {"that all keys of ", TT "_refs", " are valid UUIDs"},
 	LI {"that referenced objects are themselves valid MRDI"}}@
 
     The function produces an error if validation fails and returns
@@ -1163,14 +1177,11 @@ checkError(
     "{\"_type\":42}",
     "expected value of '_type' to be a string or object")
 checkError(
-    "{\"_type\":\"ZZ\",\"_refs\":{\"not-a-uuid\":{\"_type\":\"ZZ\"}}}",
-    "expected all keys of '_refs' to be UUID's, but got not-a-uuid")
-checkError(
     "{\"_type\":\"ZZ\",\"_ns\":\"bad\"}",
     "expected value of '_ns' to be an object")
 checkError(
     "[1,2,3]",
-    "expected an object, but got {1,2,3}")
+    "expected an object, but got a(n) list")
 ///
 
 -- Save-path error: only ZZ, QQ, and finite prime fields are currently
