@@ -80,6 +80,8 @@ export {
     "ValueSeparator",
     }
 
+importFrom(Core, {"ForestNode", "TreeNode"})
+
 ---------------------------------------------------------------
 -- parser based on https://datatracker.ietf.org/doc/html/rfc8259
 ----------------------------------------------------------------
@@ -198,6 +200,14 @@ toJSON ZZ      :=
 toJSON Boolean :=
 toJSON Nothing := o -> toString
 toJSON Hypertext := o -> format @@ html
+toJSON DocumentTag := o -> t -> replace(" :: ", "::", format toString t)
+toJSON ForestNode := o -> x -> (
+    s := toJSON(toList x, o);
+    concatenate("{", s_(1,#s-2), "}"))
+toJSON TreeNode := o -> x -> concatenate(
+    toJSON(format x#0, o),
+    o.NameSeparator,
+    toJSON(x#1, o))
 
 maybeNewline = o -> if o.Indent === null then "" else newline
 
