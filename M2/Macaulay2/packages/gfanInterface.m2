@@ -1013,9 +1013,7 @@ runGfanCommandCaptureBoth = (cmd, opts, data) -> (
 	if gfanProgram === null then
 	    gfanProgram = findProgram("gfan", "gfan --help",
 		Verbose => gfanVerbose,
-		-- version 0.8 is required (the 0.6.2 series predates several
-		-- features used here and is no longer supported upstream)
-		MinimumVersion => ("0.8",
+		MinimumVersion => ("0.6",
 		    "gfan _version | head -2 | tail -1 | sed 's/gfan//'"));
 	tmpFile := gfanMakeTemporaryFile data;
 
