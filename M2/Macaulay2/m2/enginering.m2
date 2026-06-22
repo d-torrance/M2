@@ -22,13 +22,6 @@ raw EngineRing := R -> R.RawRing
 raw Ring := R -> if R.?RawRing then R.RawRing else error "no raw engine ring associated with this ring"
 isField EngineRing := R -> rawIsField raw R
 hasEngineLinearAlgebra Ring := (R) -> instance(R, InexactField) or R#?"EngineLinearAlgebra" -- used to decide which algorithm to use
------------------------------------------------------------------------------
--- rational promotion to any engine ring
-promote(QQ,RingElement) := (r,S) -> (
-     a := promote(numerator r,S);
-     b := promote(denominator r,S);
-     if a % b == 0 then a // b
-     else error ("promotion of this rational number to the ring ", toString S, " not possible"))
 
 --- new lift and promote, version 3
 basicLift = opts -> (r,Brawring,Bclass) -> (
