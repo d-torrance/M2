@@ -142,7 +142,9 @@ map(Ring, Ring, Matrix)  := RingMap => opts -> (R, S, m) -> (
 			      m = m | matrix {{(map(R,ambient A,mm)) A.PrimitiveElement}}
 			      )
 			 else m = m | mm;
-			 )));
+			 ))
+	       else if not (A === R or isPromotable(A, R))
+	       then error ("no canonical map from ", toString A, " to ", toString R));
 	  n = n + numgens A;
 	  try A = coefficientRing A else break
 	  );
