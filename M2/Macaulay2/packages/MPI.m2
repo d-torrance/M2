@@ -42,9 +42,6 @@ libfile = concatenate(
     "libmpi4m2.",
     if version#"operating system" == "Darwin" then "dylib" else "so")
 
--- TODO: remove when shim is stable
-if fileExists libfile then removeFile libfile
-
 if not isDirectory libdir then makeDirectory libdir
 if not fileExists libfile then (
     errfile := temporaryFileName();
