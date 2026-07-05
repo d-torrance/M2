@@ -61,11 +61,11 @@ MPIInit () := foreignFunction(mpi4m2, "mpi4m2_init", void, void)
 MPIFinalize = method()
 MPIFinalize () := foreignFunction(mpi4m2, "mpi4m2_finalize", void, void)
 
-------------------
--- MPICommWorld --
-------------------
+-------------
+-- MPIComm --
+-------------
 
--- each MPICommWorld object is a basic list containing a single integer,
+-- each MPIComm object is a basic list containing a single integer,
 -- the index of the corresponding MPI_Comm object in mpi4m2_comms
 MPIComm = new SelfInitializingType of BasicList
 MPIComm.synonym = "MPI communicator"
