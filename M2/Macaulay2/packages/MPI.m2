@@ -81,8 +81,8 @@ size MPIComm := comm -> value mpi4m2CommSize(comm#0)
 mpi4m2CommRank = foreignFunction(mpi4m2, "mpi4m2_comm_rank", int, int)
 rank MPIComm := comm -> value mpi4m2CommRank(comm#0)
 
-mpi4m2AnySource = value foreignSymbol(mpi4m2, "mpi4m2_any_source", int)
-mpi4m2AnyTag = value foreignSymbol(mpi4m2, "mpi4m2_any_tag", int)
+mpi4m2AnySource = foreignSymbol(mpi4m2, "mpi4m2_any_source", int)
+mpi4m2AnyTag = foreignSymbol(mpi4m2, "mpi4m2_any_tag", int)
 
 send = method(Options => {Tag => mpi4m2AnyTag})
 mpi4m2Send = foreignFunction(mpi4m2, "mpi4m2_send", void, {charstar, int, int, int})
