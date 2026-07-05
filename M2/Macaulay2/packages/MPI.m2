@@ -84,9 +84,9 @@ rank MPIComm := comm -> value mpi4m2CommRank(comm#0)
 mpi4m2AnySource = foreignSymbol(mpi4m2, "mpi4m2_any_source", int)
 mpi4m2AnyTag = foreignSymbol(mpi4m2, "mpi4m2_any_tag", int)
 
-send = method(Options => {Tag => mpi4m2AnyTag})
 mpi4m2Send = foreignFunction(mpi4m2, "mpi4m2_send", void, {charstar, int, int, int})
 send(String, ZZ, MPIComm) := o -> (str, dest, comm) -> send(str, dest, o.Tag, comm)
+send = method(Options => {Tag => 0})
 
 receive = method(Options => {
         Source => mpi4m2AnySource,
