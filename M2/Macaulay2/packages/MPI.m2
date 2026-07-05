@@ -19,6 +19,8 @@ export {
     -- methods
     "broadcast",
     "receive",
+    "MPIFinalize",
+    "MPIInit",
     "send",
 
     -- symbols
@@ -56,10 +58,11 @@ if not fileExists libfile then (
 
 mpi4m2 = openSharedLibrary("mpi4m2", FileName => libfile)
 
--- initialize when loading package
-(foreignFunction(mpi4m2, "mpi4m2_init", void, void))()
+MPIInit = method()
+MPIInit () := foreignFunction(mpi4m2, "mpi4m2_init", void, void)
 
-addEndFunction foreignFunction(mpi4m2, "mpi4m2_finalize", void, void)
+MPIFinalize = method()
+MPIFinalize () := foreignFunction(mpi4m2, "mpi4m2_finalize", void, void)
 
 ------------------
 -- MPICommWorld --
