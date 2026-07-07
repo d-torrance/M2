@@ -100,6 +100,11 @@ toBuffer String := x -> (voidstar charstar x, #x)
 toBuffer ZZ     := x -> (voidstar address int x, 1)
 toBuffer RR     := x -> (voidstar address double x, 1)
 
+fromBuffer = method(Dispatch => {Type, Type})
+fromBuffer String := T -> buf -> value charstar buf
+fromBuffer ZZ     := T -> buf -> value(int * buf)
+fromBuffer RR     := T -> buf -> value(double * buf)
+
 send = method(Options => {Tag => 0})
 mpi4m2Send = foreignFunction(mpi4m2, "mpi4m2_send", void, {voidstar, int, int, int, int, int})
 send(String, ZZ, MPIComm) :=
@@ -118,40 +123,26 @@ receive MPIComm := o -> comm -> (
     count := value mpi4m2GetCount(MPIdatatypes#(o#Type), o.Source, o.Tag, comm#0);
     buf := getMemory count;
     mpi4m2Recv(buf, count, MPIdatatypes#(o#Type), o.Source, o.Tag, comm#0);
-    if o#Type === String then value charstar buf
-    else if o#Type === ZZ then value(int * buf)
-    else if o#Type === RR then value(double * buf)
-    else error "unknown type")
+    (fromBuffer o#Type) buf)
 
 broadcast = method()
-mpi4m2Bcast = foreignFunction(mpi4m2, "mpi4m2_bcast", void, {charstar, int, int, int, int})
-broadcast(String, ZZ, MPIComm) := (str, root, comm) -> (
-    buf := charstar str;
-    mpi4m2Bcast(buf, #str, MPIdatatypes#String, root, comm#0);
-    value buf)
-broadcast(ZZ, ZZ, MPIComm) := (n, root, comm) -> (
-    buf := voidstar address int n;
-    mpi4m2Bcast(buf, 1, MPIdatatypes#ZZ, root, comm#0);
-    value(int * buf))
-broadcast(RR, ZZ, MPIComm) := (x, root, comm) -> (
-    buf := voidstar address double x;
-    mpi4m2Bcast(buf, 1, MPIdatatypes#RR, root, comm#0);
-    value(double * buf))
+mpi4m2Bcast = foreignFunction(mpi4m2, "mpi4m2_bcast", void, {voidstar, int, int, int, int})
+broadcast(String, ZZ, MPIComm) :=
+broadcast(ZZ,     ZZ, MPIComm) :=
+broadcast(RR,     ZZ, MPIComm) := (x, root, comm) -> (
+    (buf, count) := toBuffer x;
+    mpi4m2Bcast(buf, count, MPIdatatypes#(class x), root, comm#0);
+    (fromBuffer class x) buf)
 
 reduce = method()
 mpi4m2Reduce = foreignFunction(mpi4m2, "mpi4m2_reduce", void, {voidstar, voidstar, int, int, int, int, int})
-reduce(ZZ, Function, ZZ, MPIComm) := (n, op, root, comm) -> (
-    sendbuf := voidstar address int n;
-    recvbuf := voidstar address int n;
-    mpi4m2Reduce(sendbuf, recvbuf, 1, MPIdatatypes#ZZ,
-        MPIops#op, root, comm#0);
-    value(int * recvbuf))
+reduce(ZZ, Function, ZZ, MPIComm) :=
 reduce(RR, Function, ZZ, MPIComm) := (x, op, root, comm) -> (
-    sendbuf := voidstar address double x;
-    recvbuf := voidstar address double 0.0;
-    mpi4m2Reduce(sendbuf, recvbuf, 1, MPIdatatypes#RR,
+    (sendbuf, count) := toBuffer x;
+    (recvbuf,      ) := toBuffer x;
+    mpi4m2Reduce(sendbuf, recvbuf, count, MPIdatatypes#(class x),
         MPIops#op, root, comm#0);
-    value(double * recvbuf))
+    (fromBuffer class x) recvbuf)
 
 end
 
