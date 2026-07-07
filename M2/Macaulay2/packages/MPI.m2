@@ -61,6 +61,13 @@ MPIInit () := foreignFunction(mpi4m2, "mpi4m2_init", void, void)
 MPIFinalize = method()
 MPIFinalize () := foreignFunction(mpi4m2, "mpi4m2_finalize", void, void)
 
+-- keep consistent w/ mpi4m2_datatypes
+MPIdatatypes = hashTable {
+    String => 0,
+    ZZ => 1,
+    RR => 2,
+    }
+
 -------------
 -- MPIComm --
 -------------
@@ -97,11 +104,20 @@ receive MPIComm := o -> comm -> (
     value buf)
 
 broadcast = method()
-mpi4m2Bcast = foreignFunction(mpi4m2, "mpi4m2_bcast", void, {charstar, int, int, int})
+mpi4m2Bcast = foreignFunction(mpi4m2, "mpi4m2_bcast", void, {charstar, int, int, int, int})
 broadcast(String, ZZ, MPIComm) := (str, root, comm) -> (
     buf := charstar str;
-    mpi4m2Bcast(buf, #str, root, comm#0);
+    mpi4m2Bcast(buf, #str, MPIdatatypes#String, root, comm#0);
     value buf)
+broadcast(ZZ, ZZ, MPIComm) := (n, root, comm) -> (
+    buf := voidstar address int n;
+    mpi4m2Bcast(buf, 1, MPIdatatypes#ZZ, root, comm#0);
+    value(int * buf))
+broadcast(RR, ZZ, MPIComm) := (x, root, comm) -> (
+    buf := voidstar address double x;
+    mpi4m2Bcast(buf, 1, MPIdatatypes#RR, root, comm#0);
+    value(double * buf))
+
 
 end
 

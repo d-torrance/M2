@@ -6,6 +6,13 @@
 static MPI_Comm mpi4m2_comms[MPI4M2_MAX_COMMS];
 static int mpi4m2_num_comms = 0;
 
+/* keep consistent w/ MPIdatatypes */
+static MPI_Datatype mpi4m2_datatypes[] = {
+  MPI_BYTE,
+  MPI_INT,
+  MPI_DOUBLE,
+};
+
 int mpi4m2_any_source = MPI_ANY_SOURCE;
 int mpi4m2_any_tag = MPI_ANY_TAG;
 
@@ -66,7 +73,10 @@ void mpi4m2_recv(char* buf, int count, int source, int tag, int comm)
   MPI_Recv(buf, count, MPI_BYTE, source, tag, mpi4m2_comms[comm], &status);
 }
 
-void mpi4m2_bcast(char* buf, int count, int root, int comm)
+void mpi4m2_bcast(char* buf, int count, int datatype, int root, int comm)
 {
-  MPI_Bcast(buf, count, MPI_BYTE, root, mpi4m2_comms[comm]);
+  MPI_Bcast(buf, count, mpi4m2_datatypes[datatype], root, mpi4m2_comms[comm]);
+}
+
+{
 }
