@@ -67,6 +67,8 @@ MPIdatatypes = hashTable {
     String => 0,
     ZZ => 1,
     RR => 2,
+    (List, ZZ) => 1,
+    (List, RR) => 2,
     }
 
 listType = x -> (
@@ -129,7 +131,8 @@ send = method(Options => {Tag => 0})
 mpi4m2Send = foreignFunction(mpi4m2, "mpi4m2_send", void, {voidstar, int, int, int, int, int})
 send(String, ZZ, MPIComm) :=
 send(ZZ,     ZZ, MPIComm) :=
-send(RR,     ZZ, MPIComm) := o -> (x, dest, comm) -> (
+send(RR,     ZZ, MPIComm) :=
+send(List,   ZZ, MPIComm) := o -> (x, dest, comm) -> (
     (buf, count) := toBuffer x;
     mpi4m2Send(buf, count, MPIdatatype x, dest, o.Tag, comm#0))
 
@@ -143,7 +146,11 @@ receive MPIComm := o -> comm -> (
     count := value mpi4m2GetCount(MPIdatatypes#(o#Type), o.Source, o.Tag, comm#0);
     buf := getMemory count;
     mpi4m2Recv(buf, count, MPIdatatypes#(o#Type), o.Source, o.Tag, comm#0);
-    (fromBuffer o#Type) buf)
+    typ := (
+        if instance(o#Type, Sequence) and #o#Type == 2
+        then (o#Type#1, count)
+        else o#Type);
+    (fromBuffer typ) buf)
 
 broadcast = method()
 mpi4m2Bcast = foreignFunction(mpi4m2, "mpi4m2_bcast", void, {voidstar, int, int, int, int})

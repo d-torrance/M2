@@ -20,6 +20,14 @@ if rk == 1 then assert Equation(receive(MPICommWorld, Type => ZZ), 5)
 if rk == 0 then send(1.2, 1, MPICommWorld)
 if rk == 1 then assert Equation(receive(MPICommWorld, Type => RR), 1.2)
 
+-- list of ints
+if rk == 0 then send({1, 2, 3}, 1, MPICommWorld)
+if rk == 1 then assert Equation(receive(MPICommWorld, Type => (List, ZZ)), {1, 2, 3})
+
+-- list of doubles
+if rk == 0 then send({1.0, 2.0, 3.0}, 1, MPICommWorld)
+if rk == 1 then assert Equation(receive(MPICommWorld, Type => (List, RR)), {1.0, 2.0, 3.0})
+
 ---------------
 -- broadcast --
 ---------------
