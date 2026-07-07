@@ -126,6 +126,12 @@ broadcast(RR, ZZ, MPIComm) := (x, root, comm) -> (
 
 reduce = method()
 mpi4m2Reduce = foreignFunction(mpi4m2, "mpi4m2_reduce", void, {voidstar, voidstar, int, int, int, int, int})
+reduce(ZZ, Function, ZZ, MPIComm) := (n, op, root, comm) -> (
+    sendbuf := voidstar address int n;
+    recvbuf := voidstar address int n;
+    mpi4m2Reduce(sendbuf, recvbuf, 1, MPIdatatypes#ZZ,
+        MPIops#op, root, comm#0);
+    value(int * recvbuf))
 reduce(RR, Function, ZZ, MPIComm) := (x, op, root, comm) -> (
     sendbuf := voidstar address double x;
     recvbuf := voidstar address double 0.0;
