@@ -13,6 +13,11 @@ static MPI_Datatype mpi4m2_datatypes[] = {
   MPI_DOUBLE,
 };
 
+/* keep consistent w/ MPIops */
+static MPI_Op mpi4m2_ops[] = {
+  MPI_SUM,
+};
+
 int mpi4m2_any_source = MPI_ANY_SOURCE;
 int mpi4m2_any_tag = MPI_ANY_TAG;
 
@@ -78,5 +83,9 @@ void mpi4m2_bcast(char* buf, int count, int datatype, int root, int comm)
   MPI_Bcast(buf, count, mpi4m2_datatypes[datatype], root, mpi4m2_comms[comm]);
 }
 
+void mpi4m2_reduce(void* sendbuf, void* recvbuf, int count, int datatype,
+		   int op, int root, int comm)
 {
+  MPI_Reduce(sendbuf, recvbuf, count, mpi4m2_datatypes[datatype],
+	     mpi4m2_ops[op], root, mpi4m2_comms[comm]);
 }

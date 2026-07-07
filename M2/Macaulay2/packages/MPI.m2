@@ -21,6 +21,7 @@ export {
     "receive",
     "MPIFinalize",
     "MPIInit",
+    "reduce",
     "send",
 
     -- symbols
@@ -66,6 +67,11 @@ MPIdatatypes = hashTable {
     String => 0,
     ZZ => 1,
     RR => 2,
+    }
+
+-- keep consistent w/ mpi4m2_ops
+MPIops = hashTable {
+    sum => 0,
     }
 
 -------------
@@ -118,6 +124,14 @@ broadcast(RR, ZZ, MPIComm) := (x, root, comm) -> (
     mpi4m2Bcast(buf, 1, MPIdatatypes#RR, root, comm#0);
     value(double * buf))
 
+reduce = method()
+mpi4m2Reduce = foreignFunction(mpi4m2, "mpi4m2_reduce", void, {voidstar, voidstar, int, int, int, int, int})
+reduce(RR, Function, ZZ, MPIComm) := (x, op, root, comm) -> (
+    sendbuf := voidstar address double x;
+    recvbuf := voidstar address double 0.0;
+    mpi4m2Reduce(sendbuf, recvbuf, 1, MPIdatatypes#RR,
+        MPIops#op, root, comm#0);
+    value(double * recvbuf))
 
 end
 
