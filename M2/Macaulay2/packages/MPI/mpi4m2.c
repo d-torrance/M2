@@ -55,27 +55,27 @@ int mpi4m2_comm_rank(int comm)
   return rank;
 }
 
-void mpi4m2_send(char* buf, int count, int dest, int tag, int comm)
+void mpi4m2_send(char* buf, int count, int datatype, int dest, int tag, int comm)
 {
-  MPI_Ssend(buf, count, MPI_BYTE, dest, tag, mpi4m2_comms[comm]);
+  MPI_Ssend(buf, count, mpi4m2_datatypes[datatype], dest, tag, mpi4m2_comms[comm]);
 }
 
-int mpi4m2_get_count(int source, int tag, int comm)
+int mpi4m2_get_count(int datatype, int source, int tag, int comm)
 {
   MPI_Status status;
   int count;
 
   MPI_Probe(source, tag, mpi4m2_comms[comm], &status);
-  MPI_Get_count(&status, MPI_BYTE, &count);
+  MPI_Get_count(&status, mpi4m2_datatypes[datatype], &count);
 
   return count;
 }
 
-void mpi4m2_recv(char* buf, int count, int source, int tag, int comm)
+void mpi4m2_recv(char* buf, int count, int datatype, int source, int tag, int comm)
 {
   MPI_Status status;
 
-  MPI_Recv(buf, count, MPI_BYTE, source, tag, mpi4m2_comms[comm], &status);
+  MPI_Recv(buf, count, mpi4m2_datatypes[datatype], source, tag, mpi4m2_comms[comm], &status);
 }
 
 void mpi4m2_bcast(char* buf, int count, int datatype, int root, int comm)

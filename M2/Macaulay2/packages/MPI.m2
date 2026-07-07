@@ -94,20 +94,34 @@ rank MPIComm := comm -> value mpi4m2CommRank(comm#0)
 mpi4m2AnySource = foreignSymbol(mpi4m2, "mpi4m2_any_source", int)
 mpi4m2AnyTag = foreignSymbol(mpi4m2, "mpi4m2_any_tag", int)
 
+-- unexported helper methods for M2 object <-> buffer
+toBuffer = method() -- returns (buf, count)
+toBuffer String := x -> (voidstar charstar x, #x)
+toBuffer ZZ     := x -> (voidstar address int x, 1)
+toBuffer RR     := x -> (voidstar address double x, 1)
+
 send = method(Options => {Tag => 0})
-mpi4m2Send = foreignFunction(mpi4m2, "mpi4m2_send", void, {charstar, int, int, int, int})
-send(String, ZZ, MPIComm) := o -> (str, dest, comm) -> mpi4m2Send(str, #str, dest, o.Tag, comm#0)
+mpi4m2Send = foreignFunction(mpi4m2, "mpi4m2_send", void, {voidstar, int, int, int, int, int})
+send(String, ZZ, MPIComm) :=
+send(ZZ,     ZZ, MPIComm) :=
+send(RR,     ZZ, MPIComm) := o -> (x, dest, comm) -> (
+    (buf, count) := toBuffer x;
+    mpi4m2Send(buf, count, MPIdatatypes#(class x), dest, o.Tag, comm#0))
 
 receive = method(Options => {
         Source => mpi4m2AnySource,
-        Tag => mpi4m2AnyTag})
-mpi4m2GetCount = foreignFunction(mpi4m2, "mpi4m2_get_count", int, {int, int, int})
-mpi4m2Recv = foreignFunction(mpi4m2, "mpi4m2_recv", void, {charstar, int, int, int, int})
+        Tag => mpi4m2AnyTag,
+        Type => String})
+mpi4m2GetCount = foreignFunction(mpi4m2, "mpi4m2_get_count", int, {int, int, int, int})
+mpi4m2Recv = foreignFunction(mpi4m2, "mpi4m2_recv", void, {charstar, int, int, int, int, int})
 receive MPIComm := o -> comm -> (
-    count := value mpi4m2GetCount(o.Source, o.Tag, comm#0);
-    buf := charstar getMemory count;
-    mpi4m2Recv(buf, count, o.Source, o.Tag, comm#0);
-    value buf)
+    count := value mpi4m2GetCount(MPIdatatypes#(o#Type), o.Source, o.Tag, comm#0);
+    buf := getMemory count;
+    mpi4m2Recv(buf, count, MPIdatatypes#(o#Type), o.Source, o.Tag, comm#0);
+    if o#Type === String then value charstar buf
+    else if o#Type === ZZ then value(int * buf)
+    else if o#Type === RR then value(double * buf)
+    else error "unknown type")
 
 broadcast = method()
 mpi4m2Bcast = foreignFunction(mpi4m2, "mpi4m2_bcast", void, {charstar, int, int, int, int})
