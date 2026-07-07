@@ -69,6 +69,19 @@ MPIdatatypes = hashTable {
     RR => 2,
     }
 
+listType = x -> (
+    if #x > 0 then (
+        if all(x, y -> instance(y, ZZ)) then ZZ
+        else if all(x, y -> instance(y, Number) and isReal y) then RR
+        else error "expected a list of integers or real numbers")
+    else error "expected a nonempty list")
+
+MPIdatatype = method()
+MPIdatatype String :=
+MPIdatatype ZZ     :=
+MPIdatatype RR     := x -> MPIdatatypes#(class x)
+MPIdatatype List   := x -> MPIdatatypes#(listType x)
+
 -- keep consistent w/ mpi4m2_ops
 MPIops = hashTable {
     sum => 0,
@@ -99,11 +112,18 @@ toBuffer = method() -- returns (buf, count)
 toBuffer String := x -> (voidstar charstar x, #x)
 toBuffer ZZ     := x -> (voidstar address int x, 1)
 toBuffer RR     := x -> (voidstar address double x, 1)
+toBuffer List   := x -> (
+    (T, n) := (listType x, #x);
+    if T === ZZ then (voidstar (n * int) x, n)
+    else if T === RR then (voidstar (n * double) x, n)
+    else error "expected list of integers or real numbers")
 
-fromBuffer = method(Dispatch => {Type, Type})
+fromBuffer = method(Dispatch => {Type, Thing})
 fromBuffer String := T -> buf -> value charstar buf
 fromBuffer ZZ     := T -> buf -> value(int * buf)
 fromBuffer RR     := T -> buf -> value(double * buf)
+fromBuffer(ZZ, ZZ) := (T, n) -> buf -> value((n * int) buf)
+fromBuffer(RR, ZZ) := (T, n) -> buf -> value((n * double) buf)
 
 send = method(Options => {Tag => 0})
 mpi4m2Send = foreignFunction(mpi4m2, "mpi4m2_send", void, {voidstar, int, int, int, int, int})
@@ -111,7 +131,7 @@ send(String, ZZ, MPIComm) :=
 send(ZZ,     ZZ, MPIComm) :=
 send(RR,     ZZ, MPIComm) := o -> (x, dest, comm) -> (
     (buf, count) := toBuffer x;
-    mpi4m2Send(buf, count, MPIdatatypes#(class x), dest, o.Tag, comm#0))
+    mpi4m2Send(buf, count, MPIdatatype x, dest, o.Tag, comm#0))
 
 receive = method(Options => {
         Source => mpi4m2AnySource,
@@ -131,8 +151,12 @@ broadcast(String, ZZ, MPIComm) :=
 broadcast(ZZ,     ZZ, MPIComm) :=
 broadcast(RR,     ZZ, MPIComm) := (x, root, comm) -> (
     (buf, count) := toBuffer x;
-    mpi4m2Bcast(buf, count, MPIdatatypes#(class x), root, comm#0);
+    mpi4m2Bcast(buf, count, MPIdatatype x, root, comm#0);
     (fromBuffer class x) buf)
+broadcast(List,   ZZ, MPIComm) := (x, root, comm) -> (
+    (buf, count) := toBuffer x;
+    mpi4m2Bcast(buf, count, MPIdatatype x, root, comm#0);
+    (fromBuffer(listType x, #x)) buf)
 
 reduce = method()
 mpi4m2Reduce = foreignFunction(mpi4m2, "mpi4m2_reduce", void, {voidstar, voidstar, int, int, int, int, int})
@@ -140,7 +164,7 @@ reduce(ZZ, Function, ZZ, MPIComm) :=
 reduce(RR, Function, ZZ, MPIComm) := (x, op, root, comm) -> (
     (sendbuf, count) := toBuffer x;
     (recvbuf,      ) := toBuffer x;
-    mpi4m2Reduce(sendbuf, recvbuf, count, MPIdatatypes#(class x),
+    mpi4m2Reduce(sendbuf, recvbuf, count, MPIdatatype x,
         MPIops#op, root, comm#0);
     (fromBuffer class x) recvbuf)
 

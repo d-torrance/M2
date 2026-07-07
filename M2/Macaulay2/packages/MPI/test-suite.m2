@@ -38,6 +38,16 @@ x = if rk == 0 then 2.5 else 6.7
 x = broadcast(x, 0, MPICommWorld)
 assert Equation(x, 2.5)
 
+-- list of ints
+x = if rk == 0 then {1, 2, 3} else {4, 5, 6}
+x = broadcast(x, 0, MPICommWorld)
+assert Equation(x, {1, 2, 3})
+
+-- list of doubles
+x = if rk == 0 then {1.0, 2.0, 3.0} else {4.0, 5.0, 6.0}
+x = broadcast(x, 0, MPICommWorld)
+assert Equation(x, {1.0, 2.0, 3.0})
+
 ------------
 -- reduce --
 ------------
