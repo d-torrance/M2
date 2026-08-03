@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Cache every Macaulay2/M2 issue locally so matching can be done offline.
+
+The search API allows only 30 requests a minute, which is far too little to look
+up 857 bug files one at a time.  The core API allows 5000 an hour, and the whole
+issue list is about 21 paginated requests, so fetch it once and match locally.
+
+Pull requests are dropped: the issues endpoint returns both, but only issues are
+candidates for "is this already tracked?".  PR numbers referenced as fixes are
+recorded by hand in the "fix" column instead.
+"""
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import catalog
+
+REPO = "Macaulay2/M2"
+KEEP = ["number", "title", "state", "created_at", "closed_at", "html_url"]
+
+
+def fetch():
+    p = subprocess.run(
+        ["gh", "api", "--paginate",
+         "repos/%s/issues?state=all&per_page=100" % REPO],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.returncode != 0:
+        raise SystemExit("gh api failed:\n" + p.stderr.decode("utf-8", "replace"))
+
+    # --paginate concatenates one JSON array per page, so parse them in sequence.
+    decoder = json.JSONDecoder()
+    text = p.stdout.decode("utf-8", "replace")
+    issues, pos = [], 0
+    while pos < len(text):
+        while pos < len(text) and text[pos].isspace():
+            pos += 1
+        if pos >= len(text):
+            break
+        page, pos = decoder.raw_decode(text, pos)
+        issues.extend(page)
+
+    out = []
+    for i in issues:
+        if "pull_request" in i:
+            continue
+        row = {k: i.get(k) for k in KEEP}
+        row["labels"] = [l["name"] for l in i.get("labels", [])]
+        # Generous cap: bin/suggest-issues needs to see a whole file listing to
+        # recognize one, and truncating mid-listing would defeat that check.
+        row["body"] = (i.get("body") or "")[:20000]
+        out.append(row)
+    return out
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--refresh", action="store_true",
+                   help="refetch even if the cache already exists")
+    args = p.parse_args()
+
+    path = os.path.join(catalog.CACHE, "issues.json")
+    if os.path.exists(path) and not args.refresh:
+        with open(path, encoding="utf-8") as f:
+            print("%s already has %d issues (use --refresh)"
+                  % (path, len(json.load(f))))
+        return
+
+    issues = fetch()
+    os.makedirs(catalog.CACHE, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(issues, f, indent=1)
+
+    is_open = sum(1 for i in issues if i["state"] == "open")
+    print("wrote %s: %d issues (%d open, %d closed)"
+          % (path, len(issues), is_open, len(issues) - is_open))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,310 @@
+#!/usr/bin/env python3
+"""Find the PR or commit that fixed each bug marked verdict=fixed.
+
+Fills the "fix" column so project 46 can carry a pointer to what settled each
+bug.  A PR number is preferred; for anything fixed before Macaulay2 moved to a
+pull-request workflow there is no PR, so the commit sha is recorded instead.
+
+Two sources, in order of confidence:
+
+  1. The issue timeline, when the row names an issue.  A "closed" event carrying
+     a commit_id is the closing commit outright.
+  2. Local git history: a commit whose message says it fixes that issue number.
+     This is free, needs no API call, and is what actually finds the old ones --
+     "Fixed github issue #203." (172cdeff22, 2015).
+
+Rows with no issue number have nothing to anchor a search to.  Rather than
+guess, those get a shortlist in cache/fix-candidates.tsv, built by searching
+commit messages for the bug's slug, for a human to pick from.
+
+Nothing already in the "fix" column is ever overwritten.
+"""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import catalog
+
+REPO = "Macaulay2/M2"
+
+# A commit claiming the fix, as opposed to one that merely mentions the number.
+# Both "#203" and a bare "issues 370, 473" have to count: the commit that fixed
+# #370 and #473 is titled "fixes to solution to git issues 370, 473" with no
+# hash mark anywhere, so keying on "#" alone misses it.
+FIX_VERB = r"(?:fix(?:e[sd])?|close[sd]?|resolve[sd]?|solution|solve[sd]?)"
+
+
+def fix_claim(number):
+    return re.compile(
+        r"%s\b[^\n]{0,60}?(?:#%d\b|issues?\b[^\n]{0,30}?\b%d\b)"
+        % (FIX_VERB, number, number), re.I)
+
+
+# Commit shas named in an issue comment, as in "Fixed in commit 7dd8aaa".
+COMMENT_SHA = re.compile(
+    r"%s\b[^\n]{0,40}?\bcommits?\b[^\n]{0,20}?\b([0-9a-f]{7,40})\b" % FIX_VERB,
+    re.I)
+
+
+# "Merge pull request #56 from ..." means PR 56, which has nothing to do with
+# issue 56.  Merge subjects live in a different numbering space, so a naive
+# --grep for "#56" turns up the wrong commit entirely.
+MERGE_SUBJECT = re.compile(r"^Merge pull request #(\d+)\b", re.I)
+
+ISSUE_RE = re.compile(r"#(\d+)")
+
+
+def toplevel():
+    """Repo root, so pathspecs resolve against it rather than bug-triage/."""
+    p = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                       cwd=catalog.ROOT, stdout=subprocess.PIPE,
+                       stderr=subprocess.DEVNULL)
+    return p.stdout.decode().strip() or catalog.ROOT
+
+
+TOP = toplevel()
+
+
+def git(*args):
+    p = subprocess.run(["git"] + list(args), cwd=TOP,
+                       stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    return p.stdout.decode("utf-8", "replace")
+
+
+def gh_json(path):
+    p = subprocess.run(["gh", "api", path],
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.returncode != 0:
+        return None
+    try:
+        return json.loads(p.stdout)
+    except ValueError:
+        return None
+
+
+def commits_claiming(number):
+    """Local commits whose message claims to fix this issue, newest first.
+
+    Greps loosely for the bare number and filters precisely in Python -- git's
+    POSIX regexps make the interesting patterns awkward to express, and the
+    filtering is cheap.  The full message is searched, not just the subject,
+    since plenty of these commits explain themselves in the body.
+    """
+    out = git("log", "--all", "--regexp-ignore-case", "--grep=%d" % number,
+              "--format=%H%x1f%ad%x1f%s%x1f%b%x1e", "--date=short")
+    claim = fix_claim(number)
+    hits = []
+    for record in out.split("\x1e"):
+        record = record.strip("\n")
+        if not record:
+            continue
+        parts = record.split("\x1f", 3)
+        if len(parts) < 4:
+            continue
+        sha, date, subject, body = parts
+        m = MERGE_SUBJECT.match(subject)
+        if m and int(m.group(1)) == number:
+            continue  # PR N, not issue N
+        if claim.search(subject + "\n" + body):
+            hits.append((sha, date, subject))
+    return hits
+
+
+def comment_commit(number):
+    """A commit sha named in the issue's own comments, e.g. "Fixed in 7dd8aaa"."""
+    comments = gh_json("repos/%s/issues/%d/comments?per_page=100" % (REPO, number))
+    if not comments:
+        return None
+    for c in reversed(comments):
+        m = COMMENT_SHA.search(c.get("body") or "")
+        if m and describe(m.group(1)):
+            return m.group(1)
+    return None
+
+
+def timeline_commit(number):
+    """Closing commit from the issue timeline, if GitHub recorded one."""
+    events = gh_json("repos/%s/issues/%d/timeline?per_page=100" % (REPO, number))
+    if not events:
+        return None
+    for e in events:
+        if e.get("event") == "closed" and e.get("commit_id"):
+            return e["commit_id"]
+    return None
+
+
+def commit_to_pr(sha, cache):
+    """PR that brought this commit in, or None if it was pushed directly.
+
+    Most of the older fixes here predate the PR workflow and legitimately have
+    no PR -- the sha is then the only pointer there is.
+    """
+    if sha in cache:
+        return cache[sha]
+    prs = gh_json("repos/%s/commits/%s/pulls" % (REPO, sha))
+    number = prs[0]["number"] if prs else None
+    cache[sha] = number
+    return number
+
+
+def resolved_rename(path):
+    """The commit that moved a bug file into a RESOLVED/ directory.
+
+    Anton settled these by filing them under RESOLVED/ rather than by writing
+    the issue number anywhere, so the rename is the record of when it happened.
+    That is a pointer to the resolution, not necessarily to the line that
+    changed -- the note column already says so.
+    """
+    if "/RESOLVED/" not in path:
+        return None
+    out = git("log", "--all", "--diff-filter=R", "--follow",
+              "--format=%H", "--", path)
+    shas = [l for l in out.split("\n") if l.strip()]
+    return shas[0] if shas else None
+
+
+def describe(sha):
+    out = git("log", "-1", "--format=%h%x1f%ad%x1f%s", "--date=short", sha)
+    if not out.strip():
+        return None
+    return out.strip().split("\x1f", 2)
+
+
+# A slug matching more commits than this is an ordinary word, not a handle on
+# one bug -- "decompose" matches most of a year of unrelated churn.  Better to
+# offer nothing than a page of noise for someone to read through.
+SLUG_NOISE_LIMIT = 40
+
+
+def slug_candidates(path, limit=8):
+    """Commits that claim to fix something matching the bug's slug.
+
+    A shortlist, never an answer.  Requiring a fix verb as well as the slug is
+    what keeps this from degenerating into "commits containing a common word".
+    """
+    base = re.sub(r"\.\w+$", "", os.path.basename(path))
+    slug = re.sub(r"^[0-9]+(?:\.[0-9]+)?-", "", base)
+    if len(slug) < 5:
+        return slug, []
+    out = git("log", "--all", "--regexp-ignore-case", "--grep=" + slug,
+              "--format=%h%x1f%ad%x1f%s%x1f%b%x1e", "--date=short")
+    records = [r.strip("\n") for r in out.split("\x1e") if r.strip("\n")]
+    if len(records) > SLUG_NOISE_LIMIT:
+        return slug, []
+
+    verb = re.compile(FIX_VERB, re.I)
+    hits = []
+    for record in records:
+        parts = record.split("\x1f", 3)
+        if len(parts) < 4:
+            continue
+        sha, date, subject, body = parts
+        if verb.search(subject + "\n" + body):
+            hits.append((sha, date, subject))
+    return slug, hits[:limit]
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--all", action="store_true",
+                   help="also revisit rows whose fix column is already set")
+    p.add_argument("--offline", action="store_true",
+                   help="use local git history only, no API calls")
+    args = p.parse_args()
+
+    rows = catalog.require(catalog.read())
+    targets = [r for r in rows
+               if r["verdict"] == "fixed" and (args.all or not r["fix"])]
+    if not targets:
+        print("no fixed rows are missing a fix reference")
+        return
+
+    print("looking for fix references for %d rows\n" % len(targets))
+    pr_cache = {}
+    found = anchored = 0
+    unanchored = []
+
+    for r in targets:
+        numbers = [int(n) for n in ISSUE_RE.findall(r["issue"])]
+        if not numbers:
+            sha = resolved_rename(r["path"])
+            if sha and describe(sha):
+                anchored += 1
+                short, date, subject = describe(sha)
+                pr = None if args.offline else commit_to_pr(sha, pr_cache)
+                r["fix"] = "#%d" % pr if pr else short
+                found += 1
+                print("  %-50s %s  (%s, moved into RESOLVED/)"
+                      % (r["path"], r["fix"], date))
+                print("  %-50s   %s" % ("", subject[:70]))
+            else:
+                unanchored.append(r)
+            continue
+        anchored += 1
+
+        sha = source = None
+        for number in numbers:
+            if not args.offline:
+                sha = timeline_commit(number)
+                if sha:
+                    source = "timeline of #%d" % number
+                    break
+            hits = commits_claiming(number)
+            if hits:
+                # Oldest claim is the original fix; later ones are follow-ups.
+                sha = hits[-1][0]
+                source = "commit message referencing #%d" % number
+                break
+            if not args.offline:
+                sha = comment_commit(number)
+                if sha:
+                    source = "comment on #%d" % number
+                    break
+
+        if not sha:
+            print("  %-50s no fix commit found" % r["path"])
+            continue
+
+        info = describe(sha)
+        if info is None:
+            print("  %-50s %s not in local history" % (r["path"], sha[:10]))
+            continue
+        short, date, subject = info
+
+        pr = None if args.offline else commit_to_pr(sha, pr_cache)
+        r["fix"] = "#%d" % pr if pr else short
+        found += 1
+        print("  %-50s %s  (%s, %s)" % (r["path"], r["fix"], date, source))
+        print("  %-50s   %s" % ("", subject[:70]))
+
+    catalog.write(rows)
+    print("\nrecorded %d of %d anchored rows" % (found, anchored))
+
+    # Rows with no issue number get a shortlist instead of a guess.
+    out = os.path.join(catalog.CACHE, "fix-candidates.tsv")
+    os.makedirs(catalog.CACHE, exist_ok=True)
+    with open(out, "w", encoding="utf-8") as f:
+        f.write("# Commits mentioning each bug's slug. NOT answers -- a shortlist\n")
+        f.write("# for rows marked fixed that name no issue to anchor a search to.\n")
+        f.write("path\tslug\tcommit\tdate\tsubject\n")
+        listed = 0
+        for r in unanchored:
+            slug, hits = slug_candidates(r["path"])
+            if not hits:
+                continue
+            listed += 1
+            for sha, date, subject in hits:
+                f.write("%s\t%s\t%s\t%s\t%s\n"
+                        % (r["path"], slug, sha, date, subject.replace("\t", " ")))
+    print("%d of %d unanchored rows have candidates in %s"
+          % (listed, len(unanchored), out))
+
+
+if __name__ == "__main__":
+    main()

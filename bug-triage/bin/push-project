@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+"""One-way sync of catalog.tsv into GitHub project 46.  DRY RUN BY DEFAULT.
+
+Project 46 (https://github.com/orgs/Macaulay2/projects/46) already holds roughly
+one draft issue per file from the removed bugs/ tree, with custom fields.  This
+pushes settled verdicts from catalog.tsv onto those items, matching on the bug
+file path.
+
+Nothing here creates items, deletes items, or creates fields: it only sets
+values on fields that already exist, for items it can match.  Anything it cannot
+match is reported and skipped.
+
+    ./bin/push-project                 # show what would change
+    ./bin/push-project --apply         # actually write
+
+Requires the "project" scope, which the default gh token does not have:
+
+    gh auth refresh -s project
+
+--apply performs one GraphQL mutation per changed field per item and cannot be
+undone in bulk.  Read the dry-run output first.
+"""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import catalog
+
+ORG = "Macaulay2"
+PROJECT = 46
+
+# catalog column -> project field name.  Field names are matched
+# case-insensitively against what the project actually has; a column whose field
+# is missing is reported and skipped rather than created.
+FIELD_MAP = {
+    "verdict": "Status",
+    "issue": "Issue",
+    "fix": "Fix",
+    "disposition": "Disposition",
+    "note": "Note",
+}
+
+
+def gh(query, **variables):
+    cmd = ["gh", "api", "graphql", "-f", "query=" + query]
+    for k, v in variables.items():
+        cmd += ["-F" if isinstance(v, int) else "-f", "%s=%s" % (k, v)]
+    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.returncode != 0:
+        err = p.stderr.decode("utf-8", "replace")
+        if "read:project" in err or "INSUFFICIENT_SCOPES" in err:
+            raise SystemExit(
+                "the gh token lacks project scope.  Run:\n"
+                "    gh auth refresh -s project\n\n" + err)
+        raise SystemExit("gh api graphql failed:\n" + err)
+    return json.loads(p.stdout)
+
+
+FIELDS_QUERY = """
+query($org:String!, $number:Int!) {
+  organization(login:$org) {
+    projectV2(number:$number) {
+      id title
+      fields(first:50) {
+        nodes {
+          ... on ProjectV2FieldCommon { id name dataType }
+          ... on ProjectV2SingleSelectField {
+            id name dataType options { id name }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+ITEMS_QUERY = """
+query($org:String!, $number:Int!, $cursor:String) {
+  organization(login:$org) {
+    projectV2(number:$number) {
+      items(first:100, after:$cursor) {
+        pageInfo { hasNextPage endCursor }
+        nodes {
+          id
+          content {
+            ... on DraftIssue { title body }
+            ... on Issue { number title body }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+PATH_RE = re.compile(r"bugs/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+")
+
+
+def fetch_project():
+    data = gh(FIELDS_QUERY, org=ORG, number=PROJECT)
+    proj = data["data"]["organization"]["projectV2"]
+    fields = {}
+    for f in proj["fields"]["nodes"]:
+        if f:
+            fields[f["name"].lower()] = f
+    return proj, fields
+
+
+def fetch_items():
+    items, cursor = [], None
+    while True:
+        # gh refuses a null variable, so send the first page without a cursor.
+        if cursor is None:
+            data = gh(ITEMS_QUERY.replace(", $cursor:String", "")
+                      .replace(", after:$cursor", ""), org=ORG, number=PROJECT)
+        else:
+            data = gh(ITEMS_QUERY, org=ORG, number=PROJECT, cursor=cursor)
+        page = data["data"]["organization"]["projectV2"]["items"]
+        items.extend(n for n in page["nodes"] if n.get("content"))
+        if not page["pageInfo"]["hasNextPage"]:
+            return items
+        cursor = page["pageInfo"]["endCursor"]
+
+
+def key_of(item):
+    """The bugs/... path an item refers to, from its title or body."""
+    c = item["content"]
+    for text in (c.get("title") or "", c.get("body") or ""):
+        m = PATH_RE.search(text)
+        if m:
+            return m.group(0)
+    return None
+
+
+MUTATIONS = {
+    "text": """
+mutation($project:ID!, $item:ID!, $field:ID!, $value:String!) {
+  updateProjectV2ItemFieldValue(input:{
+    projectId:$project, itemId:$item, fieldId:$field,
+    value:{text:$value}}) { projectV2Item { id } }
+}
+""",
+    "select": """
+mutation($project:ID!, $item:ID!, $field:ID!, $value:String!) {
+  updateProjectV2ItemFieldValue(input:{
+    projectId:$project, itemId:$item, fieldId:$field,
+    value:{singleSelectOptionId:$value}}) { projectV2Item { id } }
+}
+""",
+}
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--apply", action="store_true",
+                   help="actually write to the project (default: dry run)")
+    p.add_argument("--include-todo", action="store_true",
+                   help="also push rows still marked todo")
+    args = p.parse_args()
+
+    rows = catalog.require(catalog.read())
+    if not args.include_todo:
+        rows = [r for r in rows if r["verdict"] != "todo"]
+    if not rows:
+        raise SystemExit("nothing settled to push yet")
+
+    proj, fields = fetch_project()
+    print("project: %s (%s)" % (proj["title"], proj["id"]))
+    print("fields:  %s\n" % ", ".join(sorted(f["name"] for f in fields.values())))
+
+    resolved = {}
+    for column, name in FIELD_MAP.items():
+        f = fields.get(name.lower())
+        if f is None:
+            print("skipping column %-12s no field named %r in the project"
+                  % (column, name))
+            continue
+        resolved[column] = f
+
+    items = fetch_items()
+    by_key = {}
+    unkeyed = 0
+    for item in items:
+        k = key_of(item)
+        if k is None:
+            unkeyed += 1
+        else:
+            by_key.setdefault(k, item)
+    print("\n%d project items, %d carry a bugs/ path, %d do not"
+          % (len(items), len(by_key), unkeyed))
+
+    planned, unmatched = [], []
+    for r in rows:
+        item = by_key.get(r["path"])
+        if item is None:
+            unmatched.append(r["path"])
+            continue
+        for column, field in resolved.items():
+            value = r[column]
+            if not value:
+                continue
+            if field["dataType"] == "SINGLE_SELECT":
+                option = next((o for o in field.get("options", [])
+                               if o["name"].lower() == value.lower()), None)
+                if option is None:
+                    print("skipping %s %s=%r: no such option on field %r"
+                          % (r["path"], column, value, field["name"]))
+                    continue
+                planned.append((r["path"], item["id"], field, "select",
+                                option["id"], value))
+            else:
+                planned.append((r["path"], item["id"], field, "text",
+                                value, value))
+
+    print("\n%d field updates planned across %d bug files"
+          % (planned and len(planned) or 0,
+             len({p[0] for p in planned})))
+    if unmatched:
+        print("%d catalog rows have no matching project item, e.g. %s"
+              % (len(unmatched), ", ".join(unmatched[:5])))
+
+    for path, _, field, _, _, shown in planned:
+        print("  %-55s %-12s -> %s" % (path, field["name"], shown))
+
+    if not args.apply:
+        print("\ndry run -- nothing written.  Re-run with --apply to write.")
+        return
+
+    for i, (path, item_id, field, kind, value, shown) in enumerate(planned, 1):
+        gh(MUTATIONS[kind], project=proj["id"], item=item_id,
+           field=field["id"], value=value)
+        print("[%d/%d] %s %s -> %s" % (i, len(planned), path, field["name"], shown))
+    print("\napplied %d updates" % len(planned))
+
+
+if __name__ == "__main__":
+    main()

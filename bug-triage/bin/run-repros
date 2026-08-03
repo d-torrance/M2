@@ -1,0 +1,265 @@
+#!/usr/bin/env python3
+"""Run the .m2 reproducers and record the exit status in the "autorun" column.
+
+M2 --script exits 1 on an uncaught error or a failed assert and 0 otherwise, so
+the exit status is a usable machine signal -- but only a signal.  Many of these
+scripts are fifteen years old and now fail on API drift rather than on the bug
+they were written to demonstrate, so a failure here means "a human should read
+this", not "the bug is still there".  Candidate stale reproducers are listed in
+cache/stale-candidates.txt; no verdict is ever written automatically.
+"""
+
+import argparse
+import concurrent.futures
+import os
+import re
+import resource
+import subprocess
+import sys
+import threading
+
+# Cap on the output kept per script.  Some of these files turn on gbTrace and
+# then loop, and an uncapped run produced a 1.1 GB log for a single reproducer.
+# The head and tail are the parts worth reading, so keep both and drop the middle.
+KEEP_HEAD = 256 * 1024
+KEEP_TAIL = 256 * 1024
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import catalog
+
+# Errors that usually mean the script speaks an obsolete dialect of M2 rather
+# than that the original bug survives.  Advisory only -- a real bug can present
+# as a missing method too.
+STALE_PATTERNS = [
+    re.compile(r"no method for binary operator"),
+    re.compile(r"no method found for applying"),
+    re.compile(r"^.*error: no method for", re.M),
+    re.compile(r"not implemented yet"),
+    re.compile(r"error: expected .* to be a"),
+]
+
+
+def logfile(path):
+    return os.path.join(catalog.CACHE, "runlog", path + ".log")
+
+
+def truncated(path):
+    """True if a bare "end" line stops the script before its real content ends.
+
+    "end" halts a script and still exits 0, so these files report a pass having
+    executed only their first few lines.  Many of these bug files park the actual
+    demonstration after an "end" so it can be pasted in by hand -- 71 of the 229
+    reproducers do this.  Calling that a pass would be badly misleading.
+
+    A leading "restart" needs no such handling: under --script it is a no-op and
+    execution continues.
+    """
+    try:
+        with open(os.path.join(catalog.FILES, path),
+                  encoding="utf-8", errors="replace") as f:
+            lines = [l.strip() for l in f]
+    except OSError:
+        return False
+    body = [i for i, l in enumerate(lines) if l]
+    if not body:
+        return False
+    return any(lines[i] == "end" for i in body[:-1])
+
+
+def limiter(megabytes):
+    """Cap address space the way M2's own test Makefiles do with VLIMIT.
+
+    Several of these reproducers are memory-leak demonstrations that allocate
+    without bound; without a cap, running them in parallel takes the machine down.
+    """
+    def apply():
+        limit = megabytes * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
+    return apply
+
+
+class Capped:
+    """Consume a stream, keeping only its head and tail.
+
+    Reading in a thread rather than via subprocess.PIPE's buffering means a
+    runaway script cannot exhaust memory here no matter how much it prints.
+    """
+
+    def __init__(self):
+        self.head = bytearray()
+        self.tail = bytearray()
+        self.dropped = 0
+
+    def consume(self, stream):
+        for chunk in iter(lambda: stream.read(65536), b""):
+            room = KEEP_HEAD - len(self.head)
+            if room > 0:
+                self.head += chunk[:room]
+                chunk = chunk[room:]
+            if not chunk:
+                continue
+            self.tail += chunk
+            if len(self.tail) > KEEP_TAIL:
+                excess = len(self.tail) - KEEP_TAIL
+                del self.tail[:excess]
+                self.dropped += excess
+
+    def value(self):
+        if not self.dropped:
+            return bytes(self.head + self.tail)
+        return b"".join([
+            bytes(self.head),
+            b"\n\n... bug-triage: %d bytes of output dropped ...\n\n" % self.dropped,
+            bytes(self.tail)])
+
+
+def run_one(row, m2, timeout, memory):
+    path = row["path"]
+    script = os.path.join(catalog.FILES, path)
+    capped = Capped()
+    try:
+        # Some scripts load siblings by relative name, so run from their directory.
+        p = subprocess.Popen(
+            [m2, "--script", os.path.basename(script)],
+            cwd=os.path.dirname(script),
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            preexec_fn=limiter(memory))
+        reader = threading.Thread(target=capped.consume, args=(p.stdout,))
+        reader.start()
+        try:
+            returncode = p.wait(timeout=timeout)
+            status = "pass" if returncode == 0 else "fail"
+        except subprocess.TimeoutExpired:
+            p.kill()
+            p.wait()
+            status = "timeout"
+        reader.join()
+        p.stdout.close()
+        output = capped.value()
+    except OSError as e:
+        status = "fail"
+        output = ("bug-triage: could not run %s: %s" % (m2, e)).encode()
+
+    if status == "pass" and truncated(path):
+        status = "pass-partial"
+
+    out = logfile(path)
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "wb") as f:
+        f.write(output)
+
+    return path, status
+
+
+def write_stale_report(rows):
+    """Rebuild the API-drift shortlist from every log on disk.
+
+    Scanning all logs rather than only the scripts just run means a --only run
+    cannot silently shrink the report to whatever it happened to touch.
+    """
+    report = os.path.join(catalog.CACHE, "stale-candidates.txt")
+    os.makedirs(catalog.CACHE, exist_ok=True)
+    stale = []
+    for r in rows:
+        if r["autorun"] != "fail":
+            continue
+        try:
+            with open(logfile(r["path"]), encoding="utf-8", errors="replace") as f:
+                text = f.read()
+        except OSError:
+            continue
+        if any(p.search(text) for p in STALE_PATTERNS):
+            stale.append(r["path"])
+    with open(report, "w", encoding="utf-8") as f:
+        f.write("# Failed with errors that look like API drift, not the original bug.\n")
+        f.write("# Advisory only -- read the file and cache/runlog/<path>.log before\n")
+        f.write("# setting verdict=stale-repro.\n")
+        for path in sorted(stale):
+            f.write(path + "\n")
+    return report, len(stale)
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--m2", default="M2", help="M2 executable (default: M2)")
+    p.add_argument("--timeout", type=int, default=180,
+                   help="seconds per script (default: 180)")
+    p.add_argument("--jobs", type=int, default=4,
+                   help="parallel M2 processes (default: 4)")
+    p.add_argument("--memory", type=int, default=4096,
+                   help="address-space cap in MB per script (default: 4096)")
+    p.add_argument("--only", metavar="SUBSTR",
+                   help="only run reproducers whose path contains SUBSTR")
+    p.add_argument("--rerun", action="store_true",
+                   help="also rerun reproducers that already have a result")
+    p.add_argument("--reclassify", action="store_true",
+                   help="redo the pass/pass-partial split from the files alone, "
+                        "without running M2")
+    args = p.parse_args()
+
+    rows = catalog.require(catalog.read())
+
+    if args.reclassify:
+        changed = 0
+        for r in rows:
+            if r["autorun"] in ("pass", "pass-partial"):
+                want = "pass-partial" if truncated(r["path"]) else "pass"
+                if r["autorun"] != want:
+                    r["autorun"] = want
+                    changed += 1
+        catalog.write(rows)
+        report, stale = write_stale_report(rows)
+        print("reclassified %d rows; %d API-drift candidates in %s"
+              % (changed, stale, report))
+        return
+    todo = []
+    for r in rows:
+        if r["kind"] != "repro":
+            # Prose notes are not runnable; mark them so the column is never blank.
+            r["autorun"] = "n/a"
+            continue
+        if args.only and args.only not in r["path"]:
+            continue
+        if r["autorun"] and not args.rerun:
+            continue
+        todo.append(r)
+
+    if not todo:
+        catalog.write(rows)
+        print("nothing to run (use --rerun to redo finished reproducers)")
+        return
+
+    print("running %d reproducers, %d at a time, %ds timeout"
+          % (len(todo), args.jobs, args.timeout))
+
+    index = catalog.by_path(rows)
+    counts = {"pass": 0, "pass-partial": 0, "fail": 0, "timeout": 0}
+    done = 0
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        futures = [pool.submit(run_one, r, args.m2, args.timeout, args.memory)
+                   for r in todo]
+        try:
+            for fut in concurrent.futures.as_completed(futures):
+                path, status = fut.result()
+                index[path]["autorun"] = status
+                counts[status] += 1
+                done += 1
+                print("[%d/%d] %-12s %s" % (done, len(todo), status, path))
+        except KeyboardInterrupt:
+            # Keep the results we already have rather than losing the whole run.
+            print("\ninterrupted -- saving partial results", file=sys.stderr)
+            for fut in futures:
+                fut.cancel()
+
+    catalog.write(rows)
+
+    print("\npass %d  pass-partial %d  fail %d  timeout %d" % (
+        counts["pass"], counts["pass-partial"], counts["fail"], counts["timeout"]))
+    report, stale = write_stale_report(rows)
+    print("%d failures look like API drift -- see %s" % (stale, report))
+
+
+if __name__ == "__main__":
+    main()

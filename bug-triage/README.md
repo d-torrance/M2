@@ -1,0 +1,218 @@
+# Triaging the removed `bugs/` directory
+
+Commit [`d2c8d27826`](https://github.com/Macaulay2/M2/commit/d2c8d278264348116ac4c1feeb95150699e3e11b)
+("remove bugs directory") deleted 857 files -- 41,646 lines -- under `bugs/`. That tree was
+Macaulay2's pre-GitHub bug catalog: `bugs/README` said *"one file per issue … after the bug is
+fixed or the issue is resolved, we remove the file."* Going through all of them is
+[#36](https://github.com/Macaulay2/M2/issues/36), open since 2013.
+
+They were not gone through. They were bulk-copied to a private repo (see
+[#4139](https://github.com/Macaulay2/M2/issues/4139)) and dropped, so this repo's git history
+is now the public record of what was in them.
+
+This directory is the tooling to work through them, answering three questions per file:
+
+1. Does the bug still reproduce -- or, for a feature request, is the feature still missing?
+2. If so, is there already an issue in Macaulay2/M2 covering it?
+3. If not, which commit or PR fixed it?
+
+## Quick start
+
+```sh
+bin/extract         # pull the 857 files back out of git history into files/
+bin/init-catalog    # build catalog.tsv
+bin/fetch-issues    # cache all Macaulay2/M2 issues into cache/
+bin/suggest-issues  # shortlist candidate issues per bug file
+bin/run-repros      # run the 229 .m2 reproducers (slow; see below)
+bin/find-fixes      # fill the "fix" column for rows marked fixed
+bin/render --suggestions   # regenerate CATALOG.md
+```
+
+`files/` and `cache/` are gitignored -- both regenerate in seconds to a few minutes, and
+re-committing 41k lines of a deliberately removed tree would not be welcome.
+
+## `catalog.tsv` is the source of truth
+
+One tab-separated row per bug file. **Columns 1-6 are machine-generated; columns 7-11 are
+yours.** `bin/init-catalog` merges on `path`, so re-running it never clobbers a verdict you
+typed.
+
+| column | filled by | meaning |
+| --- | --- | --- |
+| `path` | `init-catalog` | `bugs/dan/0-decompose.m2` -- the join key everything else uses |
+| `owner` | `init-catalog` | `dan`, `mike`, `anton`, `LAcore`, `gfurnish` |
+| `prio` | `init-catalog` | leading number on the filename, Dan's own priority |
+| `kind` | `init-catalog` | `repro` (a `.m2` script) or `note` (prose) |
+| `lines` | `init-catalog` | line count |
+| `autorun` | `run-repros` | `pass`, `pass-partial`, `fail`, `timeout`, `n/a` |
+| `verdict` | **you** | see below |
+| `issue` | **you** | `#4487`, if an issue already tracks it |
+| `fix` | **you** | commit sha and/or `#PR` that resolved it |
+| `disposition` | **you** | `test`, `quarantine`, `goals`, `issue`, `drop` |
+| `note` | **you** | one line of rationale |
+
+### Verdicts
+
+| verdict | means |
+| --- | --- |
+| `todo` | not yet looked at |
+| `open` | still reproduces, or the feature is still missing |
+| `fixed` | no longer reproduces; put the commit or PR in `fix` |
+| `duplicate` | an existing issue already covers it; put it in `issue` |
+| `wontfix` | deliberate behavior, or the subsystem is gone |
+| `obsolete` | the premise no longer applies -- dead platform, removed function, retired dependency |
+| `stale-repro` | the script fails only because it uses an obsolete API; rewrite it before it can tell you anything |
+
+The vocabulary comes from
+[`d3ec491953`](https://github.com/Macaulay2/M2/commit/d3ec491953) ("Remove old bug files for
+fixed issues"), which triaged 37 of these by hand. Its commit message is the house style for
+`note`:
+
+```
+* 0.5-fix-M2-exec-location (fixed by #2163)
+* 1-nextPrime (added in 2016 -- see 992b43f)
+* 0-Verbosity (duplicate of #273)
+* 1-constant-to-RR (promote works since #3457, toRR is compiled so wontfix)
+```
+
+## `autorun` is a hint, not a verdict
+
+`M2 --script` exits 1 on an uncaught error or a failed `assert`, so `bin/run-repros` gets a
+real signal. But these scripts are up to twenty years old, and plenty of them now fail on API
+drift rather than on the bug they were written to demonstrate. `bugs/dan/0-decompose.m2` is
+the canonical example: it dies today on
+
+```
+error: no method for binary operator == applied to objects: ... (of class Matrix) ... (of class Ideal)
+```
+
+which says nothing at all about the `decompose` bug it was reporting.
+
+There is a second trap, and it is the bigger one. A bare `end` line halts an M2 script *and
+still exits 0*. Seventy-one of the 229 reproducers park the actual demonstration after an `end`
+so it can be pasted in by hand -- `bugs/anton/MISC/standardPairs.m2` runs three lines, hits
+`end`, and never reaches its `assert`. Counting that as a pass would be wrong, so those are
+recorded as **`pass-partial`**. Of the 85 scripts that exit 0, only 44 actually run to
+completion.
+
+(A leading `restart` needs no such treatment: under `--script` it is a no-op and execution
+continues.)
+
+So: `fail` means *a human should read this*; `pass` means *the script no longer trips, which
+might be a fix or might be that the assertion stopped being checked*; `pass-partial` means
+*almost nothing*. None of them writes a verdict. `bin/run-repros` puts failures whose output
+looks like API drift in `cache/stale-candidates.txt`, and the full output of every run in
+`cache/runlog/<path>.log`. `bin/run-repros --reclassify` redoes the `pass`/`pass-partial` split
+from the files alone, without rerunning M2.
+
+Reproducers run with a 4 GB address-space cap (`--memory`), because several of them are
+memory-leak demonstrations that allocate without bound.
+
+## Attributing a fix
+
+Every row marked `fixed` should end up with a pointer in the `fix` column, so project 46 can
+carry a link to whatever settled it. `bin/find-fixes` fills it in, preferring a PR number and
+falling back to a commit sha -- most of these were fixed before Macaulay2 moved to a
+pull-request workflow, so for the older ones the sha is the only pointer that exists.
+
+It tries four sources, in descending confidence:
+
+1. **The issue timeline**, when the row names an issue and GitHub recorded a closing commit.
+2. **Local `git log`** for a commit whose message claims that fix. This is free, needs no API
+   call, and finds most of the old ones. Two traps it handles: `Merge pull request #56 from …`
+   means *PR* 56, not issue 56, and the commit that fixed #370 and #473 is titled `fixes to
+   solution to git issues 370, 473` with no `#` anywhere -- so matching on `#N` alone misses it.
+3. **The issue's comments**, for `Fixed in commit 7dd8aaa` style references.
+4. **The `RESOLVED/` rename**, for the files Anton settled by moving them rather than by
+   writing an issue number down. This dates the resolution accurately, but the PR it lands on
+   is the one that filed the move, not necessarily the one that changed the code -- the note on
+   those rows says so.
+
+Anything it cannot pin down is left blank rather than guessed at, and rows with no issue to
+anchor a search to get a shortlist in `cache/fix-candidates.tsv` instead: commits whose message
+contains both the bug's slug and a fix verb. **That shortlist is a lead, not an answer, and it
+is worth distrusting.** For `1-singularLocus` it offers `8cdfab7841 "fix singularLocus over
+ZZ"`, which is exactly the right shape and is nevertheless wrong -- that commit's only code
+change is a one-line `tensor` tweak in `newring.m2`. Read the diff before recording anything
+from it.
+
+Of the first 21 rows marked `fixed`, 16 got a pointer this way. The remainder would need a
+bisect, which means building M2 at each step; that is rarely worth it, so leaving `fix` blank
+is an acceptable outcome.
+
+## Settling a file
+
+**Fixed?** Promote the reproducer into `M2/Macaulay2/tests/normal/`, keeping a comment that
+names where it came from. That directory's `Makefile.in` globs `*.m2`, so dropping the file in
+is enough. Follow the existing convention:
+
+```m2
+-- used to crash (M2/bugs/dan/1-factory-bug)     -- tests/normal/factory.m2:26
+-- had been in bugs/mike/0-basis r12446          -- tests/normal/basis5.m2:156
+```
+
+Set `verdict=fixed`, `disposition=test`, and put the commit or PR in `fix`.
+
+**Still broken?** If it should be tracked publicly, file an issue and set `verdict=open`,
+`disposition=issue`, `issue=#NNNN`. A reproducer that fails but is not worth blocking CI over
+belongs in `M2/Macaulay2/tests/quarantine/` (known-failing or too slow) or
+`M2/Macaulay2/tests/goals/` ("we'd like to run these; some have never succeeded"). Both are in
+`SUBDIRS` in `M2/Macaulay2/tests/Makefile.in`. Record why with the `--status:` comment
+convention from `tests/quarantine/2-homog-bug.m2`.
+
+**Neither?** `wontfix` or `obsolete` with a one-line `note`, `disposition=drop`. Most of the
+857 will land here -- a lot of these files are about cygwin, xemacs, MPIR, `dumpdata`, and the
+Debian packaging that used to live in `distributions/deb`.
+
+## Relationship to [project 46](https://github.com/orgs/Macaulay2/projects/46)
+
+The org already has a project board holding roughly one draft issue per bug file, with custom
+fields. This tooling is built to join to it, not to replace it -- `path` is the shared key.
+
+The split that makes sense:
+
+- **`catalog.tsv` here is the working surface.** Bulk edits, greppable, diffable, regenerable,
+  and free to iterate on.
+- **Project 46 is the public-facing board**, updated by a one-way push from the TSV once a batch
+  of verdicts settles -- never hand-edited into divergence with it.
+- **Real GitHub issues** get filed only for the subset that comes out `open` and is not already
+  tracked. That is the step that actually gets a bug fixed, and it is what #36 asked for.
+
+**Do not convert a draft whose verdict is `duplicate`.** Converting is only right for
+`disposition=issue` -- `open`, and not already tracked -- and it has to happen while the item is
+still in Todo. A draft converted after it reaches Done becomes an issue that GitHub closes the
+instant it is created, which is how
+[#4492](https://github.com/Macaulay2/M2/issues/4492) came to exist: a closed issue in the public
+tracker whose entire body is a dump of `bugs/anton/MISC/standardPairs.m2`. It cannot be deleted
+without repo admin, so it was retitled to point at #114 instead.
+
+Settling a `duplicate` goes: add whatever the bug file contributes to the existing issue, record
+`issue=#NNNN` and `disposition=drop` in the TSV, then **archive** the draft -- archived items are
+restorable and keep their `bugs/` path, which is the key `bin/push-project` joins on. Deleting a
+draft is permanent and orphans that row from the board for good.
+
+The reason not to make the board the only surface: draft issues are project-local. They do not
+appear in issue search, cannot be referenced from a commit or PR, cannot be closed by
+`Fixes #N`, and cannot be commented on by anyone not looking at the board. Parking a live bug
+there is how the `bugs/` tree died the first time.
+
+`bin/push-project` implements the sync. **It has never been run.** It defaults to `--dry-run`,
+needs `gh auth refresh -s project`, and should not get `--apply` until someone has read its
+proposed field mapping -- mass GraphQL mutations against a shared board cannot be reverted.
+
+Its mapping is known to be wrong in one place: `FIELD_MAP` sends `verdict` to the board's
+`Status` field, but `Status` is Todo/In Progress/Done and the verdicts are
+`open`/`fixed`/`duplicate`/`wontfix`/`obsolete`/`stale-repro`. Nothing matches, so every settled
+row would take the `SINGLE_SELECT` branch, print `no such option on field 'Status'`, and push
+nothing. `verdict` needs a field of its own, with `Status` derived from it -- `todo` to Todo,
+anything else to Done. Confirming the board's real field names needs `gh auth refresh -s
+read:project`, which is read-only and worth doing before anything else here.
+
+## Where to start
+
+`bugs/dan` priority `0` -- 155 files, Dan's own highest-priority bucket, and the same one
+`d3ec491953` drew from.
+
+```sh
+awk -F'\t' 'NR>1 && $2=="dan" && $3=="0" && $7=="todo" {print $1}' catalog.tsv
+```

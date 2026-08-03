@@ -1,0 +1,49 @@
+#!/bin/sh
+# Extract the bugs/ tree that was deleted in d2c8d27 back into bug-triage/files/.
+#
+# The tree is not in the working copy any more and the private copy mentioned in
+# Macaulay2/M2#4139 is not public, so git history is the canonical source.
+# Idempotent: files already present are left alone unless -f is given.
+
+set -eu
+
+# The commit that removed bugs/; the tree we want is its parent.
+REMOVAL=d2c8d278264348116ac4c1feeb95150699e3e11b
+TREE=$REMOVAL^
+
+here=$(dirname "$0")
+root=$(cd "$here/.." && pwd)
+dest=$root/files
+force=no
+
+while [ $# -gt 0 ]; do
+    case $1 in
+	-f|--force) force=yes ;;
+	-h|--help) echo "usage: $0 [-f]"; exit 0 ;;
+	*) echo "$0: unknown argument: $1" >&2; exit 2 ;;
+    esac
+    shift
+done
+
+cd "$(git -C "$root" rev-parse --show-toplevel)"
+
+if ! git cat-file -e "$TREE" 2>/dev/null; then
+    echo "$0: commit $REMOVAL not found -- is this a full clone?" >&2
+    exit 1
+fi
+
+n=0
+skipped=0
+git ls-tree -r --name-only "$TREE" -- bugs | while read -r path; do
+    out=$dest/$path
+    if [ -e "$out" ] && [ $force = no ]; then
+	skipped=$((skipped + 1))
+	continue
+    fi
+    mkdir -p "$(dirname "$out")"
+    git show "$TREE:$path" > "$out"
+    n=$((n + 1))
+done
+
+# The subshell above cannot export counters, so report from the filesystem.
+echo "extracted into $dest: $(find "$dest" -type f | wc -l) files"
