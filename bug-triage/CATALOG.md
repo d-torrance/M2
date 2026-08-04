@@ -8,15 +8,15 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**61 of 857 triaged (7.1%)**
+**66 of 857 triaged (7.7%)**
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 12 | `............................` |
+| `open` -- Still broken | 15 | `............................` |
 | `duplicate` -- Already tracked by an open issue | 7 | `............................` |
-| `fixed` -- Fixed | 35 | `#...........................` |
-| `obsolete` -- Obsolete | 7 | `............................` |
-| `todo` -- Not yet triaged | 796 | `##########################..` |
+| `fixed` -- Fixed | 36 | `#...........................` |
+| `obsolete` -- Obsolete | 8 | `............................` |
+| `todo` -- Not yet triaged | 791 | `##########################..` |
 
 ### Reproducer runs
 
@@ -34,22 +34,25 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 38 |
+| `bugs/dan` | 582 | 43 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (12)
+## Still broken -- `open` (15)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-add-mutex-for-factory` | [#4494](https://github.com/Macaulay2/M2/issues/4494) | &nbsp; | issue | still true: no C-level lock; ThreadedGB.m2:33 works around factory instead |
 | 0 | `bugs/dan/0-attribute-constructor` | [#4495](https://github.com/Macaulay2/M2/issues/4495) | &nbsp; | issue | still emitted: c/cprint.c:487 puts __attribute__ ((constructor)) in generated C |
+| 0 | `bugs/dan/0-bugs-decker.m2` | &nbsp; | &nbsp; | &nbsp; | both asks stand: MinimalPrimes.m2:58 still carries '-- absolute case?', and no radical algorithm names Krick/Logar or Kemper |
+| 0 | `bugs/dan/0-bugs-eisenbud.m2` | &nbsp; | &nbsp; | &nbsp; | at least two of its four asks stand: Tor errors with 'not implemented yet for noncommutative rings', and Linear is not among quotient's strategies |
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
 | 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
 | 0 | `bugs/dan/0-errorDepth` | [#4498](https://github.com/Macaulay2/M2/issues/4498) | &nbsp; | issue | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
+| 0 | `bugs/dan/0-inverse-matrix` | &nbsp; | &nbsp; | issue | still reproduces: inverse matrix {{1,2}} returns matrix {{1},{0}} rather than erroring on a non-square matrix; related to #3738, which is a different path |
 | 0 | `bugs/dan/0-isSurjective-RingMap` | [#4499](https://github.com/Macaulay2/M2/issues/4499) | &nbsp; | issue | no method is installed for (isSurjective,RingMap) |
 | 0 | `bugs/dan/0-monomialIdeal` | [#4500](https://github.com/Macaulay2/M2/issues/4500) | &nbsp; | issue | unchanged: monomialIdeal {} still errors 'expected a polynomial ring without quotient elements' |
 | 0 | `bugs/dan/0-mutable-lists` | [#4501](https://github.com/Macaulay2/M2/issues/4501) | &nbsp; | issue | still quadratic: 1e3 to 1e4 elements costs 181x, not 10x |
@@ -70,12 +73,13 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (35)
+## Fixed -- `fixed` (36)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-chi-doc` | &nbsp; | [`1b4bbe4494`](https://github.com/Macaulay2/M2/commit/1b4bbe4494) | drop | chi is documented in Macaulay2Doc/shared.m2 |
 | 0 | `bugs/dan/0-doc-ideal-syntax` | &nbsp; | &nbsp; | drop | both forms documented: (ideal,Sequence) and (symbol /,Ring,Sequence) |
+| 0 | `bugs/dan/0-doc-subquotient-module-maps` | &nbsp; | &nbsp; | drop | (map,Module,Module,Matrix) now documents the correspondence: M and N must have the same number of generators as target p and source p |
 | 0 | `bugs/dan/0-document-Weyl-homogenizer` | &nbsp; | &nbsp; | drop | the homogenizing variable is documented under monoid, with a worked example |
 | 0 | `bugs/dan/0-gentoo-required-programs` | &nbsp; | &nbsp; | drop | configure takes --with-unbuilt-programs and M2 locates them at runtime via findProgram/programPaths |
 | 0 | `bugs/dan/0-getWWW` | &nbsp; | [`c9185f564c`](https://github.com/Macaulay2/M2/commit/c9185f564c) | drop | splitWWW unchunks the body when the response is chunked; added in 1.9.1 |
@@ -110,11 +114,12 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue473.m2` | [#473](https://github.com/Macaulay2/M2/issues/473) | [`0ae5b6eb19`](https://github.com/Macaulay2/M2/commit/0ae5b6eb19) | drop | sub(C,QQ) raises a clean error instead of a SIGSEGV |
 | &nbsp; | `bugs/mike/git-issue56.m2` | [#56](https://github.com/Macaulay2/M2/issues/56) | [`ff7473fb87`](https://github.com/Macaulay2/M2/commit/ff7473fb87) | drop | 'unknown engine error' is now a specific not-implemented message |
 
-## Obsolete -- `obsolete` (7)
+## Obsolete -- `obsolete` (8)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-gc-ucontext` | &nbsp; | &nbsp; | drop | Snow Leopard is long dead and the bundled gc is 7.4.0, not the 7.1 this patches |
+| 0 | `bugs/dan/0-gcc-bug-under-debian64` | &nbsp; | &nbsp; | drop | cddplus is no longer built -- only cddlib remains, and configure.ac mentions cddplus solely in a historical comment; g++ 4.3 is from 2008 |
 | 0 | `bugs/dan/0-getBlock-alignment` | &nbsp; | &nbsp; | drop | d/factory_allocator.c is gone from the tree; the copied allocator it describes no longer exists |
 | 0 | `bugs/dan/0-library-dependencies` | &nbsp; | &nbsp; | drop | libraries/final/bin no longer exists, and the file already records this as done for deb |
 | 0 | `bugs/dan/0-non-blocking-hashtables` | &nbsp; | &nbsp; | drop | cites Google Video and Google Code, both shut down; nbds and high-scale-lib are abandoned |
@@ -122,7 +127,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 
-## Not yet triaged -- `todo` (796)
+## Not yet triaged -- `todo` (791)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
@@ -134,8 +139,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-backtrace-from-debugger` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-bugs-ataylor.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-caviglia.m2` | repro | fail | &nbsp; |
-| 0 | `bugs/dan/0-bugs-decker.m2` | repro | fail | &nbsp; |
-| 0 | `bugs/dan/0-bugs-eisenbud.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-iswanson.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-kummini.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-lgold.m2` | repro | fail | &nbsp; |
@@ -150,13 +153,11 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-disabling-threads` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-doc-Keywords` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-doc-option-names-in-packages` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-doc-subquotient-module-maps` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-doc-writing-code` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-local-scopes` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-packages` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-final-check-interactive-input-behaviour` | note | n/a | [#248](https://github.com/Macaulay2/M2/issues/248) automate as much as possible tests from '0-final-checks-before-distrib |
 | 0 | `bugs/dan/0-gb-strategies` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-gcc-bug-under-debian64` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-help-bug` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-highlighting` | note | n/a | [#537](https://github.com/Macaulay2/M2/issues/537) syntax highlighting bug in emacs |
 | 0 | `bugs/dan/0-html-references` | note | n/a | &nbsp; |
@@ -164,7 +165,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-installPackage` | note | n/a | [#229](https://github.com/Macaulay2/M2/issues/229) read-only files and "installPackage" |
 | 0 | `bugs/dan/0-installing-methods-functions-on-function-closures` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-interrupts` | note | n/a | [#168](https://github.com/Macaulay2/M2/issues/168) interrupts don't always work |
-| 0 | `bugs/dan/0-inverse-matrix` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-joint-package-documentation` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-k-basis` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-ker-RingMap` | note | n/a | &nbsp; |
