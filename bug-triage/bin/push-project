@@ -42,8 +42,27 @@ ORG = "Macaulay2"
 PROJECT = 46
 
 STATUS_FIELD = "Status"
+
+# The board has "Auto-close issue" enabled, so setting Status to Done on an item
+# that is a real issue closes that issue.  Drafts have no open/closed state and
+# are safe, but a row that comes out "open" is a live bug: once its draft is
+# converted, Done would close the very issue we just filed.  So a still-broken
+# bug never reaches Done -- Ready means it needs an issue, In progress means one
+# exists and the bug is somebody's to fix.
 STATUS_TODO = "Backlog"
+STATUS_NEEDS_ISSUE = "Ready"
+STATUS_TRACKED = "In progress"
 STATUS_SETTLED = "Done"
+
+ALL_STATUSES = (STATUS_TODO, STATUS_NEEDS_ISSUE, STATUS_TRACKED, STATUS_SETTLED)
+
+
+def want_status(row):
+    if row["verdict"] == "todo":
+        return STATUS_TODO
+    if row["verdict"] == "open":
+        return STATUS_TRACKED if row["issue"] else STATUS_NEEDS_ISSUE
+    return STATUS_SETTLED
 
 BEGIN = "<!-- triage:start -->"
 END = "<!-- triage:end -->"
@@ -239,7 +258,7 @@ def main():
     if status is None:
         raise SystemExit("no %r field on the board" % STATUS_FIELD)
     options = {o["name"].lower(): o["id"] for o in status.get("options", [])}
-    for want in (STATUS_TODO, STATUS_SETTLED):
+    for want in ALL_STATUSES:
         if want.lower() not in options:
             raise SystemExit("%r field has no %r option (has: %s)"
                              % (STATUS_FIELD, want,
@@ -260,10 +279,9 @@ def main():
             unmatched.append(r["path"])
             continue
 
-        want_status = STATUS_TODO if r["verdict"] == "todo" else STATUS_SETTLED
-        if status_of(item) != want_status:
-            status_edits.append((r["path"], item["id"], options[want_status.lower()],
-                                 want_status))
+        want = want_status(r)
+        if status_of(item) != want:
+            status_edits.append((r["path"], item["id"], options[want.lower()], want))
 
         block = block_for(r)
         if block is None:

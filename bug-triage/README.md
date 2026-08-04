@@ -216,7 +216,21 @@ project-template fields -- Status, Priority, Size, Estimate, Start/Target date, 
 built-ins. There is nowhere to put a verdict, an issue number, a fix, or a note. Rather than add
 five custom fields to a board other people use, the script writes:
 
-- **Status**, the one field that fits: `todo` to Backlog, any other verdict to Done.
+- **Status**, the one field that fits:
+
+  | verdict | Status |
+  | --- | --- |
+  | `todo` | Backlog |
+  | `open`, no issue recorded | Ready -- still broken, needs an issue filed |
+  | `open`, issue recorded | In progress -- tracked, somebody's to fix |
+  | anything else | Done |
+
+  **A still-broken bug must never reach Done.** The board has the built-in
+  "Auto-close issue" workflow enabled, so setting Status to Done on an item that is a real
+  issue closes that issue, within a second. Drafts have no open/closed state and are safe,
+  which is why this went unnoticed at first -- but the moment a draft is converted, Done would
+  close the very bug that was just filed. That is what happened to
+  [#4492](https://github.com/Macaulay2/M2/issues/4492): created 23:31:23Z, closed 23:31:24Z.
 - **The draft's own body**, which needs no schema change at all. A block delimited by
   `<!-- triage:start -->` and `<!-- triage:end -->` is appended after the original bug file text,
   holding verdict, issue, fix, disposition and note. Re-running *replaces* that block rather than

@@ -12,8 +12,8 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 6 | `............................` |
-| `duplicate` -- Already tracked by an open issue | 4 | `............................` |
+| `open` -- Still broken | 5 | `............................` |
+| `duplicate` -- Already tracked by an open issue | 5 | `............................` |
 | `fixed` -- Fixed | 24 | `#...........................` |
 | `obsolete` -- Obsolete | 4 | `............................` |
 | `todo` -- Not yet triaged | 819 | `###########################.` |
@@ -41,7 +41,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (6)
+## Still broken -- `open` (5)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -50,12 +50,12 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-dictionaryPath` | &nbsp; | &nbsp; | &nbsp; | still reproduces: OutputDictionary is on dictionaryPath while a package loads |
 | 0 | `bugs/dan/0-engine-tower-rings` | &nbsp; | &nbsp; | &nbsp; | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
 | 0 | `bugs/dan/0-errorDepth` | &nbsp; | &nbsp; | &nbsp; | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
-| 0 | `bugs/dan/0-getting-one-element-of-a-mutable-hashtable` | &nbsp; | &nbsp; | &nbsp; | still reproduces: select(1,x,i->true) fails on a MutableHashTable |
 
-## Already tracked by an open issue -- `duplicate` (4)
+## Already tracked by an open issue -- `duplicate` (5)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
+| 0 | `bugs/dan/0-getting-one-element-of-a-mutable-hashtable` | [#4231](https://github.com/Macaulay2/M2/issues/4231) | &nbsp; | drop | still reproduces; #4231 asks the same question and its author could not find this discussion |
 | &nbsp; | `bugs/anton/MISC/standardPairs.m2` | [#114](https://github.com/Macaulay2/M2/issues/114) | &nbsp; | drop | still reproduces: same non-disjoint cones the issue shows, 1 in three sets; #4492 is a draft converted in error, closed |
 | &nbsp; | `bugs/mike/git-issue-568-569.m2` | [#568](https://github.com/Macaulay2/M2/issues/568) [#569](https://github.com/Macaulay2/M2/issues/569) | &nbsp; | drop | both issues are still open |
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
