@@ -92,6 +92,18 @@ right place" into "it isn't there", and the verdict reads as verified when it is
 running a reproducer under M2 when the claim can be tested at all -- a runtime check does not care
 what directory you are in.
 
+## The ask is the mechanism; the need is what got met
+
+These files name a specific fix as often as they name a problem, and checking only whether *that
+mechanism* exists produces false `open` verdicts. `bugs/dan/0-disabling-threads` asks for the
+configure option `--disable-pthreads` to be made to work again. It is still commented out with
+`dnl` in `configure.ac`, so the literal ask is genuinely unmet -- but M2 grew `--no-threads`
+instead, which skips `initializeThreadSupervisor` outright (`bin/main.cpp:101`), and `GC_NPROCS`
+covers the collector's own threads. Both are runtime, so neither needs a rebuild, which is
+strictly better for the system administrators the file is worried about.
+
+Ask what the file wanted, not only what it proposed.
+
 ## Some of these were answered on the wiki
 
 Not all Macaulay2 documentation is in the repository. The

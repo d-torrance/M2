@@ -12,9 +12,9 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 19 | `#...........................` |
+| `open` -- Still broken | 18 | `#...........................` |
 | `duplicate` -- Already tracked by an open issue | 7 | `............................` |
-| `fixed` -- Fixed | 38 | `#...........................` |
+| `fixed` -- Fixed | 39 | `#...........................` |
 | `obsolete` -- Obsolete | 8 | `............................` |
 | `todo` -- Not yet triaged | 785 | `##########################..` |
 
@@ -41,7 +41,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (19)
+## Still broken -- `open` (18)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -51,7 +51,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-bugs-decker.m2` | &nbsp; | &nbsp; | &nbsp; | both asks stand: MinimalPrimes.m2:58 still carries '-- absolute case?', and no radical algorithm names Krick/Logar or Kemper |
 | 0 | `bugs/dan/0-bugs-eisenbud.m2` | &nbsp; | &nbsp; | &nbsp; | at least two of its four asks stand: Tor errors with 'not implemented yet for noncommutative rings', and Linear is not among quotient's strategies |
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
-| 0 | `bugs/dan/0-disabling-threads` | &nbsp; | &nbsp; | issue | still not done: configure.ac:395 has the --disable-pthreads option commented out with dnl, and there is no --disable-threads |
 | 0 | `bugs/dan/0-doc-option-names-in-packages` | &nbsp; | &nbsp; | issue | no such guidance in the docs; the matches for export and option are all about PackageExports/PackageImports |
 | 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
 | 0 | `bugs/dan/0-errorDepth` | [#4498](https://github.com/Macaulay2/M2/issues/4498) | &nbsp; | issue | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
@@ -77,11 +76,12 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (38)
+## Fixed -- `fixed` (39)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-chi-doc` | &nbsp; | [`1b4bbe4494`](https://github.com/Macaulay2/M2/commit/1b4bbe4494) | drop | chi is documented in Macaulay2Doc/shared.m2 |
+| 0 | `bugs/dan/0-disabling-threads` | &nbsp; | &nbsp; | drop | answered at runtime instead: M2 --no-threads skips initializeThreadSupervisor entirely (bin/main.cpp:101), and GC_NPROCS controls gc's thread count -- both stronger than the configure-time --disable-pthreads the file asks for, since neither needs a rebuild |
 | 0 | `bugs/dan/0-doc-ideal-syntax` | &nbsp; | &nbsp; | drop | both forms documented: (ideal,Sequence) and (symbol /,Ring,Sequence) |
 | 0 | `bugs/dan/0-doc-subquotient-module-maps` | &nbsp; | &nbsp; | drop | (map,Module,Module,Matrix) now documents the correspondence: M and N must have the same number of generators as target p and source p |
 | 0 | `bugs/dan/0-doc-writing-code` | &nbsp; | &nbsp; | drop | documented in the Package Writing Style Guide wiki, under 'Order of arguments': "The argument upon which the function mainly acts should go last." https://github.com/Macaulay2/M2/wiki/Package-Writing-Style-Guide -- the wiki is not in git, so there is no commit to cite |
