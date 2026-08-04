@@ -12,10 +12,10 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 26 | `#...........................` |
+| `open` -- Still broken | 25 | `#...........................` |
 | `duplicate` -- Already tracked by an open issue | 7 | `............................` |
 | `fixed` -- Fixed | 43 | `#...........................` |
-| `wontfix` -- Won't fix | 1 | `............................` |
+| `wontfix` -- Won't fix | 2 | `............................` |
 | `obsolete` -- Obsolete | 8 | `............................` |
 | `todo` -- Not yet triaged | 772 | `#########################...` |
 
@@ -42,7 +42,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (26)
+## Still broken -- `open` (25)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -68,7 +68,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-mutable-lists` | [#4501](https://github.com/Macaulay2/M2/issues/4501) | &nbsp; | issue | still quadratic: 1e3 to 1e4 elements costs 181x, not 10x |
 | 0 | `bugs/dan/0-needsPackage-unadorned` | [#4502](https://github.com/Macaulay2/M2/issues/4502) | &nbsp; | issue | needsPackage still has no Using option; its options are LoadDocumentation, Configuration, FileName, Reload, DebuggingMode |
 | 0 | `bugs/dan/0-newPackage` | [#4505](https://github.com/Macaulay2/M2/issues/4505) | &nbsp; | issue | reproduces exactly: (options Foo).Configuration is an OptionTable via loadPackage but a List via load |
-| 0 | `bugs/dan/0-package-doc` | [#4514](https://github.com/Macaulay2/M2/issues/4514) | &nbsp; | issue | help.m2:288 still builds an Exports section listing Types, Functions, Methods and Symbols on the package page, with no table-of-contents link instead |
 | 0 | `bugs/dan/0-precision-and-equality` | [#4503](https://github.com/Macaulay2/M2/issues/4503) | &nbsp; | issue | reproduces exactly: 1p10 == 1.0000000000000001 is true but 1p10 == 1.000000000000001 is false |
 | 0 | `bugs/dan/0-quotient-for-non-free-modules` | [#4515](https://github.com/Macaulay2/M2/issues/4515) | &nbsp; | issue | the inconsistency stands: Matrix % Matrix still requires free modules while quotientRemainder accepts the same non-free source |
 | 0 | `bugs/dan/0-rename-minimalPresentation` | [#4504](https://github.com/Macaulay2/M2/issues/4504) | &nbsp; | issue | minimizePresentation does not exist; the rename was never done |
@@ -133,11 +132,12 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue473.m2` | [#473](https://github.com/Macaulay2/M2/issues/473) | [`0ae5b6eb19`](https://github.com/Macaulay2/M2/commit/0ae5b6eb19) | drop | sub(C,QQ) raises a clean error instead of a SIGSEGV |
 | &nbsp; | `bugs/mike/git-issue56.m2` | [#56](https://github.com/Macaulay2/M2/issues/56) | [`ff7473fb87`](https://github.com/Macaulay2/M2/commit/ff7473fb87) | drop | 'unknown engine error' is now a specific not-implemented message |
 
-## Won't fix -- `wontfix` (1)
+## Won't fix -- `wontfix` (2)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-Macaulay2-deps` | &nbsp; | &nbsp; | drop | dependencies come from a package manager on most modern systems, and an offline build can pre-populate BUILD/tarfiles, which exists for exactly that -- so a published deps tarball is not worth maintaining |
+| 0 | `bugs/dan/0-package-doc` | [#4514](https://github.com/Macaulay2/M2/issues/4514) | &nbsp; | drop | closed as wontfix in #4514: a link to the table of contents is already there, and the export list is considered useful |
 
 ## Obsolete -- `obsolete` (8)
 

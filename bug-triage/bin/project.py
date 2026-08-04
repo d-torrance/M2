@@ -151,15 +151,29 @@ def label_id(name=LABEL):
     return label["id"]
 
 
+# The triage block bin/push-project writes names the file it came from.  That
+# survives conversion to an issue and any later retitling, which makes it the most
+# durable key we have -- we wrote it, so it cannot drift.
+TRIAGED_FROM = re.compile(r"Triaged from `(bugs/[^`]+)`")
+
+
 def key_of(item):
     """The catalog path an item refers to.
 
-    Item titles carry the path with the bugs/ prefix stripped --
-    "mike/git-issue359.m2" for "bugs/mike/git-issue359.m2" -- so put it back.
-    Once an item has been converted to an issue and given a readable title, it no
-    longer matches anything, which is why the issue number goes into the catalog.
+    Prefer the path recorded in the item's own triage block.  Filing an issue
+    renames the item to something readable, which destroys the title-derived key,
+    and the number-based fallback in match() only covers rows that are still
+    open -- so a row whose verdict changed after filing would otherwise be
+    orphaned from the board.
+
+    Falling back on the title covers drafts that have not been pushed yet: those
+    are titled with the path, minus the bugs/ prefix.
     """
-    title = (item["content"].get("title") or "").strip()
+    content = item["content"] or {}
+    found = TRIAGED_FROM.search(content.get("body") or "")
+    if found:
+        return found.group(1)
+    title = (content.get("title") or "").strip()
     if not title or title.startswith("bugs/"):
         return title or None
     return "bugs/" + title
