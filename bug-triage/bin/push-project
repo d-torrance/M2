@@ -52,10 +52,24 @@ STATUS_SETTLED = "Done"
 ALL_STATUSES = (STATUS_TODO, STATUS_NEEDS_ISSUE, STATUS_TRACKED, STATUS_SETTLED)
 
 
-def want_status(row):
+def is_closed(item):
+    return (item["content"] or {}).get("state") == "CLOSED"
+
+
+def want_status(row, item):
+    """Where this row belongs on the board.
+
+    A closed issue is already Done: the board's "Item closed" workflow put it
+    there.  Insisting on In progress because the catalog still says open would
+    shove a settled bug back into the work queue on every push, and --check would
+    never converge.  Defer to the tracker and report the row instead -- only a
+    human can say whether it closed as fixed, wontfix or duplicate.
+    """
     if row["verdict"] == "todo":
         return STATUS_TODO
     if row["verdict"] == "open":
+        if is_closed(item):
+            return STATUS_SETTLED
         return STATUS_TRACKED if row["issue"] else STATUS_NEEDS_ISSUE
     return STATUS_SETTLED
 
@@ -160,14 +174,17 @@ def main():
     print("%d items on the board, %d matched to catalog rows\n"
           % (len(items), len(by_key)))
 
-    body_edits, status_edits, unmatched, not_draft = [], [], [], []
+    body_edits, status_edits, unmatched, not_draft, stale = [], [], [], [], []
     for r in rows:
         item = by_key.get(r["path"])
         if item is None:
             unmatched.append(r["path"])
             continue
 
-        want = want_status(r)
+        if r["verdict"] == "open" and is_closed(item):
+            stale.append((r["path"], r["issue"]))
+
+        want = want_status(r, item)
         if project.status_of(item) != want:
             status_edits.append((r["path"], item["id"], options[want.lower()], want))
 
@@ -183,9 +200,10 @@ def main():
 
     if args.check:
         pending = len(body_edits) + len(status_edits)
-        print("board is %s: %d body, %d status, %d unmatched"
+        print("board is %s: %d body, %d status, %d unmatched%s"
               % ("in sync" if not pending else "behind catalog.tsv",
-                 len(body_edits), len(status_edits), len(unmatched)))
+                 len(body_edits), len(status_edits), len(unmatched),
+                 ", %d closed upstream" % len(stale) if stale else ""))
         raise SystemExit(1 if pending else 0)
 
     print("%d body updates, %d status updates" % (len(body_edits), len(status_edits)))
@@ -195,6 +213,12 @@ def main():
     if not_draft:
         print("%d rows are real issues, not drafts -- body left alone: %s"
               % (len(not_draft), ", ".join(not_draft)))
+    if stale:
+        print("\n%d rows still say verdict=open but their issue has been closed."
+              "\nUpdate catalog.tsv -- only you can say whether it closed as fixed,"
+              " wontfix or duplicate:" % len(stale))
+        for path, issue in stale:
+            print("  %-55s %s" % (path, issue))
 
     for path, _, _, want in status_edits:
         print("  status  %-55s -> %s" % (path, want))

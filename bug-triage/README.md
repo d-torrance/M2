@@ -267,6 +267,20 @@ five custom fields to a board other people use, the script writes:
   | `open`, issue recorded | In progress -- tracked, somebody's to fix |
   | anything else | Done |
 
+  When a filed issue is closed, the board's "Item closed" workflow moves it to Done on its own.
+  The catalog still says `open`, so the mapping would otherwise insist on In progress and shove a
+  settled bug back into the work queue on every push, with `--check` never converging. Instead the
+  push defers to the tracker and reports the row:
+
+  ```
+  1 rows still say verdict=open but their issue has been closed.
+  Update catalog.tsv -- only you can say whether it closed as fixed, wontfix or duplicate:
+    bugs/dan/0-mutable-lists                     #4501
+  ```
+
+  Nothing updates the verdict automatically, because a closed issue does not say *why* it closed.
+  That is a judgment, and it belongs in the TSV where the rest of them are.
+
   **A still-broken bug must never reach Done.** The board has the built-in
   "Auto-close issue" workflow enabled, so setting Status to Done on an item that is a real
   issue closes that issue, within a second. Drafts have no open/closed state and are safe,
