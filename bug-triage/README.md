@@ -236,6 +236,14 @@ five custom fields to a board other people use, the script writes:
   holding verdict, issue, fix, disposition and note. Re-running *replaces* that block rather than
   appending a second one, so revising a verdict and pushing again is safe.
 
+The footer links to `catalog.tsv` so a reader can check the verdict against its source. That
+catalog is not in Macaulay2/M2 yet, so `CATALOG_URL` in `bin/push-project` points at the branch
+it currently lives on -- `bug-triage` on the `d-torrance` fork. **It is a mutable ref.** If that
+branch is renamed, deleted, or merged away, the footer of every pushed draft points at a 404, so
+update `CATALOG_URL` and re-push when the catalog lands somewhere permanent. Re-pushing is cheap:
+changing the footer makes every already-pushed block differ from the board, so they all re-queue
+on the next run without anything having to track which ones were written when.
+
 Two details the body path depends on. Item titles carry the path with the `bugs/` prefix stripped
 -- `mike/git-issue359.m2`, not `bugs/mike/git-issue359.m2` -- so `key_of` puts it back before
 joining. And a draft is not in a repository, so `#114` and bare shas do not autolink there;
