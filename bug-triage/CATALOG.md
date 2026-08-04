@@ -45,11 +45,11 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
-| 0 | `bugs/dan/0-add-mutex-for-factory` | &nbsp; | &nbsp; | &nbsp; | still true: no C-level lock; ThreadedGB.m2:33 works around factory instead |
-| 0 | `bugs/dan/0-attribute-constructor` | &nbsp; | &nbsp; | &nbsp; | still emitted: c/cprint.c:487 puts __attribute__ ((constructor)) in generated C |
-| 0 | `bugs/dan/0-dictionaryPath` | &nbsp; | &nbsp; | &nbsp; | still reproduces: OutputDictionary is on dictionaryPath while a package loads |
-| 0 | `bugs/dan/0-engine-tower-rings` | &nbsp; | &nbsp; | &nbsp; | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
-| 0 | `bugs/dan/0-errorDepth` | &nbsp; | &nbsp; | &nbsp; | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
+| 0 | `bugs/dan/0-add-mutex-for-factory` | [#4494](https://github.com/Macaulay2/M2/issues/4494) | &nbsp; | issue | still true: no C-level lock; ThreadedGB.m2:33 works around factory instead |
+| 0 | `bugs/dan/0-attribute-constructor` | [#4495](https://github.com/Macaulay2/M2/issues/4495) | &nbsp; | issue | still emitted: c/cprint.c:487 puts __attribute__ ((constructor)) in generated C |
+| 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
+| 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
+| 0 | `bugs/dan/0-errorDepth` | [#4498](https://github.com/Macaulay2/M2/issues/4498) | &nbsp; | issue | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
 
 ## Already tracked by an open issue -- `duplicate` (5)
 

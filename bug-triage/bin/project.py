@@ -146,3 +146,33 @@ def by_key(items):
         if k:
             out.setdefault(k, item)
     return out
+
+
+def match(rows, items):
+    """Map catalog path -> board item, by title and then by issue number.
+
+    Filing an issue renames the item to something readable, which is the whole
+    point but destroys the path-from-title key.  For those rows the catalog holds
+    the issue number, so fall back to that.
+
+    The fallback is deliberately restricted to rows that bin/file-issues would
+    have converted.  A "duplicate" row also names an issue, but that issue is one
+    that already existed rather than this item, and matching it would attach the
+    row to the wrong thing.
+    """
+    by_title = by_key(items)
+    by_number = {}
+    for item in items:
+        number = item["content"].get("number")
+        if number is not None:
+            by_number["#%d" % number] = item
+
+    out = {}
+    for r in rows:
+        item = by_title.get(r["path"])
+        if (item is None and r.get("issue")
+                and r["verdict"] == "open" and r["disposition"] == "issue"):
+            item = by_number.get(r["issue"].split()[0])
+        if item is not None:
+            out[r["path"]] = item
+    return out
