@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """One-way sync of catalog.tsv into GitHub project 46.  DRY RUN BY DEFAULT.
 
-Project 46 (https://github.com/orgs/Macaulay2/projects/46) already holds roughly
-one draft issue per file from the removed bugs/ tree, with custom fields.  This
-pushes settled verdicts from catalog.tsv onto those items, matching on the bug
-file path.
+Project 46 (https://github.com/orgs/Macaulay2/projects/46) holds roughly one
+draft issue per file from the removed bugs/ tree.  This pushes settled verdicts
+onto those items, matching on the bug file path.
 
-Nothing here creates items, deletes items, or creates fields: it only sets
-values on fields that already exist, for items it can match.  Anything it cannot
-match is reported and skipped.
+The board carries only the stock project-template fields -- Status, Priority,
+Size, Estimate, dates -- so there is nowhere to put a verdict, an issue number, a
+fix, or a note.  Rather than add five custom fields to a shared org board, the
+narrative goes into the body of the draft itself, between HTML comment markers,
+and only the coarse state goes into a field:
+
+    Status   todo -> Backlog, anything else -> Done
+    body     a delimited block holding verdict/issue/fix/disposition/note
+
+The block is replaced, not appended to, so this is safe to re-run as verdicts get
+revised.  Nothing here creates items, deletes items, or creates fields.
 
     ./bin/push-project                 # show what would change
     ./bin/push-project --apply         # actually write
@@ -17,8 +24,8 @@ Requires the "project" scope, which the default gh token does not have:
 
     gh auth refresh -s project
 
---apply performs one GraphQL mutation per changed field per item and cannot be
-undone in bulk.  Read the dry-run output first.
+--apply performs one GraphQL mutation per changed item and cannot be undone in
+bulk.  Read the dry-run output first.
 """
 
 import argparse
@@ -34,16 +41,13 @@ import catalog
 ORG = "Macaulay2"
 PROJECT = 46
 
-# catalog column -> project field name.  Field names are matched
-# case-insensitively against what the project actually has; a column whose field
-# is missing is reported and skipped rather than created.
-FIELD_MAP = {
-    "verdict": "Status",
-    "issue": "Issue",
-    "fix": "Fix",
-    "disposition": "Disposition",
-    "note": "Note",
-}
+STATUS_FIELD = "Status"
+STATUS_TODO = "Backlog"
+STATUS_SETTLED = "Done"
+
+BEGIN = "<!-- triage:start -->"
+END = "<!-- triage:end -->"
+BLOCK_RE = re.compile(re.escape(BEGIN) + ".*?" + re.escape(END), re.S)
 
 
 def gh(query, **variables):
@@ -86,9 +90,16 @@ query($org:String!, $number:Int!, $cursor:String) {
       items(first:100, after:$cursor) {
         pageInfo { hasNextPage endCursor }
         nodes {
-          id
+          id type
+          fieldValues(first:20) {
+            nodes {
+              ... on ProjectV2ItemFieldSingleSelectValue {
+                name field { ... on ProjectV2FieldCommon { name } }
+              }
+            }
+          }
           content {
-            ... on DraftIssue { title body }
+            ... on DraftIssue { id title body }
             ... on Issue { number title body }
           }
         }
@@ -98,16 +109,10 @@ query($org:String!, $number:Int!, $cursor:String) {
 }
 """
 
-PATH_RE = re.compile(r"bugs/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+")
-
 
 def fetch_project():
-    data = gh(FIELDS_QUERY, org=ORG, number=PROJECT)
-    proj = data["data"]["organization"]["projectV2"]
-    fields = {}
-    for f in proj["fields"]["nodes"]:
-        if f:
-            fields[f["name"].lower()] = f
+    proj = gh(FIELDS_QUERY, org=ORG, number=PROJECT)["data"]["organization"]["projectV2"]
+    fields = {f["name"].lower(): f for f in proj["fields"]["nodes"] if f}
     return proj, fields
 
 
@@ -128,40 +133,97 @@ def fetch_items():
 
 
 def key_of(item):
-    """The bugs/... path an item refers to, from its title or body."""
-    c = item["content"]
-    for text in (c.get("title") or "", c.get("body") or ""):
-        m = PATH_RE.search(text)
-        if m:
-            return m.group(0)
+    """The catalog path an item refers to.
+
+    Item titles carry the path with the bugs/ prefix stripped --
+    "mike/git-issue359.m2" for "bugs/mike/git-issue359.m2" -- so put it back.
+    """
+    title = (item["content"].get("title") or "").strip()
+    if not title or title.startswith("bugs/"):
+        return title or None
+    return "bugs/" + title
+
+
+def status_of(item):
+    for fv in item.get("fieldValues", {}).get("nodes", []):
+        if fv and (fv.get("field") or {}).get("name") == STATUS_FIELD:
+            return fv.get("name")
     return None
 
 
-MUTATIONS = {
-    "text": """
-mutation($project:ID!, $item:ID!, $field:ID!, $value:String!) {
-  updateProjectV2ItemFieldValue(input:{
-    projectId:$project, itemId:$item, fieldId:$field,
-    value:{text:$value}}) { projectV2Item { id } }
-}
-""",
-    "select": """
+REPO_URL = "https://github.com/Macaulay2/M2"
+
+ISSUE_REF = re.compile(r"#(\d+)")
+SHA_REF = re.compile(r"\b([0-9a-f]{7,40})\b")
+
+
+def linkify(text):
+    """Make issue and commit references clickable.
+
+    A draft issue lives in the project, not in a repository, so bare "#114" and
+    bare shas render as plain text there.  /issues/N redirects to /pull/N, so one
+    form covers issues and PRs alike.
+    """
+    text = ISSUE_REF.sub(
+        lambda m: "[#%s](%s/issues/%s)" % (m.group(1), REPO_URL, m.group(1)), text)
+    return SHA_REF.sub(
+        lambda m: "[`%s`](%s/commit/%s)" % (m.group(1)[:10], REPO_URL, m.group(1)),
+        text)
+
+
+def block_for(row):
+    """The triage block for a row, or None if it has nothing to say yet."""
+    if row["verdict"] in ("", "todo") and not any(
+            row[c] for c in ("issue", "fix", "disposition", "note")):
+        return None
+    bits = []
+    for column, label in (("verdict", "Verdict"), ("issue", "Issue"),
+                          ("fix", "Fix"), ("disposition", "Disposition")):
+        if row[column]:
+            value = linkify(row[column]) if column in ("issue", "fix") else row[column]
+            bits.append("**%s:** %s" % (label, value))
+    lines = [BEGIN, "", "---", "", " &middot; ".join(bits)]
+    if row["note"]:
+        lines += ["", "> " + linkify(row["note"])]
+    lines += ["", "<sub>Triaged from `%s`; see [#36](%s/issues/36).  Source of truth: "
+              "`bug-triage/catalog.tsv`.</sub>" % (row["path"], REPO_URL), END]
+    return "\n".join(lines)
+
+
+def merged_body(old, block):
+    """Replace an existing block, or append one, leaving the bug file intact."""
+    old = old or ""
+    if BLOCK_RE.search(old):
+        return BLOCK_RE.sub(lambda _: block, old, count=1)
+    return (old.rstrip() + "\n\n" + block + "\n") if old.strip() else block + "\n"
+
+
+SET_STATUS = """
 mutation($project:ID!, $item:ID!, $field:ID!, $value:String!) {
   updateProjectV2ItemFieldValue(input:{
     projectId:$project, itemId:$item, fieldId:$field,
     value:{singleSelectOptionId:$value}}) { projectV2Item { id } }
 }
-""",
+"""
+
+SET_BODY = """
+mutation($draft:ID!, $body:String!) {
+  updateProjectV2DraftIssue(input:{draftIssueId:$draft, body:$body}) {
+    draftIssue { id }
+  }
 }
+"""
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--apply", action="store_true",
                    help="actually write to the project (default: dry run)")
     p.add_argument("--include-todo", action="store_true",
                    help="also push rows still marked todo")
+    p.add_argument("--check", action="store_true",
+                   help="report only whether the board is in sync; exit 1 if not")
     args = p.parse_args()
 
     rows = catalog.require(catalog.read())
@@ -172,71 +234,82 @@ def main():
 
     proj, fields = fetch_project()
     print("project: %s (%s)" % (proj["title"], proj["id"]))
-    print("fields:  %s\n" % ", ".join(sorted(f["name"] for f in fields.values())))
 
-    resolved = {}
-    for column, name in FIELD_MAP.items():
-        f = fields.get(name.lower())
-        if f is None:
-            print("skipping column %-12s no field named %r in the project"
-                  % (column, name))
-            continue
-        resolved[column] = f
+    status = fields.get(STATUS_FIELD.lower())
+    if status is None:
+        raise SystemExit("no %r field on the board" % STATUS_FIELD)
+    options = {o["name"].lower(): o["id"] for o in status.get("options", [])}
+    for want in (STATUS_TODO, STATUS_SETTLED):
+        if want.lower() not in options:
+            raise SystemExit("%r field has no %r option (has: %s)"
+                             % (STATUS_FIELD, want,
+                                ", ".join(o["name"] for o in status["options"])))
 
     items = fetch_items()
     by_key = {}
-    unkeyed = 0
     for item in items:
         k = key_of(item)
-        if k is None:
-            unkeyed += 1
-        else:
+        if k:
             by_key.setdefault(k, item)
-    print("\n%d project items, %d carry a bugs/ path, %d do not"
-          % (len(items), len(by_key), unkeyed))
+    print("%d items on the board, %d keyed by path\n" % (len(items), len(by_key)))
 
-    planned, unmatched = [], []
+    body_edits, status_edits, unmatched, not_draft = [], [], [], []
     for r in rows:
         item = by_key.get(r["path"])
         if item is None:
             unmatched.append(r["path"])
             continue
-        for column, field in resolved.items():
-            value = r[column]
-            if not value:
-                continue
-            if field["dataType"] == "SINGLE_SELECT":
-                option = next((o for o in field.get("options", [])
-                               if o["name"].lower() == value.lower()), None)
-                if option is None:
-                    print("skipping %s %s=%r: no such option on field %r"
-                          % (r["path"], column, value, field["name"]))
-                    continue
-                planned.append((r["path"], item["id"], field, "select",
-                                option["id"], value))
-            else:
-                planned.append((r["path"], item["id"], field, "text",
-                                value, value))
 
-    print("\n%d field updates planned across %d bug files"
-          % (planned and len(planned) or 0,
-             len({p[0] for p in planned})))
+        want_status = STATUS_TODO if r["verdict"] == "todo" else STATUS_SETTLED
+        if status_of(item) != want_status:
+            status_edits.append((r["path"], item["id"], options[want_status.lower()],
+                                 want_status))
+
+        block = block_for(r)
+        if block is None:
+            continue
+        if item["type"] != "DRAFT_ISSUE":
+            not_draft.append(r["path"])
+            continue
+        new = merged_body(item["content"].get("body"), block)
+        if new != (item["content"].get("body") or ""):
+            body_edits.append((r["path"], item["content"]["id"], new, block))
+
+    if args.check:
+        pending = len(body_edits) + len(status_edits)
+        print("board is %s: %d body, %d status, %d unmatched"
+              % ("in sync" if not pending else "behind catalog.tsv",
+                 len(body_edits), len(status_edits), len(unmatched)))
+        raise SystemExit(1 if pending else 0)
+
+    print("%d body updates, %d status updates" % (len(body_edits), len(status_edits)))
     if unmatched:
-        print("%d catalog rows have no matching project item, e.g. %s"
+        print("%d rows match no board item: %s"
               % (len(unmatched), ", ".join(unmatched[:5])))
+    if not_draft:
+        print("%d rows are real issues, not drafts -- body left alone: %s"
+              % (len(not_draft), ", ".join(not_draft)))
 
-    for path, _, field, _, _, shown in planned:
-        print("  %-55s %-12s -> %s" % (path, field["name"], shown))
+    for path, _, _, want in status_edits:
+        print("  status  %-55s -> %s" % (path, want))
+    for path, _, _, block in body_edits:
+        print("\n  body    %s" % path)
+        for line in block.splitlines():
+            if line and line not in (BEGIN, END):
+                print("          | %s" % line)
 
     if not args.apply:
         print("\ndry run -- nothing written.  Re-run with --apply to write.")
         return
 
-    for i, (path, item_id, field, kind, value, shown) in enumerate(planned, 1):
-        gh(MUTATIONS[kind], project=proj["id"], item=item_id,
-           field=field["id"], value=value)
-        print("[%d/%d] %s %s -> %s" % (i, len(planned), path, field["name"], shown))
-    print("\napplied %d updates" % len(planned))
+    for i, (path, item_id, option_id, want) in enumerate(status_edits, 1):
+        gh(SET_STATUS, project=proj["id"], item=item_id,
+           field=status["id"], value=option_id)
+        print("[status %d/%d] %s -> %s" % (i, len(status_edits), path, want))
+    for i, (path, draft_id, new, _) in enumerate(body_edits, 1):
+        gh(SET_BODY, draft=draft_id, body=new)
+        print("[body %d/%d] %s" % (i, len(body_edits), path))
+    print("\napplied %d updates" % (len(status_edits) + len(body_edits)))
 
 
 if __name__ == "__main__":

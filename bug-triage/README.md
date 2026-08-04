@@ -180,16 +180,27 @@ The split that makes sense:
 
 **Do not convert a draft whose verdict is `duplicate`.** Converting is only right for
 `disposition=issue` -- `open`, and not already tracked -- and it has to happen while the item is
-still in Todo. A draft converted after it reaches Done becomes an issue that GitHub closes the
+still in Backlog. A draft converted after it reaches Done becomes an issue that GitHub closes the
 instant it is created, which is how
 [#4492](https://github.com/Macaulay2/M2/issues/4492) came to exist: a closed issue in the public
 tracker whose entire body is a dump of `bugs/anton/MISC/standardPairs.m2`. It cannot be deleted
 without repo admin, so it was retitled to point at #114 instead.
 
 Settling a `duplicate` goes: add whatever the bug file contributes to the existing issue, record
-`issue=#NNNN` and `disposition=drop` in the TSV, then **archive** the draft -- archived items are
-restorable and keep their `bugs/` path, which is the key `bin/push-project` joins on. Deleting a
-draft is permanent and orphans that row from the board for good.
+`issue=#NNNN` and `disposition=drop` in the TSV, and let the next push move the draft to Done.
+
+**Do not archive settled drafts, and never delete one.** Archiving made sense when Status was the
+only thing the board could carry, but the triage block is now the record -- archiving hides the
+rationale it just published, and `ProjectV2.items` does not return archived items, so the row
+becomes permanently unmatched and `--check` can never confirm it is current. Done is the resting
+state. Deleting is worse still: it is irreversible, and the draft would have to be recreated from
+`catalog.tsv` and `bin/extract`.
+
+A trap when checking this from a script: because archived items are not returned, `isArchived` is
+always false on what you get back, and an archived draft is indistinguishable from a deleted one
+by item count alone. Three drafts archived on 2026-08-03 (`mike/git-issue-568-569.m2`,
+`mike/git-issue291.m2`, `mike/git-issue604.m2`) made the board read 854 items, exactly as three
+deletions would have.
 
 The reason not to make the board the only surface: draft issues are project-local. They do not
 appear in issue search, cannot be referenced from a commit or PR, cannot be closed by
@@ -200,13 +211,34 @@ there is how the `bugs/` tree died the first time.
 needs `gh auth refresh -s project`, and should not get `--apply` until someone has read its
 proposed field mapping -- mass GraphQL mutations against a shared board cannot be reverted.
 
-Its mapping is known to be wrong in one place: `FIELD_MAP` sends `verdict` to the board's
-`Status` field, but `Status` is Todo/In Progress/Done and the verdicts are
-`open`/`fixed`/`duplicate`/`wontfix`/`obsolete`/`stale-repro`. Nothing matches, so every settled
-row would take the `SINGLE_SELECT` branch, print `no such option on field 'Status'`, and push
-nothing. `verdict` needs a field of its own, with `Status` derived from it -- `todo` to Todo,
-anything else to Done. Confirming the board's real field names needs `gh auth refresh -s
-read:project`, which is read-only and worth doing before anything else here.
+The board (`PVT_kwDOAC6Xfc4BQEgX`, "bugs directory", 854 items) carries only the stock
+project-template fields -- Status, Priority, Size, Estimate, Start/Target date, plus the
+built-ins. There is nowhere to put a verdict, an issue number, a fix, or a note. Rather than add
+five custom fields to a board other people use, the script writes:
+
+- **Status**, the one field that fits: `todo` to Backlog, any other verdict to Done.
+- **The draft's own body**, which needs no schema change at all. A block delimited by
+  `<!-- triage:start -->` and `<!-- triage:end -->` is appended after the original bug file text,
+  holding verdict, issue, fix, disposition and note. Re-running *replaces* that block rather than
+  appending a second one, so revising a verdict and pushing again is safe.
+
+Two details the body path depends on. Item titles carry the path with the `bugs/` prefix stripped
+-- `mike/git-issue359.m2`, not `bugs/mike/git-issue359.m2` -- so `key_of` puts it back before
+joining. And a draft is not in a repository, so `#114` and bare shas do not autolink there;
+`linkify` rewrites them as full URLs. `/issues/N` redirects to `/pull/N`, so one form covers
+issues and PRs alike.
+
+Only drafts can be updated this way (`updateProjectV2DraftIssue`). An item converted to a real
+issue is reported and its body left alone. Archived items are not returned by the API at all, so
+rows settled by archiving show up permanently as unmatched -- that is expected, not a failure.
+
+**Nothing records that a row has been pushed, on purpose.** Every run diffs the TSV against live
+board state and queues only what actually differs, so after an applied push the same command
+reports nothing to do. A `pushed` column would go stale in both directions -- revise a note and
+forget to clear the flag and the board silently keeps the old text; hand-edit the board and the
+flag claims a sync that no longer holds. The derived check cannot lie, and it re-converges on the
+next push. `./bin/push-project --check` answers the question tersely and exits 1 when the board is
+behind.
 
 ## Where to start
 
