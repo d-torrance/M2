@@ -8,15 +8,15 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**75 of 857 triaged (8.8%)**
+**84 of 857 triaged (9.8%)**
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 20 | `#...........................` |
+| `open` -- Still broken | 26 | `#...........................` |
 | `duplicate` -- Already tracked by an open issue | 7 | `............................` |
-| `fixed` -- Fixed | 40 | `#...........................` |
+| `fixed` -- Fixed | 43 | `#...........................` |
 | `obsolete` -- Obsolete | 8 | `............................` |
-| `todo` -- Not yet triaged | 782 | `##########################..` |
+| `todo` -- Not yet triaged | 773 | `#########################...` |
 
 ### Reproducer runs
 
@@ -34,14 +34,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 52 |
+| `bugs/dan` | 582 | 61 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (20)
+## Still broken -- `open` (26)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -53,17 +53,23 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
 | 0 | `bugs/dan/0-doc-Keywords` | [#4509](https://github.com/Macaulay2/M2/issues/4509) | &nbsp; | issue | the four examples are aliases from other systems, so the need is discovery by synonym; about "Normalform" returns nothing even with Body=>true, and about "solve" returns 220 hits swamped by resolve/resolution. newPackage's Keywords is per package and holds subject categories for browsing, not search aliases |
 | 0 | `bugs/dan/0-doc-option-names-in-packages` | [#4508](https://github.com/Macaulay2/M2/issues/4508) | &nbsp; | issue | verified: a package-defined option name must be exported or installPackage fails with "mutable unexported unset symbol(s) in package X: 'MyOpt'"; exporting it installs cleanly. Undocumented in Macaulay2Doc and in the wiki style guide. Note the file misplaces the error: it comes from package closing, not documentation processing, and fires with no doc node present |
+| 0 | `bugs/dan/0-document-packages` | &nbsp; | &nbsp; | &nbsp; | two of four done: XML documents itself and [newPackage,Reload] is documented at package-doc.m2:274. --debug n exists but is undocumented, as are M2's command line options generally, and warningMessage is still unexported |
 | 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
 | 0 | `bugs/dan/0-errorDepth` | [#4498](https://github.com/Macaulay2/M2/issues/4498) | &nbsp; | issue | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
 | 0 | `bugs/dan/0-indexed-variables` | [#4510](https://github.com/Macaulay2/M2/issues/4510) | &nbsp; | issue | still reproduces, one call earlier than reported: after a second ring reuses x_0..x_3, class\(R_0..R_3) gives IndexedVariable and stays that way; #2771 covers the warnings in the same area, not this |
+| 0 | `bugs/dan/0-installing-methods-functions-on-function-closures` | &nbsp; | &nbsp; | issue | first List := x->x is still accepted silently; note the file's own warning that erroring here would interfere with typicalvalues.m2 |
 | 0 | `bugs/dan/0-interrupts` | &nbsp; | &nbsp; | &nbsp; | the interpreter is still generated C from the d language, not C++; left unqueued because the file poses a research question rather than a request |
 | 0 | `bugs/dan/0-inverse-matrix` | [#4506](https://github.com/Macaulay2/M2/issues/4506) | &nbsp; | issue | still reproduces: inverse matrix {{1,2}} returns matrix {{1},{0}} rather than erroring on a non-square matrix; related to #3738, which is a different path |
 | 0 | `bugs/dan/0-isSurjective-RingMap` | [#4499](https://github.com/Macaulay2/M2/issues/4499) | &nbsp; | issue | no method is installed for (isSurjective,RingMap) |
+| 0 | `bugs/dan/0-makefile-d` | &nbsp; | &nbsp; | issue | still hand-maintained: d/Makefile.files.in lists the e/*.hpp dependencies literally and carries the comment 'should automate these dependencies' |
+| 0 | `bugs/dan/0-methods-with-options` | &nbsp; | &nbsp; | issue | still reproduces: g (ZZ,ZZ) := List => (opts)->(m,n)->... is accepted but installs nothing, leaving methods g empty; #2864 is a different confusion in the same area |
 | 0 | `bugs/dan/0-monomialIdeal` | [#4500](https://github.com/Macaulay2/M2/issues/4500) | &nbsp; | issue | unchanged: monomialIdeal {} still errors 'expected a polynomial ring without quotient elements' |
 | 0 | `bugs/dan/0-mutable-lists` | [#4501](https://github.com/Macaulay2/M2/issues/4501) | &nbsp; | issue | still quadratic: 1e3 to 1e4 elements costs 181x, not 10x |
 | 0 | `bugs/dan/0-needsPackage-unadorned` | [#4502](https://github.com/Macaulay2/M2/issues/4502) | &nbsp; | issue | needsPackage still has no Using option; its options are LoadDocumentation, Configuration, FileName, Reload, DebuggingMode |
 | 0 | `bugs/dan/0-newPackage` | [#4505](https://github.com/Macaulay2/M2/issues/4505) | &nbsp; | issue | reproduces exactly: (options Foo).Configuration is an OptionTable via loadPackage but a List via load |
+| 0 | `bugs/dan/0-package-doc` | &nbsp; | &nbsp; | issue | help.m2:288 still builds an Exports section listing Types, Functions, Methods and Symbols on the package page, with no table-of-contents link instead |
 | 0 | `bugs/dan/0-precision-and-equality` | [#4503](https://github.com/Macaulay2/M2/issues/4503) | &nbsp; | issue | reproduces exactly: 1p10 == 1.0000000000000001 is true but 1p10 == 1.000000000000001 is false |
+| 0 | `bugs/dan/0-quotient-for-non-free-modules` | &nbsp; | &nbsp; | issue | the inconsistency stands: Matrix % Matrix still requires free modules while quotientRemainder accepts the same non-free source |
 | 0 | `bugs/dan/0-rename-minimalPresentation` | [#4504](https://github.com/Macaulay2/M2/issues/4504) | &nbsp; | issue | minimizePresentation does not exist; the rename was never done |
 
 ## Already tracked by an open issue -- `duplicate` (7)
@@ -78,10 +84,11 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (40)
+## Fixed -- `fixed` (43)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
+| 0 | `bugs/dan/0-cancelTask` | &nbsp; | &nbsp; | drop | cancelTask now takes effect: the task reads <<task, canceled>> within a second, not stuck at 'cancellation requested' |
 | 0 | `bugs/dan/0-chi-doc` | &nbsp; | [`1b4bbe4494`](https://github.com/Macaulay2/M2/commit/1b4bbe4494) | drop | chi is documented in Macaulay2Doc/shared.m2 |
 | 0 | `bugs/dan/0-disabling-threads` | &nbsp; | &nbsp; | drop | answered at runtime instead: M2 --no-threads skips initializeThreadSupervisor entirely (bin/main.cpp:101), and GC_NPROCS controls gc's thread count -- both stronger than the configure-time --disable-pthreads the file asks for, since neither needs a rebuild |
 | 0 | `bugs/dan/0-doc-ideal-syntax` | &nbsp; | &nbsp; | drop | both forms documented: (ideal,Sequence) and (symbol /,Ring,Sequence) |
@@ -94,9 +101,11 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-help-usage-multiple-lines` | &nbsp; | &nbsp; | drop | the synopsis now renders Usage on its own indented lines |
 | 0 | `bugs/dan/0-highlighting` | &nbsp; | &nbsp; | drop | package names are in M2-symbols.el, in both the completion table and the highlighting regexp; #3330 is the adjacent open problem of highlighting symbols exported by packages |
 | 0 | `bugs/dan/0-isWellDefined` | &nbsp; | [`233422068a`](https://github.com/Macaulay2/M2/commit/233422068a) | drop | the patch in the file was applied: newring.m2 now calls flattenRing(R,Result=>3) |
+| 0 | `bugs/dan/0-ker-RingMap` | &nbsp; | &nbsp; | drop | both cases now return the unit ideal: ker map(R/1_R,R) is ideal 1, as is ker map(T/ideal 1_T,S) |
 | 0 | `bugs/dan/0-more-run-length-encoding` | &nbsp; | &nbsp; | drop | describe now prints QQ[t_1..t_10, ...] instead of listing every variable |
 | 0 | `bugs/dan/0-negative-dimension` | &nbsp; | &nbsp; | drop | dim I' is 1 and both asserts pass; worth promoting to tests/normal |
 | 0 | `bugs/dan/0-overview-doc` | &nbsp; | [#3264](https://github.com/Macaulay2/M2/issues/3264) | drop | Macaulay2/m2/overview.m2 was removed as unused |
+| 0 | `bugs/dan/0-parallel-assignment` | &nbsp; | &nbsp; | drop | (b) = 1:x now leaves b equal to x, instead of the one-element sequence |
 | 0 | `bugs/dan/0-pruningMap` | &nbsp; | [`d25d385134`](https://github.com/Macaulay2/M2/commit/d25d385134) | drop | the report was right and the doc was corrected: it now says the isomorphism goes from N to M |
 | 0 | `bugs/dan/0-pushForward` | &nbsp; | [#2113](https://github.com/Macaulay2/M2/issues/2113) | drop | pushForward over an inhomogeneous map returns a subquotient; the error string was removed when pushforward moved to its own file |
 | 0 | `bugs/dan/0-radical-crash` | &nbsp; | &nbsp; | &nbsp; | radical J returns instead of a SIGSEGV; worth promoting to tests/normal |
@@ -136,7 +145,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 
-## Not yet triaged -- `todo` (782)
+## Not yet triaged -- `todo` (773)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
@@ -152,37 +161,28 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-bugs-lgold.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-popescu.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-stillman.m2` | repro | fail | &nbsp; |
-| 0 | `bugs/dan/0-cancelTask` | note | n/a | [#2021](https://github.com/Macaulay2/M2/issues/2021)  error: example results terminate prematurely: cancelTask(Task) |
 | 0 | `bugs/dan/0-check-for-integer-usage` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-debugging-loadPackage` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-decompose.m2` | repro | fail | [#352](https://github.com/Macaulay2/M2/issues/352) decompose / radical fails in a ring with no degree |
 | 0 | `bugs/dan/0-degrees-of-maps` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-dependent-packages` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-local-scopes` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-document-packages` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-final-check-interactive-input-behaviour` | note | n/a | [#248](https://github.com/Macaulay2/M2/issues/248) automate as much as possible tests from '0-final-checks-before-distrib |
 | 0 | `bugs/dan/0-gb-strategies` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-html-references` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-installPackage` | note | n/a | [#229](https://github.com/Macaulay2/M2/issues/229) read-only files and "installPackage" |
-| 0 | `bugs/dan/0-installing-methods-functions-on-function-closures` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-joint-package-documentation` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-k-basis` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-ker-RingMap` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-library-source-URLs` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-loading-documentation` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-makefile-d` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-methods-with-options` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-monoid-design-problem` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-needsPackage` | note | n/a | [#1377](https://github.com/Macaulay2/M2/issues/1377) Relocate the portion of Truncations that uses Polyhedra |
 | 0 | `bugs/dan/0-on` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-options-PolynomialRing` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-package-doc` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-package-garbage-collection` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-parallel-assignment` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-parallel-documentation` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-ports` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-possible-memory-leak` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-quotient-for-non-free-modules` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-reloading-packages` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-resolution-premature-display` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-runLengthEncoding` | note | n/a | [#765](https://github.com/Macaulay2/M2/issues/765) runLengthEncoding failing on subscripted variables |
