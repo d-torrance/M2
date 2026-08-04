@@ -75,6 +75,23 @@ fixed issues"), which triaged 37 of these by hand. Its commit message is the hou
 * 1-constant-to-RR (promote works since #3457, toRR is compiled so wontfix)
 ```
 
+## Run `git grep` from the top of the checkout
+
+`git grep` pathspecs are relative to the **current directory**, not the repository root. Run
+
+```sh
+git grep -n pruningMap -- M2/Macaulay2/packages/
+```
+
+from inside `bug-triage/files/` -- which is where you naturally end up while reading bug files --
+and it matches nothing, prints nothing, and exits 0. It looks exactly like an honest negative.
+
+That matters here because so many verdicts rest on negatives: *no method is installed*, *the
+symbol is absent*, *nothing guards this call*. A silent empty result turns "I did not look in the
+right place" into "it isn't there", and the verdict reads as verified when it is not. Prefer
+running a reproducer under M2 when the claim can be tested at all -- a runtime check does not care
+what directory you are in.
+
 ## `autorun` is a hint, not a verdict
 
 `M2 --script` exits 1 on an uncaught error or a failed `assert`, so `bin/run-repros` gets a
