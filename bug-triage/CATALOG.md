@@ -8,15 +8,15 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**72 of 857 triaged (8.4%)**
+**75 of 857 triaged (8.8%)**
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 18 | `#...........................` |
+| `open` -- Still broken | 20 | `#...........................` |
 | `duplicate` -- Already tracked by an open issue | 7 | `............................` |
-| `fixed` -- Fixed | 39 | `#...........................` |
+| `fixed` -- Fixed | 40 | `#...........................` |
 | `obsolete` -- Obsolete | 8 | `............................` |
-| `todo` -- Not yet triaged | 785 | `##########################..` |
+| `todo` -- Not yet triaged | 782 | `##########################..` |
 
 ### Reproducer runs
 
@@ -34,14 +34,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 49 |
+| `bugs/dan` | 582 | 52 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (18)
+## Still broken -- `open` (20)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -51,9 +51,11 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-bugs-decker.m2` | &nbsp; | &nbsp; | &nbsp; | both asks stand: MinimalPrimes.m2:58 still carries '-- absolute case?', and no radical algorithm names Krick/Logar or Kemper |
 | 0 | `bugs/dan/0-bugs-eisenbud.m2` | &nbsp; | &nbsp; | &nbsp; | at least two of its four asks stand: Tor errors with 'not implemented yet for noncommutative rings', and Linear is not among quotient's strategies |
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
+| 0 | `bugs/dan/0-doc-Keywords` | &nbsp; | &nbsp; | issue | newPackage now takes Keywords, but only per package (Complexes uses {"Homological Algebra"}); the file asks for keywords on individual doc nodes, e.g. member -> "inList, element", which does not exist |
 | 0 | `bugs/dan/0-doc-option-names-in-packages` | [#4508](https://github.com/Macaulay2/M2/issues/4508) | &nbsp; | issue | verified: a package-defined option name must be exported or installPackage fails with "mutable unexported unset symbol(s) in package X: 'MyOpt'"; exporting it installs cleanly. Undocumented in Macaulay2Doc and in the wiki style guide. Note the file misplaces the error: it comes from package closing, not documentation processing, and fires with no doc node present |
 | 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
 | 0 | `bugs/dan/0-errorDepth` | [#4498](https://github.com/Macaulay2/M2/issues/4498) | &nbsp; | issue | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
+| 0 | `bugs/dan/0-indexed-variables` | &nbsp; | &nbsp; | issue | still reproduces, one call earlier than reported: after a second ring reuses x_0..x_3, class\(R_0..R_3) gives IndexedVariable and stays that way; #2771 covers the warnings in the same area, not this |
 | 0 | `bugs/dan/0-interrupts` | &nbsp; | &nbsp; | &nbsp; | the interpreter is still generated C from the d language, not C++; left unqueued because the file poses a research question rather than a request |
 | 0 | `bugs/dan/0-inverse-matrix` | [#4506](https://github.com/Macaulay2/M2/issues/4506) | &nbsp; | issue | still reproduces: inverse matrix {{1,2}} returns matrix {{1},{0}} rather than erroring on a non-square matrix; related to #3738, which is a different path |
 | 0 | `bugs/dan/0-isSurjective-RingMap` | [#4499](https://github.com/Macaulay2/M2/issues/4499) | &nbsp; | issue | no method is installed for (isSurjective,RingMap) |
@@ -76,7 +78,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (39)
+## Fixed -- `fixed` (40)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -88,6 +90,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-document-Weyl-homogenizer` | &nbsp; | [#2600](https://github.com/Macaulay2/M2/issues/2600) | drop | the homogenizing variable is documented under monoid, with a worked example; dc6f993616 added that paragraph |
 | 0 | `bugs/dan/0-gentoo-required-programs` | &nbsp; | &nbsp; | drop | configure takes --with-unbuilt-programs and M2 locates them at runtime via findProgram/programPaths |
 | 0 | `bugs/dan/0-getWWW` | &nbsp; | [`c9185f564c`](https://github.com/Macaulay2/M2/commit/c9185f564c) | drop | splitWWW unchunks the body when the response is chunked; added in 1.9.1 |
+| 0 | `bugs/dan/0-help-bug` | &nbsp; | [#3272](https://github.com/Macaulay2/M2/issues/3272) | drop | the command list no longer carries the leading asterisks that made it look pasteable; 75bb7260c6 replaced the UL with M2CODE |
 | 0 | `bugs/dan/0-help-usage-multiple-lines` | &nbsp; | &nbsp; | drop | the synopsis now renders Usage on its own indented lines |
 | 0 | `bugs/dan/0-highlighting` | &nbsp; | &nbsp; | drop | package names are in M2-symbols.el, in both the completion table and the highlighting regexp; #3330 is the adjacent open problem of highlighting symbols exported by packages |
 | 0 | `bugs/dan/0-isWellDefined` | &nbsp; | [`233422068a`](https://github.com/Macaulay2/M2/commit/233422068a) | drop | the patch in the file was applied: newring.m2 now calls flattenRing(R,Result=>3) |
@@ -133,7 +136,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 
-## Not yet triaged -- `todo` (785)
+## Not yet triaged -- `todo` (782)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
@@ -155,14 +158,11 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-decompose.m2` | repro | fail | [#352](https://github.com/Macaulay2/M2/issues/352) decompose / radical fails in a ring with no degree |
 | 0 | `bugs/dan/0-degrees-of-maps` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-dependent-packages` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-doc-Keywords` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-local-scopes` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-packages` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-final-check-interactive-input-behaviour` | note | n/a | [#248](https://github.com/Macaulay2/M2/issues/248) automate as much as possible tests from '0-final-checks-before-distrib |
 | 0 | `bugs/dan/0-gb-strategies` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-help-bug` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-html-references` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-indexed-variables` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-installPackage` | note | n/a | [#229](https://github.com/Macaulay2/M2/issues/229) read-only files and "installPackage" |
 | 0 | `bugs/dan/0-installing-methods-functions-on-function-closures` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-joint-package-documentation` | note | n/a | &nbsp; |
