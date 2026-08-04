@@ -54,7 +54,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-monomialIdeal` | [#4500](https://github.com/Macaulay2/M2/issues/4500) | &nbsp; | issue | unchanged: monomialIdeal {} still errors 'expected a polynomial ring without quotient elements' |
 | 0 | `bugs/dan/0-mutable-lists` | [#4501](https://github.com/Macaulay2/M2/issues/4501) | &nbsp; | issue | still quadratic: 1e3 to 1e4 elements costs 181x, not 10x |
 | 0 | `bugs/dan/0-needsPackage-unadorned` | [#4502](https://github.com/Macaulay2/M2/issues/4502) | &nbsp; | issue | needsPackage still has no Using option; its options are LoadDocumentation, Configuration, FileName, Reload, DebuggingMode |
-| 0 | `bugs/dan/0-newPackage` | &nbsp; | &nbsp; | issue | reproduces exactly: (options Foo).Configuration is an OptionTable via loadPackage but a List via load |
+| 0 | `bugs/dan/0-newPackage` | [#4505](https://github.com/Macaulay2/M2/issues/4505) | &nbsp; | issue | reproduces exactly: (options Foo).Configuration is an OptionTable via loadPackage but a List via load |
 | 0 | `bugs/dan/0-precision-and-equality` | [#4503](https://github.com/Macaulay2/M2/issues/4503) | &nbsp; | issue | reproduces exactly: 1p10 == 1.0000000000000001 is true but 1p10 == 1.000000000000001 is false |
 | 0 | `bugs/dan/0-rename-minimalPresentation` | [#4504](https://github.com/Macaulay2/M2/issues/4504) | &nbsp; | issue | minimizePresentation does not exist; the rename was never done |
 
