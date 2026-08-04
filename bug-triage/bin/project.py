@@ -91,6 +91,16 @@ REPO_ID_QUERY = """
 query($owner:String!, $name:String!) { repository(owner:$owner, name:$name) { id } }
 """
 
+LABEL_QUERY = """
+query($owner:String!, $name:String!, $label:String!) {
+  repository(owner:$owner, name:$name) { label(name:$label) { id name } }
+}
+"""
+
+# Applied to every issue filed from a bug file, so the whole cohort stays
+# findable in issue search once the drafts are gone.
+LABEL = "bugs directory"
+
 
 def fetch_project():
     proj = gh(FIELDS_QUERY, org=ORG, number=PROJECT)["data"]["organization"]["projectV2"]
@@ -116,6 +126,21 @@ def fetch_items():
 
 def repo_id():
     return gh(REPO_ID_QUERY, owner=ORG, name=REPO)["data"]["repository"]["id"]
+
+
+def label_id(name=LABEL):
+    """Node id of a repository label, or SystemExit if it does not exist.
+
+    Failing here is better than filing a batch of unlabelled issues and having to
+    go back over them by hand.
+    """
+    label = gh(LABEL_QUERY, owner=ORG, name=REPO,
+               label=name)["data"]["repository"]["label"]
+    if label is None:
+        raise SystemExit(
+            "%s/%s has no label named %r -- create it first, or the issues this "
+            "files will not be findable as a group." % (ORG, REPO, name))
+    return label["id"]
 
 
 def key_of(item):

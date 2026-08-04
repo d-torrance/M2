@@ -22,6 +22,11 @@ without renaming is how Macaulay2/M2#4492 ended up in the tracker titled
 "anton/MISC/standardPairs.m2".  The title is set on the draft first, then the
 draft is converted.
 
+Every issue filed here gets the "bugs directory" label, so the cohort stays
+findable in issue search once the drafts are gone -- that is the one view the
+project board cannot provide.  The label is resolved before anything is created,
+so a missing label stops the run rather than leaving a batch to fix up by hand.
+
     ./bin/file-issues            # show what would be filed
     ./bin/file-issues --apply    # actually file
 
@@ -64,7 +69,15 @@ mutation($draft:ID!, $title:String!) {
 CONVERT = """
 mutation($item:ID!, $repo:ID!) {
   convertProjectV2DraftIssueItemToIssue(input:{itemId:$item, repositoryId:$repo}) {
-    item { id content { ... on Issue { number url } } }
+    item { id content { ... on Issue { id number url } } }
+  }
+}
+"""
+
+ADD_LABEL = """
+mutation($issue:ID!, $label:ID!) {
+  addLabelsToLabelable(input:{labelableId:$issue, labelIds:[$label]}) {
+    labelable { ... on Issue { number } }
   }
 }
 """
@@ -117,6 +130,7 @@ def main():
     for r, item, title in plan:
         print("  %s" % r["path"])
         print("      title:  %s" % title)
+        print("      label:  %s" % project.LABEL)
         print("      status: %s" % project.status_of(item))
         print("      body:   %d chars, carried over unchanged"
               % len(item["content"].get("body") or ""))
@@ -129,11 +143,15 @@ def main():
         return
 
     repo = project.repo_id()
+    # Resolved before anything is created: a missing label should stop the run,
+    # not leave a batch of unlabelled issues to fix up by hand.
+    label = project.label_id()
     filed = {}
     for i, (r, item, title) in enumerate(plan, 1):
         project.gh(SET_TITLE, draft=item["content"]["id"], title=title)
         data = project.gh(CONVERT, item=item["id"], repo=repo)
         issue = data["data"]["convertProjectV2DraftIssueItemToIssue"]["item"]["content"]
+        project.gh(ADD_LABEL, issue=issue["id"], label=label)
         filed[r["path"]] = "#%d" % issue["number"]
         print("[%d/%d] %s -> %s" % (i, len(plan), r["path"], issue["url"]))
 

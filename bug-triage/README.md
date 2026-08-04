@@ -262,6 +262,13 @@ assigned, reference from a commit, and close with `Fixes #N`. A draft can do non
 drives `convertProjectV2DraftIssueItemToIssue`, the same mutation as the board's "Convert to
 issue" button, so the item keeps its place and its body carries over.
 
+Every issue filed this way gets the
+[`bugs directory`](https://github.com/Macaulay2/M2/labels/bugs%20directory) label. That is what
+keeps the cohort findable in issue search once the drafts are gone -- the one view the board
+cannot give you, since project membership is not searchable from the issues page. The label is
+resolved before anything is created, so if it were ever renamed the run stops rather than filing
+a batch of unlabelled issues to fix up by hand.
+
 A row is filed only when `verdict=open`, `disposition=issue`, `issue` is empty, and the path has
 a title in `issue-titles.tsv`. That last requirement is not bureaucracy: draft titles are bare
 paths, and converting without renaming is how #4492 landed in the tracker titled
