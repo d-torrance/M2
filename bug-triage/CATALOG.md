@@ -8,14 +8,15 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**28 of 857 triaged (3.3%)**
+**38 of 857 triaged (4.4%)**
 
 | verdict | count | |
 | --- | ---: | --- |
+| `open` -- Still broken | 6 | `............................` |
 | `duplicate` -- Already tracked by an open issue | 4 | `............................` |
-| `fixed` -- Fixed | 21 | `#...........................` |
-| `obsolete` -- Obsolete | 3 | `............................` |
-| `todo` -- Not yet triaged | 829 | `###########################.` |
+| `fixed` -- Fixed | 24 | `#...........................` |
+| `obsolete` -- Obsolete | 4 | `............................` |
+| `todo` -- Not yet triaged | 819 | `###########################.` |
 
 ### Reproducer runs
 
@@ -33,12 +34,23 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 5 |
+| `bugs/dan` | 582 | 15 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
+
+## Still broken -- `open` (6)
+
+| prio | file | issue | fix | disposition | note |
+| ---: | --- | --- | --- | --- | --- |
+| 0 | `bugs/dan/0-add-mutex-for-factory` | &nbsp; | &nbsp; | &nbsp; | still true: no C-level lock; ThreadedGB.m2:33 works around factory instead |
+| 0 | `bugs/dan/0-attribute-constructor` | &nbsp; | &nbsp; | &nbsp; | still emitted: c/cprint.c:487 puts __attribute__ ((constructor)) in generated C |
+| 0 | `bugs/dan/0-dictionaryPath` | &nbsp; | &nbsp; | &nbsp; | still reproduces: OutputDictionary is on dictionaryPath while a package loads |
+| 0 | `bugs/dan/0-engine-tower-rings` | &nbsp; | &nbsp; | &nbsp; | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
+| 0 | `bugs/dan/0-errorDepth` | &nbsp; | &nbsp; | &nbsp; | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
+| 0 | `bugs/dan/0-getting-one-element-of-a-mutable-hashtable` | &nbsp; | &nbsp; | &nbsp; | still reproduces: select(1,x,i->true) fails on a MutableHashTable |
 
 ## Already tracked by an open issue -- `duplicate` (4)
 
@@ -49,10 +61,13 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (21)
+## Fixed -- `fixed` (24)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
+| 0 | `bugs/dan/0-chi-doc` | &nbsp; | [`1b4bbe4494`](https://github.com/Macaulay2/M2/commit/1b4bbe4494) | drop | chi is documented in Macaulay2Doc/shared.m2 |
+| 0 | `bugs/dan/0-doc-ideal-syntax` | &nbsp; | &nbsp; | drop | both forms documented: (ideal,Sequence) and (symbol /,Ring,Sequence) |
+| 0 | `bugs/dan/0-help-usage-multiple-lines` | &nbsp; | &nbsp; | drop | the synopsis now renders Usage on its own indented lines |
 | 1 | `bugs/dan/1-decompose` | &nbsp; | &nbsp; | drop | decompose no longer overflows the stack in factory on this input |
 | 1 | `bugs/dan/1-singularLocus` | &nbsp; | &nbsp; | drop | singularLocus(ZZ[x,y]/(11,x)) no longer returns the spurious (11,x,1) |
 | &nbsp; | `bugs/anton/LINEAR-ALGEBRA/RESOLVED/gCorners.m2` | &nbsp; | [#1651](https://github.com/Macaulay2/M2/issues/1651) | &nbsp; | author filed it under RESOLVED/; fix points at that filing, not necessarily the code change |
@@ -75,15 +90,16 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue473.m2` | [#473](https://github.com/Macaulay2/M2/issues/473) | [`0ae5b6eb19`](https://github.com/Macaulay2/M2/commit/0ae5b6eb19) | drop | sub(C,QQ) raises a clean error instead of a SIGSEGV |
 | &nbsp; | `bugs/mike/git-issue56.m2` | [#56](https://github.com/Macaulay2/M2/issues/56) | [`ff7473fb87`](https://github.com/Macaulay2/M2/commit/ff7473fb87) | drop | 'unknown engine error' is now a specific not-implemented message |
 
-## Obsolete -- `obsolete` (3)
+## Obsolete -- `obsolete` (4)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
+| 0 | `bugs/dan/0-getBlock-alignment` | &nbsp; | &nbsp; | drop | d/factory_allocator.c is gone from the tree; the copied allocator it describes no longer exists |
 | 1 | `bugs/dan/1-benchmarks` | &nbsp; | &nbsp; | drop | a 2008 SVN patch adding benchmark timings from gcc 4.0/4.1 machines |
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 
-## Not yet triaged -- `todo` (829)
+## Not yet triaged -- `todo` (819)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
@@ -92,8 +108,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-SCSCP-checks` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-Schubert2-projectiveBundle` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-SourceCode` | note | n/a | [#3485](https://github.com/Macaulay2/M2/issues/3485) Building from source on Rocky 8.10 eigen3 library not found |
-| 0 | `bugs/dan/0-add-mutex-for-factory` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-attribute-constructor` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-backtrace-from-debugger` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-bugs-ataylor.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-caviglia.m2` | repro | fail | &nbsp; |
@@ -106,34 +120,26 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-bugs-stillman.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-cancelTask` | note | n/a | [#2021](https://github.com/Macaulay2/M2/issues/2021)  error: example results terminate prematurely: cancelTask(Task) |
 | 0 | `bugs/dan/0-check-for-integer-usage` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-chi-doc` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-debugging-loadPackage` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-decompose.m2` | repro | fail | [#352](https://github.com/Macaulay2/M2/issues/352) decompose / radical fails in a ring with no degree |
 | 0 | `bugs/dan/0-degrees-of-maps` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-dependent-packages` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-dictionaryPath` | note | n/a | [#1427](https://github.com/Macaulay2/M2/issues/1427) loadPackage should insist that packages not scribble in the user's dic |
 | 0 | `bugs/dan/0-disabling-threads` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-doc-Keywords` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-doc-ideal-syntax` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-doc-option-names-in-packages` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-doc-subquotient-module-maps` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-doc-writing-code` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-Weyl-homogenizer` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-local-scopes` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-packages` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-engine-tower-rings` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-errorDepth` | note | n/a | [#49](https://github.com/Macaulay2/M2/issues/49) document errorDepth better |
 | 0 | `bugs/dan/0-final-check-interactive-input-behaviour` | note | n/a | [#248](https://github.com/Macaulay2/M2/issues/248) automate as much as possible tests from '0-final-checks-before-distrib |
 | 0 | `bugs/dan/0-gb-strategies` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-gc-ucontext` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-gcc-bug-under-debian64` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-generateAssertions` | note | n/a | [#1642](https://github.com/Macaulay2/M2/issues/1642) generateAssertions generates an assertion that fails for eigenvectors |
 | 0 | `bugs/dan/0-gentoo-required-programs` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-getBlock-alignment` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-getWWW` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-getting-one-element-of-a-mutable-hashtable` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-help-bug` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-help-usage-multiple-lines` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-highlighting` | note | n/a | [#537](https://github.com/Macaulay2/M2/issues/537) syntax highlighting bug in emacs |
 | 0 | `bugs/dan/0-html-references` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-indexed-variables` | note | n/a | &nbsp; |
