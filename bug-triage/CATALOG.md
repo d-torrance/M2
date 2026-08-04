@@ -8,15 +8,15 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**55 of 857 triaged (6.4%)**
+**61 of 857 triaged (7.1%)**
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 11 | `............................` |
+| `open` -- Still broken | 12 | `............................` |
 | `duplicate` -- Already tracked by an open issue | 7 | `............................` |
-| `fixed` -- Fixed | 31 | `#...........................` |
-| `obsolete` -- Obsolete | 6 | `............................` |
-| `todo` -- Not yet triaged | 802 | `##########################..` |
+| `fixed` -- Fixed | 35 | `#...........................` |
+| `obsolete` -- Obsolete | 7 | `............................` |
+| `todo` -- Not yet triaged | 796 | `##########################..` |
 
 ### Reproducer runs
 
@@ -34,14 +34,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 32 |
+| `bugs/dan` | 582 | 38 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (11)
+## Still broken -- `open` (12)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -54,6 +54,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-monomialIdeal` | [#4500](https://github.com/Macaulay2/M2/issues/4500) | &nbsp; | issue | unchanged: monomialIdeal {} still errors 'expected a polynomial ring without quotient elements' |
 | 0 | `bugs/dan/0-mutable-lists` | [#4501](https://github.com/Macaulay2/M2/issues/4501) | &nbsp; | issue | still quadratic: 1e3 to 1e4 elements costs 181x, not 10x |
 | 0 | `bugs/dan/0-needsPackage-unadorned` | [#4502](https://github.com/Macaulay2/M2/issues/4502) | &nbsp; | issue | needsPackage still has no Using option; its options are LoadDocumentation, Configuration, FileName, Reload, DebuggingMode |
+| 0 | `bugs/dan/0-newPackage` | &nbsp; | &nbsp; | issue | reproduces exactly: (options Foo).Configuration is an OptionTable via loadPackage but a List via load |
 | 0 | `bugs/dan/0-precision-and-equality` | [#4503](https://github.com/Macaulay2/M2/issues/4503) | &nbsp; | issue | reproduces exactly: 1p10 == 1.0000000000000001 is true but 1p10 == 1.000000000000001 is false |
 | 0 | `bugs/dan/0-rename-minimalPresentation` | [#4504](https://github.com/Macaulay2/M2/issues/4504) | &nbsp; | issue | minimizePresentation does not exist; the rename was never done |
 
@@ -69,17 +70,21 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (31)
+## Fixed -- `fixed` (35)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-chi-doc` | &nbsp; | [`1b4bbe4494`](https://github.com/Macaulay2/M2/commit/1b4bbe4494) | drop | chi is documented in Macaulay2Doc/shared.m2 |
 | 0 | `bugs/dan/0-doc-ideal-syntax` | &nbsp; | &nbsp; | drop | both forms documented: (ideal,Sequence) and (symbol /,Ring,Sequence) |
+| 0 | `bugs/dan/0-document-Weyl-homogenizer` | &nbsp; | &nbsp; | drop | the homogenizing variable is documented under monoid, with a worked example |
 | 0 | `bugs/dan/0-gentoo-required-programs` | &nbsp; | &nbsp; | drop | configure takes --with-unbuilt-programs and M2 locates them at runtime via findProgram/programPaths |
 | 0 | `bugs/dan/0-getWWW` | &nbsp; | [`c9185f564c`](https://github.com/Macaulay2/M2/commit/c9185f564c) | drop | splitWWW unchunks the body when the response is chunked; added in 1.9.1 |
 | 0 | `bugs/dan/0-help-usage-multiple-lines` | &nbsp; | &nbsp; | drop | the synopsis now renders Usage on its own indented lines |
+| 0 | `bugs/dan/0-isWellDefined` | &nbsp; | [`233422068a`](https://github.com/Macaulay2/M2/commit/233422068a) | drop | the patch in the file was applied: newring.m2 now calls flattenRing(R,Result=>3) |
 | 0 | `bugs/dan/0-more-run-length-encoding` | &nbsp; | &nbsp; | drop | describe now prints QQ[t_1..t_10, ...] instead of listing every variable |
+| 0 | `bugs/dan/0-negative-dimension` | &nbsp; | &nbsp; | drop | dim I' is 1 and both asserts pass; worth promoting to tests/normal |
 | 0 | `bugs/dan/0-overview-doc` | &nbsp; | [`fdc8c2842d`](https://github.com/Macaulay2/M2/commit/fdc8c2842d) | drop | Macaulay2/m2/overview.m2 was removed as unused |
+| 0 | `bugs/dan/0-pruningMap` | &nbsp; | [`d25d385134`](https://github.com/Macaulay2/M2/commit/d25d385134) | drop | the report was right and the doc was corrected: it now says the isomorphism goes from N to M |
 | 0 | `bugs/dan/0-pushForward` | &nbsp; | [`7e7f0c50ca`](https://github.com/Macaulay2/M2/commit/7e7f0c50ca) | drop | pushForward over an inhomogeneous map returns a subquotient; the error string was removed when pushforward moved to its own file |
 | 0 | `bugs/dan/0-radical-crash` | &nbsp; | &nbsp; | &nbsp; | radical J returns instead of a SIGSEGV; worth promoting to tests/normal |
 | 0 | `bugs/dan/0-ringmap-assertion-failure` | &nbsp; | [`7e7f0c50ca`](https://github.com/Macaulay2/M2/commit/7e7f0c50ca) | drop | kernel returns instead of tripping the degreesRing assert, which the same commit deleted from matrix3.m2 |
@@ -105,18 +110,19 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue473.m2` | [#473](https://github.com/Macaulay2/M2/issues/473) | [`0ae5b6eb19`](https://github.com/Macaulay2/M2/commit/0ae5b6eb19) | drop | sub(C,QQ) raises a clean error instead of a SIGSEGV |
 | &nbsp; | `bugs/mike/git-issue56.m2` | [#56](https://github.com/Macaulay2/M2/issues/56) | [`ff7473fb87`](https://github.com/Macaulay2/M2/commit/ff7473fb87) | drop | 'unknown engine error' is now a specific not-implemented message |
 
-## Obsolete -- `obsolete` (6)
+## Obsolete -- `obsolete` (7)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-gc-ucontext` | &nbsp; | &nbsp; | drop | Snow Leopard is long dead and the bundled gc is 7.4.0, not the 7.1 this patches |
 | 0 | `bugs/dan/0-getBlock-alignment` | &nbsp; | &nbsp; | drop | d/factory_allocator.c is gone from the tree; the copied allocator it describes no longer exists |
+| 0 | `bugs/dan/0-library-dependencies` | &nbsp; | &nbsp; | drop | libraries/final/bin no longer exists, and the file already records this as done for deb |
 | 0 | `bugs/dan/0-non-blocking-hashtables` | &nbsp; | &nbsp; | drop | cites Google Video and Google Code, both shut down; nbds and high-scale-lib are abandoned |
 | 1 | `bugs/dan/1-benchmarks` | &nbsp; | &nbsp; | drop | a 2008 SVN patch adding benchmark timings from gcc 4.0/4.1 machines |
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 
-## Not yet triaged -- `todo` (802)
+## Not yet triaged -- `todo` (796)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
@@ -146,7 +152,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-doc-option-names-in-packages` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-doc-subquotient-module-maps` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-doc-writing-code` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-document-Weyl-homogenizer` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-local-scopes` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-document-packages` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-final-check-interactive-input-behaviour` | note | n/a | [#248](https://github.com/Macaulay2/M2/issues/248) automate as much as possible tests from '0-final-checks-before-distrib |
@@ -160,19 +165,15 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-installing-methods-functions-on-function-closures` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-interrupts` | note | n/a | [#168](https://github.com/Macaulay2/M2/issues/168) interrupts don't always work |
 | 0 | `bugs/dan/0-inverse-matrix` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-isWellDefined` | note | n/a | [#1998](https://github.com/Macaulay2/M2/issues/1998) isWellDefined for RingMap fails sometimes |
 | 0 | `bugs/dan/0-joint-package-documentation` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-k-basis` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-ker-RingMap` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-library-dependencies` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-library-source-URLs` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-loading-documentation` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-makefile-d` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-methods-with-options` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-monoid-design-problem` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-needsPackage` | note | n/a | [#1377](https://github.com/Macaulay2/M2/issues/1377) Relocate the portion of Truncations that uses Polyhedra |
-| 0 | `bugs/dan/0-negative-dimension` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-newPackage` | note | n/a | [#508](https://github.com/Macaulay2/M2/issues/508) new option for newPackage |
 | 0 | `bugs/dan/0-on` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-options-PolynomialRing` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-package-doc` | note | n/a | &nbsp; |
@@ -181,7 +182,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-parallel-documentation` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-ports` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-possible-memory-leak` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-pruningMap` | note | n/a | [#4481](https://github.com/Macaulay2/M2/issues/4481) Hom of CoherentSheaf on a NormalToricVariety fails due to a missing pr |
 | 0 | `bugs/dan/0-quotient-for-non-free-modules` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-reloading-packages` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-resolution-premature-display` | note | n/a | &nbsp; |
