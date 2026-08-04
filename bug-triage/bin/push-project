@@ -9,15 +9,14 @@ The board carries only the stock project-template fields -- Status, Priority,
 Size, Estimate, dates -- so there is nowhere to put a verdict, an issue number, a
 fix, or a note.  Rather than add five custom fields to a shared org board, the
 narrative goes into the body of the draft itself, between HTML comment markers,
-and only the coarse state goes into a field:
-
-    Status   todo -> Backlog, anything else -> Done
-    body     a delimited block holding verdict/issue/fix/disposition/note
+and only the coarse state goes into a field.  See want_status below for the
+mapping, and read the comment there before changing it.
 
 The block is replaced, not appended to, so this is safe to re-run as verdicts get
 revised.  Nothing here creates items, deletes items, or creates fields.
 
     ./bin/push-project                 # show what would change
+    ./bin/push-project --check         # one line; exit 1 if the board is behind
     ./bin/push-project --apply         # actually write
 
 Requires the "project" scope, which the default gh token does not have:
@@ -29,19 +28,15 @@ bulk.  Read the dry-run output first.
 """
 
 import argparse
-import json
 import os
 import re
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import catalog
+import project
 
-ORG = "Macaulay2"
-PROJECT = 46
-
-STATUS_FIELD = "Status"
+BEGIN, END, BLOCK_RE = project.BEGIN, project.END, project.BLOCK_RE
 
 # The board has "Auto-close issue" enabled, so setting Status to Done on an item
 # that is a real issue closes that issue.  Drafts have no open/closed state and
@@ -63,111 +58,6 @@ def want_status(row):
     if row["verdict"] == "open":
         return STATUS_TRACKED if row["issue"] else STATUS_NEEDS_ISSUE
     return STATUS_SETTLED
-
-BEGIN = "<!-- triage:start -->"
-END = "<!-- triage:end -->"
-BLOCK_RE = re.compile(re.escape(BEGIN) + ".*?" + re.escape(END), re.S)
-
-
-def gh(query, **variables):
-    cmd = ["gh", "api", "graphql", "-f", "query=" + query]
-    for k, v in variables.items():
-        cmd += ["-F" if isinstance(v, int) else "-f", "%s=%s" % (k, v)]
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if p.returncode != 0:
-        err = p.stderr.decode("utf-8", "replace")
-        if "read:project" in err or "INSUFFICIENT_SCOPES" in err:
-            raise SystemExit(
-                "the gh token lacks project scope.  Run:\n"
-                "    gh auth refresh -s project\n\n" + err)
-        raise SystemExit("gh api graphql failed:\n" + err)
-    return json.loads(p.stdout)
-
-
-FIELDS_QUERY = """
-query($org:String!, $number:Int!) {
-  organization(login:$org) {
-    projectV2(number:$number) {
-      id title
-      fields(first:50) {
-        nodes {
-          ... on ProjectV2FieldCommon { id name dataType }
-          ... on ProjectV2SingleSelectField {
-            id name dataType options { id name }
-          }
-        }
-      }
-    }
-  }
-}
-"""
-
-ITEMS_QUERY = """
-query($org:String!, $number:Int!, $cursor:String) {
-  organization(login:$org) {
-    projectV2(number:$number) {
-      items(first:100, after:$cursor) {
-        pageInfo { hasNextPage endCursor }
-        nodes {
-          id type
-          fieldValues(first:20) {
-            nodes {
-              ... on ProjectV2ItemFieldSingleSelectValue {
-                name field { ... on ProjectV2FieldCommon { name } }
-              }
-            }
-          }
-          content {
-            ... on DraftIssue { id title body }
-            ... on Issue { number title body }
-          }
-        }
-      }
-    }
-  }
-}
-"""
-
-
-def fetch_project():
-    proj = gh(FIELDS_QUERY, org=ORG, number=PROJECT)["data"]["organization"]["projectV2"]
-    fields = {f["name"].lower(): f for f in proj["fields"]["nodes"] if f}
-    return proj, fields
-
-
-def fetch_items():
-    items, cursor = [], None
-    while True:
-        # gh refuses a null variable, so send the first page without a cursor.
-        if cursor is None:
-            data = gh(ITEMS_QUERY.replace(", $cursor:String", "")
-                      .replace(", after:$cursor", ""), org=ORG, number=PROJECT)
-        else:
-            data = gh(ITEMS_QUERY, org=ORG, number=PROJECT, cursor=cursor)
-        page = data["data"]["organization"]["projectV2"]["items"]
-        items.extend(n for n in page["nodes"] if n.get("content"))
-        if not page["pageInfo"]["hasNextPage"]:
-            return items
-        cursor = page["pageInfo"]["endCursor"]
-
-
-def key_of(item):
-    """The catalog path an item refers to.
-
-    Item titles carry the path with the bugs/ prefix stripped --
-    "mike/git-issue359.m2" for "bugs/mike/git-issue359.m2" -- so put it back.
-    """
-    title = (item["content"].get("title") or "").strip()
-    if not title or title.startswith("bugs/"):
-        return title or None
-    return "bugs/" + title
-
-
-def status_of(item):
-    for fv in item.get("fieldValues", {}).get("nodes", []):
-        if fv and (fv.get("field") or {}).get("name") == STATUS_FIELD:
-            return fv.get("name")
-    return None
 
 
 REPO_URL = "https://github.com/Macaulay2/M2"
@@ -251,25 +141,21 @@ def main():
     if not rows:
         raise SystemExit("nothing settled to push yet")
 
-    proj, fields = fetch_project()
+    proj, fields = project.fetch_project()
     print("project: %s (%s)" % (proj["title"], proj["id"]))
 
-    status = fields.get(STATUS_FIELD.lower())
+    status = fields.get(project.STATUS_FIELD.lower())
     if status is None:
-        raise SystemExit("no %r field on the board" % STATUS_FIELD)
+        raise SystemExit("no %r field on the board" % project.STATUS_FIELD)
     options = {o["name"].lower(): o["id"] for o in status.get("options", [])}
     for want in ALL_STATUSES:
         if want.lower() not in options:
             raise SystemExit("%r field has no %r option (has: %s)"
-                             % (STATUS_FIELD, want,
+                             % (project.STATUS_FIELD, want,
                                 ", ".join(o["name"] for o in status["options"])))
 
-    items = fetch_items()
-    by_key = {}
-    for item in items:
-        k = key_of(item)
-        if k:
-            by_key.setdefault(k, item)
+    items = project.fetch_items()
+    by_key = project.by_key(items)
     print("%d items on the board, %d keyed by path\n" % (len(items), len(by_key)))
 
     body_edits, status_edits, unmatched, not_draft = [], [], [], []
@@ -280,7 +166,7 @@ def main():
             continue
 
         want = want_status(r)
-        if status_of(item) != want:
+        if project.status_of(item) != want:
             status_edits.append((r["path"], item["id"], options[want.lower()], want))
 
         block = block_for(r)
@@ -321,11 +207,11 @@ def main():
         return
 
     for i, (path, item_id, option_id, want) in enumerate(status_edits, 1):
-        gh(SET_STATUS, project=proj["id"], item=item_id,
-           field=status["id"], value=option_id)
+        project.gh(SET_STATUS, project=proj["id"], item=item_id,
+                   field=status["id"], value=option_id)
         print("[status %d/%d] %s -> %s" % (i, len(status_edits), path, want))
     for i, (path, draft_id, new, _) in enumerate(body_edits, 1):
-        gh(SET_BODY, draft=draft_id, body=new)
+        project.gh(SET_BODY, draft=draft_id, body=new)
         print("[body %d/%d] %s" % (i, len(body_edits), path))
     print("\napplied %d updates" % (len(status_edits) + len(body_edits)))
 

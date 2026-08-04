@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""Convert settled-open drafts in project 46 into real issues.  DRY RUN BY DEFAULT.
+
+This is the step #36 actually asked for: a bug file that still reproduces and is
+not already tracked becomes an issue someone can be assigned, reference from a
+commit, and close with "Fixes #N".  A draft can do none of that.
+
+It drives the same GraphQL mutation as the board's "Convert to issue" button,
+convertProjectV2DraftIssueItemToIssue, so the item keeps its place on the board
+and its body carries over -- which by this point is the original bug file plus
+the triage block bin/push-project wrote.
+
+A row is filed when all of these hold:
+
+    verdict      open          still broken
+    disposition  issue         we decided it should be tracked publicly
+    issue        (empty)       not already tracked
+    title        in issue-titles.tsv
+
+That last one is not bureaucracy.  Draft titles are bare paths, and converting
+without renaming is how Macaulay2/M2#4492 ended up in the tracker titled
+"anton/MISC/standardPairs.m2".  The title is set on the draft first, then the
+draft is converted.
+
+    ./bin/file-issues            # show what would be filed
+    ./bin/file-issues --apply    # actually file
+
+--apply creates public issues in Macaulay2/M2.  They cannot be deleted without
+repo admin.  Read the dry-run output first.
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import catalog
+import project
+
+TITLES = os.path.join(project.__file__.rsplit("/bin/", 1)[0], "issue-titles.tsv")
+
+
+def read_titles():
+    if not os.path.exists(TITLES):
+        return {}
+    out = {}
+    with open(TITLES, encoding="utf-8") as f:
+        f.readline()
+        for line in f:
+            if line.strip():
+                path, _, title = line.rstrip("\n").partition("\t")
+                out[path] = title
+    return out
+
+
+SET_TITLE = """
+mutation($draft:ID!, $title:String!) {
+  updateProjectV2DraftIssue(input:{draftIssueId:$draft, title:$title}) {
+    draftIssue { id }
+  }
+}
+"""
+
+CONVERT = """
+mutation($item:ID!, $repo:ID!) {
+  convertProjectV2DraftIssueItemToIssue(input:{itemId:$item, repositoryId:$repo}) {
+    item { id content { ... on Issue { number url } } }
+  }
+}
+"""
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--apply", action="store_true",
+                   help="actually create issues (default: dry run)")
+    args = p.parse_args()
+
+    rows = catalog.require(catalog.read())
+    titles = read_titles()
+
+    wanted = [r for r in rows if r["verdict"] == "open"
+              and r["disposition"] == "issue" and not r["issue"]]
+    if not wanted:
+        raise SystemExit("no rows are open, marked disposition=issue, and untracked")
+
+    items = project.by_key(project.fetch_items())
+
+    plan, blocked = [], []
+    for r in wanted:
+        item = items.get(r["path"])
+        title = titles.get(r["path"])
+        if item is None:
+            blocked.append((r["path"], "no board item -- archived, or already converted"))
+        elif item["type"] != "DRAFT_ISSUE":
+            blocked.append((r["path"], "board item is a %s, not a draft" % item["type"]))
+        elif not title:
+            blocked.append((r["path"], "no title in issue-titles.tsv"))
+        elif project.status_of(item) == "Done":
+            # "Auto-close issue" is enabled on this board: converting an item that
+            # is already Done produces an issue closed the same second.
+            blocked.append((r["path"], "Status is Done -- would be auto-closed on creation"))
+        elif project.BEGIN not in (item["content"].get("body") or ""):
+            # The conversion carries the body over verbatim, so a draft that has
+            # not been pushed yet would become an issue holding the bare bug file
+            # and none of the reasoning that justified filing it.
+            blocked.append((r["path"], "no triage block -- run ./bin/push-project --apply first"))
+        else:
+            plan.append((r, item, title))
+
+    print("%d rows to file, %d blocked\n" % (len(plan), len(blocked)))
+    for path, why in blocked:
+        print("  BLOCKED  %-50s %s" % (path, why))
+    if blocked:
+        print()
+    for r, item, title in plan:
+        print("  %s" % r["path"])
+        print("      title:  %s" % title)
+        print("      status: %s" % project.status_of(item))
+        print("      body:   %d chars, carried over unchanged"
+              % len(item["content"].get("body") or ""))
+
+    if not args.apply:
+        print("\ndry run -- nothing filed.  Re-run with --apply to create these "
+              "issues in %s/%s." % (project.ORG, project.REPO))
+        return
+    if not plan:
+        return
+
+    repo = project.repo_id()
+    filed = {}
+    for i, (r, item, title) in enumerate(plan, 1):
+        project.gh(SET_TITLE, draft=item["content"]["id"], title=title)
+        data = project.gh(CONVERT, item=item["id"], repo=repo)
+        issue = data["data"]["convertProjectV2DraftIssueItemToIssue"]["item"]["content"]
+        filed[r["path"]] = "#%d" % issue["number"]
+        print("[%d/%d] %s -> %s" % (i, len(plan), r["path"], issue["url"]))
+
+    # Write the numbers back before anything else runs: until the catalog knows
+    # the issue, push-project sees verdict=open with no issue and would set the
+    # item to Ready.
+    rows = catalog.read()
+    for r in rows:
+        if r["path"] in filed:
+            r["issue"] = filed[r["path"]]
+    catalog.write(rows)
+    print("\nfiled %d issues and recorded them in catalog.tsv" % len(filed))
+
+
+if __name__ == "__main__":
+    main()

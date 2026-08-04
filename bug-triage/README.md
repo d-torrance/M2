@@ -246,6 +246,36 @@ Only drafts can be updated this way (`updateProjectV2DraftIssue`). An item conve
 issue is reported and its body left alone. Archived items are not returned by the API at all, so
 rows settled by archiving show up permanently as unmatched -- that is expected, not a failure.
 
+## Filing the issues
+
+`bin/file-issues` is the step [#36](https://github.com/Macaulay2/M2/issues/36) actually asked
+for: a bug file that still reproduces and is not already tracked becomes an issue someone can be
+assigned, reference from a commit, and close with `Fixes #N`. A draft can do none of those. It
+drives `convertProjectV2DraftIssueItemToIssue`, the same mutation as the board's "Convert to
+issue" button, so the item keeps its place and its body carries over.
+
+A row is filed only when `verdict=open`, `disposition=issue`, `issue` is empty, and the path has
+a title in `issue-titles.tsv`. That last requirement is not bureaucracy: draft titles are bare
+paths, and converting without renaming is how #4492 landed in the tracker titled
+`anton/MISC/standardPairs.m2`. The title is set on the draft first, then the draft is converted.
+
+**The order is push, then file.** Conversion copies the body verbatim, so a draft that has not
+been pushed becomes an issue holding the bare bug file with none of the reasoning behind it --
+which is exactly the useful part. `bin/file-issues` refuses to convert a draft with no triage
+block rather than trusting anyone to remember. The full cycle:
+
+```sh
+$EDITOR catalog.tsv                # record verdicts
+bin/render --suggestions           # refresh CATALOG.md
+bin/push-project --apply           # blocks onto the drafts; open rows go to Ready
+$EDITOR issue-titles.tsv           # name the ones to be filed
+bin/file-issues --apply            # convert; issue numbers land back in catalog.tsv
+bin/push-project --apply           # those rows now go to In progress
+```
+
+The second push is not redundant: `file-issues` writes the new issue number into the catalog, and
+that is what moves the row from Ready to In progress.
+
 **Nothing records that a row has been pushed, on purpose.** Every run diffs the TSV against live
 board state and queues only what actually differs, so after an applied push the same command
 reports nothing to do. A `pushed` column would go stale in both directions -- revise a note and
