@@ -396,6 +396,24 @@ flag claims a sync that no longer holds. The derived check cannot lie, and it re
 next push. `./bin/push-project --check` answers the question tersely and exits 1 when the board is
 behind.
 
+## The wishlist files are parked, on purpose
+
+Seven files open with "Place bugs that you find in here" -- `0-bugs-ataylor.m2`,
+`-caviglia`, `-decker`, `-eisenbud`, `-iswanson`, `-kummini`, `-lgold`, `-popescu`,
+`-stillman`, and `mike/0-bugs-with-de.m2`. Each holds several unrelated asks, so one row does not
+correspond to one issue, and filing them whole would produce issues that cannot be closed until
+every item in them is done. That is how these files survived twenty-five years in the first place.
+
+They are triaged normally -- verdict, and a note recording which specific asks were confirmed
+still live -- but left with `disposition` blank, so `bin/file-issues` skips them and they rest at
+**Ready**. Deal with the class in one pass once the rest of the backlog is settled, rather than
+re-deciding it per file. `0-document-packages` and `0-interrupts` are parked there for the same
+reason: several asks, partly done.
+
+When that pass happens, note that the `issue` column already takes several references --
+`bugs/mike/git-issue-568-569.m2` carries `#568 #569` -- so a row can be settled by filing one
+issue per live ask and recording them all.
+
 ## Where to start
 
 `bugs/dan` priority `0` -- 155 files, Dan's own highest-priority bucket, and the same one
