@@ -285,6 +285,11 @@ path, e.g. `comments/bugs/dan/0-generateAssertions.md`. The `note` column is del
 -- those notes are internal shorthand written for the catalog, and posting them verbatim would
 read as noise on a stranger's issue.
 
+The appended footer names the source file, links #36 and the catalog, and says the text was
+drafted with AI assistance. Someone reading a comment on their own issue is entitled to know that
+before deciding how much weight to give it -- especially where a comment relays a claim rather
+than something verified, as the #457 one does.
+
 **A comment is the only thing here that notifies anyone.** Draft bodies, statuses and labels are
 all silent; a comment reaches every watcher of an issue that may be a decade old. That is why the
 judgment is never automated and the dry run prints the full text. Re-running edits the comment
