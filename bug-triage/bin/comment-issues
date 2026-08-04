@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""Post hand-written comments onto the issues that duplicate rows point at.
+
+DRY RUN BY DEFAULT.
+
+When a bug file turns out to be covered by an existing issue but carries
+something that issue lacks -- an older reproducer, a workaround, a second symptom
+of the same defect -- the useful move is a comment on the live issue rather than
+a new one.  That is what actually gets the bug fixed; the board cannot do it.
+
+**The text is never generated.**  A comment is posted only for a path with a file
+under comments/, written by hand, mirroring the bug path:
+
+    comments/bugs/dan/0-generateAssertions.md
+
+The note column is deliberately not used for this.  Those notes are one-line
+internal shorthand -- "both issues are still open" -- written for the catalog,
+and posting them verbatim would read as noise on a stranger's issue.
+
+Deciding whether a comment adds anything is the whole value here, and it is not
+derivable from the TSV.  #114 got none because its content was already identical
+to the bug file; #4231 deserves one because its author wrote that they could not
+find the earlier discussion.  This script automates the posting, never the
+judgment.
+
+Unlike everything else in this directory, a comment notifies people.  Draft
+bodies, statuses and labels are silent; a comment reaches every watcher of an
+issue that may be a decade old.  Read the dry run.
+
+    ./bin/comment-issues            # show the exact text
+    ./bin/comment-issues --apply    # post
+
+Re-running edits the comment already posted rather than adding another, found by
+its trailing marker.
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import catalog
+import project
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+COMMENTS = os.path.join(ROOT, "comments")
+
+
+def marker_for(path):
+    return "<!-- bug-triage:%s -->" % path
+
+
+def comment_file(path):
+    return os.path.join(COMMENTS, path + ".md")
+
+
+def body_for(path):
+    """The comment to post, or None if nobody has written one."""
+    filename = comment_file(path)
+    if not os.path.exists(filename):
+        return None
+    with open(filename, encoding="utf-8") as f:
+        text = f.read().strip()
+    if not text:
+        return None
+    return "%s\n\n<sub>From `%s` in the pre-GitHub `bugs/` tree, being triaged in [#36](%s/issues/36).  Source of truth: [`bug-triage/catalog.tsv`](%s).</sub>\n%s" % (
+        text, path, project.REPO_URL, project.CATALOG_URL, marker_for(path))
+
+
+ISSUE_QUERY = """
+query($owner:String!, $name:String!, $number:Int!) {
+  repository(owner:$owner, name:$name) {
+    issue(number:$number) {
+      id number state
+      comments(first:100) { nodes { id body } }
+    }
+  }
+}
+"""
+
+ADD_COMMENT = """
+mutation($subject:ID!, $body:String!) {
+  addComment(input:{subjectId:$subject, body:$body}) {
+    commentEdge { node { url } }
+  }
+}
+"""
+
+UPDATE_COMMENT = """
+mutation($id:ID!, $body:String!) {
+  updateIssueComment(input:{id:$id, body:$body}) { issueComment { url } }
+}
+"""
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--apply", action="store_true",
+                   help="actually post (default: dry run)")
+    args = p.parse_args()
+
+    rows = catalog.require(catalog.read())
+    plan, skipped = [], []
+
+    for r in rows:
+        if r["verdict"] != "duplicate" or not r["issue"]:
+            continue
+        body = body_for(r["path"])
+        if body is None:
+            skipped.append(r["path"])
+            continue
+        # "#568 #569" means the file covers both; each gets its own comment.
+        for ref in r["issue"].split():
+            number = int(ref.lstrip("#"))
+            issue = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
+                               number=number)["data"]["repository"]["issue"]
+            if issue is None:
+                print("  SKIP  %s -> #%d does not exist" % (r["path"], number))
+                continue
+            existing = next((c for c in issue["comments"]["nodes"]
+                             if marker_for(r["path"]) in c["body"]), None)
+            if existing and existing["body"] == body:
+                print("  ok    %s -> #%d already current" % (r["path"], number))
+                continue
+            plan.append((r["path"], issue, existing, body))
+
+    print("\n%d comments to post or update, %d duplicate rows have no comment "
+          "file\n" % (len(plan), len(skipped)))
+
+    for path, issue, existing, body in plan:
+        print("=" * 72)
+        print("%s  ->  #%d (%s)%s"
+              % (path, issue["number"], issue["state"],
+                 "  [editing existing comment]" if existing else ""))
+        print("-" * 72)
+        print(body)
+        print()
+
+    if not args.apply:
+        print("dry run -- nothing posted.  Re-run with --apply.")
+        print("NOTE: posting notifies everyone watching those issues.")
+        return
+
+    for i, (path, issue, existing, body) in enumerate(plan, 1):
+        if existing:
+            project.gh(UPDATE_COMMENT, id=existing["id"], body=body)
+            what = "updated"
+        else:
+            project.gh(ADD_COMMENT, subject=issue["id"], body=body)
+            what = "posted"
+        print("[%d/%d] %s %s on #%d" % (i, len(plan), what, path, issue["number"]))
+    print("\n%s %d comments" % ("posted/updated", len(plan)))
+
+
+if __name__ == "__main__":
+    main()

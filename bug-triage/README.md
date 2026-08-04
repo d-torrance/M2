@@ -254,6 +254,42 @@ Only drafts can be updated this way (`updateProjectV2DraftIssue`). An item conve
 issue is reported and its body left alone. Archived items are not returned by the API at all, so
 rows settled by archiving show up permanently as unmatched -- that is expected, not a failure.
 
+## When an existing issue is close but not the same
+
+Run `bin/suggest-issues` and read the shortlist **before** writing a verdict, not after. It is
+keyword-ranked and wrong often enough to distrust, but it found #457 for `0-polymake` and #4231
+for `0-getting-one-element-of-a-mutable-hashtable`, both of which would otherwise have been filed
+as new issues that already existed.
+
+When the match is exact, the row is a `duplicate` and there is nothing to decide. When it is close
+but not the same -- same function, same root cause, different symptom -- there are three ways to
+settle it, and the choice belongs to whoever is triaging:
+
+| | outcome | catalog | board |
+| --- | --- | --- | --- |
+| **a** | open a new issue, cross-referencing the existing one | `open`, `disposition=issue`, note names the related issue | Ready, then In progress |
+| **b** | comment on the existing issue | `duplicate`, `issue=#N`, `disposition=drop`, plus a file under `comments/` | Done |
+| **c** | note the existing issue, say nothing publicly | `duplicate`, `issue=#N`, `disposition=drop` | Done |
+
+Worked examples of each: `0-dictionaryPath` took **a** against #1427, because #1427 is framed
+around the user's private dictionary and the `OutputDictionary` symptom would not be found by
+anyone searching for it. `0-generateAssertions` took **b** against #3413, because the semicolon
+case is the same defect as the multi-line case and one fix settles both. `0-polymake` took **c**
+against #457, which already says everything the bug file says.
+
+## Commenting on an existing issue
+
+`bin/comment-issues` posts the comments for the **b** rows. The text is never generated: a
+comment goes out only for a path with a hand-written file under `comments/`, mirroring the bug
+path, e.g. `comments/bugs/dan/0-generateAssertions.md`. The `note` column is deliberately not used
+-- those notes are internal shorthand written for the catalog, and posting them verbatim would
+read as noise on a stranger's issue.
+
+**A comment is the only thing here that notifies anyone.** Draft bodies, statuses and labels are
+all silent; a comment reaches every watcher of an issue that may be a decade old. That is why the
+judgment is never automated and the dry run prints the full text. Re-running edits the comment
+already posted rather than adding a second, found by a trailing `<!-- bug-triage:PATH -->` marker.
+
 ## Filing the issues
 
 `bin/file-issues` is the step [#36](https://github.com/Macaulay2/M2/issues/36) actually asked

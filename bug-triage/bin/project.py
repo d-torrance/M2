@@ -101,6 +101,14 @@ query($owner:String!, $name:String!, $label:String!) {
 # findable in issue search once the drafts are gone.
 LABEL = "bugs directory"
 
+REPO_URL = "https://github.com/%s/%s" % (ORG, REPO)
+
+# Where a reader can actually see the catalog.  It is not in Macaulay2/M2 yet, so
+# this points at the branch it lives on.  Update it when the branch lands, or the
+# footer of every pushed draft and posted comment points at a ref that is gone.
+CATALOG_URL = ("https://github.com/d-torrance/M2/blob/bug-triage"
+               "/bug-triage/catalog.tsv")
+
 
 def fetch_project():
     proj = gh(FIELDS_QUERY, org=ORG, number=PROJECT)["data"]["organization"]["projectV2"]

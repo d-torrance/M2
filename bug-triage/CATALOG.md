@@ -12,8 +12,8 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 12 | `............................` |
-| `duplicate` -- Already tracked by an open issue | 6 | `............................` |
+| `open` -- Still broken | 11 | `............................` |
+| `duplicate` -- Already tracked by an open issue | 7 | `............................` |
 | `fixed` -- Fixed | 31 | `#...........................` |
 | `obsolete` -- Obsolete | 6 | `............................` |
 | `todo` -- Not yet triaged | 802 | `##########################..` |
@@ -41,7 +41,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (12)
+## Still broken -- `open` (11)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -50,7 +50,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
 | 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
 | 0 | `bugs/dan/0-errorDepth` | [#4498](https://github.com/Macaulay2/M2/issues/4498) | &nbsp; | issue | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
-| 0 | `bugs/dan/0-generateAssertions` | &nbsp; | &nbsp; | issue | unchanged: still emits assert( (4;) === 4 ), which fails when run |
 | 0 | `bugs/dan/0-isSurjective-RingMap` | [#4499](https://github.com/Macaulay2/M2/issues/4499) | &nbsp; | issue | no method is installed for (isSurjective,RingMap) |
 | 0 | `bugs/dan/0-monomialIdeal` | [#4500](https://github.com/Macaulay2/M2/issues/4500) | &nbsp; | issue | unchanged: monomialIdeal {} still errors 'expected a polynomial ring without quotient elements' |
 | 0 | `bugs/dan/0-mutable-lists` | [#4501](https://github.com/Macaulay2/M2/issues/4501) | &nbsp; | issue | still quadratic: 1e3 to 1e4 elements costs 181x, not 10x |
@@ -58,10 +57,11 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-precision-and-equality` | [#4503](https://github.com/Macaulay2/M2/issues/4503) | &nbsp; | issue | reproduces exactly: 1p10 == 1.0000000000000001 is true but 1p10 == 1.000000000000001 is false |
 | 0 | `bugs/dan/0-rename-minimalPresentation` | [#4504](https://github.com/Macaulay2/M2/issues/4504) | &nbsp; | issue | minimizePresentation does not exist; the rename was never done |
 
-## Already tracked by an open issue -- `duplicate` (6)
+## Already tracked by an open issue -- `duplicate` (7)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
+| 0 | `bugs/dan/0-generateAssertions` | [#3413](https://github.com/Macaulay2/M2/issues/3413) | &nbsp; | drop | semicolon variant of #3413; still emits assert( (4;) === 4 ), which fails when run |
 | 0 | `bugs/dan/0-getting-one-element-of-a-mutable-hashtable` | [#4231](https://github.com/Macaulay2/M2/issues/4231) | &nbsp; | drop | still reproduces; #4231 asks the same question and its author could not find this discussion |
 | 0 | `bugs/dan/0-polymake` | [#457](https://github.com/Macaulay2/M2/issues/457) | &nbsp; | drop | #457 asks for exactly this -- polymake as a distribution prerequisite, with the same 'no way to build it' caveat |
 | &nbsp; | `bugs/anton/MISC/standardPairs.m2` | [#114](https://github.com/Macaulay2/M2/issues/114) | &nbsp; | drop | still reproduces: same non-disjoint cones the issue shows, 1 in three sets; #4492 is a draft converted in error, closed |
