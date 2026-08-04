@@ -8,15 +8,16 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**84 of 857 triaged (9.8%)**
+**85 of 857 triaged (9.9%)**
 
 | verdict | count | |
 | --- | ---: | --- |
 | `open` -- Still broken | 26 | `#...........................` |
 | `duplicate` -- Already tracked by an open issue | 7 | `............................` |
 | `fixed` -- Fixed | 43 | `#...........................` |
+| `wontfix` -- Won't fix | 1 | `............................` |
 | `obsolete` -- Obsolete | 8 | `............................` |
-| `todo` -- Not yet triaged | 773 | `#########################...` |
+| `todo` -- Not yet triaged | 772 | `#########################...` |
 
 ### Reproducer runs
 
@@ -34,7 +35,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 61 |
+| `bugs/dan` | 582 | 62 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
@@ -57,7 +58,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
 | 0 | `bugs/dan/0-errorDepth` | [#4498](https://github.com/Macaulay2/M2/issues/4498) | &nbsp; | issue | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
 | 0 | `bugs/dan/0-indexed-variables` | [#4510](https://github.com/Macaulay2/M2/issues/4510) | &nbsp; | issue | still reproduces, one call earlier than reported: after a second ring reuses x_0..x_3, class\(R_0..R_3) gives IndexedVariable and stays that way; #2771 covers the warnings in the same area, not this |
-| 0 | `bugs/dan/0-installing-methods-functions-on-function-closures` | &nbsp; | &nbsp; | issue | first List := x->x is still accepted silently; note the file's own warning that erroring here would interfere with typicalvalues.m2 |
+| 0 | `bugs/dan/0-installing-methods-functions-on-function-closures` | &nbsp; | &nbsp; | issue | first List := x->x is still accepted silently; note the file's own warning that erroring here would interfere with typicalvalues.m2; #1979 proposes typed function closures from the other direction, wanting the capability rather than an error |
 | 0 | `bugs/dan/0-interrupts` | &nbsp; | &nbsp; | &nbsp; | the interpreter is still generated C from the d language, not C++; left unqueued because the file poses a research question rather than a request |
 | 0 | `bugs/dan/0-inverse-matrix` | [#4506](https://github.com/Macaulay2/M2/issues/4506) | &nbsp; | issue | still reproduces: inverse matrix {{1,2}} returns matrix {{1},{0}} rather than erroring on a non-square matrix; related to #3738, which is a different path |
 | 0 | `bugs/dan/0-isSurjective-RingMap` | [#4499](https://github.com/Macaulay2/M2/issues/4499) | &nbsp; | issue | no method is installed for (isSurjective,RingMap) |
@@ -132,6 +133,12 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue473.m2` | [#473](https://github.com/Macaulay2/M2/issues/473) | [`0ae5b6eb19`](https://github.com/Macaulay2/M2/commit/0ae5b6eb19) | drop | sub(C,QQ) raises a clean error instead of a SIGSEGV |
 | &nbsp; | `bugs/mike/git-issue56.m2` | [#56](https://github.com/Macaulay2/M2/issues/56) | [`ff7473fb87`](https://github.com/Macaulay2/M2/commit/ff7473fb87) | drop | 'unknown engine error' is now a specific not-implemented message |
 
+## Won't fix -- `wontfix` (1)
+
+| prio | file | issue | fix | disposition | note |
+| ---: | --- | --- | --- | --- | --- |
+| 0 | `bugs/dan/0-Macaulay2-deps` | &nbsp; | &nbsp; | drop | dependencies come from a package manager on most modern systems, and an offline build can pre-populate BUILD/tarfiles, which exists for exactly that -- so a published deps tarball is not worth maintaining |
+
 ## Obsolete -- `obsolete` (8)
 
 | prio | file | issue | fix | disposition | note |
@@ -145,12 +152,11 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 
-## Not yet triaged -- `todo` (773)
+## Not yet triaged -- `todo` (772)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-M2-compute-process` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-Macaulay2-deps` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-SCSCP-checks` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-Schubert2-projectiveBundle` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-SourceCode` | note | n/a | [#3485](https://github.com/Macaulay2/M2/issues/3485) Building from source on Rocky 8.10 eigen3 library not found |
