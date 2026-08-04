@@ -80,18 +80,18 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-chi-doc` | &nbsp; | [`1b4bbe4494`](https://github.com/Macaulay2/M2/commit/1b4bbe4494) | drop | chi is documented in Macaulay2Doc/shared.m2 |
 | 0 | `bugs/dan/0-doc-ideal-syntax` | &nbsp; | &nbsp; | drop | both forms documented: (ideal,Sequence) and (symbol /,Ring,Sequence) |
 | 0 | `bugs/dan/0-doc-subquotient-module-maps` | &nbsp; | &nbsp; | drop | (map,Module,Module,Matrix) now documents the correspondence: M and N must have the same number of generators as target p and source p |
-| 0 | `bugs/dan/0-document-Weyl-homogenizer` | &nbsp; | &nbsp; | drop | the homogenizing variable is documented under monoid, with a worked example |
+| 0 | `bugs/dan/0-document-Weyl-homogenizer` | &nbsp; | [#2600](https://github.com/Macaulay2/M2/issues/2600) | drop | the homogenizing variable is documented under monoid, with a worked example; dc6f993616 added that paragraph |
 | 0 | `bugs/dan/0-gentoo-required-programs` | &nbsp; | &nbsp; | drop | configure takes --with-unbuilt-programs and M2 locates them at runtime via findProgram/programPaths |
 | 0 | `bugs/dan/0-getWWW` | &nbsp; | [`c9185f564c`](https://github.com/Macaulay2/M2/commit/c9185f564c) | drop | splitWWW unchunks the body when the response is chunked; added in 1.9.1 |
 | 0 | `bugs/dan/0-help-usage-multiple-lines` | &nbsp; | &nbsp; | drop | the synopsis now renders Usage on its own indented lines |
 | 0 | `bugs/dan/0-isWellDefined` | &nbsp; | [`233422068a`](https://github.com/Macaulay2/M2/commit/233422068a) | drop | the patch in the file was applied: newring.m2 now calls flattenRing(R,Result=>3) |
 | 0 | `bugs/dan/0-more-run-length-encoding` | &nbsp; | &nbsp; | drop | describe now prints QQ[t_1..t_10, ...] instead of listing every variable |
 | 0 | `bugs/dan/0-negative-dimension` | &nbsp; | &nbsp; | drop | dim I' is 1 and both asserts pass; worth promoting to tests/normal |
-| 0 | `bugs/dan/0-overview-doc` | &nbsp; | [`fdc8c2842d`](https://github.com/Macaulay2/M2/commit/fdc8c2842d) | drop | Macaulay2/m2/overview.m2 was removed as unused |
+| 0 | `bugs/dan/0-overview-doc` | &nbsp; | [#3264](https://github.com/Macaulay2/M2/issues/3264) | drop | Macaulay2/m2/overview.m2 was removed as unused |
 | 0 | `bugs/dan/0-pruningMap` | &nbsp; | [`d25d385134`](https://github.com/Macaulay2/M2/commit/d25d385134) | drop | the report was right and the doc was corrected: it now says the isomorphism goes from N to M |
-| 0 | `bugs/dan/0-pushForward` | &nbsp; | [`7e7f0c50ca`](https://github.com/Macaulay2/M2/commit/7e7f0c50ca) | drop | pushForward over an inhomogeneous map returns a subquotient; the error string was removed when pushforward moved to its own file |
+| 0 | `bugs/dan/0-pushForward` | &nbsp; | [#2113](https://github.com/Macaulay2/M2/issues/2113) | drop | pushForward over an inhomogeneous map returns a subquotient; the error string was removed when pushforward moved to its own file |
 | 0 | `bugs/dan/0-radical-crash` | &nbsp; | &nbsp; | &nbsp; | radical J returns instead of a SIGSEGV; worth promoting to tests/normal |
-| 0 | `bugs/dan/0-ringmap-assertion-failure` | &nbsp; | [`7e7f0c50ca`](https://github.com/Macaulay2/M2/commit/7e7f0c50ca) | drop | kernel returns instead of tripping the degreesRing assert, which the same commit deleted from matrix3.m2 |
+| 0 | `bugs/dan/0-ringmap-assertion-failure` | &nbsp; | [#2113](https://github.com/Macaulay2/M2/issues/2113) | drop | kernel returns instead of tripping the degreesRing assert, which the same commit deleted from matrix3.m2 |
 | 1 | `bugs/dan/1-decompose` | &nbsp; | &nbsp; | drop | decompose no longer overflows the stack in factory on this input |
 | 1 | `bugs/dan/1-singularLocus` | &nbsp; | &nbsp; | drop | singularLocus(ZZ[x,y]/(11,x)) no longer returns the spurious (11,x,1) |
 | &nbsp; | `bugs/anton/LINEAR-ALGEBRA/RESOLVED/gCorners.m2` | &nbsp; | [#1651](https://github.com/Macaulay2/M2/issues/1651) | &nbsp; | author filed it under RESOLVED/; fix points at that filing, not necessarily the code change |
