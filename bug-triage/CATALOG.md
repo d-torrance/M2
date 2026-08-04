@@ -50,12 +50,12 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
 | 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
 | 0 | `bugs/dan/0-errorDepth` | [#4498](https://github.com/Macaulay2/M2/issues/4498) | &nbsp; | issue | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
-| 0 | `bugs/dan/0-isSurjective-RingMap` | &nbsp; | &nbsp; | issue | no method is installed for (isSurjective,RingMap) |
-| 0 | `bugs/dan/0-monomialIdeal` | &nbsp; | &nbsp; | issue | unchanged: monomialIdeal {} still errors 'expected a polynomial ring without quotient elements' |
-| 0 | `bugs/dan/0-mutable-lists` | &nbsp; | &nbsp; | issue | still quadratic: 1e3 to 1e4 elements costs 181x, not 10x |
-| 0 | `bugs/dan/0-needsPackage-unadorned` | &nbsp; | &nbsp; | issue | needsPackage still has no Using option; its options are LoadDocumentation, Configuration, FileName, Reload, DebuggingMode |
-| 0 | `bugs/dan/0-precision-and-equality` | &nbsp; | &nbsp; | issue | reproduces exactly: 1p10 == 1.0000000000000001 is true but 1p10 == 1.000000000000001 is false |
-| 0 | `bugs/dan/0-rename-minimalPresentation` | &nbsp; | &nbsp; | issue | minimizePresentation does not exist; the rename was never done |
+| 0 | `bugs/dan/0-isSurjective-RingMap` | [#4499](https://github.com/Macaulay2/M2/issues/4499) | &nbsp; | issue | no method is installed for (isSurjective,RingMap) |
+| 0 | `bugs/dan/0-monomialIdeal` | [#4500](https://github.com/Macaulay2/M2/issues/4500) | &nbsp; | issue | unchanged: monomialIdeal {} still errors 'expected a polynomial ring without quotient elements' |
+| 0 | `bugs/dan/0-mutable-lists` | [#4501](https://github.com/Macaulay2/M2/issues/4501) | &nbsp; | issue | still quadratic: 1e3 to 1e4 elements costs 181x, not 10x |
+| 0 | `bugs/dan/0-needsPackage-unadorned` | [#4502](https://github.com/Macaulay2/M2/issues/4502) | &nbsp; | issue | needsPackage still has no Using option; its options are LoadDocumentation, Configuration, FileName, Reload, DebuggingMode |
+| 0 | `bugs/dan/0-precision-and-equality` | [#4503](https://github.com/Macaulay2/M2/issues/4503) | &nbsp; | issue | reproduces exactly: 1p10 == 1.0000000000000001 is true but 1p10 == 1.000000000000001 is false |
+| 0 | `bugs/dan/0-rename-minimalPresentation` | [#4504](https://github.com/Macaulay2/M2/issues/4504) | &nbsp; | issue | minimizePresentation does not exist; the rename was never done |
 
 ## Already tracked by an open issue -- `duplicate` (5)
 
