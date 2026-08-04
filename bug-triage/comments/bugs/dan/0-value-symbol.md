@@ -12,23 +12,33 @@ least 2010:
 > o25 : Keyword
 > ```
 
-Still current on 1.26.06-8-g34d5846039, and it is not specific to `symbol` --
-`value` hands back the end-of-file token for each of the quote keywords, exactly
-as `parse` does:
+Still current on 1.26.06-8-g34d5846039, and not specific to `symbol` -- `value`
+hands back the end-of-file token for the other quote keywords too:
 
 ```m2
-i1 : class value "symbol", class value "local", class value "global"
+i1 : value "symbol"
 
-o1 = (Keyword, Keyword, Keyword)
+o1 = -*end of file*-
 
-i2 : value "symbol" === value "local"
+o1 : Keyword
 
-o2 = true
+i3 : value "local"
+
+o3 = -*end of file*-
+
+o3 : Keyword
+
+i5 : value "symbol" === value "local"
+
+o5 = false
 ```
 
-So a caller gets a `Keyword` that compares equal across all of them and prints as
-`-*end of file*-`, rather than an error. That is the "confusing bugs" part: the
-value propagates instead of stopping at the point where the input was malformed.
+So a caller gets a `Keyword` that prints as `-*end of file*-` rather than an
+error, and the ones from different quote keywords print identically and share a
+class while comparing unequal -- consistent with the CST here, where the token
+is coupled with a different specifier each time (`Quote`, `LocalQuote`,
+`GlobalQuote`). That is the "confusing bugs" part: the value propagates instead
+of stopping at the point where the input was malformed.
 
 Recording it here rather than opening a second issue, since it looks like one
 fix settles both entry points.
