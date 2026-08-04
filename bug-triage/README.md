@@ -92,6 +92,19 @@ right place" into "it isn't there", and the verdict reads as verified when it is
 running a reproducer under M2 when the claim can be tested at all -- a runtime check does not care
 what directory you are in.
 
+## Some of these were answered on the wiki
+
+Not all Macaulay2 documentation is in the repository. The
+[Package Writing Style Guide](https://github.com/Macaulay2/M2/wiki/Package-Writing-Style-Guide)
+lives on the GitHub wiki, and it is where advice to package authors actually ended up -- naming
+conventions, use of types, optional arguments, layout, argument order. `bugs/dan/0-doc-writing-code`
+asks for exactly one of its rules to be written down, and it has been for years: *"The argument
+upon which the function mainly acts should go last."*
+
+So a documentation request that greps as unmet may simply be answered somewhere `git grep` cannot
+see. Check the wiki before recording `open` on any row that asks for something to be documented.
+The wiki is not in git, so those rows get no `fix` commit -- cite the page in the `note` instead.
+
 ## `autorun` is a hint, not a verdict
 
 `M2 --script` exits 1 on an uncaught error or a failed `assert`, so `bin/run-repros` gets a

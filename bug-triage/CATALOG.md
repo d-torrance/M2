@@ -12,9 +12,9 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 20 | `#...........................` |
+| `open` -- Still broken | 19 | `#...........................` |
 | `duplicate` -- Already tracked by an open issue | 7 | `............................` |
-| `fixed` -- Fixed | 37 | `#...........................` |
+| `fixed` -- Fixed | 38 | `#...........................` |
 | `obsolete` -- Obsolete | 8 | `............................` |
 | `todo` -- Not yet triaged | 785 | `##########################..` |
 
@@ -41,7 +41,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (20)
+## Still broken -- `open` (19)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -53,7 +53,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
 | 0 | `bugs/dan/0-disabling-threads` | &nbsp; | &nbsp; | issue | still not done: configure.ac:395 has the --disable-pthreads option commented out with dnl, and there is no --disable-threads |
 | 0 | `bugs/dan/0-doc-option-names-in-packages` | &nbsp; | &nbsp; | issue | no such guidance in the docs; the matches for export and option are all about PackageExports/PackageImports |
-| 0 | `bugs/dan/0-doc-writing-code` | &nbsp; | &nbsp; | issue | the advice is nowhere in the tree -- 'interesting argument' does not appear at all |
 | 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
 | 0 | `bugs/dan/0-errorDepth` | [#4498](https://github.com/Macaulay2/M2/issues/4498) | &nbsp; | issue | unchanged: (loadDepth,errorDepth) is still (3,0) at startup |
 | 0 | `bugs/dan/0-interrupts` | &nbsp; | &nbsp; | &nbsp; | the interpreter is still generated C from the d language, not C++; left unqueued because the file poses a research question rather than a request |
@@ -78,13 +77,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (37)
+## Fixed -- `fixed` (38)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-chi-doc` | &nbsp; | [`1b4bbe4494`](https://github.com/Macaulay2/M2/commit/1b4bbe4494) | drop | chi is documented in Macaulay2Doc/shared.m2 |
 | 0 | `bugs/dan/0-doc-ideal-syntax` | &nbsp; | &nbsp; | drop | both forms documented: (ideal,Sequence) and (symbol /,Ring,Sequence) |
 | 0 | `bugs/dan/0-doc-subquotient-module-maps` | &nbsp; | &nbsp; | drop | (map,Module,Module,Matrix) now documents the correspondence: M and N must have the same number of generators as target p and source p |
+| 0 | `bugs/dan/0-doc-writing-code` | &nbsp; | &nbsp; | drop | documented in the Package Writing Style Guide wiki, under 'Order of arguments': "The argument upon which the function mainly acts should go last." https://github.com/Macaulay2/M2/wiki/Package-Writing-Style-Guide -- the wiki is not in git, so there is no commit to cite |
 | 0 | `bugs/dan/0-document-Weyl-homogenizer` | &nbsp; | [#2600](https://github.com/Macaulay2/M2/issues/2600) | drop | the homogenizing variable is documented under monoid, with a worked example; dc6f993616 added that paragraph |
 | 0 | `bugs/dan/0-gentoo-required-programs` | &nbsp; | &nbsp; | drop | configure takes --with-unbuilt-programs and M2 locates them at runtime via findProgram/programPaths |
 | 0 | `bugs/dan/0-getWWW` | &nbsp; | [`c9185f564c`](https://github.com/Macaulay2/M2/commit/c9185f564c) | drop | splitWWW unchunks the body when the response is chunked; added in 1.9.1 |
