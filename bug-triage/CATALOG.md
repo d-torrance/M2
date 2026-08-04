@@ -12,9 +12,9 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 39 | `#...........................` |
+| `open` -- Still broken | 38 | `#...........................` |
 | `duplicate` -- Already tracked by an open issue | 11 | `............................` |
-| `fixed` -- Fixed | 55 | `##..........................` |
+| `fixed` -- Fixed | 56 | `##..........................` |
 | `wontfix` -- Won't fix | 2 | `............................` |
 | `obsolete` -- Obsolete | 9 | `............................` |
 | `todo` -- Not yet triaged | 741 | `########################....` |
@@ -42,7 +42,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (39)
+## Still broken -- `open` (38)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -55,7 +55,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-bugs-decker.m2` | &nbsp; | &nbsp; | &nbsp; | both asks stand: MinimalPrimes.m2:58 still carries '-- absolute case?', and no radical algorithm names Krick/Logar or Kemper |
 | 0 | `bugs/dan/0-bugs-eisenbud.m2` | &nbsp; | &nbsp; | &nbsp; | at least two of its four asks stand: Tor errors with 'not implemented yet for noncommutative rings', and Linear is not among quotient's strategies |
 | 0 | `bugs/dan/0-check-for-integer-usage` | [#4517](https://github.com/Macaulay2/M2/issues/4517) | &nbsp; | issue | never adopted: fsanitize appears nowhere in the tree and no CI workflow builds with a sanitizer |
-| 0 | `bugs/dan/0-dependent-packages` | [#4528](https://github.com/Macaulay2/M2/issues/4528) | &nbsp; | issue | second ask done, first not: findProgram searches programPaths, M2's programs dir, PATH and bindir (programs.m2:92-106, from #1389), so packages no longer hard-code paths, but configure still prints no summary of the programs it found for a distribution packager |
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
 | 0 | `bugs/dan/0-doc-Keywords` | [#4509](https://github.com/Macaulay2/M2/issues/4509) | &nbsp; | issue | the four examples are aliases from other systems, so the need is discovery by synonym; about "Normalform" returns nothing even with Body=>true, and about "solve" returns 220 hits swamped by resolve/resolution. newPackage's Keywords is per package and holds subject categories for browsing, not search aliases |
 | 0 | `bugs/dan/0-doc-option-names-in-packages` | [#4508](https://github.com/Macaulay2/M2/issues/4508) | &nbsp; | issue | verified: a package-defined option name must be exported or installPackage fails with "mutable unexported unset symbol(s) in package X: 'MyOpt'"; exporting it installs cleanly. Undocumented in Macaulay2Doc and in the wiki style guide. Note the file misplaces the error: it comes from package closing, not documentation processing, and fires with no doc node present |
@@ -102,13 +101,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (55)
+## Fixed -- `fixed` (56)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-bugs-caviglia.m2` | &nbsp; | &nbsp; | drop | topComponents on a module works now: topComponents(R^1/I) returns a real cokernel matching topComponents I, not the cokernel of the identity |
 | 0 | `bugs/dan/0-cancelTask` | &nbsp; | &nbsp; | drop | cancelTask now takes effect: the task reads <<task, canceled>> within a second, not stuck at 'cancellation requested' |
 | 0 | `bugs/dan/0-chi-doc` | &nbsp; | [`1b4bbe4494`](https://github.com/Macaulay2/M2/commit/1b4bbe4494) | drop | chi is documented in Macaulay2Doc/shared.m2 |
+| 0 | `bugs/dan/0-dependent-packages` | [#4528](https://github.com/Macaulay2/M2/issues/4528) | [`0d2d059660`](https://github.com/Macaulay2/M2/commit/0d2d059660) | drop | closed as fixed in #4528: FILE_PREREQS (0d2d059660, 2020) did it more automatically than the file proposed, accumulating command -v paths for the external programs configure finds, and drove runtime dependencies for the .deb and .rpm builds; that use has since been scrapped for hardcoded dependencies per build system, leaving distributions/freebsd/Makefile.in:60 the only reader. The second ask, dropping hard-coded paths from packages, was met separately by findProgram (#1389) |
 | 0 | `bugs/dan/0-disabling-threads` | &nbsp; | &nbsp; | drop | answered at runtime instead: M2 --no-threads skips initializeThreadSupervisor entirely (bin/main.cpp:101), and GC_NPROCS controls gc's thread count -- both stronger than the configure-time --disable-pthreads the file asks for, since neither needs a rebuild |
 | 0 | `bugs/dan/0-doc-ideal-syntax` | &nbsp; | &nbsp; | drop | both forms documented: (ideal,Sequence) and (symbol /,Ring,Sequence) |
 | 0 | `bugs/dan/0-doc-subquotient-module-maps` | &nbsp; | &nbsp; | drop | (map,Module,Module,Matrix) now documents the correspondence: M and N must have the same number of generators as target p and source p |
