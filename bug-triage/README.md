@@ -357,10 +357,10 @@ them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that u
 | verdict | | |
 | --- | ---: | ---: |
 | `fixed` | 99 | 43% |
-| `open` | 66 | 29% |
+| `open` | 65 | 29% |
 | `obsolete` | 30 | 13% |
 | `duplicate` | 21 | 9% |
-| `wontfix` | 12 | 5% |
+| `wontfix` | 13 | 6% |
 
 So `obsolete` and `wontfix` together are 18%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
@@ -565,6 +565,31 @@ The same scan also has to look past the `issue` column. Once a row is settled as
 `issue` is repointed at the older issue — `0-sort-doc` now reads `#101` — so the issue that was
 filed *from* that row is no longer named anywhere except the free text of `note`. A sweep keyed on
 the column alone will not see it.
+
+### Search your own catalog too, not just the tracker
+
+The duplicate search has a second target, and it is easier to forget because it is not public.
+Two bug files can hold the same ask under unrelated names, and if one of them is already settled,
+filing the other contradicts your own record.
+
+`1-Package-dictionary` asks for `PackageDictionary` to be moved ahead of the other dictionaries on
+`dictionaryPath`. It reproduces exactly, so it was written up as `open` and queued for filing. But
+`0-synonyms-and-collisions` -- settled `fixed` in an earlier batch, filed under David Eisenbud's
+`viewHelp Schubert2` symptom -- states the same thing as its own ask (1): *"we should : (1) put the
+package symbols at the head of the list ; (2) alert the user to the shadowing."* Its note already
+recorded that (2) was built instead and that reordering lookup globally is the bigger change. So
+the second row had to become `wontfix`, not a new issue.
+
+Nothing in a keyword search over `cache/issues.json` would have caught that, because the collision
+was with a *bug file*, not an issue. Before filing, grep `catalog.tsv` for the subsystem as well --
+`awk -F'\t' 'tolower($11) ~ /dictionarypath/'` -- and read the notes on any settled row that comes
+back. The `note` column is the only place that reasoning lives.
+
+The same check has a third leg: **rows still `todo` can hold the ask too.** `1-value-dictionary-path`,
+`1-setup`, `1-setup-announcement` and `1-setup-emacs` were all unread when this batch was written
+up, and any of them could have been the same request. They were not -- a `value` variant taking a
+dictionary path, and three unrelated `setup()` asks -- but that was worth two minutes to establish
+rather than assume.
 
 And a closed issue is not a settled ask. [#47](https://github.com/Macaulay2/M2/issues/47) and
 [#211](https://github.com/Macaulay2/M2/issues/211) both name `___Gröbner_spbases.html`, and both
