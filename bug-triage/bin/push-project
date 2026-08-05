@@ -13,7 +13,17 @@ and only the coarse state goes into a field.  See want_status below for the
 mapping, and read the comment there before changing it.
 
 The block is replaced, not appended to, so this is safe to re-run as verdicts get
-revised.  Nothing here creates items, deletes items, or creates fields.
+revised.  That holds for converted items too: once a draft becomes a real issue
+the project API can no longer touch it, so the block there is refreshed through
+updateIssue instead.  Without that, revising a verdict after filing leaves the
+public issue contradicting catalog.tsv permanently -- which is how #4514, #4528
+and #4529 came to sit closed while still publishing "Verdict: open".
+
+A block is only ever *replaced* on a real issue, never introduced.  An issue on
+the board carrying no block was not filed from this catalog, and appending our
+triage to someone else's issue is not ours to do.
+
+Nothing here creates items, deletes items, or creates fields.
 
     ./bin/push-project                 # show what would change
     ./bin/push-project --check         # one line; exit 1 if the board is behind
@@ -94,14 +104,24 @@ def linkify(text):
         text)
 
 
-def block_for(row):
-    """The triage block for a row, or None if it has nothing to say yet."""
+def block_for(row, self_issue=None):
+    """The triage block for a row, or None if it has nothing to say yet.
+
+    self_issue is the number of the issue this block is being written into, if
+    any.  A row filed from this catalog ends up naming its own issue, and
+    "Issue: #4526" in the body of #4526 is noise -- while "Issue: #101" in the
+    body of #4529, a row later settled as a duplicate, is the useful case.  So
+    the field is dropped only when it names nothing but the issue you are
+    already reading.
+    """
     if row["verdict"] in ("", "todo") and not any(
             row[c] for c in ("issue", "fix", "disposition", "note")):
         return None
     bits = []
     for column, label in (("verdict", "Verdict"), ("issue", "Issue"),
                           ("fix", "Fix"), ("disposition", "Disposition")):
+        if column == "issue" and self_issue and row["issue"] == "#%s" % self_issue:
+            continue
         if row[column]:
             value = linkify(row[column]) if column in ("issue", "fix") else row[column]
             bits.append("**%s:** %s" % (label, value))
@@ -135,6 +155,12 @@ mutation($draft:ID!, $body:String!) {
   updateProjectV2DraftIssue(input:{draftIssueId:$draft, body:$body}) {
     draftIssue { id }
   }
+}
+"""
+
+SET_ISSUE_BODY = """
+mutation($issue:ID!, $body:String!) {
+  updateIssue(input:{id:$issue, body:$body}) { issue { number } }
 }
 """
 
@@ -174,7 +200,8 @@ def main():
     print("%d items on the board, %d matched to catalog rows\n"
           % (len(items), len(by_key)))
 
-    body_edits, status_edits, unmatched, not_draft, stale = [], [], [], [], []
+    body_edits, issue_edits, status_edits = [], [], []
+    unmatched, foreign, stale = [], [], []
     for r in rows:
         item = by_key.get(r["path"])
         if item is None:
@@ -188,31 +215,47 @@ def main():
         if project.status_of(item) != want:
             status_edits.append((r["path"], item["id"], options[want.lower()], want))
 
-        block = block_for(r)
+        block = block_for(r, item["content"].get("number"))
         if block is None:
             continue
-        if item["type"] != "DRAFT_ISSUE":
-            not_draft.append(r["path"])
-            continue
-        new = merged_body(item["content"].get("body"), block)
-        if new != (item["content"].get("body") or ""):
-            body_edits.append((r["path"], item["content"]["id"], new, block))
+        old = item["content"].get("body") or ""
+        new = merged_body(old, block)
+        if item["type"] == "DRAFT_ISSUE":
+            if new != old:
+                body_edits.append((r["path"], item["content"]["id"], new, block))
+        elif BLOCK_RE.search(old):
+            # A converted item is a public issue, and updateProjectV2DraftIssue
+            # cannot touch it.  Refresh through updateIssue instead: a verdict
+            # revised after filing would otherwise leave the issue contradicting
+            # catalog.tsv for good, which is how #4514, #4528 and #4529 came to
+            # sit closed while still publishing "Verdict: open".
+            #
+            # Only ever *replace* a block here, never introduce one.  An issue on
+            # the board with no block was not filed from this catalog -- someone
+            # added it by hand -- and appending our triage to a stranger's issue
+            # is not ours to do.
+            if new != old:
+                issue_edits.append((r["path"], item["content"]["id"],
+                                    item["content"]["number"], new, block))
+        else:
+            foreign.append(r["path"])
 
     if args.check:
-        pending = len(body_edits) + len(status_edits)
-        print("board is %s: %d body, %d status, %d unmatched%s"
+        pending = len(body_edits) + len(issue_edits) + len(status_edits)
+        print("board is %s: %d body, %d issue body, %d status, %d unmatched%s"
               % ("in sync" if not pending else "behind catalog.tsv",
-                 len(body_edits), len(status_edits), len(unmatched),
+                 len(body_edits), len(issue_edits), len(status_edits), len(unmatched),
                  ", %d closed upstream" % len(stale) if stale else ""))
         raise SystemExit(1 if pending else 0)
 
-    print("%d body updates, %d status updates" % (len(body_edits), len(status_edits)))
+    print("%d body updates, %d issue body updates, %d status updates"
+          % (len(body_edits), len(issue_edits), len(status_edits)))
     if unmatched:
         print("%d rows match no board item: %s"
               % (len(unmatched), ", ".join(unmatched[:5])))
-    if not_draft:
-        print("%d rows are real issues, not drafts -- body left alone: %s"
-              % (len(not_draft), ", ".join(not_draft)))
+    if foreign:
+        print("%d rows are issues carrying no triage block -- left alone: %s"
+              % (len(foreign), ", ".join(foreign)))
     if stale:
         print("\n%d rows still say verdict=open but their issue has been closed."
               "\nUpdate catalog.tsv -- only you can say whether it closed as fixed,"
@@ -224,6 +267,11 @@ def main():
         print("  status  %-55s -> %s" % (path, want))
     for path, _, _, block in body_edits:
         print("\n  body    %s" % path)
+        for line in block.splitlines():
+            if line and line not in (BEGIN, END):
+                print("          | %s" % line)
+    for path, _, number, _, block in issue_edits:
+        print("\n  issue   %s  (public issue #%s)" % (path, number))
         for line in block.splitlines():
             if line and line not in (BEGIN, END):
                 print("          | %s" % line)
@@ -239,7 +287,11 @@ def main():
     for i, (path, draft_id, new, _) in enumerate(body_edits, 1):
         project.gh(SET_BODY, draft=draft_id, body=new)
         print("[body %d/%d] %s" % (i, len(body_edits), path))
-    print("\napplied %d updates" % (len(status_edits) + len(body_edits)))
+    for i, (path, issue_id, number, new, _) in enumerate(issue_edits, 1):
+        project.gh(SET_ISSUE_BODY, issue=issue_id, body=new)
+        print("[issue %d/%d] %s -> #%s" % (i, len(issue_edits), path, number))
+    print("\napplied %d updates"
+          % (len(status_edits) + len(body_edits) + len(issue_edits)))
 
 
 if __name__ == "__main__":

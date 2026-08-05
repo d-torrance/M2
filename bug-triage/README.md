@@ -249,9 +249,10 @@ appear in issue search, cannot be referenced from a commit or PR, cannot be clos
 `Fixes #N`, and cannot be commented on by anyone not looking at the board. Parking a live bug
 there is how the `bugs/` tree died the first time.
 
-`bin/push-project` implements the sync. **It has never been run.** It defaults to `--dry-run`,
-needs `gh auth refresh -s project`, and should not get `--apply` until someone has read its
-proposed field mapping -- mass GraphQL mutations against a shared board cannot be reverted.
+`bin/push-project` implements the sync. It defaults to `--dry-run`, needs
+`gh auth refresh -s project`, and should not get `--apply` until you have read the output --
+mass GraphQL mutations against a shared board cannot be reverted. Read the dry run every time,
+not just the first: it now edits public issues as well as drafts.
 
 The board (`PVT_kwDOAC6Xfc4BQEgX`, "bugs directory", 854 items) carries only the stock
 project-template fields -- Status, Priority, Size, Estimate, Start/Target date, plus the
@@ -306,9 +307,25 @@ joining. And a draft is not in a repository, so `#114` and bare shas do not auto
 `linkify` rewrites them as full URLs. `/issues/N` redirects to `/pull/N`, so one form covers
 issues and PRs alike.
 
-Only drafts can be updated this way (`updateProjectV2DraftIssue`). An item converted to a real
-issue is reported and its body left alone. Archived items are not returned by the API at all, so
-rows settled by archiving show up permanently as unmatched -- that is expected, not a failure.
+Only drafts can be updated this way (`updateProjectV2DraftIssue`), so a converted item takes a
+second path: `updateIssue`, keyed on the issue node id. Both are needed. Without the second, a
+verdict revised after filing leaves the public issue contradicting `catalog.tsv` for good, which
+is how [#4514](https://github.com/Macaulay2/M2/issues/4514),
+[#4528](https://github.com/Macaulay2/M2/issues/4528) and
+[#4529](https://github.com/Macaulay2/M2/issues/4529) came to sit closed while still publishing
+`Verdict: open`.
+
+On a real issue the block is only ever **replaced**, never introduced. An issue on the board
+carrying no block was not filed from this catalog -- someone added it by hand -- and appending
+our triage to a stranger's issue is not ours to do. Those rows are reported and skipped.
+
+One asymmetry is deliberate. A row filed from here ends up naming its own issue, and
+`Issue: #4526` in the body of #4526 is noise, so that field is dropped when it names nothing but
+the issue you are already reading. It survives when it points elsewhere: #4529 was settled as a
+duplicate, and its block still reads `Issue: #101`, which is the whole value of it.
+
+Archived items are not returned by the API at all, so rows settled by archiving show up
+permanently as unmatched -- that is expected, not a failure.
 
 ## When an existing issue is close but not the same
 
@@ -332,6 +349,37 @@ around the user's private dictionary and the `OutputDictionary` symptom would no
 anyone searching for it. `0-generateAssertions` took **b** against #3413, because the semicolon
 case is the same defect as the multi-line case and one fix settles both. `0-polymake` took **c**
 against #457, which already says everything the bug file says.
+
+## Never truncate the duplicate search, and read it oldest first
+
+`bin/suggest-issues` gives three candidates per row, which is a shortlist by design. When it
+comes up empty you will reach for an ad-hoc scan over `cache/issues.json`, and that is where the
+trap is: cap the printed matches and you will cap away the answer.
+
+`0-sort-doc` was filed as [#4529](https://github.com/Macaulay2/M2/issues/4529) when
+[#101](https://github.com/Macaulay2/M2/issues/101) had been open since 2014 saying the same
+thing. The search term `sort(list` **did** match #101. The scan printed the first fourteen hits
+and #101 was the fifteenth, so it was never displayed — the negative looked as honest as a real
+one. #4529 had to be closed as a duplicate and its content moved to #101 by hand.
+
+Two rules follow, and they cost nothing:
+
+- **Print every match.** If there are too many to read, the terms are too broad — narrow them
+  rather than truncate the output.
+- **Sort ascending by issue number.** Matches arrive newest-first, which is precisely backwards:
+  a fifteen-year-old bug file is most likely to collide with an *old* issue, and those sort last.
+
+The same scan also has to look past the `issue` column. Once a row is settled as a duplicate its
+`issue` is repointed at the older issue — `0-sort-doc` now reads `#101` — so the issue that was
+filed *from* that row is no longer named anywhere except the free text of `note`. A sweep keyed on
+the column alone will not see it.
+
+And a closed issue is not a settled ask. [#47](https://github.com/Macaulay2/M2/issues/47) and
+[#211](https://github.com/Macaulay2/M2/issues/211) both name `___Gröbner_spbases.html`, and both
+closed — one on "I can't reproduce this", the other on "just remember how I do it and check that
+one file". Neither touched the cause, which is why `0-utf-8-in-doc-filenames` was still worth
+filing as [#4531](https://github.com/Macaulay2/M2/issues/4531). Read *why* it closed before
+treating a hit as a duplicate.
 
 ## Commenting on an existing issue
 

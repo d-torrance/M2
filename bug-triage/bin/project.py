@@ -78,7 +78,7 @@ query($org:String!, $number:Int!, $cursor:String) {
           }
           content {
             ... on DraftIssue { id title body }
-            ... on Issue { number title body url state }
+            ... on Issue { id number title body url state }
           }
         }
       }
