@@ -8,16 +8,16 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**141 of 857 triaged (16.5%)**
+**146 of 857 triaged (17.0%)**
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 41 | `#...........................` |
+| `open` -- Still broken | 46 | `##..........................` |
 | `duplicate` -- Already tracked by an open issue | 18 | `#...........................` |
 | `fixed` -- Fixed | 66 | `##..........................` |
 | `wontfix` -- Won't fix | 5 | `............................` |
 | `obsolete` -- Obsolete | 11 | `............................` |
-| `todo` -- Not yet triaged | 716 | `#######################.....` |
+| `todo` -- Not yet triaged | 711 | `#######################.....` |
 
 ### Reproducer runs
 
@@ -35,14 +35,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 118 |
+| `bugs/dan` | 582 | 123 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (41)
+## Still broken -- `open` (46)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -55,6 +55,11 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-bugs-ataylor.m2` | &nbsp; | &nbsp; | &nbsp; | the first ask is done -- prune N and minPres N both equal minimalPresentation N -- but the rest are unverified: synonyms in emacs highlighting and the doc index, and res landing on the resolution node |
 | 0 | `bugs/dan/0-bugs-decker.m2` | &nbsp; | &nbsp; | &nbsp; | both asks stand: MinimalPrimes.m2:58 still carries '-- absolute case?', and no radical algorithm names Krick/Logar or Kemper |
 | 0 | `bugs/dan/0-bugs-eisenbud.m2` | &nbsp; | &nbsp; | &nbsp; | at least two of its four asks stand: Tor errors with 'not implemented yet for noncommutative rings', and Linear is not among quotient's strategies |
+| 0 | `bugs/dan/0-bugs-iswanson.m2` | &nbsp; | &nbsp; | &nbsp; | parked with the other wishlist files; individual asks unverified. Eight items separated by rules, each a transcript: ZZ/15 rejected as composite, two kernel computations over fraction fields failing as 'not implemented yet', RevLex behaving like GRevLex, a^(2^16) coming out 1 under LexSmall with proposed limits of 2^15-1 and 2^7-1, leadTerm(ZZ,RingElement) wanted, an unclear coefficient in gb output, and GroupRevLex not installed |
+| 0 | `bugs/dan/0-bugs-kummini.m2` | &nbsp; | &nbsp; | &nbsp; | parked with the other wishlist files; individual asks unverified. Seven dated items headed ###### 1 through 7, one of which the reporter retracts -- 'AFTERTHOUGHT: I now think that the bug report is false, but I am leaving it here since Mike did say that there is some problem with DegreeLimit'. The others cover listUserSymbols and clearAll both failing with 'expected a list, hash table, or sequence', a [minors, First] reference generated into the documentation, and the Undocumented key |
+| 0 | `bugs/dan/0-bugs-lgold.m2` | &nbsp; | &nbsp; | &nbsp; | parked with the other wishlist files; individual asks unverified. Eight items separated by rules, the first retracted in the file itself -- 'Never mind the earlier bug ... I figured out what was going on'. The rest are documentation-shaped: the poincare page, hilbertFunction and hilbertSeries on a CoherentSheaf with their doc pages commented out, examples wanted for reduceHilbert and PoincareN, saturation in hilbertSeries of a ProjectiveVariety, syntax colouring of dashes in a resolution, and making the emacs instructions prominent |
+| 0 | `bugs/dan/0-bugs-popescu.m2` | &nbsp; | &nbsp; | &nbsp; | parked with the other wishlist files; individual asks unverified. Six numbered items, of which 6 is already marked FIXED in the file: a faceRing for SimplicialComplex returning the Stanley-Reisner ring, codim of an AffineVariety, why (codim,PolynomialRing) exists, a sheafExt computation returning zero, and genus of an ideal to match genera |
+| 0 | `bugs/dan/0-bugs-stillman.m2` | &nbsp; | &nbsp; | &nbsp; | parked with the other wishlist files, and the least tractable of them; individual asks unverified. Not a bug list so much as Mike's working scratchpad: design musings on forceGB, bare TODO words under headings such as 'the following all need some efficiency work -- quotients, saturation, elimination', several items already annotated -- FIXED in place, and replies from Dan in the margin ('what's the problem? [drg]', 'leave those above for Mike (?) [drg]'). Counting its asks is itself a judgement, and much of it is actionable only by its author |
 | 0 | `bugs/dan/0-check-for-integer-usage` | [#4517](https://github.com/Macaulay2/M2/issues/4517) | &nbsp; | issue | never adopted: fsanitize appears nowhere in the tree and no CI workflow builds with a sanitizer |
 | 0 | `bugs/dan/0-debugging-loadPackage` | [#4533](https://github.com/Macaulay2/M2/issues/4533) | &nbsp; | issue | documented behavior and actual behavior disagree: code.m2:263 says 'break -- leave the debugger, returning to top level', but break leaves the debugger and resumes the file past the failing expression. Four lines reproduce it -- load a file whose function calls error, then break, and the rest of the file runs. Dan's case is the visible symptom: loading Macaulay2Doc twice, break carries on into the next error in the same file and re-enters the debugger, leaving the prompt at ii for the session. Distinct from #1928: continue re-runs the failing expression and loops, break skips it and continues, so the two commands differ and neither matches its description |
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
@@ -208,15 +213,10 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 
-## Not yet triaged -- `todo` (716)
+## Not yet triaged -- `todo` (711)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
-| 0 | `bugs/dan/0-bugs-iswanson.m2` | repro | fail | &nbsp; |
-| 0 | `bugs/dan/0-bugs-kummini.m2` | repro | fail | &nbsp; |
-| 0 | `bugs/dan/0-bugs-lgold.m2` | repro | fail | &nbsp; |
-| 0 | `bugs/dan/0-bugs-popescu.m2` | repro | fail | &nbsp; |
-| 0 | `bugs/dan/0-bugs-stillman.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/mike/0-DegreeLimit-and-toField` | note | n/a | &nbsp; |
 | 0 | `bugs/mike/0-GF-division.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/mike/0-SkewCommutative` | note | n/a | [#210](https://github.com/Macaulay2/M2/issues/210) bug in prune |
