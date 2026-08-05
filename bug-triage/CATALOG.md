@@ -8,16 +8,16 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**131 of 857 triaged (15.3%)**
+**136 of 857 triaged (15.9%)**
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 39 | `#...........................` |
-| `duplicate` -- Already tracked by an open issue | 14 | `............................` |
+| `open` -- Still broken | 40 | `#...........................` |
+| `duplicate` -- Already tracked by an open issue | 17 | `#...........................` |
 | `fixed` -- Fixed | 64 | `##..........................` |
-| `wontfix` -- Won't fix | 3 | `............................` |
+| `wontfix` -- Won't fix | 4 | `............................` |
 | `obsolete` -- Obsolete | 11 | `............................` |
-| `todo` -- Not yet triaged | 726 | `########################....` |
+| `todo` -- Not yet triaged | 721 | `########################....` |
 
 ### Reproducer runs
 
@@ -35,14 +35,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 108 |
+| `bugs/dan` | 582 | 113 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (39)
+## Still broken -- `open` (40)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -74,6 +74,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-needsPackage-unadorned` | [#4502](https://github.com/Macaulay2/M2/issues/4502) | &nbsp; | issue | needsPackage still has no Using option; its options are LoadDocumentation, Configuration, FileName, Reload, DebuggingMode |
 | 0 | `bugs/dan/0-newPackage` | [#4505](https://github.com/Macaulay2/M2/issues/4505) | &nbsp; | issue | reproduces exactly: (options Foo).Configuration is an OptionTable via loadPackage but a List via load |
 | 0 | `bugs/dan/0-on` | [#4534](https://github.com/Macaulay2/M2/issues/4534) | &nbsp; | issue | still unmet, and the obvious workaround does not cover the useful case: f = on f only works for functions you defined, since basis = on basis is an error on a protected global, so Core method functions -- the ones worth tracing -- are out of reach. Dan's route works, installMethod(basis, ZZ, Module, on(lookup m, Name => ...)) traces real calls including ones made from library code. Three gaps stand: on labels by argument rather than by method, so foo(2,3) prints 'Sequence' and an inherited call prints the argument's class rather than the method that ran; there is no way to trace in place without rebinding; and for a MethodFunctionWithOptions the trace shows the OptionTable and FunctionClosure layer instead of the real arguments, which is the 'digging in one level deeper' the file asks for. His draft's own gap remains -- toString and toExternalString are in neither class, wider now that MethodFunctionSingle exists |
+| 0 | `bugs/dan/0-package-garbage-collection` | &nbsp; | &nbsp; | issue | the Attributes half reproduces and is measurable: 30 newPackage(...,Reload=>true) cycles take Attributes from 2682 entries to 2806, about 4 leaked per reload, never reclaimed. That is also the mechanism that would eventually make 0-slowness's complaint true again, since getAttributes scans the whole table. Not covered by #488 or #2562, which are engine and sequence allocation |
 | 0 | `bugs/dan/0-precision-and-equality` | [#4503](https://github.com/Macaulay2/M2/issues/4503) | &nbsp; | issue | reproduces exactly: 1p10 == 1.0000000000000001 is true but 1p10 == 1.000000000000001 is false |
 | 0 | `bugs/dan/0-quotient-for-non-free-modules` | [#4515](https://github.com/Macaulay2/M2/issues/4515) | &nbsp; | issue | the inconsistency stands: Matrix % Matrix still requires free modules while quotientRemainder accepts the same non-free source |
 | 0 | `bugs/dan/0-reloading-packages` | [#4521](https://github.com/Macaulay2/M2/issues/4521) | &nbsp; | issue | still drops it: loadPackage Package forces Reload => true (packages.m2:193), and neither installPackage.m2:670 nor testing.m2:87 passes Configuration, so a package loaded with Configuration => {...} comes back with the defaults |
@@ -86,17 +87,20 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-vector-empty-list` | [#4524](https://github.com/Macaulay2/M2/issues/4524) | &nbsp; | issue | still no empty vector, and the message got worse: vector {} now dies in vector Matrix with "expected source to be free with rank 1" (modules.m2:70), and vector(R,{}) and vector(R^0,{}) fail the same way |
 | 0 | `bugs/dan/0-when` | [#4525](https://github.com/Macaulay2/M2/issues/4525) | &nbsp; | issue | scc1 still miscompiles it: with every case covered, the else body is emitted inside the switch with no case label (chk.c:783-794 labels only uncovered types), so it is unreachable dead code and nothing diagnoses it |
 
-## Already tracked by an open issue -- `duplicate` (14)
+## Already tracked by an open issue -- `duplicate` (17)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
+| 0 | `bugs/dan/0-degrees-of-maps` | [#607](https://github.com/Macaulay2/M2/issues/607) [#1060](https://github.com/Macaulay2/M2/issues/1060) | &nbsp; | drop | duplicate, and it spans two open issues nobody has connected: #607 is \|\| and \| , #1060 is ++, and #736 is \| again. Still reproduces -- map(Q^1,Q^1,{{t_1}},Degree=>{1}) has degree {1} and is homogeneous, f*f correctly gets {2}, but f\|\|f, f\|f and f++f all come back degree {0} and inhomogeneous. The file's own transcript no longer exercises it, since degree(vars Q * id_(Q^2)) is {0} now rather than {1} |
 | 0 | `bugs/dan/0-generateAssertions` | [#3413](https://github.com/Macaulay2/M2/issues/3413) | &nbsp; | drop | semicolon variant of #3413; still emits assert( (4;) === 4 ), which fails when run |
 | 0 | `bugs/dan/0-getting-one-element-of-a-mutable-hashtable` | [#4231](https://github.com/Macaulay2/M2/issues/4231) | &nbsp; | drop | still reproduces; #4231 asks the same question and its author could not find this discussion |
+| 0 | `bugs/dan/0-monoid-design-problem` | [#2905](https://github.com/Macaulay2/M2/issues/2905) | &nbsp; | drop | the design statement of #2905's defect: monoids.m2:684 takes Join from the first argument alone, as it takes DegreeRank and DegreeMap. So the associativity the file says was arranged does not hold -- tensor(M,N) with N carrying Join=>false gives Join=null and degreeLength 2, while tensor(N,M) gives false and 1. The file also names why it is hard: a DegreeMap on N is a map out of M's degree monoid, and M is not known when N is made |
 | 0 | `bugs/dan/0-mutable-lists` | [#659](https://github.com/Macaulay2/M2/issues/659) | &nbsp; | drop | duplicate of #659, open since 2015: mutable lists grow one element at a time, which is why filling one by index is O(n squared). Still reproduces -- n=1000 takes .0013 s and n=10000 takes .3664 s, about 280 times the work for ten times the elements. Filed as #4501 before #659 was found, since searching 'mutablelist' as one word does not match a title reading 'growth of mutable lists'; #4501 closed as a duplicate and the timings went to #659 as a comment. #1608 is a larger redesign of the same type and stays separate |
 | 0 | `bugs/dan/0-polymake` | [#457](https://github.com/Macaulay2/M2/issues/457) | &nbsp; | drop | #457 asks for exactly this -- polymake as a distribution prerequisite, with the same 'no way to build it' caveat |
 | 0 | `bugs/dan/0-runLengthEncoding` | [#4393](https://github.com/Macaulay2/M2/issues/4393) | &nbsp; | drop | same greedy heuristic as #4393: runLengthEncode0 commits to duplicate-or-successor on the second element and never reconsiders (indeterminates.m2:82-91), with no minimum length before emitting a range, so {7,2,5,6} still gives {7, 2, 5..6} |
 | 0 | `bugs/dan/0-settable-memory-limits` | [#519](https://github.com/Macaulay2/M2/issues/519) | &nbsp; | drop | the ask is #519's, closed in 2024 on argumentMode = defaultMode - SetUlimit; the reporter's own failure is separately moot for the main test suite, where 8ef9f80447 commented ulimit -v out. Worth noting the numbers have drifted far past the file: M2 now reserves about 2.2 GB of virtual address space at startup for 124 MB resident, so every -v value still written in the makefiles is below what it needs |
 | 0 | `bugs/dan/0-sort-doc` | [#101](https://github.com/Macaulay2/M2/issues/101) | &nbsp; | drop | duplicate of #101, open since 2014: sort({3,1,2}, MonomialOrder => Descending) returns {1,2,3} because sort List := opts -> internalsort (lists.m2:216) binds opts and drops them. Filed as #4529 before #101 was found -- the capped issue search hid it -- so #4529 was closed as a duplicate and the documentation angle went to #101 as a comment |
+| 0 | `bugs/dan/0-task-examples` | [#1147](https://github.com/Macaulay2/M2/issues/1147) | &nbsp; | drop | the examples Dan removed are still gone -- the (addCancelTask,Task,Task) node in ov_threads.m2:158 has no Example block -- which is what #1147 is reaching for when it says 'I believe we used to have something like this'. His guess at the cause was right: #2021 is the same failure on armhf ten years later, diagnosed as a timing race in example capture and closed by lengthening a sleep. The example runs correctly today but still prints an interleaved 'error: interrupted' backtrace from the cancelled task, which is the garbling. #1146 is the underlying instability |
 | 0 | `bugs/dan/0-tensor-rings` | [#2905](https://github.com/Macaulay2/M2/issues/2905) | &nbsp; | drop | same line as #2905: with Join => false, monoids.m2:700 sets DegreeRank from the first argument's monoid alone, which collapses degreeLength tensor(R,R,Join=>false) to 1 for R = QQ[x][y] and produces #2905's 'length at most 1' error |
 | 0 | `bugs/dan/0-ulimit` | [#519](https://github.com/Macaulay2/M2/issues/519) | &nbsp; | drop | #519 asks for the same thing and names the same two places; closed in 2024 on argumentMode = defaultMode - SetUlimit, and the Makefile values are ?= overridable, though neither half comes from configure |
 | 0 | `bugs/dan/0-value-symbol` | [#4520](https://github.com/Macaulay2/M2/issues/4520) | &nbsp; | drop | same defect as #4520 reached through value rather than parse: the quote keywords eat the implicit EOF token, so value "symbol" hands back that token as a Keyword; also value "local" and value "global" |
@@ -174,11 +178,12 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue473.m2` | [#473](https://github.com/Macaulay2/M2/issues/473) | [`0ae5b6eb19`](https://github.com/Macaulay2/M2/commit/0ae5b6eb19) | drop | sub(C,QQ) raises a clean error instead of a SIGSEGV |
 | &nbsp; | `bugs/mike/git-issue56.m2` | [#56](https://github.com/Macaulay2/M2/issues/56) | [`ff7473fb87`](https://github.com/Macaulay2/M2/commit/ff7473fb87) | drop | 'unknown engine error' is now a specific not-implemented message |
 
-## Won't fix -- `wontfix` (3)
+## Won't fix -- `wontfix` (4)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-Macaulay2-deps` | &nbsp; | &nbsp; | drop | dependencies come from a package manager on most modern systems, and an offline build can pre-populate BUILD/tarfiles, which exists for exactly that -- so a published deps tarball is not worth maintaining |
+| 0 | `bugs/dan/0-SourceCode` | &nbsp; | &nbsp; | drop | settled the other way Dan floated in the same email -- 'perhaps by ensuring the file is present in the install tree' -- rather than by removing the lines: SourceCode => applicationDirectory is still there, moved to ov_system.m2:1828, and help applicationDirectory works because the layout ships the .m2 sources. The hard failure remains for anyone who strips them, code.m2:71 erroring 'couldn't find file' rather than degrading, and the test he wanted first was never added |
 | 0 | `bugs/dan/0-library-source-URLs` | &nbsp; | &nbsp; | drop | not worth automating: each library still has one hardcoded URL (Makefile.library.in:265, and the same shape in cmake/build-libraries.cmake, where M2_SOURCE_URL is shorthand for the mirror rather than a fallback), and #2963 is the failure that causes -- cohomCalg unreachable, five retries against the same dead host, build dead. But the fix would have to be written twice, once per build system, and the standing practice of mirroring a tarball to macaulay2.com and changing one line has handled it about nine times. The mirror-only configure option is release tooling CI has displaced, and the math.uiuc.edu ask is obsolete. #313, sha hashes on every download, was the neighbouring request and is done |
 | 0 | `bugs/dan/0-package-doc` | [#4514](https://github.com/Macaulay2/M2/issues/4514) | &nbsp; | drop | closed as wontfix in #4514: a link to the table of contents is already there, and the export list is considered useful |
 
@@ -198,24 +203,19 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 
-## Not yet triaged -- `todo` (726)
+## Not yet triaged -- `todo` (721)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-Schubert2-projectiveBundle` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-SourceCode` | note | n/a | [#3485](https://github.com/Macaulay2/M2/issues/3485) Building from source on Rocky 8.10 eigen3 library not found |
 | 0 | `bugs/dan/0-bugs-iswanson.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-kummini.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-lgold.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-popescu.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-bugs-stillman.m2` | repro | fail | &nbsp; |
 | 0 | `bugs/dan/0-decompose.m2` | repro | fail | [#352](https://github.com/Macaulay2/M2/issues/352) decompose / radical fails in a ring with no degree |
-| 0 | `bugs/dan/0-degrees-of-maps` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-final-check-interactive-input-behaviour` | note | n/a | [#248](https://github.com/Macaulay2/M2/issues/248) automate as much as possible tests from '0-final-checks-before-distrib |
-| 0 | `bugs/dan/0-monoid-design-problem` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-needsPackage` | note | n/a | [#1377](https://github.com/Macaulay2/M2/issues/1377) Relocate the portion of Truncations that uses Polyhedra |
-| 0 | `bugs/dan/0-package-garbage-collection` | note | n/a | &nbsp; |
-| 0 | `bugs/dan/0-task-examples` | note | n/a | &nbsp; |
 | 0 | `bugs/dan/0-tensor-rings-2` | note | n/a | &nbsp; |
 | 0 | `bugs/mike/0-DegreeLimit-and-toField` | note | n/a | &nbsp; |
 | 0 | `bugs/mike/0-GF-division.m2` | repro | fail | &nbsp; |
