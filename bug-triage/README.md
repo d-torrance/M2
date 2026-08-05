@@ -97,6 +97,19 @@ right place" into "it isn't there", and the verdict reads as verified when it is
 running a reproducer under M2 when the claim can be tested at all -- a runtime check does not care
 what directory you are in.
 
+**Knowing this is not enough; it happened again while triaging `1-TAGS`.** The tell is worth
+recording because it does not look like a directory mistake. Earlier greps in the same session
+had worked, so `git grep -ln TAGS -- '*Makefile.in'` returning nothing read as "there is one TAGS
+target and I have found it" -- a narrowing, not a failure. What exposed it was an unrelated hit
+in the issue cache: #4233 is titled `Argument list too long making TAGS file` and quotes
+`make -C Macaulay2/m2 TAGS`, naming a target the grep had just denied existed. Re-run from the
+root, there are six.
+
+So the practical rule is stronger than "cd first": when a `git grep` narrows a claim rather than
+widening it, check `pwd` before believing it. And an outside source that contradicts a negative --
+an issue, a changelog, a filename -- is worth more than the negative, because a false empty result
+cannot contradict anything.
+
 ## The ask is the mechanism; the need is what got met
 
 These files name a specific fix as often as they name a problem, and checking only whether *that
@@ -339,15 +352,15 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 216 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 228 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 94 | 44% |
-| `open` | 62 | 29% |
-| `obsolete` | 29 | 13% |
-| `duplicate` | 21 | 10% |
-| `wontfix` | 10 | 5% |
+| `fixed` | 99 | 43% |
+| `open` | 66 | 29% |
+| `obsolete` | 30 | 13% |
+| `duplicate` | 21 | 9% |
+| `wontfix` | 12 | 5% |
 
 So `obsolete` and `wontfix` together are 18%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
@@ -362,7 +375,7 @@ seam but a thin one.
 Two cautions on those numbers. They are not a random sample -- they are `dan/0`, `dan/0.1`,
 `dan/0.4`–`0.9`, the start of `dan/1` and a deliberate sweep for retired subsystems, and `dan/0`
 was Dan's own highest-priority bucket, which may well be where the real bugs that later got fixed
-are concentrated. And `fixed` at 44% is itself a finding about the tree rather than about the files:
+are concentrated. And `fixed` at 43% is itself a finding about the tree rather than about the files:
 it means the common case is reading a fifteen-year-old report, running it, and finding it simply
 works now.
 
@@ -817,11 +830,11 @@ issue per live ask and recording them all.
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-216 are settled and **641 are left**:
+228 are settled and **629 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 288 |
+| `dan`, priority `1` | 276 |
 | `mike` | 207 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
