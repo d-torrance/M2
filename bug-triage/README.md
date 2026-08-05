@@ -195,6 +195,40 @@ Of the first 21 rows marked `fixed`, 16 got a pointer this way. The remainder wo
 bisect, which means building M2 at each step; that is rarely worth it, so leaving `fix` blank
 is an acceptable outcome.
 
+### Ask GitHub which PR carried a commit; do not infer it
+
+`git log -S` is the reliable half of this. Search for the exact string the fix introduced --
+`mpz_export` in `d/gmp_aux.c`, `submatrixByDegrees = method`, `rpmbuild -ba` -- and the commit
+that first contains it is the fix, verifiable by reading that one diff.
+
+Turning a sha into a PR number is where it goes wrong. The tempting move is to walk forward from
+the commit to the first merge that contains it:
+
+```sh
+git log --merges --oneline --ancestry-path $sha..development | grep 'Merge pull request' | tail -1
+```
+
+**That is wrong, and it was wrong on all four commits it was tried on.** The ancestry path
+contains every merge that happened to land afterwards, so `tail -1` returns whichever unrelated
+branch merged next. It dated `f39e27cba3` -- whose subject is literally `fix #690` -- to PR #802,
+an `emduart2/master` merge with nothing to do with it. It put the 2026 RR-hash commit on #4040,
+`MichaelABurr/intervals`. Every answer looked plausible: a real PR number, a real merge, the right
+era.
+
+GitHub knows the real answer and will tell you:
+
+```sh
+gh api repos/Macaulay2/M2/commits/$sha/pulls --jq '[.[] | "#\(.number) \(.title)"] | join("; ")'
+```
+
+That returned #772 for `f39e27cba3` and #4251 for the RR hash -- both with titles that match the
+commit -- and an empty string for `0a9c638129`, which predates the pull-request workflow and
+correctly takes a bare sha in the `fix` column. An empty answer is information; a guessed one is
+not.
+
+The general shape of the trap: a heuristic that produces a well-formed answer for every input
+gives you no signal that it failed. Prefer the source that can say "none".
+
 ## Settling a file
 
 **This branch does not touch the Macaulay2 sources.** It is a catalog and the tooling to build
@@ -231,29 +265,39 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 167 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 195 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 72 | 43% |
-| `open` | 48 | 29% |
-| `obsolete` | 23 | 14% |
-| `duplicate` | 19 | 11% |
-| `wontfix` | 5 | 3% |
+| `fixed` | 82 | 42% |
+| `open` | 59 | 30% |
+| `obsolete` | 25 | 13% |
+| `duplicate` | 21 | 11% |
+| `wontfix` | 8 | 4% |
 
 So `obsolete` and `wontfix` together are 17%, not "most", and the largest single outcome by far
-is that the bug was quietly fixed years ago and nobody closed the file.
+is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
+steady: it was the same to within a point at 167 settled, so the next bucket is unlikely to
+move it much either.
 
 Grepping the *unsettled* files says the same thing rather than merely reflecting which ones got
-done first: of the 704 still `todo` at that point, only 33 mentioned any retired subsystem at
+done first: of the 704 still `todo` at 167, only 33 mentioned any retired subsystem at
 all, and of 25 that looked like candidates, 14 held up. The dead-platform material is a real
 seam but a thin one.
 
-Two cautions on those numbers. The 167 are not a random sample -- they are `dan/0`, `dan/0.1`
-and a deliberate sweep for retired subsystems, and `dan/0` was Dan's own highest-priority bucket,
-which may well be where the real bugs that later got fixed are concentrated. And `fixed` at 43%
-is itself a finding about the tree rather than about the files: it means the common case is
-reading a fifteen-year-old report, running it, and finding it simply works now.
+Two cautions on those numbers. They are not a random sample -- they are `dan/0`, `dan/0.1`,
+`dan/0.4`–`0.9` and a deliberate sweep for retired subsystems, and `dan/0` was Dan's own
+highest-priority bucket, which may well be where the real bugs that later got fixed are
+concentrated. And `fixed` at 42% is itself a finding about the tree rather than about the files:
+it means the common case is reading a fifteen-year-old report, running it, and finding it simply
+works now.
+
+A third caution the `0.4`–`0.9` bucket added: `fixed` is not the same as *fixed on purpose*. Of
+its eleven `fixed` rows only five carry a pointer at all, and two of those settled the file's ask
+as a side effect -- #772 reversed `Tally` and `VirtualTally` while fixing #690, and #3983 got the
+source rpm by rewriting the packaging script. The other six simply drifted into correctness with
+no identifiable commit: an API grew a new spelling, a check stopped firing, a doc node was
+written. Do not read the 42% as a record of anyone responding to these files.
 
 ## Relationship to [project 46](https://github.com/orgs/Macaulay2/projects/46)
 
@@ -461,6 +505,38 @@ want a code block. Roughly a third of the files are one to six lines of English 
 Fencing is preserved once done: `bin/push-project` only ever replaces the triage block, so the
 body above it survives, and a hand-adjusted fence stays adjusted.
 
+### Unfenced HTML is not a formatting problem, it is a publishing one
+
+Ugly rendering is the mild failure. The one that matters is that **GitHub renders raw HTML in an
+issue body**, so an unfenced tag does not display -- it *acts*.
+
+`0.8-documentation-suggestion-link` asks for a mailto link at the foot of each doc page, and to
+show the URL syntax Dan pasted a sample at column zero:
+
+```html
+<a href="mailto:abbeyvet@outfront.net?CC=spooky@outfront.net
+&BCC=thomasbrunt@outfront.net&Subject=Please%2C%20I%20insist
+%21&Body=Hi%0DI%20would%20like%20to%20send%20you%20 ...
+```
+
+Converting that draft unaltered would have published, in the Macaulay2 tracker, a live mailto
+link to three strangers' addresses, prefilled with the subject "Please, I insist" and a body
+about dividing $1,000,000 among the moderators. It reads as spam, it exposes addresses nobody
+consented to republish, and it would have to be edited out by hand afterwards. It is fenced now,
+and #4549 carries it as a code block.
+
+So the check before filing is not only "will this look right". Scan for a line at column zero
+that starts with `<`:
+
+```sh
+awk '/^[^ \t]/ && /<[a-zA-Z\/!]/ {print FILENAME": "$0}' files/bugs/dan/0.8-*
+```
+
+Indentation is what saved the rest of that batch: a transcript indented four spaces or by a tab
+is already a markdown code block, so the eleven filed alongside it needed nothing. The hazard is
+specifically **unindented markup**, and it is worth one `awk` before every `bin/file-issues
+--apply`.
+
 ## A consumer of M2's behavior may live in another repository
 
 `0-utf8-and-column-number` was filed as [#4535](https://github.com/Macaulay2/M2/issues/4535) —
@@ -516,7 +592,7 @@ paths, and converting without renaming is how #4492 landed in the tracker titled
 
 ## Topic labels: where it came from, and who should read it
 
-`bugs directory` answers the first question and nothing else. The cohort is forty-odd issues among
+`bugs directory` answers the first question and nothing else. The cohort is a few dozen issues among
 eight hundred open ones, so a bug about the engine that carries only that label is invisible to
 someone filtering the tracker for engine work -- which is precisely the audience #36 wanted these
 in front of when it asked for them to be filed rather than left as drafts.
@@ -637,22 +713,27 @@ issue per live ask and recording them all.
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
-and the same one `d3ec491953` drew from. It is done, as is `0.1`. What is left:
+and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
+195 are settled and **662 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `0.4`–`0.9` | 28 |
 | `dan`, priority `1` | 309 |
-| `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `mike` | 207 |
+| `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
 | `LAcore`, `gfurnish`, root | 11 |
 
 Take one author at a time. Their file conventions differ -- Dan's are prose notes with
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
-number down -- and switching between them means relearning the format every few rows. The mix of
-kinds differs too: 20 of Dan's remaining are reproducers against 139 of Mike's, so Mike's section
-will be slower per row, with the `autorun` caveat above applying to most of it.
+number down -- and switching between them means relearning the format every few rows.
+
+The mix of kinds differs too, and it decides how a bucket feels. **390 of Dan's 410 remaining are
+prose notes, against only 20 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
+remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
+running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
+applying to most of it. `dan/0.4`–`0.9` was 28 notes and 0 reproducers, which is what the rest of
+Dan looks like.
 
 To list a bucket:
 
