@@ -8,16 +8,16 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**195 of 857 triaged (22.8%)**
+**205 of 857 triaged (23.9%)**
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 59 | `##..........................` |
+| `open` -- Still broken | 62 | `##..........................` |
 | `duplicate` -- Already tracked by an open issue | 21 | `#...........................` |
-| `fixed` -- Fixed | 82 | `###.........................` |
-| `wontfix` -- Won't fix | 8 | `............................` |
-| `obsolete` -- Obsolete | 25 | `#...........................` |
-| `todo` -- Not yet triaged | 662 | `######################......` |
+| `fixed` -- Fixed | 86 | `###.........................` |
+| `wontfix` -- Won't fix | 9 | `............................` |
+| `obsolete` -- Obsolete | 27 | `#...........................` |
+| `todo` -- Not yet triaged | 652 | `#####################.......` |
 
 ### Reproducer runs
 
@@ -35,14 +35,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 172 |
+| `bugs/dan` | 582 | 182 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (59)
+## Still broken -- `open` (62)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -94,17 +94,20 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-when` | [#4525](https://github.com/Macaulay2/M2/issues/4525) | &nbsp; | issue | scc1 still miscompiles it: with every case covered, the else body is emitted inside the switch with no case label (chk.c:783-794 labels only uncovered types), so it is unreachable dead code and nothing diagnoses it |
 | 0.1 | `bugs/dan/0.1-doc-remainder-links` | [#4539](https://github.com/Macaulay2/M2/issues/4539) | &nbsp; | issue | still unlinked: help "methods for normal forms and remainder" lists %, Gröbner bases, generators and Matrix % GroebnerBasis under See also, and nothing for //. There is no node actually titled 'methods for getting the coefficients', so the ask reads as a link to the // operator, which is where the quotient half lives |
 | 0.1 | `bugs/dan/0.1-random-ring-elements` | [#4540](https://github.com/Macaulay2/M2/issues/4540) | &nbsp; | issue | not added: lookup(random, Sequence, Ring) is null, and random((4:1,3:2),R) errors. The file supplies the implementation it wants -- random(Sequence,Ring) := o -> (degs,R) -> for d in deepSplice degs list random(d,R) -- which is also what makes the mixed form random((4:{1},3:2),R) work, since deepSplice flattens the degree lists. No duplicate: #877 and #4161 both concern the one-argument random(List), where #4161 wants it to mean a random element with shuffle(List) taking over the permuting. Worth cross-referencing there, since this would add a two-argument form alongside it |
-| 0.5 | `bugs/dan/0.5-Benchmark-package` | &nbsp; | &nbsp; | issue | half done: Dan added the per-benchmark tests himself in 8753fd3ae7 (2010), scan(keys benchmarks, b -> TEST("runBenchmarks "\|format b)), so every benchmark now runs as a test. yang-gb1 still ends '(ti,re) := toSequence timing gb(J1); ti)' with no assertion on the result, which is the other half of the file |
-| 0.5 | `bugs/dan/0.5-SafeC-bugs` | &nbsp; | &nbsp; | issue | reproduces exactly under a current scc1: the file's lines give 'error: type mismatch' at line 8, the f():int := ( when ... ) whose every branch returns. Line 6, the direct expression form of the same when, compiles -- so it is specifically the statement form with return in all branches that scc1 does not recognise as returning. Adjacent to #4525, which is the other scc1 when defect |
-| 0.5 | `bugs/dan/0.5-alternate-stack` | &nbsp; | &nbsp; | issue | never done: sigaltstack, SA_ONSTACK and SIGSTKSZ appear nowhere in the tree, so a SIGSEGV raised by stack exhaustion still cannot be caught |
-| 0.5 | `bugs/dan/0.5-compare-CC-CC` | &nbsp; | &nbsp; | issue | reproduces exactly: 1+2*ii < 2.*ii is false and 1+2*ii ? 2.*ii is >, so an unordered pair of complex numbers still compares silently instead of erroring as the file asks |
-| 0.5 | `bugs/dan/0.5-document-new-methods` | &nbsp; | &nbsp; | issue | still unlinked: the node 'making new functions with optional arguments' (ov_language.m2:509) links only to >> and to 'symbols used as the name or value of an optional argument'. method-doc.m2:14 links the other way, which is the direction that already worked |
-| 0.5 | `bugs/dan/0.5-hh-dispatch` | &nbsp; | &nbsp; | issue | not done: Varieties.m2:777 still builds the lookup key as a := (pq,X) with X the entire argument, so hh^i(x,y) looks up (ZZ,Sequence) and an installed hh(ZZ,X,Y) is unreachable -- calling it errors 'no method available'. The file's premise that HH already allows this does not hold either: HH^2(x,y) fails identically |
-| 0.5 | `bugs/dan/0.5-select-doc` | &nbsp; | &nbsp; | issue | layout unchanged: help select still prints See also, with partition in it, before Ways to use, which is the order the file asks to reverse. The SeeAlso list has since grown to eight entries, making the placement more prominent rather than less |
-| 0.5 | `bugs/dan/0.5-temporaryDirectory` | &nbsp; | &nbsp; | issue | not provided: temporaryDirectory does not exist, though removeDirectory does -- so of the pair the file asks for, only the removal half is available |
-| 0.8 | `bugs/dan/0.8-documentation-suggestion-link` | &nbsp; | &nbsp; | issue | never added: no mailto, feedback or issue link is emitted onto doc pages -- the mailto hits in the tree are author addresses in ov_preface.m2 and package metadata. A link to the GitHub tracker would be the modern form of the ask; the mailto and google-group forms the file proposes are both dated |
-| 0.9 | `bugs/dan/0.9-discrete-log` | &nbsp; | &nbsp; | issue | not hooked up: rawDiscreteLog exists (d/interface.dd:996, e/interface/ringelement.cpp:286) but methods log covers only Number and InexactNumber, so both log(a^7) and log(a,a^7) over GF(2^5) fail with no method |
-| 0.9 | `bugs/dan/0.9-toField` | &nbsp; | &nbsp; | issue | none of the asks met: toField still returns a PolynomialRing rather than a Field class; gens is worse than unimplemented, giving {} where gens of the same quotient before toField gives {x}; and promotion across the tree of derived rings is unchanged. #1660 and #3973 are open toField issues, neither of them this |
+| 0.5 | `bugs/dan/0.5-Benchmark-package` | [#4541](https://github.com/Macaulay2/M2/issues/4541) | &nbsp; | issue | half done: Dan added the per-benchmark tests himself in 8753fd3ae7 (2010), scan(keys benchmarks, b -> TEST("runBenchmarks "\|format b)), so every benchmark now runs as a test. yang-gb1 still ends '(ti,re) := toSequence timing gb(J1); ti)' with no assertion on the result, which is the other half of the file |
+| 0.5 | `bugs/dan/0.5-SafeC-bugs` | [#4542](https://github.com/Macaulay2/M2/issues/4542) | &nbsp; | issue | reproduces exactly under a current scc1: the file's lines give 'error: type mismatch' at line 8, the f():int := ( when ... ) whose every branch returns. Line 6, the direct expression form of the same when, compiles -- so it is specifically the statement form with return in all branches that scc1 does not recognise as returning. Adjacent to #4525, which is the other scc1 when defect |
+| 0.5 | `bugs/dan/0.5-alternate-stack` | [#4543](https://github.com/Macaulay2/M2/issues/4543) | &nbsp; | issue | never done: sigaltstack, SA_ONSTACK and SIGSTKSZ appear nowhere in the tree, so a SIGSEGV raised by stack exhaustion still cannot be caught |
+| 0.5 | `bugs/dan/0.5-compare-CC-CC` | [#4544](https://github.com/Macaulay2/M2/issues/4544) | &nbsp; | issue | reproduces exactly: 1+2*ii < 2.*ii is false and 1+2*ii ? 2.*ii is >, so an unordered pair of complex numbers still compares silently instead of erroring as the file asks |
+| 0.5 | `bugs/dan/0.5-document-new-methods` | [#4545](https://github.com/Macaulay2/M2/issues/4545) | &nbsp; | issue | still unlinked: the node 'making new functions with optional arguments' (ov_language.m2:509) links only to >> and to 'symbols used as the name or value of an optional argument'. method-doc.m2:14 links the other way, which is the direction that already worked |
+| 0.5 | `bugs/dan/0.5-hh-dispatch` | [#4546](https://github.com/Macaulay2/M2/issues/4546) | &nbsp; | issue | not done: Varieties.m2:777 still builds the lookup key as a := (pq,X) with X the entire argument, so hh^i(x,y) looks up (ZZ,Sequence) and an installed hh(ZZ,X,Y) is unreachable -- calling it errors 'no method available'. The file's premise that HH already allows this does not hold either: HH^2(x,y) fails identically |
+| 0.5 | `bugs/dan/0.5-select-doc` | [#4547](https://github.com/Macaulay2/M2/issues/4547) | &nbsp; | issue | layout unchanged: help select still prints See also, with partition in it, before Ways to use, which is the order the file asks to reverse. The SeeAlso list has since grown to eight entries, making the placement more prominent rather than less |
+| 0.5 | `bugs/dan/0.5-temporaryDirectory` | [#4548](https://github.com/Macaulay2/M2/issues/4548) | &nbsp; | issue | not provided: temporaryDirectory does not exist, though removeDirectory does -- so of the pair the file asks for, only the removal half is available |
+| 0.8 | `bugs/dan/0.8-documentation-suggestion-link` | [#4549](https://github.com/Macaulay2/M2/issues/4549) | &nbsp; | issue | never added: no mailto, feedback or issue link is emitted onto doc pages -- the mailto hits in the tree are author addresses in ov_preface.m2 and package metadata. A link to the GitHub tracker would be the modern form of the ask; the mailto and google-group forms the file proposes are both dated |
+| 0.9 | `bugs/dan/0.9-discrete-log` | [#4550](https://github.com/Macaulay2/M2/issues/4550) | &nbsp; | issue | not hooked up: rawDiscreteLog exists (d/interface.dd:996, e/interface/ringelement.cpp:286) but methods log covers only Number and InexactNumber, so both log(a^7) and log(a,a^7) over GF(2^5) fail with no method |
+| 0.9 | `bugs/dan/0.9-toField` | [#4551](https://github.com/Macaulay2/M2/issues/4551) | &nbsp; | issue | none of the asks met: toField still returns a PolynomialRing rather than a Field class; gens is worse than unimplemented, giving {} where gens of the same quotient before toField gives {x}; and promotion across the tree of derived rings is unchanged. #1660 and #3973 are open toField issues, neither of them this |
+| 1 | `bugs/dan/1-ambient` | &nbsp; | &nbsp; | issue | not adopted: ambient ZZ and ambient QQ still fail with 'no ambient ring present' (rings.m2:53), so Bart Snapp's suggestion that ambient R return R for a non-quotient ring is unmet. Dan's own objection in the file -- that internal code walks ambient until it errors -- is the thing to check before changing it |
+| 1 | `bugs/dan/1-application-dir-info-dir` | &nbsp; | &nbsp; | issue | still not done: installPackage writes an .info file into the user's Application Support tree but never creates or updates the info dir index beside it. install-info appears only in cmake/packaging.cmake, for the deb and rpm packaging, and in configure.ac as a build-time requirement -- nothing on the installPackage path |
+| 1 | `bugs/dan/1-building-doc-databases` | &nbsp; | &nbsp; | issue | the file settles its own first half -- it says (FIXED) for the .installed problem. The second is unmet: installPackage touches .installed when a run completes (installPackage.m2:846-849) but nothing detects a missing doc database and rebuilds it, writable directory or not. Nearby but not the same: #1643 wants one documentation database per prefix instead of per package, for speed, and #776 wants the open database files bounded by an LRU cache -- neither rebuilds a missing one |
 
 ## Already tracked by an open issue -- `duplicate` (21)
 
@@ -132,7 +135,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (82)
+## Fixed -- `fixed` (86)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -195,6 +198,10 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0.5 | `bugs/dan/0.5-time-command` | &nbsp; | &nbsp; | drop | all three programs settled, one better than asked. install-info is checked at configure.ac:241 and errors if info documentation is requested without it. time is no longer a build dependency -- only RunExternalM2.m2 uses it, probing fileExecutable("/usr/bin/time") at runtime with a fallback. unzip appears only in a Docker image that apt-installs it |
 | 0.9 | `bugs/dan/0.9-doc-package-source` | &nbsp; | &nbsp; | drop | works now: a package that installs trim String := ... on Core's trim and documents (trim,String) installs cleanly under CheckDocumentation=>true |
 | 0.9 | `bugs/dan/0.9-hash-RR` | &nbsp; | [#4251](https://github.com/Macaulay2/M2/issues/4251) | drop | endianness-independent since #4251, 'Update hash for ZZ/RR to be platform-independent and use 64 bits': mpz_hash calls mpz_export with size 1 and endian 1, fixing byte order regardless of host, and mpfr_hash builds on that from mpfr_get_prec and mpfr_get_z_2exp (d/gmp_aux.c:7-45). The basictests/hashcodes.m2 the file points at no longer exists |
+| 1 | `bugs/dan/1-2--int` | &nbsp; | &nbsp; | drop | no longer 512: interrupting M2 --int now leaves the shell reporting 130, i.e. terminated by SIGINT under the usual 128+signal convention. Dan asked for 2 and 130 is the conventional spelling of it; the pathological 512, a wait status leaking out where an exit status belongs, is gone and is not even representable in an exit code |
+| 1 | `bugs/dan/1-3d-betti` | &nbsp; | [#906](https://github.com/Macaulay2/M2/issues/906) | drop | met by a better mechanism than the one Eisenbud proposed: rather than betti taking two weight vectors and drawing boxes, #906 added MultigradedBettiTally and multigraded(BettiTally), which puts the whole multidegree in each entry as a monomial -- on his own bigraded example multigraded betti gives rows 0,1,2,4 with entries 1, b, a, 2*a*b, a^3*b. That is strictly more information than two projections, and it does not degrade when the numbers reach two digits, which is the worry his message ends on |
+| 1 | `bugs/dan/1-assert-arguments` | &nbsp; | [#1738](https://github.com/Macaulay2/M2/issues/1738) | drop | the need is met by another mechanism, and the trail is #1736 -> #1738: assert became a method and gained (assert,Expression), so assert Equation(2+2,5) now reports 'assertion failed: 4 == 5 is false' (expressions.m2:120-124). #1736 asked for the same thing from the same motivation as this file, diagnosing a failed assert from a build log, and #1738 closed it. Dan's literal ask is still unmet: assert(false,"D'Oh") gives 'no method found for applying assert to', so no custom string is accepted. The assertEqual family named in #1738's description never landed and appears nowhere in the tree or its history -- only the Expression form did. A derived message beats a hand-written one for reading build logs anyway, since it cannot go stale against the code it describes |
+| 1 | `bugs/dan/1-associatePrimes` | &nbsp; | &nbsp; | drop | moved as the file suggested: [associatedPrimes,Strategy] is documented in PrimaryDecomposition/doc.m2:271, and Macaulay2Doc now only cross-references it as PrimaryDecomposition::associatedPrimes. The file's hedged second thought -- 'maybe the options should be method by method' -- was not taken: the node still keys the options globally on associatedPrimes rather than per (associatedPrimes,Ideal) and so on |
 | 1 | `bugs/dan/1-chrpath` | &nbsp; | &nbsp; | drop | the suggestion was taken: configure.ac:178 has AC_CHECK_PROGS([CHRPATH], [chrpath], [false]), distributions/install/Makefile.in:15 branches on it, and it is a BuildRequires in Macaulay2.spec and installed in the Fedora and RHEL Dockerfiles |
 | 1 | `bugs/dan/1-decompose` | &nbsp; | &nbsp; | drop | decompose no longer overflows the stack in factory on this input |
 | 1 | `bugs/dan/1-singularLocus` | &nbsp; | &nbsp; | drop | singularLocus(ZZ[x,y]/(11,x)) no longer returns the spurious (11,x,1) |
@@ -219,7 +226,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue473.m2` | [#473](https://github.com/Macaulay2/M2/issues/473) | [`0ae5b6eb19`](https://github.com/Macaulay2/M2/commit/0ae5b6eb19) | drop | sub(C,QQ) raises a clean error instead of a SIGSEGV |
 | &nbsp; | `bugs/mike/git-issue56.m2` | [#56](https://github.com/Macaulay2/M2/issues/56) | [`ff7473fb87`](https://github.com/Macaulay2/M2/commit/ff7473fb87) | drop | 'unknown engine error' is now a specific not-implemented message |
 
-## Won't fix -- `wontfix` (8)
+## Won't fix -- `wontfix` (9)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -231,8 +238,9 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0.5 | `bugs/dan/0.5-extensions` | &nbsp; | &nbsp; | drop | deliberate: installing methods is how a package extends M2, and the file proposes no rule that would separate a legitimate extension from a conflicting one -- any such heuristic would have to know which of two packages is entitled to the operator. The file's own example settles it: List ! is now installed in Core, so the extension it worried about was adopted rather than disallowed |
 | 0.5 | `bugs/dan/0.5-newPackage-Headline` | &nbsp; | &nbsp; | drop | the tree went the other way: Headline is not merely still an option (packages.m2:258) but required -- installPackage.m2:694 errors 'expected non-empty Headline in package X' -- so deriving it from the package doc node is not a direction anyone is taking |
 | 0.5 | `bugs/dan/0.5-overflow-auto` | &nbsp; | &nbsp; | drop | deliberate: the html documentation is being rewritten in the second half of 2026, so a rule added to doc.css now would be discarded with it -- and doc.css today has no overflow, white-space or scroll rule at all, table.examples pre setting only margin and padding. The need, that wide example output be scrollable rather than wrapped, belongs to whatever replaces it |
+| 1 | `bugs/dan/1-architecture-dependent-only-build` | &nbsp; | &nbsp; | drop | deliberate: there is no split to expose. Building the architecture-independent half means generating documentation and example output, and that is done by shelling out to the compiled binary -- run.m2:119 builds a command around format(bindir \| "M2-binary") -- so the arch-independent files sit downstream of the arch-dependent ones rather than parallel to them, and a target for one half alone would still have to build the other. What convenience the ask has, insofar as it is coherent, already exists: Makefile.in:117-118 give relink and relink-nostrip, which rebuild the binary without touching anything else |
 
-## Obsolete -- `obsolete` (25)
+## Obsolete -- `obsolete` (27)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -248,7 +256,9 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0.5 | `bugs/dan/0.5-bison-version` | &nbsp; | &nbsp; | drop | premise gone: bison++ was abandoned around 2000, and configure.ac:281 already rejects anything that is not bison outright, AS_IF([test "$YACC" != "bison -y"], [AC_MSG_ERROR([bison is required])]) -- a stricter test than the version floor the file asks for. No version check exists |
 | 0.5 | `bugs/dan/0.5-cygwin-port-too-slow` | &nbsp; | &nbsp; | drop | cygwin is gone: M2/distributions/cygwin was removed and 51d82cd738 cleaned up the remnants in 2021, __CYGWIN32__ went with dumpdata in d560e8284a in 2019, and no CI job builds for Windows. The benchmarks here are from 2007 on gcc 4.1.3 and Cygwin 1.5.25 |
 | 0.5 | `bugs/dan/0.5-share-precomputed-files` | &nbsp; | &nbsp; | drop | the experiment was never run and nothing in the tree carries the notion: no 'precomputed' machinery in the build at all, and distributions/tar splits pre_prefix from pre_exec_prefix for binary tarballs only, not for the source distribution the file is about |
+| 1 | `bugs/dan/1-abs-paths` | &nbsp; | &nbsp; | drop | premise no longer holds in the form written: an error in generated example output is recorded as stdio:1:4:(3):[1]: error: ..., a stdio position with no filesystem path in it at all, so there is no relative path to make absolute. The tree also moved deliberately the other way -- runFile left html.m2 for run.m2 and passes --srcdir through relativizeFilename(rundir, d), relativizing on purpose. No absolute-path switch exists and none is wanted |
 | 1 | `bugs/dan/1-benchmarks` | &nbsp; | &nbsp; | drop | a 2008 SVN patch adding benchmark timings from gcc 4.0/4.1 machines |
+| 1 | `bugs/dan/1-book-code-updates` | &nbsp; | &nbsp; | drop | never built, and the venue moved: no mechanism ships errata for the 2001 book with a release, and nothing in the tree tracks its code -- Book3264Examples.m2 is a different book, and the only references to Computations in Algebraic Geometry with Macaulay2 are two comments in LocalRings. Twenty-five years on, per-release errata is not the form this would take; the wiki is where such advice now lives |
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 | 1 | `bugs/dan/1-configure-arch` | &nbsp; | &nbsp; | drop | all three asks are dead: 32-bit Mac (the warnings quote i686-apple-darwin8, which is 10.4, and gcc 4.2.3), an --enable-*bit selection that configure.ac has no trace of, and disable-fc-lib-ldflags, which appears nowhere in the tree |
@@ -262,7 +272,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 2 | `bugs/dan/2-cygwin-port-report` | &nbsp; | &nbsp; | drop | a 2006 user report of building M2 under Cygwin against a SAGE spkg, needing CPPFLAGS=-D_setmode=setmode. The cygwin distribution was removed in 2021 (51d82cd738) |
 | 3 | `bugs/dan/3-cons-vs-make` | &nbsp; | &nbsp; | drop | a proposal to consider SCons as a build system. The question was settled the other way: M2 has autotools and CMake, and scons appears nowhere in the tree |
 
-## Not yet triaged -- `todo` (662)
+## Not yet triaged -- `todo` (652)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
@@ -320,8 +330,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 00 | `bugs/mike/00-kahle-isPrime.m2` | repro | pass-partial | &nbsp; |
 | 00 | `bugs/mike/00-rawCharSeries.m2` | repro | timeout | [#1443](https://github.com/Macaulay2/M2/issues/1443) crash in factory |
 | 00 | `bugs/mike/00-res-crash.m2` | repro | timeout | &nbsp; |
-| 1 | `bugs/dan/1-2--int` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-3d-betti` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-CC-inverse` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-CC-tostring` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-ConwayPolynomials` | note | n/a | [#48](https://github.com/Macaulay2/M2/issues/48) bug in induced map? |
@@ -345,14 +353,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-Schubert2-more` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-ScriptedFunctor` | note | n/a | [#456](https://github.com/Macaulay2/M2/issues/456) code(method) does not give code for the method |
 | 1 | `bugs/dan/1-TAGS` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-abs-paths` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-ambient` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-application-dir-info-dir` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-architecture-dependent-only-build` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-assert-arguments` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-associatePrimes` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-book-code-updates` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-building-doc-databases` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-cache-gb-MonomialIdeal` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-caching-idea` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-cartesian-power` | note | n/a | &nbsp; |
@@ -731,7 +731,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 2 | `bugs/dan/2-lazy-gb-for-quotient-rings` | note | n/a | &nbsp; |
 | 2 | `bugs/dan/2-localDictionaries` | note | n/a | &nbsp; |
 | 2 | `bugs/dan/2-master-doc-index` | note | n/a | &nbsp; |
-| 2 | `bugs/dan/2-method-doc` | note | n/a | &nbsp; |
+| 2 | `bugs/dan/2-method-doc` | note | n/a | [#4545](https://github.com/Macaulay2/M2/issues/4545) "making new functions with optional arguments" should link to "method" |
 | 2 | `bugs/dan/2-methodOptions` | note | n/a | [#2758](https://github.com/Macaulay2/M2/issues/2758) methodOptions, code, locate don't work on MethodFunctionSingle |
 | 2 | `bugs/dan/2-mod-n-class` | note | n/a | &nbsp; |
 | 2 | `bugs/dan/2-multiple-assignment-improvement` | note | n/a | &nbsp; |
