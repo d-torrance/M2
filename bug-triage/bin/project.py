@@ -146,6 +146,26 @@ REPO_URL = "https://github.com/%s/%s" % (ORG, REPO)
 CATALOG_URL = ("https://github.com/d-torrance/M2/blob/bug-triage"
                "/bug-triage/catalog.tsv")
 
+# The account these run under, named in the attribution so a reader knows the
+# text is not that person's.  Change it if someone else picks the tooling up.
+ACCOUNT = "@d-torrance"
+
+# Attribution, and it goes ABOVE the text it applies to, never in the footer.
+#
+# It used to read "Drafted with AI assistance", tucked at the end of a <sub>
+# footer after the content.  That is too weak twice over.  The phrasing reads as
+# though the account holder wrote it with some help, when the truth is the
+# reverse; and a reader who reaches it has already weighted the claims, which is
+# exactly the decision it exists to inform.  It was missed on a first read of an
+# issue by the person whose account posted it -- see #4556, where the disclosure
+# was moved to the top and sharpened.
+#
+# Keep it to one sentence.  It sits on top of comments that are sometimes three
+# lines long, and a disclaimer longer than its content stops being read.
+ATTRIBUTION = (
+    "> **Written by Claude** (Claude Opus 5, via Claude Code), not by %s, whose "
+    "account posted it -- please weigh it accordingly." % ACCOUNT)
+
 
 def fetch_project():
     proj = gh(FIELDS_QUERY, org=ORG, number=PROJECT)["data"]["organization"]["projectV2"]

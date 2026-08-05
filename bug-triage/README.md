@@ -117,6 +117,80 @@ checks for `install-info` and errors without it when info documentation is reque
 been, `obsolete` would have buried a live request under a dead platform. Read to the end of the
 file before settling it on its first line.
 
+## A deliberate commit outranks a consistency argument
+
+`bugs/dan/1-CC-tostring` asks that both parts of a complex number be carried to the same distance
+right of the point. Its transcript shows `1e-30 + ii` printing as `1e-30+ii`; today the scalar
+prints `ii`, while `matrix {{1e-30+ii}}` prints `| 1e-30+ii |`. Two code paths --
+`net CC` reaches `format(...,CC)` in `gmp1.d:246`, which derives one accuracy from `exponent(z)`,
+the larger part; matrix entries reach `expression CC` (`reals.m2:494`), which formats the parts
+independently. One number, two renderings depending on where it sits, and `RR` shows no such
+split at any magnitude from `1e-12` to `1e12`.
+
+That reads like a defect and is not one. `530ef987f8` -- *"print complex numbers to a combined
+precision for both parts"*, Dan, 2008-02-03, on the 1.1 branch, which is the release the file
+asks for -- introduced the shared accuracy on purpose. A real part thirty orders below the
+imaginary part is not part of a six-significant-digit rendering of that number. The file's
+transcript is the *pre*-commit behavior, so it illustrates one convention while its sentence asks
+for the other.
+
+The `RR` comparison looked like a control and was not one: an `RR` scalar has one part, so the
+question the commit settles never arises there. It could only ever come back "no difference".
+
+Two habits follow. When a difference in behavior looks like an inconsistency, search for a commit
+that introduced it deliberately -- `git log -S` on the line that implements it -- before recording
+`open`; the author of a fifteen-year-old bug file is often the author of the commit that
+superseded it. And when reaching for an analogous case as evidence, check that the analogy can
+actually exhibit the thing being tested.
+
+## Ask whether the feature also fails correctly
+
+`bugs/dan/1-CC-inverse` asks for LU, as in LAPACK, to compute inverses over `RR` and `CC`. It is
+there: `inverse Matrix` routes every `InexactField` through the engine to
+`DMatLUinPlace<ARingRR>::computeLU`, which calls `dgetrf_`. Random 5×5 matrices over `RR` and
+`CC` invert to `norm(A * inverse A - I)` around `1e-15`, `CC_200` to `4e-60`. `fixed`, and it
+would have been reasonable to stop.
+
+The negative case is wrong. `inverse matrix {{1.,2.},{2.,4.}}` returns the **zero matrix**
+instead of erroring -- at `CC_53` and `RR_200` too -- while `rank` returns 1, `det` returns 0, and
+`solve(m, id_(RR^2))` returns `null`. That last is the call `inverse` makes internally, so
+`inverse` is the only consumer of the same LU decomposition that reports success. One line
+explains it: `DMatLinAlg::inverse` (`dmat-lu.hpp:529`) calls `solve(id, X)`, discards the boolean,
+and returns `true` unconditionally, though `solve` returns `false` for an inconsistent system at
+`dmat-lu.hpp:379`.
+
+A wording trap on the way to that, worth naming because it survived two write-ups. `solve` does
+not *error* on a singular system, it returns `null` -- but the check that found it was
+`try (entries solve(m, id_(RR^2))) else "errors"`, and `entries null` errors, so the `else` branch
+fired and read as a clean confirmation that `solve` rejects the matrix. Wrapping the call in
+something that consumes its result puts a second failure mode inside the `try`, and the two are
+indistinguishable from the output. Test the return value (`=== null`, `class`) rather than a
+function of it.
+
+These files ask "does the feature exist", so the natural check is one call that should succeed.
+Add one that should fail. A silent wrong answer is worse than the missing feature the file was
+written about, and it is the kind of defect that survives precisely because nobody's example
+exercised it. Filed as [#4556](https://github.com/Macaulay2/M2/issues/4556) -- the first issue
+here that came out of *verifying a `fixed` verdict* rather than out of a bug file's own ask, which
+is why it has no row in `catalog.tsv` and was filed by hand rather than by `bin/file-issues`.
+
+### A closed issue can be fixed on only some of the paths its ask spans
+
+The [duplicate search](#never-truncate-the-duplicate-search-and-read-it-oldest-first) on that
+finding turned up [#2208](https://github.com/Macaulay2/M2/issues/2208), which is the *same ask* --
+a singular square matrix should report "matrix not invertible" -- on `ZZ/5`, and closed. Reading
+only the state would have made the row a duplicate of a settled issue.
+
+What closed it is #2241 (`a032f77d13`), and it changed element-level inversion in `ZZp.cpp`,
+`aring-zzp*.hpp`, `aring-gf-flint.hpp` and `ZZ.cpp`. Those are exactly the exact rings. It never
+touched `dmat-lu.hpp`, so the generic `DMatLinAlg` path the inexact fields use kept the hole --
+which is measurable: `ZZ/5` and `ZZ/32003` error correctly today, `RR_53` and `CC_53` do not.
+
+The README already says to read *why* an issue closed. This is the sharper version: read *what the
+fix touched*, and check the ring, precision or code path in front of you is one of them. `git show
+--stat` on the closing commit answers it in one line, and a fix that lands in a ring-specific
+specialization is the shape most likely to have missed its neighbours.
+
 ## Some of these were answered on the wiki
 
 Not all Macaulay2 documentation is in the repository. The
@@ -265,20 +339,20 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 195 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 216 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 82 | 42% |
-| `open` | 59 | 30% |
-| `obsolete` | 25 | 13% |
-| `duplicate` | 21 | 11% |
-| `wontfix` | 8 | 4% |
+| `fixed` | 94 | 44% |
+| `open` | 62 | 29% |
+| `obsolete` | 29 | 13% |
+| `duplicate` | 21 | 10% |
+| `wontfix` | 10 | 5% |
 
-So `obsolete` and `wontfix` together are 17%, not "most", and the largest single outcome by far
+So `obsolete` and `wontfix` together are 18%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
-steady: it was the same to within a point at 167 settled, so the next bucket is unlikely to
-move it much either.
+steady: it was the same to within a point at 167 and at 195 settled, so the next bucket is
+unlikely to move it much either.
 
 Grepping the *unsettled* files says the same thing rather than merely reflecting which ones got
 done first: of the 704 still `todo` at 167, only 33 mentioned any retired subsystem at
@@ -286,9 +360,9 @@ all, and of 25 that looked like candidates, 14 held up. The dead-platform materi
 seam but a thin one.
 
 Two cautions on those numbers. They are not a random sample -- they are `dan/0`, `dan/0.1`,
-`dan/0.4`–`0.9` and a deliberate sweep for retired subsystems, and `dan/0` was Dan's own
-highest-priority bucket, which may well be where the real bugs that later got fixed are
-concentrated. And `fixed` at 42% is itself a finding about the tree rather than about the files:
+`dan/0.4`–`0.9`, the start of `dan/1` and a deliberate sweep for retired subsystems, and `dan/0`
+was Dan's own highest-priority bucket, which may well be where the real bugs that later got fixed
+are concentrated. And `fixed` at 44% is itself a finding about the tree rather than about the files:
 it means the common case is reading a fifteen-year-old report, running it, and finding it simply
 works now.
 
@@ -560,10 +634,39 @@ path, e.g. `comments/bugs/dan/0-generateAssertions.md`. The `note` column is del
 -- those notes are internal shorthand written for the catalog, and posting them verbatim would
 read as noise on a stranger's issue.
 
-The appended footer names the source file, links #36 and the catalog, and says the text was
-drafted with AI assistance. Someone reading a comment on their own issue is entitled to know that
+A footer names the source file and links #36 and the catalog. The **attribution is separate from
+it, and goes first** -- `project.ATTRIBUTION`, one sentence saying Claude wrote the text and this
+account only posted it. Someone reading a comment on their own issue is entitled to know that
 before deciding how much weight to give it -- especially where a comment relays a claim rather
 than something verified, as the #457 one does.
+
+### Put the attribution above the text, not in the footer
+
+It used to be four words at the end of a `<sub>` footer: "Drafted with AI assistance." That is too
+weak twice over, and both failures are worth naming because neither is about the words being
+absent.
+
+The phrasing is wrong. "Drafted with AI assistance" describes a person writing something with help.
+The truth is the reverse -- the model wrote it and a person approved it -- and the reader has no way
+to tell which from that sentence.
+
+And the placement defeats the purpose. A disclosure exists so a reader can decide how much weight
+to give what follows; put it after, in small text, and it is read after that decision is already
+made. This was not hypothetical: on #4556 it was missed on a first read by the person whose own
+account had posted it. The fix there was to move it to the top and say plainly *Written by Claude
+… not by @d-torrance, whose account posted it*, and that is now `project.ATTRIBUTION`, shared by
+`bin/comment-issues` and the triage block in `bin/push-project`.
+
+The triage block had no attribution at all, which mattered more than it looks: `push-project`
+writes that block into **public issues**, not only into drafts. So a verdict and note written by a
+model were appearing under a human's account on a stranger's issue with nothing saying so.
+
+Two consequences to expect when this changes. Every already-posted comment and every already-pushed
+body now differs from what the tooling would write, so all of them re-queue -- 13 comments and 215
+bodies at the time of the change. That is the derived check working as designed rather than a
+problem, but it means the next `--apply` **edits public text that is already live**, and that
+needs asking for on its own terms. And keep it to one sentence: it sits on top of comments that are
+sometimes three lines long, and a disclaimer longer than its content stops being read.
 
 **A comment is the only thing here that notifies anyone.** Draft bodies, statuses and labels are
 all silent; a comment reaches every watcher of an issue that may be a decade old. That is why the
@@ -714,11 +817,11 @@ issue per live ask and recording them all.
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-195 are settled and **662 are left**:
+216 are settled and **641 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 309 |
+| `dan`, priority `1` | 288 |
 | `mike` | 207 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
