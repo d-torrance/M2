@@ -12,10 +12,10 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 40 | `#...........................` |
+| `open` -- Still broken | 39 | `#...........................` |
 | `duplicate` -- Already tracked by an open issue | 17 | `#...........................` |
 | `fixed` -- Fixed | 64 | `##..........................` |
-| `wontfix` -- Won't fix | 4 | `............................` |
+| `wontfix` -- Won't fix | 5 | `............................` |
 | `obsolete` -- Obsolete | 11 | `............................` |
 | `todo` -- Not yet triaged | 721 | `########################....` |
 
@@ -42,7 +42,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (40)
+## Still broken -- `open` (39)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -83,7 +83,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-symmetricPower` | [#4530](https://github.com/Macaulay2/M2/issues/4530) | &nbsp; | issue | half landed: the Module case now handles relations via coimage basis(p, symmetricAlgebra M) (multilin.m2:90), but the Matrix case is still the raw call the file calls probably-wrong, and they disagree -- symmetricPower(2,m) on a map of cokernels returns R^1 <-- R^1, forgetting the relations |
 | 0 | `bugs/dan/0-typical-values` | [#4523](https://github.com/Macaulay2/M2/issues/4523) | &nbsp; | issue | undocumented: "specifying typical values" shows only the unary form prune Matrix := Matrix => f, and neither "binary methods" nor "installing methods" mentions X + X := X => (x,y) -> ...; the form works and does record typicalValues#(symbol +,X,X) |
 | 0 | `bugs/dan/0-utf-8-in-doc-filenames` | [#4531](https://github.com/Macaulay2/M2/issues/4531) | &nbsp; | issue | still generated: toFilename maps ASCII specials through the tt table but passes multi-byte UTF-8 unchanged, and the installed docs hold 9 such names including the exact ___Gröbner_spbases.html this file names; #47 covered it but closed in 2014 on the broken links, not on the ask; #211 is a second closed symptom of the same cause, the file appearing under two utf-8 normalizations (303 266 vs 314 210), closed on 'just remember how I do it and check that one file' |
-| 0 | `bugs/dan/0-utf8-and-column-number` | [#4535](https://github.com/Macaulay2/M2/issues/4535) | &nbsp; | issue | still counting bytes: '-* 你好 *-   1    /   0' reports column 20 where the byte-identical-layout ascii '-* NH *-   1    /   0' reports 16, a difference of exactly the four extra bytes; same byte-versus-character root as #332, but a different subsystem -- the parser's position tracking rather than regex. Not settled by #3378, which closed in 2024 on the position that byte semantics are correct for tally and that characters is the character-aware route: M2 already separates the two, width "αβγ" is 3 while #"αβγ" is 6, and an error column is a display position of the width kind. The counter already is a display column rather than a byte offset -- getc(o:PosFile) at d/stdiop.d:198 advances it to the next multiple of 8 on a tab -- so utf-8 is the one case it gets wrong, and skipping continuation bytes there is a few lines |
 | 0 | `bugs/dan/0-vector-empty-list` | [#4524](https://github.com/Macaulay2/M2/issues/4524) | &nbsp; | issue | still no empty vector, and the message got worse: vector {} now dies in vector Matrix with "expected source to be free with rank 1" (modules.m2:70), and vector(R,{}) and vector(R^0,{}) fail the same way |
 | 0 | `bugs/dan/0-when` | [#4525](https://github.com/Macaulay2/M2/issues/4525) | &nbsp; | issue | scc1 still miscompiles it: with every case covered, the else body is emitted inside the switch with no case label (chk.c:783-794 labels only uncovered types), so it is unreachable dead code and nothing diagnoses it |
 
@@ -178,7 +177,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue473.m2` | [#473](https://github.com/Macaulay2/M2/issues/473) | [`0ae5b6eb19`](https://github.com/Macaulay2/M2/commit/0ae5b6eb19) | drop | sub(C,QQ) raises a clean error instead of a SIGSEGV |
 | &nbsp; | `bugs/mike/git-issue56.m2` | [#56](https://github.com/Macaulay2/M2/issues/56) | [`ff7473fb87`](https://github.com/Macaulay2/M2/commit/ff7473fb87) | drop | 'unknown engine error' is now a specific not-implemented message |
 
-## Won't fix -- `wontfix` (4)
+## Won't fix -- `wontfix` (5)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -186,6 +185,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-SourceCode` | &nbsp; | &nbsp; | drop | settled the other way Dan floated in the same email -- 'perhaps by ensuring the file is present in the install tree' -- rather than by removing the lines: SourceCode => applicationDirectory is still there, moved to ov_system.m2:1828, and help applicationDirectory works because the layout ships the .m2 sources. The hard failure remains for anyone who strips them, code.m2:71 erroring 'couldn't find file' rather than degrading, and the test he wanted first was never added |
 | 0 | `bugs/dan/0-library-source-URLs` | &nbsp; | &nbsp; | drop | not worth automating: each library still has one hardcoded URL (Makefile.library.in:265, and the same shape in cmake/build-libraries.cmake, where M2_SOURCE_URL is shorthand for the mirror rather than a fallback), and #2963 is the failure that causes -- cohomCalg unreachable, five retries against the same dead host, build dead. But the fix would have to be written twice, once per build system, and the standing practice of mirroring a tarball to macaulay2.com and changing one line has handled it about nine times. The mirror-only configure option is release tooling CI has displaced, and the math.uiuc.edu ask is obsolete. #313, sha hashes on every download, was the neighbouring request and is done |
 | 0 | `bugs/dan/0-package-doc` | [#4514](https://github.com/Macaulay2/M2/issues/4514) | &nbsp; | drop | closed as wontfix in #4514: a link to the table of contents is already there, and the export list is considered useful |
+| 0 | `bugs/dan/0-utf8-and-column-number` | [#4535](https://github.com/Macaulay2/M2/issues/4535) | &nbsp; | drop | closed as wontfix in #4535: byte columns are the convention, not an oversight, and Macaulay2Web relies on locations being bytes, so changing it would be a breaking change across repositories. The tab-stop argument -- that getc(o:PosFile) at d/stdiop.d:198 already advances to the next multiple of 8, so the counter is a display column -- did not carry, because the objection was never that strings are bytes but that downstream consumers index by bytes. Worth recording that grepping the M2 tree for consumers found none; they live in M2-emacs and Macaulay2Web |
 
 ## Obsolete -- `obsolete` (11)
 

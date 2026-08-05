@@ -390,6 +390,40 @@ one file". Neither touched the cause, which is why `0-utf-8-in-doc-filenames` wa
 filing as [#4531](https://github.com/Macaulay2/M2/issues/4531). Read *why* it closed before
 treating a hit as a duplicate.
 
+## Fence the bug file before you file it
+
+These files are plain text from 2009, and GitHub renders an issue body as markdown. Single
+newlines collapse, so an M2 transcript arrives as one run-on paragraph; `-*- coding: utf-8 -*-`
+italicises; `___Gröbner_spbases.html` comes out bold-italic. Wrap the verbatim part in an
+` ```m2 ` fence before converting the draft.
+
+Do it by hand, per file. It looks automatable and isn't: prose and transcript alternate, and the
+obvious rule of "break the fence at blank lines" shatters a transcript, because M2 puts blank
+lines between `i1` and `o1` and between `o1` and its type. Prose is the real separator, and only
+a reader can tell prose from a diagnostic — `stdio:12:21:(3): error: division by zero` is output,
+not a sentence.
+
+Leave short prose files alone. "audit all uses of sprintf for possible buffer overflows" does not
+want a code block. Roughly a third of the files are one to six lines of English and need nothing.
+
+Fencing is preserved once done: `bin/push-project` only ever replaces the triage block, so the
+body above it survives, and a hand-adjusted fence stays adjusted.
+
+## A consumer of M2's behavior may live in another repository
+
+`0-utf8-and-column-number` was filed as [#4535](https://github.com/Macaulay2/M2/issues/4535) —
+error messages count columns in bytes, so a line with `你好` before the error reports column 20
+where the same layout in ASCII reports 16 — and closed as wontfix within the hour: byte columns
+are the convention, and **Macaulay2Web relies on locations being bytes**.
+
+The verification missed that, and not by being careless. `git grep column` over the M2 tree finds
+no `.el` file using it, which reads as "nothing downstream depends on this". But the editor mode
+lives in [M2-emacs](https://github.com/Macaulay2/M2-emacs) and the web front end in
+[Macaulay2Web](https://github.com/Macaulay2/Macaulay2Web), neither of which is in this checkout.
+
+So before arguing that an interface can be changed, ask who else consumes it, and remember that
+the answer may not be in the repository you are grepping.
+
 ## Commenting on an existing issue
 
 `bin/comment-issues` posts the comments for the **b** rows. The text is never generated: a
