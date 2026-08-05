@@ -291,7 +291,8 @@ A trap when checking this from a script: because archived items are not returned
 always false on what you get back, and an archived draft is indistinguishable from a deleted one
 by item count alone. Three drafts archived on 2026-08-03 (`mike/git-issue-568-569.m2`,
 `mike/git-issue291.m2`, `mike/git-issue604.m2`) made the board read 854 items, exactly as three
-deletions would have.
+deletions would have. They have since been unarchived and read Done, so the board is back to 857
+and matches the catalog -- but the count is what misled, and it would mislead again.
 
 The reason not to make the board the only surface: draft issues are project-local. They do not
 appear in issue search, cannot be referenced from a commit or PR, cannot be closed by
@@ -305,7 +306,7 @@ not just the first: it now edits public issues as well as drafts. Reading it is 
 the bar; see [`--apply` is not yours to give yourself](#--apply-is-not-yours-to-give-yourself)
 for the other half.
 
-The board (`PVT_kwDOAC6Xfc4BQEgX`, "bugs directory", 854 items) carries only the stock
+The board (`PVT_kwDOAC6Xfc4BQEgX`, "bugs directory", 857 items) carries only the stock
 project-template fields -- Status, Priority, Size, Estimate, Start/Target date, plus the
 built-ins. There is nowhere to put a verdict, an issue number, a fix, or a note. Rather than add
 five custom fields to a board other people use, the script writes:
