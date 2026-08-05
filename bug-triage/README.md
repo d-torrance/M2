@@ -227,9 +227,33 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 `SUBDIRS` in `M2/Macaulay2/tests/Makefile.in`, and the `--status:` comment convention from
 `tests/quarantine/2-homog-bug.m2` is what a later change would follow.
 
-**Neither?** `wontfix` or `obsolete` with a one-line `note`, `disposition=drop`. Most of the
-857 will land here -- a lot of these files are about cygwin, xemacs, MPIR, `dumpdata`, and the
-Debian packaging that used to live in `distributions/deb`.
+**Neither?** `wontfix` or `obsolete` with a one-line `note`, `disposition=drop`.
+
+This section used to predict that most of the 857 would land here, on the grounds that a lot of
+them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 167 settled:
+
+| verdict | | |
+| --- | ---: | ---: |
+| `fixed` | 72 | 43% |
+| `open` | 48 | 29% |
+| `obsolete` | 23 | 14% |
+| `duplicate` | 19 | 11% |
+| `wontfix` | 5 | 3% |
+
+So `obsolete` and `wontfix` together are 17%, not "most", and the largest single outcome by far
+is that the bug was quietly fixed years ago and nobody closed the file.
+
+Grepping the *unsettled* files says the same thing rather than merely reflecting which ones got
+done first: of the 704 still `todo` at that point, only 33 mentioned any retired subsystem at
+all, and of 25 that looked like candidates, 14 held up. The dead-platform material is a real
+seam but a thin one.
+
+Two cautions on those numbers. The 167 are not a random sample -- they are `dan/0`, `dan/0.1`
+and a deliberate sweep for retired subsystems, and `dan/0` was Dan's own highest-priority bucket,
+which may well be where the real bugs that later got fixed are concentrated. And `fixed` at 43%
+is itself a finding about the tree rather than about the files: it means the common case is
+reading a fifteen-year-old report, running it, and finding it simply works now.
 
 ## Relationship to [project 46](https://github.com/orgs/Macaulay2/projects/46)
 
@@ -551,9 +575,26 @@ issue per live ask and recording them all.
 
 ## Where to start
 
-`bugs/dan` priority `0` -- 155 files, Dan's own highest-priority bucket, and the same one
-`d3ec491953` drew from.
+`bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
+and the same one `d3ec491953` drew from. It is done, as is `0.1`. What is left:
+
+| | |
+| --- | ---: |
+| `dan`, priority `0.4`–`0.9` | 28 |
+| `dan`, priority `1` | 309 |
+| `dan`, priority `2` and beyond, plus unnumbered | 101 |
+| `mike` | 207 |
+| `anton` | 34 |
+| `LAcore`, `gfurnish`, root | 11 |
+
+Take one author at a time. Their file conventions differ -- Dan's are prose notes with
+transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
+number down -- and switching between them means relearning the format every few rows. The mix of
+kinds differs too: 20 of Dan's remaining are reproducers against 139 of Mike's, so Mike's section
+will be slower per row, with the `autorun` caveat above applying to most of it.
+
+To list a bucket:
 
 ```sh
-awk -F'\t' 'NR>1 && $2=="dan" && $3=="0" && $7=="todo" {print $1}' catalog.tsv
+awk -F'\t' 'NR>1 && $2=="dan" && $3=="1" && $7=="todo" {print $1}' catalog.tsv
 ```
