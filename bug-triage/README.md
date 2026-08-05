@@ -269,7 +269,9 @@ there is how the `bugs/` tree died the first time.
 `bin/push-project` implements the sync. It defaults to `--dry-run`, needs
 `gh auth refresh -s project`, and should not get `--apply` until you have read the output --
 mass GraphQL mutations against a shared board cannot be reverted. Read the dry run every time,
-not just the first: it now edits public issues as well as drafts.
+not just the first: it now edits public issues as well as drafts. Reading it is the lower half of
+the bar; see [`--apply` is not yours to give yourself](#--apply-is-not-yours-to-give-yourself)
+for the other half.
 
 The board (`PVT_kwDOAC6Xfc4BQEgX`, "bugs directory", 854 items) carries only the stock
 project-template fields -- Status, Priority, Size, Estimate, Start/Target date, plus the
@@ -495,6 +497,23 @@ bin/push-project --apply           # those rows now go to In progress
 
 The second push is not redundant: `file-issues` writes the new issue number into the catalog, and
 that is what moves the row from Ready to In progress.
+
+## `--apply` is not yours to give yourself
+
+That runbook is a description of the order, not a licence to run it. **Every `--apply` here, and
+every `bin/comment-issues`, needs the maintainer's go-ahead, each time.** A clean dry run is what
+you show them to get it; it is not a substitute for asking.
+
+This matters because triaging is private and the four steps above are not. Filing an issue
+notifies everyone watching the repository. A comment reaches every watcher of a thread that may
+be a decade old and belongs to someone else. A push makes mass GraphQL mutations against a board
+other people use, and cannot be reverted in bulk. Recording a verdict in `catalog.tsv` costs
+nothing if it is wrong; the rest of it costs a stranger's attention, and an issue filed in error
+has to be closed, commented, and its body corrected by hand -- see #4492, and see #4529, which
+duplicated a 2014 issue because the search that would have caught it was never run.
+
+The judgement being asked for is not "is the dry run clean". It is "should this be public at
+all", and that is the maintainer's to make. Read the dry run every time; then ask.
 
 **Nothing records that a row has been pushed, on purpose.** Every run diffs the TSV against live
 board state and queues only what actually differs, so after an applied push the same command
