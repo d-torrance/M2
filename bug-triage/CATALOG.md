@@ -12,8 +12,8 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 40 | `#...........................` |
-| `duplicate` -- Already tracked by an open issue | 13 | `............................` |
+| `open` -- Still broken | 39 | `#...........................` |
+| `duplicate` -- Already tracked by an open issue | 14 | `............................` |
 | `fixed` -- Fixed | 64 | `##..........................` |
 | `wontfix` -- Won't fix | 3 | `............................` |
 | `obsolete` -- Obsolete | 11 | `............................` |
@@ -42,13 +42,13 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (40)
+## Still broken -- `open` (39)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-M2-compute-process` | [#4526](https://github.com/Macaulay2/M2/issues/4526) | &nbsp; | issue | dumpdata went in 2019 (d560e8284a) and nothing replaced it: there is no fork server or daemon mode, so every invocation pays full startup, which is the cost the proposal was meant to amortize |
 | 0 | `bugs/dan/0-SCSCP-checks` | [#4527](https://github.com/Macaulay2/M2/issues/4527) | &nbsp; | issue | not automated: startServer(String,String) exists so binding to 127.0.0.1 is available, but SCSCP.m2 has no TEST blocks, no workflow references it, and there is no insecure-check make target |
-| 0 | `bugs/dan/0-add-mutex-for-factory` | [#4494](https://github.com/Macaulay2/M2/issues/4494) | &nbsp; | issue | still true: no C-level lock; ThreadedGB.m2:33 works around factory instead |
+| 0 | `bugs/dan/0-add-mutex-for-factory` | [#4494](https://github.com/Macaulay2/M2/issues/4494) | &nbsp; | issue | still true: no C-level lock; ThreadedGB.m2:33 works around factory instead; a specific instance under #175, the umbrella thread-safety issue, alongside #3675, #3895 and #3927 |
 | 0 | `bugs/dan/0-attribute-constructor` | [#4495](https://github.com/Macaulay2/M2/issues/4495) | &nbsp; | issue | still emitted: c/cprint.c:487 puts __attribute__ ((constructor)) in generated C |
 | 0 | `bugs/dan/0-backtrace-from-debugger` | [#4507](https://github.com/Macaulay2/M2/issues/4507) | &nbsp; | issue | backtrace exists but is only a variable toggling whether one is shown after an error; there is still no way to produce one on demand from the debugger |
 | 0 | `bugs/dan/0-bugs-ataylor.m2` | &nbsp; | &nbsp; | &nbsp; | the first ask is done -- prune N and minPres N both equal minimalPresentation N -- but the rest are unverified: synonyms in emacs highlighting and the doc index, and res landing on the resolution node |
@@ -57,7 +57,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-check-for-integer-usage` | [#4517](https://github.com/Macaulay2/M2/issues/4517) | &nbsp; | issue | never adopted: fsanitize appears nowhere in the tree and no CI workflow builds with a sanitizer |
 | 0 | `bugs/dan/0-debugging-loadPackage` | [#4533](https://github.com/Macaulay2/M2/issues/4533) | &nbsp; | issue | documented behavior and actual behavior disagree: code.m2:263 says 'break -- leave the debugger, returning to top level', but break leaves the debugger and resumes the file past the failing expression. Four lines reproduce it -- load a file whose function calls error, then break, and the rest of the file runs. Dan's case is the visible symptom: loading Macaulay2Doc twice, break carries on into the next error in the same file and re-enters the debugger, leaving the prompt at ii for the session. Distinct from #1928: continue re-runs the failing expression and loops, break skips it and continues, so the two commands differ and neither matches its description |
 | 0 | `bugs/dan/0-dictionaryPath` | [#4496](https://github.com/Macaulay2/M2/issues/4496) | &nbsp; | issue | still reproduces: OutputDictionary is on dictionaryPath while a package loads; related to #1427, which proposes the same trim-and-restore fix |
-| 0 | `bugs/dan/0-doc-Keywords` | [#4509](https://github.com/Macaulay2/M2/issues/4509) | &nbsp; | issue | the four examples are aliases from other systems, so the need is discovery by synonym; about "Normalform" returns nothing even with Body=>true, and about "solve" returns 220 hits swamped by resolve/resolution. newPackage's Keywords is per package and holds subject categories for browsing, not search aliases |
+| 0 | `bugs/dan/0-doc-Keywords` | [#4509](https://github.com/Macaulay2/M2/issues/4509) | &nbsp; | issue | the four examples are aliases from other systems, so the need is discovery by synonym; about "Normalform" returns nothing even with Body=>true, and about "solve" returns 220 hits swamped by resolve/resolution. newPackage's Keywords is per package and holds subject categories for browsing, not search aliases. #3689 is the diacritic special case of the same want -- about "Groebner" should find the node titled "Gröbner bases" -- which accent folding alone would fix, while author-declared aliases would subsume it |
 | 0 | `bugs/dan/0-doc-option-names-in-packages` | [#4508](https://github.com/Macaulay2/M2/issues/4508) | &nbsp; | issue | verified: a package-defined option name must be exported or installPackage fails with "mutable unexported unset symbol(s) in package X: 'MyOpt'"; exporting it installs cleanly. Undocumented in Macaulay2Doc and in the wiki style guide. Note the file misplaces the error: it comes from package closing, not documentation processing, and fires with no doc node present |
 | 0 | `bugs/dan/0-document-packages` | &nbsp; | &nbsp; | &nbsp; | two of four done: XML documents itself and [newPackage,Reload] is documented at package-doc.m2:274. --debug n exists but is undocumented, as are M2's command line options generally, and warningMessage is still unexported |
 | 0 | `bugs/dan/0-engine-tower-rings` | [#4497](https://github.com/Macaulay2/M2/issues/4497) | &nbsp; | issue | raw hooks exist (rawTowerRing, e/rings/tower.cpp) but no top-level engineTowerRing |
@@ -71,7 +71,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-makefile-d` | [#4512](https://github.com/Macaulay2/M2/issues/4512) | &nbsp; | issue | still hand-maintained: d/Makefile.files.in lists the e/*.hpp dependencies literally and carries the comment 'should automate these dependencies' |
 | 0 | `bugs/dan/0-methods-with-options` | [#4513](https://github.com/Macaulay2/M2/issues/4513) | &nbsp; | issue | still reproduces: g (ZZ,ZZ) := List => (opts)->(m,n)->... is accepted but installs nothing, leaving methods g empty; #2864 is a different confusion in the same area |
 | 0 | `bugs/dan/0-monomialIdeal` | [#4500](https://github.com/Macaulay2/M2/issues/4500) | &nbsp; | issue | unchanged: monomialIdeal {} still errors 'expected a polynomial ring without quotient elements' |
-| 0 | `bugs/dan/0-mutable-lists` | [#4501](https://github.com/Macaulay2/M2/issues/4501) | &nbsp; | issue | still quadratic: 1e3 to 1e4 elements costs 181x, not 10x |
 | 0 | `bugs/dan/0-needsPackage-unadorned` | [#4502](https://github.com/Macaulay2/M2/issues/4502) | &nbsp; | issue | needsPackage still has no Using option; its options are LoadDocumentation, Configuration, FileName, Reload, DebuggingMode |
 | 0 | `bugs/dan/0-newPackage` | [#4505](https://github.com/Macaulay2/M2/issues/4505) | &nbsp; | issue | reproduces exactly: (options Foo).Configuration is an OptionTable via loadPackage but a List via load |
 | 0 | `bugs/dan/0-on` | [#4534](https://github.com/Macaulay2/M2/issues/4534) | &nbsp; | issue | still unmet, and the obvious workaround does not cover the useful case: f = on f only works for functions you defined, since basis = on basis is an error on a protected global, so Core method functions -- the ones worth tracing -- are out of reach. Dan's route works, installMethod(basis, ZZ, Module, on(lookup m, Name => ...)) traces real calls including ones made from library code. Three gaps stand: on labels by argument rather than by method, so foo(2,3) prints 'Sequence' and an inherited call prints the argument's class rather than the method that ran; there is no way to trace in place without rebinding; and for a MethodFunctionWithOptions the trace shows the OptionTable and FunctionClosure layer instead of the real arguments, which is the 'digging in one level deeper' the file asks for. His draft's own gap remains -- toString and toExternalString are in neither class, wider now that MethodFunctionSingle exists |
@@ -87,12 +86,13 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-vector-empty-list` | [#4524](https://github.com/Macaulay2/M2/issues/4524) | &nbsp; | issue | still no empty vector, and the message got worse: vector {} now dies in vector Matrix with "expected source to be free with rank 1" (modules.m2:70), and vector(R,{}) and vector(R^0,{}) fail the same way |
 | 0 | `bugs/dan/0-when` | [#4525](https://github.com/Macaulay2/M2/issues/4525) | &nbsp; | issue | scc1 still miscompiles it: with every case covered, the else body is emitted inside the switch with no case label (chk.c:783-794 labels only uncovered types), so it is unreachable dead code and nothing diagnoses it |
 
-## Already tracked by an open issue -- `duplicate` (13)
+## Already tracked by an open issue -- `duplicate` (14)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
 | 0 | `bugs/dan/0-generateAssertions` | [#3413](https://github.com/Macaulay2/M2/issues/3413) | &nbsp; | drop | semicolon variant of #3413; still emits assert( (4;) === 4 ), which fails when run |
 | 0 | `bugs/dan/0-getting-one-element-of-a-mutable-hashtable` | [#4231](https://github.com/Macaulay2/M2/issues/4231) | &nbsp; | drop | still reproduces; #4231 asks the same question and its author could not find this discussion |
+| 0 | `bugs/dan/0-mutable-lists` | [#659](https://github.com/Macaulay2/M2/issues/659) | &nbsp; | drop | duplicate of #659, open since 2015: mutable lists grow one element at a time, which is why filling one by index is O(n squared). Still reproduces -- n=1000 takes .0013 s and n=10000 takes .3664 s, about 280 times the work for ten times the elements. Filed as #4501 before #659 was found, since searching 'mutablelist' as one word does not match a title reading 'growth of mutable lists'; #4501 closed as a duplicate and the timings went to #659 as a comment. #1608 is a larger redesign of the same type and stays separate |
 | 0 | `bugs/dan/0-polymake` | [#457](https://github.com/Macaulay2/M2/issues/457) | &nbsp; | drop | #457 asks for exactly this -- polymake as a distribution prerequisite, with the same 'no way to build it' caveat |
 | 0 | `bugs/dan/0-runLengthEncoding` | [#4393](https://github.com/Macaulay2/M2/issues/4393) | &nbsp; | drop | same greedy heuristic as #4393: runLengthEncode0 commits to duplicate-or-successor on the second element and never reconsiders (indeterminates.m2:82-91), with no minimum length before emitting a range, so {7,2,5,6} still gives {7, 2, 5..6} |
 | 0 | `bugs/dan/0-settable-memory-limits` | [#519](https://github.com/Macaulay2/M2/issues/519) | &nbsp; | drop | the ask is #519's, closed in 2024 on argumentMode = defaultMode - SetUlimit; the reporter's own failure is separately moot for the main test suite, where 8ef9f80447 commented ulimit -v out. Worth noting the numbers have drifted far past the file: M2 now reserves about 2.2 GB of virtual address space at startup for 124 MB resident, so every -v value still written in the makefiles is below what it needs |
