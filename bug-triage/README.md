@@ -368,6 +368,15 @@ Two rules follow, and they cost nothing:
   rather than truncate the output.
 - **Sort ascending by issue number.** Matches arrive newest-first, which is precisely backwards:
   a fifteen-year-old bug file is most likely to collide with an *old* issue, and those sort last.
+- **Spell compound words both ways.** `0-mutable-lists` was filed as
+  [#4501](https://github.com/Macaulay2/M2/issues/4501) when
+  [#659](https://github.com/Macaulay2/M2/issues/659) had been open since 2015 with the cause,
+  because `mutablelist` does not match a title reading "growth of mutable **lists**". Search
+  `mutablelist` *and* `mutable list`.
+
+A term that is also an ordinary English word is where this is thinnest. `about` matched 131
+issues while checking `0-doc-Keywords`, which is a haystack, not a shortlist — narrowing found
+[#3689](https://github.com/Macaulay2/M2/issues/3689), but only because someone read all 131.
 
 The same scan also has to look past the `issue` column. Once a row is settled as a duplicate its
 `issue` is repointed at the older issue — `0-sort-doc` now reads `#101` — so the issue that was
