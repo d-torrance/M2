@@ -109,6 +109,14 @@ strictly better for the system administrators the file is worried about.
 
 Ask what the file wanted, not only what it proposed.
 
+A file can also be dead in its framing and still hold something live. `bugs/dan/1-cygwin-info`
+is three lines about `/usr/share/info/dir` not updating under cygwin, and cygwin has been gone
+since 2021 -- but its second sentence, "check that install-info is in a prerequisite package,
+too", is a separate ask that outlived the first. It is satisfied, as it happens: `configure.ac`
+checks for `install-info` and errors without it when info documentation is requested. Had it not
+been, `obsolete` would have buried a live request under a dead platform. Read to the end of the
+file before settling it on its first line.
+
 ## Some of these were answered on the wiki
 
 Not all Macaulay2 documentation is in the repository. The
