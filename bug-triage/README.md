@@ -16,6 +16,11 @@ This directory is the tooling to work through them, answering three questions pe
 2. If so, is there already an issue in Macaulay2/M2 covering it?
 3. If not, which commit or PR fixed it?
 
+Answering them is all this branch does. Nothing here modifies the Macaulay2 sources: the output
+is `catalog.tsv`, the issues and comments filed from it, and the project board. Acting on a
+verdict -- promoting a reproducer into `M2/Macaulay2/tests/`, or writing the fix -- is separate
+work in a separate branch. See [Settling a file](#settling-a-file).
+
 ## Quick start
 
 ```sh
@@ -184,23 +189,35 @@ is an acceptable outcome.
 
 ## Settling a file
 
-**Fixed?** Promote the reproducer into `M2/Macaulay2/tests/normal/`, keeping a comment that
-names where it came from. That directory's `Makefile.in` globs `*.m2`, so dropping the file in
-is enough. Follow the existing convention:
+**This branch does not touch the Macaulay2 sources.** It is a catalog and the tooling to build
+it; everything under `M2/` stays untouched. The `disposition` column records what *should*
+happen to a file, and acting on it is separate work in a separate branch against `development`.
+Three of its values name a destination under `M2/Macaulay2/tests/`, and they are
+recommendations, not instructions to write the file now.
+
+**Fixed?** `verdict=fixed`, the commit or PR in `fix`, and:
+
+- `disposition=test` if the reproducer is worth keeping as a regression test in
+  `M2/Macaulay2/tests/normal/`. Say so in the `note` -- which assertions, and roughly what they
+  cost -- so whoever does it later does not have to re-derive it.
+- `disposition=drop` if there is nothing worth keeping, which is the common case for a prose
+  note or a file whose reproducer no longer runs.
+
+Whoever eventually promotes one keeps a comment naming where it came from. That directory's
+`Makefile.in` globs `*.m2`, so dropping the file in is enough, and the existing convention is:
 
 ```m2
 -- used to crash (M2/bugs/dan/1-factory-bug)     -- tests/normal/factory.m2:26
 -- had been in bugs/mike/0-basis r12446          -- tests/normal/basis5.m2:156
 ```
 
-Set `verdict=fixed`, `disposition=test`, and put the commit or PR in `fix`.
-
 **Still broken?** If it should be tracked publicly, file an issue and set `verdict=open`,
 `disposition=issue`, `issue=#NNNN`. A reproducer that fails but is not worth blocking CI over
-belongs in `M2/Macaulay2/tests/quarantine/` (known-failing or too slow) or
-`M2/Macaulay2/tests/goals/` ("we'd like to run these; some have never succeeded"). Both are in
-`SUBDIRS` in `M2/Macaulay2/tests/Makefile.in`. Record why with the `--status:` comment
-convention from `tests/quarantine/2-homog-bug.m2`.
+would belong in `M2/Macaulay2/tests/quarantine/` (known-failing or too slow) or
+`M2/Macaulay2/tests/goals/` ("we'd like to run these; some have never succeeded") -- record that
+as `disposition=quarantine` or `goals` and leave the file where it is. Both directories are in
+`SUBDIRS` in `M2/Macaulay2/tests/Makefile.in`, and the `--status:` comment convention from
+`tests/quarantine/2-homog-bug.m2` is what a later change would follow.
 
 **Neither?** `wontfix` or `obsolete` with a one-line `note`, `disposition=drop`. Most of the
 857 will land here -- a lot of these files are about cygwin, xemacs, MPIR, `dumpdata`, and the
