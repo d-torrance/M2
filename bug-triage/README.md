@@ -324,13 +324,16 @@ happen to a file, and acting on it is separate work in a separate branch against
 Three of its values name a destination under `M2/Macaulay2/tests/`, and they are
 recommendations, not instructions to write the file now.
 
-**Fixed?** `verdict=fixed`, the commit or PR in `fix`, and:
+**Fixed?** `verdict=fixed`, the commit or PR in `fix`, and `disposition=drop`.
 
-- `disposition=test` if the reproducer is worth keeping as a regression test in
-  `M2/Macaulay2/tests/normal/`. Say so in the `note` -- which assertions, and roughly what they
-  cost -- so whoever does it later does not have to re-derive it.
-- `disposition=drop` if there is nothing worth keeping, which is the common case for a prose
-  note or a file whose reproducer no longer runs.
+In practice that is the only answer a fixed row gets. `test` names a destination under
+`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 241 settled rows it has been
+used **zero times**, including on the fourteen `anton/*/RESOLVED/*.m2` reproducers where it looks
+most tempting. Promoting a reproducer is writing code in the Macaulay2 sources, which is not what
+this branch does, and recommending it per-row invites exactly that confusion -- the recommendation
+reads as a task. If a fixed reproducer really is worth keeping, say so in the `note` and leave the
+column at `drop`; deciding the fate of that class is one pass for a maintainer, not a field on 857
+rows.
 
 Whoever eventually promotes one keeps a comment naming where it came from. That directory's
 `Makefile.in` globs `*.m2`, so dropping the file in is enough, and the existing convention is:
@@ -352,17 +355,17 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 228 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 241 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 99 | 43% |
-| `open` | 65 | 29% |
-| `obsolete` | 30 | 13% |
-| `duplicate` | 21 | 9% |
-| `wontfix` | 13 | 6% |
+| `fixed` | 105 | 44% |
+| `open` | 65 | 27% |
+| `obsolete` | 32 | 13% |
+| `duplicate` | 22 | 9% |
+| `wontfix` | 17 | 7% |
 
-So `obsolete` and `wontfix` together are 18%, not "most", and the largest single outcome by far
+So `obsolete` and `wontfix` together are 20%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
 steady: it was the same to within a point at 167 and at 195 settled, so the next bucket is
 unlikely to move it much either.
@@ -375,7 +378,7 @@ seam but a thin one.
 Two cautions on those numbers. They are not a random sample -- they are `dan/0`, `dan/0.1`,
 `dan/0.4`–`0.9`, the start of `dan/1` and a deliberate sweep for retired subsystems, and `dan/0`
 was Dan's own highest-priority bucket, which may well be where the real bugs that later got fixed
-are concentrated. And `fixed` at 43% is itself a finding about the tree rather than about the files:
+are concentrated. And `fixed` at 44% is itself a finding about the tree rather than about the files:
 it means the common case is reading a fifteen-year-old report, running it, and finding it simply
 works now.
 
@@ -833,6 +836,39 @@ flag claims a sync that no longer holds. The derived check cannot lie, and it re
 next push. `./bin/push-project --check` answers the question tersely and exits 1 when the board is
 behind.
 
+## Four ways an existence check lies to you in M2
+
+Every verdict here turns on "does this exist / does this still happen", and M2 has a small family
+of ways to answer that question wrongly. All four of these produced a wrong reading in one batch
+of thirteen files, and each looks like a clean result.
+
+**A bare symbol evaluates to itself.** `try (clearCache) else "missing"` prints `clearCache` and
+takes the success branch, whether or not anything is defined. `clearCache` is in fact an unbound
+symbol -- the only definition in the tree is a method on `BasicDivisor` in `WeilDivisors`. Test
+`class` (`Symbol` means unbound) or `# methods f`, never the bare name.
+
+**`--script` turns off `debuggingMode`.** `loadPackage` warns about shadowed symbols only when it
+is set (`packages.m2:88`), so a scripted check on `1-Package-dictionary` showed a clean load and
+read as fixed; interactively, the file's whole transcript reproduces. Anything whose symptom is a
+*warning* has to be run interactively -- pipe into `M2 --no-readline -q`.
+
+**Inspecting a precondition is not calling the function.** `Posets#"test inputs"` is empty after a
+plain `loadPackage`, which reads as `check` still being unable to find tests. But `check` loads the
+documentation itself: call `check(0, "Posets")` and it reports `-- warning: reloading Posets`, runs
+the test, and all 36 become visible. The ask was about what `check` does, so `check` had to be the
+thing invoked.
+
+**Your variable name may be taken.** `ch = chi L` fails with *assignment to protected global
+variable* because `Schubert2` exports `ch`; the same happened with `dd` (`Complexes`) and `c` (used
+as a ring variable two lines earlier). The error is clear, but it aborts the script before the test
+runs, so a batch of checks can come back empty for a reason unrelated to any of them. Prefix scratch
+names.
+
+The shape they share: each yields output that is consistent with the hypothesis you are testing, so
+nothing in the result signals that the test was invalid. Prefer a check whose failure mode is
+visibly different from its success -- `class`, a count, an actual call -- over one that returns
+something either way.
+
 ## The wishlist files are parked, on purpose
 
 Seven files open with "Place bugs that you find in here" -- `0-bugs-ataylor.m2`,
@@ -851,15 +887,41 @@ When that pass happens, note that the `issue` column already takes several refer
 `bugs/mike/git-issue-568-569.m2` carries `#568 #569` -- so a row can be settled by filing one
 issue per live ask and recording them all.
 
+### Do not park a row just because it resists a verdict
+
+There was nearly a second class here. Three single-ask files from `dan/1` looked filable but had no
+state in which anyone could say they were done, so all three were written up `open` with blank
+`disposition` and a note explaining why they could not be filed.
+
+**All three dissolved when the maintainer looked at them, and none dissolved the way the note
+predicted** -- which is why the class does not exist and this section is a warning instead.
+
+- `1-caching-idea` was parked as an undecided two-design thread. But its opening sentence --
+  "our description of how to remove a cached GB is no longer correct" -- is a live documentation
+  defect, still in `ov_groebner_bases.m2:439`, and filable on its own. Filed with both halves as
+  #4558.
+- `1-configure-library-versions` was parked because "recent" has no definition. It is `fixed`:
+  where a version matters, configure checks the version *or the feature that version brought*, and
+  the second is the normal case -- 107 feature-test invocations against 2 version gates. Counting
+  version comparisons was the wrong measurement; a low count is what a good configure script looks
+  like.
+- `1-cookies` was parked over its unreadable second clause. It is `wontfix`: `getWWW` already
+  shells out to `openssl` for TLS, `ReflexivePolytopesDB` offers `Access => "curl"` as a documented
+  escape hatch, and no consumer wants a cookie.
+
+So the lesson is not "park the ambiguous ones". It is that a row which resists a verdict usually
+has a specific reason, and naming the reason -- undecided design, wrong measurement, non-goal --
+settles it. Reach for blank `disposition` after that fails, not instead of it.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-228 are settled and **629 are left**:
+241 are settled and **616 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 276 |
+| `dan`, priority `1` | 263 |
 | `mike` | 207 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
