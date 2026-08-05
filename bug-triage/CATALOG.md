@@ -8,16 +8,16 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**146 of 857 triaged (17.0%)**
+**153 of 857 triaged (17.9%)**
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 46 | `##..........................` |
-| `duplicate` -- Already tracked by an open issue | 18 | `#...........................` |
-| `fixed` -- Fixed | 66 | `##..........................` |
+| `open` -- Still broken | 48 | `##..........................` |
+| `duplicate` -- Already tracked by an open issue | 19 | `#...........................` |
+| `fixed` -- Fixed | 69 | `##..........................` |
 | `wontfix` -- Won't fix | 5 | `............................` |
-| `obsolete` -- Obsolete | 11 | `............................` |
-| `todo` -- Not yet triaged | 711 | `#######################.....` |
+| `obsolete` -- Obsolete | 12 | `............................` |
+| `todo` -- Not yet triaged | 704 | `#######################.....` |
 
 ### Reproducer runs
 
@@ -35,14 +35,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 123 |
+| `bugs/dan` | 582 | 130 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (46)
+## Still broken -- `open` (48)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -92,8 +92,10 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-utf-8-in-doc-filenames` | [#4531](https://github.com/Macaulay2/M2/issues/4531) | &nbsp; | issue | still generated: toFilename maps ASCII specials through the tt table but passes multi-byte UTF-8 unchanged, and the installed docs hold 9 such names including the exact ___Gröbner_spbases.html this file names; #47 covered it but closed in 2014 on the broken links, not on the ask; #211 is a second closed symptom of the same cause, the file appearing under two utf-8 normalizations (303 266 vs 314 210), closed on 'just remember how I do it and check that one file' |
 | 0 | `bugs/dan/0-vector-empty-list` | [#4524](https://github.com/Macaulay2/M2/issues/4524) | &nbsp; | issue | still no empty vector, and the message got worse: vector {} now dies in vector Matrix with "expected source to be free with rank 1" (modules.m2:70), and vector(R,{}) and vector(R^0,{}) fail the same way |
 | 0 | `bugs/dan/0-when` | [#4525](https://github.com/Macaulay2/M2/issues/4525) | &nbsp; | issue | scc1 still miscompiles it: with every case covered, the else body is emitted inside the switch with no case label (chk.c:783-794 labels only uncovered types), so it is unreachable dead code and nothing diagnoses it |
+| 0.1 | `bugs/dan/0.1-doc-remainder-links` | [#4539](https://github.com/Macaulay2/M2/issues/4539) | &nbsp; | issue | still unlinked: help "methods for normal forms and remainder" lists %, Gröbner bases, generators and Matrix % GroebnerBasis under See also, and nothing for //. There is no node actually titled 'methods for getting the coefficients', so the ask reads as a link to the // operator, which is where the quotient half lives |
+| 0.1 | `bugs/dan/0.1-random-ring-elements` | [#4540](https://github.com/Macaulay2/M2/issues/4540) | &nbsp; | issue | not added: lookup(random, Sequence, Ring) is null, and random((4:1,3:2),R) errors. The file supplies the implementation it wants -- random(Sequence,Ring) := o -> (degs,R) -> for d in deepSplice degs list random(d,R) -- which is also what makes the mixed form random((4:{1},3:2),R) work, since deepSplice flattens the degree lists. No duplicate: #877 and #4161 both concern the one-argument random(List), where #4161 wants it to mean a random element with shuffle(List) taking over the permuting. Worth cross-referencing there, since this would add a two-argument form alongside it |
 
-## Already tracked by an open issue -- `duplicate` (18)
+## Already tracked by an open issue -- `duplicate` (19)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -111,12 +113,13 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-tensor-rings-2` | [#2905](https://github.com/Macaulay2/M2/issues/2905) | &nbsp; | drop | third instance of #2905, and the one that shows it in the wild: tensor(RB, RA, Join => false) on flattened quotient rings over frac(QQ[t]) still dies at monoids.m2:655 with 'expected degree map to return a list of length at most 2'. Here both arguments have degreeLength 2, so it is not a rank mismatch like #2905's own example -- the DegreeMap itself returns too much, which is what 0-monoid-design-problem says goes wrong when a map declared on one monoid is applied to another. The three files interlock: symptom, cause, and a real failure |
 | 0 | `bugs/dan/0-ulimit` | [#519](https://github.com/Macaulay2/M2/issues/519) | &nbsp; | drop | #519 asks for the same thing and names the same two places; closed in 2024 on argumentMode = defaultMode - SetUlimit, and the Makefile values are ?= overridable, though neither half comes from configure |
 | 0 | `bugs/dan/0-value-symbol` | [#4520](https://github.com/Macaulay2/M2/issues/4520) | &nbsp; | drop | same defect as #4520 reached through value rather than parse: the quote keywords eat the implicit EOF token, so value "symbol" hands back that token as a Keyword; also value "local" and value "global" |
+| 0.1 | `bugs/dan/0.1-ulimits` | [#519](https://github.com/Macaulay2/M2/issues/519) | &nbsp; | drop | the same ask as 0-ulimit and 0-settable-memory-limits, and #519 names the same hardcoded line: it has moved from m2/html.m2 to m2/run.m2:13, still 'utest -t ... \| utest -m ...' with the values written in. #519 closed in 2024 on argumentMode = defaultMode - SetUlimit, which turns them off but does not make them settable from configure, make or installPackage as this file asks |
 | &nbsp; | `bugs/anton/MISC/standardPairs.m2` | [#114](https://github.com/Macaulay2/M2/issues/114) | &nbsp; | drop | still reproduces: same non-disjoint cones the issue shows, 1 in three sets; #4492 is a draft converted in error, closed |
 | &nbsp; | `bugs/mike/git-issue-568-569.m2` | [#568](https://github.com/Macaulay2/M2/issues/568) [#569](https://github.com/Macaulay2/M2/issues/569) | &nbsp; | drop | both issues are still open |
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (66)
+## Fixed -- `fixed` (69)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -165,6 +168,9 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-thread-safe-mutable-hash-tables` | &nbsp; | [#3186](https://github.com/Macaulay2/M2/issues/3186) | drop | the question is answered and implemented: reads do take a lock -- lookup1, the x#key path, calls lockRead(object.mutex) when the table is mutable (hashtables.dd:357), writes call lockWrite, per #3186 |
 | 0 | `bugs/dan/0-toString-Vector` | &nbsp; | [#855](https://github.com/Macaulay2/M2/issues/855) | drop | toString M_1 returns "vector {2, 34}"; the #855 diff is the fix -- toString Vector applied super to the Vector itself, and now goes through expression Vector, which applies it to v#0, the underlying matrix |
 | 0 | `bugs/dan/0-ubuntu32-inverse-matrix-RR` | &nbsp; | &nbsp; | drop | verified no longer crashing on Debian i386, and the fix is not attributed: the pre-2013 generic path, quotientRemainder(id_(target U), U), was run on i386 too and returns the same answer without crashing, which rules out e4d1989dea/665dab7cbe (the move to the engine's LAPACK LU for inexact fields) as the cause; either the fix is elsewhere or the 2009 crash was flaky |
+| 0.1 | `bugs/dan/0.1-SmithNormalForm` | &nbsp; | [#3710](https://github.com/Macaulay2/M2/issues/3710) | drop | done by #3710, and enforced in code rather than merely documented: matrix2.m2:27 runs preSmithNormalForm and then loops on positions where D_(j+1,j+1) % D_(j,j) != 0, so the divisibility chain is guaranteed. Verified on cases that would expose a fake -- diag(2,3) comes back diag(1,6), diag(6,10,15) comes back diag(1,30,30). The second ask, speeding up the minors, is unverified; the implementation is no longer minor-driven |
+| 0.1 | `bugs/dan/0.1-doc-symbols` | &nbsp; | &nbsp; | drop | not reproducible and not attributable. Doug writes unexported methods on exported classes routinely and has never hit this; a package doing exactly that installs clean under CheckDocumentation => true, and installPackage does error on documentation errors (installPackage.m2:633), so it is not passing silently. No fix commit: the gate that would exclude an unexported method function -- isDocumentableThing Symbol requiring isGlobalSymbol and getGlobalSymbol ... === key -- has been in place since 588bbdf34d in 2004, five years before this file, so whatever Dan hit came from elsewhere and there is nothing to point at |
+| 0.1 | `bugs/dan/0.1-scc1-typecodes` | &nbsp; | [#1912](https://github.com/Macaulay2/M2/issues/1912) | drop | 16d9b213ff answered it the way the file hoped -- 'perhaps we can fix typecodes so types don't need to have names'. chk.c:316 now gives an unnamed type an autogenerated name, _N_unnamed, with a warning, instead of tripping over it, and the assert Dan wanted uncommented is live again at chk.c:324 |
 | 1 | `bugs/dan/1-decompose` | &nbsp; | &nbsp; | drop | decompose no longer overflows the stack in factory on this input |
 | 1 | `bugs/dan/1-singularLocus` | &nbsp; | &nbsp; | drop | singularLocus(ZZ[x,y]/(11,x)) no longer returns the spurious (11,x,1) |
 | &nbsp; | `bugs/anton/LINEAR-ALGEBRA/RESOLVED/gCorners.m2` | &nbsp; | [#1651](https://github.com/Macaulay2/M2/issues/1651) | &nbsp; | author filed it under RESOLVED/; fix points at that filing, not necessarily the code change |
@@ -197,7 +203,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-package-doc` | [#4514](https://github.com/Macaulay2/M2/issues/4514) | &nbsp; | drop | closed as wontfix in #4514: a link to the table of contents is already there, and the export list is considered useful |
 | 0 | `bugs/dan/0-utf8-and-column-number` | [#4535](https://github.com/Macaulay2/M2/issues/4535) | &nbsp; | drop | closed as wontfix in #4535: byte columns are the convention, not an oversight, and Macaulay2Web relies on locations being bytes, so changing it would be a breaking change across repositories. The tab-stop argument -- that getc(o:PosFile) at d/stdiop.d:198 already advances to the next multiple of 8, so the counter is a display column -- did not carry, because the objection was never that strings are bytes but that downstream consumers index by bytes. Worth recording that grepping the M2 tree for consumers found none; they live in M2-emacs and Macaulay2Web |
 
-## Obsolete -- `obsolete` (11)
+## Obsolete -- `obsolete` (12)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -209,11 +215,12 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0 | `bugs/dan/0-ports` | &nbsp; | &nbsp; | drop | a 2009 release-engineering checklist whose every entry is long EOL: Mac OS 10.4 and 10.5 including PowerPC, cygwin 1.5, ubuntu 8.10, debian 4.0, Fedora 10, Scientific Linux 5.2, freebsd 7.1. PowerPC appears nowhere in configure.ac or CI; the distributions built now are deb, rpm, dmg, freebsd and tar |
 | 0 | `bugs/dan/0-resolution-premature-display` | &nbsp; | &nbsp; | drop | cannot be staged any more: inThread is gone from the tree, it came from Bill's experimental threading branches and the API is schedule now, and there is no M.cache.res to catch mid-computation -- the cache holds ResolutionObject and Resolution, and res returns a Complex. The final betti still matches the transcript |
 | 0 | `bugs/dan/0-slowness` | &nbsp; | &nbsp; | drop | the premise no longer bites: Attributes holds 2679 entries, well past the 1600 complained of, and getAttributes ReverseDictionary scans them in 2.3 ms; its one caller is allValues, behind the interactive showStructure |
+| 0.1 | `bugs/dan/0.1-readline-configure` | &nbsp; | &nbsp; | drop | a 2009 Mac toolchain: gcc 4.0.1 build 5493 targeting i686-apple-darwin9, which is Mac OS 10.5, failing on '-compatibility_version only allowed with -dynamiclib' while linking libreadline.6.0.dylib. M2 can still build readline from source, but nothing about that compiler or that OS survives |
 | 1 | `bugs/dan/1-benchmarks` | &nbsp; | &nbsp; | drop | a 2008 SVN patch adding benchmark timings from gcc 4.0/4.1 machines |
 | 1 | `bugs/dan/1-carbon-emacs` | &nbsp; | &nbsp; | drop | Carbon Emacs is long dead; this was about borrowing its icon for .dmg files |
 | 1 | `bugs/dan/1-clustrmaps` | &nbsp; | &nbsp; | drop | a 2008 note about adding a clustrmaps.com widget to the web site |
 
-## Not yet triaged -- `todo` (711)
+## Not yet triaged -- `todo` (704)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
@@ -271,13 +278,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 00 | `bugs/mike/00-kahle-isPrime.m2` | repro | pass-partial | &nbsp; |
 | 00 | `bugs/mike/00-rawCharSeries.m2` | repro | timeout | [#1443](https://github.com/Macaulay2/M2/issues/1443) crash in factory |
 | 00 | `bugs/mike/00-res-crash.m2` | repro | timeout | &nbsp; |
-| 0.1 | `bugs/dan/0.1-SmithNormalForm` | note | n/a | &nbsp; |
-| 0.1 | `bugs/dan/0.1-doc-remainder-links` | note | n/a | &nbsp; |
-| 0.1 | `bugs/dan/0.1-doc-symbols` | note | n/a | &nbsp; |
-| 0.1 | `bugs/dan/0.1-random-ring-elements` | note | n/a | &nbsp; |
-| 0.1 | `bugs/dan/0.1-readline-configure` | note | n/a | &nbsp; |
-| 0.1 | `bugs/dan/0.1-scc1-typecodes` | note | n/a | &nbsp; |
-| 0.1 | `bugs/dan/0.1-ulimits` | note | n/a | &nbsp; |
 | 0.4 | `bugs/dan/0.4-method-options` | note | n/a | &nbsp; |
 | 0.5 | `bugs/dan/0.5-Benchmark-package` | note | n/a | &nbsp; |
 | 0.5 | `bugs/dan/0.5-SafeC-bugs` | note | n/a | &nbsp; |
