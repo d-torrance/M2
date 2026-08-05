@@ -24,8 +24,16 @@ draft is converted.
 
 Every issue filed here gets the "bugs directory" label, so the cohort stays
 findable in issue search once the drafts are gone -- that is the one view the
-project board cannot provide.  The label is resolved before anything is created,
-so a missing label stops the run rather than leaving a batch to fix up by hand.
+project board cannot provide.  It also gets whatever labels the row's third
+column in issue-titles.tsv names, which is how a bug reaches the people who work
+on that part of M2: "bugs directory" says where it came from, "Engine" or
+"Documentation" says who should read it.  Both are resolved before anything is
+created, so a missing or misspelled label stops the run rather than leaving a
+batch to fix up by hand.
+
+This is the only place labels are set.  Nothing here edits the labels on an issue
+that already exists -- revising the TSV changes what the next filing gets, and a
+filed issue is relabelled by hand in the GitHub UI.
 
     ./bin/file-issues            # show what would be filed
     ./bin/file-issues --apply    # actually file
@@ -41,22 +49,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import catalog
 import project
-
-TITLES = os.path.join(project.__file__.rsplit("/bin/", 1)[0], "issue-titles.tsv")
-
-
-def read_titles():
-    if not os.path.exists(TITLES):
-        return {}
-    out = {}
-    with open(TITLES, encoding="utf-8") as f:
-        f.readline()
-        for line in f:
-            if line.strip():
-                path, _, title = line.rstrip("\n").partition("\t")
-                out[path] = title
-    return out
-
 
 SET_TITLE = """
 mutation($draft:ID!, $title:String!) {
@@ -74,9 +66,9 @@ mutation($item:ID!, $repo:ID!) {
 }
 """
 
-ADD_LABEL = """
-mutation($issue:ID!, $label:ID!) {
-  addLabelsToLabelable(input:{labelableId:$issue, labelIds:[$label]}) {
+ADD_LABELS = """
+mutation($issue:ID!, $labels:[ID!]!) {
+  addLabelsToLabelable(input:{labelableId:$issue, labelIds:$labels}) {
     labelable { ... on Issue { number } }
   }
 }
@@ -91,7 +83,7 @@ def main():
     args = p.parse_args()
 
     rows = catalog.require(catalog.read())
-    titles = read_titles()
+    titles = catalog.read_titles()
 
     wanted = [r for r in rows if r["verdict"] == "open"
               and r["disposition"] == "issue" and not r["issue"]]
@@ -103,7 +95,9 @@ def main():
     plan, blocked = [], []
     for r in wanted:
         item = items.get(r["path"])
-        title = titles.get(r["path"])
+        entry = titles.get(r["path"])
+        title = entry["title"] if entry else ""
+        labels = [project.LABEL] + (entry["labels"] if entry else [])
         if item is None:
             blocked.append((r["path"], "no board item -- archived, or already converted"))
         elif item["type"] != "DRAFT_ISSUE":
@@ -120,17 +114,23 @@ def main():
             # and none of the reasoning that justified filing it.
             blocked.append((r["path"], "no triage block -- run ./bin/push-project --apply first"))
         else:
-            plan.append((r, item, title))
+            plan.append((r, item, title, labels))
+
+    # Before anything is created, not after: an unknown label name should stop
+    # the run rather than leave a batch of half-labelled issues behind.  Checked
+    # in the dry run too, so the output that gets read is the output that ran.
+    known = project.all_labels()
+    project.check_labels({r["path"]: ls for r, _, _, ls in plan}, known)
 
     print("%d rows to file, %d blocked\n" % (len(plan), len(blocked)))
     for path, why in blocked:
         print("  BLOCKED  %-50s %s" % (path, why))
     if blocked:
         print()
-    for r, item, title in plan:
+    for r, item, title, labels in plan:
         print("  %s" % r["path"])
         print("      title:  %s" % title)
-        print("      label:  %s" % project.LABEL)
+        print("      labels: %s" % ", ".join(labels))
         print("      status: %s" % project.status_of(item))
         print("      body:   %d chars, carried over unchanged"
               % len(item["content"].get("body") or ""))
@@ -143,15 +143,13 @@ def main():
         return
 
     repo = project.repo_id()
-    # Resolved before anything is created: a missing label should stop the run,
-    # not leave a batch of unlabelled issues to fix up by hand.
-    label = project.label_id()
     filed = {}
-    for i, (r, item, title) in enumerate(plan, 1):
+    for i, (r, item, title, labels) in enumerate(plan, 1):
         project.gh(SET_TITLE, draft=item["content"]["id"], title=title)
         data = project.gh(CONVERT, item=item["id"], repo=repo)
         issue = data["data"]["convertProjectV2DraftIssueItemToIssue"]["item"]["content"]
-        project.gh(ADD_LABEL, issue=issue["id"], label=label)
+        project.gh(ADD_LABELS, issue=issue["id"],
+                   labels=[known[n] for n in labels])
         filed[r["path"]] = "#%d" % issue["number"]
         print("[%d/%d] %s -> %s" % (i, len(plan), r["path"], issue["url"]))
 

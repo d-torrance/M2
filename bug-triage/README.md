@@ -514,6 +514,66 @@ a title in `issue-titles.tsv`. That last requirement is not bureaucracy: draft t
 paths, and converting without renaming is how #4492 landed in the tracker titled
 `anton/MISC/standardPairs.m2`. The title is set on the draft first, then the draft is converted.
 
+## Topic labels: where it came from, and who should read it
+
+`bugs directory` answers the first question and nothing else. The cohort is forty-odd issues among
+eight hundred open ones, so a bug about the engine that carries only that label is invisible to
+someone filtering the tracker for engine work -- which is precisely the audience #36 wanted these
+in front of when it asked for them to be filed rather than left as drafts.
+
+So `issue-titles.tsv` carries a third column, comma-separated, holding the repository's own labels
+for a row: `Engine, threads`, `Documentation, feature request`. `bin/file-issues` applies them
+along with `bugs directory` as it converts, so a row's labels are chosen at the same time as its
+title and go on with it.
+
+Choosing them is a judgment, but a cheap one, and it is worth making from the `note` rather than
+the title. Two rules hold it in place, both enforced rather than merely written down:
+
+- **The name must exist in the repository.** Checked in the dry run as well as under `--apply`,
+  before anything is created, so a typo stops the run instead of leaving half the batch labelled.
+- **No pull-request label on an issue.** `dependencies`, `javascript`, `new package`,
+  `waiting for review by package author(s)` and the rest of `project.PR_ONLY` describe a PR or
+  someone's review queue. None of them says what a bug is about, and putting
+  `waiting for review` on a fifteen-year-old bug report is a claim about work nobody is doing.
+
+Match the tracker's own habits for the subsystem labels rather than importing a taxonomy: `build
+issue`, `Documentation`, `Engine`, `Interpreter`, `threads` and `Core` account for most of what is
+in use, and one of them usually says all there is to say about where a file belongs.
+
+**`bug` and `feature request` are the pair worth getting right, and they are exclusive.** The
+`bugs/` tree was never only bugs -- it was Dan's notebook, and the files in it divide along a line
+that matters to anyone picking work off the tracker:
+
+- **`bug`** -- M2 does the wrong thing. It returns an answer that is wrong (`symmetricPower` of a
+  matrix ignoring relations), contradicts its own documentation (`break` resuming the file load it
+  was supposed to leave), silently accepts something that does nothing (a method installed on a
+  plain function closure), or reports an error that misdescribes what happened.
+- **`feature request`** -- M2 does not do the thing yet. No `(isSurjective, RingMap)` method, no
+  top-level interface to the engine's tower rings, no way to register a Gröbner strategy.
+
+`project.EXCLUSIVE` rejects a row claiming both, because an issue carrying both has had that
+judgment dodged rather than made. Plenty of rows are honestly *neither* -- a rename proposal, a
+documentation gap, "generate these Makefile dependencies instead of maintaining them by hand" --
+and those take a subsystem label alone. Of the first 38 filed, 17 came out `bug`, 11
+`feature request`, 10 neither.
+
+### Relabelling after the fact is by hand
+
+Nothing here edits the labels on an issue that already exists. Labels go on at conversion and stay
+whatever a maintainer makes them; revising the TSV afterwards changes what the *next* filing gets
+and nothing else. If you change your mind about a filed issue, change it in the GitHub UI and in
+`issue-titles.tsv`, both, or the two will quietly disagree.
+
+That is a deliberate asymmetry with `push-project`, which does edit filed issues -- the triage
+block is this catalog's own text and has to stay in step with the verdict, whereas a label is a
+shared surface that maintainers, not just this tooling, write to.
+
+The forty-three issues filed before the labels column existed were backfilled in one pass on
+2026-08-05. Five of them were skipped and still carry only `bugs directory`: #4501, #4514, #4528,
+#4529 and #4535, all closed. Their catalog rows are settled, and two of them are duplicates whose
+`issue` column was repointed at the older issue -- `0-sort-doc` now reads #101, open since 2014
+and belonging to someone else, which is not a row to label from.
+
 **The order is push, then file.** Conversion copies the body verbatim, so a draft that has not
 been pushed becomes an issue holding the bare bug file with none of the reasoning behind it --
 which is exactly the useful part. `bin/file-issues` refuses to convert a draft with no triage
@@ -523,7 +583,7 @@ block rather than trusting anyone to remember. The full cycle:
 $EDITOR catalog.tsv                # record verdicts
 bin/render --suggestions           # refresh CATALOG.md
 bin/push-project --apply           # blocks onto the drafts; open rows go to Ready
-$EDITOR issue-titles.tsv           # name the ones to be filed
+$EDITOR issue-titles.tsv           # name and label the ones to be filed
 bin/file-issues --apply            # convert; issue numbers land back in catalog.tsv
 bin/push-project --apply           # those rows now go to In progress
 ```

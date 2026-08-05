@@ -33,6 +33,12 @@ FILES = os.path.join(ROOT, "files")
 CACHE = os.path.join(ROOT, "cache")
 TSV = os.path.join(ROOT, "catalog.tsv")
 
+# What a filed issue needs that a verdict does not: a readable title, and the
+# labels that put it in front of whoever works on that part of M2.  Kept out of
+# catalog.tsv because they apply to the handful of rows that become issues, not
+# to all 857.
+TITLES = os.path.join(ROOT, "issue-titles.tsv")
+
 # Priority prefix on the filename, e.g. "0-decompose.m2" or "0.5-debian-script".
 PRIO_RE = re.compile(r"^([0-9]+(?:\.[0-9]+)?)-")
 
@@ -89,6 +95,30 @@ def write(rows, path=TSV):
                 values.append(v)
             f.write("\t".join(values) + "\n")
     os.replace(tmp, path)
+
+
+def read_titles(path=TITLES):
+    """path -> {"title": str, "labels": [str]} from issue-titles.tsv.
+
+    The labels column is comma-separated and may be absent or empty; no label
+    name in Macaulay2/M2 contains a comma.  Names are not validated here -- that
+    needs the repository, so it happens in project.check_labels.
+    """
+    if not os.path.exists(path):
+        return {}
+    out = {}
+    with open(path, encoding="utf-8") as f:
+        f.readline()
+        for line in f:
+            if not line.strip():
+                continue
+            values = line.rstrip("\n").split("\t")
+            values += [""] * (3 - len(values))
+            out[values[0]] = {
+                "title": values[1],
+                "labels": [x.strip() for x in values[2].split(",") if x.strip()],
+            }
+    return out
 
 
 def by_path(rows):

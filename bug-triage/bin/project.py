@@ -31,7 +31,14 @@ BLOCK_RE = re.compile(re.escape(BEGIN) + ".*?" + re.escape(END), re.S)
 def gh(query, **variables):
     cmd = ["gh", "api", "graphql", "-f", "query=" + query]
     for k, v in variables.items():
-        cmd += ["-F" if isinstance(v, int) else "-f", "%s=%s" % (k, v)]
+        if isinstance(v, (list, tuple)):
+            # gh spells a list variable as repeated key[]=value.  An empty list
+            # cannot be spelled at all, so callers must not send one.
+            if not v:
+                raise ValueError("empty list for GraphQL variable %r" % k)
+            cmd += sum((["-f", "%s[]=%s" % (k, x)] for x in v), [])
+        else:
+            cmd += ["-F" if isinstance(v, int) else "-f", "%s=%s" % (k, v)]
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.returncode != 0:
         err = p.stderr.decode("utf-8", "replace")
@@ -91,15 +98,45 @@ REPO_ID_QUERY = """
 query($owner:String!, $name:String!) { repository(owner:$owner, name:$name) { id } }
 """
 
-LABEL_QUERY = """
-query($owner:String!, $name:String!, $label:String!) {
-  repository(owner:$owner, name:$name) { label(name:$label) { id name } }
+LABELS_QUERY = """
+query($owner:String!, $name:String!, $cursor:String) {
+  repository(owner:$owner, name:$name) {
+    labels(first:100, after:$cursor) {
+      pageInfo { hasNextPage endCursor }
+      nodes { id name description }
+    }
+  }
 }
 """
 
 # Applied to every issue filed from a bug file, so the whole cohort stays
 # findable in issue search once the drafts are gone.
 LABEL = "bugs directory"
+
+# Labels that classify a *pull request*, not an issue.  Nothing here describes
+# what a bug is about, and several of them are workflow state that belongs to
+# whoever is reviewing -- putting "waiting for review by package author(s)" on a
+# fifteen-year-old bug report would be a claim about someone else's queue.
+# Validated against, rather than merely documented, because the labels column is
+# hand-written and a plausible-looking name is easy to reach for.
+PR_ONLY = {
+    "contributions welcome",
+    "dependencies",
+    "javascript",
+    "JSAG",
+    "new package",
+    "update to existing package(s)",
+    "waiting for another PR",
+    "waiting for review",
+    "waiting for review by package author(s)",
+}
+
+# Label sets where at most one member may land on a single issue.  "bug" and
+# "feature request" divide these files along the line that actually matters --
+# M2 does the wrong thing, versus M2 does not do the thing yet -- and an issue
+# carrying both has had that judgment dodged rather than made.  Several rows
+# genuinely are neither, so this is not a requirement that one be present.
+EXCLUSIVE = [{"bug", "feature request"}]
 
 REPO_URL = "https://github.com/%s/%s" % (ORG, REPO)
 
@@ -136,19 +173,50 @@ def repo_id():
     return gh(REPO_ID_QUERY, owner=ORG, name=REPO)["data"]["repository"]["id"]
 
 
-def label_id(name=LABEL):
-    """Node id of a repository label, or SystemExit if it does not exist.
+def all_labels():
+    """name -> node id for every label in the repository."""
+    out, cursor = {}, None
+    while True:
+        if cursor is None:
+            data = gh(LABELS_QUERY.replace(", $cursor:String", "")
+                      .replace(", after:$cursor", ""), owner=ORG, name=REPO)
+        else:
+            data = gh(LABELS_QUERY, owner=ORG, name=REPO, cursor=cursor)
+        page = data["data"]["repository"]["labels"]
+        out.update((n["name"], n["id"]) for n in page["nodes"])
+        if not page["pageInfo"]["hasNextPage"]:
+            return out
+        cursor = page["pageInfo"]["endCursor"]
 
-    Failing here is better than filing a batch of unlabelled issues and having to
-    go back over them by hand.
+
+def check_labels(wanted, known):
+    """Validate the labels chosen for each row.  wanted maps key -> [name].
+
+    Rejects a name that does not exist, one that only belongs on a pull request,
+    and a row that claims two labels which cannot both be true.  All of it runs
+    before anything is created or edited: a typo should stop the run, not leave a
+    batch of half-labelled issues to go back over by hand.  GitHub errors on an
+    unknown name rather than creating it, but by then the run is part-applied.
     """
-    label = gh(LABEL_QUERY, owner=ORG, name=REPO,
-               label=name)["data"]["repository"]["label"]
-    if label is None:
+    names = {n for ls in wanted.values() for n in ls}
+    unknown = sorted(n for n in names if n not in known)
+    if unknown:
         raise SystemExit(
-            "%s/%s has no label named %r -- create it first, or the issues this "
-            "files will not be findable as a group." % (ORG, REPO, name))
-    return label["id"]
+            "no such label in %s/%s: %s\n\nExisting labels:\n  %s"
+            % (ORG, REPO, ", ".join(repr(n) for n in unknown),
+               "\n  ".join(sorted(known))))
+    wrong = sorted(n for n in names if n in PR_ONLY)
+    if wrong:
+        raise SystemExit(
+            "these label(s) belong on a pull request, not on an issue: %s"
+            % ", ".join(repr(n) for n in wrong))
+    for group in EXCLUSIVE:
+        both = sorted(k for k, ls in wanted.items() if len(group & set(ls)) > 1)
+        if both:
+            raise SystemExit(
+                "at most one of %s may go on an issue; these rows claim more "
+                "than one:\n  %s"
+                % (", ".join(repr(n) for n in sorted(group)), "\n  ".join(both)))
 
 
 # The triage block bin/push-project writes names the file it came from.  That
