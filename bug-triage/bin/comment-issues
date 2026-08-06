@@ -62,6 +62,15 @@ def comment_file(path):
     return os.path.join(COMMENTS, path + ".md")
 
 
+def comment_paths():
+    """Every bug path someone has written a comment for, from the files on disk."""
+    for dirpath, _, filenames in os.walk(COMMENTS):
+        for name in filenames:
+            if name.endswith(".md"):
+                yield os.path.relpath(
+                    os.path.join(dirpath, name), COMMENTS)[:-len(".md")]
+
+
 def body_for(path):
     """The comment to post, or None if nobody has written one."""
     filename = comment_file(path)
@@ -136,6 +145,28 @@ def main():
 
     print("\n%d comments to post or update, %d duplicate rows have no comment "
           "file\n" % (len(plan), len(skipped)))
+
+    # The reverse check, which costs nothing and catches a comment written into a
+    # void.  Only a duplicate row naming an issue reaches the loop above, so a
+    # comment file beside any other row is skipped in silence -- there is no
+    # "0 comments" line that distinguishes "nothing to say" from "something to say
+    # and no way to say it".  1-flattenRing hit this: an open row whose comment
+    # belonged on someone else's issue (#3887), written, ignored, and only noticed
+    # because the queue came back empty when it should not have.
+    postable = {r["path"] for r in rows
+                if r["verdict"] == "duplicate" and r["issue"]}
+    orphans = sorted(p for p in comment_paths() if p not in postable)
+    # This does not check whether the comment was posted by hand afterwards, so an
+    # orphan stays listed once it has been dealt with.  Verifying would mean an API
+    # call per orphan to look for the marker, and a standing reminder is the safer
+    # failure: it over-reports, where saying nothing under-reported.
+    if orphans:
+        print("%d comment file(s) that nothing here will post -- the row is not a "
+              "duplicate naming an issue.\nPost by hand (and this line will keep "
+              "saying so), or fix the row:" % len(orphans))
+        for path in orphans:
+            print("  %s" % path)
+        print()
 
     for path, issue, existing, body in plan:
         print("=" * 72)
