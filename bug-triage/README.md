@@ -1336,15 +1336,62 @@ proposes a specific change is often accompanied by a commit that made it and, so
 that took it back -- and a revert plus a source comment is a stronger verdict than any
 measurement, because it records a decision rather than a state.
 
+## Grep the note column for your own path before you read the file
+
+The duplicate check above searches the notes for a *subsystem*. Run it for the row's **own path**
+too, because an earlier batch may have already settled it in passing.
+
+`1-info-dir` and `1-info-doc` were filed and pointed at
+[#4554](https://github.com/Macaulay2/M2/issues/4554) and
+[#4587](https://github.com/Macaulay2/M2/issues/4587) with their still-`todo` siblings named in the
+notes. So this now answers `2-info-dir` before anyone opens it:
+
+```sh
+awk -F'\t' -v p=2-info-dir 'NR>1 && index(tolower($11), p) {print $1, $7, $8}' catalog.tsv
+```
+
+Four notes currently name a `todo` sibling this way, and the pointer only lives in the *settled*
+row -- a `todo` row's `note` is empty by convention, and filling one in would be a half-written
+verdict that the next reader has to distrust. Which means the forward pointer is there but does
+not come to you; you have to ask for it.
+
+The reason this pays in a bucket taken alphabetically is that adjacent filenames are adjacent asks.
+Four rows in one batch (`1-info`, `1-info-dir`, `1-info-doc`, `1-info-files`) were four different
+questions about info files, one already tracked, one worth filing, one met by dpkg, one deferred by
+its own first line -- and the row that would have produced a duplicate issue was a duplicate of an
+issue **this catalog filed itself**. The tracker search finds #4554; what tells you to trust the
+match is the sibling's note, stating the ask in the same words.
+
+## When a defect survived implausibly long, look for the check that was switched off
+
+`Macaulay2Doc.info`'s Top node has had no menu for as long as the manual has been generated, at the
+one place every info reader starts. That is not obscure, so "how did nobody notice" is a real
+question, and the answer was two lines of makefile:
+
+```make
+# the Info-validate function doesn't work well enough to be useful:
+#	check::check-info
+```
+
+`packages/Makefile.in:121-122`, commented out by `f766cd4dfa8` on 2009-01-06 -- and `Info-validate`
+is precisely the tool that reports nodes reachable only by cross-reference. Seventeen years of
+nobody noticing, explained.
+
+Worth the grep for its own sake, because a disabled check is better material than the defect. It
+dates the regression window, it names a closing condition the issue can ask for, and it is a
+decision someone made and wrote down, which carries more weight in an issue body than a symptom
+does. Look for commented-out targets, `if false`, skipped tests and `|| true` in the subsystem the
+row touches.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-327 are settled and **530 are left**:
+339 are settled and **518 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 178 |
+| `dan`, priority `1` | 166 |
 | `mike` | 206 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
@@ -1354,8 +1401,8 @@ Take one author at a time. Their file conventions differ -- Dan's are prose note
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
 number down -- and switching between them means relearning the format every few rows.
 
-The mix of kinds differs too, and it decides how a bucket feels. **263 of Dan's 279 remaining are
-prose notes, against only 16 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
+The mix of kinds differs too, and it decides how a bucket feels. **251 of Dan's 267 remaining are
+prose notes, against only 16 reproducers**; Mike's 206 are 139 reproducers to 67 notes. So Dan's
 remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
 running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
 applying to most of it. `dan/0.4`–`0.9` was 28 notes and 0 reproducers, which is what the rest of
