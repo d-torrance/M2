@@ -110,6 +110,17 @@ widening it, check `pwd` before believing it. And an outside source that contrad
 an issue, a changelog, a filename -- is worth more than the negative, because a false empty result
 cannot contradict anything.
 
+**It happened twice more in one batch, and it is not only `git grep`.** `git log -- <path>` takes
+the same cwd-relative pathspec, so `git log --oneline -- M2/libraries/factory/Makefile.in` run from
+`files/bugs/dan/` printed nothing and exited 0 -- a file with a dozen commits reading as untouched.
+
+What exposed it is worth having, because it is available in the same command: **`git show
+<sha>:<path>` is root-relative, and `git log -- <path>` is cwd-relative.** They were in one shell
+invocation and disagreed -- `git show 33f14ffb23:M2/libraries/factory/Makefile.in` printed
+`VERSION = 4.0.0+m4` while the `git log` over the same path said the file had no history. A path
+that yields content but no commits is not a quiet file; it is the wrong cwd. Any pair of git
+commands where one is root-relative and the other is not will catch this for free.
+
 ## The ask is the mechanism; the need is what got met
 
 These files name a specific fix as often as they name a problem, and checking only whether *that
@@ -327,7 +338,7 @@ recommendations, not instructions to write the file now.
 **Fixed?** `verdict=fixed`, the commit or PR in `fix`, and `disposition=drop`.
 
 In practice that is the only answer a fixed row gets. `test` names a destination under
-`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 280 settled rows it has been
+`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 291 settled rows it has been
 used **zero times**, including on the fourteen `anton/*/RESOLVED/*.m2` reproducers where it looks
 most tempting. Promoting a reproducer is writing code in the Macaulay2 sources, which is not what
 this branch does, and recommending it per-row invites exactly that confusion -- the recommendation
@@ -355,19 +366,19 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 280 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 291 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 118 | 42% |
-| `open` | 77 | 28% |
-| `obsolete` | 33 | 12% |
-| `duplicate` | 30 | 11% |
-| `wontfix` | 22 | 8% |
+| `fixed` | 124 | 43% |
+| `open` | 79 | 27% |
+| `obsolete` | 33 | 11% |
+| `duplicate` | 30 | 10% |
+| `wontfix` | 25 | 9% |
 
 So `obsolete` and `wontfix` together are 20%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
-steady: it was the same to within a point at 167, 195 and 269 settled, so the next bucket is
+steady: it was the same to within a point at 167, 195, 269 and 280 settled, so the next bucket is
 unlikely to move it much either.
 
 Grepping the *unsettled* files says the same thing rather than merely reflecting which ones got
@@ -805,7 +816,7 @@ that matters to anyone picking work off the tracker:
 `project.EXCLUSIVE` rejects a row claiming both, because an issue carrying both has had that
 judgment dodged rather than made. Plenty of rows are honestly *neither* -- a rename proposal, a
 documentation gap, "generate these Makefile dependencies instead of maintaining them by hand" --
-and those take a subsystem label alone. Of the 66 labelled so far, 27 came out `bug`, 21
+and those take a subsystem label alone. Of the 68 labelled so far, 28 came out `bug`, 22
 `feature request`, 18 neither.
 
 ### Relabelling after the fact is by hand
@@ -1083,15 +1094,65 @@ to issue 0. A bare `#N` now needs no word character in front of it (`project.ISS
 a reference format is generated rather than typed, test it against text that merely looks like
 one** — M2 code is full of `#`.
 
+## Reproducible documentation is a constraint on how errors may be formatted
+
+`1-error-file-paths` asks for absolute paths in error messages, "because the notion of current
+directory is not prominent for" some users. It is unmet: `tostring(Position)` (`d/stdiop.d:113-122`)
+runs the filename through `minimizeFilename`, which keeps whichever of as-given, relativized or
+absolutized is *shortest*, so an absolute path handed to M2 is discarded. It reproduces, and the
+by-product is worse than either option -- with cwd an ancestor the leading slash is dropped, so from
+`/` even Core prints `usr/share/Macaulay2/Core/startup.m2`.
+
+I wrote it up `open` on the strength of an argument that turned out to be backwards. `f75c83343a`
+(2020-06-03) had made positions always relative *for reproducible builds*, and was reverted 13 days
+later; I reasoned that the reason was obsolete because `reproduciblePaths` now scrubs example
+output. It is the other way round. `reproduciblePaths` is a textual pass keyed to prefixes it knows
+(srcdir, builddir, homedir); the relativizing in `minimizeFilename` is what keeps a builder's
+absolute paths out of the error text **in the first place**. Make paths absolute and every doc page
+that shows an error carries the path of whoever built it.
+
+The general shape: **example output is published, so anything that decides what an error message
+says is a reproducibility interface**, not only a usability one. Before proposing a change to
+message formatting, ask what it does to the ~8500 `.out` files in the distribution. And when a
+revert looks like collateral damage, check whether the reverted behaviour was also load-bearing for
+the reason it was introduced -- `9de2bbbe7a` reverted the relativizing as a side effect of an
+unrelated build-directory revert, and the original reason survived the accident.
+
+## Test the workflow, do not read it
+
+`1-example-rerunning` asks that examples be rerun when the package source changes. I read
+`installPackage.m2:561` -- `inputhash := hash inputs` over the example text alone -- and wrote it up
+as unmet on that basis. The maintainer's answer was that examples *do* get rerun during development,
+which sounded like a flat contradiction and was not: editing an example changes its text, so it
+reruns. Two different cases, and prose about a hash cannot tell them apart.
+
+What settled it was three installs of a six-line throwaway package:
+
+```
+installPackage #1, zzAnswer = () -> 111   ->  hash: 1332353094583   o1 = 111
+edit source to 999, leave the doc alone   ->  hash: 1332353094583   o1 = 111   <- stale
+add "1+1" to the Example block            ->  hash: 1731836519991153110       o1 = 999, o2 = 2
+```
+
+The third line is the part reading could not have produced: the corrected `999` had been sitting
+there unpublished for a whole install cycle and surfaced only because an unrelated line was added.
+It settled `wontfix` -- `RerunExamples => true` is the supported answer and a source-keyed hash
+would invalidate every `.out` in the distribution -- but the *reason* is now a measurement rather
+than an inference.
+
+A throwaway package under `InstallPrefix => "scratch/"` costs about a minute. Any row about
+`installPackage`, `check`, example caching or documentation building deserves one before a verdict
+is written, and certainly before disagreeing with someone who runs the workflow daily.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-280 are settled and **577 are left**:
+291 are settled and **566 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 224 |
+| `dan`, priority `1` | 213 |
 | `mike` | 207 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
@@ -1101,7 +1162,7 @@ Take one author at a time. Their file conventions differ -- Dan's are prose note
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
 number down -- and switching between them means relearning the format every few rows.
 
-The mix of kinds differs too, and it decides how a bucket feels. **306 of Dan's 325 remaining are
+The mix of kinds differs too, and it decides how a bucket feels. **295 of Dan's 314 remaining are
 prose notes, against only 19 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
 remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
 running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
