@@ -338,7 +338,7 @@ recommendations, not instructions to write the file now.
 **Fixed?** `verdict=fixed`, the commit or PR in `fix`, and `disposition=drop`.
 
 In practice that is the only answer a fixed row gets. `test` names a destination under
-`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 291 settled rows it has been
+`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 303 settled rows it has been
 used **zero times**, including on the fourteen `anton/*/RESOLVED/*.m2` reproducers where it looks
 most tempting. Promoting a reproducer is writing code in the Macaulay2 sources, which is not what
 this branch does, and recommending it per-row invites exactly that confusion -- the recommendation
@@ -366,19 +366,19 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 291 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 303 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 124 | 43% |
-| `open` | 79 | 27% |
+| `fixed` | 128 | 42% |
+| `open` | 83 | 27% |
+| `duplicate` | 33 | 11% |
 | `obsolete` | 33 | 11% |
-| `duplicate` | 30 | 10% |
-| `wontfix` | 25 | 9% |
+| `wontfix` | 26 | 9% |
 
 So `obsolete` and `wontfix` together are 20%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
-steady: it was the same to within a point at 167, 195, 269 and 280 settled, so the next bucket is
+steady: it was the same to within a point at every count from 167 settled onward, so the next bucket is
 unlikely to move it much either.
 
 Grepping the *unsettled* files says the same thing rather than merely reflecting which ones got
@@ -816,7 +816,7 @@ that matters to anyone picking work off the tracker:
 `project.EXCLUSIVE` rejects a row claiming both, because an issue carrying both has had that
 judgment dodged rather than made. Plenty of rows are honestly *neither* -- a rename proposal, a
 documentation gap, "generate these Makefile dependencies instead of maintaining them by hand" --
-and those take a subsystem label alone. Of the 68 labelled so far, 28 came out `bug`, 22
+and those take a subsystem label alone. Of the 72 labelled so far, 30 came out `bug`, 24
 `feature request`, 18 neither.
 
 ### Relabelling after the fact is by hand
@@ -1162,16 +1162,79 @@ A throwaway package under `InstallPrefix => "scratch/"` costs about a minute. An
 `installPackage`, `check`, example caching or documentation building deserves one before a verdict
 is written, and certainly before disagreeing with someone who runs the workflow daily.
 
+## When a finding's owner has not been triaged yet, file for the cause
+
+Checking `1-frac-tower` (`fixed`) showed that `frac` accepts a ring that is not a domain, giving
+one where `(t^4)*(1/t)` is `0` while `t^3*(t*(1/t))` is `t^3`. Grepping `catalog.tsv` for the
+subsystem -- the [search-your-own-catalog](#search-your-own-catalog-too-not-just-the-tracker) leg --
+turned up `bugs/mike/0-frac-bug`, whose opening line is "Notice the nilpotent denominator in o5
+below" over that very ring. Still `todo`.
+
+The tempting move is to leave the finding in a note and let that row own it when Mike's bucket comes
+round. **That is the wrong direction, and the reason is specific:** the row's own transcript is
+*fixed* -- its `product l` is now `1`, not a fraction with denominator `t` -- so whoever reached it
+next would have had every reason to settle it `fixed` on the symptom and the cause would have gone
+with it.
+
+So file for the cause (#4576) and record the untriaged row as its duplicate, out of turn, saying in
+the note that it was out of turn and why. The general rule: **when a row's symptom is fixed but its
+cause is not, the row is the least reliable place to park the cause.**
+
+## A performance number that looks too good is a broken benchmark
+
+`1-flattenRing-can-save-time` asks for two optimizations and quotes no cost, so it needed a
+measurement. The first attempt said 200 ring-map applications took 18 microseconds -- 90 nanoseconds
+each, for a call that reaches `rawRingMapEval`. That is not a fast path, it is a broken test:
+`random(3, zzB)` over a multigraded tower had not produced the polynomials I assumed, and the loop
+was doing nothing. Checking the inputs before believing the timing is what caught it; a second
+attempt with an explicitly built 210-term polynomial gave 2.55 ms per application.
+
+The measurement then changed the verdict rather than decorating it. `map(R,R)` satisfies `f == 1`,
+and `ringmap.m2:31` already computes exactly that predicate for comparison -- so M2 knows the map is
+the identity, applies it at full cost, and hands back its argument. That is a self-contained finding
+needing no `flattenRing` at all, and it is what made the row worth filing.
+
+**Before quoting a timing, assert something about the thing being timed** -- that the input is
+nonzero, that the loop body ran, that the result is what you expected. A benchmark has no failure
+mode of its own; it will happily report the speed of nothing.
+
+## A queue that reports zero cannot tell you which zero it means
+
+The comment on #3887 was written, `bin/comment-issues` was run, and it said `0 comments to post`.
+Not because the text was wrong but because `comment-issues:116` skips any row that is not a
+`duplicate` naming an issue, and that row is `open` -- its comment belonged on someone else's issue,
+which the vocabulary had no way to express. The file was ignored in silence.
+
+`0 comments to post` reads identically whether there is nothing to say or something to say and no
+path to say it. So the script now walks `comments/` and reports files no row will ever post, which
+is the same derived-check principle as
+[nothing records that a row has been pushed](#--apply-is-not-yours-to-give-yourself): compute the
+answer from the two sides rather than trusting one of them. It over-reports -- it cannot tell a
+hand-posted comment from an unposted one -- and that is the right direction for a reminder to fail.
+
+## Ring shadowing bites the test, not only the subject
+
+`promote(s, zzB)` failed inside a `flattenRing` check with `argument 1 : s (of class zzR)`. Creating
+the flattened ring had rebound the global `s` to *its* variable, so the tower's coefficient ring no
+longer owned the name -- and because the assignment failed, three later lines reported errors about
+a `Symbol` and looked like unrelated breakage.
+
+This is the same phenomenon as #4510, triaged an hour earlier in the same session: a second ring
+reusing a symbol takes it over. Knowing it about the *subject* did not stop it happening to the
+*harness*. In any check that builds more than one ring over the same variable names, reach for
+`R_0`, `R_1` and `(coefficientRing R)_0` rather than the symbols, which cannot be shadowed out from
+under you.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-291 are settled and **566 are left**:
+303 are settled and **554 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 213 |
-| `mike` | 207 |
+| `dan`, priority `1` | 202 |
+| `mike` | 206 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
 | `LAcore`, `gfurnish`, root | 11 |
@@ -1180,8 +1243,8 @@ Take one author at a time. Their file conventions differ -- Dan's are prose note
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
 number down -- and switching between them means relearning the format every few rows.
 
-The mix of kinds differs too, and it decides how a bucket feels. **295 of Dan's 314 remaining are
-prose notes, against only 19 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
+The mix of kinds differs too, and it decides how a bucket feels. **286 of Dan's 303 remaining are
+prose notes, against only 17 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
 remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
 running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
 applying to most of it. `dan/0.4`–`0.9` was 28 notes and 0 reproducers, which is what the rest of
