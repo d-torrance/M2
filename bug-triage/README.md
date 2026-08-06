@@ -327,7 +327,7 @@ recommendations, not instructions to write the file now.
 **Fixed?** `verdict=fixed`, the commit or PR in `fix`, and `disposition=drop`.
 
 In practice that is the only answer a fixed row gets. `test` names a destination under
-`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 241 settled rows it has been
+`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 280 settled rows it has been
 used **zero times**, including on the fourteen `anton/*/RESOLVED/*.m2` reproducers where it looks
 most tempting. Promoting a reproducer is writing code in the Macaulay2 sources, which is not what
 this branch does, and recommending it per-row invites exactly that confusion -- the recommendation
@@ -355,19 +355,19 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 269 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 280 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 115 | 43% |
-| `open` | 76 | 28% |
+| `fixed` | 118 | 42% |
+| `open` | 77 | 28% |
 | `obsolete` | 33 | 12% |
-| `duplicate` | 27 | 10% |
-| `wontfix` | 18 | 7% |
+| `duplicate` | 30 | 11% |
+| `wontfix` | 22 | 8% |
 
 So `obsolete` and `wontfix` together are 20%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
-steady: it was the same to within a point at 167 and at 195 settled, so the next bucket is
+steady: it was the same to within a point at 167, 195 and 269 settled, so the next bucket is
 unlikely to move it much either.
 
 Grepping the *unsettled* files says the same thing rather than merely reflecting which ones got
@@ -805,8 +805,8 @@ that matters to anyone picking work off the tracker:
 `project.EXCLUSIVE` rejects a row claiming both, because an issue carrying both has had that
 judgment dodged rather than made. Plenty of rows are honestly *neither* -- a rename proposal, a
 documentation gap, "generate these Makefile dependencies instead of maintaining them by hand" --
-and those take a subsystem label alone. Of the first 38 filed, 17 came out `bug`, 11
-`feature request`, 10 neither.
+and those take a subsystem label alone. Of the 66 labelled so far, 27 came out `bug`, 21
+`feature request`, 18 neither.
 
 ### Relabelling after the fact is by hand
 
@@ -989,15 +989,109 @@ Two practical guards:
 Parking is for [the wishlist files](#the-wishlist-files-are-parked-on-purpose) — one row holding
 many unrelated asks — and nothing else has joined them.
 
+## A fix can be taken back by a commit that was not about it
+
+`1-document-options-error-msgs` asks, in its second half, why the html page for
+`symmetricAlgebra` carries no links to its optional arguments. Searching for the commit that
+answered it turns one up immediately, and it is unambiguous: `f1c1dd78f1` (2007-12-23) moved every
+`[symmetricAlgebra, Opt]` key into the node's `Key` list, in direct response to this file, and the
+options rendered.
+
+Thirteen months later `9be2d70841` ("documentation; fix up `symmetricAlgebra`") restructured the
+node into three `SYNOPSIS` blocks and deleted its top-level `Usage`. `processUsage` returns early
+without one (`document.m2:545-548`) and `SYNOPSIS` has no `Options` slot at all (`:758-768`), so
+the option list vanished — and has stayed gone for seventeen years. Filed as #4566.
+
+Stopping at the first commit whose message matches the ask would have recorded `fixed` on a page
+that has been broken since 2009. Two habits:
+
+- **Check whether a later commit took it back.** `git log --oneline -- <the file>` after the fix
+  date costs one command, and a doc node restructured by someone tidying up is the likeliest way
+  for a small fix to be undone silently.
+- **Verify the rendered result, not the presence of the fix in the source.** All 18 keys are still
+  in `symmetricAlgebra-doc.m2:12-23` and every one resolves; `isMissingDoc` is false for all of
+  them. Reading the source says fixed. Running `help symmetricAlgebra` says there is no "Optional
+  inputs" section, and `help newRing` — a node that kept its `Usage` — shows what it should look
+  like. The contrast is the whole finding.
+
+## Order the transcript the way the file wrote it
+
+`1-dot-dot-2` is eight lines: `X11 .. a` errors, then `vars(-11)` returns `X11`. Checking it meant
+running two lines, and I ran them in the convenient order — `vars(-11)` first, then `X11 .. a`,
+which **works**. That read as a clean `fixed`.
+
+It works only *because* `vars(-11)` ran first. `vars ZZ` memoizes into a mutable table
+(`indeterminates.m2:15-18`), which is the one thing that lets `reverseVars` invert a name it
+otherwise cannot. In a fresh session, in the file's own order, it reproduces exactly. Filed as
+#4570.
+
+This is a fifth member of the family in
+[four ways an existence check lies](#four-ways-an-existence-check-lies-to-you-in-m2), and the
+shared shape holds: the output was consistent with "fixed" and nothing in it signalled that the
+test was invalid. Where the subject is a cache, a memo table, or anything else that a previous call
+populates, **run the file's transcript in the file's order, in a fresh session.** The bug file's
+line numbers are evidence; `i10` before `i11` is part of the report.
+
+## Check that the wording being asked for is not narrower than the wording that is there
+
+`1-documentation-installPackage` asks that the Synopsis change from `installPackage PACKAGENAME`
+to `installPackage "FOO"`, with the input renamed to `"FOO", a String`. That is easy to settle as
+`wontfix`: `lookup(installPackage, Package)` is non-null, `installPackage FirstPackage` is a valid
+call, and the node documents both `(installPackage, String)` and `(installPackage, Package)`. The
+proposed wording documents one of two spellings. Ask denied, on the file's own terms.
+
+That is the [ask-versus-need](#the-ask-is-the-mechanism-the-need-is-what-got-met) error run
+backwards. Checking that Dan's exact sentence would be worse is not the same as establishing that
+the page is fine. The need — a reader should be able to tell the argument is normally *quoted* —
+is live, and the house style already accommodates it: of 260 `Usage` lines in
+`Macaulay2Doc/functions/`, 248 are bare metavariables and the twelve containing quotes all quote a
+*placeholder*, precisely where quoting matters:
+
+```
+export {"symbol1", "symbol2", ...}
+exportFrom(pkg, {"symbol1", "symbol2"})
+```
+
+So `installPackage "PackageName"` is in style, conveys the quoting, and narrows nothing. Filed as
+#4568. The test is cheap and worth running on any row that proposes specific words: **is the
+proposal narrower than what is there, and if so, is there a version that is not?** A row can be
+wrong about its own remedy and right about its complaint.
+
+## A row can belong to another repository's tracker
+
+`1-emacs-macro-needed` wants an `f11` variant that strips a trailing `;` before sending the line.
+It is genuinely unmet — nothing in the mode does it, and the only semicolon logic *inserts* one —
+but `git ls-files '*.el'` returns nothing here. `M2.el` left this tree in `78186879eb` (2020-06-24)
+for [M2-emacs](https://github.com/Macaulay2/M2-emacs), which has its own active tracker.
+
+`wontfix` would have been a lie about merit, and blank `disposition` is
+[parking](#do-not-park-a-row-just-because-it-resists-a-verdict). So it was filed *there*, as
+Macaulay2/M2-emacs#102, by hand — `bin/file-issues` targets Macaulay2/M2 and must not be pointed
+elsewhere. The row reads `open`, `disposition=issue`, `issue=Macaulay2/M2-emacs#102`, and
+deliberately has **no line in `issue-titles.tsv`**, which is what stops it being filed here later
+by a bulk pass. The `note` says so.
+
+Recording it needed a tooling fix, and the bug it exposed was worse than cosmetic. `linkify`
+matched `#(\d+)` anywhere, so `M2-emacs#102` rendered as a link to *Macaulay2/M2* issue 102 — which
+exists, is unrelated, and is somebody else's. It now understands GitHub's own `owner/repo#123`
+form, requiring the slash rather than guessing at a bare repo name (`project.FOREIGN_REF`), and
+`bin/render` and `bin/push-project` share one copy instead of two.
+
+The same fix caught a link that had been wrong on the board for weeks: `0-toString-Vector`'s note
+says the fix "applies it to `v#0`, the underlying matrix", and `v#0` was being published as a link
+to issue 0. A bare `#N` now needs no word character in front of it (`project.ISSUE_REF`). **When
+a reference format is generated rather than typed, test it against text that merely looks like
+one** — M2 code is full of `#`.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-269 are settled and **588 are left**:
+280 are settled and **577 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 235 |
+| `dan`, priority `1` | 224 |
 | `mike` | 207 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
@@ -1007,8 +1101,8 @@ Take one author at a time. Their file conventions differ -- Dan's are prose note
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
 number down -- and switching between them means relearning the format every few rows.
 
-The mix of kinds differs too, and it decides how a bucket feels. **390 of Dan's 410 remaining are
-prose notes, against only 20 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
+The mix of kinds differs too, and it decides how a bucket feels. **306 of Dan's 325 remaining are
+prose notes, against only 19 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
 remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
 running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
 applying to most of it. `dan/0.4`–`0.9` was 28 notes and 0 reproducers, which is what the rest of
