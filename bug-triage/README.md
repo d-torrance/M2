@@ -559,6 +559,16 @@ Two rules follow, and they cost nothing:
   [#659](https://github.com/Macaulay2/M2/issues/659) had been open since 2015 with the cause,
   because `mutablelist` does not match a title reading "growth of mutable **lists**". Search
   `mutablelist` *and* `mutable list`.
+- **Search the bare stem, not the call form.** `1-dispatch` survived *two* searches that used
+  `dispatch(` and `lookup(` before a third, using bare `dispatch`, turned up
+  [#1477](https://github.com/Macaulay2/M2/issues/1477) — titled "**Dispatching** of lift and
+  promote", open, and asking the same question from the implementer's side. Attaching the paren
+  makes the term precise and useless: issue titles are written in English, so they inflect
+  (`dispatching`, `dispatched`) and rarely quote a call. Grep for `dispatch`, then narrow.
+- **Refresh the cache first.** `bin/fetch-issues` without `--refresh` is a no-op if the file
+  exists, so the cache silently ages. Ours sat at #4558 while #4560 had already been filed *from
+  this catalog*, which is the worst case: the issues most likely to duplicate a row you are about
+  to file are the ones you filed last week. `bin/fetch-issues --refresh` takes seconds.
 
 A term that is also an ordinary English word is where this is thinnest. `about` matched 131
 issues while checking `0-doc-Keywords`, which is a haystack, not a shortlist — narrowing found
@@ -593,6 +603,27 @@ The same check has a third leg: **rows still `todo` can hold the ask too.** `1-v
 up, and any of them could have been the same request. They were not -- a `value` variant taking a
 dictionary path, and three unrelated `setup()` asks -- but that was worth two minutes to establish
 rather than assume.
+
+### Search before you write the verdict, not after
+
+The order matters more than it looks, and the tooling does not help you: `bin/suggest-issues`
+shortlists only rows still `todo`, so the moment you type a verdict the row drops out of its
+output and you are on your own.
+
+Search-after fails twice over. It costs the work — three rows in one batch were written up as new
+issues and two turned out to be tracked already (`1-copyFile` as
+[#419](https://github.com/Macaulay2/M2/issues/419), `1-dim` as
+[#3557](https://github.com/Macaulay2/M2/issues/3557)) — and worse, a note written to justify
+filing is a note written to argue one side. Rereading it while holding a candidate duplicate is
+not a neutral comparison.
+
+Searching first also changes what you look for. `1-dim`'s note claimed all four of Bart Snapp's
+examples failed identically; they do not, and the batched `try/else` that produced that claim
+would probably have been written more carefully by someone who already knew #3557 existed and was
+looking for the seam between them.
+
+So: read the file, search the tracker and `catalog.tsv`, *then* decide. The verdict you write will
+be about where the row sits among what already exists, which is what the `note` is for.
 
 And a closed issue is not a settled ask. [#47](https://github.com/Macaulay2/M2/issues/47) and
 [#211](https://github.com/Macaulay2/M2/issues/211) both name `___Gröbner_spbases.html`, and both
@@ -840,12 +871,26 @@ behind.
 
 Every verdict here turns on "does this exist / does this still happen", and M2 has a small family
 of ways to answer that question wrongly. All four of these produced a wrong reading in one batch
-of thirteen files, and each looks like a clean result.
+of thirteen files, and each looks like a clean result. The first one went on to produce two more,
+in later batches, after being written up here -- see the note under it.
 
 **A bare symbol evaluates to itself.** `try (clearCache) else "missing"` prints `clearCache` and
 takes the success branch, whether or not anything is defined. `clearCache` is in fact an unbound
 symbol -- the only definition in the tree is a method on `BasicDivisor` in `WeilDivisors`. Test
 `class` (`Symbol` means unbound) or `# methods f`, never the bare name.
+
+> **That advice is necessary and not sufficient, and following it still produced a wrong verdict.**
+> `1-degreeLift` asks that the degree-lift function be computed automatically. `class degreeLift`
+> is `Symbol` with zero methods, so the row went down as unmet — but the feature is not a global
+> function of that name. It is a derivation inside `map`: `ringmap.m2:97-104` builds a matrix from
+> the `DegreeMap` and solves `quotientRemainder` against it, storing the result in
+> `f.cache.DegreeLift`. The ask was satisfied years ago under a different shape.
+>
+> An unbound symbol tells you a **name** is free. It tells you nothing about whether the
+> **capability** exists, because features arrive as methods on existing functions, cache entries,
+> options, or package exports at least as often as they arrive as new globals. When the name comes
+> back unbound, search the source for what the file *wanted* before concluding it is missing —
+> here, `git grep -n DegreeLift -- M2/Macaulay2/m2/` answers it in one line.
 
 **`--script` turns off `debuggingMode`.** `loadPackage` warns about shadowed symbols only when it
 is set (`packages.m2:88`), so a scripted check on `1-Package-dictionary` showed a clean load and
@@ -912,6 +957,37 @@ predicted** -- which is why the class does not exist and this section is a warni
 So the lesson is not "park the ambiguous ones". It is that a row which resists a verdict usually
 has a specific reason, and naming the reason -- undecided design, wrong measurement, non-goal --
 settles it. Reach for blank `disposition` after that fails, not instead of it.
+
+**Writing that down did not stop it happening.** Nine more rows were parked over the following
+batches, four of them after this section existed, until the maintainer asked why. Each carried a
+plausible-sounding excuse; none survived an hour's work:
+
+| row | the excuse | what it actually was |
+| --- | --- | --- |
+| `1-degreeLift` | "no such function -- the symbol is unbound" | **`fixed`**: `map` derives the lift at `ringmap.m2:97-104` |
+| `1-d-translator-crash` | "confirming it would need a rebuild" | **filed as #4562**: `scc1` was already built in `BUILD/build` |
+| `1-dispatch` | "no clear spec" | **duplicate of #1477**, found on the third search |
+| `1-dismiss-rings` | "semantics are the whole question" | **`wontfix`**: `x = symbol x` already does it |
+| `1-TAGS`, `1-directSum` | "marginal", "nobody has wanted it" | **filed as #4561, #4563** -- small and concrete |
+| `1-containment`, `1-doc-startup`, `1-doc-top` | various | `wontfix`, with the reason stated |
+
+The excuses share a shape: each describes *my* state, not the row's. "Not verified", "no clear
+spec", "marginal" are all ways of saying **I stopped**, dressed as properties of the file. A row
+genuinely has no closing condition only after you have looked for one; three of these needed a
+single command to settle, and `1-d-translator-crash`'s excuse was simply false.
+
+Two practical guards:
+
+- **Before parking, name the specific next action and why it is unavailable.** "Needs the package
+  installed twice, once bundled and once by the user" is a reason. "Not verified" is not — it
+  restates the verdict.
+- **`wontfix` is available and underused.** Four of the nine were `wontfix` all along. It carries
+  a real claim — deliberate behavior, or the need met another way — and it is a *decision*, which
+  blank `disposition` is not. Where the call is a judgment rather than a finding, say so in the
+  `note` (`1-doc-top` does) so a maintainer can overrule it cheaply.
+
+Parking is for [the wishlist files](#the-wishlist-files-are-parked-on-purpose) — one row holding
+many unrelated asks — and nothing else has joined them.
 
 ## Where to start
 
