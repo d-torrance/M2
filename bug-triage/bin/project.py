@@ -166,6 +166,41 @@ ATTRIBUTION = (
     "> **Written by Claude** (Claude Opus 5, via Claude Code), not by %s, whose "
     "account posted it -- please weigh it accordingly." % ACCOUNT)
 
+# GitHub's own cross-repository reference syntax, "owner/repo#123", so a row can
+# name an issue that is not in this repository.  bugs/dan/1-emacs-macro-needed is
+# the first: the ask is about M2.el, which left this tree in 78186879eb, so it was
+# filed on Macaulay2/M2-emacs.  Substituted BEFORE the bare form -- the "#102"
+# inside "Macaulay2/M2-emacs#102" would otherwise be linked into Macaulay2/M2,
+# where issue 102 exists, is unrelated, and belongs to somebody else.  The slash
+# is required rather than optional so a bare "M2-emacs#102" cannot be guessed at.
+FOREIGN_REF = re.compile(r"\b([A-Za-z0-9._-]+/[A-Za-z0-9._-]+)#(\d+)\b")
+
+# A bare "#123".  The lookbehind is what keeps it off "v#0", which is M2 code for
+# the first slot of a Vector -- in bugs/dan/0-toString-Vector's note -- and not a
+# reference to issue 0.  That link was live on the board until this was added.
+ISSUE_REF = re.compile(r"(?<![\w/.-])#(\d+)\b")
+
+SHA_REF = re.compile(r"\b([0-9a-f]{7,40})\b")
+
+
+def linkify(text, sha_width=None):
+    """Make issue, cross-repository and commit references clickable.
+
+    A draft issue lives in the project, not in a repository, so bare "#114" and
+    bare shas render as plain text there.  /issues/N redirects to /pull/N, so one
+    form covers issues and pull requests alike.  sha_width shortens the link
+    text for a long sha without touching what it points at.
+    """
+    text = FOREIGN_REF.sub(
+        lambda m: "[%s#%s](https://github.com/%s/issues/%s)"
+        % (m.group(1), m.group(2), m.group(1), m.group(2)), text or "")
+    text = ISSUE_REF.sub(
+        lambda m: "[#%s](%s/issues/%s)" % (m.group(1), REPO_URL, m.group(1)), text)
+    return SHA_REF.sub(
+        lambda m: "[`%s`](%s/commit/%s)"
+        % (m.group(1)[:sha_width] if sha_width else m.group(1), REPO_URL, m.group(1)),
+        text)
+
 
 def fetch_project():
     proj = gh(FIELDS_QUERY, org=ORG, number=PROJECT)["data"]["organization"]["projectV2"]

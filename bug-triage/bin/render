@@ -9,11 +9,11 @@ import argparse
 import collections
 import datetime
 import os
-import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import catalog
+import project
 
 REPO = "https://github.com/Macaulay2/M2"
 REMOVAL = "d2c8d278264348116ac4c1feeb95150699e3e11b"
@@ -31,21 +31,10 @@ HEADINGS = {
 # Settled buckets first, todo last since it starts out holding almost everything.
 ORDER = ["open", "stale-repro", "duplicate", "fixed", "wontfix", "obsolete", "todo"]
 
-REF = re.compile(r"#(\d+)")
-SHA = re.compile(r"\b([0-9a-f]{7,40})\b")
-
-
-def linkify(text):
-    """Link #1234 to the issue or PR, and a bare commit sha to the commit.
-
-    GitHub redirects /issues/N to /pull/N when N is a PR, so one form covers
-    both -- and the fix column legitimately holds either.
-    """
-    text = REF.sub(
-        lambda m: "[#%s](%s/issues/%s)" % (m.group(1), REPO, m.group(1)),
-        text or "")
-    return SHA.sub(
-        lambda m: "[`%s`](%s/commit/%s)" % (m.group(1), REPO, m.group(1)), text)
+# Shared with bin/push-project rather than kept in step by hand.  It also handles
+# GitHub's owner/repo#123 form, which the issue column needs for a row filed
+# against another repository -- see project.FOREIGN_REF.
+linkify = project.linkify
 
 
 def cell(text):

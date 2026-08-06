@@ -87,22 +87,10 @@ def want_status(row, item):
 REPO_URL, CATALOG_URL = project.REPO_URL, project.CATALOG_URL
 ATTRIBUTION = project.ATTRIBUTION
 
-ISSUE_REF = re.compile(r"#(\d+)")
-SHA_REF = re.compile(r"\b([0-9a-f]{7,40})\b")
-
-
+# Shared with bin/render, which writes the same references into CATALOG.md.  Keeping
+# two copies in step by hand is how "M2-emacs#102" came to link into this repository.
 def linkify(text):
-    """Make issue and commit references clickable.
-
-    A draft issue lives in the project, not in a repository, so bare "#114" and
-    bare shas render as plain text there.  /issues/N redirects to /pull/N, so one
-    form covers issues and PRs alike.
-    """
-    text = ISSUE_REF.sub(
-        lambda m: "[#%s](%s/issues/%s)" % (m.group(1), REPO_URL, m.group(1)), text)
-    return SHA_REF.sub(
-        lambda m: "[`%s`](%s/commit/%s)" % (m.group(1)[:10], REPO_URL, m.group(1)),
-        text)
+    return project.linkify(text, sha_width=10)
 
 
 def block_for(row, self_issue=None):
