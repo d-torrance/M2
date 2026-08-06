@@ -8,16 +8,16 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**241 of 857 triaged (28.1%)**
+**255 of 857 triaged (29.8%)**
 
 | verdict | count | |
 | --- | ---: | --- |
-| `open` -- Still broken | 65 | `##..........................` |
-| `duplicate` -- Already tracked by an open issue | 22 | `#...........................` |
-| `fixed` -- Fixed | 105 | `###.........................` |
-| `wontfix` -- Won't fix | 17 | `#...........................` |
-| `obsolete` -- Obsolete | 32 | `#...........................` |
-| `todo` -- Not yet triaged | 616 | `####################........` |
+| `open` -- Still broken | 70 | `##..........................` |
+| `duplicate` -- Already tracked by an open issue | 25 | `#...........................` |
+| `fixed` -- Fixed | 109 | `####........................` |
+| `wontfix` -- Won't fix | 18 | `#...........................` |
+| `obsolete` -- Obsolete | 33 | `#...........................` |
+| `todo` -- Not yet triaged | 602 | `####################........` |
 
 ### Reproducer runs
 
@@ -35,14 +35,14 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 | directory | files | triaged |
 | --- | ---: | ---: |
-| `bugs/dan` | 582 | 218 |
+| `bugs/dan` | 582 | 232 |
 | `bugs/mike` | 215 | 8 |
 | `bugs/anton` | 49 | 15 |
 | `bugs/LAcore` | 9 | 0 |
 | `bugs/(root)` | 1 | 0 |
 | `bugs/gfurnish` | 1 | 0 |
 
-## Still broken -- `open` (65)
+## Still broken -- `open` (70)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -111,8 +111,13 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-application-dir-info-dir` | [#4554](https://github.com/Macaulay2/M2/issues/4554) | &nbsp; | issue | still not done: installPackage writes an .info file into the user's Application Support tree but never creates or updates the info dir index beside it. install-info appears only in cmake/packaging.cmake, for the deb and rpm packaging, and in configure.ac as a build-time requirement -- nothing on the installPackage path |
 | 1 | `bugs/dan/1-building-doc-databases` | [#4555](https://github.com/Macaulay2/M2/issues/4555) | &nbsp; | issue | the file settles its own first half -- it says (FIXED) for the .installed problem. The second is unmet: installPackage touches .installed when a run completes (installPackage.m2:846-849) but nothing detects a missing doc database and rebuilds it, writable directory or not. Nearby but not the same: #1643 wants one documentation database per prefix instead of per package, for speed, and #776 wants the open database files bounded by an LRU cache -- neither rebuilds a missing one |
 | 1 | `bugs/dan/1-caching-idea` | [#4558](https://github.com/Macaulay2/M2/issues/4558) | &nbsp; | issue | two live asks, one of them a verified documentation defect. The thread opens with Mike reporting that 'our description of how to remove a cached GB is no longer correct', and that description is still in the manual: ov_groebner_bases.m2:439 is an EXAMPLE block that says 'we must erase the memory of the Groebner basis computed above', runs remove(f.cache,{false,0}), then says 'compute the Groebner basis anew' and times it. The key is a GroebnerBasisOptions hash today, not {false,0}, so that remove is a silent no-op -- verified: keys (generators I).cache is unchanged across it and the gb is still cached -- which means the timing the manual displays for the Hilbert-hint computation is a cache hit rather than a fresh run. The two gbRemove copies at ov_rings.m2:1535-1536 carry the same stale key but sit inside -* *- blocks, so they are dead. The design half is unadopted and undecided: gb and res have no UseCache, Cache or CleanCache option, clearCache exists nowhere in Core (only as a BasicDivisor method in WeilDivisors), and Mike's getGroebnerKey never appeared -- though the key is at least inspectable now via keys (generators I).cache. Filed as one issue covering both halves on the maintainer's call |
+| 1 | `bugs/dan/1-containment` | &nbsp; | &nbsp; | &nbsp; | two loose asks, both still live but neither well served by an issue. (a) 'an easy way to tell the maximum degree of the entries of a matrix': there is still no such function -- no maxDegree -- though max apply(flatten entries m, f -> first degree f) does it in one line and degrees source/target give the graded data directly. (b) the comment Dan quotes, 'we can do better in the homogeneous case!', survives reworded as '-- TODO: how can do better in the homogeneous case?' at modules.m2:311, so it is already tracked where the code is. What changed around it is that issub is no longer a one-liner: it now dispatches through tryHooks(ContainmentHooks, ...) so a specialized strategy can be registered as a hook (the comment says 'for instance for local rings'), and isSubset and module equality all route through it. The extension point for the homogeneous case therefore exists and is unused. Parked: (a) is a convenience with a working idiom, and (b) is an in-source TODO next to the hook that would implement it, which is a better home for it than a tracker entry |
+| 1 | `bugs/dan/1-d-translator-crash` | &nbsp; | &nbsp; | &nbsp; | not verified, and parked for that reason. The d-to-C translator is still hand-written and still present (M2/Macaulay2/c/, scc1), nothing in the tree guards a filename, and no file is called string.d -- the two that come closest are strings.d and strings1.d, plural, so the collision the file reports is avoided by naming convention rather than fixed. Confirming it would mean creating a string.d and rebuilding the translator, which is not something this branch does, and the trigger is a filename nobody has any reason to choose. Recorded rather than filed: an issue asserting a segfault I have not reproduced would be worse than the note scc1 bugs are actively tracked -- #1134 and #1420 closed, #1197, #4525 and #4542 open, the last two filed from this cohort -- and none of them is the string.d crash. |
+| 1 | `bugs/dan/1-debugger-and-empty-frames` | [#4560](https://github.com/Macaulay2/M2/issues/4560) | &nbsp; | issue | reproduces, and it is not merely counter-intuitive as the file says -- it contradicts the documentation. ov_debugging.m2:102-107 promises that after typing end, 'the debugger will be entered again ... at the point inside the function g from which the function f was called', and that listLocalSymbols will then show g's local variables. Side by side on 1.26.06: with the file's functions, which declare no locals, end returns straight to the top-level prompt and g is never entered. With the same call structure but a local variable in each function, end re-enters the debugger inside the caller and listLocalSymbols shows it. So the skip is specifically the empty-frame case, and the documented walk up the stack silently does not happen for any function that happens to declare no locals. Minimal reproducer is four lines. Related but distinct: 1-debugger-and-tail-recursion, where frames are elided rather than empty |
+| 1 | `bugs/dan/1-degreeLift` | &nbsp; | &nbsp; | &nbsp; | unmet: there is no degreeLift function -- the symbol is unbound, class Symbol with zero methods -- and the DegreeLift monoid option still defaults to null, so nothing is computed for the user. The ask is to derive it automatically, presumably by inverting the DegreeMap of a ring map where that inverse exists. Parked rather than filed: the file is nine words, it does not say from what or under which conditions the lift should be derived, and the cases where a degree map has no lift are exactly the ones that would decide the design. Testing note: degreeLift is unbound, so it prints itself and any try-based existence check succeeds -- class and #methods are what answer it Nearest open issues, neither of them this: #2580, DegreeLift not working for maps of multigraded rings, and #1919 on RingMap.cache.DegreeMap. |
+| 1 | `bugs/dan/1-directSum` | &nbsp; | &nbsp; | &nbsp; | not installed: directSum(List, Function) has no method, so David's suggested directSum(x, f) equivalent to directSum apply(x, f) still has to be written the long way. Parked rather than filed: it is a two-line convenience whose full implementation is in the file, the workaround is the thing it would abbreviate, and there is no sign anyone has wanted it since 2011. Would be a reasonable good-first-issue if someone wants one Several open directSum issues, none about this signature: #606 (MutableHashTable), #2891 (components and direct sums of matrices), #1060 (degrees ignored), #3185 (better list comprehension). |
 
-## Already tracked by an open issue -- `duplicate` (22)
+## Already tracked by an open issue -- `duplicate` (25)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -134,12 +139,15 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 0.5 | `bugs/dan/0.5-network-check` | [#4527](https://github.com/Macaulay2/M2/issues/4527) | &nbsp; | drop | same ask as bugs/dan/0-SCSCP-checks, which was filed as #4527: automate the SCSCP round trip and give it a separate insecure make target. Two bug files, one issue |
 | 0.9 | `bugs/dan/0.9-globalAssignment` | [#1056](https://github.com/Macaulay2/M2/issues/1056) | &nbsp; | drop | still true and already tracked: GlobalAssignHook is absent from both HashTable and MutableHashTable, and a named MutableHashTable prints as MutableHashTable{} rather than its name. #1056 is the same report and quotes the same code(net,HashTable) against code(net,MutableHashTable) comparison this file does |
 | 1 | `bugs/dan/1-M2-symlinks` | [#715](https://github.com/Macaulay2/M2/issues/715) | &nbsp; | drop | settled by commenting on #715 rather than filing, because the two halves belong together. #715, open since 2017, reports the wrapper half: M2 execs `dirname "$0"`/M2-binary (bin/M2.in:9, and bin/CMakeLists.txt:106 for cmake), so any single symlink to the installed M2 dies with 'M2-binary: not found'. The file's own claim is the half underneath, and it is not in #715: initcurrentlayout follows exactly one link and never iterates (startup.m2:325), so reaching M2-binary through a chain of two leaves currentLayout null and startup.m2:351 dereferences it -- one link works and prints prefixDirectory /usr/, two fail to start. Dan wrote 'chain' and meant it. The reason to comment rather than file: the patch attached to #715 uses $(dirname $(readlink "$0")), a single-level resolve, so it would fix the wrapper and leave the chain broken; readlink -f settles both. That is worth more to #715 than a second issue beside it. Not covered elsewhere -- initcurrentlayout matches no issue, and Layout# matches only #54, a closed suffix bug in the same function |
+| 1 | `bugs/dan/1-copyFile` | [#419](https://github.com/Macaulay2/M2/issues/419) | &nbsp; | drop | the same defect one level up is already open as #419, 'copyDirectory fails on read-only files', whose own suggestion is 'perhaps add an option to copyDirectory so it forcibly replaces read-only files' -- and that option would have to live in copyFile, since copyDirectory takes options copyFile ++ ... (files.m2:112) and delegates to copyFile for every file it copies (:131). Verified independently: copyFile onto a 0444 target fails and leaves the old contents, and copyFile's options are only UpdateOnly and Verbose. The consequence this file predicts is also already on record as #229, 'read-only files and installPackage', closed as stale rather than fixed. Settled by commenting on #419 rather than filing a third |
+| 1 | `bugs/dan/1-debugger-and-tail-recursion` | [#3546](https://github.com/Macaulay2/M2/issues/3546) | &nbsp; | drop | #3546, 'Incorrect location when error occurs in the tail call', is the live manifestation of this and is labelled Interpreter. It reports that after tail call optimization the error position names the outer call rather than the expression that failed, and it records history the file could not: @pzinn fixed it in PR #3144, which had to be reverted because of #3417. This file's ask -- a way of preventing tail recursion when debugging -- is one candidate fix for exactly that, so it belongs on #3546 rather than beside it. The mechanism is unconditional today: evaluate.d does tail recursion at :519, :649 and :676 with the intent spelled out in comments, consulting no debugging flag, and :769 skips it only for 21-argument calls |
+| 1 | `bugs/dan/1-dim` | [#3557](https://github.com/Macaulay2/M2/issues/3557) | &nbsp; | drop | same root cause as #3557, 'rank fails over ZZ because codim needs Generic => true', by way of a different entry point. Re-checked case by case rather than in a batch, and the four cases do not fail the same way: ideal(2) alone is an ideal of ZZ, so A/ideal(2) errors 'expected ideal of the same ring' at the quotient, which is arguable rather than wrong; but ideal(2,x), ideal(two) and ideal(two,x) are all ideals of A, those quotients build fine, and every dim on them fails with the identical message 'codim: expected an affine ring (consider Generic=>true to work over QQ)'. That is #3557's message verbatim -- codim refuses a non-affine ring and nothing can pass Generic => true through. So the answers Bart Snapp wanted (A/2 is (ZZ/2)[x], dimension 1) are blocked by the same plumbing that blocks rank. Neighbours over ZZ, none of them this: #4095 trim, #1518 kernels of ring maps. Settled by commenting on #3557 |
 | &nbsp; | `bugs/anton/MISC/standardPairs.m2` | [#114](https://github.com/Macaulay2/M2/issues/114) | &nbsp; | drop | still reproduces: same non-disjoint cones the issue shows, 1 in three sets; #4492 is a draft converted in error, closed |
 | &nbsp; | `bugs/mike/git-issue-568-569.m2` | [#568](https://github.com/Macaulay2/M2/issues/568) [#569](https://github.com/Macaulay2/M2/issues/569) | &nbsp; | drop | both issues are still open |
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (105)
+## Fixed -- `fixed` (109)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -227,6 +235,10 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-configure-library-versions` | &nbsp; | &nbsp; | drop | done, by the autoconf idiom rather than by version arithmetic: where a particular version is needed, configure either checks the version or checks for the feature that version brought, and the second is the normal case. configure.ac carries 107 feature-test invocations -- 34 AC_SEARCH_LIBS, 34 AC_CHECK_HEADER, 14 AC_COMPILE_IFELSE, 11 AC_LINK_IFELSE, 10 AC_CHECK_HEADERS, 7 AC_RUN_IFELSE and so on -- including compile-and-link probes against flint, givaro, gmp and libnormaliz headers, which is exactly 'checking that recent versions appear' expressed as what the code needs rather than as a number. Explicit version gates exist for the two cases where no feature test would do: GNU make 3.81 is rejected at :209, and Arb errors 'found but too old' at :902. Separately, anything M2 builds itself is version-exact -- 27 of 37 libraries/*/Makefile.in pin a VERSION with a SHA256SUM. Recorded first as open on a count of version comparisons, which was the wrong measurement: a low count of those is what a well-written configure script looks like, not evidence of a gap |
 | 1 | `bugs/dan/1-control-m-s` | &nbsp; | &nbsp; | drop | the symptom is gone, though the control-Ms are not. Decisive check: the installed Polyhedra.info.gz contains zero CR characters. The reason is that the package was restructured into auxiliary files -- every file under Polyhedra/documentation/ is LF-clean, and none of the eleven files that still carry CRs contains a document{ or doc /// block, so nothing CR-bearing reaches the info output. Polyhedra.m2 itself is now a 63-line newPackage stub with AuxiliaryFiles => true and is CRLF throughout, and CRs survive in about eleven code files under Polyhedra/ (loadFile.m2 324 lines, extended/standardConstructions.m2 261, extended/legacy.m2 249, core/cone/methods.m2 145 and so on). That is untidy but invisible to the reader the file was worried about, and it is not what was asked |
 | 1 | `bugs/dan/1-decompose` | &nbsp; | &nbsp; | drop | decompose no longer overflows the stack in factory on this input |
+| 1 | `bugs/dan/1-decompose-crash.m2` | &nbsp; | &nbsp; | drop | both halves settled, and the second one exactly. The reported segfault is gone: irreducibleCharacteristicSeries I runs to completion on the quartic and returns a Sequence, with no need for the trim the file suggests as a workaround. And the 'it would be nice if this worked' assertion now computes the wished-for answer -- decompose I returns three components, ideal(y-z,x-z), ideal(2y-z,x) and ideal(3y-2z+1,3x-z+2), which match the three expected ideals pairwise under ==, three for three in both directions. The assert as written still fails, but that is a defect in the assertion rather than in M2: it wraps both sides in set, and Set membership uses object identity, so ideal(y-z,...) and ideal(-y+z,...) count as different despite being equal ideals. Worth keeping as a regression test only if that line is rewritten to compare with ==; recorded here rather than acted on, since promoting reproducers is not what this branch does |
+| 1 | `bugs/dan/1-demangle` | &nbsp; | &nbsp; | drop | the literal ask was 'fix configure.ac', and configure.ac is fixed: :1660-1664 checks whether nm accepts the option at all ('whether nm accepts the demangle option', testing nm --help for the string) and sets NM_DEMANGLES accordingly, and e/Makefile.in:86-88 adds --demangle to NMFLAGS only when it is yes. So the duplicate-symbol check no longer breaks on an nm that cannot demangle. Dan's suggested alternative, piping through c++filt, was not adopted -- on such a machine the dups target simply runs with mangled names rather than demangled ones, which is degraded output rather than a failure, and that is the outcome the ask was protecting |
+| 1 | `bugs/dan/1-describe` | &nbsp; | &nbsp; | drop | done, and by exactly the mechanism asked for. describe no longer returns a net: class describe R is Describe, a dedicated type, and toString of it gives a single parseable line -- QQ[w_1..w_2, x..z, Degrees => {2:3, 3:1}, Heft => {1}, MonomialOrder => ...]. Compare the transcript in the file, where toString describe produced the net verbatim, subscripts stranded on their own line ('QQ [w , w , x, y, z, ...' with '1   2' beneath), which is what made it useless for round-tripping. No fix commit pinned |
+| 1 | `bugs/dan/1-describe-FractionField` | &nbsp; | &nbsp; | drop | the parentheses the file marks as needed are there. describe frac(QQ[x]) now gives frac(QQ[x, Degrees => {1}, Heft => {1}]) rather than the ambiguous 'frac QQ [x]' in the transcript, so the argument of frac is unmistakably the whole polynomial ring. Same underlying change as 1-describe, describe returning a Describe object instead of a net |
 | 1 | `bugs/dan/1-singularLocus` | &nbsp; | &nbsp; | drop | singularLocus(ZZ[x,y]/(11,x)) no longer returns the spurious (11,x,1) |
 | 2 | `bugs/dan/2-signed-debian-packages` | &nbsp; | &nbsp; | drop | settled both ways it could be: M2 is in the Debian and Ubuntu archives, so those packages carry the archive signature, and Doug signs the Debian backports on the M2 website with his own key. Nothing is left for a user to click through |
 | &nbsp; | `bugs/anton/LINEAR-ALGEBRA/RESOLVED/gCorners.m2` | &nbsp; | [#1651](https://github.com/Macaulay2/M2/issues/1651) | drop | author filed it under RESOLVED/; fix points at that filing, not necessarily the code change |
@@ -249,7 +261,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue473.m2` | [#473](https://github.com/Macaulay2/M2/issues/473) | [`0ae5b6eb19`](https://github.com/Macaulay2/M2/commit/0ae5b6eb19) | drop | sub(C,QQ) raises a clean error instead of a SIGSEGV |
 | &nbsp; | `bugs/mike/git-issue56.m2` | [#56](https://github.com/Macaulay2/M2/issues/56) | [`ff7473fb87`](https://github.com/Macaulay2/M2/commit/ff7473fb87) | drop | 'unknown engine error' is now a specific not-implemented message |
 
-## Won't fix -- `wontfix` (17)
+## Won't fix -- `wontfix` (18)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -270,8 +282,9 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-combine-doc` | &nbsp; | &nbsp; | drop | the mechanism cannot work and the need is met anyway -- the same shape as 1-constant-to-RR, where toRR being compiled made the ask wontfix. combine is a CompiledFunction, so combine(HashTable,HashTable,Function,Function,Function) := HashTable => combine still fails; you cannot install a method key on a compiled function, which is why 'this doesn't work'. But the file's actual want is the second clause, 'it should make its way into the documentation somehow', and it has: combine-doc.m2:4 gives Usage => "z = combine(x,y,f,g,h) or z=combine(x,y,f,t,g,h)", documenting both arities under Key => combine, with worked examples for each (a polynomial product at :53-59 and a divided-power product at :63-69). The five-argument call runs: combine(h,h,plus,times,plus) on hashTable{1=>2,3=>4} returns a HashTable |
 | 1 | `bugs/dan/1-configure-build-target` | &nbsp; | &nbsp; | drop | the same ask as bugs/dan/1-architecture-dependent-only-build, which is already settled wontfix in this catalog, and settling it differently here would contradict that. The reason recorded there: there is no split to expose, because building the architecture-independent half means generating documentation and example output, and that is done by shelling out to the compiled binary (run.m2:119 builds a command around format(bindir \| "M2-binary")), so the arch-independent files sit downstream of the arch-dependent ones rather than parallel to them. A target for one half alone would still have to build the other. What convenience the ask has already exists as relink and relink-nostrip, Makefile.in:117-118 |
 | 1 | `bugs/dan/1-cookies` | &nbsp; | &nbsp; | drop | a non-goal rather than a gap, and the ecosystem settled it the other way. getWWW is a hand-rolled HTTP/1.1 client from 1996 (http.m2, Copyright 1996) that writes request lines onto a socket with four headers, and delegates HTTPS to a subprocess -- 'openssl s_client -quiet -verify 1' at http.m2:45-48. It is a plain method() with no options, so there is nowhere to pass a cookie, and nothing reads Set-Cookie. But no consumer wants one: OnlineLookup does stateless query-string GETs against oeis.org/search and wayback.cecm.sfu.ca/cgi-bin/isc/lookup, and ReflexivePolytopesDB the same against quark.itp.tuwien.ac.at/cgi-bin/cy/cydata.cgi. That package also shows what happened instead: it carries a documented Access option taking 'm2', 'curl' or 'wget' (ReflexivePolytopesDB.m2:93-98), so an author who hit getWWW's limits shelled out rather than asking for the feature -- and curl brings cookies, redirects, TLS, proxies and auth together, each of which getWWW would otherwise reimplement, cookies being the first of the sequence rather than the last. The second ask, 'also the email address option!', is two words that cannot be reconstructed from the file; the likeliest reading is a From: header, but nothing in the tree corroborates it and guessing was not worth publishing. Would be worth revisiting only for a concrete endpoint someone wants that requires a cookie |
+| 1 | `bugs/dan/1-degree-of-zero` | &nbsp; | &nbsp; | drop | a design musing that was never taken up, and the file knows it -- it ends 'Feedback on that idea would be welcome'. The description still holds: degree of the zero ring element is -infinity, while a zero vector keeps the degree of whatever it came from, so degree(0*F_1) is {0}. The proposal was to make R seriously graded with distinct zero elements of each degree, and the file itself names the reason nobody did: you would then have to decide whether r == s and r === s agree for zeros of different degrees, which is a change to equality semantics across the whole system for a cosmetic gain. Fifteen years on there is one zero per ring and no sign anyone wants otherwise |
 
-## Obsolete -- `obsolete` (32)
+## Obsolete -- `obsolete` (33)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -300,6 +313,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-configure-arch` | &nbsp; | &nbsp; | drop | all three asks are dead: 32-bit Mac (the warnings quote i686-apple-darwin8, which is 10.4, and gcc 4.2.3), an --enable-*bit selection that configure.ac has no trace of, and disable-fc-lib-ldflags, which appears nowhere in the tree |
 | 1 | `bugs/dan/1-cygpath` | &nbsp; | &nbsp; | drop | use cygpath rather than mount, in a build M2 no longer has: the cygwin distribution was removed, remnants cleaned in 51d82cd738 |
 | 1 | `bugs/dan/1-cygwin-info` | &nbsp; | &nbsp; | drop | /usr/share/info/dir not updating under cygwin, in a distribution that no longer exists. The install-info half is separately settled -- configure.ac:241 checks for it and errors when info documentation is requested without it |
+| 1 | `bugs/dan/1-debian-old-compiler` | &nbsp; | &nbsp; | drop | both halves are gone. cddplus is no longer in the tree at all -- M2/libraries/ carries cddlib and nothing else matching cdd -- so there is no longer anything to fail to compile. And the compiler in question, g++ 4.3.2, is from 2008; the friend-function-in-template lookup the file demonstrates was a real g++ bug of that era, fixed by 4.3.4 as the file itself notes, and no supported build uses anything remotely that old |
 | 1 | `bugs/dan/1-emacs-app` | &nbsp; | &nbsp; | drop | fetch Emacs.app from the Emacs CVS repository at tag EMACS_22_3 for the .dmg icon. Emacs 22 is from 2007, Carbon is gone in favour of the NS port, and Emacs left CVS for bzr and then git |
 | 1 | `bugs/dan/1-native-windows-port` | &nbsp; | &nbsp; | drop | compile under cygwin and pass -mno-cygwin to gcc. That flag was deprecated and then removed from cygwin's gcc years ago, and the cygwin distribution it depends on is gone |
 | 1 | `bugs/dan/1-site-start.el-file` | &nbsp; | &nbsp; | drop | cygwin postinstall and preremove scripts keeping up to 100 backups of site-start.el; those scripts went with M2/distributions/cygwin |
@@ -308,7 +322,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 2 | `bugs/dan/2-cygwin-port-report` | &nbsp; | &nbsp; | drop | a 2006 user report of building M2 under Cygwin against a SAGE spkg, needing CPPFLAGS=-D_setmode=setmode. The cygwin distribution was removed in 2021 (51d82cd738) |
 | 3 | `bugs/dan/3-cons-vs-make` | &nbsp; | &nbsp; | drop | a proposal to consider SCons as a build system. The question was settled the other way: M2 has autotools and CMake, and scons appears nowhere in the tree |
 
-## Not yet triaged -- `todo` (616)
+## Not yet triaged -- `todo` (602)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
@@ -366,20 +380,6 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 00 | `bugs/mike/00-kahle-isPrime.m2` | repro | pass-partial | &nbsp; |
 | 00 | `bugs/mike/00-rawCharSeries.m2` | repro | timeout | [#1443](https://github.com/Macaulay2/M2/issues/1443) crash in factory |
 | 00 | `bugs/mike/00-res-crash.m2` | repro | timeout | &nbsp; |
-| 1 | `bugs/dan/1-containment` | note | n/a | [#1519](https://github.com/Macaulay2/M2/issues/1519) quotients for ZZ do not get routed to RingElement |
-| 1 | `bugs/dan/1-copyFile` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-d-translator-crash` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-debian-old-compiler` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-debugger-and-empty-frames` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-debugger-and-tail-recursion` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-decompose-crash.m2` | repro | fail | &nbsp; |
-| 1 | `bugs/dan/1-degree-of-zero` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-degreeLift` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-demangle` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-describe` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-describe-FractionField` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-dim` | note | n/a | &nbsp; |
-| 1 | `bugs/dan/1-directSum` | note | n/a | [#606](https://github.com/Macaulay2/M2/issues/606) directSum of MutableHashtable s (including ChainComplex'es) should use |
 | 1 | `bugs/dan/1-dismiss-Core` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-dismiss-rings` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-dispatch` | note | n/a | &nbsp; |
@@ -467,7 +467,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 1 | `bugs/dan/1-init-priority.cc` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-install-info-dependency` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-installMethod` | note | n/a | [#3076](https://github.com/Macaulay2/M2/issues/3076) Inconsistent "installMethod" error messages |
-| 1 | `bugs/dan/1-installPackage` | note | n/a | [#229](https://github.com/Macaulay2/M2/issues/229) read-only files and "installPackage" |
+| 1 | `bugs/dan/1-installPackage` | note | n/a | [#4554](https://github.com/Macaulay2/M2/issues/4554) installPackage does not create or update the info dir index beside the |
 | 1 | `bugs/dan/1-installPackage-links` | note | n/a | &nbsp; |
 | 1 | `bugs/dan/1-interrupt` | note | n/a | [#813](https://github.com/Macaulay2/M2/issues/813) CTRL-c should interrupt multi-line input in a terminal |
 | 1 | `bugs/dan/1-interrupt-appearance` | note | n/a | &nbsp; |

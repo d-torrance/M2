@@ -355,15 +355,15 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 241 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 255 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 105 | 44% |
-| `open` | 65 | 27% |
-| `obsolete` | 32 | 13% |
+| `fixed` | 109 | 43% |
+| `open` | 73 | 29% |
+| `obsolete` | 33 | 13% |
 | `duplicate` | 22 | 9% |
-| `wontfix` | 17 | 7% |
+| `wontfix` | 18 | 7% |
 
 So `obsolete` and `wontfix` together are 20%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
@@ -378,7 +378,7 @@ seam but a thin one.
 Two cautions on those numbers. They are not a random sample -- they are `dan/0`, `dan/0.1`,
 `dan/0.4`–`0.9`, the start of `dan/1` and a deliberate sweep for retired subsystems, and `dan/0`
 was Dan's own highest-priority bucket, which may well be where the real bugs that later got fixed
-are concentrated. And `fixed` at 44% is itself a finding about the tree rather than about the files:
+are concentrated. And `fixed` at 43% is itself a finding about the tree rather than about the files:
 it means the common case is reading a fifteen-year-old report, running it, and finding it simply
 works now.
 
@@ -917,11 +917,11 @@ settles it. Reach for blank `disposition` after that fails, not instead of it.
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-241 are settled and **616 are left**:
+255 are settled and **602 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 263 |
+| `dan`, priority `1` | 249 |
 | `mike` | 207 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
