@@ -338,7 +338,7 @@ recommendations, not instructions to write the file now.
 **Fixed?** `verdict=fixed`, the commit or PR in `fix`, and `disposition=drop`.
 
 In practice that is the only answer a fixed row gets. `test` names a destination under
-`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 303 settled rows it has been
+`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 315 settled rows it has been
 used **zero times**, including on the fourteen `anton/*/RESOLVED/*.m2` reproducers where it looks
 most tempting. Promoting a reproducer is writing code in the Macaulay2 sources, which is not what
 this branch does, and recommending it per-row invites exactly that confusion -- the recommendation
@@ -366,15 +366,15 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 303 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 315 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 128 | 42% |
-| `open` | 83 | 27% |
-| `duplicate` | 33 | 11% |
-| `obsolete` | 33 | 11% |
-| `wontfix` | 26 | 9% |
+| `fixed` | 132 | 42% |
+| `open` | 87 | 28% |
+| `obsolete` | 36 | 11% |
+| `duplicate` | 34 | 11% |
+| `wontfix` | 26 | 8% |
 
 So `obsolete` and `wontfix` together are 20%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
@@ -816,7 +816,7 @@ that matters to anyone picking work off the tracker:
 `project.EXCLUSIVE` rejects a row claiming both, because an issue carrying both has had that
 judgment dodged rather than made. Plenty of rows are honestly *neither* -- a rename proposal, a
 documentation gap, "generate these Makefile dependencies instead of maintaining them by hand" --
-and those take a subsystem label alone. Of the 72 labelled so far, 30 came out `bug`, 24
+and those take a subsystem label alone. Of the 75 labelled so far, 32 came out `bug`, 25
 `feature request`, 18 neither.
 
 ### Relabelling after the fact is by hand
@@ -1225,15 +1225,70 @@ reusing a symbol takes it over. Knowing it about the *subject* did not stop it h
 `R_0`, `R_1` and `(coefficientRing R)_0` rather than the symbols, which cannot be shadowed out from
 under you.
 
+## A guard that checks the top of a ring tower is the recurring defect here
+
+Three separate rows in three consecutive batches turned out to be the same mistake, and it is worth
+naming as a pattern rather than three coincidences.
+
+- **#4576.** `factoryAlmostGood` (`enginering.m2:335-343`) recurses `QuotientRing -> ambient` and
+  `PolynomialRing -> coefficientRing` and tests only what is at the bottom, so `frac` accepts a
+  quotient by any ideal and builds a "field" in which multiplication is not associative.
+- **#4578.** `flattenRing Ring` tests `k === R` at `newring.m2:198`, but the overriding methods at
+  `:221-225` and `:243` test only the *coefficient* ring, so `flattenRing(R, CoefficientRing => R)`
+  falls through to `unable()`.
+- **#4583.** The guard Dan himself proposed in #321 -- "just give an error if the ring is a quotient
+  ring" -- exists at `factor.m2:24`, and checks only the top ring. So `gcd` errors in
+  `QQ[a]/(a^2-1)` and proceeds in `(QQ[a]/(a^2-1))[x]`, returning a common divisor that is not
+  greatest.
+
+The shape: a ring in M2 is a chain, and a predicate written about "the ring" tends to mean the outer
+one. Every such check is worth reading twice -- once for what it tests, once for how far down it
+looks. **The practical tell is that the guard fires on the base case and not on one level up**, so
+the cheap check is to try both: the quotient itself, and a polynomial ring over it.
+
+## An example can pass by accident, so build one whose components disagree
+
+For `1-gcd-over-separable-extensions` the first counterexample I tried was `(x^2-1)*(x-a)` against
+`(x^2-1)*(x+a)` over `QQ[a]/(a^2-1)`, which is `QQ x QQ`. `gcd` returned `x^2-1`, the right answer,
+and the row looked met.
+
+It was luck. Under `a |-> (1,-1)` both components of that pair have the *same* gcd, so a single
+Euclidean computation that ignores the product structure lands on it anyway. Rebuilding the example
+from the idempotents `e = (1+a)/2`, `f = (1-a)/2` so the components disagree --
+`F = e*(x-1) + f*(x-2)`, `G = e*(x-1) + f*(x-3)` -- gives `gcd` of `1` where `e*(x-1) + f` has degree
+1 and divides both.
+
+The general rule for a row about a structured object -- a product of fields, a tower, a multigrading,
+a reducible ideal -- is that **an example whose components agree cannot distinguish an implementation
+that respects the structure from one that ignores it.** Choose the inputs so the correct answer is
+one the naive computation could not produce, and then verify the better answer really is better
+(here: it divides both inputs, and its degree exceeds the one returned).
+
+## Compare against the library, not only against the past
+
+`1-galois-fields` asks whether PARI's finite-field moduli are better than M2's. PARI left the tree
+in 2025, so the literal question is unanswerable and `obsolete` was the tempting verdict.
+
+What made it filable was measuring M2 against a library it *already links*. `GF(3,100)` spends 6.5
+seconds searching for a dense random irreducible and returns a 67-term modulus that **differs on
+every call**; `rawConwayPolynomial(3,100,true)`, which routes to FLINT's `fq_nmod_ctx_init`, returns
+a 3-coefficient modulus in 2.2 milliseconds. `ConwayPolynomials.m2:16` hard-codes the flag that would
+reach it.
+
+So when a file proposes adopting some external thing and that thing is gone, the question to ask is
+not "is the proposal still possible" but **"is the capability it wanted available now, from
+something already present"** -- often by a dependency the tree acquired for another reason. The
+non-determinism found on the way was the more serious half and would not have surfaced from reading.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-303 are settled and **554 are left**:
+315 are settled and **542 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 202 |
+| `dan`, priority `1` | 190 |
 | `mike` | 206 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
@@ -1243,7 +1298,7 @@ Take one author at a time. Their file conventions differ -- Dan's are prose note
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
 number down -- and switching between them means relearning the format every few rows.
 
-The mix of kinds differs too, and it decides how a bucket feels. **286 of Dan's 303 remaining are
+The mix of kinds differs too, and it decides how a bucket feels. **274 of Dan's 291 remaining are
 prose notes, against only 17 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
 remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
 running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
