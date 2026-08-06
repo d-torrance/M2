@@ -355,14 +355,14 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 255 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 269 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 109 | 43% |
-| `open` | 73 | 29% |
-| `obsolete` | 33 | 13% |
-| `duplicate` | 22 | 9% |
+| `fixed` | 115 | 43% |
+| `open` | 76 | 28% |
+| `obsolete` | 33 | 12% |
+| `duplicate` | 27 | 10% |
 | `wontfix` | 18 | 7% |
 
 So `obsolete` and `wontfix` together are 20%, not "most", and the largest single outcome by far
@@ -917,11 +917,11 @@ settles it. Reach for blank `disposition` after that fails, not instead of it.
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-255 are settled and **602 are left**:
+269 are settled and **588 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 249 |
+| `dan`, priority `1` | 235 |
 | `mike` | 207 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
