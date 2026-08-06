@@ -1316,6 +1316,29 @@ Two habits, both cheap:
 The deeper error was accepting "killed by timeout 540" without checking that the process was
 actually dead -- the same shape as accepting a benchmark without checking its inputs.
 
+### Sweeping means sweeping *your own* processes
+
+The advice above, followed literally, does damage. At the end of a later batch a `pgrep`-shaped
+sweep matched three `M2-binary` processes and all three were killed; **two of them were the
+maintainer's own interactive sessions.** No computation was lost, but only by luck.
+
+`M2-binary` in the process table says nothing about who started it, and the distinguishing column
+was right there unrequested:
+
+```sh
+ps -eo pid,ppid,tty,etime,args | grep [M]2-binary
+```
+
+A process from a tool call has **tty `?`** and a parent chain that reaches the agent process; an
+interactive session has a real `pts/N`. The one I killed was `M2 --no-readline --print-width 114`
+-- and a print width of 114 comes from somebody's terminal, not from anything here.
+
+So: never kill by name match. Prefer not needing to -- `timeout` on the command, and capture `$!`
+for anything backgrounded -- and when a sweep does find something, print `tty` and `ppid` and kill
+only what is attributable to this session. A stray process of mine costs a core for an hour; a
+killed session of the maintainer's costs work that cannot be recovered, so the two errors are not
+symmetric and the check is one column wide.
+
 ## The record often settles a row faster than the code does
 
 Three rows in one batch were settled by history rather than by measurement, and in each case
