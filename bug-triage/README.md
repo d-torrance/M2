@@ -870,6 +870,24 @@ duplicated a 2014 issue because the search that would have caught it was never r
 The judgement being asked for is not "is the dry run clean". It is "should this be public at
 all", and that is the maintainer's to make. Read the dry run every time; then ask.
 
+**Three ways "each time" has been read too loosely, all of them in one session.**
+
+- **The gate is wider than `--apply`.** It covers anything that reaches GitHub: `bin/push-project
+  --apply`, `bin/file-issues --apply`, `bin/comment-issues`, a hand-run `gh issue create` for a
+  finding with no row (#4556, #4574, #4575), and `git push` of this branch -- which matters because
+  `project.CATALOG_URL` points every pushed triage block at it, so the branch *is* the public
+  source of truth those issues cite.
+- **A go-ahead does not carry to the next batch.** "Let's do the next batch" authorizes triage, not
+  filing. Being told "go ahead and do all 5" once is about those five runs, on those rows.
+- **Confirming a verdict is not confirming publication.** Agreeing that a row is `open` and worth
+  filing settles what `catalog.tsv` should say. It does not settle whether to convert the draft
+  today. Those are two questions and they get asked separately, because the first costs nothing to
+  get wrong and the second costs a stranger's attention.
+
+The failure mode is not forgetting the rule -- it is having the answer to a *different* question in
+hand and treating it as this one. Reading the dry run privately and acting on it is the specific
+shape to watch for: it satisfies the lower half of the bar and skips the half that matters.
+
 **Nothing records that a row has been pushed, on purpose.** Every run diffs the TSV against live
 board state and queues only what actually differs, so after an applied push the same command
 reports nothing to do. A `pushed` column would go stale in both directions -- revise a note and
@@ -1114,7 +1132,7 @@ that shows an error carries the path of whoever built it.
 The general shape: **example output is published, so anything that decides what an error message
 says is a reproducibility interface**, not only a usability one. Before proposing a change to
 message formatting, ask what it does to the ~8500 `.out` files in the distribution. And when a
-revert looks like collateral damage, check whether the reverted behaviour was also load-bearing for
+revert looks like collateral damage, check whether the reverted behavior was also load-bearing for
 the reason it was introduced -- `9de2bbbe7a` reverted the relativizing as a side effect of an
 unrelated build-directory revert, and the original reason survived the accident.
 
