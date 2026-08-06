@@ -338,7 +338,7 @@ recommendations, not instructions to write the file now.
 **Fixed?** `verdict=fixed`, the commit or PR in `fix`, and `disposition=drop`.
 
 In practice that is the only answer a fixed row gets. `test` names a destination under
-`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 315 settled rows it has been
+`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 327 settled rows it has been
 used **zero times**, including on the fourteen `anton/*/RESOLVED/*.m2` reproducers where it looks
 most tempting. Promoting a reproducer is writing code in the Macaulay2 sources, which is not what
 this branch does, and recommending it per-row invites exactly that confusion -- the recommendation
@@ -366,15 +366,15 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 315 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 327 settled:
 
 | verdict | | |
 | --- | ---: | ---: |
-| `fixed` | 132 | 42% |
-| `open` | 87 | 28% |
-| `obsolete` | 36 | 11% |
-| `duplicate` | 34 | 11% |
-| `wontfix` | 26 | 8% |
+| `fixed` | 137 | 42% |
+| `open` | 89 | 27% |
+| `obsolete` | 37 | 11% |
+| `duplicate` | 35 | 11% |
+| `wontfix` | 29 | 9% |
 
 So `obsolete` and `wontfix` together are 20%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
@@ -816,7 +816,7 @@ that matters to anyone picking work off the tracker:
 `project.EXCLUSIVE` rejects a row claiming both, because an issue carrying both has had that
 judgment dodged rather than made. Plenty of rows are honestly *neither* -- a rename proposal, a
 documentation gap, "generate these Makefile dependencies instead of maintaining them by hand" --
-and those take a subsystem label alone. Of the 75 labelled so far, 32 came out `bug`, 25
+and those take a subsystem label alone. Of the 77 labelled so far, 33 came out `bug`, 26
 `feature request`, 18 neither.
 
 ### Relabelling after the fact is by hand
@@ -1280,15 +1280,71 @@ not "is the proposal still possible" but **"is the capability it wanted availabl
 something already present"** -- often by a dependency the tree acquired for another reason. The
 non-determinism found on the way was the more serious half and would not have surfaced from reading.
 
+## Use `git -C`, because the cwd trap does not yield to vigilance
+
+This README has warned about cwd-relative pathspecs since early on, and added the
+`git show`-versus-`git log` tell later. It caught me a **fourth** time anyway:
+`git log --oneline -- M2/Macaulay2/m2/hilbert.m2` printed `0`, because an earlier
+`cd bug-triage` in the same shell was still in effect. Seventeen commits, reported as none.
+Minutes later, writing this very section, `cd bug-triage` failed because the shell was already
+there.
+
+The pattern is structural rather than careless. Working here means alternating between
+`bug-triage/` for the tooling and the repository root for the evidence, so any rule of the
+form "remember which directory you are in" will fail eventually.
+
+**So stop relying on cwd.** Set `R=/home/profzoom/src/macaulay2/M2` and write `git -C $R log
+-- <path>`, `git -C $R grep ...`, and absolute paths for scripts. It costs five characters and
+removes the failure mode instead of asking anyone to notice it. Three earlier lessons in this
+file tried to teach noticing; this one replaces it with a habit that cannot silently fail.
+
+## Bound anything exploratory, and sweep for strays when the batch ends
+
+A `GF(3,582)` probe from the previous batch was still running **55 minutes** later at 99% of a
+core and 261MB, having been reported as "did not finish in 540s" -- because the invocation that
+was reported had a `timeout` and the one left running did not. The catalog note and #4582 both
+understated the measurement by a factor of six until it was corrected.
+
+Two habits, both cheap:
+
+- **Put an explicit `timeout` on any command whose subject is "this might not terminate."** The
+  irony of omitting it on a row about a brute-force irreducibility search is the point: the rows
+  most worth bounding are exactly the ones about unbounded computation.
+- **Sweep at the end of a batch**: `pgrep -a M2-binary`, and check for shells older than a minute.
+  Subagents finish and report while processes they started keep running, and nothing reaps them.
+
+The deeper error was accepting "killed by timeout 540" without checking that the process was
+actually dead -- the same shape as accepting a benchmark without checking its inputs.
+
+## The record often settles a row faster than the code does
+
+Three rows in one batch were settled by history rather than by measurement, and in each case
+reading the code first would have been slower and less conclusive.
+
+- `1-hashing-doc-examples` asked for stored example inputs to become sequences. `511504951f`
+  implemented it eight days after the file was written; `7c41af8e0e` reverted it six months
+  later; and `examples.m2:165-166` still carries *"don't convert `ex` on the next line to a
+  sequence, because the hash code for caching example outputs will change."* The author decided
+  it twice and left a note forbidding the redo.
+- `1-hilbertSeries-coherent-sheaf` is an email thread dated 2008-12-10. `8b32397e67`, "disable
+  hilbertFunction etc. on projective varieties", is dated **the same day**.
+- `1-html-doc-directory` complains about a link Dan had added seven months earlier
+  (`e67dd83a9b`) and which `0996057a46` deleted three months after the complaint.
+
+So before instrumenting anything, run `git log -S` on the mechanism the file names. A file that
+proposes a specific change is often accompanied by a commit that made it and, sometimes, another
+that took it back -- and a revert plus a source comment is a stronger verdict than any
+measurement, because it records a decision rather than a state.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-315 are settled and **542 are left**:
+327 are settled and **530 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 190 |
+| `dan`, priority `1` | 178 |
 | `mike` | 206 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
@@ -1298,8 +1354,8 @@ Take one author at a time. Their file conventions differ -- Dan's are prose note
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
 number down -- and switching between them means relearning the format every few rows.
 
-The mix of kinds differs too, and it decides how a bucket feels. **274 of Dan's 291 remaining are
-prose notes, against only 17 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
+The mix of kinds differs too, and it decides how a bucket feels. **263 of Dan's 279 remaining are
+prose notes, against only 16 reproducers**; Mike's 207 are 139 reproducers to 68 notes. So Dan's
 remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
 running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
 applying to most of it. `dan/0.4`–`0.9` was 28 notes and 0 reproducers, which is what the rest of
