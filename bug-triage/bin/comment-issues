@@ -8,6 +8,12 @@ something that issue lacks -- an older reproducer, a workaround, a second sympto
 of the same defect -- the useful move is a comment on the live issue rather than
 a new one.  That is what actually gets the bug fixed; the board cannot do it.
 
+Any row naming an issue may carry a comment, not only `duplicate` rows.  A row we
+filed ourselves can still need one: four rows gained PR provenance -- a decision
+recorded in a merged pull request, invisible from the issue -- after the issues
+were already open.  Restricting this to duplicates meant those had to be posted
+by hand, which is how the 1-flattenRing comment sat unposted.
+
 **The text is never generated.**  A comment is posted only for a path with a file
 under comments/, written by hand, mirroring the bug path:
 
@@ -44,6 +50,7 @@ its trailing marker.
 
 import argparse
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -71,18 +78,38 @@ def comment_paths():
                     os.path.join(dirpath, name), COMMENTS)[:-len(".md")]
 
 
+TARGET = re.compile(r"\A<!--\s*issue:\s*((?:#?\d+\s*)+)-->\s*\n")
+
+
 def body_for(path):
-    """The comment to post, or None if nobody has written one."""
+    """(comment, target issues) for a path, or (None, None) if nobody wrote one.
+
+    A file may name its own target on the first line:
+
+        <!-- issue: #3887 -->
+
+    which overrides the row's issue column.  1-flattenRing needs this: the row is
+    open and names the issue filed from it, but the comment was written for
+    someone else's issue about the same mechanism.  Without the override this
+    posts a comment about #3887's discussion onto our own issue instead.
+    """
     filename = comment_file(path)
     if not os.path.exists(filename):
-        return None
+        return None, None
     with open(filename, encoding="utf-8") as f:
-        text = f.read().strip()
+        text = f.read()
+    targets = None
+    m = TARGET.match(text)
+    if m:
+        targets = m.group(1).split()
+        text = text[m.end():]
+    text = text.strip()
     if not text:
-        return None
-    return "%s\n\n%s\n\n<sub>From `%s` in the pre-GitHub `bugs/` tree, being triaged in [#36](%s/issues/36).  Source of truth: [`bug-triage/catalog.tsv`](%s).</sub>\n%s" % (
+        return None, None
+    body = "%s\n\n%s\n\n<sub>From `%s` in the pre-GitHub `bugs/` tree, being triaged in [#36](%s/issues/36).  Source of truth: [`bug-triage/catalog.tsv`](%s).</sub>\n%s" % (
         project.ATTRIBUTION, text, path, project.REPO_URL, project.CATALOG_URL,
         marker_for(path))
+    return body, targets
 
 
 ISSUE_QUERY = """
@@ -122,14 +149,14 @@ def main():
     plan, skipped = [], []
 
     for r in rows:
-        if r["verdict"] != "duplicate" or not r["issue"]:
+        if not r["issue"]:
             continue
-        body = body_for(r["path"])
+        body, targets = body_for(r["path"])
         if body is None:
             skipped.append(r["path"])
             continue
         # "#568 #569" means the file covers both; each gets its own comment.
-        for ref in r["issue"].split():
+        for ref in (targets or r["issue"].split()):
             number = int(ref.lstrip("#"))
             issue = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
                                number=number)["data"]["repository"]["issue"]
@@ -143,8 +170,8 @@ def main():
                 continue
             plan.append((r["path"], issue, existing, body))
 
-    print("\n%d comments to post or update, %d duplicate rows have no comment "
-          "file\n" % (len(plan), len(skipped)))
+    print("\n%d comments to post or update, %d rows naming an issue have no "
+          "comment file\n" % (len(plan), len(skipped)))
 
     # The reverse check, which costs nothing and catches a comment written into a
     # void.  Only a duplicate row naming an issue reaches the loop above, so a
@@ -153,17 +180,16 @@ def main():
     # and no way to say it".  1-flattenRing hit this: an open row whose comment
     # belonged on someone else's issue (#3887), written, ignored, and only noticed
     # because the queue came back empty when it should not have.
-    postable = {r["path"] for r in rows
-                if r["verdict"] == "duplicate" and r["issue"]}
+    postable = {r["path"] for r in rows if r["issue"]}
     orphans = sorted(p for p in comment_paths() if p not in postable)
     # This does not check whether the comment was posted by hand afterwards, so an
     # orphan stays listed once it has been dealt with.  Verifying would mean an API
     # call per orphan to look for the marker, and a standing reminder is the safer
     # failure: it over-reports, where saying nothing under-reported.
     if orphans:
-        print("%d comment file(s) that nothing here will post -- the row is not a "
-              "duplicate naming an issue.\nPost by hand (and this line will keep "
-              "saying so), or fix the row:" % len(orphans))
+        print("%d comment file(s) that nothing here will post -- the row names no "
+              "issue.\nPost by hand (and this line will keep saying so), or fix the "
+              "row:" % len(orphans))
         for path in orphans:
             print("  %s" % path)
         print()

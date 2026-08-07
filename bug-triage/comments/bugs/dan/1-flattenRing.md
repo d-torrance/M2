@@ -1,3 +1,4 @@
+<!-- issue: #3887 -->
 The `newRing(S2, MonomialOrder => GRevLex, Degrees => {1,1})` workaround turns out to be doing one specific thing, and it connects this to a design question that has been open since 2006.
 
 What distinguishes the two rings is the **degree rank**, not the monomial order:
