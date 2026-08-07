@@ -5,9 +5,19 @@ The search API allows only 30 requests a minute, which is far too little to look
 up 857 bug files one at a time.  The core API allows 5000 an hour, and the whole
 issue list is about 21 paginated requests, so fetch it once and match locally.
 
-Pull requests are dropped: the issues endpoint returns both, but only issues are
-candidates for "is this already tracked?".  PR numbers referenced as fixes are
-recorded by hand in the "fix" column instead.
+Pull requests are kept, flagged with "pull_request": true.  They used to be
+dropped, on the theory that only issues answer "is this already tracked?".  That
+was wrong twice in one batch: PR #3328 settled whether `intersect()` should
+assume ZZ -- Mike Stillman said no, and it merged with `intersect` deliberately
+left out -- and PR #3852 added the warning that answers `1-loadPackage`.  Neither
+was findable here, and `1-list-of-ideals-of-R` was written up as `open` before
+the maintainer pointed at #3328.  A decision recorded only in a PR discussion is
+still a decision.
+
+They come free: the issues endpoint returns both in the same response, so this
+costs no extra requests.  bin/suggest-issues filters them out, since a PR is a
+poor thing to hand somebody as "your row may already be tracked here"; duplicate
+searches should include them.
 """
 
 import argparse
@@ -45,9 +55,8 @@ def fetch():
 
     out = []
     for i in issues:
-        if "pull_request" in i:
-            continue
         row = {k: i.get(k) for k in KEEP}
+        row["pull_request"] = "pull_request" in i
         row["labels"] = [l["name"] for l in i.get("labels", [])]
         # Generous cap: bin/suggest-issues needs to see a whole file listing to
         # recognize one, and truncating mid-listing would defeat that check.
@@ -75,8 +84,10 @@ def main():
         json.dump(issues, f, indent=1)
 
     is_open = sum(1 for i in issues if i["state"] == "open")
-    print("wrote %s: %d issues (%d open, %d closed)"
-          % (path, len(issues), is_open, len(issues) - is_open))
+    prs = sum(1 for i in issues if i["pull_request"])
+    print("wrote %s: %d items (%d open, %d closed; %d issues, %d pull requests)"
+          % (path, len(issues), is_open, len(issues) - is_open,
+             len(issues) - prs, prs))
 
 
 if __name__ == "__main__":

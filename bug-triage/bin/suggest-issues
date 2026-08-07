@@ -65,7 +65,12 @@ def load_issues():
     if not os.path.exists(path):
         raise SystemExit("no %s -- run bin/fetch-issues first" % path)
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        items = json.load(f)
+    # The cache holds pull requests too, since decisions get made in their
+    # discussions and duplicate searches need to see them.  Shortlisting is a
+    # different job: "your row may already be tracked at #N" wants an issue, so
+    # drop PRs here.  Older caches have no flag; treat those items as issues.
+    return [i for i in items if not i.get("pull_request")]
 
 
 def build_index(issues):
