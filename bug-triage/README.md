@@ -1406,15 +1406,63 @@ decision someone made and wrote down, which carries more weight in an issue body
 does. Look for commented-out targets, `if false`, skipped tests and `|| true` in the subsystem the
 row touches.
 
+## The flag that makes M2 convenient to test with can be the flag that hides the bug
+
+`-q` is in nearly every command in this directory, because an init file makes runs
+irreproducible. It also changes the behaviour under test. From `last.m2:65-71`:
+
+```m2
+prefixPath = if prefixDirectory === null then {} else {prefixDirectory};
+if not noinitfile and getenv "HOME" =!= "" then (
+     prefixPath = prepend(applicationDirectory()|"local/", prefixPath);
+```
+
+So `-q` drops the user prefix from `prefixPath` entirely. `1-installPackage` complains that a
+locally installed package is missing from the page `viewHelp` opens — and under `-q` that is
+exactly what happens: `prefixPath` is `{/usr/}`, `makePackageIndex()` never scans
+`~/.Macaulay2/local/`, and the package is absent. It looks like a clean reproduction of a
+seventeen-year-old bug. Without `-q`: `{~/.Macaulay2/local/, /usr/}`, and the package is listed,
+linked into the user prefix.
+
+The general form: **before trusting a reproduction, ask which of your harness flags the code under
+test reads.** Grep the flag's internal name — `noinitfile`, not `-q` — and see what branches on it.
+A flag that suppresses output is safe; a flag that suppresses *setup* is not, and the two are
+spelled the same way on the command line. Same family as "Four ways an existence check lies to you
+in M2" above, and as the benchmark that measured nothing.
+
+## A build tree in mid-build is not a test platform, and the tell is a `.tmp`
+
+`1-installPackage-links` is about a split-layout build tree, and the only split-layout M2 here was
+one in `M2/BUILD/build/`. Installing a package with it produced **11 broken links out of 77** —
+apparently the reported bug, on the first machine that could show it.
+
+It was not. Under that prefix, `Macaulay2Doc`'s documentation database exists only as
+`rawdocumentation-dcba-8.db.tmp`, so the build had never finished installing it, and
+`tallyInstalledPackages` says what it does about that:
+
+```m2
+if not fileExists dbfn then continue;	    -- maybe installation was interrupted, so ignore this package
+```
+
+With `Macaulay2Doc` skipped, `getPackageInfo` returns `null`, the locator falls back, and every
+link into the manual comes out wrong — for reasons that have nothing to do with layouts. An
+unfinished build reproduces *many* bugs it does not have.
+
+So when a borrowed build tree is the platform, check that the thing being linked to is actually
+installed in it before believing the result: `find <prefix> -name 'rawdocumentation*'` and look for
+a `.tmp` suffix. And prefer measuring the direction you *can* measure soundly — here the layout-1
+M2 installing into a layout-2 prefix gave 73 links and 0 broken, which is real evidence about the
+cross-layout machinery, while the confounded run was evidence about nothing.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-339 are settled and **518 are left**:
+351 are settled and **506 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 166 |
+| `dan`, priority `1` | 154 |
 | `mike` | 206 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
@@ -1424,7 +1472,7 @@ Take one author at a time. Their file conventions differ -- Dan's are prose note
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
 number down -- and switching between them means relearning the format every few rows.
 
-The mix of kinds differs too, and it decides how a bucket feels. **251 of Dan's 267 remaining are
+The mix of kinds differs too, and it decides how a bucket feels. **239 of Dan's 255 remaining are
 prose notes, against only 16 reproducers**; Mike's 206 are 139 reproducers to 67 notes. So Dan's
 remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
 running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
