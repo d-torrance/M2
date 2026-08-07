@@ -1,0 +1,186 @@
+-- -*- M2-comint -*- hash: 5169809868503748764
+
+i1 : R = ZZ/101[a,b,c]/ideal{a^3+b^3+c^3,a*b*c}
+
+o1 = R
+
+o1 : QuotientRing
+
+i2 : K1 = koszulComplexDGA(ideal vars R,Variable=>"Y")
+
+o2 = {Ring => R                          }
+      Underlying algebra => R[Y   ..Y   ]
+                               1,1   1,3
+      Differential => {a, b, c}
+
+o2 : DGAlgebra
+
+i3 : K2 = koszulComplexDGA(ideal {b,c},Variable=>"T")
+
+o3 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,2
+      Differential => {b, c}
+
+o3 : DGAlgebra
+
+i4 : f = dgAlgebraMap(K2,K1,matrix{{0,T_(1,1),T_(1,2)}})
+
+o4 = map (R[T   ..T   ], R[Y   ..Y   ], {0, T   , T   , a, b, c})
+             1,1   1,2      1,1   1,3        1,1   1,2
+
+o4 : DGAlgebraMap
+
+i5 : isWellDefined f
+
+o5 = false
+
+i6 : g = dgAlgebraMap(K1,K2,matrix{{Y_(1,2),Y_(1,3)}})
+
+o6 = map (R[Y   ..Y   ], R[T   ..T   ], {Y   , Y   , a, b, c})
+             1,1   1,3      1,1   1,2     1,2   1,3
+
+o6 : DGAlgebraMap
+
+i7 : isWellDefined g
+
+o7 = true
+
+i8 : R = ZZ/101[a,b,c]/ideal{a^3,b^3,c^3}
+
+o8 = R
+
+o8 : QuotientRing
+
+i9 : S = R/ideal{a^2*b^2*c^2}
+
+o9 = S
+
+o9 : QuotientRing
+
+i10 : f = map(S,R)
+
+o10 = map (S, R, {a, b, c})
+
+o10 : RingMap S <-- R
+
+i11 : A = acyclicClosure(R,EndDegree=>3)
+
+o11 = {Ring => R                                        }
+       Underlying algebra => R[T   ..T   ]
+                                1,1   2,3
+                                  2       2       2
+       Differential => {a, b, c, a T   , b T   , c T   }
+                                    1,1     1,2     1,3
+
+o11 : DGAlgebra
+
+i12 : B = acyclicClosure(S,EndDegree=>3)
+
+o12 = {Ring => S                                                                                                                                                                    }
+       Underlying algebra => S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ]
+                                1,1   1,3   2,1   2,4   3,1   3,3   4,1   4,6
+                                  2       2       2         2 2       2 2        2 2        2 2       2 2            2 2           2 2            2           2           2
+       Differential => {a, b, c, a T   , b T   , c T   , a*b c T   , b c T   , -a b T   , -a c T   , b c T   T   , -a c T   T   , b c T   T   , -a T   T   , c T   T   , b T   T   }
+                                    1,1     1,2     1,3         1,1       2,1        2,3        2,2       1,3 2,1        1,3 2,2       1,2 2,1      1,1 2,4     1,3 2,4     1,2 2,4
+
+o12 : DGAlgebra
+
+i13 : phi = liftToDGMap(B,A,f)
+
+o13 = map (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ], R[T   ..T   ], {T   , T   , T   , T   , T   , T   , a, b, c})
+              1,1   1,3   2,1   2,4   3,1   3,3   4,1   4,6      1,1   2,3     1,1   1,2   1,3   2,1   2,2   2,3
+
+o13 : DGAlgebraMap
+
+i14 : cmPhi = toComplexMap(phi,EndDegree=>3)
+
+                                          1
+o14 = 0 : cokernel | a2b2c2 | <--------- R  : 0
+                                 | 1 |
+
+                                                                    3
+      1 : cokernel {1} | a2b2c2 0      0      | <----------------- R  : 1
+                   {1} | 0      a2b2c2 0      |    {1} | 1 0 0 |
+                   {1} | 0      0      a2b2c2 |    {1} | 0 1 0 |
+                                                   {1} | 0 0 1 |
+
+                                                                                                      6
+      2 : cokernel {2} | a2b2c2 0      0      0      0      0      0      | <----------------------- R  : 2
+                   {2} | 0      a2b2c2 0      0      0      0      0      |    {2} | 1 0 0 0 0 0 |
+                   {2} | 0      0      a2b2c2 0      0      0      0      |    {2} | 0 1 0 0 0 0 |
+                   {3} | 0      0      0      a2b2c2 0      0      0      |    {2} | 0 0 1 0 0 0 |
+                   {3} | 0      0      0      0      a2b2c2 0      0      |    {3} | 0 0 0 1 0 0 |
+                   {3} | 0      0      0      0      0      a2b2c2 0      |    {3} | 0 0 0 0 1 0 |
+                   {6} | 0      0      0      0      0      0      a2b2c2 |    {3} | 0 0 0 0 0 1 |
+                                                                               {6} | 0 0 0 0 0 0 |
+
+                                                                                                                                                                             10
+      3 : cokernel {3} | a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      | <------------------------------- R   : 3
+                   {4} | 0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      0      0      |    {3} | 1 0 0 0 0 0 0 0 0 0 |
+                   {4} | 0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      0      |    {4} | 0 1 0 0 0 0 0 0 0 0 |
+                   {4} | 0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      |    {4} | 0 0 1 0 0 0 0 0 0 0 |
+                   {4} | 0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      |    {4} | 0 0 0 1 0 0 0 0 0 0 |
+                   {4} | 0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      |    {4} | 0 0 0 0 1 0 0 0 0 0 |
+                   {4} | 0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      |    {4} | 0 0 0 0 0 1 0 0 0 0 |
+                   {4} | 0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      |    {4} | 0 0 0 0 0 0 1 0 0 0 |
+                   {4} | 0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      |    {4} | 0 0 0 0 0 0 0 1 0 0 |
+                   {4} | 0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      |    {4} | 0 0 0 0 0 0 0 0 1 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      |    {4} | 0 0 0 0 0 0 0 0 0 1 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                                                                                                                                              {7} | 0 0 0 0 0 0 0 0 0 0 |
+
+o14 : ComplexMap
+
+i15 : source phi
+
+o15 = {Ring => R                                        }
+       Underlying algebra => R[T   ..T   ]
+                                1,1   2,3
+                                  2       2       2
+       Differential => {a, b, c, a T   , b T   , c T   }
+                                    1,1     1,2     1,3
+
+o15 : DGAlgebra
+
+i16 : target phi
+
+o16 = {Ring => S                                                                                                                                                                    }
+       Underlying algebra => S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ]
+                                1,1   1,3   2,1   2,4   3,1   3,3   4,1   4,6
+                                  2       2       2         2 2       2 2        2 2        2 2       2 2            2 2           2 2            2           2           2
+       Differential => {a, b, c, a T   , b T   , c T   , a*b c T   , b c T   , -a b T   , -a c T   , b c T   T   , -a c T   T   , b c T   T   , -a T   T   , c T   T   , b T   T   }
+                                    1,1     1,2     1,3         1,1       2,1        2,3        2,2       1,3 2,1        1,3 2,2       1,2 2,1      1,1 2,4     1,3 2,4     1,2 2,4
+
+o16 : DGAlgebra
+
+i17 : HHg = HH g
+Finding easy relations           :  -- used 0.121731s (cpu); 0.0515s (thread); 0s (gc)
+
+                          ZZ
+                         ---[a..c]
+            ZZ           101
+o17 = map (---[X ..X ], ----------[X ], {X , 0, 0, 0})
+           101  1   2           3   1     1
+                        (c, b, a )
+
+                                ZZ
+                               ---[a..c]
+               ZZ              101
+o17 : RingMap ---[X ..X ] <-- ----------[X ]
+              101  1   2              3   1
+                              (c, b, a )
+
+i18 : matrix HHg
+
+o18 = | X_1 0 0 0 |
+
+               ZZ         1       ZZ         4
+o18 : Matrix (---[X ..X ])  <-- (---[X ..X ])
+              101  1   2         101  1   2
+
+i19 : 

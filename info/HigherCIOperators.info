@@ -1,0 +1,496 @@
+ -*- coding: utf-8 -*- This is HigherCIOperators.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* HigherCIOperators: (HigherCIOperators).  higher CI operators
+END-INFO-DIR-ENTRY
+
+
+File: HigherCIOperators.info, Node: Top, Next: ciOperatorResolution, Up: (dir)
+
+HigherCIOperators -- "Higher CI operators on a resolution over a complete intersection"
+***************************************************************************************
+
+Description
+===========
+
+The "higher CI operators" complete the structure of the ordinary CI operators
+on (sometimes called "Eisenbud operators") on a resolution over a complete
+intersection in the same sense that the "higher homotopies" complete the
+structure of homotopies on with respect to a sequence of elements. Details will
+appear in a preprint in preparation by Burke, Eisenbud and Schreyer.
+
+The higher CI operators are constructed by the routine higherCIOperators.
+
+Just as a system of higher homotopies for a regular sequence f_1..f_c on a
+resolution over a ring S allow  one to construct the Shamash resolution over R
+= S/(f_1..f_c), the higher CI operators are involved in a sort of dual
+construction: from a resolution F over R, lifted to a sequence of maps A over
+S, and lifted higher CI operators on A\otimes L, where L is the Koszul complex
+on f, one can construct a nonminimal resolution AL over S using the routine
+ciOperatorResolution.
+
+
+
+Author
+======
+
+  * David Eisenbud (see http://www.msri.org/~de/ ) <de@msri.org>
+
+Version
+=======
+
+This documentation describes version 0.5 of HigherCIOperators, released May 10,
+2015.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{HigherCIOperatorsSource,                                              |
+|  title = {{HigherCIOperators: higher CI operators. Version~0.5}},          |
+|  author = {David Eisenbud},                                                |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note ciOperatorResolution: ciOperatorResolution, -- "lift resolution
+        from complete intersection using higher ci-operators"
+      * *note exteriorMultiplication: exteriorMultiplication, --
+        "multiplication maps in the exterior algebra"
+      * *note higherCIOperators: higherCIOperators, -- "creates the HashTable
+        of higher CI operators on a lifted resolution"
+      * *note makeALDifferential: makeALDifferential, -- "makes the
+        differential used in ciOperatorResolution"
+      * *note trueKoszul: trueKoszul, -- "Makes Koszul complex, with bases
+        sorted in lex"
+  * Methods
+      * "ciOperatorResolution(Complex,Complex)" -- see *note
+        ciOperatorResolution: ciOperatorResolution, -- "lift resolution from
+        complete intersection using higher ci-operators"
+      * "exteriorMultiplication(ZZ)" -- see *note exteriorMultiplication:
+        exteriorMultiplication, -- "multiplication maps in the exterior
+        algebra"
+      * "higherCIOperators(Complex,Complex)" -- see *note higherCIOperators:
+        higherCIOperators, -- "creates the HashTable of higher CI operators on
+        a lifted resolution"
+      * "makeALDifferential(ZZ,Complex,Complex,HashTable)" -- see *note
+        makeALDifferential: makeALDifferential, -- "makes the differential used
+        in ciOperatorResolution"
+      * "trueKoszul(Matrix)" -- see *note trueKoszul: trueKoszul, -- "Makes
+        Koszul complex, with bases sorted in lex"
+
+For the programmer
+==================
+
+The object *note HigherCIOperators: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in HigherCIOperators.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HigherCIOperators.m2:511:0.
+
+File: HigherCIOperators.info, Node: ciOperatorResolution, Next: exteriorMultiplication, Prev: Top, Up: Top
+
+ciOperatorResolution -- "lift resolution from complete intersection using higher ci-operators"
+**********************************************************************************************
+
+  * Usage: 
+        AL = ciOperatorResolution(A,L)
+  * Inputs:
+      * A, a *note complex: (Complexes)Complex,, lift over $S\to R$ of an
+        R-free resolution
+      * L, a *note complex: (Complexes)Complex,, algebra resolution of R over
+        S; for now, Koszul complex
+  * Outputs:
+      * AL, a *note complex: (Complexes)Complex,, resolution over S of same
+        module
+
+Description
+===========
+
+If S is a ring, R = S/(f1..fc) a complete intersection, A the lift to S of an
+R-free resolution of a module M, and L the Koszul complex resolving R over S,
+the script constructs the "higher ci operators" on A of Eisenbud-Peeva-Schreyer
+and uses them to construct a -usually nonminimal- S-free resolution of M. The
+resulting resolution has the structure of a module over the exterior algebra.
+
+This construction is in some sense dual to the Shamash construction of an
+R-free resolution from an S-free resolution, that uses higher homotopies and
+yields a resolution that is a module over the divided power algebra.
+
+The same procedure would work starting with an algebra resolution of any
+S-algebra R, given a description of the multiplication on the algebra
+resolution.
+
++--------------------------------------------------------+
+|i1 : needsPackage "CompleteIntersectionResolutions"     |
+|                                                        |
+|o1 = CompleteIntersectionResolutions                    |
+|                                                        |
+|o1 : Package                                            |
++--------------------------------------------------------+
+|i2 : S = ZZ/101[a,b,c];                                 |
++--------------------------------------------------------+
+|i3 : ff = matrix"a4,b4,c4";                             |
+|                                                        |
+|             1      3                                   |
+|o3 : Matrix S  <-- S                                    |
++--------------------------------------------------------+
+|i4 : N = coker matrix"a,b,c;b,c,a";                     |
++--------------------------------------------------------+
+|i5 : R = S/ideal ff;                                    |
++--------------------------------------------------------+
+|i6 : M = highSyzygy (R**N);                             |
++--------------------------------------------------------+
+|i7 : AA = res(M, LengthLimit => 5);                     |
++--------------------------------------------------------+
+|i8 : Alist = apply(length AA, i-> lift(AA.dd_(i+1), S));|
++--------------------------------------------------------+
+|i9 : A = complex Alist;                                 |
++--------------------------------------------------------+
+|i10 : L = trueKoszul ff;                                |
++--------------------------------------------------------+
+|i11 : AL = ciOperatorResolution(A,L)                    |
+|                                                        |
+|       13      57      117      170      222      282   |
+|o11 = S   <-- S   <-- S    <-- S    <-- S    <-- S      |
+|                                                        |
+|      0       1       2        3        4        5      |
+|                                                        |
+|o11 : Complex                                           |
++--------------------------------------------------------+
+|i12 : G = res pushForward(map(R,S),M)                   |
+|                                                        |
+|       13      33      29      9                        |
+|o12 = S   <-- S   <-- S   <-- S                         |
+|                                                        |
+|      0       1       2       3                         |
+|                                                        |
+|o12 : Complex                                           |
++--------------------------------------------------------+
+|i13 : betti AL                                          |
+|                                                        |
+|              0  1   2   3   4   5                      |
+|o13 = total: 13 57 117 170 222 282                      |
+|          9:  3  .   .   .   .   .                      |
+|         10:  9  6   .   .   .   .                      |
+|         11:  .  3   3   .   .   .                      |
+|         12:  1 18  18  10   .   .                      |
+|         13:  . 27  18   3   3   .                      |
+|         14:  .  .  12  27  30  15                      |
+|         15:  .  3  36  54  30   3                      |
+|         16:  .  .  27  18  15  39                      |
+|         17:  .  .   .  18  63  90                      |
+|         18:  .  .   3  30  54  30                      |
+|         19:  .  .   .   9   6  27                      |
+|         20:  .  .   .   .  12  57                      |
+|         21:  .  .   .   1   9  18                      |
+|         22:  .  .   .   .   .   .                      |
+|         23:  .  .   .   .   .   3                      |
+|                                                        |
+|o13 : BettiTally                                        |
++--------------------------------------------------------+
+|i14 : betti G                                           |
+|                                                        |
+|              0  1  2 3                                 |
+|o14 = total: 13 33 29 9                                 |
+|          9:  3  .  . .                                 |
+|         10:  9  6  . .                                 |
+|         11:  .  3  . .                                 |
+|         12:  1 15  . .                                 |
+|         13:  .  9  8 .                                 |
+|         14:  .  .  6 .                                 |
+|         15:  .  . 12 .                                 |
+|         16:  .  .  3 3                                 |
+|         17:  .  .  . 3                                 |
+|         18:  .  .  . 3                                 |
+|                                                        |
+|o14 : BettiTally                                        |
++--------------------------------------------------------+
+
+See also
+========
+
+  * *note higherCIOperators: higherCIOperators, -- "creates the HashTable of
+    higher CI operators on a lifted resolution"
+
+Ways to use ciOperatorResolution:
+=================================
+
+  * "ciOperatorResolution(Complex,Complex)"
+
+For the programmer
+==================
+
+The object *note ciOperatorResolution: ciOperatorResolution, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HigherCIOperators.m2:468:0.
+
+File: HigherCIOperators.info, Node: exteriorMultiplication, Next: higherCIOperators, Prev: ciOperatorResolution, Up: Top
+
+exteriorMultiplication -- "multiplication maps in the exterior algebra"
+***********************************************************************
+
+  * Usage: 
+        mu = exteriorMultiplication n
+  * Inputs:
+      * n, an *note integer: (Macaulay2Doc)ZZ,, positive integer
+  * Outputs:
+      * mu, a *note hash table: (Macaulay2Doc)HashTable,, $mu\{p,q\}\wedge^p
+        k^n\otimes \wedge^q k^n \to \wedge^{p+q}k^n$
+
+Description
+===========
+
+The basis of each $\wedge^p k^n$ is given in lex order.
+
+Caveat
+======
+
+This is not the order of the basis in the output of koszulComplex ff; rather,
+use trueKoszul ff.
+
+See also
+========
+
+  * *note trueKoszul: trueKoszul, -- "Makes Koszul complex, with bases sorted
+    in lex"
+
+Ways to use exteriorMultiplication:
+===================================
+
+  * "exteriorMultiplication(ZZ)"
+
+For the programmer
+==================
+
+The object *note exteriorMultiplication: exteriorMultiplication, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HigherCIOperators.m2:320:0.
+
+File: HigherCIOperators.info, Node: higherCIOperators, Next: makeALDifferential, Prev: exteriorMultiplication, Up: Top
+
+higherCIOperators -- "creates the HashTable of higher CI operators on a lifted resolution"
+******************************************************************************************
+
+  * Usage: 
+        u = higherCIOperators(A,L)
+  * Inputs:
+      * A, a *note complex: (Complexes)Complex,, lifted resolution from
+        complete intersection $S\to R$
+      * L, a *note complex: (Complexes)Complex,, Koszul complex resolving R
+        over S
+  * Outputs:
+      * u, a *note hash table: (Macaulay2Doc)HashTable,, $u\{n,p,q\}$ is a map
+        $A_p\otimes L_q \to A_{p-n}\otimes L_{q+n-1}$
+
+Description
+===========
+
+$A$ is the sequence of maps (generally not really a complex) obtained by
+lifting the differentials of a free resolution over $R$ back to $S$.
+
+Definition: $u\{n,p,q\}$ is determined by induction on $n$ and the rules
+
+$u\{0,p,q\} = (-1)^q(A_p \otimes d_L) :\ A_p\otimes L_q \to A_p\otimes L_{q-1}$
+
+$u\{1,p,q\} = d_A \otimes  L_q: A_p\otimes L_q \to A_{p-1}\otimes L_q$
+
+$\sum_{i+j=n} u\{j,p-i,q+i-1\} * u\{i,p,q\} = 0$
+
+and
+
+$u\{n,p,q\}: A_p\otimes L_q \to A_{p-n}\otimes L_{q+n-1} = \mu *
+u\{n,p,0\}\otimes L_q$,
+
+where
+
+$\mu:L_{n-1}\otimes L_q \to L_{n+q-1}$
+
+is the multiplication in the Koszul algebra.
+
+The output $u\{n,p,q\}$ will be defined for all keys  $\{n,p,q\}$ such that:
+$length(A) \geq p \geq n \geq 0$ and if $n=0$ then $length(L)\geq q \geq 1$,
+else $length(L)-n+1 \geq q \geq 0$.
+
+
+
+The maps $u\{2,p,q\}$ are thus the classical CI operators from Eisenbud [1981],
+while the $u\{3,p,q\}$ define maps of the  modules $Ext_R^{odd, \geq 3}(M,k)
+\to E_R^{even}(M,k)$ and are obstructions to commutativity of the classic ci
+operators on the R-free resolution of M.
+
+These maps are used to construct the differentials in the lifted CI resolution
+
+See also
+========
+
+  * *note makeALDifferential: makeALDifferential, -- "makes the differential
+    used in ciOperatorResolution"
+  * *note ciOperatorResolution: ciOperatorResolution, -- "lift resolution from
+    complete intersection using higher ci-operators"
+
+Ways to use higherCIOperators:
+==============================
+
+  * "higherCIOperators(Complex,Complex)"
+
+For the programmer
+==================
+
+The object *note higherCIOperators: higherCIOperators, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HigherCIOperators.m2:389:0.
+
+File: HigherCIOperators.info, Node: makeALDifferential, Next: trueKoszul, Prev: higherCIOperators, Up: Top
+
+makeALDifferential -- "makes the differential used in ciOperatorResolution"
+***************************************************************************
+
+  * Usage: 
+        dj = makeALDifferential(j, A, L, u)
+  * Inputs:
+      * j, an *note integer: (Macaulay2Doc)ZZ,, which differential
+      * A, a *note complex: (Complexes)Complex,, lift of resolution from
+        complete intersection S-->R
+      * L, a *note complex: (Complexes)Complex,, Koszul complex resolving R
+        over S
+      * u, a *note hash table: (Macaulay2Doc)HashTable,, output of
+        higherCIOperators
+  * Outputs:
+      * dj, a *note matrix: (Macaulay2Doc)Matrix,, j-th differential of the
+        ciOperatorResolution AL
+
+See also
+========
+
+  * *note ciOperatorResolution: ciOperatorResolution, -- "lift resolution from
+    complete intersection using higher ci-operators"
+  * *note higherCIOperators: higherCIOperators, -- "creates the HashTable of
+    higher CI operators on a lifted resolution"
+
+Ways to use makeALDifferential:
+===============================
+
+  * "makeALDifferential(ZZ,Complex,Complex,HashTable)"
+
+For the programmer
+==================
+
+The object *note makeALDifferential: makeALDifferential, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HigherCIOperators.m2:414:0.
+
+File: HigherCIOperators.info, Node: trueKoszul, Prev: makeALDifferential, Up: Top
+
+trueKoszul -- "Makes Koszul complex, with bases sorted in lex"
+**************************************************************
+
+  * Usage: 
+        K = trueKoszul ff
+  * Inputs:
+      * ff, a *note matrix: (Macaulay2Doc)Matrix,, Matrix with the elements on
+        which to build the Koszul complex
+  * Outputs:
+      * K, a *note complex: (Complexes)Complex,, 
+
+Description
+===========
+
+The usual Koszul command produces a complex with the basis sorted in revlex.
+The sort in lex matches the sort of the monomials in the exterior algebra.
+
++--------------------------------------------------------+
+|i1 : S = ZZ/101[a,b,c,d]                                |
+|                                                        |
+|o1 = S                                                  |
+|                                                        |
+|o1 : PolynomialRing                                     |
++--------------------------------------------------------+
+|i2 : ff = matrix{{a,b,c,d}}                             |
+|                                                        |
+|o2 = | a b c d |                                        |
+|                                                        |
+|             1      4                                   |
+|o2 : Matrix S  <-- S                                    |
++--------------------------------------------------------+
+|i3 : (koszulComplex ff).dd_2                            |
+|                                                        |
+|o3 = {1} | -b -c 0  -d 0  0  |                          |
+|     {1} | a  0  -c 0  -d 0  |                          |
+|     {1} | 0  a  b  0  0  -d |                          |
+|     {1} | 0  0  0  a  b  c  |                          |
+|                                                        |
+|             4      6                                   |
+|o3 : Matrix S  <-- S                                    |
++--------------------------------------------------------+
+|i4 : (trueKoszul ff).dd_2                               |
+|                                                        |
+|o4 = {1} | -b -c -d 0  0  0  |                          |
+|     {1} | a  0  0  -c -d 0  |                          |
+|     {1} | 0  a  0  b  0  -d |                          |
+|     {1} | 0  0  a  0  b  c  |                          |
+|                                                        |
+|             4      6                                   |
+|o4 : Matrix S  <-- S                                    |
++--------------------------------------------------------+
+|i5 : basis(2,(ZZ/101[a,b,c,d, SkewCommutative => true]))|
+|                                                        |
+|o5 = | ab ac ad bc bd cd |                              |
+|                                                        |
+|              ZZ       1       ZZ       6               |
+|o5 : Matrix (---[a..d])  <-- (---[a..d])                |
+|             101              101                       |
++--------------------------------------------------------+
+
+See also
+========
+
+  * *note koszulComplex: (Complexes)koszulComplex_lpMatrix_rp, -- makes the
+    Koszul complex
+
+Ways to use trueKoszul:
+=======================
+
+  * "trueKoszul(Matrix)"
+
+For the programmer
+==================
+
+The object *note trueKoszul: trueKoszul, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HigherCIOperators.m2:296:0.
+
+Tag Table:
+Node: Top243
+Node: ciOperatorResolution4274
+Node: exteriorMultiplication11329
+Node: higherCIOperators12588
+Node: makeALDifferential15148
+Node: trueKoszul16658
+
+End Tag Table

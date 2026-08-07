@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>tgb -- threaded Gröbner bases</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Compute a Groebner basis using the classical Buchberger with multiple threads" href="index.html">ThreadedGB</a> :: <a title="threaded Gröbner bases" href="_tgb.html">tgb</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_tgb_lp..._cm__Verbose_eq_gt..._rp.html">next</a> | <a href="_reduce.html">previous</a> | <a href="_tgb_lp..._cm__Verbose_eq_gt..._rp.html">forward</a> | <a href="_reduce.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>tgb -- threaded Gröbner bases</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">tgb(List)</code></dd>
+            <dd><code class="language-macaulay2">tgb(Ideal)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">L</span>, <span>a <a title="the class of all lists -- {...}" href="../../Macaulay2Doc/html/___List.html">list</a></span>, of polynomials</span></li>
+            <li><span><span class="tt">I</span>, <span>an <a title="the class of all ideals" href="../../Macaulay2Doc/html/___Ideal.html">ideal</a></span>, </span></li>
+          </ul>
+        </li>
+        <li><a href="../../Macaulay2Doc/html/_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:          <ul>
+            <li><span><a title="Option to specify whether the end Gröbner basis should be a minimal Gröbner basis" href="___Minimal.html">Minimal</a><span class="tt"> => </span><span class="tt">...</span>, <span>default value false</span>, <span>Option to specify whether the end Gröbner basis should be a minimal Gröbner basis</span></span></li>
+            <li><span><a title="Option to specify whether additional output is wanted." href="_tgb_lp..._cm__Verbose_eq_gt..._rp.html">Verbose</a><span class="tt"> => </span><span class="tt">...</span>, <span>default value false</span>, <span>Option to specify whether additional output is wanted.</span></span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span>an instance of the type <a title="a hash table of Gröbner basis polynomials and their lineages" href="___Lineage__Table.html">LineageTable</a></span>, a hashtable whose values are a Gröbner basis for the ideal <span class="tt">I</span> or the ideal generated by <span class="tt">L</span>, and keys are the lineages of the corresponding elements.</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>Threaded Gröbner basis uses  <a title="the class of all tasks" href="../../Macaulay2Doc/html/___Task.html">Task</a>s to compute a Gröbner basis of <span class="tt">I</span> or <span class="tt">ideal L</span> using $n$ threads.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ/101[x,y,z, MonomialOrder=>Lex];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I = ideal {2*x + 10*y^2*z, 8*x^2*y + 10*x*y*z^3, 5*x*y^3*z^2 + 9*x*z^3, 9*x*y^3*z + 10*x*y^3};
+
+o2 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : allowableThreads  = 4;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : H = tgb I
+
+                                    2 4
+o4 = LineageTable{((0, 1), 2) => 19y z              }
+                                         2 4
+                  ((0, 2), (0, 1)) => -5y z
+                                    2 5
+                  ((0, 2), 1) => -7y z
+                                         5       2 4
+                  ((0, 3), (0, 1)) => 46y z + 40y z
+                                      2 5      2 4
+                  ((0, 3), 2) => - 48y z  + 19y z
+                                 5 2      3 4
+                  (0, 1) => - 25y z  - 19y z
+                                 3 5     2 4
+                  (0, 2) => - 24y z  + 9y z
+                              5 2      5
+                  (0, 3) => 5y z  + 28y z
+                                 4 5      3 8
+                  (1, 2) => - 45y z  + 30y z
+                                 2 6      2 5
+                  (1, 3) => - 14y z  - 38y z
+                              3 4     2 4
+                  (2, 3) => 7y z  - 9y z
+                               2
+                  0 => 2x + 10y z
+                         2           3
+                  1 => 8x y + 10x*y*z
+                           3 2       3
+                  2 => 5x*y z  + 9x*z
+                           3         3
+                  3 => 9x*y z + 10x*y
+
+o4 : LineageTable</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The keys of the hashtable are meaningful; for example, the polynomial with key <span class="tt">((0,2),1)</span> in the hashtable <span class="tt">tgb(L,n)</span> is the remainder upon division of the S-polynomial $(g, I_1)$, where $g$ is calculated from the S-pair $(I_0, I_2)$. For this reason, we say that the key communicates the &quot;lineage&quot; of the resulting polynomial. (See <a title="Compute a Groebner basis using the classical Buchberger with multiple threads" href="index.html">ThreadedGB</a>.)</p>
+          <p>Note that the keys in the hash table are strings, and the keys of input polynomials are 0..#L, as in the following example.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : H#(0,1)
+
+          5 2      3 4
+o5 = - 25y z  - 19y z
+
+o5 : R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Some may be curious  how tgb works.</p>
+          <p>The starting basis $L$ (the input list <span class="tt">L</span> or <span class="tt">L=gens I</span>) populates the entries numbered $0$ through $n-1$ of a mutable hash table $G$, where  $n$ is the length of $L$. The method creates all possible S-polynomials of $L$ and schedules their reduction with respect to $G$ as tasks. Throughout the computation, every nonzero remainder added to the basis is added to $G$ with its lineage as the key. Each such remainder also triggers the creation of S-polynomials using it and every element in $G$ and scheduling the reduction thereof as additional tasks. The process is done when there are no remaining tasks.</p>
+          <p>There is a way to track the tasks being created by turning on the option <span class="tt">Verbose</span>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : QQ[a..d];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : f0 = a*b-c^2;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : f1 = b*c-d^2;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : allowableThreads=2;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : tgb({f0,f1},Verbose=>true)
+Scheduling a task for lineage (0,1)
+Scheduling task for lineage ((0,1),0)
+Scheduling task for lineage ((0,1),1)
+Adding the following remainder to GB: -c^3+a*d^2 from lineage (0,1)
+
+                                3      2
+o10 = LineageTable{(0, 1) => - c  + a*d }
+                               2
+                   0 => a*b - c
+                               2
+                   1 => b*c - d
+
+o10 : LineageTable</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In the example above, the S-polynomial S(f0,f1) didn't reduce to zero, hence the remainder was added to the output with key (0,1). The additional two S-polynomials reduced and the process ended.</p>
+        </div>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>Due to threads running in parallel, it can happen that there are redundant elements in the final Gröbner basis. However these can be easily removed using <a title="turn a Gröbner basis computed using threaded Gröbner bases into a minimal one" href="_minimize_lp__Lineage__Table_rp.html">minimize(LineageTable)</a>, for example.</p>
+          <p>Also, <span class="tt">allowableThreads</span> needs to be set to an integer larger than 1, prior to calling <a title="threaded Gröbner bases" href="_tgb.html">tgb</a>. Otherwise, errors may occur. It may be a good idea to reset allowableThreads to 1 after the threaded computations are done.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="turn a Gröbner basis computed using threaded Gröbner bases into a minimal one" href="_minimize_lp__Lineage__Table_rp.html">minimize(LineageTable)</a> -- turn a Gröbner basis computed using threaded Gröbner bases into a minimal one</span></li>
+          <li><span><a title="produce a reduced Gröbner basis from one computed by threaded Gröbner bases" href="_reduce.html">reduce</a> -- produce a reduced Gröbner basis from one computed by threaded Gröbner bases</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">tgb</span>:</h2>
+          <ul>
+            <li><kbd>tgb(Ideal)</kbd></li>
+            <li><kbd>tgb(List)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="threaded Gröbner bases" href="_tgb.html">tgb</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function__With__Options.html">method function with options</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">ThreadedGB.m2:466:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

@@ -1,0 +1,760 @@
+ -*- coding: utf-8 -*- This is MonomialOrbits.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* MonomialOrbits: (MonomialOrbits).  Orbit representatives of monomial ideals
+END-INFO-DIR-ENTRY
+
+
+File: MonomialOrbits.info, Node: Top, Next: normalForms, Up: (dir)
+
+MonomialOrbits -- find orbit representatives of monomial ideals, under permutations of the variables
+****************************************************************************************************
+
+Description
+===========
+
+This package contains functions for the construction of representatives of the
+orbits of monomial ideals of a given type in a polynomial ring $S$ under the
+group of permutations of the variables of $S$.
+
+The type of the ideals may be defined either by the number of minimal
+generators of each degree, or by the set of monomials from which to choose or
+by the set of monomials from which to subtract in *note orbitRepresentatives:
+orbitRepresentatives, or by the Hilbert function, in *note
+hilbertRepresentatives: hilbertRepresentatives,.  If the option MonomialType =>
+"SquareFree" is given, then only square-free monomial ideals are considered.
+
+* Menu:
+
+
+Enumerating monomial ideals with given generator degrees or number of elements
+* orbitRepresentatives::        find representatives of monomial ideals under permutations of variables
+
+Enumerating monomial ideals with given Hilbert function
+* hilbertRepresentatives::      find representatives of monomial ideals under permutations of the variables
+
+Options limiting the type of ideals generated
+* MonomialType::                MonomialType => "SquareFree" or "All"
+
+Authors
+=======
+
+  * David Eisenbud (see http://www.msri.org/~de ) <de@msri.org>
+  * Mike Stillman (see http://pi.math.cornell.edu/~mike )
+    <mike@math.cornell.edu>
+
+Version
+=======
+
+This documentation describes version 1.5 of MonomialOrbits, released 18
+December 2020, last rev 1 June 2021.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{MonomialOrbitsSource,                                                  |
+|  title = {{MonomialOrbits: Orbit representatives of monomial ideals. Version|
+|  author = {David Eisenbud and Mike Stillman},                               |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|~1.5}},                                                                      |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note hilbertRepresentatives: hilbertRepresentatives, -- find
+        representatives of monomial ideals under permutations of the variables
+      * *note normalForms: normalForms, -- chooses orbit representatives from a
+        list of monomial ideals, under a group of permutations
+      * *note orbitRepresentatives: orbitRepresentatives, -- find
+        representatives of monomial ideals under permutations of variables
+  * Methods
+      * "hilbertRepresentatives(Ring,VisibleList)" -- see *note
+        hilbertRepresentatives: hilbertRepresentatives, -- find representatives
+        of monomial ideals under permutations of the variables
+      * "normalForms(List,List)" -- see *note normalForms: normalForms, --
+        chooses orbit representatives from a list of monomial ideals, under a
+        group of permutations
+      * "orbitRepresentatives(Ring,Ideal,Ideal,ZZ)" -- see *note
+        orbitRepresentatives: orbitRepresentatives, -- find representatives of
+        monomial ideals under permutations of variables
+      * "orbitRepresentatives(Ring,Ideal,VisibleList)" -- see *note
+        orbitRepresentatives: orbitRepresentatives, -- find representatives of
+        monomial ideals under permutations of variables
+      * "orbitRepresentatives(Ring,VisibleList)" -- see *note
+        orbitRepresentatives: orbitRepresentatives, -- find representatives of
+        monomial ideals under permutations of variables
+  * Symbols
+      * *note MonomialType: MonomialType, -- MonomialType => "SquareFree" or
+        "All"
+
+For the programmer
+==================
+
+The object *note MonomialOrbits: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in MonomialOrbits.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonomialOrbits.m2:324:0.
+
+File: MonomialOrbits.info, Node: orbitRepresentatives, Next: hilbertRepresentatives, Up: Top
+
+orbitRepresentatives -- find representatives of monomial ideals under permutations of variables
+***********************************************************************************************
+
+  * Usage: 
+        L = orbitRepresentatives(R, degs)
+        L = orbitRepresentatives(R, I, degs)
+        L = orbitRepresentatives(R, I, J, numelts)
+  * Inputs:
+      * R, a *note polynomial ring: (Macaulay2Doc)PolynomialRing,, 
+      * degs, a *note list: (Macaulay2Doc)List,, or a *note sequence:
+        (Macaulay2Doc)Sequence,, of the degrees of the generators
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, The starting ideal; all the
+        ideals returned will contain this one.
+      * J, an *note ideal: (Macaulay2Doc)Ideal,, A monomial ideal containing
+        monomials from which to add to I; when numelts < 0, then the ideals
+        formed are I+J minus a certain number of monomials.
+      * numelts, an *note integer: (Macaulay2Doc)ZZ,, If numelts >0 then each
+        monomial ideal produced is I+ numelts elements of J; if numelts < 0
+        then each monomial ideal produced is I+J minus |numelts| elements of J.
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * MonomialType => a *note string: (Macaulay2Doc)String,, default value
+        "All", (either "All" or "SquareFree").  For "All", all monomials are
+        considered, and for "SquareFree", only square free monomials are
+        considered
+  * Outputs:
+      * L, a *note list: (Macaulay2Doc)List,, of monomial ideals
+
+Description
+===========
+
+This method generates a list of representatives of the orbits of monomial
+ideals with given minimal generator degrees under the group of permutations of
+the variables.
+
+If the option *note MonomialType: MonomialType, is set to "SquareFree", then
+only ideals of square-free monomials are considered.
+
+The program works by induction on the number of generators; given the list L of
+orbit representatives for the ideals minimally generated by the first k of the
+generators, the program adds all possible generators of the (k+1)-st degree to
+each of ideals in L in a certain order, and then removes those in the list that
+can be obtained by a permutation of variables from one that is earlier in the
+list.
+
+Because the generators are constrained to be minimal generators, it is
+advantageous to specify the low degrees of generators first.
+
+Note that degs is specified as a VisibleList, which could be either a list or a
+sequence.
+
++-----------------------------------------------------------------------------+
+|i1 : S = ZZ/101[a..d];                                                       |
++-----------------------------------------------------------------------------+
+|i2 : L = orbitRepresentatives(S,(2,2,2))                                     |
+|                                                                             |
+|                      2        2                   2                         |
+|o2 = {monomialIdeal (a , a*b, b ), monomialIdeal (a , a*b, a*c),             |
+|     ------------------------------------------------------------------------|
+|                     2                             2        2                |
+|     monomialIdeal (a , a*b, b*c), monomialIdeal (a , a*b, c ), monomialIdeal|
+|     ------------------------------------------------------------------------|
+|       2                             2   2   2                   2   2       |
+|     (a , a*b, c*d), monomialIdeal (a , b , c ), monomialIdeal (a , b , c*d),|
+|     ------------------------------------------------------------------------|
+|                     2                                                       |
+|     monomialIdeal (a , b*c, b*d), monomialIdeal (a*b, a*c, b*c),            |
+|     ------------------------------------------------------------------------|
+|     monomialIdeal (a*b, a*c, a*d), monomialIdeal (a*b, a*c, b*d)}           |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : #L                                                                      |
+|                                                                             |
+|o3 = 11                                                                      |
++-----------------------------------------------------------------------------+
+|i4 : tally apply(L, m->betti res m)                                          |
+|                                                                             |
+|                  0 1 2                                                      |
+|o4 = Tally{total: 1 3 2 => 4  }                                              |
+|               0: 1 . .                                                      |
+|               1: . 3 2                                                      |
+|                  0 1 2 3                                                    |
+|           total: 1 3 3 1 => 2                                               |
+|               0: 1 . . .                                                    |
+|               1: . 3 . .                                                    |
+|               2: . . 3 .                                                    |
+|               3: . . . 1                                                    |
+|                  0 1 2 3                                                    |
+|           total: 1 3 3 1 => 2                                               |
+|               0: 1 . . .                                                    |
+|               1: . 3 3 1                                                    |
+|                  0 1 2 3                                                    |
+|           total: 1 3 3 1 => 3                                               |
+|               0: 1 . . .                                                    |
+|               1: . 3 1 .                                                    |
+|               2: . . 2 1                                                    |
+|                                                                             |
+|o4 : Tally                                                                   |
++-----------------------------------------------------------------------------+
+|i5 : L' = orbitRepresentatives(S,(2,2,2), MonomialType => "SquareFree")      |
+|                                                                             |
+|o5 = {monomialIdeal (a*b, a*c, b*c), monomialIdeal (a*b, a*c, a*d),          |
+|     ------------------------------------------------------------------------|
+|     monomialIdeal (a*b, a*c, b*d)}                                          |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i6 : #L'                                                                     |
+|                                                                             |
+|o6 = 3                                                                       |
++-----------------------------------------------------------------------------+
+|i7 : tally apply(L', m->betti res m)                                         |
+|                                                                             |
+|                  0 1 2                                                      |
+|o7 = Tally{total: 1 3 2 => 2  }                                              |
+|               0: 1 . .                                                      |
+|               1: . 3 2                                                      |
+|                  0 1 2 3                                                    |
+|           total: 1 3 3 1 => 1                                               |
+|               0: 1 . . .                                                    |
+|               1: . 3 3 1                                                    |
+|                                                                             |
+|o7 : Tally                                                                   |
++-----------------------------------------------------------------------------+
+|i8 : I = monomialIdeal"a2,b2,c2,d2"                                          |
+|                                                                             |
+|                     2   2   2   2                                           |
+|o8 = monomialIdeal (a , b , c , d )                                          |
+|                                                                             |
+|o8 : MonomialIdeal of S                                                      |
++-----------------------------------------------------------------------------+
+|i9 : L'' = orbitRepresentatives(S,I,{2,2,2})                                 |
+|                                                                             |
+|                      2        2             2   2                   2       |
+|o9 = {monomialIdeal (a , a*b, b , a*c, b*c, c , d ), monomialIdeal (a , a*b, |
+|     ------------------------------------------------------------------------|
+|      2        2        2                   2        2        2        2     |
+|     b , a*c, c , a*d, d ), monomialIdeal (a , a*b, b , a*c, c , b*d, d )}   |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : tally apply(L'', m->betti res m)                                       |
+|                                                                             |
+|                   0 1  2  3 4                                               |
+|o10 = Tally{total: 1 7 13 10 3 => 1}                                         |
+|                0: 1 .  .  . .                                               |
+|                1: . 7  8  2 .                                               |
+|                2: . .  5  8 3                                               |
+|                   0 1  2  3 4                                               |
+|            total: 1 7 14 11 3 => 1                                          |
+|                0: 1 .  .  . .                                               |
+|                1: . 7  8  3 .                                               |
+|                2: . .  6  8 3                                               |
+|                   0 1  2 3 4                                                |
+|            total: 1 7 12 8 2 => 1                                           |
+|                0: 1 .  . . .                                                |
+|                1: . 7  9 4 1                                                |
+|                2: . .  3 3 .                                                |
+|                3: . .  . 1 1                                                |
+|                                                                             |
+|o10 : Tally                                                                  |
++-----------------------------------------------------------------------------+
+
+Multi-gradings are also allowed:
+
++-----------------------------------------------------------------------------+
+|i11 : S = ZZ/101[x_0..x_3, Degrees=>{{1,2},{2,1},{1,1},{1,0}}];              |
++-----------------------------------------------------------------------------+
+|i12 : orbitRepresentatives(S,{{2,2},{2,1}})                                  |
+|                                                                             |
+|                           2                                             2   |
+|o12 = {monomialIdeal (x , x ), monomialIdeal (x , x x ), monomialIdeal (x ,  |
+|                       1   2                   1   0 3                   2   |
+|      -----------------------------------------------------------------------|
+|      x x ), monomialIdeal (x x , x x )}                                     |
+|       2 3                   0 3   2 3                                       |
+|                                                                             |
+|o12 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+Since the input data specifies degrees of minimal generators, the set of ideals
+may be empty:
+
++-------------------------------------------+
+|i13 : S = ZZ/101[a,b];                     |
++-------------------------------------------+
+|i14 : L = orbitRepresentatives(S,(2,2,2,2))|
+|                                           |
+|o14 = {monomialIdeal ()}                   |
+|                                           |
+|o14 : List                                 |
++-------------------------------------------+
+
+It is possible to give a starting monomial ideal, and add a given number of its
+generators.
+
++----------------------------------------------------------------------+
+|i15 : L = orbitRepresentatives(S,monomialIdeal a^3, (ideal(a,b))^3, 2)|
+|                                                                      |
+|                       3     2   3                   3   2      2     |
+|o15 = {monomialIdeal (a , a*b , b ), monomialIdeal (a , a b, a*b )}   |
+|                                                                      |
+|o15 : List                                                            |
++----------------------------------------------------------------------+
+
+If the number given is negative, then all but that number of elements of the
+starting monomial ideal in arg 2 are taken. The starting monomial ideal is
+reduced mod the ideal in arg 1 before the process begins
+
++-----------------------------------------------------------------------+
+|i16 : L = orbitRepresentatives(S,monomialIdeal a^3, (ideal(a,b))^3, -2)|
+|                                                                       |
+|                       3   2                    3   3                  |
+|o16 = {monomialIdeal (a , a b), monomialIdeal (a , b )}                |
+|                                                                       |
+|o16 : List                                                             |
++-----------------------------------------------------------------------+
+
+See also
+========
+
+  * *note hilbertRepresentatives: hilbertRepresentatives, -- find
+    representatives of monomial ideals under permutations of the variables
+  * *note MonomialType: MonomialType, -- MonomialType => "SquareFree" or "All"
+
+Ways to use orbitRepresentatives:
+=================================
+
+  * "orbitRepresentatives(Ring,Ideal,Ideal,ZZ)"
+  * "orbitRepresentatives(Ring,Ideal,VisibleList)"
+  * "orbitRepresentatives(Ring,VisibleList)"
+
+For the programmer
+==================
+
+The object *note orbitRepresentatives: orbitRepresentatives, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonomialOrbits.m2:421:0.
+
+File: MonomialOrbits.info, Node: hilbertRepresentatives, Next: MonomialType, Prev: orbitRepresentatives, Up: Top
+
+hilbertRepresentatives -- find representatives of monomial ideals under permutations of the variables
+*****************************************************************************************************
+
+  * Usage: 
+        L = hilbertRepresentatives(R,s)
+  * Inputs:
+      * R, a *note polynomial ring: (Macaulay2Doc)PolynomialRing,, 
+      * s, a *note visible list: (Macaulay2Doc)VisibleList,, of desired values
+        of d->hilbertFunction(R/I,d) for d in (1..length s)
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * MonomialType => a *note string: (Macaulay2Doc)String,, default value
+        "All", (either "All" or "SquareFree").  For "All", all monomials are
+        considered, and for "SquareFree", only square free monomials are
+        considered
+  * Outputs:
+      * L, a *note list: (Macaulay2Doc)List,, of monomial ideals
+
+Description
+===========
+
+This method generates a list of representatives of the orbits of monomial
+ideals with given Hilbert function, under the group of permutations of the
+variables.
+
+If the option *note MonomialType: MonomialType, is set to "SquareFree", then
+only ideals of square-free monomials are considered.
+
+Starting with orbit representatives of monomial ideals generated by all but s_0
+linear forms, it successively adds to each monomial ideal already found as many
+forms of degree d in (2..1+length s) as necessary to achieve the desired
+Hilbert function, in all possible ways.  After each addition it chooses
+representatives under the action of the group permuting the variables of the
+ring.
+
+Note that the (partial) Hilbert function is specified as a *note VisibleList:
+(Macaulay2Doc)VisibleList,, which could be either a list or a sequence.
+
++-----------------------------------------------------------------------------+
+|i1 : S = ZZ/101[a..d];                                                       |
++-----------------------------------------------------------------------------+
+|i2 : netList(L = hilbertRepresentatives(S,{4,7,10}))                         |
+|---10                                                                        |
+|---17                                                                        |
+|---34                                                                        |
+|---11                                                                        |
+|---11                                                                        |
+|                                                                             |
+|     +------------------------------------+                                  |
+|     |                2        2          |                                  |
+|o2 = |monomialIdeal (a , a*b, b )         |                                  |
+|     +------------------------------------+                                  |
+|     |                2        3          |                                  |
+|     |monomialIdeal (a , a*b, b , a*c)    |                                  |
+|     +------------------------------------+                                  |
+|     |                2             2     |                                  |
+|     |monomialIdeal (a , a*b, a*c, b c)   |                                  |
+|     +------------------------------------+                                  |
+|     |                2             2     |                                  |
+|     |monomialIdeal (a , a*b, a*c, b d)   |                                  |
+|     +------------------------------------+                                  |
+|     |                2                   |                                  |
+|     |monomialIdeal (a , a*b, a*c, b*c*d) |                                  |
+|     +------------------------------------+                                  |
+|     |                2               2   |                                  |
+|     |monomialIdeal (a , a*b, a*c, a*d )  |                                  |
+|     +------------------------------------+                                  |
+|     |                2               2   |                                  |
+|     |monomialIdeal (a , a*b, a*c, b*d )  |                                  |
+|     +------------------------------------+                                  |
+|     |                2             3     |                                  |
+|     |monomialIdeal (a , a*b, a*c, d )    |                                  |
+|     +------------------------------------+                                  |
+|     |                2                   |                                  |
+|     |monomialIdeal (a , a*b, b*c)        |                                  |
+|     +------------------------------------+                                  |
+|     |monomialIdeal (a*b, a*c, b*c)       |                                  |
+|     +------------------------------------+                                  |
+|     |                3                   |                                  |
+|     |monomialIdeal (a , a*b, a*c, a*d)   |                                  |
+|     +------------------------------------+                                  |
+|     |                     3              |                                  |
+|     |monomialIdeal (a*b, b , a*c, a*d)   |                                  |
+|     +------------------------------------+                                  |
+|     |                          2         |                                  |
+|     |monomialIdeal (a*b, a*c, b c, a*d)  |                                  |
+|     +------------------------------------+                                  |
+|     |monomialIdeal (a*b, a*c, a*d, b*c*d)|                                  |
+|     +------------------------------------+                                  |
+|     |monomialIdeal (a*b, a*c, b*d)       |                                  |
+|     +------------------------------------+                                  |
++-----------------------------------------------------------------------------+
+|i3 : #L                                                                      |
+|                                                                             |
+|o3 = 15                                                                      |
++-----------------------------------------------------------------------------+
+|i4 : tally apply(L, m-> hilbertPolynomial(m,Projective => false))            |
+|                                                                             |
+|o4 = Tally{3i + 1 => 12     }                                                |
+|           3i => 1                                                           |
+|           1 2   3                                                           |
+|           -i  + -i + 1 => 2                                                 |
+|           2     2                                                           |
+|                                                                             |
+|o4 : Tally                                                                   |
++-----------------------------------------------------------------------------+
+|i5 : tally apply(L, m->betti res m)                                          |
+|                                                                             |
+|                  0 1 2                                                      |
+|o5 = Tally{total: 1 3 2 => 4    }                                            |
+|               0: 1 . .                                                      |
+|               1: . 3 2                                                      |
+|                  0 1 2 3                                                    |
+|           total: 1 4 4 1 => 8                                               |
+|               0: 1 . . .                                                    |
+|               1: . 3 3 1                                                    |
+|               2: . 1 1 .                                                    |
+|                  0 1 2 3 4                                                  |
+|           total: 1 4 6 4 1 => 1                                             |
+|               0: 1 . . . .                                                  |
+|               1: . 3 3 1 .                                                  |
+|               2: . 1 . . .                                                  |
+|               3: . . 3 3 1                                                  |
+|                  0 1 2 3 4                                                  |
+|           total: 1 4 6 4 1 => 2                                             |
+|               0: 1 . . . .                                                  |
+|               1: . 3 3 1 .                                                  |
+|               2: . 1 3 3 1                                                  |
+|                                                                             |
+|o5 : Tally                                                                   |
++-----------------------------------------------------------------------------+
+|i6 : tally apply(L, m->primaryDecomposition m)                               |
+|                                                                             |
+|o6 = Tally{{monomialIdeal (a, b), monomialIdeal (a, c), monomialIdeal (a, d),|
+|           {monomialIdeal (a, b), monomialIdeal (a, c), monomialIdeal (b, c)}|
+|           {monomialIdeal (a, b), monomialIdeal (a, d), monomialIdeal (b, c)}|
+|                                                                             |
+|           {monomialIdeal (a, b), monomialIdeal (a, c), monomialIdeal (a, d),|
+|                                                     2                   2   |
+|           {monomialIdeal (a, b), monomialIdeal (a, d ), monomialIdeal (a , b|
+|                                             2         2                     |
+|           {monomialIdeal a, monomialIdeal (a , b, c, d )} => 1              |
+|                                             3                               |
+|           {monomialIdeal a, monomialIdeal (a , b, c, d)} => 1               |
+|                               2                                             |
+|           {monomialIdeal (a, b ), monomialIdeal (a, c), monomialIdeal (b, c,|
+|                               2                                         2   |
+|           {monomialIdeal (a, b ), monomialIdeal (a, c), monomialIdeal (a , b|
+|                               2                                         2   |
+|           {monomialIdeal (a, b ), monomialIdeal (a, d), monomialIdeal (a , b|
+|                               3                                             |
+|           {monomialIdeal (a, b ), monomialIdeal (b, c, d)} => 1             |
+|                               3                   2                         |
+|           {monomialIdeal (a, b ), monomialIdeal (a , b, c)} => 1            |
+|                               3                   2         3               |
+|           {monomialIdeal (a, d ), monomialIdeal (a , b, c, d )} => 1        |
+|                            2                                                |
+|           {monomialIdeal (a , b), monomialIdeal (a, c)} => 1                |
+|                            2        2                                       |
+|           {monomialIdeal (a , a*b, b )} => 1                                |
+|     ------------------------------------------------------------------------|
+|      monomialIdeal (b, c, d)} => 1 }                                        |
+|      => 1                                                                   |
+|      => 1                                                                   |
+|                      2                                                      |
+|      monomialIdeal (a , b, c)} => 1                                         |
+|                                                                             |
+|     , c)} => 1                                                              |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|      d)} => 1                                                               |
+|                                                                             |
+|     , c)} => 1                                                              |
+|                                                                             |
+|     , c)} => 1                                                              |
+|                                                                             |
+|o6 : Tally                                                                   |
++-----------------------------------------------------------------------------+
+
+If the option *note MonomialType: MonomialType, is set to "SquareFree", then
+only ideals of square-free monomials are considered.
+
++-----------------------------------------------------------------------------+
+|i7 : netList hilbertRepresentatives(S,{4,7,10,13}, MonomialType =>           |
+|---6                                                                         |
+|---5                                                                         |
+|---7                                                                         |
+|---1                                                                         |
+|                                                                             |
+|     +------------------------------------+                                  |
+|o7 = |monomialIdeal (a*b, a*c, b*c)       |                                  |
+|     +------------------------------------+                                  |
+|     |monomialIdeal (a*b, a*c, a*d, b*c*d)|                                  |
+|     +------------------------------------+                                  |
+|     |monomialIdeal (a*b, a*c, b*d)       |                                  |
+|     +------------------------------------+                                  |
+|-----------------------------------------------------------------------------|
+|"SquareFree")                                                                |
++-----------------------------------------------------------------------------+
+
+It is possible to specify data which results in no ideals:
+
++------------------------------------------+
+|i8 : S = ZZ/101[a,b];                     |
++------------------------------------------+
+|i9 : hilbertRepresentatives(S,{1,4}) == {}|
+|                                          |
+|o9 = true                                 |
++------------------------------------------+
+
+See also
+========
+
+  * *note orbitRepresentatives: orbitRepresentatives, -- find representatives
+    of monomial ideals under permutations of variables
+  * *note MonomialType: MonomialType, -- MonomialType => "SquareFree" or "All"
+
+Ways to use hilbertRepresentatives:
+===================================
+
+  * "hilbertRepresentatives(Ring,VisibleList)"
+
+For the programmer
+==================
+
+The object *note hilbertRepresentatives: hilbertRepresentatives, is a *note
+method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonomialOrbits.m2:483:0.
+
+File: MonomialOrbits.info, Node: MonomialType, Prev: hilbertRepresentatives, Up: Top
+
+MonomialType -- MonomialType => "SquareFree" or "All"
+*****************************************************
+
+  * Usage: 
+        orbitRepresentatives(S,degs,MonomialType => "SquareFree")
+
+Description
+===========
+
+The default is "All".
+
+Functions with optional argument named MonomialType:
+====================================================
+
+  * "hilbertRepresentatives(...,MonomialType=>...)" -- see *note
+    hilbertRepresentatives: hilbertRepresentatives, -- find representatives of
+    monomial ideals under permutations of the variables
+  * "orbitRepresentatives(...,MonomialType=>...)" -- see *note
+    orbitRepresentatives: orbitRepresentatives, -- find representatives of
+    monomial ideals under permutations of variables
+
+For the programmer
+==================
+
+The object *note MonomialType: MonomialType, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonomialOrbits.m2:543:0.
+
+File: MonomialOrbits.info, Node: normalForms, Prev: Top, Up: Top
+
+normalForms -- chooses orbit representatives from a list of monomial ideals, under a group of permutations
+**********************************************************************************************************
+
+  * Usage: 
+        L' = normalForms(L,G)
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, list of monomial ideals in a ring
+        R
+      * G, a *note list: (Macaulay2Doc)List,, list of permutations, written as
+        automorphisms of R
+  * Outputs:
+      * L', a *note list: (Macaulay2Doc)List,, list of representatives of  the
+        G-orbits in L
+
+Description
+===========
+
+To test a conjecture on monomial ideals of a certain type, one typically makes
+a computation on each one. If the computation is costly, and the result is
+invariant under a group G of permutations of the variables, it may be more
+efficient to choose orbit representatives first.
+
+Applying the ring automorphisms and then comparing the ideals can be slow. In
+the routine orbitRepresentatives, the monomial ideals are first turned into
+lists of exponent vector, and the normalForms operations are done on these
+using "normalFormsLis" instead of on the original ideals. The conversions to
+and from monomialIdeals and lists of lists are done with toLis and fromLis.
+
+
+
++-----------------------------------------------------------------------------+
+|i1 : R = ZZ/101[w,x,y,z]                                                     |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : monlist = flatten entries basis(4,R)                                    |
+|                                                                             |
+|       4   3    3    3    2 2   2      2      2 2   2      2 2     3     2   |
+|o2 = {w , w x, w y, w z, w x , w x*y, w x*z, w y , w y*z, w z , w*x , w*x y, |
+|     ------------------------------------------------------------------------|
+|        2        2                2     3     2        2     3   4   3    3  |
+|     w*x z, w*x*y , w*x*y*z, w*x*z , w*y , w*y z, w*y*z , w*z , x , x y, x z,|
+|     ------------------------------------------------------------------------|
+|      2 2   2      2 2     3     2        2     3   4   3    2 2     3   4   |
+|     x y , x y*z, x z , x*y , x*y z, x*y*z , x*z , y , y z, y z , y*z , z }  |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : idlist = subsets(monlist, 3)/monomialIdeal;                             |
++-----------------------------------------------------------------------------+
+|i4 : #oo                                                                     |
+|                                                                             |
+|o4 = 6545                                                                    |
++-----------------------------------------------------------------------------+
+
+There are 6545 ideals in 4 variables generated by 3 monomials of degree 4
+
++-----------------------------------------------------------------------------+
+|i5 : G0 = permutations numgens R                                             |
+|                                                                             |
+|o5 = {{0, 1, 2, 3}, {0, 1, 3, 2}, {0, 2, 1, 3}, {0, 2, 3, 1}, {0, 3, 1, 2},  |
+|     ------------------------------------------------------------------------|
+|     {0, 3, 2, 1}, {1, 0, 2, 3}, {1, 0, 3, 2}, {1, 2, 0, 3}, {1, 2, 3, 0},   |
+|     ------------------------------------------------------------------------|
+|     {1, 3, 0, 2}, {1, 3, 2, 0}, {2, 0, 1, 3}, {2, 0, 3, 1}, {2, 1, 0, 3},   |
+|     ------------------------------------------------------------------------|
+|     {2, 1, 3, 0}, {2, 3, 0, 1}, {2, 3, 1, 0}, {3, 0, 1, 2}, {3, 0, 2, 1},   |
+|     ------------------------------------------------------------------------|
+|     {3, 1, 0, 2}, {3, 1, 2, 0}, {3, 2, 0, 1}, {3, 2, 1, 0}}                 |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i6 : G = apply(G0, g -> map(R,R,(vars R)_g))                                 |
+|                                                                             |
+|o6 = {map (R, R, {w, x, y, z}), map (R, R, {w, x, z, y}), map (R, R, {w, y,  |
+|     ------------------------------------------------------------------------|
+|     x, z}), map (R, R, {w, y, z, x}), map (R, R, {w, z, x, y}), map (R, R,  |
+|     ------------------------------------------------------------------------|
+|     {w, z, y, x}), map (R, R, {x, w, y, z}), map (R, R, {x, w, z, y}), map  |
+|     ------------------------------------------------------------------------|
+|     (R, R, {x, y, w, z}), map (R, R, {x, y, z, w}), map (R, R, {x, z, w,    |
+|     ------------------------------------------------------------------------|
+|     y}), map (R, R, {x, z, y, w}), map (R, R, {y, w, x, z}), map (R, R, {y, |
+|     ------------------------------------------------------------------------|
+|     w, z, x}), map (R, R, {y, x, w, z}), map (R, R, {y, x, z, w}), map (R,  |
+|     ------------------------------------------------------------------------|
+|     R, {y, z, w, x}), map (R, R, {y, z, x, w}), map (R, R, {z, w, x, y}),   |
+|     ------------------------------------------------------------------------|
+|     map (R, R, {z, w, y, x}), map (R, R, {z, x, w, y}), map (R, R, {z, x, y,|
+|     ------------------------------------------------------------------------|
+|     w}), map (R, R, {z, y, w, x}), map (R, R, {z, y, x, w})}                |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : normalForms(idlist,G); --there are 244                                  |
+|---6545                                                                      |
++-----------------------------------------------------------------------------+
+|i8 : #oo                                                                     |
+|                                                                             |
+|o8 = 333                                                                     |
++-----------------------------------------------------------------------------+
+
+But only 333 orbits, a 19-fold reduction.
+
+See also
+========
+
+  * *note orbitRepresentatives: orbitRepresentatives, -- find representatives
+    of monomial ideals under permutations of variables
+  * *note hilbertRepresentatives: hilbertRepresentatives, -- find
+    representatives of monomial ideals under permutations of the variables
+
+Ways to use normalForms:
+========================
+
+  * "normalForms(List,List)"
+
+For the programmer
+==================
+
+The object *note normalForms: normalForms, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonomialOrbits.m2:531:0.
+
+Tag Table:
+Node: Top255
+Node: orbitRepresentatives4742
+Node: hilbertRepresentatives20210
+Node: MonomialType36054
+Node: normalForms37143
+
+End Tag Table

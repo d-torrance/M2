@@ -1,0 +1,954 @@
+ -*- coding: utf-8 -*- This is RunExternalM2.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* RunExternalM2: (RunExternalM2).  run Macaulay2 functions outside the current Macaulay2 process
+END-INFO-DIR-ENTRY
+
+
+File: RunExternalM2.info, Node: Top, Next: isExternalM2Child, Up: (dir)
+
+RunExternalM2 -- a package to run Macaulay2 code externally and retrieve the result
+***********************************************************************************
+
+Description
+===========
+
+This package allows the user to run a Macaulay2 function in a brand-new
+instance of Macaulay2, wait for the instance to finish, and automatically
+retrieve any results. This is primarily done with the *note runExternalM2:
+runExternalM2, function.
+
+One of the main purposes of this package is to allow the use of operating
+system features (e.g., ulimit on Unix-like systems) to restrict the resources
+(e.g., memory, running time) that the Macaulay2 function is allowed to use; see
+*note resource limits: resource limits,. This is particularly useful if you
+want a computation to give up after a certain amount of time, as an alternative
+to using *note alarm: (Macaulay2Doc)alarm, and *note try: (Macaulay2Doc)try,.
+
+For example, suppose you want to find an example of an ideal that has a
+particular property, and the time required to check for this property can vary
+enormously. First write a Macaulay2 function foo() that generates a random
+ideal I and checks whether I has this property. Then use a loop to repeatedly
+call foo() using *note runExternalM2: runExternalM2,, with a time limit of 20
+seconds, until such an ideal is found; now let it run overnight.
+
+For examples, please see *note runExternalM2: runExternalM2, or *note
+suggestions for using RunExternalM2: suggestions for using RunExternalM2,.
+
+See also
+========
+
+  * *note runExternalM2: runExternalM2, -- run a Macaulay2 function in a new
+    Macaulay2 process
+  * *note suggestions for using RunExternalM2: suggestions for using
+    RunExternalM2, -- suggestions for using RunExternalM2
+  * *note resource limits: resource limits, -- how to use resource limits with
+    Macaulay2
+
+Author
+======
+
+  * Brian Pike (see http://www.brianpike.info/ ) <bapike@gmail.com>
+
+Version
+=======
+
+This documentation describes version 0.83 of RunExternalM2, released January
+06, 2016.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{RunExternalM2Source,                                                   |
+|  title = {{RunExternalM2: run \emph{Macaulay2} functions outside the current|
+|  author = {Brian Pike},                                                     |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|\emph{Macaulay2} process. Version~0.83}},                                    |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note isExternalM2Child: isExternalM2Child, -- indicate if this process
+        is a child process or not
+      * *note isExternalM2Parent: isExternalM2Parent, -- indicate if this
+        process is a parent process or not
+      * *note runExternalM2: runExternalM2, -- run a Macaulay2 function in a
+        new Macaulay2 process
+      * *note runExternalM2ReturnAnswer: runExternalM2ReturnAnswer, -- stores a
+        Macaulay2 variable's value in a file, to later be read by the
+        RunExternalM2 package
+  * Symbols
+      * *note KeepStatisticsCommand: KeepStatisticsCommand, -- an option that
+        tells how to collect statistics
+      * *note PreRunScript: PreRunScript, -- a way to impose resource limits
+      * "KeepStatistics" -- see *note runExternalM2: runExternalM2, -- run a
+        Macaulay2 function in a new Macaulay2 process
+      * "M2Location" -- see *note runExternalM2: runExternalM2, -- run a
+        Macaulay2 function in a new Macaulay2 process
+
+For the programmer
+==================
+
+The object *note RunExternalM2: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in RunExternalM2.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+File: RunExternalM2.info, Node: isExternalM2Child, Next: isExternalM2Parent, Prev: Top, Up: Top
+
+isExternalM2Child -- indicate if this process is a child process or not
+***********************************************************************
+
+  * Usage: 
+        b=isExternalM2Child()
+  * Outputs:
+      * b, a *note Boolean value: (Macaulay2Doc)Boolean,, true if this process
+        is a child process, and false otherwise
+
+Description
+===========
+
+This function indicates whether the currently-running process is a child
+process as created by the *note RunExternalM2: Top, package, or not.
+
+See also
+========
+
+  * *note RunExternalM2: Top, -- run Macaulay2 functions outside the current
+    Macaulay2 process
+  * *note isExternalM2Parent: isExternalM2Parent, -- indicate if this process
+    is a parent process or not
+
+For the programmer
+==================
+
+The object *note isExternalM2Child: isExternalM2Child, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+File: RunExternalM2.info, Node: isExternalM2Parent, Next: KeepStatisticsCommand, Prev: isExternalM2Child, Up: Top
+
+isExternalM2Parent -- indicate if this process is a parent process or not
+*************************************************************************
+
+  * Usage: 
+        b=isExternalM2Parent()
+  * Outputs:
+      * b, a *note Boolean value: (Macaulay2Doc)Boolean,, true if this process
+        is a parent process, and false otherwise
+
+Description
+===========
+
+This function indicates whether the currently-running process is a parent
+process, or not, from the point-of-view of the *note RunExternalM2: Top,
+package.
+
+See also
+========
+
+  * *note RunExternalM2: Top, -- run Macaulay2 functions outside the current
+    Macaulay2 process
+  * *note isExternalM2Child: isExternalM2Child, -- indicate if this process is
+    a child process or not
+
+For the programmer
+==================
+
+The object *note isExternalM2Parent: isExternalM2Parent, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+File: RunExternalM2.info, Node: KeepStatisticsCommand, Next: PreRunScript, Prev: isExternalM2Parent, Up: Top
+
+KeepStatisticsCommand -- an option that tells how to collect statistics
+***********************************************************************
+
+Description
+===========
+
+This value of this option is a function that takes a filename f and a command
+string c as its two parameters, and returns a string that, when *note run:
+(Macaulay2Doc)run,, will execute c and put statistics in f.
+
+The default function should work in most cases. It first tries to use
+/usr/bin/time, then the time implementation built-in to certain shells, and
+otherwise makes the feature unavailable. Certain implementations of
+/usr/bin/time are given special flags to provide more details.
+
+
+
+See also
+========
+
+  * *note RunExternalM2: Top, -- run Macaulay2 functions outside the current
+    Macaulay2 process
+  * *note runExternalM2: runExternalM2, -- run a Macaulay2 function in a new
+    Macaulay2 process
+
+Functions with optional argument named KeepStatisticsCommand:
+=============================================================
+
+  * "runExternalM2(...,KeepStatisticsCommand=>...)"
+
+For the programmer
+==================
+
+The object *note KeepStatisticsCommand: KeepStatisticsCommand, is a *note
+symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+File: RunExternalM2.info, Node: PreRunScript, Next: resource limits, Prev: KeepStatisticsCommand, Up: Top
+
+PreRunScript -- a way to impose resource limits
+***********************************************
+
+Description
+===========
+
+This option's value is a string containing a shell command that can impose any
+*note resource limits: resource limits, on the Macaulay2 process started by
+*note runExternalM2: runExternalM2,.
+
+By default, it is set to the shell command
+
+true
+
+but you can set it to things like
+
+ulimit -t 5
+
+(to limit CPU time to 5 seconds) or something more complicated:
+
+ulimit -S -m 654243 && ulimit -H -t 50
+
+
+
+In all cases, it should be a single command such that appending
+
+&& other_command
+
+results in a valid shell command.
+
+See also
+========
+
+  * *note RunExternalM2: Top, -- run Macaulay2 functions outside the current
+    Macaulay2 process
+  * *note runExternalM2: runExternalM2, -- run a Macaulay2 function in a new
+    Macaulay2 process
+  * *note resource limits: resource limits, -- how to use resource limits with
+    Macaulay2
+
+Functions with optional argument named PreRunScript:
+====================================================
+
+  * "runExternalM2(...,PreRunScript=>...)"
+
+For the programmer
+==================
+
+The object *note PreRunScript: PreRunScript, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+File: RunExternalM2.info, Node: resource limits, Next: runExternalM2, Prev: PreRunScript, Up: Top
+
+resource limits -- how to use resource limits with Macaulay2
+************************************************************
+
+Many operating systems support limiting the amount of resources (for instance,
+memory or CPU time) that a given instance of a running program (``process'')
+may use. Processes that use more than the allotted resource may have requests
+denied (as in the case of memory or disk usage), or may be terminated. In some
+cases it is useful to apply these limits to Macaulay2.
+
+In Unix-like operating systems (including Linux and OS X) these limits are
+known as ``ulimits'' or ``rlimits''. Users typically set these limits using a
+built-in shell command called ulimit or similar; for help, consult the
+documentation for your shell (e.g., run man bash). In particular, the units of
+any limits can vary from system to system. There are two types of limits, hard
+and soft: soft levels are always less than or equal to the hard limits, and
+hard levels can only be adjusted down. When a process creates a child process,
+the child process receives the ulimits of the parent process.
+
+As an example, we give commands for a Linux system using a Bash shell. To view
+the current limits, run:
+
+ulimit -a
+
+To set soft ulimits on your shell of 123456 kilobytes of memory and 5 seconds
+of CPU time, run:
+
+ulimit -S -m 123456 -S -t 5
+
+Because ulimits are inherited by child processes, any commands run later in
+your shell session (say, Macaulay2) will inherit these ulimits. Perhaps the
+best way to set the limits on a specific process is to run something like
+
+(ulimit -S -m 123456 -S -t 5; M2)
+
+which will run M2 with these limits while leaving the shell's ulimits
+unchanged.
+
+From within Macaulay2, you can view the ulimits currently available to the
+Macaulay2 process by using the *note run: (Macaulay2Doc)run, command:
+
++------------------------------+
+|i1 : run("ulimit -a")         |
+|time(seconds)        700      |
+|file(blocks)         unlimited|
+|data(kbytes)         unlimited|
+|stack(kbytes)        8192     |
+|coredump(blocks)     unlimited|
+|memory(kbytes)       850000   |
+|locked memory(kbytes) 8192    |
+|process              63838    |
+|nofiles              512      |
+|vmemory(kbytes)      unlimited|
+|locks                unlimited|
+|rtprio               0        |
+|                              |
+|o1 = 0                        |
++------------------------------+
+
+This starts a new shell and executes the command given, which in this case
+provides the list of ulimits of the shell. Since ulimits are inherited, this
+should be the same as the ulimits of Macaulay2 itself.
+
+From within Macaulay2, it is not possible to set ulimits on the current
+Macaulay2 process because Macaulay2 does not provide access to the setrlimit
+system call (other than the *note limitFiles: (Macaulay2Doc)limitFiles, and
+*note limitProcesses: (Macaulay2Doc)limitProcesses, commands). However, it is
+possible to set ulimits on child Macaulay2 processes that are started by *note
+runExternalM2: runExternalM2,, by using the *note PreRunScript: PreRunScript,
+option of *note runExternalM2: runExternalM2,.
+
+
+
+See also
+========
+
+  * *note alarm: (Macaulay2Doc)alarm, -- set an alarm
+  * *note try: (Macaulay2Doc)try, -- catch an error
+  * *note runExternalM2(...,PreRunScript=>...): PreRunScript, -- a way to
+    impose resource limits
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+File: RunExternalM2.info, Node: runExternalM2, Next: runExternalM2_lp_pd_pd_pd_cmKeepFiles=>_pd_pd_pd_rp, Prev: resource limits, Up: Top
+
+runExternalM2 -- run a Macaulay2 function in a new Macaulay2 process
+********************************************************************
+
+  * Usage: 
+        h=runExternalM2(fname,func,params)
+  * Inputs:
+      * fname, a *note string: (Macaulay2Doc)String,, the name of the file that
+        contains the function to run
+      * func, a *note string: (Macaulay2Doc)String,, the function to run.  Can
+        also be a named *note Function: (Macaulay2Doc)Function, or *note
+        Symbol: (Macaulay2Doc)Symbol,.
+      * params, a *note thing: (Macaulay2Doc)Thing,, the parameters for func,
+        usually a *note Sequence: (Macaulay2Doc)Sequence,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * M2Location => a *note string: (Macaulay2Doc)String,, default value
+        null, the location of the M2 executable.  If null, then the absolute
+        path of the first entry of *note commandLine:
+        (Macaulay2Doc)commandLine, is used.
+      * KeepStatistics => a *note Boolean value: (Macaulay2Doc)Boolean,,
+        default value false, whether to keep statistics on the resources used
+        during execution
+      * *note KeepFiles: runExternalM2_lp_pd_pd_pd_cmKeepFiles=>_pd_pd_pd_rp,
+        => ..., default value null, indicate whether or not temporary files
+        should be saved
+      * *note KeepStatisticsCommand: KeepStatisticsCommand, => ..., default
+        value FunctionClosure[../../../../../Macaulay2/packages/RunExternalM2.
+        m2:677:27-710:1], an option that tells how to collect statistics
+      * *note PreRunScript: PreRunScript, => ..., default value "true", a way
+        to impose resource limits
+  * Outputs:
+      * h, a *note hash table: (Macaulay2Doc)HashTable,, contains the output of
+        func and other data
+
+Description
+===========
+
+This function starts a short-lived new (``child'') Macaulay2 process, loads the
+file fname, runs the function func with the parameters params, captures the
+value returned by func, and stores it inside h in the original Macaulay2
+process. Optionally, strict *note resource limits: resource limits, may be
+imposed on the child process from within Macaulay2, or data may be collected
+about the resources used by the child process.
+
+Since the child is a new Macaulay2 process, it has no defined variables or
+functions except those defined in fname. Hence, func and anything it needs
+(e.g., ring definitions) must be defined in the file fname.
+
+The hash table h stores the exit code of the created Macaulay2 process, the
+return code of the created Macaulay2 process (see *note run: (Macaulay2Doc)run,
+for details; this is usually 256 times the exit code, plus information about
+any signals received by the child), the wall-clock time used (as opposed to the
+CPU time), the name of the output file (unless it was deleted), the name of the
+answer file (unless it was deleted), any statistics recorded about the resource
+usage, and the value returned by the function func. If the child process
+terminates abnormally, then usually the exit code is nonzero and the value
+returned is *note null: (Macaulay2Doc)null,.
+
+For example, we can write a few functions to a temporary file:
+
++-----------------------------------------------------------------------------+
+|i1 : fn=temporaryFileName()|".m2"                                            |
+|                                                                             |
+|o1 = /tmp/M2-45270-0/0.m2                                                    |
++-----------------------------------------------------------------------------+
+|i2 : fn<</// square = (x) -> (stderr<<"Running"<<endl; sleep(1); x^2);       |
+|-----------------------------------------------------------------------------|
+|///<<endl;                                                                   |
++-----------------------------------------------------------------------------+
+|i3 : fn<</// justexit = () -> ( exit(27); ); ///<<endl;                      |
++-----------------------------------------------------------------------------+
+|i4 : fn<</// spin = (x) -> (stderr<<"Spinning!!"<<endl; startTime:=cpuTime();|
+|-----------------------------------------------------------------------------|
+|while(cpuTime()-startTime<x) do for i to 10000000 do i; return(x););         |
+|-----------------------------------------------------------------------------|
+|///<<endl;                                                                   |
++-----------------------------------------------------------------------------+
+|i5 : fn<<flush;                                                              |
++-----------------------------------------------------------------------------+
+
+and then call them:
+
++-----------------------------------------------------------------------------+
+|i6 : h=runExternalM2(fn,"square",(4));                                       |
+|Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q   |
+|Finished running.                                                            |
+|-----------------------------------------------------------------------------|
+|<"/tmp/M2-45270-0/1.m2" >"/tmp/M2-45270-0/1.out" 2>&1 ))                     |
++-----------------------------------------------------------------------------+
+|i7 : h                                                                       |
+|                                                                             |
+|o7 = HashTable{"answer file" => null}                                        |
+|               "exit code" => 0                                              |
+|               "output file" => null                                         |
+|               "return code" => 0                                            |
+|               "statistics" => null                                          |
+|               "time used" => 5                                              |
+|               value => 16                                                   |
+|                                                                             |
+|o7 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i8 : h#value===4^2                                                           |
+|                                                                             |
+|o8 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : h#"exit code"===0                                                       |
+|                                                                             |
+|o9 = true                                                                    |
++-----------------------------------------------------------------------------+
+
+
+
+An abnormal program exit will have a nonzero exit code; also, the value will be
+null, the output file should exist, but the answer file may not exist unless
+the routine finished successfully.
+
++-----------------------------------------------------------------------------+
+|i10 : h=runExternalM2(fn,"justexit",());                                     |
+|Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q   |
+|Finished running.                                                            |
+|RunExternalM2: expected answer file does not exist                           |
+|-----------------------------------------------------------------------------|
+|<"/tmp/M2-45270-0/2.m2" >"/tmp/M2-45270-0/2.out" 2>&1 ))                     |
++-----------------------------------------------------------------------------+
+|i11 : h                                                                      |
+|                                                                             |
+|o11 = HashTable{"answer file" => /tmp/M2-45270-0/2.ans}                      |
+|                "exit code" => 27                                            |
+|                "output file" => /tmp/M2-45270-0/2.out                       |
+|                "return code" => 6912                                        |
+|                "statistics" => null                                         |
+|                "time used" => 4                                             |
+|                value => null                                                |
+|                                                                             |
+|o11 : HashTable                                                              |
++-----------------------------------------------------------------------------+
+|i12 : fileExists(h#"output file")                                            |
+|                                                                             |
+|o12 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i13 : fileExists(h#"answer file")                                            |
+|                                                                             |
+|o13 = false                                                                  |
++-----------------------------------------------------------------------------+
+
+Here, we use *note resource limits: resource limits, to limit the routine to 2
+seconds of computational time, while the system is asked to use 10 seconds of
+computational time:
+
++-----------------------------------------------------------------------------+
+|i14 : h=runExternalM2(fn,"spin",10,PreRunScript=>"ulimit -t 2");             |
+|Running (ulimit -t 2 && (/usr/local/bin/M2-binary  --stop --no-debug --silent|
+|Killed                                                                       |
+|Finished running.                                                            |
+|RunExternalM2: expected answer file does not exist                           |
+|-----------------------------------------------------------------------------|
+|-q  <"/tmp/M2-45270-0/3.m2" >"/tmp/M2-45270-0/3.out" 2>&1 ))                 |
++-----------------------------------------------------------------------------+
+|i15 : h                                                                      |
+|                                                                             |
+|o15 = HashTable{"answer file" => /tmp/M2-45270-0/3.ans}                      |
+|                "exit code" => 0                                             |
+|                "output file" => /tmp/M2-45270-0/3.out                       |
+|                "return code" => 9                                           |
+|                "statistics" => null                                         |
+|                "time used" => 2                                             |
+|                value => null                                                |
+|                                                                             |
+|o15 : HashTable                                                              |
++-----------------------------------------------------------------------------+
+|i16 : if h#"output file" =!= null and fileExists(h#"output file") then       |
+|                                                                             |
+|o16 =                                                                        |
+|-----------------------------------------------------------------------------|
+|get(h#"output file")                                                         |
++-----------------------------------------------------------------------------+
+|i17 : if h#"answer file" =!= null and fileExists(h#"answer file") then       |
+|-----------------------------------------------------------------------------|
+|get(h#"answer file")                                                         |
++-----------------------------------------------------------------------------+
+
+
+
+We can get quite a lot of detail on the resources used with the *note
+KeepStatistics: runExternalM2, command:
+
++-----------------------------------------------------------------------------+
+|i18 : h=runExternalM2(fn,"spin",3,KeepStatistics=>true);                     |
+|Running (true && ( (/usr/bin/time --verbose sh -c '/usr/local/bin/M2-binary  |
+|Finished running.                                                            |
+|-----------------------------------------------------------------------------|
+|--stop --no-debug --silent  -q  <"/tmp/M2-45270-0/4.m2"                      |
+|-----------------------------------------------------------------------------|
+|>"/tmp/M2-45270-0/4.out" 2>&1') >"/tmp/M2-45270-0/4.stat" 2>&1 ))            |
++-----------------------------------------------------------------------------+
+|i19 : h#"statistics"                                                         |
+|                                                                             |
+|o19 =         Command being timed: "sh -c /usr/local/bin/M2-binary  --stop   |
+|              User time (seconds): 8.36                                      |
+|              System time (seconds): 0.20                                    |
+|              Percent of CPU this job got: 98%                               |
+|              Elapsed (wall clock) time (h:mm:ss or m:ss): 0:08.72           |
+|              Average shared text size (kbytes): 0                           |
+|              Average unshared data size (kbytes): 0                         |
+|              Average stack size (kbytes): 0                                 |
+|              Average total size (kbytes): 0                                 |
+|              Maximum resident set size (kbytes): 238580                     |
+|              Average resident set size (kbytes): 0                          |
+|              Major (requiring I/O) page faults: 0                           |
+|              Minor (reclaiming a frame) page faults: 9576                   |
+|              Voluntary context switches: 2319                               |
+|              Involuntary context switches: 2611                             |
+|              Swaps: 0                                                       |
+|              File system inputs: 0                                          |
+|              File system outputs: 16                                        |
+|              Socket messages sent: 0                                        |
+|              Socket messages received: 0                                    |
+|              Signals delivered: 0                                           |
+|              Page size (bytes): 4096                                        |
+|              Exit status: 0                                                 |
+|-----------------------------------------------------------------------------|
+|--no-debug --silent  -q  <"/tmp/M2-45270-0/4.m2" >"/tmp/M2-45270-0/4.out"    |
+|-----------------------------------------------------------------------------|
+|2>&1"                                                                        |
++-----------------------------------------------------------------------------+
+
+
+
+We can handle most kinds of objects as return values, although *note
+MutableMatrix: (Macaulay2Doc)MutableMatrix, does not work. Here, we use the
+built-in *note identity: (Macaulay2Doc)identity, function:
+
++-----------------------------------------------------------------------------+
+|i20 : v=/// A complicated string^%&C@#CERQVASDFQ#BQBSDH"' ewrjwklsf///;      |
++-----------------------------------------------------------------------------+
+|i21 : (runExternalM2(fn,identity,v))#value===v                               |
+|Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q   |
+|Finished running.                                                            |
+|                                                                             |
+|o21 = true                                                                   |
+|-----------------------------------------------------------------------------|
+|<"/tmp/M2-45270-0/6.m2" >"/tmp/M2-45270-0/6.out" 2>&1 ))                     |
++-----------------------------------------------------------------------------+
+
+Some care is required, however:
+
++-----------------------------------------------------------------------------+
+|i22 : R=QQ[x,y];                                                             |
++-----------------------------------------------------------------------------+
+|i23 : v=coker random(R^2,R^{3:-1})                                           |
+|                                                                             |
+|o23 = cokernel | 9/2x+9/4y 7/9x+7/10y 7x+3/7y |                              |
+|               | 3/4x+7/4y 7/10x+7/3y 6/7x+6y |                              |
+|                                                                             |
+|                             2                                               |
+|o23 : R-module, quotient of R                                                |
++-----------------------------------------------------------------------------+
+|i24 : h=runExternalM2(fn,identity,v)                                         |
+|Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q   |
+|Finished running.                                                            |
+|RunExternalM2: expected answer file does not exist                           |
+|                                                                             |
+|o24 = HashTable{"answer file" => /tmp/M2-45270-0/7.ans}                      |
+|                "exit code" => 1                                             |
+|                "output file" => /tmp/M2-45270-0/7.out                       |
+|                "return code" => 256                                         |
+|                "statistics" => null                                         |
+|                "time used" => 3                                             |
+|                value => null                                                |
+|                                                                             |
+|o24 : HashTable                                                              |
+|-----------------------------------------------------------------------------|
+|<"/tmp/M2-45270-0/7.m2" >"/tmp/M2-45270-0/7.out" 2>&1 ))                     |
++-----------------------------------------------------------------------------+
+
+To view the error message:
+
++-----------------------------------------------------------------------------+
+|i25 : get(h#"output file")                                                   |
+|                                                                             |
+|o25 =                                                                        |
+|      i1 : -- Script /tmp/M2-45270-0/7.m2 automatically generated by RunExter|
+|           needsPackage("RunExternalM2",Configuration=>{"isChild"=>true});   |
+|                                                                             |
+|      i2 : load "/tmp/M2-45270-0/0.m2";                                      |
+|                                                                             |
+|      i3 : runExternalM2ReturnAnswer("/tmp/M2-45270-0/7.ans",identity (cokern|
+|      stdio:4:74:(3):[2]: error: no method for binary operator ^ applied to o|
+|                  R (of class Symbol)                                        |
+|            ^     2 (of class ZZ)                                            |
+|-----------------------------------------------------------------------------|
+|nalM2                                                                        |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|el(map(R^2,R^{3:{-1}},{{(9/2)*x+(9/4)*y, (7/9)*x+(7/10)*y, 7*x+(3/7)*y},     |
+|bjects:                                                                      |
+|-----------------------------------------------------------------------------|
+|{(3/4)*x+(7/4)*y, (7/10)*x+(7/3)*y, (6/7)*x+6*y}}))));                       |
++-----------------------------------------------------------------------------+
+
+Keep in mind that the object you are passing must make sense in the context of
+the file containing your function! For instance, here we need to define the
+ring:
+
++-----------------------------------------------------------------------------+
+|i26 : fn<<///R=QQ[x,y];///<<endl<<flush;                                     |
++-----------------------------------------------------------------------------+
+|i27 : (runExternalM2(fn,identity,v))#value===v                               |
+|Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q   |
+|Finished running.                                                            |
+|                                                                             |
+|o27 = true                                                                   |
+|-----------------------------------------------------------------------------|
+|<"/tmp/M2-45270-0/8.m2" >"/tmp/M2-45270-0/8.out" 2>&1 ))                     |
++-----------------------------------------------------------------------------+
+
+This problem can be avoided by following some *note suggestions for using
+RunExternalM2: suggestions for using RunExternalM2,.
+
+The objects may unavoidably lose some internal references, though:
+
++-----------------------------------------------------------------------------+
+|i28 : v=R;                                                                   |
++-----------------------------------------------------------------------------+
+|i29 : h=runExternalM2(fn,identity,v);                                        |
+|Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q   |
+|Finished running.                                                            |
+|-----------------------------------------------------------------------------|
+|<"/tmp/M2-45270-0/9.m2" >"/tmp/M2-45270-0/9.out" 2>&1 ))                     |
++-----------------------------------------------------------------------------+
+|i30 : h#value                                                                |
+|                                                                             |
+|o30 = QQ[x..y]                                                               |
+|                                                                             |
+|o30 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i31 : v===h#value                                                            |
+|                                                                             |
+|o31 = false                                                                  |
++-----------------------------------------------------------------------------+
+
+but this happens because
+
++------------------------------------+
+|i32 : R===value(toExternalString(R))|
+|                                    |
+|o32 = false                         |
++------------------------------------+
+
+See also
+========
+
+  * *note RunExternalM2: Top, -- run Macaulay2 functions outside the current
+    Macaulay2 process
+  * *note suggestions for using RunExternalM2: suggestions for using
+    RunExternalM2, -- suggestions for using RunExternalM2
+
+For the programmer
+==================
+
+The object *note runExternalM2: runExternalM2, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+File: RunExternalM2.info, Node: runExternalM2_lp_pd_pd_pd_cmKeepFiles=>_pd_pd_pd_rp, Next: runExternalM2ReturnAnswer, Prev: runExternalM2, Up: Top
+
+runExternalM2(...,KeepFiles=>...) -- indicate whether or not temporary files should be saved
+********************************************************************************************
+
+Description
+===========
+
+If true, then always keep any files that arise during the use of *note
+runExternalM2: runExternalM2,.
+
+If false, then always delete these files.
+
+If null (the default), then keep the files only if the job was a failure,
+meaning that an understandable result was not able to be read from the
+temporary file storing the results of the computation. If the job was
+unsuccessful (e.g., exit with nonzero error code, or the process was killed by
+the operating system) then the files will be saved to aid investigation.
+
+Caveat
+======
+
+All of the files involved were created using *note temporaryFileName:
+(Macaulay2Doc)temporaryFileName, in the parent Macaulay2 process, and hence
+will always be deleted upon termination of the parent, no matter this setting.
+
+See also
+========
+
+  * *note RunExternalM2: Top, -- run Macaulay2 functions outside the current
+    Macaulay2 process
+  * *note runExternalM2: runExternalM2, -- run a Macaulay2 function in a new
+    Macaulay2 process
+
+Functions with optional argument named KeepFiles:
+=================================================
+
+  * *note runExternalM2(...,KeepFiles=>...):
+    runExternalM2_lp_pd_pd_pd_cmKeepFiles=>_pd_pd_pd_rp, -- indicate whether or
+    not temporary files should be saved
+  * "runProgram(...,KeepFiles=>...)" -- see *note runProgram:
+    (Macaulay2Doc)runProgram, -- run an external program
+
+Further information
+===================
+
+  * Default value: null
+  * Function: *note runExternalM2: runExternalM2, -- run a Macaulay2 function
+    in a new Macaulay2 process
+  * Option key: *note KeepFiles: (Macaulay2Doc)KeepFiles, -- an optional
+    argument
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+File: RunExternalM2.info, Node: runExternalM2ReturnAnswer, Next: suggestions for using RunExternalM2, Prev: runExternalM2_lp_pd_pd_pd_cmKeepFiles=>_pd_pd_pd_rp, Up: Top
+
+runExternalM2ReturnAnswer -- stores a Macaulay2 variable's value in a file, to later be read by the RunExternalM2 package
+*************************************************************************************************************************
+
+  * Usage: 
+        runExternalM2ReturnAnswer(f,t)
+  * Inputs:
+      * f, a *note string: (Macaulay2Doc)String,, the filename
+      * t, a *note thing: (Macaulay2Doc)Thing,, the variable to store
+
+Description
+===========
+
+This function tries to serialize t into the file f, that is, convert it into a
+standard format for storage. In this case, we convert t into a string using
+*note toExternalString: (Macaulay2Doc)toExternalString,. This function is not
+intended for public use.
+
+See also
+========
+
+  * *note RunExternalM2: Top, -- run Macaulay2 functions outside the current
+    Macaulay2 process
+  * *note toExternalString: (Macaulay2Doc)toExternalString, -- convert to a
+    readable string
+
+For the programmer
+==================
+
+The object *note runExternalM2ReturnAnswer: runExternalM2ReturnAnswer, is a
+*note function closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+File: RunExternalM2.info, Node: suggestions for using RunExternalM2, Prev: runExternalM2ReturnAnswer, Up: Top
+
+suggestions for using RunExternalM2 -- suggestions for using RunExternalM2
+**************************************************************************
+
+A suggested way of writing programs using this package is to write your program
+in a file, perhaps named "somefilename.m2", with the following structure:
+
+needsPackage "RunExternalM2"
+
+...
+(ring definitions, etc., here)
+...
+
+
+mycalc = (...) -> (
+        ...
+        (do a calculation)
+        ...
+);
+
+if isExternalM2Parent() then (
+        ...
+        h=runExternalM2("somefilename.m2",mycalc,...);
+        ...
+);
+
+and then execute your program in Macaulay2 by running:
+
+i1 : load "somefilename.m2"
+
+
+
+This has a few advantages. It ensures that ring definitions are always the same
+in the parent and child Macaulay2 processes, even if you are frequently editing
+the file and running the calculation again. If the file containing the function
+has syntax errors, then they should appear directly in the console rather than
+inside a temporary file containing the program's output. If a particular try at
+execution does not work, then you can immediately call the function directly
+for quick debugging.
+
+For instance, the following code calculates an ideal of minors:
+
+needsPackage "RunExternalM2"
+
+m=4;
+n=3;
+R=QQ[x_(1,1)..x_(m,n)];
+
+idealOfMinors = (i) -> (
+        M:=genericMatrix(R,m,n);
+        return trim minors(i,M);
+);
+
+if isExternalM2Parent() then (
+        h=runExternalM2("example1.m2",idealOfMinors,2);
+        if (h#"exit code"===0) then (
+                stdio<<"The code ran successfully and the answer was:"<<endl;
+                stdio<<toExternalString(h#value)<<endl;
+        ) else (
+                stderr<<"There was a problem."<<endl;
+        );
+);
+
+
+
+When using random numbers, it may be useful for the parent to provide the
+random number seed to the child, so that the output of the child is
+reproducible. For instance, the following code searches for a random integer
+matrix with a large determinant:
+
+needsPackage "RunExternalM2"
+
+getRandomMat = (seed,size,height) -> (
+        setRandomSeed(seed);
+        blankMat:=mutableMatrix(ZZ,size,size);
+        return matrix fillMatrix(blankMat,Height=>height);
+);
+
+if isExternalM2Parent() then (
+        seed:=0;
+        while (true) do (
+                seed=random(0,2^32);
+                h:=runExternalM2("z1.m2",getRandomMat,(seed,5,5));
+                if (h#"exit code"===0) then (
+                        d:=det(h#value);
+                        stdio<<"Starting with seed "<<seed<<" gives this matrix
+                        stdio<<"  "<<h#value<<endl;
+
+                        if (d>100) then (
+                                break;
+                        );
+                ) else (
+                        stderr<<"There was a problem; aborting."<<endl;
+                        break;
+                );
+        );
+
+        stdio<<"Using the seed "<<seed<<" again gives the same matrix:"<<endl;
+        stdio<<"  "<<getRandomMat(seed,5,5)<<endl;
+);
+-------------------------------------------------------------------------------
+(with det="<<d<<"):"<<endl;
+
+See also
+========
+
+  * *note RunExternalM2: Top, -- run Macaulay2 functions outside the current
+    Macaulay2 process
+  * *note runExternalM2: runExternalM2, -- run a Macaulay2 function in a new
+    Macaulay2 process
+  * *note isExternalM2Parent: isExternalM2Parent, -- indicate if this process
+    is a parent process or not
+-------------------------------------------------------------------------------
+
+The source of this document is in RunExternalM2.m2:894:0.
+
+Tag Table:
+Node: Top273
+Node: isExternalM2Child4591
+Node: isExternalM2Parent5709
+Node: KeepStatisticsCommand6864
+Node: PreRunScript8320
+Node: resource limits9795
+Node: runExternalM213365
+Node: runExternalM2_lp_pd_pd_pd_cmKeepFiles=>_pd_pd_pd_rp37555
+Node: runExternalM2ReturnAnswer39675
+Node: suggestions for using RunExternalM241099
+
+End Tag Table

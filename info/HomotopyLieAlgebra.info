@@ -1,0 +1,982 @@
+ -*- coding: utf-8 -*- This is HomotopyLieAlgebra.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* HomotopyLieAlgebra: (HomotopyLieAlgebra).  Homotopy Lie algebra
+END-INFO-DIR-ENTRY
+
+
+File: HomotopyLieAlgebra.info, Node: Top, Next: ad, Up: (dir)
+
+HomotopyLieAlgebra -- Homotopy Lie Algebra of a surjective ring homomorphism
+****************************************************************************
+
+Description
+===========
+
+If R = S/I, K is the Koszul complex on the generators of I, and A is the
+DGAlgebra that is the acyclic closure of K, then the homotopy Lie algebra Pi of
+the map S -->> R is defined as in Briggs ****, with underlying vector space the
+graded dual of the space spanned by a given set of generators of A.
+
++------------------------------------------+
+|i1 : S = ZZ/101[x,y]                      |
+|                                          |
+|o1 = S                                    |
+|                                          |
+|o1 : PolynomialRing                       |
++------------------------------------------+
+|i2 : R = S/ideal(x^2,y^2,x*y)             |
+|                                          |
+|o2 = R                                    |
+|                                          |
+|o2 : QuotientRing                         |
++------------------------------------------+
+|i3 : KR = koszulComplexDGA(ideal R)       |
+|                                          |
+|o3 = {Ring => S                          }|
+|      Underlying algebra => S[T   ..T   ] |
+|                               1,1   1,3  |
+|                        2   2             |
+|      Differential => {x , y , x*y}       |
+|                                          |
+|o3 : DGAlgebra                            |
++------------------------------------------+
+
+Since the acyclic closure is infinitely generated, we must specify the maximum
+homological degree in which cycles will be killed
+
++-----------------------------------------------------------------------------+
+|i4 : lastCyclesDegree = 4                                                    |
+|                                                                             |
+|o4 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : A = acyclicClosure(KR, EndDegree => lastCyclesDegree)                   |
+|                                                                             |
+|o5 = {Ring => S                                                              |
+|      Underlying algebra => S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ,|
+|                               1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6 |
+|                        2   2                                                |
+|      Differential => {x , y , x*y, x*T    - y*T   , - y*T    + x*T   , T   T|
+|                                       1,2      1,3       1,1      1,3   1,2 |
+|                                                                             |
+|o5 : DGAlgebra                                                               |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+| T   ..T    ]                                                                |
+|  5,1   5,11                                                                 |
+|                                                                             |
+|    + y*T   , - T   T    + x*T    + y*T   , - T   T    + x*T   , - T   T    +|
+|1,3      2,1     1,1 1,2      2,1      2,2     1,1 1,3      2,2     1,2 2,1  |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|y*T   , - T   T    + x*T   , - T   T    - T   T    + y*T   , - T   T    -    |
+|   3,1     1,3 2,1      3,1     1,3 2,1    1,2 2,2      3,2     1,1 2,1      |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|T   T    + x*T   , - T   T    + y*T   , - T   T    + x*T   , - T   T    +    |
+| 1,3 2,2      3,2     1,3 2,2      3,3     1,1 2,2      3,3     1,2 3,1      |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|             2                                                2              |
+|y*T   , - 50T    - T   T    + x*T   , - T   T    + y*T   , 50T    - T   T    |
+|   4,1       2,1    1,3 3,1      4,1     1,3 3,1      4,2     2,1    1,2 3,2 |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|+ y*T   , T   T    + x*T    - y*T   , - T   T    - T   T    + x*T    +       |
+|     4,3   2,1 2,2      4,3      4,4     1,1 3,1    1,3 3,2      4,2         |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|             2                                                               |
+|y*T   , - 50T    - T   T    + x*T   , - T   T    - T   T    - T   T    +     |
+|   4,4       2,2    1,1 3,2      4,4     2,1 2,2    1,3 3,2    1,2 3,3       |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                         2                                   |
+|y*T    + y*T   , - T   T    + x*T   , 50T    - T   T    + y*T   , - T   T    |
+|   4,4      4,5     1,3 3,3      4,5     2,2    1,3 3,3      4,6     1,1 3,3 |
+|-----------------------------------------------------------------------------|
+|         }                                                                   |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|+ x*T   }                                                                    |
+|     4,6                                                                     |
++-----------------------------------------------------------------------------+
+
+The evaluation of bracketMatrix(A,d,e) gives the matrix of values of
+[Pi^d,Pi^e]. Here we are identifying the vector space spanned by the generators
+of A with its graded dual by taking the generators produced by the algorithm in
+the DGAlgebras package to be self-dual.
+
++-----------------------------------------------------------------------------+
+|i6 : bracketMatrix(A,1,1)                                                    |
+|                                                                             |
+|o6 = | 2T_(1,1) T_(1,3)  |                                                   |
+|     | T_(1,3)  2T_(1,2) |                                                   |
+|                                                                             |
+|                                                                            2|
+|o6 : Matrix (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   , T   ..T    ]) |
+|                1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6   5,1   5,11   |
+|-----------------------------------------------------------------------------|
+|                                                                    2        |
+|<-- (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   , T   ..T    ])         |
+|        1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6   5,1   5,11           |
++-----------------------------------------------------------------------------+
+|i7 : bracketMatrix(A,2,1)                                                    |
+|                                                                             |
+|o7 = | 0       -T_(2,2) |                                                    |
+|     | T_(2,1) 0        |                                                    |
+|     | T_(2,2) -T_(2,1) |                                                    |
+|                                                                             |
+|                                                                            3|
+|o7 : Matrix (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   , T   ..T    ]) |
+|                1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6   5,1   5,11   |
+|-----------------------------------------------------------------------------|
+|                                                                    2        |
+|<-- (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   , T   ..T    ])         |
+|        1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6   5,1   5,11           |
++-----------------------------------------------------------------------------+
+|i8 : bracketMatrix(A,2,2)                                                    |
+|                                                                             |
+|o8 = | 0       -T_(3,2) -T_(3,3) |                                           |
+|     | T_(3,2) 0        T_(3,1)  |                                           |
+|     | T_(3,3) -T_(3,1) 0        |                                           |
+|                                                                             |
+|                                                                            3|
+|o8 : Matrix (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   , T   ..T    ]) |
+|                1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6   5,1   5,11   |
+|-----------------------------------------------------------------------------|
+|                                                                    3        |
+|<-- (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   , T   ..T    ])         |
+|        1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6   5,1   5,11           |
++-----------------------------------------------------------------------------+
+
+Note that bracketMatrix(A,d,e) is antisymmetric in d,e if one of them is even,
+and symmetric in d,e if both are odd
+
++-----------------------------------------------------------------------------+
+|i9 : bracketMatrix(A,1,1) - transpose bracketMatrix(A,1,1)                   |
+|                                                                             |
+|o9 = 0                                                                       |
+|                                                                             |
+|                                                                            2|
+|o9 : Matrix (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   , T   ..T    ]) |
+|                1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6   5,1   5,11   |
+|-----------------------------------------------------------------------------|
+|                                                                    2        |
+|<-- (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   , T   ..T    ])         |
+|        1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6   5,1   5,11           |
++-----------------------------------------------------------------------------+
+|i10 : bracketMatrix(A,2,1) + transpose bracketMatrix(A,1,2)                  |
+|                                                                             |
+|o10 = 0                                                                      |
+|                                                                             |
+|                                                                             |
+|o10 : Matrix (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ,              |
+|                 1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6               |
+|-----------------------------------------------------------------------------|
+|             3                                                               |
+|T   ..T    ])  <-- (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ,        |
+| 5,1   5,11            1,1   1,3   2,1   2,2   3,1   3,3   4,1   4,6         |
+|-----------------------------------------------------------------------------|
+|             2                                                               |
+|T   ..T    ])                                                                |
+| 5,1   5,11                                                                  |
++-----------------------------------------------------------------------------+
+
+References
+==========
+
+Briggs, Avramov
+
+Author
+======
+
+  * David Eisenbud (see https://www.msri.org/~de ) <de@msri.org>
+
+Version
+=======
+
+This documentation describes version 0.9 of HomotopyLieAlgebra, released
+October 19, 2021.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{HomotopyLieAlgebraSource,                                             |
+|  title = {{HomotopyLieAlgebra: A \emph{Macaulay2} package. Version~0.9}},  |
+|  author = {David Eisenbud},                                                |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note ad: ad, -- matrix of the adjoint action
+      * *note allgens: allgens, -- List the generators of a given degree
+      * *note bracket: bracket, -- Computes the Lie product
+      * *note bracketMatrix: bracketMatrix, -- Multiplication matrix of the
+        homotopy Lie algebra
+  * Methods
+      * "ad(DGAlgebra,RingElement,ZZ)" -- see *note ad: ad, -- matrix of the
+        adjoint action
+      * "allgens(DGAlgebra)" -- see *note allgens: allgens, -- List the
+        generators of a given degree
+      * "allgens(DGAlgebra,ZZ)" -- see *note allgens: allgens, -- List the
+        generators of a given degree
+      * "bracket(DGAlgebra,List)" -- see *note bracket: bracket, -- Computes
+        the Lie product
+      * "bracket(DGAlgebra,List,RingElement)" -- see *note bracket: bracket, --
+        Computes the Lie product
+      * "bracket(DGAlgebra,ZZ,ZZ)" -- see *note bracket: bracket, -- Computes
+        the Lie product
+      * "bracketMatrix(DGAlgebra,ZZ,ZZ)" -- see *note bracketMatrix:
+        bracketMatrix, -- Multiplication matrix of the homotopy Lie algebra
+
+For the programmer
+==================
+
+The object *note HomotopyLieAlgebra: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in HomotopyLieAlgebra.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HomotopyLieAlgebra.m2:268:0.
+
+File: HomotopyLieAlgebra.info, Node: ad, Next: allgens, Prev: Top, Up: Top
+
+ad -- matrix of the adjoint action
+**********************************
+
+  * Usage: 
+        M = ad(A,U,e)
+  * Inputs:
+      * A, an instance of the type *note DGAlgebra: (DGAlgebras)DGAlgebra,, 
+      * U, a *note ring element: (Macaulay2Doc)RingElement,, linear form in the
+        generators of A
+      * e, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * M, a *note matrix: (Macaulay2Doc)Matrix,, with entries in the ground
+        field
+
+Description
+===========
+
+The adjoint action of a scalar linear combination of the entries of
+allgens(A,d-1) U, regarded as an element of Pi^d, acts by bracket
+multiplication with source Pi^e and target Pi^{d+e}. The output is a matrix
+whose columns correspond to a generalized row of the output of bracketMatrix.
+bracketmatrix
+
++-----------------------------------------------------------------------------+
+|i1 : kk = ZZ/101                                                             |
+|                                                                             |
+|o1 = kk                                                                      |
+|                                                                             |
+|o1 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i2 : S = kk[x,y,z]                                                           |
+|                                                                             |
+|o2 = S                                                                       |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i3 : R = S/ideal(x^2,y^2,z^2-x*y,x*z, y*z)                                   |
+|                                                                             |
+|o3 = R                                                                       |
+|                                                                             |
+|o3 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i4 : lastCyclesDegree = 4                                                    |
+|                                                                             |
+|o4 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : KR = koszulComplexDGA(ideal R)                                          |
+|                                                                             |
+|o5 = {Ring => S                                     }                        |
+|      Underlying algebra => S[T   ..T   ]                                    |
+|                               1,1   1,5                                     |
+|                        2   2           2                                    |
+|      Differential => {x , y , - x*y + z , x*z, y*z}                         |
+|                                                                             |
+|o5 : DGAlgebra                                                               |
++-----------------------------------------------------------------------------+
+|i6 : A = acyclicClosure(KR, EndDegree => lastCyclesDegree);                  |
++-----------------------------------------------------------------------------+
+|i7 : d = 1                                                                   |
+|                                                                             |
+|o7 = 1                                                                       |
++-----------------------------------------------------------------------------+
+|i8 : e = 1                                                                   |
+|                                                                             |
+|o8 = 1                                                                       |
++-----------------------------------------------------------------------------+
+|i9 : U = sum (Gd = allgens(A,d-1))                                           |
+|                                                                             |
+|o9 = x + y + z                                                               |
+|                                                                             |
+|o9 : S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ]                    |
+|        1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                     |
++-----------------------------------------------------------------------------+
+|i10 : ad(A,U,1)                                                              |
+|                                                                             |
+|o10 = {1, 2} | 2  0  0 |                                                     |
+|      {1, 2} | 0  2  0 |                                                     |
+|      {1, 2} | -1 -1 2 |                                                     |
+|      {1, 2} | 1  0  1 |                                                     |
+|      {1, 2} | 0  1  1 |                                                     |
+|                                                                             |
+|                                                                   5         |
+|o10 : Matrix (S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])  <--     |
+|                 1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55            |
+|-----------------------------------------------------------------------------|
+|                                                      3                      |
+|(S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])                       |
+|    1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                         |
++-----------------------------------------------------------------------------+
+
+The columns of this matrix are the functionals that are the sum of the three
+rows of the bracket multiplication table:
+
++-----------------------------------------------------------------------------+
+|i11 : matrix{{1,1,1}}*bracketMatrix(A,d,e)                                   |
+|                                                                             |
+|o11 = | 2T_(1,1)-T_(1,3)+T_(1,4) 2T_(1,2)-T_(1,3)+T_(1,5)                    |
+|      -----------------------------------------------------------------------|
+|      2T_(1,3)+T_(1,4)+T_(1,5) |                                             |
+|                                                                             |
+|                                                                   1         |
+|o11 : Matrix (S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])  <-- (S[T|
+|                 1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55            |
+|-----------------------------------------------------------------------------|
+|                                                  3                          |
+|   ..T   , T   ..T    , T   ..T    , T   ..T    ])                           |
+|1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                             |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note bracketMatrix: bracketMatrix, -- Multiplication matrix of the
+    homotopy Lie algebra
+
+Ways to use ad:
+===============
+
+  * "ad(DGAlgebra,RingElement,ZZ)"
+
+For the programmer
+==================
+
+The object *note ad: ad, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HomotopyLieAlgebra.m2:497:0.
+
+File: HomotopyLieAlgebra.info, Node: allgens, Next: bracket, Prev: ad, Up: Top
+
+allgens -- List the generators of a given degree
+************************************************
+
+  * Usage: 
+        G = allgens A
+        Gd = allgens(A,d)
+  * Inputs:
+      * A, an instance of the type *note DGAlgebra: (DGAlgebras)DGAlgebra,, 
+      * d, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * G, a *note list: (Macaulay2Doc)List,, of all generators of A
+      * Gd, a *note list: (Macaulay2Doc)List,, of all generators of homological
+        degree d.
+
+Description
+===========
+
+The DGAlgebra is constructed as a polynomial ring over a ground ring that is
+already a polynomial ring, and allgens includes the generators of the subring.
+
+In invocations of *note bracket: bracket, and *note bracketMatrix:
+bracketMatrix, it is useful to refer to the generators by reference to the
+lists formed by allGens, rather than by trying to name them directly, since
+there is a confusion between generators of A.natural and generators of
+(flattenRing A.natural)_0.
+
+
+
++-----------------------------------------------------------+
+|i1 : kk = ZZ/101                                           |
+|                                                           |
+|o1 = kk                                                    |
+|                                                           |
+|o1 : QuotientRing                                          |
++-----------------------------------------------------------+
+|i2 : S = kk[x,y,z]                                         |
+|                                                           |
+|o2 = S                                                     |
+|                                                           |
+|o2 : PolynomialRing                                        |
++-----------------------------------------------------------+
+|i3 : R = S/ideal(x^2,y^2,z^2-x*y,x*z, y*z)                 |
+|                                                           |
+|o3 = R                                                     |
+|                                                           |
+|o3 : QuotientRing                                          |
++-----------------------------------------------------------+
+|i4 : lastCyclesDegree = 1                                  |
+|                                                           |
+|o4 = 1                                                     |
++-----------------------------------------------------------+
+|i5 : KR = koszulComplexDGA(ideal R)                        |
+|                                                           |
+|o5 = {Ring => S                                     }      |
+|      Underlying algebra => S[T   ..T   ]                  |
+|                               1,1   1,5                   |
+|                        2   2           2                  |
+|      Differential => {x , y , - x*y + z , x*z, y*z}       |
+|                                                           |
+|o5 : DGAlgebra                                             |
++-----------------------------------------------------------+
+|i6 : A = acyclicClosure(KR, EndDegree => lastCyclesDegree);|
++-----------------------------------------------------------+
+
+This causes the generators of the acyclic closure to be computed up to
+homological degree lastCycleDegree+1, to kill the cycles in lastCycleDegree. If
+S is graded, then the generators of A.natural have degreeLength 2, with the
+first component the homological degree.
+
+Since A.natural is a polynomial ring over S, gens A.natural only lists the
+generators of homological degree >=1, whereas allgens (made with fl
+
++-----------------------------------------------------------------------------+
+|i7 : g = gens(A.natural)                                                     |
+|                                                                             |
+|o7 = {T   , T   , T   , T   , T   , T   , T   , T   , T   , T   }            |
+|       1,1   1,2   1,3   1,4   1,5   2,1   2,2   2,3   2,4   2,5             |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : g/degree                                                                |
+|                                                                             |
+|o8 = {{1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {2, 3}, {2, 3}, {2, 3}, {2, 3},|
+|     ------------------------------------------------------------------------|
+|     {2, 3}}                                                                 |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : allgens A                                                               |
+|                                                                             |
+|o9 = {x, y, z, T   , T   , T   , T   , T   , T   , T   , T   , T   , T   }   |
+|                1,1   1,2   1,3   1,4   1,5   2,1   2,2   2,3   2,4   2,5    |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : G3 = allgens(A,2)                                                      |
+|                                                                             |
+|o10 = {T   , T   , T   , T   , T   }                                         |
+|        2,1   2,2   2,3   2,4   2,5                                          |
+|                                                                             |
+|o10 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i11 : G3/degree                                                              |
+|                                                                             |
+|o11 = {{2, 3}, {2, 3}, {2, 3}, {2, 3}, {2, 3}}                               |
+|                                                                             |
+|o11 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+Ways to use allgens:
+====================
+
+  * "allgens(DGAlgebra)"
+  * "allgens(DGAlgebra,ZZ)"
+
+For the programmer
+==================
+
+The object *note allgens: allgens, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HomotopyLieAlgebra.m2:454:0.
+
+File: HomotopyLieAlgebra.info, Node: bracket, Next: bracketMatrix, Prev: allgens, Up: Top
+
+bracket -- Computes the Lie product
+***********************************
+
+  * Usage: 
+        F = bracket(A,L,T)
+        F = bracket(A,L)
+        H = bracket(A,d,e)
+  * Inputs:
+      * A, an instance of the type *note DGAlgebra: (DGAlgebras)DGAlgebra,, 
+      * L, a *note list: (Macaulay2Doc)List,, list of two generators of A
+      * T, a *note ring element: (Macaulay2Doc)RingElement,, generator of A
+      * d, an *note integer: (Macaulay2Doc)ZZ,, 
+      * e, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * F, a *note ring element: (Macaulay2Doc)RingElement,, linear form in A
+      * H, a *note hash table: (Macaulay2Doc)HashTable,, gives all the products
+        between (dual) elements of degrees d,e
+
+Description
+===========
+
+Given a factor ring R = S/I, we take A to be the acyclic closure, up to some
+degree n, of the Koszul complex on the generators of I. The underlying algebra
+An := A.natural is thus a free algebra over S on generators T_i of various
+homological and internal degrees.
+
+The Homotopy Lie algebra of the map S ->> R is the graded dual of the space of
+linear forms Lin(A) of A. Since we obtain A together with a set of generators
+T_i, we identify the Lie algebra with space of linear forms, using the T_i as a
+self-dual basis. Thus we express the bracket product of two linear forms as
+another linear form. This inner product on the linear forms of degree d extends
+naturally to an inner product between Lin(A)**Lin(A) and the quadratic forms of
+A. This inner product has signs coming from the homological grading, and is the
+only delicate part of the implementation.
+
+The bracket function is the workhorse of this collection of routines. Suppose
+that f,g are three linear forms in the generators of A homogeneous in the
+homological grading, of homological degrees d-1, e-1 respectively, which we
+regard as dual basis elements of Pi^d and Pi^e, graded components of the
+homotopy Lie algebra Pi. We can compute the bracket product [f,g] as an element
+of Pi^{d+e}, or its action on a linear form F that is homogeneous of
+homological degree d+e-1 via the inner product<f**g, d(F)_2>, where d is the
+differential of A. The calls bracket(A,{f,g}) and bracket(A, {f,g}, F) compute
+these products
+
+In the following example, we use the function allgens(A,d) to list the
+generators of A of homological degree d:
+
++-----------------------------------------------------------------------------+
+|i1 : kk = ZZ/101                                                             |
+|                                                                             |
+|o1 = kk                                                                      |
+|                                                                             |
+|o1 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i2 : S = kk[x,y,z]                                                           |
+|                                                                             |
+|o2 = S                                                                       |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i3 : R = S/ideal(x^2,y^2,z^2-x*y,x*z, y*z)                                   |
+|                                                                             |
+|o3 = R                                                                       |
+|                                                                             |
+|o3 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i4 : lastCyclesDegree = 4                                                    |
+|                                                                             |
+|o4 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : KR = koszulComplexDGA(ideal R)                                          |
+|                                                                             |
+|o5 = {Ring => S                                     }                        |
+|      Underlying algebra => S[T   ..T   ]                                    |
+|                               1,1   1,5                                     |
+|                        2   2           2                                    |
+|      Differential => {x , y , - x*y + z , x*z, y*z}                         |
+|                                                                             |
+|o5 : DGAlgebra                                                               |
++-----------------------------------------------------------------------------+
+|i6 : A = acyclicClosure(KR, EndDegree => lastCyclesDegree);                  |
++-----------------------------------------------------------------------------+
+|i7 : p2 = allgens(A,1) -- dual generators of Pi^2                            |
+|                                                                             |
+|o7 = {T   , T   , T   , T   , T   }                                          |
+|       1,1   1,2   1,3   1,4   1,5                                           |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : p3 = allgens(A,2) -- dual generators of Pi^3                            |
+|                                                                             |
+|o8 = {T   , T   , T   , T   , T   }                                          |
+|       2,1   2,2   2,3   2,4   2,5                                           |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : a5 = allgens(A,4) -- generators of A of homological degree 5            |
+|                                                                             |
+|o9 = {T   , T   , T   , T   , T   , T   , T   , T   , T   , T    , T    ,    |
+|       4,1   4,2   4,3   4,4   4,5   4,6   4,7   4,8   4,9   4,10   4,11     |
+|     ------------------------------------------------------------------------|
+|     T    , T    , T    , T    , T    , T    , T    , T    , T    , T    ,   |
+|      4,12   4,13   4,14   4,15   4,16   4,17   4,18   4,19   4,20   4,21    |
+|     ------------------------------------------------------------------------|
+|     T    , T    , T    }                                                    |
+|      4,22   4,23   4,24                                                     |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : bracket(A, {sum p2, sum p3})                                           |
+|                                                                             |
+|o10 = - 2T    + T    + T    - T    + 2T    - T    - 2T    - 3T    - 2T    -  |
+|          4,1    4,2    4,3    4,4     4,5    4,6     4,7     4,8     4,9    |
+|      -----------------------------------------------------------------------|
+|      T     - T     + 2T     + 3T     + T     + T     - 2T     - T     -     |
+|       4,10    4,11     4,12     4,13    4,14    4,15     4,16    4,17       |
+|      -----------------------------------------------------------------------|
+|      T     - 2T     - 2T     + 2T                                           |
+|       4,18     4,20     4,22     4,23                                       |
+|                                                                             |
+|o10 : S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ]                   |
+|         1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                    |
++-----------------------------------------------------------------------------+
+|i11 : bracket(A,{sum p2, sum p3}, sum a5)                                    |
+|                                                                             |
+|o11 = -8                                                                     |
+|                                                                             |
+|o11 : S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ]                   |
+|         1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                    |
++-----------------------------------------------------------------------------+
+
+The other invocation of bracket produces a HashTable displaying all the bracket
+products of elements of Pi^d and Pi^e as functions on the generators of
+homological degree d+e-1 of A:
+
++-----------------------------------------------------------------------------+
+|i12 : H = bracket(A,2,3);                                                    |
++-----------------------------------------------------------------------------+
+|i13 : #keys H                                                                |
+|                                                                             |
+|o13 = 600                                                                    |
++-----------------------------------------------------------------------------+
+|i14 : H' = select(keys H, k->H#k != 0);                                      |
++-----------------------------------------------------------------------------+
+|i15 : H'                                                                     |
+|                                                                             |
+|o15 = {({T   , T   }, T   T    + T   T    - z*T    + y*T    ), ({T   , T   },|
+|          1,3   2,5    1,5 2,1    1,3 2,5      3,8      3,10      1,5   2,1  |
+|      -----------------------------------------------------------------------|
+|      T   T    + T   T    - z*T    + y*T    ), ({T   , T   }, - T   T    -   |
+|       1,5 2,1    1,3 2,5      3,8      3,10      1,4   2,5      1,5 2,2     |
+|      -----------------------------------------------------------------------|
+|      T   T    + z*T    + z*T    ), ({T   , T   }, - T   T    - T   T    +   |
+|       1,4 2,5      3,2      3,10      1,1   2,1      1,1 2,1    1,4 2,2     |
+|      -----------------------------------------------------------------------|
+|      x*T   ), ({T   , T   }, T   T    + T   T    - z*T    + x*T   ), ({T   ,|
+|         3,1      1,3   2,4    1,5 2,3    1,3 2,4      3,5      3,6      1,4 |
+|      -----------------------------------------------------------------------|
+|      T   }, T   T    + T   T    - z*T    + y*T   ), ({T   , T   }, -        |
+|       2,1    1,4 2,1    1,3 2,2      3,1      3,3      1,5   2,5            |
+|      -----------------------------------------------------------------------|
+|      T   T    + y*T   ), ({T   , T   }, T   T    - T   T    + x*T    ),     |
+|       1,5 2,5      3,8      1,4   2,1    1,4 2,1    1,1 2,5      3,10       |
+|      -----------------------------------------------------------------------|
+|      ({T   , T   }, - T   T    - T   T    + x*T   ), ({T   , T   }, T   T   |
+|         1,4   2,2      1,1 2,1    1,4 2,2      3,1      1,2   2,1    1,2 2,1|
+|      -----------------------------------------------------------------------|
+|      + T   T    + T   T    + y*T    - z*T   ), ({T   , T   }, T   T    -    |
+|         1,3 2,3    1,4 2,4      3,4      3,7      1,5   2,5    1,4 2,4      |
+|      -----------------------------------------------------------------------|
+|      T   T    - z*T    + z*T   ), ({T   , T   }, T   T    + T   T    +      |
+|       1,5 2,5      3,7      3,9      1,3   2,3    1,2 2,1    1,3 2,3        |
+|      -----------------------------------------------------------------------|
+|      T   T    + y*T    - z*T   ), ({T   , T   }, T   T    + y*T    -        |
+|       1,4 2,4      3,4      3,7      1,3   2,1    1,3 2,1      3,1          |
+|      -----------------------------------------------------------------------|
+|      z*T   ), ({T   , T   }, - T   T    - T   T    + z*T    + z*T    ),     |
+|         3,2      1,5   2,2      1,5 2,2    1,4 2,5      3,2      3,10       |
+|      -----------------------------------------------------------------------|
+|      ({T   , T   }, T   T    + T   T    - z*T    + y*T   ), ({T   , T   }, -|
+|         1,3   2,2    1,4 2,1    1,3 2,2      3,1      3,3      1,2   2,4    |
+|      -----------------------------------------------------------------------|
+|      T   T    + y*T   ), ({T   , T   }, - T   T    - T   T    - z*T    +    |
+|       1,2 2,4      3,6      1,1   2,4      1,5 2,1    1,1 2,4      3,4      |
+|      -----------------------------------------------------------------------|
+|      x*T   ), ({T   , T   }, - T   T    + z*T   ), ({T   , T   }, T   T    -|
+|         3,7      1,4   2,2      1,4 2,2      3,3      1,1   2,5    1,4 2,1  |
+|      -----------------------------------------------------------------------|
+|      T   T    + x*T    ), ({T   , T   }, - T   T    + z*T   ), ({T   ,      |
+|       1,1 2,5      3,10      1,5   2,4      1,5 2,4      3,6      1,3       |
+|      -----------------------------------------------------------------------|
+|      T   }, T   T    - z*T    + x*T   ), ({T   , T   }, - T   T    -        |
+|       2,2    1,3 2,2      3,1      3,2      1,5   2,1      1,5 2,1          |
+|      -----------------------------------------------------------------------|
+|      T   T    - z*T    + x*T   ), ({T   , T   }, T   T    + T   T    -      |
+|       1,1 2,4      3,4      3,7      1,5   2,3    1,5 2,3    1,3 2,4        |
+|      -----------------------------------------------------------------------|
+|      z*T    + x*T   ), ({T   , T   }, - T   T    - T   T    + y*T    +      |
+|         3,5      3,6      1,4   2,3      1,2 2,2    1,4 2,3      3,2        |
+|      -----------------------------------------------------------------------|
+|      z*T   ), ({T   , T   }, T   T    - z*T    + y*T   ), ({T   , T   }, -  |
+|         3,4      1,3   2,4    1,3 2,4      3,5      3,7      1,3   2,1      |
+|      -----------------------------------------------------------------------|
+|      T   T    - T   T    - T   T    + z*T    + x*T   ), ({T   , T   }, -    |
+|       1,3 2,1    1,5 2,2    1,1 2,3      3,2      3,4      1,1   2,2        |
+|      -----------------------------------------------------------------------|
+|      T   T    + x*T   ), ({T   , T   }, - T   T    - T   T    + y*T   ),    |
+|       1,1 2,2      3,3      1,5   2,4      1,2 2,3    1,5 2,4      3,5      |
+|      -----------------------------------------------------------------------|
+|      ({T   , T   }, - T   T    + T   T    - z*T    + x*T   ), ({T   , T   },|
+|         1,3   2,5      1,4 2,3    1,3 2,5      3,8      3,9      1,2   2,2  |
+|      -----------------------------------------------------------------------|
+|      - T   T    - T   T    + y*T    + z*T   ), ({T   , T   }, - T   T    +  |
+|         1,2 2,2    1,4 2,3      3,2      3,4      1,4   2,3      1,4 2,3    |
+|      -----------------------------------------------------------------------|
+|      T   T    - z*T    + x*T   ), ({T   , T   }, - T   T    - T   T    +    |
+|       1,3 2,5      3,8      3,9      1,2   2,5      1,5 2,3    1,2 2,5      |
+|      -----------------------------------------------------------------------|
+|      y*T   ), ({T   , T   }, - T   T    + x*T   ), ({T   , T   }, - T   T   |
+|         3,9      1,4   2,5      1,4 2,5      3,8      1,5   2,3      1,5 2,3|
+|      -----------------------------------------------------------------------|
+|      - T   T    + y*T   ), ({T   , T   }, T   T    + x*T    - z*T   ),      |
+|         1,2 2,5      3,9      1,3   2,3    1,3 2,3      3,5      3,7        |
+|      -----------------------------------------------------------------------|
+|      ({T   , T   }, - T   T    - T   T    - T   T    + z*T    + x*T   ),    |
+|         1,1   2,3      1,3 2,1    1,5 2,2    1,1 2,3      3,2      3,4      |
+|      -----------------------------------------------------------------------|
+|      ({T   , T   }, T   T    - T   T    - z*T    + z*T   ), ({T   , T   }, -|
+|         1,4   2,4    1,4 2,4    1,5 2,5      3,7      3,9      1,2   2,3    |
+|      -----------------------------------------------------------------------|
+|      T   T    - T   T    + y*T   ), ({T   , T   }, - T   T    - T   T    -  |
+|       1,2 2,3    1,5 2,4      3,5      1,5   2,2      1,3 2,1    1,5 2,2    |
+|      -----------------------------------------------------------------------|
+|      T   T    + z*T    + x*T   ), ({T   , T   }, T   T    + T   T    +      |
+|       1,1 2,3      3,2      3,4      1,4   2,4    1,2 2,1    1,3 2,3        |
+|      -----------------------------------------------------------------------|
+|      T   T    + y*T    - z*T   )}                                           |
+|       1,4 2,4      3,4      3,7                                             |
+|                                                                             |
+|o15 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i16 : H#(H'_0)                                                               |
+|                                                                             |
+|o16 = 1                                                                      |
+|                                                                             |
+|o16 : S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ]                   |
+|         1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                    |
++-----------------------------------------------------------------------------+
+
+From this we see that [T_5, T_6] sends T_37 to -1 in kk.
+
+Another, often simpler view of the pairing is given by *note bracketMatrix:
+bracketMatrix,, where the rows and columns correspond to the generators of Pi^d
+and Pi^e, and the entries are the bracket products, interpreted as elements of
+Pi^{d+e}. Note the anti-symmetry, which holds when d or e are even and the
+symmetry in the case both are odd.
+
++-----------------------------------------------------------------------------+
+|i17 : bracketMatrix(A,1,2)                                                   |
+|                                                                             |
+|o17 = | 0        -T_(2,3) -T_(2,1) -T_(2,2) -T_(2,5) |                       |
+|      | -T_(2,1) 0        -T_(2,3) T_(2,5)  -T_(2,4) |                       |
+|      | T_(2,2)  T_(2,4)  0        T_(2,1)  T_(2,3)  |                       |
+|                                                                             |
+|                                                                   3         |
+|o17 : Matrix (S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])  <--     |
+|                 1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55            |
+|-----------------------------------------------------------------------------|
+|                                                      5                      |
+|(S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])                       |
+|    1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                         |
++-----------------------------------------------------------------------------+
+|i18 : bracketMatrix(A,2,1)                                                   |
+|                                                                             |
+|o18 = | 0       T_(2,1)  -T_(2,2) |                                          |
+|      | T_(2,3) 0        -T_(2,4) |                                          |
+|      | T_(2,1) T_(2,3)  0        |                                          |
+|      | T_(2,2) -T_(2,5) -T_(2,1) |                                          |
+|      | T_(2,5) T_(2,4)  -T_(2,3) |                                          |
+|                                                                             |
+|                                                                   5         |
+|o18 : Matrix (S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])  <--     |
+|                 1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55            |
+|-----------------------------------------------------------------------------|
+|                                                      3                      |
+|(S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])                       |
+|    1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                         |
++-----------------------------------------------------------------------------+
+|i19 : bracketMatrix(A,1,1)                                                   |
+|                                                                             |
+|o19 = | 2T_(1,1) -T_(1,3) T_(1,4)  |                                         |
+|      | -T_(1,3) 2T_(1,2) T_(1,5)  |                                         |
+|      | T_(1,4)  T_(1,5)  2T_(1,3) |                                         |
+|                                                                             |
+|                                                                   3         |
+|o19 : Matrix (S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])  <--     |
+|                 1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55            |
+|-----------------------------------------------------------------------------|
+|                                                      3                      |
+|(S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])                       |
+|    1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                         |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note allgens: allgens, -- List the generators of a given degree
+  * *note bracketMatrix: bracketMatrix, -- Multiplication matrix of the
+    homotopy Lie algebra
+
+Ways to use bracket:
+====================
+
+  * "bracket(DGAlgebra,List)"
+  * "bracket(DGAlgebra,List,RingElement)"
+  * "bracket(DGAlgebra,ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note bracket: bracket, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HomotopyLieAlgebra.m2:364:0.
+
+File: HomotopyLieAlgebra.info, Node: bracketMatrix, Prev: bracket, Up: Top
+
+bracketMatrix -- Multiplication matrix of the homotopy Lie algebra
+******************************************************************
+
+  * Usage: 
+        M = bracketMatrix(A,d,e)
+  * Inputs:
+      * A, an instance of the type *note DGAlgebra: (DGAlgebras)DGAlgebra,,
+        first part of the acyclic closure of a Koszul complex
+      * d, an *note integer: (Macaulay2Doc)ZZ,, 
+      * e, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * M, a *note matrix: (Macaulay2Doc)Matrix,, of linear forms in the
+        generators of A
+
+Description
+===========
+
+This function implements the multiplication table of the degree d and degree e
+components of the homotopy Lie algebra Pi. The entries of the matrix are linear
+forms of homological degree d+e+1, interpreted as generators of Pi^{d+e}. See
+*note bracket: bracket, for more details.
+
++-----------------------------------------------------------------------------+
+|i1 : kk = ZZ/101                                                             |
+|                                                                             |
+|o1 = kk                                                                      |
+|                                                                             |
+|o1 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i2 : S = kk[x,y,z]                                                           |
+|                                                                             |
+|o2 = S                                                                       |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i3 : R = S/ideal(x^2,y^2,z^2-x*y,x*z, y*z)                                   |
+|                                                                             |
+|o3 = R                                                                       |
+|                                                                             |
+|o3 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i4 : lastCyclesDegree = 4                                                    |
+|                                                                             |
+|o4 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : KR = koszulComplexDGA(ideal R)                                          |
+|                                                                             |
+|o5 = {Ring => S                                     }                        |
+|      Underlying algebra => S[T   ..T   ]                                    |
+|                               1,1   1,5                                     |
+|                        2   2           2                                    |
+|      Differential => {x , y , - x*y + z , x*z, y*z}                         |
+|                                                                             |
+|o5 : DGAlgebra                                                               |
++-----------------------------------------------------------------------------+
+|i6 : A = acyclicClosure(KR, EndDegree => lastCyclesDegree);                  |
++-----------------------------------------------------------------------------+
+|i7 : p1 = allgens(A,0) -- dual generators of Pi^1                            |
+|                                                                             |
+|o7 = {x, y, z}                                                               |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : p2 = allgens(A,1) -- dual generators of Pi^3                            |
+|                                                                             |
+|o8 = {T   , T   , T   , T   , T   }                                          |
+|       1,1   1,2   1,3   1,4   1,5                                           |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : p3 = allgens(A,2) -- dual generators of Pi^4                            |
+|                                                                             |
+|o9 = {T   , T   , T   , T   , T   }                                          |
+|       2,1   2,2   2,3   2,4   2,5                                           |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : bracketMatrix(A,2,1)                                                   |
+|                                                                             |
+|o10 = | 0       T_(2,1)  -T_(2,2) |                                          |
+|      | T_(2,3) 0        -T_(2,4) |                                          |
+|      | T_(2,1) T_(2,3)  0        |                                          |
+|      | T_(2,2) -T_(2,5) -T_(2,1) |                                          |
+|      | T_(2,5) T_(2,4)  -T_(2,3) |                                          |
+|                                                                             |
+|                                                                   5         |
+|o10 : Matrix (S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])  <--     |
+|                 1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55            |
+|-----------------------------------------------------------------------------|
+|                                                      3                      |
+|(S[T   ..T   , T   ..T    , T   ..T    , T   ..T    ])                       |
+|    1,1   2,5   3,1   3,10   4,1   4,24   5,1   5,55                         |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note bracket: bracket, -- Computes the Lie product
+  * *note allgens: allgens, -- List the generators of a given degree
+
+Ways to use bracketMatrix:
+==========================
+
+  * "bracketMatrix(DGAlgebra,ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note bracketMatrix: bracketMatrix, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in HomotopyLieAlgebra.m2:402:0.
+
+Tag Table:
+Node: Top247
+Node: ad16262
+Node: allgens24176
+Node: bracket31076
+Node: bracketMatrix53993
+
+End Tag Table

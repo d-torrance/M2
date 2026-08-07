@@ -1,0 +1,2081 @@
+ -*- coding: utf-8 -*- This is SumsOfSquares.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* SumsOfSquares: (SumsOfSquares).  sums of squares
+END-INFO-DIR-ENTRY
+
+
+File: SumsOfSquares.info, Node: Top, Next: checkSolver, Up: (dir)
+
+SumsOfSquares -- A package for sums-of-squares problems
+*******************************************************
+
+Description
+===========
+
+SumsOfSquares is a package to solve sums-of-squares (SOS) problems via *note
+semidefinite programming: (SemidefiniteProgramming)Top, (SDP).
+
+Introduction
+
+Writing a polynomial as a sum of squares proves its nonnegativity for all
+arguments, but not all nonnegative polynomials are sum of squares. While
+nonnegativity of a polynomial is hard to check, there are efficient methods to
+find sums-of-squares decompositions, and this package makes some of them
+available in Macaulay2. These methods rely on semidefinite programming, an area
+from mathematical optimization. Several solvers (or tools) for semidefinite
+programming are available. The package *note SemidefiniteProgramming:
+(SemidefiniteProgramming)Top, allows us to use some of these solvers in
+Macaulay2. The solver CSDP (see https://github.com/coin-or/csdp/wiki ) is
+included in Macaulay2 and can be used without any configuration.  See *note
+Solver: (SemidefiniteProgramming)Solver, for how to use other solvers.
+
+Usage examples
+
+The most basic application is to (try to) decompose a polynomial as a sum of
+squares using the function *note solveSOS: solveSOS,.
++---------------------------------------------+
+|i1 : R = QQ[x,y];                            |
++---------------------------------------------+
+|i2 : f = 2*x^4 + 2*x^3*y - 2*x^2*y^2 + 5*y^4;|
++---------------------------------------------+
+|i3 : sol = solveSOS f;                       |
++---------------------------------------------+
+The return value is an object of type *note SDPResult: SDPResult, which, in the
+case of success, contains the sum-of-squares decomposition. It can be extracted
+with *note sosPoly: sosPoly,.  This returns an object of type *note SOSPoly:
+SOSPoly,, which supports many operations that polynomials support.
++-----------------------------------------------------------+
+|i4 : s = sosPoly sol                                       |
+|                                                           |
+|            83 2    2 2    43  20 2       2    231773   2 2|
+|o4 = (5)(- ---x  + y )  + (--)(--x  + x*y)  + (------)(x ) |
+|           200             20  43              344000      |
+|                                                           |
+|o4 : SOSPoly                                               |
++-----------------------------------------------------------+
+The command *note value(SOSPoly): value_lpSOSPoly_rp, can be used to check that
+the decomposition found matches the original polynomial.
++-----------------------------+
+|i5 : value(s)                |
+|                             |
+|       4     3      2 2     4|
+|o5 = 2x  + 2x y - 2x y  + 5y |
+|                             |
+|o5 : R                       |
++-----------------------------+
+
+Sums of squares modulo equality constraints
+
+The package supports sum-of-squares *note problems in quotient rings:
+solveSOS_lpRingElement_cmRingElement_cmMatrix_rp,. This can be useful to prove
+nonnegativity of a polynomial on a variety.  The following example is taken
+from [P05].  Consider the problem of proving that the polynomial f = 10-x^2-y
+is nonnegative on the circle defined by g = x^2 + y^2 - 1. To do this we check
+if f is a sum of squares in the quotient ring modulo g. For such a computation,
+a degree bound must be given by the user.
++------------------------------------------+
+|i6 : R = QQ[x,y];                         |
++------------------------------------------+
+|i7 : S = R/ideal(x^2 + y^2 - 1);          |
++------------------------------------------+
+|i8 : f = 10-x^2-y;                        |
++------------------------------------------+
+|i9 : sol = solveSOS (f, 2);               |
++------------------------------------------+
+|i10 : sosPoly sol                         |
+|                                          |
+|       79       4 2    71    2     63    2|
+|o10 = (--)(y - --)  + (--)(x)  + (---)(1) |
+|        8      79       8         632     |
+|                                          |
+|o10 : SOSPoly                             |
++------------------------------------------+
+The previous computation gives decomposition with three sums of squares. See
+*note TraceObj: TraceObj, for how to obtain a decomposition with only two
+squares.
+
+Other cool stuff
+
+  * The package implements Hilbert's algorithm to decompose a nonnegative
+    ternary form into a sum of squares of rational functions: *note
+    sosdecTernary: sosdecTernary,.
+  * Sums of squares problems can be solved parametrically: *note solveSOS:
+    solveSOS,.
+  * Optimization over varieties can run using *note lowerBound: lowerBound,.
+
+On the role of the coefficient field
+
+The SumsOfSquares package interfaces tries to hide some of the difficulties
+that arise from using these numerical procedures. See *note coefficient field:
+coefficient field, for more information.
+
+Acknowledgement
+===============
+
+Special thanks: Ilir Dema, Nidhi Kaihnsa, Anton Leykin.
+
+References
+==========
+
+  * [BPT12] Semidefinite Optimization and Convex Algebraic Geometry SIAM
+    Textbook, edited by G. Blekherman, P. Parrilo, and R. Thomas, (2012).
+  * [P05] Exploiting Algebraic Structure in Sum of Squares Programs P. Parrilo
+    in Positive polynomials in control (2005).
+  * [PP] Computing sum of squares decompositions with rational coefficients H.
+    Peyrl and P. Parrilo  in Theoretical Computer Science 409 (2008) p.
+    269–281.
+
+Authors
+=======
+
+  * Diego Cifuentes (see http://www.mit.edu/~diegcif/ ) <diegcif@mit.edu>
+  * Thomas Kahle (see https://thomas-kahle.de/ ) <thomas.kahle@ovgu.de>
+  * Pablo A. Parrilo (see http://www.mit.edu/~parrilo/ ) <parrilo@mit.edu>
+  * Helfried Peyrl (see https://scholar.google.com/citations?user=cFOV7nYAAAAJ&
+    hl=de ) <peyrl@control.ee.ethz.ch>
+
+Certification a gold star
+=========================
+
+Version 2.1 of this package was accepted for publication in volume 10 (see
+https://msp.org/jsag/2020/10-1/ ) of The Journal of Software for Algebra and
+Geometry (see https://msp.org/jsag/ ) on 6 January 2020, in the article Sums of
+squares in Macaulay2 (see https://msp.org/jsag/2020/10-1/p03.xhtml ) (DOI:
+10.2140/jsag.2020.10.17 (see https://doi.org/10.2140/jsag.2020.10.17 )). That
+version can be obtained from the journal (see
+https://msp.org/jsag/2020/10-1/jsag-v10-n1-x03-SumsOfSquares.zip ).
+
+Version
+=======
+
+This documentation describes version 2.2 of SumsOfSquares, released May 2021.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{SumsOfSquaresSource,                                                   |
+|  title = {{SumsOfSquares: A \emph{Macaulay2} package. Version~2.2           |
+|  author = {Diego Cifuentes and Thomas Kahle and Pablo A. Parrilo            |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/           |
+|}                                                                            |
+|                                                                             |
+|@article{SumsOfSquaresArticle,                                               |
+|  title = {{Sums of squares in \emph{Macaulay2}}},                           |
+|  author = {Diego Cifuentes and Thomas Kahle and Pablo A. Parrilo            |
+|  journal = {The Journal of Software for Algebra and Geometry},              |
+|  volume = {10},                                                             |
+|  year = {2020},                                                             |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|}},                                                                          |
+|and Helfried Peyrl},                                                         |
+|                                                                             |
+|packages}}                                                                   |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|and Helfried Peyrl},                                                         |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note SDPResult: SDPResult, -- result of a semidefinite programming
+        computation
+      * *note SOSPoly: SOSPoly, -- A type to store sums-of-squares polynomials
+  * Functions and commands
+      * *note checkSolver: checkSolver, -- tests a semidefinite programming
+        solver
+      * *note library: library, -- library of interesting nonnegative forms
+      * *note lowerBound: lowerBound, -- finds a lower bound for a polynomial
+      * *note recoverSolution: recoverSolution, -- factor a rank one positive
+        semidefinite matrix
+      * *note solveSOS: solveSOS, -- solve a sum-of-squares problem
+      * *note sosdecTernary: sosdecTernary, -- sum of squares decomposition for
+        ternary forms
+      * *note sosInIdeal: sosInIdeal, -- sum of squares polynomial in ideal
+      * *note sosPoly: sosPoly, -- make an SOS polynomial
+  * Methods
+      * "checkSolver(String)" -- see *note checkSolver: checkSolver, -- tests a
+        semidefinite programming solver
+      * "checkSolver(String,Function)" -- see *note checkSolver: checkSolver,
+        -- tests a semidefinite programming solver
+      * "checkSolver(String,String)" -- see *note checkSolver: checkSolver, --
+        tests a semidefinite programming solver
+      * *note clean(RR,SOSPoly): clean_lpRR_cmSOSPoly_rp, -- remove squares
+        with very small coefficients from a sum of squares
+      * "library(String,List)" -- see *note library: library, -- library of
+        interesting nonnegative forms
+      * "library(String,Ring)" -- see *note library: library, -- library of
+        interesting nonnegative forms
+      * "lowerBound(RingElement)" -- see *note lowerBound: lowerBound, -- finds
+        a lower bound for a polynomial
+      * "lowerBound(RingElement,Matrix,ZZ)" -- see *note lowerBound:
+        lowerBound, -- finds a lower bound for a polynomial
+      * "lowerBound(RingElement,ZZ)" -- see *note lowerBound: lowerBound, --
+        finds a lower bound for a polynomial
+      * "recoverSolution(Matrix,Matrix)" -- see *note recoverSolution:
+        recoverSolution, -- factor a rank one positive semidefinite matrix
+      * "recoverSolution(SDPResult)" -- see *note recoverSolution:
+        recoverSolution, -- factor a rank one positive semidefinite matrix
+      * "net(SDPResult)" -- see *note SDPResult: SDPResult, -- result of a
+        semidefinite programming computation
+      * "status(SDPResult)" -- see *note SDPResult: SDPResult, -- result of a
+        semidefinite programming computation
+      * "solveSOS(RingElement)" -- see *note solveSOS: solveSOS, -- solve a
+        sum-of-squares problem
+      * "solveSOS(RingElement,RingElement)" -- see *note solveSOS: solveSOS, --
+        solve a sum-of-squares problem
+      * "solveSOS(RingElement,Matrix)" -- see *note
+        solveSOS(RingElement,RingElement,Matrix):
+        solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares
+        problem in a quotient ring
+      * *note solveSOS(RingElement,RingElement,Matrix):
+        solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares
+        problem in a quotient ring
+      * "solveSOS(RingElement,RingElement,ZZ)" -- see *note
+        solveSOS(RingElement,RingElement,Matrix):
+        solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares
+        problem in a quotient ring
+      * "solveSOS(RingElement,ZZ)" -- see *note
+        solveSOS(RingElement,RingElement,Matrix):
+        solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares
+        problem in a quotient ring
+      * "sosdecTernary(RingElement)" -- see *note sosdecTernary: sosdecTernary,
+        -- sum of squares decomposition for ternary forms
+      * "sosInIdeal(Matrix,ZZ)" -- see *note sosInIdeal: sosInIdeal, -- sum of
+        squares polynomial in ideal
+      * "sosInIdeal(Ring,ZZ)" -- see *note sosInIdeal: sosInIdeal, -- sum of
+        squares polynomial in ideal
+      * "coefficients(SOSPoly)" -- see *note SOSPoly: SOSPoly, -- A type to
+        store sums-of-squares polynomials
+      * "expression(SOSPoly)" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "generators(SOSPoly)" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "length(SOSPoly)" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "Matrix == SOSPoly" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "net(SOSPoly)" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "Number * SOSPoly" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "ring(SOSPoly)" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "RingElement == SOSPoly" -- see *note SOSPoly: SOSPoly, -- A type to
+        store sums-of-squares polynomials
+      * "SOSPoly * SOSPoly" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "SOSPoly + SOSPoly" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "SOSPoly == Matrix" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "SOSPoly == RingElement" -- see *note SOSPoly: SOSPoly, -- A type to
+        store sums-of-squares polynomials
+      * "SOSPoly == SOSPoly" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "SOSPoly ^ ZZ" -- see *note SOSPoly: SOSPoly, -- A type to store
+        sums-of-squares polynomials
+      * "substitute(SOSPoly,Ring)" -- see *note SOSPoly: SOSPoly, -- A type to
+        store sums-of-squares polynomials
+      * "sosPoly(List,List)" -- see *note sosPoly: sosPoly, -- make an SOS
+        polynomial
+      * "sosPoly(Matrix,Matrix)" -- see *note sosPoly: sosPoly, -- make an SOS
+        polynomial
+      * "sosPoly(Ring,List,List)" -- see *note sosPoly: sosPoly, -- make an SOS
+        polynomial
+      * "sosPoly(SDPResult)" -- see *note sosPoly: sosPoly, -- make an SOS
+        polynomial
+      * *note value(SOSPoly): value_lpSOSPoly_rp, -- expansion of a weighted
+        SOS decomposition
+  * Symbols
+      * *note RoundTol: RoundTol, -- tolerance for rational rounding
+      * "GramMatrix" -- see *note SDPResult: SDPResult, -- result of a
+        semidefinite programming computation
+      * "MomentMatrix" -- see *note SDPResult: SDPResult, -- result of a
+        semidefinite programming computation
+      * "Status" -- see *note SDPResult: SDPResult, -- result of a semidefinite
+        programming computation
+      * *note TraceObj: TraceObj, -- whether to use trace as the objective
+        function
+
+For the programmer
+==================
+
+The object *note SumsOfSquares: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in SumsOfSquares.m2, with auxiliary files in
+SumsOfSquares/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:83:0.
+
+File: SumsOfSquares.info, Node: checkSolver, Next: clean_lpRR_cmSOSPoly_rp, Prev: Top, Up: Top
+
+checkSolver -- tests a semidefinite programming solver
+******************************************************
+
+  * Usage: 
+        checkSolver(solver)
+        checkSolver(solver,fun)
+  * Inputs:
+      * solver, a *note string: (Macaulay2Doc)String,, either "M2" or "CSDP" or
+        "SDPA" or "MOSEK"
+      * fun, a *note function: (Macaulay2Doc)Function,, optional, one of *note
+        optimize: (SemidefiniteProgramming)optimize,, *note solveSOS:
+        solveSOS,, *note sosdecTernary: sosdecTernary,, *note sosInIdeal:
+        sosInIdeal,, or *note lowerBound: lowerBound,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Verbosity: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, =>
+        ..., default value 0, control the level of information printed
+
+Description
+===========
+
+This method tests whether various functions work properly using a specified
+solver. The most basic invocation uses only the name of the solver. This runs
+all tests with that solver and prints a summary. All tests should pass for CSDP
+and MOSEK.
+
+
+
+See also
+========
+
+  * *note Solver: (SemidefiniteProgramming)Solver, -- picking a semidefinite
+    programming solver
+
+Ways to use checkSolver:
+========================
+
+  * "checkSolver(String)"
+  * "checkSolver(String,Function)"
+  * "checkSolver(String,String)"
+
+For the programmer
+==================
+
+The object *note checkSolver: checkSolver, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:719:0.
+
+File: SumsOfSquares.info, Node: clean_lpRR_cmSOSPoly_rp, Next: coefficient field, Prev: checkSolver, Up: Top
+
+clean(RR,SOSPoly) -- remove squares with very small coefficients from a sum of squares
+**************************************************************************************
+
+  * Function: *note clean: (Macaulay2Doc)clean,
+  * Usage: 
+        clean (tol, s)
+  * Inputs:
+      * tol, a *note real number: (Macaulay2Doc)RR,, the tolerance for the
+        coefficients.
+      * s, an instance of the type *note SOSPoly: SOSPoly,, 
+  * Outputs:
+      * an instance of the type *note SOSPoly: SOSPoly,, a cleaned up *note
+        SOSPoly: SOSPoly,
+
+Description
+===========
+
+Given a *note sum-of-squares: SOSPoly, polynomial with real coefficients in the
+reals, this method removes the squares with coefficients smaller than the given
+tolerance. It does nothing on inputs with rational coefficients.
+
++---------------------------------------------------+
+|i1 : R = RR[x,y];                                  |
++---------------------------------------------------+
+|i2 : s = sosPoly(R, {x^2+.0001*x+1, y}, {2, .0001})|
+|                                                   |
+|         2              2            2             |
+|o2 = 2*(x  + .0001x + 1)  + .0001*(y)              |
+|                                                   |
+|o2 : SOSPoly                                       |
++---------------------------------------------------+
+|i3 : clean( .001, s )                              |
+|                                                   |
+|         2     2                                   |
+|o3 = 2*(x  + 1)                                    |
+|                                                   |
+|o3 : SOSPoly                                       |
++---------------------------------------------------+
+
+
+See also
+========
+
+  * *note SOSPoly: SOSPoly, -- A type to store sums-of-squares polynomials
+
+Ways to use this method:
+========================
+
+  * *note clean(RR,SOSPoly): clean_lpRR_cmSOSPoly_rp, -- remove squares with
+    very small coefficients from a sum of squares
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:255:0.
+
+File: SumsOfSquares.info, Node: coefficient field, Next: library, Prev: clean_lpRR_cmSOSPoly_rp, Up: Top
+
+coefficient field -- the role of the coefficient field
+******************************************************
+
+The SumsOfSquares package works with two coefficient rings: the rational
+numbers $\QQ$ and the real numbers $\RR$. Almost all operations in this package
+rely on a numerical semidefinite programming *note Solver:
+(SemidefiniteProgramming)Solver,. When calling such a solver, even if the input
+was a polynomial with rational coefficients, the result is numerical. The
+package makes some effort to round and return a rational result, but this can
+fail, independent of whether a rational sum-of-squares decomposition exists or
+not. In case of failure, a real result is returned. The following example of
+Scheiderer is a sum of squares, but does not admit any rational decomposition.
+Consequently the package must return a real solution.
+
++-----------------------------------------------------------------------------+
+|i1 : f = library("Scheiderer", QQ[x,y,z])                                    |
+|                                                                             |
+|      4      3    4     2          2      2 2      3      3    4             |
+|o1 = x  + x*y  + y  - 3x y*z - 4x*y z + 2x z  + x*z  + y*z  + z              |
+|                                                                             |
+|o1 : QQ[x..z]                                                                |
++-----------------------------------------------------------------------------+
+|i2 : sol = solveSOS (f);                                                     |
++-----------------------------------------------------------------------------+
+|i3 : sosPoly sol                                                             |
+|                                                                             |
+|                        2                         2                          |
+|o3 = 3.30453e-9*(.34757x  - .0338184x*y + .768917y  + .336255x*z - .203874y*z|
+|                                                                             |
+|o3 : SOSPoly                                                                 |
+|-----------------------------------------------------------------------------|
+|          2 2                       2                          2             |
+|+ .363573z )  + 5.71256e-9*(.318117x  + .679504x*y - .00674111y  + .148907x*z|
+|-----------------------------------------------------------------------------|
+|                         2 2                      2                        2 |
+|+ .644086y*z - .00319984z )  + .612614*(- .489499x  + .515361x*y - .174268y  |
+|-----------------------------------------------------------------------------|
+|                                    2 2                      2               |
+|+ .126103x*z - .330017y*z + .582763z )  + .889185*(- .389153x  + .18471x*y + |
+|-----------------------------------------------------------------------------|
+|        2                                    2 2                    2        |
+|.191413y  + .590206x*z - .140289y*z - .64014z )  + 1.85689*(.622038x  +      |
+|-----------------------------------------------------------------------------|
+|                     2                                     2 2               |
+|.195425x*y - .441064y  + .199985x*z - .564971y*z - .145444z )  +             |
+|-----------------------------------------------------------------------------|
+|                   2                        2                                |
+|3.99241*(.00407867x  - .446347x*y - .383634y  + .678616x*z + .309521y*z +    |
+|-----------------------------------------------------------------------------|
+|        2 2                                                                  |
+|.311864z )                                                                   |
++-----------------------------------------------------------------------------+
+
+Given a sum-of-squares decomposition with real coefficients, it is often useful
+to ignore the squares with very small coefficients. The function *note
+clean(RR,SOSPoly): clean_lpRR_cmSOSPoly_rp, removes the squares whose
+coefficients are smaller than a given tolerance.
+
++-----------------------------------------------------------------------------+
+|i4 : clean (0.001, sosPoly sol)                                              |
+|                                                                             |
+|                        2                        2                           |
+|o4 = .612614*(- .489499x  + .515361x*y - .174268y  + .126103x*z - .330017y*z |
+|                                                                             |
+|o4 : SOSPoly                                                                 |
+|-----------------------------------------------------------------------------|
+|          2 2                      2                       2                 |
+|+ .582763z )  + .889185*(- .389153x  + .18471x*y + .191413y  + .590206x*z -  |
+|-----------------------------------------------------------------------------|
+|                    2 2                    2                        2        |
+|.140289y*z - .64014z )  + 1.85689*(.622038x  + .195425x*y - .441064y  +      |
+|-----------------------------------------------------------------------------|
+|                                  2 2                      2                 |
+|.199985x*z - .564971y*z - .145444z )  + 3.99241*(.00407867x  - .446347x*y -  |
+|-----------------------------------------------------------------------------|
+|        2                                     2 2                            |
+|.383634y  + .678616x*z + .309521y*z + .311864z )                             |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note RoundTol: RoundTol, -- tolerance for rational rounding
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:109:0.
+
+File: SumsOfSquares.info, Node: library, Next: lowerBound, Prev: coefficient field, Up: Top
+
+library -- library of interesting nonnegative forms
+***************************************************
+
+  * Usage: 
+        library(name,R)
+        library(name,var)
+  * Inputs:
+      * name, a *note string: (Macaulay2Doc)String,, either "Motzkin",
+        "Robinson", "Schmuedgen", "Lax-Lax", "Choi-Lam", "Scheiderer", "Harris"
+      * R, a *note ring: (Macaulay2Doc)Ring,, a polynomial ring
+      * var, a *note list: (Macaulay2Doc)List,, of variables
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, a nonnegative form
+
+Description
+===========
+
+This method contains a library of some interesting nonnegative forms.
+
+The Motzkin polynomial is a ternary sextic that is nonnegative, but is not a
+sum of squares. It was the first such example found.
+
++-------------------------------+
+|i1 : R = QQ[x,y,z];            |
++-------------------------------+
+|i2 : library("Motzkin", R)     |
+|                               |
+|      4 2    2 4     2 2 2    6|
+|o2 = x y  + x y  - 3x y z  + z |
+|                               |
+|o2 : R                         |
++-------------------------------+
+
+The Robinson and Schmüdgen polynomials are also ternary sextics that are not
+sums of squares.
+
++-----------------------------------------------------------------------------+
+|i3 : library("Robinson", R)                                                  |
+|                                                                             |
+|      6    4 2    2 4    6    4 2     2 2 2    4 2    2 4    2 4    6        |
+|o3 = x  - x y  - x y  + y  - x z  + 3x y z  - y z  - x z  - y z  + z         |
+|                                                                             |
+|o3 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i4 : library("Schmuedgen", R)                                                |
+|                                                                             |
+|         6    4 2     2 4       6     3 2        4         4 2      2 2 2    |
+|o4 = 199x  - x y  + 2x y  + 200y  - 4x y z + 4x*y z - 1588x z  - 12x y z  -  |
+|     ------------------------------------------------------------------------|
+|          4 2      3 3        2 3        2 4        2 4                      |
+|     1600y z  + 16x z  - 16x*y z  + 3200x z  + 3200y z                       |
+|                                                                             |
+|o4 : R                                                                       |
++-----------------------------------------------------------------------------+
+
+The Lax-Lax and Choi-Lam polynomials are quaternary quartics that are not sums
+of squares.
+
++-----------------------------------------------------------------------------+
+|i5 : R = QQ[x,y,z,w];                                                        |
++-----------------------------------------------------------------------------+
+|i6 : library("Lax-Lax", R)                                                   |
+|                                                                             |
+|      4    3       3    4    3     2         2     3         2      3      3 |
+|o6 = x  - x y - x*y  + y  - x z + x y*z + x*y z - y z + x*y*z  - x*z  - y*z  |
+|     ------------------------------------------------------------------------|
+|        4    3     2         2     3     2                  2         2      |
+|     + z  - x w + x y*w + x*y w - y w + x z*w - 3x*y*z*w + y z*w + x*z w +   |
+|     ------------------------------------------------------------------------|
+|        2     3         2        2        2      3      3      3    4        |
+|     y*z w - z w + x*y*w  + x*z*w  + y*z*w  - x*w  - y*w  - z*w  + w         |
+|                                                                             |
+|o6 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i7 : library("Choi-Lam", R)                                                  |
+|                                                                             |
+|      2 2    2 2    2 2               4                                      |
+|o7 = x y  + x z  + y z  - 4x*y*z*w + w                                       |
+|                                                                             |
+|o7 : R                                                                       |
++-----------------------------------------------------------------------------+
+
+The Scheiderer polynomial is a sum of squares over the reals, but not over the
+rationals.
+
++----------------------------------------------------------------+
+|i8 : R = QQ[x,y,z];                                             |
++----------------------------------------------------------------+
+|i9 : library("Scheiderer", R)                                   |
+|                                                                |
+|      4      3    4     2          2      2 2      3      3    4|
+|o9 = x  + x*y  + y  - 3x y*z - 4x*y z + 2x z  + x*z  + y*z  + z |
+|                                                                |
+|o9 : R                                                          |
++----------------------------------------------------------------+
+
+The Harris polynomial is a ternary form of degree 10 with 30 projective zeros
+(the largest number known in August 2018).
+
++-----------------------------------------------------------------------------+
+|i10 : library("Harris", R)                                                   |
+|                                                                             |
+|         10      8 2      6 4      4 6      2 8      10      8 2      6 2 2  |
+|o10 = 16x   - 36x y  + 20x y  + 20x y  - 36x y  + 16y   - 36x z  + 57x y z  -|
+|      -----------------------------------------------------------------------|
+|         4 4 2      2 6 2      8 2      6 4      4 2 4      2 4 4      6 4   |
+|      38x y z  + 57x y z  - 36y z  + 20x z  - 38x y z  - 38x y z  + 20y z  + |
+|      -----------------------------------------------------------------------|
+|         4 6      2 2 6      4 6      2 8      2 8      10                   |
+|      20x z  + 57x y z  + 20y z  - 36x z  - 36y z  + 16z                     |
+|                                                                             |
+|o10 : R                                                                      |
++-----------------------------------------------------------------------------+
+
+References: Some concrete aspects of Hilbert's 17th problem. B. Reznick.
+Contemporary mathematics (2000), 253, pp. 251-272.
+
+
+
+Ways to use library:
+====================
+
+  * "library(String,List)"
+  * "library(String,Ring)"
+
+For the programmer
+==================
+
+The object *note library: library, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:777:0.
+
+File: SumsOfSquares.info, Node: lowerBound, Next: recoverSolution, Prev: library, Up: Top
+
+lowerBound -- finds a lower bound for a polynomial
+**************************************************
+
+  * Usage: 
+        (bound,sol) = lowerBound(f)
+        (bound,sol) = lowerBound(f,D)
+        (bound,sol,mult) = lowerBound(f,h,D)
+  * Inputs:
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, a polynomial or a
+        rational function
+      * D, an *note integer: (Macaulay2Doc)ZZ,, degree bound for the SDP
+        relaxation (optional)
+      * h, a *note matrix: (Macaulay2Doc)Matrix,, row vector with polynomial
+        entries (optional)
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note RoundTol: RoundTol, => ..., default value 3, tolerance for
+        rational rounding
+      * *note Solver: solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp, => ...,
+        default value null, picking a semidefinite programming solver
+      * *note Verbosity: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, =>
+        ..., default value 0, control the level of information printed
+  * Outputs:
+      * bound, a lower bound on f
+      * sol, an instance of the type *note SDPResult: SDPResult,, 
+      * mult, a *note matrix: (Macaulay2Doc)Matrix,, column vector with
+        polynomial multipliers
+
+Description
+===========
+
+This method finds a lower bound for a polynomial or rational function $x\mapsto
+f(x)$. More precisely, this method solves the following relaxation
+
+$$max \, t \,\,\, s.t. \,\,\, f(x) - t \, is SOS $$
+
+In some cases the minimizer can be extracted with the method *note
+recoverSolution: recoverSolution,.
+
++---------------------------------+
+|i1 : R=QQ[x];                    |
++---------------------------------+
+|i2 : f = (x-1)^2 + (x+3)^2;      |
++---------------------------------+
+|i3 : (bound,sol) = lowerBound(f);|
++---------------------------------+
+|i4 : (bound, recoverSolution sol)|
+|                                 |
+|o4 = (8, {x => -.999805})        |
+|                                 |
+|o4 : Sequence                    |
++---------------------------------+
+|i5 : f - bound == sosPoly sol    |
+|                                 |
+|o5 = true                        |
++---------------------------------+
+
+By default the method tries to obtain a rational lower bound. Since there is a
+trade-off between rounding and optimality, we specify the *note rounding
+precision: RoundTol, as an optional input argument.
+
+Quotient rings: Given an ideal $I$, we can also find a lower bound for $f$ on
+the variety of $I$. This can be done by constructing the associated quotient
+ring. A degree bound must be provided.
+
++-----------------------------------------+
+|i6 : R = QQ[x,y]/ideal(x^2 - x, y^2 - y);|
++-----------------------------------------+
+|i7 : f = x - y;                          |
++-----------------------------------------+
+|i8 : (bound,sol) = lowerBound(f,2);      |
++-----------------------------------------+
+|i9 : bound                               |
+|                                         |
+|o9 = -1                                  |
+|                                         |
+|o9 : QQ                                  |
++-----------------------------------------+
+|i10 : f - bound == sosPoly sol           |
+|                                         |
+|o10 = true                               |
++-----------------------------------------+
+
+Avoiding quotient rings: Constructing the quotient ring is sometimes too
+expensive since it requires Gröbner bases. There is an alternative (though
+weaker) relaxation that avoids Gröbner bases computation. Given equations
+$h_1(x),...h_m(x)$, we can look for multipliers $l_i(x)$ such that $f(x) - t +
+\sum_i l_i(x) h_i(x)$ is a sum of squares.
+
++----------------------------------------------+
+|i11 : R = QQ[x,y];                            |
++----------------------------------------------+
+|i12 : f = x - y;                              |
++----------------------------------------------+
+|i13 : h = matrix{{x^2 - x, y^2 - y}};         |
+|                                              |
+|              1      2                        |
+|o13 : Matrix R  <-- R                         |
++----------------------------------------------+
+|i14 : (bound,sol,mult) = lowerBound (f, h, 2);|
++----------------------------------------------+
+|i15 : bound                                   |
+|                                              |
+|o15 = -1                                      |
+|                                              |
+|o15 : QQ                                      |
++----------------------------------------------+
+|i16 : f - bound + h*mult == sosPoly sol       |
+|                                              |
+|o16 = true                                    |
++----------------------------------------------+
+
+Optimizing rational functions: The following is an example of how to optimize a
+rational function.
+
++-----------------------------------+
+|i17 : R = QQ[x];                   |
++-----------------------------------+
+|i18 : f = (x^2-x)/(x^2+1);         |
++-----------------------------------+
+|i19 : (bound,sol) = lowerBound (f);|
++-----------------------------------+
+|i20 : (bound, recoverSolution sol) |
+|                                   |
+|         1                         |
+|o20 = (- -, {x => .382683})        |
+|         4                         |
+|                                   |
+|o20 : Sequence                     |
++-----------------------------------+
+
+See also
+========
+
+  * *note recoverSolution: recoverSolution, -- factor a rank one positive
+    semidefinite matrix
+
+Ways to use lowerBound:
+=======================
+
+  * "lowerBound(RingElement)"
+  * "lowerBound(RingElement,Matrix,ZZ)"
+  * "lowerBound(RingElement,ZZ)"
+
+For the programmer
+==================
+
+The object *note lowerBound: lowerBound, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:650:0.
+
+File: SumsOfSquares.info, Node: recoverSolution, Next: RoundTol, Prev: lowerBound, Up: Top
+
+recoverSolution -- factor a rank one positive semidefinite matrix
+*****************************************************************
+
+  * Usage: 
+        sol = recoverSolution(mon,X)
+        sol = recoverSolution(sdpsol)
+  * Inputs:
+      * mon, a *note matrix: (Macaulay2Doc)Matrix,, of monomials
+      * X, a *note matrix: (Macaulay2Doc)Matrix,, the moment matrix
+      * sdpsol, an instance of the type *note SDPResult: SDPResult,, 
+  * Outputs:
+      * sol, a *note list: (Macaulay2Doc)List,, the optimal solution
+
+Description
+===========
+
+This method attempts to find the optimizing solutions of a sum-of-squares
+problem by checking if the moment matrix is rank one.  In this case it
+factorizes the matrix and returns the defining vector.
+
++------------------------------------------------+
+|i1 : R = RR[x,y];                               |
++------------------------------------------------+
+|i2 : mon = matrix {{1},{x},{y}};                |
+|                                                |
+|             3      1                           |
+|o2 : Matrix R  <-- R                            |
++------------------------------------------------+
+|i3 : X = matrix(RR, {{1,0,1},{0,0,0},{1,0,1}} );|
+|                                                |
+|                3         3                     |
+|o3 : Matrix RR    <-- RR                        |
+|              53        53                      |
++------------------------------------------------+
+|i4 : sol = recoverSolution(mon,X)               |
+|                                                |
+|o4 = {x => 0, y => 1}                           |
+|                                                |
+|o4 : List                                       |
++------------------------------------------------+
+
+See *note lowerBound: lowerBound, for how to use it to find a point realizing a
+lower bound.
+
+
+
+See also
+========
+
+  * *note solveSOS: solveSOS, -- solve a sum-of-squares problem
+  * *note lowerBound: lowerBound, -- finds a lower bound for a polynomial
+
+Ways to use recoverSolution:
+============================
+
+  * "recoverSolution(Matrix,Matrix)"
+  * "recoverSolution(SDPResult)"
+
+For the programmer
+==================
+
+The object *note recoverSolution: recoverSolution, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:690:0.
+
+File: SumsOfSquares.info, Node: RoundTol, Next: SDPResult, Prev: recoverSolution, Up: Top
+
+RoundTol -- tolerance for rational rounding
+*******************************************
+
+Description
+===========
+
+The optional argument RoundTol specifies the minimal rounding precision in $d$
+binary digits.
+
+Sums-of-squares problems are solved numerically using a semidefinite
+programming solver, and afterwards the package attempts to round the floating
+point solution to rational numbers. The rounding strategy is guaranteed to work
+whenever the space of Gram matrices is full dimensional. For optimization
+problems the rounding may cause a loss in optimality. The argument RoundTol
+allows to control the trade-off between optimality and simplicity. Higher
+values of RoundTol lead to better solutions.
+
++-----------------------------------------------+
+|i1 : R = QQ[x,z];                              |
++-----------------------------------------------+
+|i2 : f = x^4+x^2+z^6-3*x^2*z^2;                |
++-----------------------------------------------+
+|i3 : (bound,sol) = lowerBound (f,RoundTol=>4); |
++-----------------------------------------------+
+|i4 : bound                                     |
+|                                               |
+|        3                                      |
+|o4 = - --                                      |
+|       16                                      |
+|                                               |
+|o4 : QQ                                        |
++-----------------------------------------------+
+|i5 : (bound,sol) = lowerBound (f,RoundTol=>12);|
++-----------------------------------------------+
+|i6 : bound                                     |
+|                                               |
+|        729                                    |
+|o6 = - ----                                    |
+|       4096                                    |
+|                                               |
+|o6 : QQ                                        |
++-----------------------------------------------+
+
+One can also skip the rounding by setting RoundTol => infinity.
+
++-----------------------------------------------------+
+|i7 : (bound,sol) = lowerBound (f,RoundTol=>infinity);|
++-----------------------------------------------------+
+|i8 : bound                                           |
+|                                                     |
+|o8 = -.1779785174728207                              |
+|                                                     |
+|o8 : RR (of precision 53)                            |
++-----------------------------------------------------+
+
+References: Computing sum of squares decompositions with rational coefficients,
+H. Peyrl and P. Parrilo, in Theoretical Computer Science 409 (2008) p. 269–281.
+
+
+
+See also
+========
+
+  * *note roundPSDmatrix: (SemidefiniteProgramming)roundPSDmatrix, -- rational
+    rounding of a PSD matrix
+
+Functions with optional argument named RoundTol:
+================================================
+
+  * "lowerBound(...,RoundTol=>...)"
+  * "solveSOS(...,RoundTol=>...)"
+  * "sosdecTernary(...,RoundTol=>...)"
+  * "sosInIdeal(...,RoundTol=>...)"
+
+For the programmer
+==================
+
+The object *note RoundTol: RoundTol, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:870:0.
+
+File: SumsOfSquares.info, Node: SDPResult, Next: solveSOS, Prev: RoundTol, Up: Top
+
+SDPResult -- result of a semidefinite programming computation
+*************************************************************
+
+Description
+===========
+
+This type encapsulates the result of a semidefinite programming computation.
+
++----------------------------------------------------------+
+|i1 : R = QQ[x][t];                                        |
++----------------------------------------------------------+
+|i2 : f = x^2 - 3*x - t;                                   |
++----------------------------------------------------------+
+|i3 : sol = solveSOS (f, -t, RoundTol=>12)                 |
+|                                                          |
+|o3 = MomentMatrix   2x2 matrix over RR_53                 |
+|     GramMatrix     2x2 matrix over QQ                    |
+|     Monomials      2x1 matrix over QQ[x]                 |
+|     Parameters     1x1 matrix over QQ                    |
+|     Status         SDP solved, primal-dual feasible      |
+|                                                          |
+|o3 : SDPResult                                            |
++----------------------------------------------------------+
+|i4 : peek sol                                             |
+|                                                          |
+|o4 = SDPResult{GramMatrix => | 9/4  -3/2 |               }|
+|                             | -3/2 1    |                |
+|               MomentMatrix => | 1   1.5  |               |
+|                               | 1.5 2.25 |               |
+|               Monomials => | 1 |                         |
+|                            | x |                         |
+|               Parameters => | -9/4 |                     |
+|               Status => SDP solved, primal-dual feasible |
++----------------------------------------------------------+
+
+The fields can be extracted with the operator *note #: (Macaulay2Doc)#,.
+
++-----------------------+
+|i5 : sol#GramMatrix    |
+|                       |
+|o5 = | 9/4  -3/2 |     |
+|     | -3/2 1    |     |
+|                       |
+|              2       2|
+|o5 : Matrix QQ  <-- QQ |
++-----------------------+
+
+If the Gram matrix is different from null, then the sum-of-squares polynomial
+can be recovered with *note sosPoly: sosPoly,.
+
++-------------------+
+|i6 : sosPoly sol   |
+|                   |
+|      9    2      2|
+|o6 = (-)(- -x + 1) |
+|      4    3       |
+|                   |
+|o6 : SOSPoly       |
++-------------------+
+
+Methods that use an object of class SDPResult:
+==============================================
+
+  * "recoverSolution(SDPResult)" -- see *note recoverSolution: recoverSolution,
+    -- factor a rank one positive semidefinite matrix
+  * "net(SDPResult)"
+  * "status(SDPResult)"
+  * "sosPoly(SDPResult)" -- see *note sosPoly: sosPoly, -- make an SOS
+    polynomial
+
+For the programmer
+==================
+
+The object *note SDPResult: SDPResult, is a *note type: (Macaulay2Doc)Type,,
+with ancestor classes *note HashTable: (Macaulay2Doc)HashTable, < *note Thing:
+(Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:221:0.
+
+File: SumsOfSquares.info, Node: solveSOS, Next: solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp, Prev: SDPResult, Up: Top
+
+solveSOS -- solve a sum-of-squares problem
+******************************************
+
+  * Usage: 
+        solveSOS(f)
+        solveSOS(f,objFun)
+  * Inputs:
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, a polynomial
+      * objFun, a *note ring element: (Macaulay2Doc)RingElement,, a linear
+        function of the parameters (optional)
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note RoundTol: RoundTol, => ..., default value 3, tolerance for
+        rational rounding
+      * *note Solver: solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp, => ...,
+        default value null, picking a semidefinite programming solver
+      * *note TraceObj: TraceObj, => ..., default value false, whether to use
+        trace as the objective function
+      * *note Verbosity: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, =>
+        ..., default value 0, control the level of information printed
+  * Outputs:
+      * an instance of the type *note SDPResult: SDPResult,, 
+
+Description
+===========
+
+This method solves sums-of-squares problems. Given a rational (or real)
+polynomial $f(x)$, it attempts to find a rational (or real) positive
+semidefinite matrix $Q$ and a vector of monomials $mon$ such that $$f(x) = mon'
+Q mon.$$ The algorithm first computes a floating point solution, and then tries
+to obtain an exact solution by rounding the numerical result. If the rounding
+fails, the numerical solution is returned.
+
++---------------------------------------+
+|i1 : R = QQ[x,y];                      |
++---------------------------------------+
+|i2 : f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;|
++---------------------------------------+
+|i3 : sol = solveSOS f;                 |
++---------------------------------------+
+|i4 : Q = sol#GramMatrix                |
+|                                       |
+|o4 = | 2      1     -83/40 |           |
+|     | 1      43/20 0      |           |
+|     | -83/40 0     5      |           |
+|                                       |
+|              3       3                |
+|o4 : Matrix QQ  <-- QQ                 |
++---------------------------------------+
+|i5 : mon = sol#Monomials               |
+|                                       |
+|o5 = | x2 |                            |
+|     | xy |                            |
+|     | y2 |                            |
+|                                       |
+|             3      1                  |
+|o5 : Matrix R  <-- R                   |
++---------------------------------------+
+|i6 : transpose(mon)*Q*mon - f          |
+|                                       |
+|o6 = 0                                 |
+|                                       |
+|             1      1                  |
+|o6 : Matrix R  <-- R                   |
++---------------------------------------+
+
+SOS with parameters: If the coefficients of the polynomial are linearly
+parametrized, we can search for parameters which render a polynomial to be a
+sum of squares. In the following example, the variable $t$ will be treated as a
+free parameter.
+
++------------------------------------------------------+
+|i7 : R = QQ[x][t];                                    |
++------------------------------------------------------+
+|i8 : f = (t-1)*x^4+1/2*t*x+1;                         |
++------------------------------------------------------+
+|i9 : sol = solveSOS f;                                |
++------------------------------------------------------+
+|i10 : sosPoly sol                                     |
+|                                                      |
+|       21   2    43 2    43      145 2    1027351    2|
+|o10 = (--)(x  - ---)  + (--)(x + ---)  + (-------)(1) |
+|        8       105      20      344      5779200     |
+|                                                      |
+|o10 : SOSPoly                                         |
++------------------------------------------------------+
+|i11 : sol#Parameters                                  |
+|                                                      |
+|o11 = | 29/8 |                                        |
+|                                                      |
+|               1       1                              |
+|o11 : Matrix QQ  <-- QQ                               |
++------------------------------------------------------+
+
+It is possible to solve sums-of-squares problems with several parameters. In
+the following example we increase two of the coefficients of the Robinson
+polynomial until it becomes a sum of squares.
+
++-----------------------------------------------------------------------------+
+|i12 : R = QQ[x,y,z][s,t]                                                     |
+|                                                                             |
+|o12 = R                                                                      |
+|                                                                             |
+|o12 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i13 : g = library("Robinson", {x,y,z}) + s*x^6 + t*y^6                       |
+|                                                                             |
+|       6     6     6    4 2    2 4    6    4 2     2 2 2    4 2    2 4    2 4|
+|o13 = x s + y t + x  - x y  - x y  + y  - x z  + 3x y z  - y z  - x z  - y z |
+|      -----------------------------------------------------------------------|
+|         6                                                                   |
+|      + z                                                                    |
+|                                                                             |
+|o13 : R                                                                      |
++-----------------------------------------------------------------------------+
+|i14 : sol = solveSOS g;                                                      |
++-----------------------------------------------------------------------------+
+|i15 : sol#Parameters                                                         |
+|                                                                             |
+|o15 = | 34 |                                                                 |
+|      | 34 |                                                                 |
+|                                                                             |
+|               2       1                                                     |
+|o15 : Matrix QQ  <-- QQ                                                      |
++-----------------------------------------------------------------------------+
+
+SOS with parameter optimization: The method also allows to optimize a linear
+function of the parameters. More precisely, given a polynomial $f(x;p)$ that
+depends affinely on some parameters $p$, we can solve the problem
+
+$$min_{p} \, objFun(p) \,\,\, s.t. \,\,\, f(x; p) \, is SOS $$
+
+In the following example we minimize $-t$ in order to find a lower bound for
+the polynomial $x^2-3x$:
+
++-------------------------------------------+
+|i16 : R = QQ[x][t];                        |
++-------------------------------------------+
+|i17 : f = x^2 - 3*x - t;                   |
++-------------------------------------------+
+|i18 : sol = solveSOS (f, -t, RoundTol=>12);|
++-------------------------------------------+
+|i19 : sol#Parameters                       |
+|                                           |
+|o19 = | -9/4 |                             |
+|                                           |
+|               1       1                   |
+|o19 : Matrix QQ  <-- QQ                    |
++-------------------------------------------+
+
+By default the method tries to obtain rational values of the parameters. Since
+there is a trade-off between rounding and optimality, we specify the *note
+rounding precision: RoundTol, as an optional input argument.
+
+
+
+See also
+========
+
+  * *note solveSOS(RingElement,Matrix):
+    solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares problem
+    in a quotient ring
+  * *note sosPoly: sosPoly, -- make an SOS polynomial
+  * *note SDPResult: SDPResult, -- result of a semidefinite programming
+    computation
+  * *note Solver: (SemidefiniteProgramming)Solver, -- picking a semidefinite
+    programming solver
+
+Ways to use solveSOS:
+=====================
+
+  * "solveSOS(RingElement)"
+  * "solveSOS(RingElement,RingElement)"
+  * "solveSOS(RingElement,Matrix)" -- see *note
+    solveSOS(RingElement,RingElement,Matrix):
+    solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares problem
+    in a quotient ring
+  * *note solveSOS(RingElement,RingElement,Matrix):
+    solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares problem
+    in a quotient ring
+  * "solveSOS(RingElement,RingElement,ZZ)" -- see *note
+    solveSOS(RingElement,RingElement,Matrix):
+    solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares problem
+    in a quotient ring
+  * "solveSOS(RingElement,ZZ)" -- see *note
+    solveSOS(RingElement,RingElement,Matrix):
+    solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares problem
+    in a quotient ring
+
+For the programmer
+==================
+
+The object *note solveSOS: solveSOS, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:412:0.
+
+File: SumsOfSquares.info, Node: solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp, Next: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, Prev: solveSOS, Up: Top
+
+solveSOS(...,Solver=>...) -- picking a semidefinite programming solver
+**********************************************************************
+
+Description
+===========
+
+Macaulay2 has a powerful solver already configured.  If necessary you can use
+this variable to change the semidefinite programming solver used in the
+background.  See *note Solver: (SemidefiniteProgramming)Solver, for details.
+
+Functions with optional argument named Solver:
+==============================================
+
+  * "optimize(...,Solver=>...)" -- see *note Solver:
+    (SemidefiniteProgramming)Solver, -- picking a semidefinite programming
+    solver
+  * "lowerBound(...,Solver=>...)"
+  * *note solveSOS(...,Solver=>...):
+    solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp, -- picking a semidefinite
+    programming solver
+  * "sosdecTernary(...,Solver=>...)"
+  * "sosInIdeal(...,Solver=>...)"
+
+Further information
+===================
+
+  * Default value: null
+  * Function: *note solveSOS: solveSOS, -- solve a sum-of-squares problem
+  * Option key: *note Solver: (SemidefiniteProgramming)Solver, -- picking a
+    semidefinite programming solver
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:924:0.
+
+File: SumsOfSquares.info, Node: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, Next: solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, Prev: solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp, Up: Top
+
+solveSOS(...,Verbosity=>...) -- control the level of information printed
+************************************************************************
+
+Description
+===========
+
+This optional argument indicates how much information should be given to the
+user.  The possible values are:
+  * 0 (default) -- no information is printed.
+  * 1 -- minimal information (solver used, input/output files, status of the
+    solver).
+  * 2 -- more detailed information (e.g., progress of the solver).
+
+
+Functions with optional argument named Verbosity:
+=================================================
+
+  * decompose(Ideal,Verbosity=>...) (missing documentation)
+  * isPrime(Ideal,Verbosity=>...) (missing documentation)
+  * "checkSolver(...,Verbosity=>...)"
+  * "lowerBound(...,Verbosity=>...)"
+  * *note solveSOS(...,Verbosity=>...):
+    solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, -- control the level of
+    information printed
+  * "sosdecTernary(...,Verbosity=>...)"
+  * "sosInIdeal(...,Verbosity=>...)"
+  * "checkOptimize(...,Verbosity=>...)" -- see *note Verbosity:
+    (SemidefiniteProgramming)Verbosity, -- control the level of information
+    printed
+  * "optimize(...,Verbosity=>...)" -- see *note Verbosity:
+    (SemidefiniteProgramming)Verbosity, -- control the level of information
+    printed
+
+Further information
+===================
+
+  * Default value: 0
+  * Function: *note solveSOS: solveSOS, -- solve a sum-of-squares problem
+  * Option key: Verbosity (missing documentation)
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:888:0.
+
+File: SumsOfSquares.info, Node: solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, Next: sosdecTernary, Prev: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, Up: Top
+
+solveSOS(RingElement,RingElement,Matrix) -- sum-of-squares problem in a quotient ring
+*************************************************************************************
+
+  * Function: *note solveSOS: solveSOS,
+  * Usage: 
+        solveSOS(f,mon)
+        solveSOS(f,objFun,mon)
+        solveSOS(f,D)
+        solveSOS(f,objFun,D)
+  * Inputs:
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, a polynomial
+      * objFun, a *note ring element: (Macaulay2Doc)RingElement,, a linear
+        function of the parameters (optional)
+      * mon, a *note matrix: (Macaulay2Doc)Matrix,, a vector of monomials
+        (alternatively a degree bound D)
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note RoundTol: RoundTol, => ..., default value 3, tolerance for
+        rational rounding
+      * *note Solver: solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp, => ...,
+        default value null, picking a semidefinite programming solver
+      * *note TraceObj: TraceObj, => ..., default value false, whether to use
+        trace as the objective function
+      * *note Verbosity: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, =>
+        ..., default value 0, control the level of information printed
+  * Outputs:
+      * an instance of the type *note SDPResult: SDPResult,, 
+
+Description
+===========
+
+This method allows to compute sums-of-square decompositions in quotient rings.
+A vector of monomials must be provided in this case.
+
++----------------------------------------------------+
+|i1 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);              |
++----------------------------------------------------+
+|i2 : f = 10-x^2-y;                                  |
++----------------------------------------------------+
+|i3 : mon = matrix {{1}, {x}, {y}};                  |
+|                                                    |
+|             3      1                               |
+|o3 : Matrix R  <-- R                                |
++----------------------------------------------------+
+|i4 : solveSOS (f, mon)                              |
+|                                                    |
+|o4 = MomentMatrix   3x3 matrix over RR_53           |
+|     GramMatrix     3x3 matrix over QQ              |
+|     Monomials      3x1 matrix over R               |
+|     Status         SDP solved, primal-dual feasible|
+|                                                    |
+|o4 : SDPResult                                      |
++----------------------------------------------------+
+
+If a degree bound $D$ is given, the method will use the vector of monomials of
+degree at most $D/2$.
+
++----------------------------------------------------+
+|i5 : solveSOS (f, 2)                                |
+|                                                    |
+|o5 = MomentMatrix   3x3 matrix over RR_53           |
+|     GramMatrix     3x3 matrix over QQ              |
+|     Monomials      3x1 matrix over R               |
+|     Status         SDP solved, primal-dual feasible|
+|                                                    |
+|o5 : SDPResult                                      |
++----------------------------------------------------+
+
+Parametrized sums-of-squares problems can also be solved in quotient rings.
+
++----------------------------------------------------+
+|i6 : S = R[t];                                      |
++----------------------------------------------------+
+|i7 : solveSOS(f-t,-t,mon,RoundTol=>12)              |
+|                                                    |
+|o7 = MomentMatrix   3x3 matrix over RR_53           |
+|     GramMatrix     3x3 matrix over QQ              |
+|     Monomials      3x1 matrix over R               |
+|     Parameters     1x1 matrix over QQ              |
+|     Status         SDP solved, primal-dual feasible|
+|                                                    |
+|o7 : SDPResult                                      |
++----------------------------------------------------+
+
+Caveat
+
+The *note rational rounding: coefficient field, may also fail in quotient ring
+computations. In this case, the object *note SOSPoly: SOSPoly, constructed from
+the object *note SDPResult: SDPResult, can live in a newly created ring,
+instead of the quotient that one started with.
+
++------------------------------------------------+
+|i8 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);          |
++------------------------------------------------+
+|i9 : f = 10-x^2-y;                              |
++------------------------------------------------+
+|i10 : mon = matrix {{1}, {x}, {y}};             |
+|                                                |
+|              3      1                          |
+|o10 : Matrix R  <-- R                           |
++------------------------------------------------+
+|i11 : s = solveSOS (f, mon, RoundTol=>infinity);|
++------------------------------------------------+
+|i12 : ring sosPoly s                            |
+|                                                |
+|o12 = RR  [x..y]                                |
+|        53                                      |
+|                                                |
+|o12 : PolynomialRing                            |
++------------------------------------------------+
+
+The above ring is not a quotient ring. One can construct a new quotient ring
+and work there. However, this will only work reliably for principal ideals, as
+otherwise the Gröbner basis engine might fail due to inexact computations.
+
++----------------------------------------------+
+|i13 : R' = ring sosPoly s;                    |
++----------------------------------------------+
+|i14 : S = R'/(sub (ideal (x^2 + y^2 - 1), R'))|
+|                                              |
+|o14 = S                                       |
+|                                              |
+|o14 : QuotientRing                            |
++----------------------------------------------+
+|i15 : sub (f, S) == sub (sosPoly s, S)        |
+|                                              |
+|o15 = false                                   |
++----------------------------------------------+
+
+
+See also
+========
+
+  * *note solveSOS: solveSOS, -- solve a sum-of-squares problem
+
+Ways to use this method:
+========================
+
+  * "solveSOS(RingElement,Matrix)"
+  * *note solveSOS(RingElement,RingElement,Matrix):
+    solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, -- sum-of-squares problem
+    in a quotient ring
+  * "solveSOS(RingElement,RingElement,ZZ)"
+  * "solveSOS(RingElement,ZZ)"
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:480:0.
+
+File: SumsOfSquares.info, Node: sosdecTernary, Next: sosInIdeal, Prev: solveSOS_lpRingElement_cmRingElement_cmMatrix_rp, Up: Top
+
+sosdecTernary -- sum of squares decomposition for ternary forms
+***************************************************************
+
+  * Usage: 
+        (p,q) = sosdecTernary(f)
+  * Inputs:
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, a homogeneous
+        polynomial in 3 variables
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note RoundTol: RoundTol, => ..., default value 3, tolerance for
+        rational rounding
+      * *note Solver: solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp, => ...,
+        default value "CSDP", picking a semidefinite programming solver
+      * *note Verbosity: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, =>
+        ..., default value 0, control the level of information printed
+  * Outputs:
+      * p, a *note list: (Macaulay2Doc)List,, of *note SOSPoly: SOSPoly,s
+      * q, a *note list: (Macaulay2Doc)List,, of *note SOSPoly: SOSPoly,s
+
+Description
+===========
+
+Given a nonnegative ternary form $f$, this method uses Hilbert's algorithm to
+compute a decomposition of $f$ as $f=\frac{\prod_ip_i}{\prod_iq_i}$ where each
+factor $p_i$ and $q_i$ is a sum of squares. The method returns null if $f$ is
+not nonnegative. As an example, consider the homogeneous Motzkin polynomial.
+
++--------------------------------------+
+|i1 : R = RR[x,y,z];                   |
++--------------------------------------+
+|i2 : f = library ("Motzkin", {x,y,z});|
++--------------------------------------+
+|i3 : (p,q) = sosdecTernary (f);       |
++--------------------------------------+
+
+The result, in this case, is a quotient of two sums of squares.
+
++-------------------------------------------+
+|i4 : (#p, #q)                              |
+|                                           |
+|o4 = (1, 1)                                |
+|                                           |
+|o4 : Sequence                              |
++-------------------------------------------+
+|i5 : clean(1e-4, f * value q#0 - value p#0)|
+|                                           |
+|o5 = 0                                     |
+|                                           |
+|o5 : R                                     |
++-------------------------------------------+
+
+References: Products of positive forms, linear matrix inequalities, and Hilbert
+17th problem for ternary forms, E. de Klerk, and D.V. Pasechnik, European J.
+Oper. Res. (2004), pp. 39-45.
+
+Caveat
+======
+
+$\bullet$ This implementation only works with the *note solvers:
+(SemidefiniteProgramming)Solver, "CSDP" and "MOSEK".
+
+$\bullet$ Due to the iterative nature of the algorithm, it could happen that
+some of the output sums of squares are rational while some are real.
+
+Ways to use sosdecTernary:
+==========================
+
+  * "sosdecTernary(RingElement)"
+
+For the programmer
+==================
+
+The object *note sosdecTernary: sosdecTernary, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:525:0.
+
+File: SumsOfSquares.info, Node: sosInIdeal, Next: SOSPoly, Prev: sosdecTernary, Up: Top
+
+sosInIdeal -- sum of squares polynomial in ideal
+************************************************
+
+  * Usage: 
+        (sol,mult) = sosInIdeal(h,D)
+        sol = sosInIdeal(R,D)
+  * Inputs:
+      * h, a *note matrix: (Macaulay2Doc)Matrix,, row vector with polynomial
+        entries
+      * D, an *note integer: (Macaulay2Doc)ZZ,, bound on the degree of the SOS
+        polynomial
+      * R, a *note quotient ring: (Macaulay2Doc)QuotientRing,, a quotient of a
+        polynomial ring
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note RoundTol: RoundTol, => ..., default value 3, tolerance for
+        rational rounding
+      * *note Solver: solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp, => ...,
+        default value "CSDP", picking a semidefinite programming solver
+      * *note Verbosity: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp, =>
+        ..., default value 0, control the level of information printed
+  * Outputs:
+      * sol, an instance of the type *note SDPResult: SDPResult,, 
+      * mult, a *note matrix: (Macaulay2Doc)Matrix,, column vector with
+        polynomial multipliers
+
+Description
+===========
+
+This methods finds sums-of-squares polynomials in ideals. It accepts two types
+of inputs that are useful for different purposes. The first invocation is to
+give a one row matrix with polynomial entries and a degree bound. The method
+then tries to find a sum of squares in the generated ideal. More precisely,
+given equations $h_1(x),...,h_m(x)$, the method looks for polynomial
+multipliers $l_i(x)$ such that $\sum_i l_i(x) h_i(x)$ is a sum of squares.
+
++-----------------------------------------------+
+|i1 : R = QQ[x,y,z];                            |
++-----------------------------------------------+
+|i2 : h = matrix {{x^2-4*x+2*y^2, 2*z^2-y^2+2}};|
+|                                               |
+|             1      2                          |
+|o2 : Matrix R  <-- R                           |
++-----------------------------------------------+
+|i3 : (sol,mult) = sosInIdeal (h, 2);           |
++-----------------------------------------------+
+|i4 : sosPoly sol                               |
+|                                               |
+|      2405    1      2    2405    2            |
+|o4 = (----)(- -x + 1)  + (----)(z)             |
+|       16     2            16                  |
+|                                               |
+|o4 : SOSPoly                                   |
++-----------------------------------------------+
+|i5 : h * mult == sosPoly sol                   |
+|                                               |
+|o5 = true                                      |
++-----------------------------------------------+
+
+The second invocation is on a quotient ring, also with a degree bound. This
+tries to decompose the zero of the quotient ring as a sum of squares.
+
++-----------------------------------+
+|i6 : S = R/ideal h;                |
++-----------------------------------+
+|i7 : sol = sosInIdeal (S, 2);      |
++-----------------------------------+
+|i8 : sosPoly sol                   |
+|                                   |
+|      2323    1      2    2323    2|
+|o8 = (----)(- -x + 1)  + (----)(z) |
+|        8     2             8      |
+|                                   |
+|o8 : SOSPoly                       |
++-----------------------------------+
+|i9 : sosPoly sol                   |
+|                                   |
+|      2323    1      2    2323    2|
+|o9 = (----)(- -x + 1)  + (----)(z) |
+|        8     2             8      |
+|                                   |
+|o9 : SOSPoly                       |
++-----------------------------------+
+
+Caveat
+======
+
+This implementation only works with the *note solvers:
+(SemidefiniteProgramming)Solver, "CSDP" and "MOSEK".
+
+Ways to use sosInIdeal:
+=======================
+
+  * "sosInIdeal(Matrix,ZZ)"
+  * "sosInIdeal(Ring,ZZ)"
+
+For the programmer
+==================
+
+The object *note sosInIdeal: sosInIdeal, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:572:0.
+
+File: SumsOfSquares.info, Node: SOSPoly, Next: sosPoly, Prev: sosInIdeal, Up: Top
+
+SOSPoly -- A type to store sums-of-squares polynomials
+******************************************************
+
+Description
+===========
+
+A polynomial $f\in K[x]$ is a sum of squares (SOS) if it can be written as $$f
+= \sum_i d_i g_i^2,$$ where the $g_i$ are polynomials in $K[x]$ and the $d_i$
+are positive weights in $K$. This data type stores polynomials as sums of
+squares. The type is a hash table consisting of the polynomials to be squared
+and summed (the 'generators'), corresponding coefficients, and the base ring.
+We can construct an object of type SOSPoly from the result of sum-of-squares
+problem. See *note SDPResult: SDPResult, for more on this.
+
++-----------------------------------------------------------+
+|i1 : R = QQ[x,y];                                          |
++-----------------------------------------------------------+
+|i2 : f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;                    |
++-----------------------------------------------------------+
+|i3 : sol = solveSOS f;                                     |
++-----------------------------------------------------------+
+|i4 : sosPoly sol                                           |
+|                                                           |
+|            83 2    2 2    43  20 2       2    231773   2 2|
+|o4 = (5)(- ---x  + y )  + (--)(--x  + x*y)  + (------)(x ) |
+|           200             20  43              344000      |
+|                                                           |
+|o4 : SOSPoly                                               |
++-----------------------------------------------------------+
+
+One can also construct an object of type SOSPolys by specifying all their
+ingredients.
+
++--------------------------------------+
+|i5 : R = QQ[x,y];                     |
++--------------------------------------+
+|i6 : s = sosPoly(R, {x+1,y}, {2,3} )  |
+|                                      |
+|              2        2              |
+|o6 = 2*(x + 1)  + 3*(y)               |
+|                                      |
+|o6 : SOSPoly                          |
++--------------------------------------+
+|i7 : peek s                           |
+|                                      |
+|o7 = SOSPoly{coefficients => {2, 3}  }|
+|             generators => {x + 1, y} |
+|             ring => R                |
++--------------------------------------+
+
+The ingredients of a sum of squares can be recovered using the expected
+commands.
+
++--------------------+
+|i8 : gens s         |
+|                    |
+|o8 = {x + 1, y}     |
+|                    |
+|o8 : List           |
++--------------------+
+|i9 : ring s         |
+|                    |
+|o9 = R              |
+|                    |
+|o9 : PolynomialRing |
++--------------------+
+|i10 : coefficients s|
+|                    |
+|o10 = {2, 3}        |
+|                    |
+|o10 : List          |
++--------------------+
+
+The length of a sum-of-squares polynomial is the number of squares.
+
++--------------+
+|i11 : length s|
+|              |
+|o11 = 2       |
++--------------+
+
+Sums of squares support many common operations with polynomials.
+
++--------------------------------------------------------------+
+|i12 : 2 * s                                                   |
+|                                                              |
+|               2        2                                     |
+|o12 = 4*(x + 1)  + 6*(y)                                      |
+|                                                              |
+|o12 : SOSPoly                                                 |
++--------------------------------------------------------------+
+|i13 : s + s                                                   |
+|                                                              |
+|               2        2            2        2               |
+|o13 = 2*(x + 1)  + 3*(y)  + 2*(x + 1)  + 3*(y)                |
+|                                                              |
+|o13 : SOSPoly                                                 |
++--------------------------------------------------------------+
+|i14 : s * s                                                   |
+|                                                              |
+|          2          2              2              2       2 2|
+|o14 = 4*(x  + 2x + 1)  + 6*(x*y + y)  + 6*(x*y + y)  + 9*(y ) |
+|                                                              |
+|o14 : SOSPoly                                                 |
++--------------------------------------------------------------+
+|i15 : s == s                                                  |
+|                                                              |
+|o15 = true                                                    |
++--------------------------------------------------------------+
+
+The actual polynomial can be recovered using *note value(SOSPoly):
+value_lpSOSPoly_rp,.
+
++------------------------+
+|i16 : value s           |
+|                        |
+|        2     2         |
+|o16 = 2x  + 3y  + 4x + 2|
+|                        |
+|o16 : R                 |
++------------------------+
+
+We can also produce a formal *note Expression: (Macaulay2Doc)Expression,.
+
++-----------------------------+
+|i17 : expression s           |
+|                             |
+|               2        2    |
+|o17 = 2*(x + 1)  + 3*(y)     |
+|                             |
+|o17 : Expression of class Sum|
++-----------------------------+
+
+Objects of type *note SOSPoly: SOSPoly, support the *note substitute:
+(Macaulay2Doc)substitute, command. This cannot be used to change the
+coefficient field, though. See *note coefficient field: coefficient field, for
+some of the limitations.
+
++-------------------------+
+|i18 : S = QQ[x,y,z];     |
++-------------------------+
+|i19 : sub (s, S)         |
+|                         |
+|               2        2|
+|o19 = 2*(x + 1)  + 3*(y) |
+|                         |
+|o19 : SOSPoly            |
++-------------------------+
+
+See also
+========
+
+  * *note sosPoly: sosPoly, -- make an SOS polynomial
+
+Methods that use an object of class SOSPoly:
+============================================
+
+  * *note clean(RR,SOSPoly): clean_lpRR_cmSOSPoly_rp, -- remove squares with
+    very small coefficients from a sum of squares
+  * "coefficients(SOSPoly)"
+  * "expression(SOSPoly)"
+  * "generators(SOSPoly)"
+  * "length(SOSPoly)"
+  * "Matrix == SOSPoly"
+  * "net(SOSPoly)"
+  * "Number * SOSPoly"
+  * "ring(SOSPoly)"
+  * "RingElement == SOSPoly"
+  * "SOSPoly * SOSPoly"
+  * "SOSPoly + SOSPoly"
+  * "SOSPoly == Matrix"
+  * "SOSPoly == RingElement"
+  * "SOSPoly == SOSPoly"
+  * "SOSPoly ^ ZZ"
+  * "substitute(SOSPoly,Ring)"
+  * *note value(SOSPoly): value_lpSOSPoly_rp, -- expansion of a weighted SOS
+    decomposition
+
+For the programmer
+==================
+
+The object *note SOSPoly: SOSPoly, is a *note type: (Macaulay2Doc)Type,, with
+ancestor classes *note HashTable: (Macaulay2Doc)HashTable, < *note Thing:
+(Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:192:0.
+
+File: SumsOfSquares.info, Node: sosPoly, Next: TraceObj, Prev: SOSPoly, Up: Top
+
+sosPoly -- make an SOS polynomial
+*********************************
+
+  * Usage: 
+        s = sosPoly (SDPR)
+        s = sosPoly (mon,Q)
+        s = sosPoly (R,polys,coeffs)
+  * Inputs:
+      * SDPR, an instance of the type *note SDPResult: SDPResult,, the result
+        of an SDP computation
+      * Q, a *note matrix: (Macaulay2Doc)Matrix,, positive semidefinite (Gram
+        matrix)
+      * mon, a *note matrix: (Macaulay2Doc)Matrix,, a vector of monomials
+      * R, a *note ring: (Macaulay2Doc)Ring,, 
+      * polys, a *note list: (Macaulay2Doc)List,, of polynomials
+      * coeffs, a *note list: (Macaulay2Doc)List,, of scalars
+  * Outputs:
+      * s, an instance of the type *note SOSPoly: SOSPoly,, 
+
+Description
+===========
+
+This method creates an object of type *note SOSPoly: SOSPoly,. Very often this
+is applied to an object of type *note SDPResult: SDPResult,, the result of a
+semidefinite programming computation.
+
++-----------------------------------------------------------+
+|i1 : R = QQ[x,y];                                          |
++-----------------------------------------------------------+
+|i2 : f = 2*x^4+5*y^4-2*x^2*y^2+2*x^3*y;                    |
++-----------------------------------------------------------+
+|i3 : sosPoly solveSOS f                                    |
+|                                                           |
+|            83 2    2 2    43  20 2       2    231773   2 2|
+|o3 = (5)(- ---x  + y )  + (--)(--x  + x*y)  + (------)(x ) |
+|           200             20  43              344000      |
+|                                                           |
+|o3 : SOSPoly                                               |
++-----------------------------------------------------------+
+
+One can also input a Gram matrix $Q$ and a vector of monomials $mon$.
+
++----------------------------------------------+
+|i4 : Q = matrix(QQ,{{1,1,1},{1,1,1},{1,1,1}});|
+|                                              |
+|              3       3                       |
+|o4 : Matrix QQ  <-- QQ                        |
++----------------------------------------------+
+|i5 : mon = matrix{{1},{x},{y}};               |
+|                                              |
+|             3      1                         |
+|o5 : Matrix R  <-- R                          |
++----------------------------------------------+
+|i6 : sosPoly(mon,Q)                           |
+|                                              |
+|                   2                          |
+|o6 = (1)(x + y + 1)                           |
+|                                              |
+|o6 : SOSPoly                                  |
++----------------------------------------------+
+
+Alternatively, a sum-of-squares polynomial can be created from a list of
+generators and weights.
+
++------------------------------------+
+|i7 : s = sosPoly(R, {x+1,y}, {2,3} )|
+|                                    |
+|              2        2            |
+|o7 = 2*(x + 1)  + 3*(y)             |
+|                                    |
+|o7 : SOSPoly                        |
++------------------------------------+
+
+
+See also
+========
+
+  * *note solveSOS: solveSOS, -- solve a sum-of-squares problem
+  * *note Solver: (SemidefiniteProgramming)Solver, -- picking a semidefinite
+    programming solver
+
+Ways to use sosPoly:
+====================
+
+  * "sosPoly(List,List)"
+  * "sosPoly(Matrix,Matrix)"
+  * "sosPoly(Ring,List,List)"
+  * "sosPoly(SDPResult)"
+
+For the programmer
+==================
+
+The object *note sosPoly: sosPoly, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:335:0.
+
+File: SumsOfSquares.info, Node: TraceObj, Next: value_lpSOSPoly_rp, Prev: sosPoly, Up: Top
+
+TraceObj -- whether to use trace as the objective function
+**********************************************************
+
+Description
+===========
+
+Using the trace as the objective function is a heuristic for obtaining
+sum-of-squares decompositions with small number of squares. Here we repeat
+Example 5 from [P05] and recover the shorter solution from that paper.
+
++--------------------------------------------+
+|i1 : R = QQ[x,y]/ideal(x^2 + y^2 - 1);      |
++--------------------------------------------+
+|i2 : f = 10-x^2-y;                          |
++--------------------------------------------+
+|i3 : sosPoly solveSOS (f, 2)                |
+|                                            |
+|      79       4 2    71    2     63    2   |
+|o3 = (--)(y - --)  + (--)(x)  + (---)(1)    |
+|       8      79       8         632        |
+|                                            |
+|o3 : SOSPoly                                |
++--------------------------------------------+
+|i4 : sosPoly solveSOS (f, 2, TraceObj=>true)|
+|                                            |
+|            1      2    35    2             |
+|o4 = (9)(- --y + 1)  + (--)(y)              |
+|           18           36                  |
+|                                            |
+|o4 : SOSPoly                                |
++--------------------------------------------+
+
+
+Functions with optional argument named TraceObj:
+================================================
+
+  * "solveSOS(...,TraceObj=>...)"
+
+For the programmer
+==================
+
+The object *note TraceObj: TraceObj, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:909:0.
+
+File: SumsOfSquares.info, Node: value_lpSOSPoly_rp, Prev: TraceObj, Up: Top
+
+value(SOSPoly) -- expansion of a weighted SOS decomposition
+***********************************************************
+
+  * Function: *note value: (Macaulay2Doc)value,
+  * Usage: 
+        value(s)
+  * Inputs:
+      * s, an instance of the type *note SOSPoly: SOSPoly,, 
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, a polynomial
+
+Description
+===========
+
+Given an object of type *note SOSPoly: SOSPoly,, this method expands the
+polynomial and computes $f = \sum_i d_i g_i^2$.
+
++------------------------------------+
+|i1 : R = QQ[x,y];                   |
++------------------------------------+
+|i2 : s = sosPoly(R, {x+1,y}, {2,3} )|
+|                                    |
+|              2        2            |
+|o2 = 2*(x + 1)  + 3*(y)             |
+|                                    |
+|o2 : SOSPoly                        |
++------------------------------------+
+|i3 : value( s )                     |
+|                                    |
+|       2     2                      |
+|o3 = 2x  + 3y  + 4x + 2             |
+|                                    |
+|o3 : R                              |
++------------------------------------+
+
+
+See also
+========
+
+  * *note sosPoly(Matrix,Matrix): sosPoly, -- make an SOS polynomial
+
+Ways to use this method:
+========================
+
+  * *note value(SOSPoly): value_lpSOSPoly_rp, -- expansion of a weighted SOS
+    decomposition
+-------------------------------------------------------------------------------
+
+The source of this document is in SumsOfSquares/SOSdoc.m2:282:0.
+
+Tag Table:
+Node: Top227
+Node: checkSolver16070
+Node: clean_lpRR_cmSOSPoly_rp17825
+Node: coefficient field20071
+Node: library26167
+Node: lowerBound33356
+Node: recoverSolution39465
+Node: RoundTol42004
+Node: SDPResult45427
+Node: solveSOS48687
+Node: solveSOS_lp_pd_pd_pd_cmSolver=>_pd_pd_pd_rp58305
+Node: solveSOS_lp_pd_pd_pd_cmVerbosity=>_pd_pd_pd_rp59731
+Node: solveSOS_lpRingElement_cmRingElement_cmMatrix_rp61558
+Node: sosdecTernary68369
+Node: sosInIdeal71595
+Node: SOSPoly75891
+Node: sosPoly83049
+Node: TraceObj86852
+Node: value_lpSOSPoly_rp88696
+
+End Tag Table

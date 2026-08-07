@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>SVD -- singular value decomposition of a matrix</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="index.html">Documentation </a> <br><a href="_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> » <a href="_matrices.html">matrices</a> » <a title="singular value decomposition of a matrix" href="___S__V__D.html">SVD</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_rank_spof_spa_spmatrix.html">next</a> | <a href="___Q__R__Decomposition.html">previous</a> | <a href="___S__V__D_lp..._cm__Divide__Conquer_eq_gt..._rp.html">forward</a> | <a href="___Q__R__Decomposition.html">backward</a> | <a href="_matrices.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>SVD -- singular value decomposition of a matrix</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">(S,U,Vt) = SVD M</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">M</span>, <span>a <a title="the class of all matrices" href="___Matrix.html">matrix</a></span>,  over <a title="the class of all real numbers" href="___R__R.html">RR</a> or <a title="the class of all complex numbers" href="___C__C.html">CC</a>, of size <span class="tt">m</span> by <span class="tt">n</span></span></li>
+          </ul>
+        </li>
+        <li><a href="_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:          <ul>
+            <li><span><a title="whether to use the LAPACK divide and conquer SVD algorithm" href="___S__V__D_lp..._cm__Divide__Conquer_eq_gt..._rp.html">DivideConquer</a><span class="tt"> => </span><span class="tt">...</span>, <span>default value true</span>, <span>whether to use the LAPACK divide and conquer SVD algorithm</span></span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span class="tt">S</span>, <span>a <a title="a type of visible self-initializing list that prints vertically" href="___Vertical__List.html">vertical list</a></span>, the list of singular values</span></li>
+            <li><span><span class="tt">U</span>, <span>a <a title="the class of all matrices" href="___Matrix.html">matrix</a></span>, an orthogonal (unitary) matrix of size <span class="tt">m</span> by <span class="tt">m</span></span></li>
+            <li><span><span class="tt">Vt</span>, <span>a <a title="the class of all matrices" href="___Matrix.html">matrix</a></span>, an orthogonal (unitary) matrix of size <span class="tt">n</span> by <span class="tt">n</span></span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+If <span class="tt">Sigma</span> is the diagonal <span class="tt">m</span> by <span class="tt">n</span> matrix whose <span class="tt">(i,i)</span> entry is the <span class="tt">i</span>-th element of <span class="tt">S</span>, then <span class="tt">M = U Sigma Vt</span>.  This is the singular value decomposition of <span class="tt">M</span>.  The entries of <span class="tt">S</span> are (up to roundoff error) the eigenvalues of the Hermitian matrix <span class="tt">M * (conjugate transpose M)</span>        <p></p>
+M may also be a <a title="the class of all mutable matrices" href="___Mutable__Matrix.html">MutableMatrix</a> in which case the returned values <span class="tt">U</span> and <span class="tt">Vt</span> are also <a title="the class of all mutable matrices" href="___Mutable__Matrix.html">mutable matrices</a>.        <p></p>
+If <span class="tt">M</span> is over <a title="the class of all complex numbers" href="___C__C.html">CC</a>, then <span class="tt">U</span> and <span class="tt">Vt</span> are unitary matrices over <a title="the class of all complex numbers" href="___C__C.html">CC</a>. If <span class="tt">M</span> is over <a title="the class of all real numbers" href="___R__R.html">RR</a>, <span class="tt">U</span> and <span class="tt">Vt</span> are orthogonal over <span class="tt">RR</span>.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : printingPrecision=2;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : M = map(RR^3, RR^5, (i,j) -> (i+1)^j * 1.0)
+
+o2 = | 1 1 1 1  1  |
+     | 1 2 4 8  16 |
+     | 1 3 9 27 81 |
+
+                3         5
+o2 : Matrix RR    &lt;-- RR
+              53        53</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : (S,U,V) = SVD(M)
+
+o3 = ({88 }, | -.016 -.4  -.92  |, | -.014 -.038 -.11 -.32 -.94  |)
+      {3.9}  | -.21  -.89 .4    |  | -.28  -.41  -.57 -.59 .29   |
+      {.8 }  | -.98  .2   -.068 |  | -.74  -.41  .066 .51  -.15  |
+                                   | .084  .33   -.81 .47  -.081 |
+                                   | -.61  .74   .077 -.27 .062  |
+
+o3 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : M' = (transpose U) * M * (transpose V)
+
+o4 = | 88      -3.1e-15 1.3e-14  -3.9e-15 -8.9e-16 |
+     | 4.9e-15 3.9      -6.8e-15 -5.8e-16 -2.2e-15 |
+     | 7.7e-15 1.2e-14  .8       2.6e-16  6.1e-16  |
+
+                3         5
+o4 : Matrix RR    &lt;-- RR
+              53        53</code></pre>
+            </td>
+          </tr>
+        </table>
+We can clean the small entries from the result above with <a title="set to zero elements that are approximately zero" href="_clean.html">clean</a>.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : e = 1e-10;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : clean_e M'
+
+o6 = | 88 0   0  0 0 |
+     | 0  3.9 0  0 0 |
+     | 0  0   .8 0 0 |
+
+                3         5
+o6 : Matrix RR    &lt;-- RR
+              53        53</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : clean_e norm (1 - U * transpose U)
+
+o7 = 0
+
+o7 : RR (of precision 53)</code></pre>
+            </td>
+          </tr>
+        </table>
+Alternatively, if the only issue is display of the matrix, we may set the printing accuracy.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : printingAccuracy = 2
+
+o8 = 2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : M'
+
+o9 = | 88 -0  0  -0 -0 |
+     | 0  3.9 -0 -0 -0 |
+     | 0  0   .8 0  0  |
+
+                3         5
+o9 : Matrix RR    &lt;-- RR
+              53        53</code></pre>
+            </td>
+          </tr>
+        </table>
+Now let's try the divide and conquer algorithm and compare answers.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : (S', U', V') = SVD(M, DivideConquer => true)
+
+o10 = ({88 }, | -.02 -.4  -.92 |, | -.01 -.04 -.11 -.32 -.94 |)
+       {3.9}  | -.21 -.89 .4   |  | -.28 -.41 -.57 -.59 .29  |
+       {.8 }  | -.98 .2   -.07 |  | -.74 -.41 .07  .51  -.15 |
+                                  | .08  .33  -.81 .47  -.08 |
+                                  | -.61 .74  .08  -.27 .06  |
+
+o10 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : norm \ ({S', U', V'}-{S, U, V})
+
+o11 = {0, 0, 0}
+
+o11 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+The SVD routine calls on the SVD algorithms in the LAPACK and eigen libraries.      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="find eigenvalues of a matrix" href="_eigenvalues.html">eigenvalues</a> -- find eigenvalues of a matrix</span></li>
+          <li><span><a title="find eigenvectors of a matrix over real or complex numbers" href="_eigenvectors.html">eigenvectors</a> -- find eigenvectors of a matrix over real or complex numbers</span></li>
+          <li><span><a title="l^p norm" href="_norm.html">norm</a> -- l^p norm</span></li>
+          <li><span><a title="set to zero elements that are approximately zero" href="_clean.html">clean</a> -- set to zero elements that are approximately zero</span></li>
+          <li><span><a title="current accuracy for printing numbers" href="_printing__Accuracy.html">printingAccuracy</a> -- current accuracy for printing numbers</span></li>
+          <li><span><a title="current precision for printing numbers" href="_printing__Precision.html">printingPrecision</a> -- current precision for printing numbers</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="whether to use the LAPACK divide and conquer SVD algorithm" href="___S__V__D_lp..._cm__Divide__Conquer_eq_gt..._rp.html">SVD(...,DivideConquer=>...)</a> -- whether to use the LAPACK divide and conquer SVD algorithm</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">SVD</span>:</h2>
+          <ul>
+            <li><kbd>SVD(Matrix)</kbd></li>
+            <li><kbd>SVD(MutableMatrix)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="singular value decomposition of a matrix" href="___S__V__D.html">SVD</a> is <span>a <a title="a type of method function" href="___Method__Function__With__Options.html">method function with options</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Macaulay2Doc/functions/SVD-doc.m2:54:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

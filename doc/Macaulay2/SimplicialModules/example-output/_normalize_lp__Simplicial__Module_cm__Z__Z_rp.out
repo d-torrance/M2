@@ -1,0 +1,238 @@
+-- -*- M2-comint -*- hash: 11613738377047953479
+
+i1 : R = ZZ/101[x_1..x_3];
+
+i2 : K = koszulComplex vars R
+
+      1      3      3      1
+o2 = R  <-- R  <-- R  <-- R
+                           
+     0      1      2      3
+
+o2 : Complex
+
+i3 : S = simplicialModule(K,10, Degeneracy => true)
+
+      1      4      10      20      35      56      84      120      165      220      286
+o3 = R  <-- R  <-- R   <-- R   <-- R   <-- R   <-- R   <-- R    <-- R    <-- R    <-- R   <-- ...
+                                                                                       
+     0      1      2       3       4       5       6       7        8        9        10
+
+o3 : SimplicialModule
+
+i4 : keys S
+
+o4 = {complexLength, module, ss, dd, ring, complex, topDegree, cache}
+
+o4 : List
+
+i5 : K == normalize S
+
+o5 = true
+
+i6 : Kn = normalize(S, CheckComplex => false)
+
+      1
+o6 = R  <-- image {0} | 0 0 0 | <-- image {0} | 0 0 0 | <-- image {0} | 0 |
+                  {1} | 1 0 0 |           {1} | 0 0 0 |           {1} | 0 |
+     0            {1} | 0 1 0 |           {1} | 0 0 0 |           {1} | 0 |
+                  {1} | 0 0 1 |           {1} | 0 0 0 |           {1} | 0 |
+                                          {1} | 0 0 0 |           {1} | 0 |
+            1                             {1} | 0 0 0 |           {1} | 0 |
+                                          {1} | 0 0 0 |           {1} | 0 |
+                                          {2} | 1 0 0 |           {1} | 0 |
+                                          {2} | 0 1 0 |           {1} | 0 |
+                                          {2} | 0 0 1 |           {1} | 0 |
+                                                                  {2} | 0 |
+                                    2                             {2} | 0 |
+                                                                  {2} | 0 |
+                                                                  {2} | 0 |
+                                                                  {2} | 0 |
+                                                                  {2} | 0 |
+                                                                  {2} | 0 |
+                                                                  {2} | 0 |
+                                                                  {2} | 0 |
+                                                                  {3} | 1 |
+                                                             
+                                                            3
+
+o6 : Complex
+
+i7 : Kn.dd
+
+          1
+o7 = 0 : R  <------------------- image {0} | 0 0 0 | : 1
+               | x_1 x_2 x_3 |         {1} | 1 0 0 |
+                                       {1} | 0 1 0 |
+                                       {1} | 0 0 1 |
+
+     1 : image {0} | 0 0 0 | <-------------------------- image {0} | 0 0 0 | : 2
+               {1} | 1 0 0 |    {1} | -x_2 -x_3 0    |         {1} | 0 0 0 |
+               {1} | 0 1 0 |    {1} | x_1  0    -x_3 |         {1} | 0 0 0 |
+               {1} | 0 0 1 |    {1} | 0    x_1  x_2  |         {1} | 0 0 0 |
+                                                               {1} | 0 0 0 |
+                                                               {1} | 0 0 0 |
+                                                               {1} | 0 0 0 |
+                                                               {2} | 1 0 0 |
+                                                               {2} | 0 1 0 |
+                                                               {2} | 0 0 1 |
+
+     2 : image {0} | 0 0 0 | <---------------- image {0} | 0 | : 3
+               {1} | 0 0 0 |    {2} | x_3  |         {1} | 0 |
+               {1} | 0 0 0 |    {2} | -x_2 |         {1} | 0 |
+               {1} | 0 0 0 |    {2} | x_1  |         {1} | 0 |
+               {1} | 0 0 0 |                         {1} | 0 |
+               {1} | 0 0 0 |                         {1} | 0 |
+               {1} | 0 0 0 |                         {1} | 0 |
+               {2} | 1 0 0 |                         {1} | 0 |
+               {2} | 0 1 0 |                         {1} | 0 |
+               {2} | 0 0 1 |                         {1} | 0 |
+                                                     {2} | 0 |
+                                                     {2} | 0 |
+                                                     {2} | 0 |
+                                                     {2} | 0 |
+                                                     {2} | 0 |
+                                                     {2} | 0 |
+                                                     {2} | 0 |
+                                                     {2} | 0 |
+                                                     {2} | 0 |
+                                                     {3} | 1 |
+
+o7 : ComplexMap
+
+i8 : K == Kn
+
+o8 = false
+
+i9 : K == prune Kn
+
+o9 = true
+
+i10 : S10 = directSum toList(10: forgetComplex S)
+
+       10      40      100      200      350      560      840      1200      1650      2200      2860
+o10 = R   <-- R   <-- R    <-- R    <-- R    <-- R    <-- R    <-- R     <-- R     <-- R     <-- R    <-- ...
+                                                                                                  
+      0       1       2        3        4        5        6        7         8         9         10
+
+o10 : SimplicialModule
+
+i11 : elapsedTime prune normalize S10
+ -- 5.11197s elapsed
+
+       10      30      30      10
+o11 = R   <-- R   <-- R   <-- R
+                               
+      0       1       2       3
+
+o11 : Complex
+
+i12 : elapsedTime prune normalize(S10, CheckSum => false) --about 3-4 times slower; becomes significant for larger ranks
+ -- 9.58608s elapsed
+
+       10      30      30      10
+o12 = R   <-- R   <-- R   <-- R
+                               
+      0       1       2       3
+
+o12 : Complex
+
+i13 : elapsedTime prune normalize(S10, 3, CheckSum => false) --MUCH FASTER!
+ -- .0452666s elapsed
+
+       10      30      30      10
+o13 = R   <-- R   <-- R   <-- R
+                               
+      0       1       2       3
+
+o13 : Complex
+
+i14 : Q = ZZ/3[a,b];
+
+i15 : K = koszulComplex vars Q
+
+       1      2      1
+o15 = Q  <-- Q  <-- Q
+                     
+      0      1      2
+
+o15 : Complex
+
+i16 : SK = simplicialModule(K,6) --want top degree 6 since the resulting complexes should have length 6
+
+       1      3      6      10      15      21      28
+o16 = Q  <-- Q  <-- Q  <-- Q   <-- Q   <-- Q   <-- Q  <-- ...
+                                                    
+      0      1      2      3       4       5       6
+
+o16 : SimplicialModule
+
+i17 : w21K = extPower(2, SK) ** SK
+
+             9      90      450      1575      4410      10584
+o17 = 0 <-- Q  <-- Q   <-- Q    <-- Q     <-- Q     <-- Q     <-- ...
+                                                         
+      0     1      2       3        4         5         6
+
+o17 : SimplicialModule
+
+i18 : w3K = extPower(3, SK)
+
+             1      20      120      455      1330      3276
+o18 = 0 <-- Q  <-- Q   <-- Q    <-- Q    <-- Q     <-- Q    <-- ...
+                                                        
+      0     1      2       3        4        5         6
+
+o18 : SimplicialModule
+
+i19 : H = hashTable for i from 0 to 6 list i => dual wedgeProduct(2,1, dual SK_i);
+
+i20 : inclusion = map(w21K, w3K, H);
+
+i21 : inc = prune normalize(inclusion,3);
+
+i22 : isWellDefined inc
+
+o22 = true
+
+i23 : isCommutative inc
+
+o23 = true
+
+i24 : S21K = prune coker inc --this is only a snapshot; should go up to degree 6
+
+       8      54      144
+o24 = Q  <-- Q   <-- Q
+                      
+      1      2       3
+
+o24 : Complex
+
+i25 : (minimize S21K).dd
+
+           2                          5
+o25 = 1 : Q  <---------------------- Q  : 2
+                {1} | a 0 b 0 -b |
+                {1} | 0 a a b a  |
+
+           5                                                                                                                                                                                                                                                                                                                                               101
+      2 : Q  <------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- Q    : 3
+                {2} | -b 0  b  0  -b 0 0 b2  0 b2  0 0   0 0 -ab b2  0 -b2 0 -b2 b2  0   0 0 0 0 0 b2  -b2 0   b2  b2  0 ab  0   0 0 0 0 b2  0   0 0 0 0 -ab b2  b2  0   0 0 0 0 -b2 b2  ab2  0    -ab2 0 ab2  b3   ab2  b3   0 b3   0 b3   ab2  0 0 b3   0 0 ab2  0 b3   0 0 0 0 0 -ab2 -b3  0 0 0 0 ab2  b3   ab2  b3   0 0 ab3   ab3   0 0 0 0 0 0 |
+                {2} | -a -b -a -b 0  0 0 ab  0 ab  0 b2  0 0 -a2 -ab 0 0   0 -ab -ab -b2 0 0 0 0 0 ab  0   b2  0   0   0 -a2 -ab 0 0 0 0 -ab -b2 0 0 0 0 -a2 -ab -ab -b2 0 0 0 0 0   0   a2b  ab2  -a2b 0 a2b  ab2  0    0    0 0    0 ab2  0    0 0 0    0 0 0    0 0    0 0 0 0 0 0    0    0 0 0 0 0    0    0    0    0 0 0     a2b2  0 0 0 0 0 0 |
+                {2} | a  0  0  b  -a b 0 -ab 0 -ab 0 0   0 0 a2  -ab 0 ab  0 ab  -ab 0   0 0 0 0 0 -ab ab  0   -ab -ab 0 0   ab  0 0 0 0 0   b2  0 0 0 0 a2  -ab -ab 0   0 0 0 0 ab  -ab -a2b 0    a2b  0 -a2b -ab2 -a2b -ab2 0 -ab2 0 -ab2 -a2b 0 0 -ab2 0 0 -a2b 0 -ab2 0 0 0 0 0 a2b  ab2  0 0 0 0 -a2b -ab2 -a2b -ab2 0 0 -a2b2 -a2b2 0 0 0 0 0 0 |
+                {2} | 0  a  0  -a 0  a 0 0   0 0   0 -ab 0 0 0   -a2 0 -a2 0 0   -a2 ab  0 0 0 0 0 0   -a2 -ab a2  a2  0 0   -a2 0 0 0 0 0   -ab 0 0 0 0 0   -a2 -a2 ab  0 0 0 0 -a2 a2  0    -a2b 0    0 0    0    a3   a2b  0 a2b  0 0    a3   0 0 a2b  0 0 a3   0 a2b  0 0 0 0 0 -a3  -a2b 0 0 0 0 a3   a2b  a3   a2b  0 0 a3b   0     0 0 0 0 0 0 |
+                {2} | 0  0  a  b  a  b 0 0   0 0   0 0   0 0 0   0   0 0   0 0   0   0   0 0 0 0 0 0   0   0   0   0   0 a2  ab  0 0 0 0 ab  b2  0 0 0 0 0   0   0   0   0 0 0 0 0   0   0    0    0    0 0    0    0    0    0 0    0 0    0    0 0 0    0 0 0    0 0    0 0 0 0 0 0    0    0 0 0 0 0    0    0    0    0 0 0     0     0 0 0 0 0 0 |
+
+o25 : ComplexMap
+
+i26 : prune HH S21K --free part is because we truncated
+
+                                                             98
+o26 = cokernel {1} | b a 0 0 | <-- cokernel {2} | b a | <-- Q
+               {1} | 0 0 b a |                               
+                                   2                        3
+      1
+
+o26 : Complex
+
+i27 : 

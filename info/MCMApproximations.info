@@ -1,0 +1,1293 @@
+ -*- coding: utf-8 -*- This is MCMApproximations.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* MCMApproximations: (MCMApproximations).  MCM approximations and complete intersections
+END-INFO-DIR-ENTRY
+
+
+File: MCMApproximations.info, Node: Top, Next: approximation, Up: (dir)
+
+MCMApproximations -- Maximal Cohen-Macaulay Approximations and Complete Intersections
+*************************************************************************************
+
+Description
+===========
+
+Maximal Cohen-Macaulay approximations were introduced by Auslander and
+Buchweitz [The homological theory of maximal Cohen-Macaulay (MCM)
+approximations, Colloque en l'honneur de Pierre Samuel (Orsay, 1987) Soc. Math.
+France (N.S.)} No. 38, (1989), 5 - 37.] In the context of a local Gorenstein
+ring R, the theory simplifies a little and can be expressed as follows. Let M
+be an R-module.
+
+1) There is a unique maximal Cohen-Macaulay R-module M' and a short exact
+"approximation sequence" 0\to N' \to M' \to  M \to 0 such that N has finite
+projective dimension; the module M, together with the surjection, is the MCM
+approximation of M.
+
+2) Dually, there is a unique short exact "co-approximation sequence" 0\to M \to
+N'' \to M'' \to 0 such that N'' has finite projective dimension and M'' is a
+maximal Cohen-Macaulay module, the MCM co-approximation.
+
+These sequences are easy to compute. Let d = 1+ depth R - depth M. Write M'_0
+for the d-th cosyzygy of the d-th syzygy module of M, and \alpha: M'\to M the
+induced map. The module M' (or the map (M'\to M) is called the essential MCM
+approximation of M. Since d >= 2, the module M' has no free summand. Let B_0 be
+a minimal free module mapping onto M/(image M'_0), and lift the surjection to a
+map \beta: B_0 \to M. The map (\alpha, \beta): M'_0 \oplus B_0 --> M is the MCM
+approximation, and N is its kernel.
+
+The routine approximation M returns the pair (\alpha, \beta).
+
+Further, if M'' is the (d+1)st cosyzygy of the d-th syzygy of M then there is a
+short exact sequence 0\to M' \to F \to M'' \to 0 with F free. Pushing this
+sequence forward along the map \alpha: M' \to M gives the coapproximation
+sequence 0\to M \to N''\to M'' \to 0.
+
+The routine coApproximation M returns the map M --> N''. Here is an example of
+a simple approximation sequence, exhibited by the betti tables of its 3 middle
+terms:
+
+The Betti table of the module M is at the top, and one sees that it is NOT MCM
+(the resolution is not periodic at the beginning) and not of finite projective
+dimension (the length of the given part of of the -- actually infinite --
+resolution is already longer than the dimension of the ring.
+
+Next comes the betti table of the  MCM module that approximates M (we see that
+its resolution is periodic from the beginning).
+
+Finally we see a module of finite projective dimension (in this case 1).
+
++-----------------------------------------------------------------------------+
+|i1 : S = ZZ/101[a,b,c]                                                       |
+|                                                                             |
+|o1 = S                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : R = S/ideal(a^3+b^3+c^3)                                                |
+|                                                                             |
+|o2 = R                                                                       |
+|                                                                             |
+|o2 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i3 : M = coker random(R^2, R^{4:-1});                                        |
++-----------------------------------------------------------------------------+
+|i4 : Ea = approximationSequence M;                                           |
++-----------------------------------------------------------------------------+
+|i5 : netList apply({1,2,3}, i-> betti freeResolution(Ea_i, LengthLimit =>    |
+|                                                                             |
+|     +----------------+                                                      |
+|     |       0 1 2 3 4|                                                      |
+|o5 = |total: 2 4 6 6 6|                                                      |
+|     |    0: 2 4 . . .|                                                      |
+|     |    1: . . 6 6 .|                                                      |
+|     |    2: . . . . 6|                                                      |
+|     +----------------+                                                      |
+|     |       0 1 2 3 4|                                                      |
+|     |total: 6 6 6 6 6|                                                      |
+|     |    0: 6 6 . . .|                                                      |
+|     |    1: . . 6 6 .|                                                      |
+|     |    2: . . . . 6|                                                      |
+|     +----------------+                                                      |
+|     |       0 1      |                                                      |
+|     |total: 8 6      |                                                      |
+|     |    0: 4 6      |                                                      |
+|     |    1: 4 .      |                                                      |
+|     +----------------+                                                      |
+|-----------------------------------------------------------------------------|
+|numgens R + 1))                                                              |
++-----------------------------------------------------------------------------+
+
+Here is a similar display for the co-approximation sequence. Here the Betti
+table of M is at the bottom, the Betti table of the module of finite projective
+dimension is in the middle, and that of the MCM module is at the top (
+
++-----------------------------------------------------------------------------+
+|i6 : Ec = coApproximationSequence M;                                         |
++-----------------------------------------------------------------------------+
+|i7 : netList apply(5, i-> betti freeResolution(prune Ec_i, LengthLimit =>    |
+|                                                                             |
+|     +-----------------------------+                                         |
+|     |                             |                                         |
+|o7 = |total:                       |                                         |
+|     +-----------------------------+                                         |
+|     |       0 1 2 3 4 5 6 7 8 9 10|                                         |
+|     |total: 6 6 6 6 6 6 6 6 6 6  6|                                         |
+|     |   -2: 6 . . . . . . . . .  .|                                         |
+|     |   -1: . 6 6 . . . . . . .  .|                                         |
+|     |    0: . . . 6 6 . . . . .  .|                                         |
+|     |    1: . . . . . 6 6 . . .  .|                                         |
+|     |    2: . . . . . . . 6 6 .  .|                                         |
+|     |    3: . . . . . . . . . 6  6|                                         |
+|     +-----------------------------+                                         |
+|     |       0 1 2                 |                                         |
+|     |total: 6 4 2                 |                                         |
+|     |   -2: 6 . .                 |                                         |
+|     |   -1: . 4 2                 |                                         |
+|     +-----------------------------+                                         |
+|     |       0 1 2 3 4 5 6 7 8 9 10|                                         |
+|     |total: 2 4 6 6 6 6 6 6 6 6  6|                                         |
+|     |    0: 2 4 . . . . . . . .  .|                                         |
+|     |    1: . . 6 6 . . . . . .  .|                                         |
+|     |    2: . . . . 6 6 . . . .  .|                                         |
+|     |    3: . . . . . . 6 6 . .  .|                                         |
+|     |    4: . . . . . . . . 6 6  .|                                         |
+|     |    5: . . . . . . . . . .  6|                                         |
+|     +-----------------------------+                                         |
+|     |                             |                                         |
+|     |total:                       |                                         |
+|     +-----------------------------+                                         |
+|-----------------------------------------------------------------------------|
+|10))                                                                         |
++-----------------------------------------------------------------------------+
+
+Author
+======
+
+  * David Eisenbud (see http://www.msri.org/~de ) <de@msri.org>
+
+Version
+=======
+
+This documentation describes version 1.1 of MCMApproximations, released April
+3, 2013, revised August 21, 2017.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{MCMApproximationsSource,                                               |
+|  title = {{MCMApproximations: MCM approximations and complete intersections.|
+|  author = {David Eisenbud},                                                 |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Version~1.1}},                                                               |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note approximation: approximation, -- returns pair of components of
+        the map from the MCM approximation
+      * *note approximationSequence: approximationSequence, -- Short exact
+        sequence of the MCM approximation
+      * *note auslanderInvariant: auslanderInvariant, -- measures failure of
+        surjectivity of the essential MCM approximation
+      * *note coApproximation: coApproximation, -- Maximal Cohen-Macaulay
+        co-approximation of M
+      * *note coApproximationSequence: coApproximationSequence, -- Short exact
+        sequence of the MCM coapproximation
+      * *note profondeur: profondeur, -- computes the profondeur with respect
+        to an ideal
+      * *note setupModules: setupModules, -- Creates a list of modules and maps
+        over complete intersection for experiments
+      * *note setupRings: setupRings, -- Sets up a complete intersection for
+        experiments
+      * *note socleDegrees: socleDegrees, -- lists the degrees of the socle
+        generators
+      * *note syzygyModule: syzygyModule, -- Produces the k-th syzygy module (k
+        \in ZZ)
+  * Methods
+      * "approximation(Module)" -- see *note approximation: approximation, --
+        returns pair of components of the map from the MCM approximation
+      * "auslanderInvariant(Module)" -- see *note auslanderInvariant:
+        auslanderInvariant, -- measures failure of surjectivity of the
+        essential MCM approximation
+      * "coApproximation(Module)" -- see *note coApproximation:
+        coApproximation, -- Maximal Cohen-Macaulay co-approximation of M
+      * "profondeur(Ideal,Module)" -- see *note profondeur: profondeur, --
+        computes the profondeur with respect to an ideal
+      * "profondeur(Module)" -- see *note profondeur: profondeur, -- computes
+        the profondeur with respect to an ideal
+      * "profondeur(Ring)" -- see *note profondeur: profondeur, -- computes the
+        profondeur with respect to an ideal
+      * "setupModules(List,Module)" -- see *note setupModules: setupModules, --
+        Creates a list of modules and maps over complete intersection for
+        experiments
+      * "setupRings(Matrix)" -- see *note setupRings: setupRings, -- Sets up a
+        complete intersection for experiments
+      * "setupRings(ZZ,ZZ)" -- see *note setupRings: setupRings, -- Sets up a
+        complete intersection for experiments
+      * "socleDegrees(Module)" -- see *note socleDegrees: socleDegrees, --
+        lists the degrees of the socle generators
+      * "syzygyModule(ZZ,Module)" -- see *note syzygyModule: syzygyModule, --
+        Produces the k-th syzygy module (k \in ZZ)
+  * Symbols
+      * *note Characteristic: Characteristic, -- Option for
+        setupRings(c,d,Characteristic=>q)
+      * *note CoDepth: CoDepth, -- Option for syzygyModule(-k,M,CoDepth => m)
+      * *note Randomize: Randomize, -- Option for
+        setupRings(c,d,Characteristic=>q, Randomize=>false)
+      * *note Total: Total, -- option for approximation
+
+For the programmer
+==================
+
+The object *note MCMApproximations: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in MCMApproximations.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:302:0.
+
+File: MCMApproximations.info, Node: approximation, Next: approximationSequence, Prev: Top, Up: Top
+
+approximation -- returns pair of components of the map from the MCM approximation
+*********************************************************************************
+
+  * Usage: 
+        (phi,psi) = approximation M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CoDepth => ..., default value -1
+      * Total => ..., default value true
+  * Outputs:
+      * phi, a *note matrix: (Macaulay2Doc)Matrix,, map from the nonfree
+        component
+      * psi, a *note matrix: (Macaulay2Doc)Matrix,, map from the free component
+
+Description
+===========
+
+If R is a local or standard graded Gorenstein ring, and M is a finitely
+generated R-module, then, according to the theory of Auslander and Buchweitz (a
+good exposition is in Ding's Thesis) there are unique exact sequences $$0\to K
+\to M' \to M\to 0$$ and $$0\to M \to N\to M''\to 0$$ such that K and N are of
+finite projective dimension, M' and M'' are maximal Cohen-Macaulay, and M'' has
+no free summands. Thus, for example, the projective dimension of K is one less
+than the CoDepth of M.)
+
+The call
+
+coApproximation M
+
+returns the map $M\to N$, while the call
+
+approximation M
+
+returns the pair (phi,psi), which define the map $M'\to M$. Here phi is the
+"essential MCM approximation" from the biggest summand M'0 of M' that has no
+free summands, and psi is the map from the free summand M'1.
+
+The module M'0 is computed as syzygyModule(-k, syzygyModule(k,M)) for any k >=
+CoDepth M, and the map $M'0 \to M$ is induced by the comparison map of
+resolutions.
+
+The rank t of the free summand M'1 is called the Auslander Invariant of M, and
+is returned by the call auslanderInvariant M.
+
+The CoDepth of M can be provided as an option to speed computation.
+
+If Total => false, then just the map phi is returned.
+
++-----------------------------------+
+|i1 : R = ZZ/101[a,b]/ideal(a^2)    |
+|                                   |
+|o1 = R                             |
+|                                   |
+|o1 : QuotientRing                  |
++-----------------------------------+
+|i2 : k = coker vars R              |
+|                                   |
+|o2 = cokernel | a b |              |
+|                                   |
+|                            1      |
+|o2 : R-module, quotient of R       |
++-----------------------------------+
+|i3 : approximation k               |
+|                                   |
+|o3 = (| 0 1 |, 0)                  |
+|                                   |
+|o3 : Sequence                      |
++-----------------------------------+
+|i4 : M = image vars R              |
+|                                   |
+|o4 = image | a b |                 |
+|                                   |
+|                             1     |
+|o4 : R-module, submodule of R      |
++-----------------------------------+
+|i5 : approximation M               |
+|                                   |
+|o5 = ({1} | -1 0 |, 0)             |
+|      {1} | 0  1 |                 |
+|                                   |
+|o5 : Sequence                      |
++-----------------------------------+
+|i6 : approximation(M, Total=>false)|
+|                                   |
+|o6 = {1} | -1 0 |                  |
+|     {1} | 0  1 |                  |
+|                                   |
+|o6 : Matrix                        |
++-----------------------------------+
+|i7 : approximation(M, CoDepth => 0)|
+|                                   |
+|o7 = ({1} | 1 0 |, 0)              |
+|      {1} | 0 1 |                  |
+|                                   |
+|o7 : Sequence                      |
++-----------------------------------+
+
+See also
+========
+
+  * *note syzygyModule: syzygyModule, -- Produces the k-th syzygy module (k \in
+    ZZ)
+  * *note auslanderInvariant: auslanderInvariant, -- measures failure of
+    surjectivity of the essential MCM approximation
+
+Ways to use approximation:
+==========================
+
+  * "approximation(Module)"
+
+For the programmer
+==================
+
+The object *note approximation: approximation, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:556:0.
+
+File: MCMApproximations.info, Node: approximationSequence, Next: auslanderInvariant, Prev: approximation, Up: Top
+
+approximationSequence -- Short exact sequence of the MCM approximation
+**********************************************************************
+
+  * Usage: 
+        E = approximationSequence M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * Outputs:
+      * E, a *note complex: (Complexes)Complex,, 
+
+Description
+===========
+
+The approximation sequence of a module M over a Gorenstein ring is the versal
+short exact sequence $$0\to P \to M' \to M \to 0$$ where M' is a maximal
+Cohen-Macaulay module and P is a module of finite projective dimension, as
+defined by Auslander and Buchweitz.
+
++--------------------------------------------------------------------+
+|i1 : S = ZZ/101[a,b]/ideal(a^3+b^3)                                 |
+|                                                                    |
+|o1 = S                                                              |
+|                                                                    |
+|o1 : QuotientRing                                                   |
++--------------------------------------------------------------------+
+|i2 : R = S/ideal(a*b)                                               |
+|                                                                    |
+|o2 = R                                                              |
+|                                                                    |
+|o2 : QuotientRing                                                   |
++--------------------------------------------------------------------+
+|i3 : M = R^1/(ideal vars R)^2                                       |
+|                                                                    |
+|o3 = cokernel | a2 0 b2 |                                           |
+|                                                                    |
+|                            1                                       |
+|o3 : R-module, quotient of R                                        |
++--------------------------------------------------------------------+
+|i4 : approximationSequence M                                        |
+|                                                                    |
+|o4 = M <-- cokernel | b2 a2 | <-- subquotient (| b2 a2 |, | b2 a2 |)|
+|                                                                    |
+|     1     2                      3                                 |
+|                                                                    |
+|o4 : Complex                                                        |
++--------------------------------------------------------------------+
+
+See also
+========
+
+  * *note coApproximationSequence: coApproximationSequence, -- Short exact
+    sequence of the MCM coapproximation
+
+For the programmer
+==================
+
+The object *note approximationSequence: approximationSequence, is a *note
+function closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:583:0.
+
+File: MCMApproximations.info, Node: auslanderInvariant, Next: Characteristic, Prev: approximationSequence, Up: Top
+
+auslanderInvariant -- measures failure of surjectivity of the essential MCM approximation
+*****************************************************************************************
+
+  * Usage: 
+        a = auslanderInvariant M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CoDepth => ..., default value -1
+  * Outputs:
+      * a, an *note integer: (Macaulay2Doc)ZZ,, 
+
+Description
+===========
+
+If R is a Gorenstein local ring and M is an R-module, then the essential MCM
+approximation is a map phi: M'-->M, where M' is an MCM R-module, obtained as
+the k-th cosyzygy of the k-th syzygy of M, where k >= the co-depth of M. The
+Auslander invariant is the number of generators of coker phi. Thus if R is
+regular the Auslander invariant is just the minimal number of generators of M,
+and if M is already an MCM module with no free summands then the Auslander
+invariant is 0.
+
+Ding showed that if R is a hypersurface ring, then auslanderInvariant
+(R^1)/((ideal vars R)^i) is zero precisely for i<multiplicity R.
+
+Experimentally, it looks as if for a complete intersection the power is the
+a-invariant plus 1, but NOT for the codim 3 Pfaffian example.
+
++--------------------------------------------------------------------+
+|i1 : R = ZZ/101[a..d]/ideal"a3"                                     |
+|                                                                    |
+|o1 = R                                                              |
+|                                                                    |
+|o1 : QuotientRing                                                   |
++--------------------------------------------------------------------+
+|i2 : apply(5, i -> auslanderInvariant ((R^1)/(ideal(vars R))^(i+1)))|
+|                                                                    |
+|o2 = {0, 0, 1, 1, 1}                                                |
+|                                                                    |
+|o2 : List                                                           |
++--------------------------------------------------------------------+
+|i3 : R = ZZ/101[a..d]/ideal"a3,b4"                                  |
+|                                                                    |
+|o3 = R                                                              |
+|                                                                    |
+|o3 : QuotientRing                                                   |
++--------------------------------------------------------------------+
+|i4 : apply(6, i -> auslanderInvariant ((R^1)/(ideal(vars R))^(i+1)))|
+|                                                                    |
+|o4 = {0, 0, 0, 0, 0, 1}                                             |
+|                                                                    |
+|o4 : List                                                           |
++--------------------------------------------------------------------+
+|i5 : S = ZZ/101[a,b,c]                                              |
+|                                                                    |
+|o5 = S                                                              |
+|                                                                    |
+|o5 : PolynomialRing                                                 |
++--------------------------------------------------------------------+
+|i6 : N = matrix{{0,a,0,0,c},                                        |
+|                {0,0,b,c,0},                                        |
+|                {0,0,0,a,0},                                        |
+|                {0,0,0,0,b},                                        |
+|                {0,0,0,0,0}}                                        |
+|                                                                    |
+|o6 = | 0 a 0 0 c |                                                  |
+|     | 0 0 b c 0 |                                                  |
+|     | 0 0 0 a 0 |                                                  |
+|     | 0 0 0 0 b |                                                  |
+|     | 0 0 0 0 0 |                                                  |
+|                                                                    |
+|             5      5                                               |
+|o6 : Matrix S  <-- S                                                |
++--------------------------------------------------------------------+
+|i7 : M = N-transpose N                                              |
+|                                                                    |
+|o7 = | 0  a  0  0  c |                                              |
+|     | -a 0  b  c  0 |                                              |
+|     | 0  -b 0  a  0 |                                              |
+|     | 0  -c -a 0  b |                                              |
+|     | -c 0  0  -b 0 |                                              |
+|                                                                    |
+|             5      5                                               |
+|o7 : Matrix S  <-- S                                                |
++--------------------------------------------------------------------+
+|i8 : J = pfaffians(4,M)                                             |
+|                                                                    |
+|             2              2        2                              |
+|o8 = ideal (a , b*c, a*b + c , a*c, b )                             |
+|                                                                    |
+|o8 : Ideal of S                                                     |
++--------------------------------------------------------------------+
+|i9 : R = S/J                                                        |
+|                                                                    |
+|o9 = R                                                              |
+|                                                                    |
+|o9 : QuotientRing                                                   |
++--------------------------------------------------------------------+
+|i10 : I = ideal vars R                                              |
+|                                                                    |
+|o10 = ideal (a, b, c)                                               |
+|                                                                    |
+|o10 : Ideal of R                                                    |
++--------------------------------------------------------------------+
+|i11 : scan(5, i->print auslanderInvariant ((R^1)/(I^i)))            |
+|0                                                                   |
+|0                                                                   |
+|0                                                                   |
+|1                                                                   |
+|1                                                                   |
++--------------------------------------------------------------------+
+
+See also
+========
+
+  * *note approximation: approximation, -- returns pair of components of the
+    map from the MCM approximation
+
+Ways to use auslanderInvariant:
+===============================
+
+  * "auslanderInvariant(Module)"
+
+For the programmer
+==================
+
+The object *note auslanderInvariant: auslanderInvariant, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:659:0.
+
+File: MCMApproximations.info, Node: Characteristic, Next: coApproximation, Prev: auslanderInvariant, Up: Top
+
+Characteristic -- Option for setupRings(c,d,Characteristic=>q)
+**************************************************************
+
+Description
+===========
+
+Allows the user to specify the characteristic of the rings to be defined.
+
+See also
+========
+
+  * *note setupRings: setupRings, -- Sets up a complete intersection for
+    experiments
+  * *note Randomize: Randomize, -- Option for setupRings(c,d,Characteristic=>q,
+    Randomize=>false)
+  * *note setupModules: setupModules, -- Creates a list of modules and maps
+    over complete intersection for experiments
+
+Functions with optional argument named Characteristic:
+======================================================
+
+  * "setupRings(...,Characteristic=>...)" -- see *note setupRings: setupRings,
+    -- Sets up a complete intersection for experiments
+
+For the programmer
+==================
+
+The object *note Characteristic: Characteristic, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:672:0.
+
+File: MCMApproximations.info, Node: coApproximation, Next: coApproximationSequence, Prev: Characteristic, Up: Top
+
+coApproximation -- Maximal Cohen-Macaulay co-approximation of M
+***************************************************************
+
+  * Usage: 
+        a = coApproximation M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CoDepth => ..., default value -1
+      * Total => ..., default value true
+  * Outputs:
+      * a, a *note matrix: (Macaulay2Doc)Matrix,, 
+
+Description
+===========
+
+If R is a Gorenstein ring, and M is a finitely generated R-module, then,
+according to the theory of Auslander and Buchweitz (a good exposition is in
+Ding's Thesis) there are unique exact sequences $$0\to K \to M' \to M\to 0$$
+and $$0\to M \to N\to M''\to 0$$ such that K and N are of finite projective
+dimension, M' and M'' are maximal Cohen-Macaulay, and M'' has no free summands.
+The call
+
+approximation M
+
+returns the map $M'\to M$, while the call
+
+coApproximation M
+
+returns the map $M\to N$.
+
+Since the script coApproximation begins by computing the approximation, it may
+shorten the computation if the user knows the depth of M in advance, specified
+with the option Depth => d.
+
++-----------------------------------------------------------------------------+
+|i1 : setRandomSeed 100                                                       |
+| -- setting random seed to 100                                               |
+|                                                                             |
+|o1 = 100                                                                     |
++-----------------------------------------------------------------------------+
+|i2 : c = 3;d=3;                                                              |
++-----------------------------------------------------------------------------+
+|i4 : S = setupRings(c,d);                                                    |
++-----------------------------------------------------------------------------+
+|i5 : R = S_c; -- complete intersection, codim = c                            |
++-----------------------------------------------------------------------------+
+|i6 : R' = S_(c-1); --codim c-1                                               |
++-----------------------------------------------------------------------------+
+|i7 : Mc = coker vars R;                                                      |
++-----------------------------------------------------------------------------+
+|i8 : (M,k,p) = setupModules(S,Mc); --M_(c-1) is Mc as an R_(c-1)-module      |
++-----------------------------------------------------------------------------+
+|i9 : ca = coApproximation M_(c-1);                                           |
+|                                                                             |
+|o9 : Matrix                                                                  |
++-----------------------------------------------------------------------------+
+|i10 : M'' = coker ca;                                                        |
++-----------------------------------------------------------------------------+
+|i11 : N = target ca                                                          |
+|                                                                             |
+|o11 = cokernel {-4} | -x_0^2x_1^2x_2 -14x_0^2x_2^3  -8x_1^2x_2^3     -14x_2 ||
+|               {-4} | -x_0^2x_2^3    -x_0^2x_1x_2^2 -8x_2^5          -x_1   ||
+|               {-4} | -15x_1^2x_2^3  -8x_2^5        -15x_0x_1^2x_2^2 -x_0   ||
+|                                                                             |
+|                               3                                             |
+|o11 : R'-module, quotient of R'                                              |
++-----------------------------------------------------------------------------+
+|i12 : profondeur M'' == dim ring M'' -- an MCM module                        |
+|                                                                             |
+|o12 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i13 : M'' == source approximation(M'', Total=>false) -- no free summands     |
+|                                                                             |
+|o13 = false                                                                  |
++-----------------------------------------------------------------------------+
+|i14 : 2 == length freeResolution(N, LengthLimit =>10) -- projective dimension|
+|                                                                             |
+|o14 = true                                                                   |
+|-----------------------------------------------------------------------------|
+|<\infty                                                                      |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note setupRings: setupRings, -- Sets up a complete intersection for
+    experiments
+  * *note setupModules: setupModules, -- Creates a list of modules and maps
+    over complete intersection for experiments
+  * *note profondeur: profondeur, -- computes the profondeur with respect to an
+    ideal
+  * *note approximation: approximation, -- returns pair of components of the
+    map from the MCM approximation
+  * *note syzygyModule: syzygyModule, -- Produces the k-th syzygy module (k \in
+    ZZ)
+
+Ways to use coApproximation:
+============================
+
+  * "coApproximation(Module)"
+
+For the programmer
+==================
+
+The object *note coApproximation: coApproximation, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:460:0.
+
+File: MCMApproximations.info, Node: coApproximationSequence, Next: CoDepth, Prev: coApproximation, Up: Top
+
+coApproximationSequence -- Short exact sequence of the MCM coapproximation
+**************************************************************************
+
+  * Usage: 
+        E = coApproximationSequence M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * Outputs:
+      * E, a *note complex: (Complexes)Complex,, 
+
+Description
+===========
+
+The  coapproximation sequence of a module M over a Gorenstein ring is the
+versal short exact sequence $$0\to M \to P \to M' \to 0$$ where M' is a maximal
+Cohen-Macaulay module and P is a module of finite projective dimension, as
+defined by Auslander and Buchweitz.
+
++---------------------------------------+
+|i1 : S = ZZ/101[a,b]/ideal(a^3+b^3)    |
+|                                       |
+|o1 = S                                 |
+|                                       |
+|o1 : QuotientRing                      |
++---------------------------------------+
+|i2 : R = S/ideal(a*b)                  |
+|                                       |
+|o2 = R                                 |
+|                                       |
+|o2 : QuotientRing                      |
++---------------------------------------+
+|i3 : M = R^1/(ideal vars R)^2          |
+|                                       |
+|o3 = cokernel | a2 0 b2 |              |
+|                                       |
+|                            1          |
+|o3 : R-module, quotient of R           |
++---------------------------------------+
+|i4 : coApproximationSequence M         |
+|                                       |
+|                                2      |
+|o4 = cokernel {-2} | -b2 | <-- R  <-- M|
+|              {-2} | -a2 |             |
+|                               2      3|
+|     1                                 |
+|                                       |
+|o4 : Complex                           |
++---------------------------------------+
+
+See also
+========
+
+  * *note approximationSequence: approximationSequence, -- Short exact sequence
+    of the MCM approximation
+
+For the programmer
+==================
+
+The object *note coApproximationSequence: coApproximationSequence, is a *note
+function closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:609:0.
+
+File: MCMApproximations.info, Node: CoDepth, Next: profondeur, Prev: coApproximationSequence, Up: Top
+
+CoDepth -- Option for syzygyModule(-k,M,CoDepth => m)
+*****************************************************
+
+Description
+===========
+
+Allows the user to specify a number m (which must be at least CoDepth M), for
+more efficient computation.
+
+Caveat
+======
+
+Does not check that the CoDepth value is correct.
+
+See also
+========
+
+  * *note syzygyModule: syzygyModule, -- Produces the k-th syzygy module (k \in
+    ZZ)
+
+Functions with optional argument named CoDepth:
+===============================================
+
+  * "approximation(...,CoDepth=>...)" -- see *note approximation:
+    approximation, -- returns pair of components of the map from the MCM
+    approximation
+  * "auslanderInvariant(...,CoDepth=>...)" -- see *note auslanderInvariant:
+    auslanderInvariant, -- measures failure of surjectivity of the essential
+    MCM approximation
+  * "coApproximation(...,CoDepth=>...)" -- see *note coApproximation:
+    coApproximation, -- Maximal Cohen-Macaulay co-approximation of M
+  * "syzygyModule(...,CoDepth=>...)" -- see *note syzygyModule: syzygyModule,
+    -- Produces the k-th syzygy module (k \in ZZ)
+
+For the programmer
+==================
+
+The object *note CoDepth: CoDepth, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:341:0.
+
+File: MCMApproximations.info, Node: profondeur, Next: Randomize, Prev: CoDepth, Up: Top
+
+profondeur -- computes the profondeur with respect to an ideal
+**************************************************************
+
+  * Usage: 
+        m = profondeur (I,M)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+      * M, a *note module: (Macaulay2Doc)Module,, 
+      * R, a *note ring: (Macaulay2Doc)Ring,, 
+  * Outputs:
+      * m, an *note integer: (Macaulay2Doc)ZZ,, 
+
+Description
+===========
+
+When the ideal I is not specified, the maximal ideal is used, and the
+computation is done using the Auslander-Buchsbaum formula.
+
+Ways to use profondeur:
+=======================
+
+  * "profondeur(Ideal,Module)"
+  * "profondeur(Module)"
+  * "profondeur(Ring)"
+
+For the programmer
+==================
+
+The object *note profondeur: profondeur, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:400:0.
+
+File: MCMApproximations.info, Node: Randomize, Next: setupModules, Prev: profondeur, Up: Top
+
+Randomize -- Option for setupRings(c,d,Characteristic=>q, Randomize=>false)
+***************************************************************************
+
+Description
+===========
+
+Defaults to true. When = true, replaces the regular sequence of d-th powers
+with a regular sequence of random linear combinations.
+
+See also
+========
+
+  * *note setupRings: setupRings, -- Sets up a complete intersection for
+    experiments
+  * *note Characteristic: Characteristic, -- Option for
+    setupRings(c,d,Characteristic=>q)
+  * *note setupModules: setupModules, -- Creates a list of modules and maps
+    over complete intersection for experiments
+
+Functions with optional argument named Randomize:
+=================================================
+
+  * "setupRings(...,Randomize=>...)" -- see *note setupRings: setupRings, --
+    Sets up a complete intersection for experiments
+
+For the programmer
+==================
+
+The object *note Randomize: Randomize, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:686:0.
+
+File: MCMApproximations.info, Node: setupModules, Next: setupRings, Prev: Randomize, Up: Top
+
+setupModules -- Creates a list of modules and maps over complete intersection for experiments
+*********************************************************************************************
+
+  * Usage: 
+        (MM, kk, p) = setupModules(R,M)
+  * Inputs:
+      * R, a *note list: (Macaulay2Doc)List,, of complete intersections R_i =
+        S/(f_0..f_(i-1))
+      * M, a *note module: (Macaulay2Doc)Module,, over the ring R_{c-1} where c
+        = length R.
+  * Outputs:
+      * MM, a *note list: (Macaulay2Doc)List,, of c+1 modules M_i over R_i
+      * kk, a *note list: (Macaulay2Doc)List,, of residue class modules k_i of
+        R_i
+      * p, a *note list: (Macaulay2Doc)List,, of maps, p_i_j: R_j to R_i the
+        projection
+
+Description
+===========
+
+This is useful for setting up an experiment. For example, we conjecture that
+the regularity of Ext_{R_i}(M_i,k_i) is a non-decreasing function of i. Here
+ring M = R_{c-1} and  M_i = pushForward(p_{(c-1)}_i, M).
+
++--------------------------------------------------------------------------+
+|i1 : needsPackage "CompleteIntersectionResolutions" -- for "evenExtModule"|
+|                                                                          |
+|o1 = CompleteIntersectionResolutions                                      |
+|                                                                          |
+|o1 : Package                                                              |
++--------------------------------------------------------------------------+
+|i2 : R =setupRings(3,2);--codims 0..3, degrees = 2                        |
++--------------------------------------------------------------------------+
+|i3 : MM0 = coker random(R_3^2, R_3^{3: -1});                              |
++--------------------------------------------------------------------------+
+|i4 : (M,kkk,p) = setupModules(R,MM0);                                     |
++--------------------------------------------------------------------------+
+|i5 : apply(3, j->regularity evenExtModule M_(j+1))                        |
+|                                                                          |
+|o5 = {1, 2, 3}                                                            |
+|                                                                          |
+|o5 : List                                                                 |
++--------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note setupRings: setupRings, -- Sets up a complete intersection for
+    experiments
+
+Ways to use setupModules:
+=========================
+
+  * "setupModules(List,Module)"
+
+For the programmer
+==================
+
+The object *note setupModules: setupModules, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:760:0.
+
+File: MCMApproximations.info, Node: setupRings, Next: socleDegrees, Prev: setupModules, Up: Top
+
+setupRings -- Sets up a complete intersection for experiments
+*************************************************************
+
+  * Usage: 
+        R = setupRings(c,d)
+        R = setupRings(ff)
+  * Inputs:
+      * c, an *note integer: (Macaulay2Doc)ZZ,, desired codimension
+      * d, an *note integer: (Macaulay2Doc)ZZ,, degree of homogeneous
+        generators
+      * ff, a *note matrix: (Macaulay2Doc)Matrix,, a regular sequence
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Characteristic => ..., default value 101
+      * Randomize => ..., default value true
+  * Outputs:
+      * R, a *note list: (Macaulay2Doc)List,, List of rings R_0..R_c with R_i =
+        S/(f_0..f_(i-1))
+
+Description
+===========
+
+Makes a complete intersection f_0..f_{c-1} = x_0^d..x_{c-1}^d or, when
+Random=>true (the default), random linear combinations of these, in the
+polynomial ring ZZ/p[x_0..x_{c-1}], where p can be set by the optional argument
+Characteristic=>p. By default, p = 101.
+
++----------------------------------------------+
+|i1 : netList setupRings(2,2)                  |
+|                                              |
+|     +----------------------------+           |
+|     | ZZ                         |           |
+|o1 = |---[x ..x ]                 |           |
+|     |101  0   1                  |           |
+|     +----------------------------+           |
+|     | ZZ                         |           |
+|     |---[x ..x ]                 |           |
+|     |101  0   1                  |           |
+|     |-----------                 |           |
+|     |   2      2                 |           |
+|     |24x  - 36x                  |           |
+|     |   0      1                 |           |
+|     +----------------------------+           |
+|     |          ZZ                |           |
+|     |         ---[x ..x ]        |           |
+|     |         101  0   1         |           |
+|     |----------------------------|           |
+|     |    2      2       2      2 |           |
+|     |(24x  - 36x , - 30x  - 29x )|           |
+|     |    0      1       0      1 |           |
+|     +----------------------------+           |
++----------------------------------------------+
+|i2 : netList setupRings(2,2,Characteristic=>5)|
+|                                              |
+|     +-----------------------+                |
+|     |ZZ                     |                |
+|o2 = |--[x ..x ]             |                |
+|     | 5  0   1              |                |
+|     +-----------------------+                |
+|     |ZZ                     |                |
+|     |--[x ..x ]             |                |
+|     | 5  0   1              |                |
+|     |----------             |                |
+|     |   2     2             |                |
+|     | 2x  - 2x              |                |
+|     |   0     1             |                |
+|     +-----------------------+                |
+|     |       ZZ              |                |
+|     |       --[x ..x ]      |                |
+|     |        5  0   1       |                |
+|     |-----------------------|                |
+|     |   2     2     2     2 |                |
+|     |(2x  - 2x , - x  - 2x )|                |
+|     |   0     1     0     1 |                |
+|     +-----------------------+                |
++----------------------------------------------+
+
+See also
+========
+
+  * *note setupModules: setupModules, -- Creates a list of modules and maps
+    over complete intersection for experiments
+
+Ways to use setupRings:
+=======================
+
+  * "setupRings(Matrix)"
+  * "setupRings(ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note setupRings: setupRings, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:721:0.
+
+File: MCMApproximations.info, Node: socleDegrees, Next: syzygyModule, Prev: setupRings, Up: Top
+
+socleDegrees -- lists the degrees of the socle generators
+*********************************************************
+
+  * Usage: 
+        L = socleDegrees M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * Outputs:
+      * L, a *note list: (Macaulay2Doc)List,, 
+
+Description
+===========
+
+L is the list of socle degrees of M, with multiplicities. Thus L = {} if the
+socle is 0.
+
++------------------------------------------------+
+|i1 : R = ZZ/101[x,y,z]                          |
+|                                                |
+|o1 = R                                          |
+|                                                |
+|o1 : PolynomialRing                             |
++------------------------------------------------+
+|i2 : socleDegrees(coker vars R)                 |
+|                                                |
+|o2 = {0}                                        |
+|                                                |
+|o2 : List                                       |
++------------------------------------------------+
+|i3 : socleDegrees(R^1/(ideal vars R)^2)         |
+|                                                |
+|o3 = {1, 1, 1}                                  |
+|                                                |
+|o3 : List                                       |
++------------------------------------------------+
+|i4 : socleDegrees(R^1/(ideal(x,y,z)*ideal(x,y)))|
+|                                                |
+|o4 = {1, 1}                                     |
+|                                                |
+|o4 : List                                       |
++------------------------------------------------+
+
+Ways to use socleDegrees:
+=========================
+
+  * "socleDegrees(Module)"
+
+For the programmer
+==================
+
+The object *note socleDegrees: socleDegrees, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:326:0.
+
+File: MCMApproximations.info, Node: syzygyModule, Next: Total, Prev: socleDegrees, Up: Top
+
+syzygyModule -- Produces the k-th syzygy module (k \in ZZ)
+**********************************************************
+
+  * Usage: 
+        N = syzygyModule(k,M)
+  * Inputs:
+      * k, an *note integer: (Macaulay2Doc)ZZ,, which syzygy
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CoDepth => ..., default value -1
+  * Outputs:
+      * N, a *note module: (Macaulay2Doc)Module,, 
+
+Description
+===========
+
+If k==0 then the N=M. If k>0 then the syzygy module is computed from the
+resolution. If k<0 then the program returns the dual of the (n-k)-th syzygy of
+the dual of the k-th syzygy, where n is one more than Codepth if that option is
+specified, and else n is the number of variables of ring M. Of course the
+resulting N is 0 if ring M is regular, and otherwise correct only if ring M is
+Gorenstein. In the Gorenstein case, syzygyModule(-k, syzygyModule(k, M)) -is
+the non-free part of the source of the MCM approximation of M.
+
++-------------------------------------------------------------+
+|i1 : R = setupRings(4,3);                                    |
++-------------------------------------------------------------+
+|i2 : M = coker vars R_2;                                     |
++-------------------------------------------------------------+
+|i3 : betti freeResolution(M, LengthLimit => numgens ring M)  |
+|                                                             |
+|            0 1 2  3  4                                      |
+|o3 = total: 1 4 8 12 16                                      |
+|         0: 1 4 6  4  1                                      |
+|         1: . . 2  8 12                                      |
+|         2: . . .  .  3                                      |
+|                                                             |
+|o3 : BettiTally                                              |
++-------------------------------------------------------------+
+|i4 : betti syzygyModule(2,M)                                 |
+|                                                             |
+|            0  1                                             |
+|o4 = total: 8 12                                             |
+|         2: 6  4                                             |
+|         3: 2  8                                             |
+|                                                             |
+|o4 : BettiTally                                              |
++-------------------------------------------------------------+
+|i5 : betti (N2 = syzygyModule(-2,M))                         |
+|                                                             |
+|             0 1                                             |
+|o5 = total: 12 8                                             |
+|        -6:  8 2                                             |
+|        -5:  4 6                                             |
+|                                                             |
+|o5 : BettiTally                                              |
++-------------------------------------------------------------+
+|i6 : betti freeResolution(N2, LengthLimit => numgens ring N2)|
+|                                                             |
+|             0 1 2 3 4                                       |
+|o6 = total: 12 8 5 5 8                                       |
+|        -6:  8 2 . . .                                       |
+|        -5:  4 6 4 1 .                                       |
+|        -4:  . . . . .                                       |
+|        -3:  . . . . .                                       |
+|        -2:  . . 1 4 6                                       |
+|        -1:  . . . . 2                                       |
+|                                                             |
+|o6 : BettiTally                                              |
++-------------------------------------------------------------+
+|i7 : betti syzygyModule(-2,M,CoDepth=>2)                     |
+|                                                             |
+|                                                             |
+|o7 = total:                                                  |
+|                                                             |
+|o7 : BettiTally                                              |
++-------------------------------------------------------------+
+
+Caveat
+======
+
+ring M must be Gorenstein, and the program does not check
+
+See also
+========
+
+  * *note setupRings: setupRings, -- Sets up a complete intersection for
+    experiments
+
+Ways to use syzygyModule:
+=========================
+
+  * "syzygyModule(ZZ,Module)"
+
+For the programmer
+==================
+
+The object *note syzygyModule: syzygyModule, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:379:0.
+
+File: MCMApproximations.info, Node: Total, Prev: syzygyModule, Up: Top
+
+Total -- option for approximation
+*********************************
+
+  * Usage: 
+        approximation(M, Total =>t)
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+      * t, a *note Boolean value: (Macaulay2Doc)Boolean,, 
+
+Description
+===========
+
+If t != true then return only the map from the non-free part of the MCM
+approximation Otherwise, return the pair of maps that defines the MCM
+approximation. Default is t ==true.
+
+See also
+========
+
+  * *note approximation: approximation, -- returns pair of components of the
+    map from the MCM approximation
+  * *note auslanderInvariant: auslanderInvariant, -- measures failure of
+    surjectivity of the essential MCM approximation
+  * *note CoDepth: CoDepth, -- Option for syzygyModule(-k,M,CoDepth => m)
+
+Functions with optional argument named Total:
+=============================================
+
+  * "approximation(...,Total=>...)" -- see *note approximation: approximation,
+    -- returns pair of components of the map from the MCM approximation
+  * "coApproximation(...,Total=>...)" -- see *note coApproximation:
+    coApproximation, -- Maximal Cohen-Macaulay co-approximation of M
+
+For the programmer
+==================
+
+The object *note Total: Total, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MCMApproximations.m2:480:0.
+
+Tag Table:
+Node: Top269
+Node: approximation13827
+Node: approximationSequence18242
+Node: auslanderInvariant21396
+Node: Characteristic29212
+Node: coApproximation30405
+Node: coApproximationSequence36383
+Node: CoDepth38813
+Node: profondeur40290
+Node: Randomize41339
+Node: setupModules42566
+Node: setupRings45577
+Node: socleDegrees49640
+Node: syzygyModule51778
+Node: Total56865
+
+End Tag Table

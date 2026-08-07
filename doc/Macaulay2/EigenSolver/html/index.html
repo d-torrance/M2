@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>EigenSolver -- polynomial system solver via eigen-computations</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="polynomial system solver via eigen-computations" href="index.html">EigenSolver</a> :: <a title="polynomial system solver via eigen-computations" href="index.html">EigenSolver</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_zero__Dim__Solve.html">next</a> | previous | <a href="_zero__Dim__Solve.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>EigenSolver -- polynomial system solver via eigen-computations</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>This package implements a solver for zero-dimensional polynomial systems based on eigenvalue/eigenvector computations. The theoretical basis for this is Stickelberger's Theorem (cf. [1, Theorem 2.6], also [2]), which states that if I is a zero-dimensional ideal in a polynomial ring $R$ over an algebraically closed field $k$, then the points of V(I) can be obtained as eigenvalues of multiplication matrices corresponding to variables, on the finite-dimensional $k$-vector space $R/I$.</p>
+          <p>Since the main solving is done via linear algebra, this solver can be significantly quicker than other solvers performing nonlinear computations. However, a Grobner basis of the ideal I is still needed, e.g. in order to obtain the sizes of the multiplication matrices.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : needsPackage &quot;ExampleSystems&quot;
+
+o1 = ExampleSystems
+
+o1 : Package</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I = ideal cyclic(6, QQ)
+
+o2 = ideal (a + b + c + d + e + f, a*b + b*c + c*d + d*e + a*f + e*f, a*b*c +
+     ------------------------------------------------------------------------
+     b*c*d + c*d*e + a*b*f + a*e*f + d*e*f, a*b*c*d + b*c*d*e + a*b*c*f +
+     ------------------------------------------------------------------------
+     a*b*e*f + a*d*e*f + c*d*e*f, a*b*c*d*e + a*b*c*d*f + a*b*c*e*f +
+     ------------------------------------------------------------------------
+     a*b*d*e*f + a*c*d*e*f + b*c*d*e*f, a*b*c*d*e*f - 1)
+
+o2 : Ideal of QQ[a..f]</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : elapsedTime sols = zeroDimSolve I;
+ -- 2.42511s elapsed</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : #sols -- 156 solutions
+
+o4 = 156</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The authors would like to acknowledge the June 2020 Macaulay2 workshop held virtually at Warwick, where this package was first developed.</p>
+        </div>
+        <div>
+          <p><b>References</b>:</p>
+        </div>
+        <ul>
+          <li>[1] Sturmfels, Bernd. Solving systems of polynomial equations. No. 97. American Mathematical Soc., 2002</li>
+          <li>[2] Cox, David A. Stickelberger and the Eigenvalue Theorem. https://arxiv.org/abs/2007.12573</li>
+        </ul>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Authors</h2>
+            <ul>
+              <li>Laurent Busé<span> &lt;<a href="mailto:Laurent.Buse%40inria.fr">Laurent.Buse@inria.fr</a>></span></li>
+              <li>Justin Chen<span> &lt;<a href="mailto:justin.chen%40math.gatech.edu">justin.chen@math.gatech.edu</a>></span></li>
+              <li>Kisun Lee<span> &lt;<a href="mailto:kil004%40ucsd.edu">kil004@ucsd.edu</a>></span></li>
+              <li>Anton Leykin<span> &lt;<a href="mailto:anton.leykin%40gmail.com">anton.leykin@gmail.com</a>></span></li>
+              <li>Tomas Pajdla<span> &lt;<a href="mailto:pajdla%40cvut.cz">pajdla@cvut.cz</a>></span></li>
+              <li>Erika Pirnes<span> &lt;<a href="mailto:pirnes%40wisc.edu">pirnes@wisc.edu</a>></span></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>0.1</b> of EigenSolver, released <b>June 2020</b>.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{EigenSolverSource,
+  title = {{EigenSolver: polynomial system solver via eigen-computations. Version~0.1}},
+  author = {Laurent Bus{\'e} and Justin Chen and Kisun Lee and Anton Leykin and Tomas Pajdla and Erika Pirnes},
+  howpublished = {A \emph{Macaulay2} package available at
+    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Functions and commands                  <ul>
+                    <li><span><a title="zero-dimensional polynomial system solver" href="_zero__Dim__Solve.html">zeroDimSolve</a> -- zero-dimensional polynomial system solver</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><kbd>zeroDimSolve(Ideal)</kbd> -- see <span><a title="zero-dimensional polynomial system solver" href="_zero__Dim__Solve.html">zeroDimSolve</a> -- zero-dimensional polynomial system solver</span></span></li>
+                  </ul>
+                </li>
+                <li>Symbols                  <ul>
+                    <li><span><kbd>Basis</kbd> -- see <span><a title="zero-dimensional polynomial system solver" href="_zero__Dim__Solve.html">zeroDimSolve</a> -- zero-dimensional polynomial system solver</span></span></li>
+                    <li><span><kbd>Multiplier</kbd> -- see <span><a title="zero-dimensional polynomial system solver" href="_zero__Dim__Solve.html">zeroDimSolve</a> -- zero-dimensional polynomial system solver</span></span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="polynomial system solver via eigen-computations" href="index.html">EigenSolver</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">EigenSolver.m2</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">EigenSolver.m2:236:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

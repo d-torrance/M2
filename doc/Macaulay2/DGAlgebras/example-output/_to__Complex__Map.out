@@ -1,0 +1,144 @@
+-- -*- M2-comint -*- hash: 11503681480846801817
+
+i1 : R = ZZ/101[a,b,c]/ideal{a^3+b^3+c^3,a*b*c}
+
+o1 = R
+
+o1 : QuotientRing
+
+i2 : K1 = koszulComplexDGA(ideal vars R,Variable=>"Y")
+
+o2 = {Ring => R                          }
+      Underlying algebra => R[Y   ..Y   ]
+                               1,1   1,3
+      Differential => {a, b, c}
+
+o2 : DGAlgebra
+
+i3 : K2 = koszulComplexDGA(ideal {b,c},Variable=>"T")
+
+o3 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,2
+      Differential => {b, c}
+
+o3 : DGAlgebra
+
+i4 : g = dgAlgebraMap(K1,K2,matrix{{Y_(1,2),Y_(1,3)}})
+
+o4 = map (R[Y   ..Y   ], R[T   ..T   ], {Y   , Y   , a, b, c})
+             1,1   1,3      1,1   1,2     1,2   1,3
+
+o4 : DGAlgebraMap
+
+i5 : g' = toComplexMap g
+
+          1             1
+o5 = 0 : R  <--------- R  : 0
+               | 1 |
+
+          3                   2
+     1 : R  <--------------- R  : 1
+               {1} | 0 0 |
+               {1} | 1 0 |
+               {1} | 0 1 |
+
+          3                 1
+     2 : R  <------------- R  : 2
+               {2} | 0 |
+               {2} | 0 |
+               {2} | 1 |
+
+o5 : ComplexMap
+
+i6 : R = ZZ/101[a,b,c]/ideal{a^3,b^3,c^3}
+
+o6 = R
+
+o6 : QuotientRing
+
+i7 : S = R/ideal{a^2*b^2*c^2}
+
+o7 = S
+
+o7 : QuotientRing
+
+i8 : f = map(S,R)
+
+o8 = map (S, R, {a, b, c})
+
+o8 : RingMap S <-- R
+
+i9 : A = acyclicClosure(R,EndDegree=>3)
+
+o9 = {Ring => R                                        }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   2,3
+                                 2       2       2
+      Differential => {a, b, c, a T   , b T   , c T   }
+                                   1,1     1,2     1,3
+
+o9 : DGAlgebra
+
+i10 : B = acyclicClosure(S,EndDegree=>3)
+
+o10 = {Ring => S                                                                                                                                                                    }
+       Underlying algebra => S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ]
+                                1,1   1,3   2,1   2,4   3,1   3,3   4,1   4,6
+                                  2       2       2         2 2       2 2        2 2        2 2       2 2            2 2           2 2            2           2           2
+       Differential => {a, b, c, a T   , b T   , c T   , a*b c T   , b c T   , -a b T   , -a c T   , b c T   T   , -a c T   T   , b c T   T   , -a T   T   , c T   T   , b T   T   }
+                                    1,1     1,2     1,3         1,1       2,1        2,3        2,2       1,3 2,1        1,3 2,2       1,2 2,1      1,1 2,4     1,3 2,4     1,2 2,4
+
+o10 : DGAlgebra
+
+i11 : phi = liftToDGMap(B,A,f)
+
+o11 = map (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ], R[T   ..T   ], {T   , T   , T   , T   , T   , T   , a, b, c})
+              1,1   1,3   2,1   2,4   3,1   3,3   4,1   4,6      1,1   2,3     1,1   1,2   1,3   2,1   2,2   2,3
+
+o11 : DGAlgebraMap
+
+i12 : toComplexMap(phi,EndDegree=>3)
+
+                                          1
+o12 = 0 : cokernel | a2b2c2 | <--------- R  : 0
+                                 | 1 |
+
+                                                                    3
+      1 : cokernel {1} | a2b2c2 0      0      | <----------------- R  : 1
+                   {1} | 0      a2b2c2 0      |    {1} | 1 0 0 |
+                   {1} | 0      0      a2b2c2 |    {1} | 0 1 0 |
+                                                   {1} | 0 0 1 |
+
+                                                                                                      6
+      2 : cokernel {2} | a2b2c2 0      0      0      0      0      0      | <----------------------- R  : 2
+                   {2} | 0      a2b2c2 0      0      0      0      0      |    {2} | 1 0 0 0 0 0 |
+                   {2} | 0      0      a2b2c2 0      0      0      0      |    {2} | 0 1 0 0 0 0 |
+                   {3} | 0      0      0      a2b2c2 0      0      0      |    {2} | 0 0 1 0 0 0 |
+                   {3} | 0      0      0      0      a2b2c2 0      0      |    {3} | 0 0 0 1 0 0 |
+                   {3} | 0      0      0      0      0      a2b2c2 0      |    {3} | 0 0 0 0 1 0 |
+                   {6} | 0      0      0      0      0      0      a2b2c2 |    {3} | 0 0 0 0 0 1 |
+                                                                               {6} | 0 0 0 0 0 0 |
+
+                                                                                                                                                                             10
+      3 : cokernel {3} | a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      | <------------------------------- R   : 3
+                   {4} | 0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      0      0      |    {3} | 1 0 0 0 0 0 0 0 0 0 |
+                   {4} | 0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      0      |    {4} | 0 1 0 0 0 0 0 0 0 0 |
+                   {4} | 0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      |    {4} | 0 0 1 0 0 0 0 0 0 0 |
+                   {4} | 0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      |    {4} | 0 0 0 1 0 0 0 0 0 0 |
+                   {4} | 0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      |    {4} | 0 0 0 0 1 0 0 0 0 0 |
+                   {4} | 0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      |    {4} | 0 0 0 0 0 1 0 0 0 0 |
+                   {4} | 0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      |    {4} | 0 0 0 0 0 0 1 0 0 0 |
+                   {4} | 0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      |    {4} | 0 0 0 0 0 0 0 1 0 0 |
+                   {4} | 0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      |    {4} | 0 0 0 0 0 0 0 0 1 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      |    {4} | 0 0 0 0 0 0 0 0 0 1 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                                                                                                                                              {7} | 0 0 0 0 0 0 0 0 0 0 |
+
+o12 : ComplexMap
+
+i13 : 

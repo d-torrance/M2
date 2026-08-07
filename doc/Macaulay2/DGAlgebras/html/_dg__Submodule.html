@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>dgSubmodule -- Construct a d-closed submodule of a DG module</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Data type for DG algebras" href="index.html">DGAlgebras</a> » <a title="The DGModule / DGSubmodule / DGQuotientModule hierarchy and its constructors" href="___Building_sp__D__G_spmodules_cm_spsubmodules_cm_spand_spquotients.html">Building DG modules, submodules, and quotients</a> » <a title="Construct a d-closed submodule of a DG module" href="_dg__Submodule.html">dgSubmodule</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_dg__Quotient__Module.html">next</a> | <a href="_free__D__G__Module.html">previous</a> | <a href="_dg__Quotient__Module.html">forward</a> | <a href="_free__D__G__Module.html">backward</a> | <a href="___Building_sp__D__G_spmodules_cm_spsubmodules_cm_spand_spquotients.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>dgSubmodule -- Construct a d-closed submodule of a DG module</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">S = dgSubmodule(M, incMat)</code></dd>
+            <dd><code class="language-macaulay2">S = dgSubmodule(M, gs)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">M</span>, <span>an instance of the type <a title="The class of DG modules over a DG algebra" href="___D__G__Module.html">DGModule</a></span>, </span></li>
+            <li><span><span class="tt">incMat</span>, <span>a <a title="the class of all matrices" href="../../Macaulay2Doc/html/___Matrix.html">matrix</a></span>, with target <span class="tt">M.natural</span>, whose columns are proposed generators of the submodule.</span></li>
+            <li><span><span class="tt">gs</span>, <span>a <a title="the class of all lists -- {...}" href="../../Macaulay2Doc/html/___List.html">list</a></span>, of elements of <span class="tt">M.natural</span> (as Vectors, 1-column Matrices, or anything coercible to <span class="tt">M.natural</span>).  The empty list gives the zero submodule.</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span class="tt">S</span>, <span>an instance of the type <a title="The class of d-closed submodules of a DG module" href="___D__G__Submodule.html">DGSubmodule</a></span>, The smallest d-closed submodule of M containing the columns of <span class="tt">incMat</span> (respectively the elements of <span class="tt">gs</span>).</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>The constructor iteratively adjoins the M-differentials of the current generators until the column span is closed, then builds the lifted differential on the resulting free module.  If d-closure fails to stabilize within 200 iterations, an error is raised — in practice this only happens if the ambient module has unbounded homological degree and the seed is chosen poorly.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ/101[x]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : A = koszulComplexDGA R
+
+o2 = {Ring => R                    }
+      Underlying algebra => R[T   ]
+                               1,1
+      Differential => {x}
+
+o2 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : M = freeDGModule(A, {0})
+
+o3 = {Base ring => R               }
+      DG algebra => R[T   ]
+                       1,1
+                                 1
+      Natural module => (R[T   ])
+                            1,1
+      Generator degrees => {{0, 0}}
+      Differentials on gens => {0}
+
+o3 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : S = dgSubmodule(M, id_(M.natural))
+
+o4 = DGSubmodule of ambient DGModule
+     Degrees  => {{0, 0}}
+                          1
+     natural  => (R[T   ])
+                     1,1
+     inclusion => | 1 |
+
+o4 : DGSubmodule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : instance(S, DGSubmodule)
+
+o5 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : ambient S === M
+
+o6 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : isWellDefined S
+
+o7 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The list form coerces each entry to an element of <span class="tt">M.natural</span>; passing the empty list produces the zero submodule.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : Z = dgSubmodule(M, {})
+
+o8 = DGSubmodule of ambient DGModule
+     Degrees  => {}
+     natural  => 0
+     inclusion => 0
+
+o8 : DGSubmodule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : numcols (inclusion Z).natural == 0
+
+o9 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : isZero Z
+
+o10 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>d-closure is performed automatically.  Seeding with a non-closed generator pulls in its M-differential:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : M2 = freeDGModule(A, {0, 1})
+
+o11 = {Base ring => R                       }
+       DG algebra => R[T   ]
+                        1,1
+                                  2
+       Natural module => (R[T   ])
+                             1,1
+       Generator degrees => {{0, 0}, {1, 0}}
+       Differentials on gens => {0, 0}
+
+o11 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : natGens = apply(rank M2.natural, i -> (M2.natural)_i)
+
+o12 = {| 1 |, | 0 |}
+       | 0 |  | 1 |
+
+o12 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : setDiff(M2, {0, x * natGens#0})
+
+o13 = {Base ring => R                       }
+       DG algebra => R[T   ]
+                        1,1
+                                  2
+       Natural module => (R[T   ])
+                             1,1
+       Generator degrees => {{0, 0}, {1, 0}}
+       Differentials on gens => {0, | x |}
+                                    | 0 |
+
+o13 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : Anat = A.natural
+
+o14 = Anat
+
+o14 : PolynomialRing, 1 skew commutative variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : seed = (id_(M2.natural))_{1}
+
+o15 = {0, 0} | 0 |
+      {1, 0} | 1 |
+
+                 2         1
+o15 : Matrix Anat  &lt;-- Anat</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : S2 = dgSubmodule(M2, seed)
+
+o16 = DGSubmodule of ambient DGModule
+      Degrees  => {{1, 0}, {0, 0}}
+                      2
+      natural  => Anat
+      inclusion => {0, 0} | 0 x |
+                   {1, 0} | 1 0 |
+
+o16 : DGSubmodule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : xe0 = (id_(M2.natural))_{0} * matrix {{x_Anat}}
+
+o17 = {0, 0} | x |
+      {1, 0} | 0 |
+
+                 2         1
+o17 : Matrix Anat  &lt;-- Anat</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : incMat = (inclusion S2).natural
+
+o18 = {0, 0} | 0 x |
+      {1, 0} | 1 0 |
+
+                 2         2
+o18 : Matrix Anat  &lt;-- Anat</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : (xe0 - incMat * (xe0 // incMat)) == 0
+
+o19 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In a richer setting, consider the minimal semifree resolution of the residue field over the complete intersection <span class="tt">R = QQ[x, y]/(x^2, y^2)</span>.  Seeding the submodule with the hom-degree-2 natural generators, d-closure automatically pulls in the hom-degree-4 generators that sit below them in the Koszul-style differential:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : S = QQ[x, y] / ideal(x^2, y^2)
+
+o20 = S
+
+o20 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : B = koszulComplexDGA S
+
+o21 = {Ring => S                          }
+       Underlying algebra => S[T   ..T   ]
+                                1,1   1,2
+       Differential => {x, y}
+
+o21 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : Mdg = minimalSemifreeResolution(B, S^1 / ideal(x, y), EndDegree => 3)
+
+o22 = {Base ring => S                                                                                    }
+       DG algebra => S[T   ..T   ]
+                        1,1   1,2
+                                        6
+       Natural module => (S[T   ..T   ])
+                             1,1   1,2
+       Generator degrees => {{0, 0}, {2, 2}, {2, 2}, {4, 4}, {4, 4}, {4, 4}}
+       Differentials on gens => {0, | xT_(1,1) |, | yT_(1,2) |, |     0    |, |     0    |, |     0    |}
+                                    |     0    |  |     0    |  | xT_(1,1) |  | yT_(1,2) |  |     0    |
+                                    |     0    |  |     0    |  |     0    |  | xT_(1,1) |  | yT_(1,2) |
+                                    |     0    |  |     0    |  |     0    |  |     0    |  |     0    |
+                                    |     0    |  |     0    |  |     0    |  |     0    |  |     0    |
+                                    |     0    |  |     0    |  |     0    |  |     0    |  |     0    |
+
+o22 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : homDegs = apply(Mdg.Degrees, d -> d#0)
+
+o23 = {0, 2, 2, 4, 4, 4}
+
+o23 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : pos2 = positions(Mdg.Degrees, d -> d#0 == 2)
+
+o24 = {1, 2}
+
+o24 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : seedHi = (id_(Mdg.natural))_pos2
+
+o25 = {0, 0} | 0 0 |
+      {2, 2} | 1 0 |
+      {2, 2} | 0 1 |
+      {4, 4} | 0 0 |
+      {4, 4} | 0 0 |
+      {4, 4} | 0 0 |
+
+                            6                    2
+o25 : Matrix (S[T   ..T   ])  &lt;-- (S[T   ..T   ])
+                 1,1   1,2            1,1   1,2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : Shi = dgSubmodule(Mdg, seedHi)
+
+o26 = DGSubmodule of ambient DGModule
+      Degrees  => {{2, 2}, {2, 2}, {1, 2}, {1, 2}}
+                                 4
+      natural  => (S[T   ..T   ])
+                      1,1   1,2
+      inclusion => {0, 0} | 0 0 xT_(1,1) yT_(1,2) |
+                   {2, 2} | 1 0 0        0        |
+                   {2, 2} | 0 1 0        0        |
+                   {4, 4} | 0 0 0        0        |
+                   {4, 4} | 0 0 0        0        |
+                   {4, 4} | 0 0 0        0        |
+
+o26 : DGSubmodule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : apply(Shi.Degrees, d -> d#0)
+
+o27 = {2, 2, 1, 1}
+
+o27 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : isWellDefined Shi
+
+o28 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>The target of the inclusion matrix must be <span class="tt">M.natural</span> on the nose (object identity, not just isomorphism).  This catches common shape mistakes up front — for example, building <span class="tt">matrix {{a, b}}</span> for a rank-n ambient produces a 1×2 matrix whose target is rank 1, not rank n.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="The DGModule / DGSubmodule / DGQuotientModule hierarchy and its constructors" href="___Building_sp__D__G_spmodules_cm_spsubmodules_cm_spand_spquotients.html">Building DG modules, submodules, and quotients</a> -- The DGModule / DGSubmodule / DGQuotientModule hierarchy and its constructors</span></li>
+          <li><span><a title="Sum, intersection, equality, and containment of DG submodules" href="___Operations_spon_sp__D__G_sp__Submodules.html">Operations on DG Submodules</a> -- Sum, intersection, equality, and containment of DG submodules</span></li>
+          <li><span><a title="The class of d-closed submodules of a DG module" href="___D__G__Submodule.html">DGSubmodule</a> -- The class of d-closed submodules of a DG module</span></li>
+          <li><span><a title="Accessors for the ambient object, inclusion, projection, and killed submodule" href="_ambient.html">inclusion</a> -- Accessors for the ambient object, inclusion, projection, and killed submodule</span></li>
+          <li><span><a title="Check that a DG module has correct structure and that its differential squares to zero" href="_is__Well__Defined_lp__D__G__Module_rp.html">isWellDefined(DGModule)</a> -- Check that a DG module has correct structure and that its differential squares to zero</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">dgSubmodule</span>:</h2>
+          <ul>
+            <li><kbd>dgSubmodule(DGModule,List)</kbd></li>
+            <li><kbd>dgSubmodule(DGModule,Matrix)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="Construct a d-closed submodule of a DG module" href="_dg__Submodule.html">dgSubmodule</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function.html">method function</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">DGAlgebras/doc.m2:3197:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

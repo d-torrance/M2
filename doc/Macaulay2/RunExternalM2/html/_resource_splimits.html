@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>resource limits -- how to use resource limits with Macaulay2</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="run Macaulay2 functions outside the current Macaulay2 process" href="index.html">RunExternalM2</a> :: <a title="how to use resource limits with Macaulay2" href="_resource_splimits.html">resource limits</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_run__External__M2.html">next</a> | <a href="___Pre__Run__Script.html">previous</a> | <a href="_run__External__M2.html">forward</a> | <a href="___Pre__Run__Script.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>resource limits -- how to use resource limits with Macaulay2</h1>
+      <div>
+        <div>
+          <p>Many operating systems support limiting the amount of resources (for instance, memory or CPU time) that a given instance of a running program (``process'') may use. Processes that use more than the allotted resource may have requests denied (as in the case of memory or disk usage), or may be terminated. In some cases it is useful to apply these limits to Macaulay2.</p>
+          <p>In Unix-like operating systems (including Linux and OS X) these limits are known as ``ulimits'' or ``rlimits''. Users typically set these limits using a built-in shell command called <span class="tt">ulimit</span> or similar; for help, consult the documentation for your shell (e.g., run <span class="tt">man bash</span>). In particular, the units of any limits can vary from system to system. There are two types of limits, <i>hard</i> and <i>soft</i>: soft levels are always less than or equal to the hard limits, and hard levels can only be adjusted down. When a process creates a child process, the <b>child process receives the ulimits of the parent process</b>.</p>
+          <p>As an example, we give commands for a Linux system using a Bash shell. To <b>view</b> the current limits, run:</p>
+        </div>
+        <pre>ulimit -a</pre>
+        <div>
+          <p>To <b>set</b> soft ulimits on your shell of 123456 kilobytes of memory and 5 seconds of CPU time, run:</p>
+        </div>
+        <pre>ulimit -S -m 123456 -S -t 5</pre>
+        <div>
+          <p>Because ulimits are inherited by child processes, any commands run later in your shell session (say, Macaulay2) will inherit these ulimits. Perhaps the <b>best way to set</b> the limits on a specific process is to run something like</p>
+        </div>
+        <pre>(ulimit -S -m 123456 -S -t 5; M2)</pre>
+        <div>
+          <p>which will run M2 with these limits while leaving the shell's ulimits unchanged.</p>
+          <p><b>From within Macaulay2</b>, you can <b>view</b> the ulimits currently available to the Macaulay2 process by using the <a title="run an external command" href="../../Macaulay2Doc/html/_run.html">run</a> command:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : run(&quot;ulimit -a&quot;)
+time(seconds)        700
+file(blocks)         unlimited
+data(kbytes)         unlimited
+stack(kbytes)        8192
+coredump(blocks)     unlimited
+memory(kbytes)       850000
+locked memory(kbytes) 8192
+process              63838
+nofiles              512
+vmemory(kbytes)      unlimited
+locks                unlimited
+rtprio               0
+
+o1 = 0</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>This starts a new shell and executes the command given, which in this case provides the list of ulimits of the shell. Since ulimits are inherited, this should be the same as the ulimits of Macaulay2 itself.</p>
+          <p><b>From within Macaulay2</b>, it is not possible to set ulimits on the current Macaulay2 process because Macaulay2 does not provide access to the <span class="tt">setrlimit</span> system call (other than the <a href="../../Macaulay2Doc/html/_limit__Files.html">limitFiles</a> and <a href="../../Macaulay2Doc/html/_limit__Processes.html">limitProcesses</a> commands). However, it is possible to <b>set</b> ulimits on child Macaulay2 processes that are started by <a title="run a Macaulay2 function in a new Macaulay2 process" href="_run__External__M2.html">runExternalM2</a>, by using the <a title="a way to impose resource limits" href="___Pre__Run__Script.html">PreRunScript</a> option of <a title="run a Macaulay2 function in a new Macaulay2 process" href="_run__External__M2.html">runExternalM2</a>.</p>
+          <p></p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="set an alarm" href="../../Macaulay2Doc/html/_alarm.html">alarm</a> -- set an alarm</span></li>
+          <li><span><a title="catch an error" href="../../Macaulay2Doc/html/_try.html">try</a> -- catch an error</span></li>
+          <li><span><a title="a way to impose resource limits" href="___Pre__Run__Script.html">runExternalM2(...,PreRunScript=>...)</a> -- a way to impose resource limits</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">RunExternalM2.m2:894:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

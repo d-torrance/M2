@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Computing module differentials and visualizing DG modules -- Differential matrices, element-wise differentials, and visualization helpers for DG modules</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Data type for DG algebras" href="index.html">DGAlgebras</a> » <a title="Differential matrices, element-wise differentials, and visualization helpers for DG modules" href="___Computing_spmodule_spdifferentials_spand_spvisualizing_sp__D__G_spmodules.html">Computing module differentials and visualizing DG modules</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Building_sp__D__G_spalgebras_spfrom_spexisting_sp__D__G_spalgebras.html">next</a> | <a href="___Semifree_spresolutions_spof_sp__D__G_spmodules.html">previous</a> | <a href="_module__Differential.html">forward</a> | <a href="_is__Minimal__Semifree__Resolution.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Computing module differentials and visualizing DG modules -- Differential matrices, element-wise differentials, and visualization helpers for DG modules</h1>
+      <div>
+        <div>
+          <p>Once a <a title="The class of DG modules over a DG algebra" href="___D__G__Module.html">DGModule</a> <span class="tt">M</span> over a <a title="The class of all DGAlgebras" href="___D__G__Algebra.html">DGAlgebra</a> <span class="tt">A</span> is built, the package supports two levels of access to the differential.</p>
+        </div>
+        <div>
+          <p>The <em>matrix-level</em> view is <a title="The hom-degree-n differential of a DG module as a matrix over the base ring" href="_module__Differential.html">moduleDifferential</a>: the call <span class="tt">moduleDifferential(n, M)</span> returns the hom-degree-<span class="tt">n</span> piece of <span class="tt">d_M</span> as a homogeneous matrix over <span class="tt">A.ring</span> whose source and target are the free <span class="tt">A.ring</span>-modules on the respective monomial bases of <span class="tt">M_n</span> and <span class="tt">M_{n-1}</span>.  The block-structured variant <a title="The hom-degree-n differential of a DG module as a labeled block matrix" href="_module__Block__Diff.html">moduleBlockDiff</a> partitions this matrix into one summand per <span class="tt">(i, v)</span> label, where <span class="tt">i</span> indexes a generator of <span class="tt">M.natural</span> and <span class="tt">v</span> is a chunk-degree vector on the variables of <span class="tt">A.natural</span>.  The pretty-printer <a title="Pretty-print the labeled block matrix of a DG module differential" href="_display__Module__Block__Diff.html">displayModuleBlockDiff</a> renders this labeled block matrix with one label per row and column.</p>
+        </div>
+        <div>
+          <p>The <em>element-level</em> view is <span class="tt">diff(M, v)</span>: apply the differential directly to a homogeneous element <span class="tt">v</span> of <span class="tt">M.natural</span> via the Leibniz rule, returning a Vector in <span class="tt">M.natural</span> of hom-degree one less.  This is the entry point used internally by chain-map checks and by <a title="The homology class of a cycle in a DG module" href="_homology__Class_lp__D__G__Module_cm__Vector_rp.html">homologyClass(DGModule,Vector)</a>.</p>
+        </div>
+        <div>
+          <p>Two lightweight inspection helpers summarize the generator layout: <a title="Display the generator list of a DG module with hom-degrees and differentials" href="_generator__Table.html">generatorTable</a> prints a one-row-per-generator table with hom-degree, external degree, and differential; and <a title="Tabulate hom-degree-wise generator counts and free-rank counts for a DG module" href="_dg__Module__Summary.html">dgModuleSummary</a> tabulates, for each hom-degree in a requested range, the number of freshly adjoined generators at that degree and the rank of <span class="tt">F_n</span> as an <span class="tt">A.ring</span>-module.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[x, y] / ideal(x^2, y^2)
+
+o1 = R
+
+o1 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : k = R^1 / ideal(x, y)
+
+o2 = cokernel | x y |
+
+                            1
+o2 : R-module, quotient of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : A = koszulComplexDGA R
+
+o3 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,2
+      Differential => {x, y}
+
+o3 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : Mdg = minimalSemifreeResolution(A, k, EndDegree => 2)
+
+o4 = {Base ring => R                                          }
+      DG algebra => R[T   ..T   ]
+                       1,1   1,2
+                                       3
+      Natural module => (R[T   ..T   ])
+                            1,1   1,2
+      Generator degrees => {{0, 0}, {2, 2}, {2, 2}}
+      Differentials on gens => {0, | xT_(1,1) |, | yT_(1,2) |}
+                                   |     0    |  |     0    |
+                                   |     0    |  |     0    |
+
+o4 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : d2 = moduleDifferential(2, Mdg)
+
+o5 = {1} | -y x 0 |
+     {1} | x  0 y |
+
+             2      3
+o5 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : d1 = moduleDifferential(1, Mdg)
+
+o6 = | x y |
+
+             1      2
+o6 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : d1 * d2 == 0
+
+o7 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Over a complete intersection, the semifree resolution of the residue field has well-defined differentials matching <span class="tt">d^2 = 0</span> in every degree.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Building semifree DG module resolutions via koszulComplexDGM, adjoinGenerators, killCycles, and semifreeResolution" href="___Semifree_spresolutions_spof_sp__D__G_spmodules.html">Semifree resolutions of DG modules</a> -- Building semifree DG module resolutions via koszulComplexDGM, adjoinGenerators, killCycles, and semifreeResolution</span></li>
+          <li><span><a title="The degree-n homology of a DG module as a module over the base ring" href="___H__H_us__Z__Z_sp__D__G__Module.html">HH_ZZ DGModule</a> -- The degree-n homology of a DG module as a module over the base ring</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="The hom-degree-n differential of a DG module as a matrix over the base ring" href="_module__Differential.html">moduleDifferential</a> -- The hom-degree-n differential of a DG module as a matrix over the base ring</span></li>
+          <li><span><a title="Apply the DG module differential to an element" href="_diff_lp__D__G__Module_cm__Vector_rp.html">diff(DGModule,Vector)</a> -- Apply the DG module differential to an element</span></li>
+          <li><span><a title="Apply the induced differential on a DG quotient module to an element" href="_diff_lp__D__G__Quotient__Module_cm__Vector_rp.html">diff(DGQuotientModule,Vector)</a> -- Apply the induced differential on a DG quotient module to an element</span></li>
+          <li><span><a title="Display the generator list of a DG module with hom-degrees and differentials" href="_generator__Table.html">generatorTable</a> -- Display the generator list of a DG module with hom-degrees and differentials</span></li>
+          <li><span><a title="Tabulate hom-degree-wise generator counts and free-rank counts for a DG module" href="_dg__Module__Summary.html">dgModuleSummary</a> -- Tabulate hom-degree-wise generator counts and free-rank counts for a DG module</span></li>
+          <li><span><a title="The hom-degree-n differential of a DG module as a labeled block matrix" href="_module__Block__Diff.html">moduleBlockDiff</a> -- The hom-degree-n differential of a DG module as a labeled block matrix</span></li>
+          <li><span><a title="Pretty-print the labeled block matrix of a DG module differential" href="_display__Module__Block__Diff.html">displayModuleBlockDiff</a> -- Pretty-print the labeled block matrix of a DG module differential</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">DGAlgebras/doc.m2:6050:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

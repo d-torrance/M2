@@ -1,0 +1,659 @@
+ -*- coding: utf-8 -*- This is JSONRPC.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* JSONRPC: (JSONRPC).           JSON-RPC server
+END-INFO-DIR-ENTRY
+
+
+File: JSONRPC.info, Node: Top, Up: (dir)
+
+JSONRPC -- JSONRPC 2.0 server
+*****************************
+
+Description
+===========
+
+This package provides a lightweight and flexible implementation of a JSON-RPC
+2.0 (see https://jsonrpc.org ) server, providing an easy way to register and
+handle remote procedure calls over JSON. It supports method registration, batch
+processing, and error handling while ensuring compliance with the JSON-RPC
+specification.  The package includes utilities for constructing valid JSON-RPC
+requests and notifications, making it simple to integrate into existing
+applications. Designed for reliability and ease of use, it offers built-in
+logging and a clean, intuitive API for managing JSON-RPC methods.
+
++-----------------------------------------------------------------------------+
+|i1 : server = new JSONRPCServer                                              |
+|                                                                             |
+|o1 = server                                                                  |
+|                                                                             |
+|o1 : JSONRPCServer                                                           |
++-----------------------------------------------------------------------------+
+|i2 : registerMethod(server, "sum", plus)                                     |
++-----------------------------------------------------------------------------+
+|i3 : setLogger(server, printerr)                                             |
++-----------------------------------------------------------------------------+
+|i4 : handleRequest(server, makeRequest("sum", {2, 3}, 1))                    |
+| -- received request: {"method": "sum", "id": 1, "jsonrpc": "2.0", "params": |
+| -- calling method "sum" with params [2, 3]                                  |
+| -- method "sum" returned: 5                                                 |
+| -- sending response: {"result": 5, "jsonrpc": "2.0", "id": 1}               |
+|                                                                             |
+|o4 = {"result": 5, "jsonrpc": "2.0", "id": 1}                                |
+|-----------------------------------------------------------------------------|
+|[2, 3]}                                                                      |
++-----------------------------------------------------------------------------+
+* Menu:
+
+* JSONRPCServer::               JSONRPC server class
+* makeRequest::                 construct a JSON-RPC request
+
+Author
+======
+
+  * Doug Torrance (see https://d-torrance.github.io ) <dtorrance9@gatech.edu>
+
+Version
+=======
+
+This documentation describes version 0.2 of JSONRPC, released February 18,
+2026.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{JSONRPCSource,                                                        |
+|  title = {{JSONRPC: JSON-RPC server. Version~0.2}},                        |
+|  author = {Doug Torrance},                                                 |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note JSONRPCError: JSONRPCError, -- class for JSON-RPC errors
+      * *note JSONRPCServer: JSONRPCServer, -- JSONRPC server class
+  * Functions and commands
+      * *note handleRequest: handleRequest, -- handle a JSON-RPC request
+      * *note makeRequest: makeRequest, -- construct a JSON-RPC request
+      * *note registerMethod: registerMethod, -- register a method for a
+        JSON-RPC server
+      * *note setLogger: setLogger, -- set up logging for a JSON-RPC server
+  * Methods
+      * "handleRequest(JSONRPCServer,String)" -- see *note handleRequest:
+        handleRequest, -- handle a JSON-RPC request
+      * "NewFromMethod(JSONRPCError,ZZ,String)" -- see *note JSONRPCError:
+        JSONRPCError, -- class for JSON-RPC errors
+      * "NewFromMethod(JSONRPCError,ZZ,String,Thing)" -- see *note
+        JSONRPCError: JSONRPCError, -- class for JSON-RPC errors
+      * "new JSONRPCServer" -- see *note JSONRPCServer: JSONRPCServer, --
+        JSONRPC server class
+      * "makeRequest(List)" -- see *note makeRequest: makeRequest, -- construct
+        a JSON-RPC request
+      * "makeRequest(String)" -- see *note makeRequest: makeRequest, --
+        construct a JSON-RPC request
+      * "makeRequest(String,HashTable)" -- see *note makeRequest: makeRequest,
+        -- construct a JSON-RPC request
+      * "makeRequest(String,HashTable,String)" -- see *note makeRequest:
+        makeRequest, -- construct a JSON-RPC request
+      * "makeRequest(String,HashTable,ZZ)" -- see *note makeRequest:
+        makeRequest, -- construct a JSON-RPC request
+      * "makeRequest(String,List)" -- see *note makeRequest: makeRequest, --
+        construct a JSON-RPC request
+      * "makeRequest(String,List,String)" -- see *note makeRequest:
+        makeRequest, -- construct a JSON-RPC request
+      * "makeRequest(String,List,ZZ)" -- see *note makeRequest: makeRequest, --
+        construct a JSON-RPC request
+      * "makeRequest(String,String)" -- see *note makeRequest: makeRequest, --
+        construct a JSON-RPC request
+      * "makeRequest(String,ZZ)" -- see *note makeRequest: makeRequest, --
+        construct a JSON-RPC request
+      * *note methods(JSONRPCServer): methods_lpJSONRPCServer_rp, -- list the
+        methods registered to a JSON-RPC server
+      * "registerMethod(JSONRPCServer,String,Function)" -- see *note
+        registerMethod: registerMethod, -- register a method for a JSON-RPC
+        server
+      * "registerMethod(JSONRPCServer,String,List,Function)" -- see *note
+        registerMethod: registerMethod, -- register a method for a JSON-RPC
+        server
+      * "setLogger(JSONRPCServer,Function)" -- see *note setLogger: setLogger,
+        -- set up logging for a JSON-RPC server
+
+For the programmer
+==================
+
+The object *note JSONRPC: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in JSONRPC.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in JSONRPC.m2:242:0.
+
+File: JSONRPC.info, Node: JSONRPCServer, Next: makeRequest, Up: Top
+
+JSONRPCServer -- JSONRPC server class
+*************************************
+
+  * Usage: 
+        new JSONRPCServer
+
+Description
+===========
+
+JSONRPCServer is the core class of the package, responsible for handling
+JSON-RPC requests. It allows you to *note register methods: registerMethod,,
+*note process incoming requests: handleRequest, (including batches), and send
+appropriate responses or error messages, all while following the JSON-RPC 2.0
+specification (see https://www.jsonrpc.org/specification ).  The class also
+includes basic *note logging functionality: setLogger, to track incoming
+requests and responses.
+
++-------------------------------+
+|i1 : server = new JSONRPCServer|
+|                               |
+|o1 = server                    |
+|                               |
+|o1 : JSONRPCServer             |
++-------------------------------+
+* Menu:
+
+* registerMethod::              register a method for a JSON-RPC server
+* handleRequest::               handle a JSON-RPC request
+* setLogger::                   set up logging for a JSON-RPC server
+
+Methods that use a JSON-RPC server:
+===================================
+
+  * "handleRequest(JSONRPCServer,String)" -- see *note handleRequest:
+    handleRequest, -- handle a JSON-RPC request
+  * "new JSONRPCServer"
+  * *note methods(JSONRPCServer): methods_lpJSONRPCServer_rp, -- list the
+    methods registered to a JSON-RPC server
+  * "registerMethod(JSONRPCServer,String,Function)" -- see *note
+    registerMethod: registerMethod, -- register a method for a JSON-RPC server
+  * "registerMethod(JSONRPCServer,String,List,Function)" -- see *note
+    registerMethod: registerMethod, -- register a method for a JSON-RPC server
+  * "setLogger(JSONRPCServer,Function)" -- see *note setLogger: setLogger, --
+    set up logging for a JSON-RPC server
+
+For the programmer
+==================
+
+The object *note JSONRPCServer: JSONRPCServer, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in JSONRPC.m2:269:0.
+
+File: JSONRPC.info, Node: registerMethod, Next: handleRequest, Up: JSONRPCServer
+
+registerMethod -- register a method for a JSON-RPC server
+*********************************************************
+
+  * Usage: 
+        registerMethod(server, name, params, f)
+  * Inputs:
+      * server, a *note JSON-RPC server: JSONRPCServer,, 
+      * name, a *note string: (Macaulay2Doc)String,, 
+      * params, a *note list: (Macaulay2Doc)List,, optional; 
+      * f, a *note function: (Macaulay2Doc)Function,, 
+
+Description
+===========
+
+This method registers a method with server.  The name parameter is the name of
+the method that will be exposed in JSON-RPC requests, and f is the function
+that will be called when the method is invoked.  The optional params argument
+is a list of expected parameter names for the method. If provided, it helps
+validate the parameters in incoming requests. The function should accept the
+parameters passed in the request and return the result to be sent back in the
+response.
+
++-----------------------------------------------------------------------------+
+|i1 : server = new JSONRPCServer                                              |
+|                                                                             |
+|o1 = server                                                                  |
+|                                                                             |
+|o1 : JSONRPCServer                                                           |
++-----------------------------------------------------------------------------+
+|i2 : registerMethod(server, "sum", plus)                                     |
++-----------------------------------------------------------------------------+
+|i3 : registerMethod(server, "subtract", {"minuend", "subtrahend"},           |
+|-----------------------------------------------------------------------------|
+|difference)                                                                  |
++-----------------------------------------------------------------------------+
+|i4 : handleRequest(server, makeRequest("sum", {1, 2, 4}, 1))                 |
+|                                                                             |
+|o4 = {"result": 7, "jsonrpc": "2.0", "id": 1}                                |
++-----------------------------------------------------------------------------+
+|i5 : handleRequest(server, makeRequest("subtract", {42, 23}, 2))             |
+|                                                                             |
+|o5 = {"result": 19, "jsonrpc": "2.0", "id": 2}                               |
++-----------------------------------------------------------------------------+
+
+To see a list of registered methods for a given server, run *note
+methods(JSONRPCServer): methods_lpJSONRPCServer_rp,.
+
++-----------------------------------------+
+|i6 : methods server                      |
+|                                         |
+|o6 = {0 => (subtract,minuend,subtrahend)}|
+|     {1 => 1 : (sum)                    }|
+|                                         |
+|o6 : NumberedVerticalList                |
++-----------------------------------------+
+
+If you would like to deregister a method, then you may use *note
+remove(HashTable,Thing): (Macaulay2Doc)remove,.
+
++-----------------------------------------+
+|i7 : remove(server, "sum")               |
+|                                         |
+|o7 = 1 : (sum)                           |
+|                                         |
+|o7 : JSONRPCMethod                       |
++-----------------------------------------+
+|i8 : methods server                      |
+|                                         |
+|o8 = {0 => (subtract,minuend,subtrahend)}|
+|                                         |
+|o8 : NumberedVerticalList                |
++-----------------------------------------+
+* Menu:
+
+* methods(JSONRPCServer): methods_lpJSONRPCServer_rp.  list the methods registered to a JSON-RPC server
+
+Ways to use registerMethod:
+===========================
+
+  * "registerMethod(JSONRPCServer,String,Function)"
+  * "registerMethod(JSONRPCServer,String,List,Function)"
+
+For the programmer
+==================
+
+The object *note registerMethod: registerMethod, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in JSONRPC.m2:314:0.
+
+File: JSONRPC.info, Node: methods_lpJSONRPCServer_rp, Up: registerMethod
+
+methods(JSONRPCServer) -- list the methods registered to a JSON-RPC server
+**************************************************************************
+
+  * Function: *note methods: (Macaulay2Doc)methods,
+  * Usage: 
+        methods server
+  * Inputs:
+      * server, a *note JSON-RPC server: JSONRPCServer,, 
+  * Outputs:
+      * a *note numbered vertical list: (Macaulay2Doc)NumberedVerticalList,,
+        the methods registered to server;
+
+Description
+===========
+
+This method behaves much like the usual *note methods: (Macaulay2Doc)methods,
+method.  It lists each of the methods that have been registered to the given
+server.
+
++--------------------------------------------------------------------+
+|i1 : server = new JSONRPCServer                                     |
+|                                                                    |
+|o1 = server                                                         |
+|                                                                    |
+|o1 : JSONRPCServer                                                  |
++--------------------------------------------------------------------+
+|i2 : registerMethod(server, "add", (x, y) -> x + y)                 |
++--------------------------------------------------------------------+
+|i3 : registerMethod(server, "subtract", {"x", "y"}, (x, y) -> x - y)|
++--------------------------------------------------------------------+
+|i4 : methods server                                                 |
+|                                                                    |
+|o4 = {0 => (subtract,x,y)}                                          |
+|     {1 => 1 : (add)     }                                          |
+|                                                                    |
+|o4 : NumberedVerticalList                                           |
++--------------------------------------------------------------------+
+
+After running methods, both *note locate(ZZ): (Macaulay2Doc)locate, and *note
+code(ZZ): (Macaulay2Doc)code, work as expected.
+
++----------------------------+
+|i5 : locate 0               |
+|                            |
+|o5 = currentString:3:47-3:62|
+|                            |
+|o5 : FilePosition           |
++----------------------------+
+
+Ways to use this method:
+========================
+
+  * *note methods(JSONRPCServer): methods_lpJSONRPCServer_rp, -- list the
+    methods registered to a JSON-RPC server
+-------------------------------------------------------------------------------
+
+The source of this document is in JSONRPC.m2:343:0.
+
+File: JSONRPC.info, Node: handleRequest, Next: setLogger, Prev: registerMethod, Up: JSONRPCServer
+
+handleRequest -- handle a JSON-RPC request
+******************************************
+
+  * Usage: 
+        handleRequest(server, str)
+  * Inputs:
+      * server, a *note JSON-RPC server: JSONRPCServer,, 
+      * str, a *note string: (Macaulay2Doc)String,, a JSON-RPC 2.0 request
+        object;
+  * Outputs:
+      * a *note string: (Macaulay2Doc)String, or *note null:
+        (Macaulay2Doc)null,, the response to the request or null if the request
+        was a notification
+
+Description
+===========
+
+This method processes an incoming JSON-RPC request. It takes a JSON-encoded
+string representing a request (or batch of requests) and returns the
+corresponding JSON-RPC response. It handles method invocation, error handling,
+and batching automatically.  Note that *note makeRequest: makeRequest, is
+useful for constructing requests.
+
++-----------------------------------------------------------------------------+
+|i1 : server = new JSONRPCServer                                              |
+|                                                                             |
+|o1 = server                                                                  |
+|                                                                             |
+|o1 : JSONRPCServer                                                           |
++-----------------------------------------------------------------------------+
+|i2 : registerMethod(server, "sum", plus)                                     |
++-----------------------------------------------------------------------------+
+|i3 : handleRequest(server, makeRequest("sum", {2, 3}, 1))                    |
+|                                                                             |
+|o3 = {"result": 5, "jsonrpc": "2.0", "id": 1}                                |
++-----------------------------------------------------------------------------+
+|i4 : handleRequest(server, makeRequest({("sum", {4, 5}, 2), ("sum", {6, 7},  |
+|                                                                             |
+|o4 = [{"result": 9, "jsonrpc": "2.0", "id": 2}, {"result": 13, "jsonrpc":    |
+|     "2.0", "id": 3}]                                                        |
+|-----------------------------------------------------------------------------|
+|3)}))                                                                        |
++-----------------------------------------------------------------------------+
+
+If you need to do any error handling in a method, then the *note JSONRPCError:
+JSONRPCError, class may be useful.
+
+* Menu:
+
+* JSONRPCError::                class for JSON-RPC errors
+
+Ways to use handleRequest:
+==========================
+
+  * "handleRequest(JSONRPCServer,String)"
+
+For the programmer
+==================
+
+The object *note handleRequest: handleRequest, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in JSONRPC.m2:376:0.
+
+File: JSONRPC.info, Node: JSONRPCError, Up: handleRequest
+
+JSONRPCError -- class for JSON-RPC errors
+*****************************************
+
+  * Usage: 
+        JSONRPCError(errCode, msg, data)
+        JSONRPCError(errCode, msg)
+  * Inputs:
+      * errCode, an *note integer: (Macaulay2Doc)ZZ,, 
+      * msg, a *note string: (Macaulay2Doc)String,, 
+      * data, a *note thing: (Macaulay2Doc)Thing,, 
+
+Description
+===========
+
+This class is used to represent errors that occur during the processing of
+JSON-RPC requests. It provides a structured way to format error responses,
+including an error code, message, and optional additional data. This class
+ensures that errors are properly formatted according to the JSON-RPC 2.0
+specification and can be easily included in responses to clients.
+
++--------------------------------------------------------------------------+
+|i1 : server = new JSONRPCServer                                           |
+|                                                                          |
+|o1 = server                                                               |
+|                                                                          |
+|o1 : JSONRPCServer                                                        |
++--------------------------------------------------------------------------+
+|i2 : registerMethod(server, "divide", (x, y) -> (                         |
+|             if zero y then JSONRPCError(-32001, "division by zero")      |
+|             else x/y))                                                   |
++--------------------------------------------------------------------------+
+|i3 : handleRequest(server, makeRequest("divide", {1, 0}, 1))              |
+|                                                                          |
+|o3 = {"error": {"code": -32001, "message": "division by zero"}, "jsonrpc":|
+|     "2.0", "id": 1}                                                      |
++--------------------------------------------------------------------------+
+|i4 : handleRequest(server, makeRequest("divide", {22, 7}, 2))             |
+|                                                                          |
+|o4 = {"result": 3.142857142857143, "jsonrpc": "2.0", "id": 2}             |
++--------------------------------------------------------------------------+
+
+Note that the error codes -32000 to -32099 are reserved for use by JSON-RPC
+servers, so errCode should lie in this interval (although this isn't checked).
+
+Methods that use a JSON-RPC error:
+==================================
+
+  * "NewFromMethod(JSONRPCError,ZZ,String)"
+  * "NewFromMethod(JSONRPCError,ZZ,String,Thing)"
+
+For the programmer
+==================
+
+The object *note JSONRPCError: JSONRPCError, is a *note self initializing type:
+(Macaulay2Doc)SelfInitializingType,, with ancestor classes *note HashTable:
+(Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in JSONRPC.m2:411:0.
+
+File: JSONRPC.info, Node: setLogger, Prev: handleRequest, Up: JSONRPCServer
+
+setLogger -- set up logging for a JSON-RPC server
+*************************************************
+
+  * Usage: 
+        setLogger(server, f)
+  * Inputs:
+      * server, a *note JSON-RPC server: JSONRPCServer,, 
+      * f, a *note function: (Macaulay2Doc)Function,, 
+
+Description
+===========
+
+This method sets a custom logging function for the server. The provided logger
+function will be used to log relevant server activities, such as incoming
+requests and responses. This allows for flexible logging and monitoring,
+enabling users to integrate with existing logging systems or implement custom
+logging behavior.  The function f should accept a single string.
+
+Let's set it up so that our server logs both to *note stderr:
+(Macaulay2Doc)stderr, and to a file.
+
++-----------------------------------------------------------------------------+
+|i1 : server = new JSONRPCServer                                              |
+|                                                                             |
+|o1 = server                                                                  |
+|                                                                             |
+|o1 : JSONRPCServer                                                           |
++-----------------------------------------------------------------------------+
+|i2 : registerMethod(server, "sum", plus)                                     |
++-----------------------------------------------------------------------------+
+|i3 : logfile = temporaryFileName();                                          |
++-----------------------------------------------------------------------------+
+|i4 : setLogger(server, x -> (printerr x; logfile << x << endl;));            |
++-----------------------------------------------------------------------------+
+|i5 : handleRequest(server, makeRequest("sum", {2, 3}, 1))                    |
+| -- received request: {"method": "sum", "id": 1, "jsonrpc": "2.0", "params": |
+| -- calling method "sum" with params [2, 3]                                  |
+| -- method "sum" returned: 5                                                 |
+| -- sending response: {"result": 5, "jsonrpc": "2.0", "id": 1}               |
+|                                                                             |
+|o5 = {"result": 5, "jsonrpc": "2.0", "id": 1}                                |
+|-----------------------------------------------------------------------------|
+|[2, 3]}                                                                      |
++-----------------------------------------------------------------------------+
+|i6 : handleRequest(server, makeRequest("sum", {4, 5}, 2))                    |
+| -- received request: {"method": "sum", "id": 2, "jsonrpc": "2.0", "params": |
+| -- calling method "sum" with params [4, 5]                                  |
+| -- method "sum" returned: 9                                                 |
+| -- sending response: {"result": 9, "jsonrpc": "2.0", "id": 2}               |
+|                                                                             |
+|o6 = {"result": 9, "jsonrpc": "2.0", "id": 2}                                |
+|-----------------------------------------------------------------------------|
+|[4, 5]}                                                                      |
++-----------------------------------------------------------------------------+
+|i7 : logfile << close;                                                       |
++-----------------------------------------------------------------------------+
+|i8 : get logfile                                                             |
+|                                                                             |
+|o8 = received request: {"method": "sum", "id": 1, "jsonrpc": "2.0", "params":|
+|     calling method "sum" with params [2, 3]                                 |
+|     method "sum" returned: 5                                                |
+|     sending response: {"result": 5, "jsonrpc": "2.0", "id": 1}              |
+|     received request: {"method": "sum", "id": 2, "jsonrpc": "2.0", "params":|
+|     calling method "sum" with params [4, 5]                                 |
+|     method "sum" returned: 9                                                |
+|     sending response: {"result": 9, "jsonrpc": "2.0", "id": 2}              |
+|-----------------------------------------------------------------------------|
+|[2, 3]}                                                                      |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|[4, 5]}                                                                      |
++-----------------------------------------------------------------------------+
+
+Ways to use setLogger:
+======================
+
+  * "setLogger(JSONRPCServer,Function)"
+
+For the programmer
+==================
+
+The object *note setLogger: setLogger, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in JSONRPC.m2:489:0.
+
+File: JSONRPC.info, Node: makeRequest, Prev: JSONRPCServer, Up: Top
+
+makeRequest -- construct a JSON-RPC request
+*******************************************
+
+  * Usage: 
+        makeRequest(m, params, ID)
+  * Inputs:
+      * m, a *note string: (Macaulay2Doc)String,, method name; 
+      * params, a *note hash table: (Macaulay2Doc)HashTable, or a *note list:
+        (Macaulay2Doc)List,, method parameters (optional);
+      * ID, a *note string: (Macaulay2Doc)String, or an *note integer:
+        (Macaulay2Doc)ZZ,, id (if omitted, then the request is a notification);
+  * Outputs:
+      * a *note string: (Macaulay2Doc)String,, JSON-RPC request object; 
+
+Description
+===========
+
+This method constructs a JSON-RPC request. The m parameter specifies the name
+of the method being called, while params contains the arguments for the method
+(if any). The optional ID parameter is used to correlate requests and
+responses. This method generates a JSON-encoded string representing the
+request, ready to be sent to the server. If no ID is provided, then the request
+is a notification and the server will return nothing.
+
++-----------------------------------------------------------------------------+
+|i1 : makeRequest("foo", hashTable{"x" => 2, "y" => 3}, 1)                    |
+|                                                                             |
+|o1 = {"method": "foo", "id": 1, "jsonrpc": "2.0", "params": {"x": 2, "y": 3}}|
++-----------------------------------------------------------------------------+
+|i2 : makeRequest("baz", {4, 5, 6}, 2)                                        |
+|                                                                             |
+|o2 = {"method": "baz", "id": 2, "jsonrpc": "2.0", "params": [4, 5, 6]}       |
++-----------------------------------------------------------------------------+
+
+When a list is given, its elements are expected to be sequences that can be
+passed to *note makeRequest: makeRequest,.  The result is an array containing a
+batch request.
+
++--------------------------------------------------------------------------+
+|i3 : makeRequest({                                                        |
+|             ("foo", hashTable{"x" => 7, "y" => 8}, 3),                   |
+|             ("bar", {9, 10, 11}, 4)})                                    |
+|                                                                          |
+|o3 = [{"method": "foo", "id": 3, "jsonrpc": "2.0", "params": {"x": 7, "y":|
+|     8}}, {"method": "bar", "id": 4, "jsonrpc": "2.0", "params": [9, 10,  |
+|     11]}]                                                                |
++--------------------------------------------------------------------------+
+
+Ways to use makeRequest:
+========================
+
+  * "makeRequest(List)"
+  * "makeRequest(String)"
+  * "makeRequest(String,HashTable)"
+  * "makeRequest(String,HashTable,String)"
+  * "makeRequest(String,HashTable,ZZ)"
+  * "makeRequest(String,List)"
+  * "makeRequest(String,List,String)"
+  * "makeRequest(String,List,ZZ)"
+  * "makeRequest(String,String)"
+  * "makeRequest(String,ZZ)"
+
+For the programmer
+==================
+
+The object *note makeRequest: makeRequest, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in JSONRPC.m2:456:0.
+
+Tag Table:
+Node: Top218
+Node: JSONRPCServer6778
+Node: registerMethod9080
+Node: methods_lpJSONRPCServer_rp13485
+Node: handleRequest16117
+Node: JSONRPCError19214
+Node: setLogger22265
+Node: makeRequest27627
+
+End Tag Table

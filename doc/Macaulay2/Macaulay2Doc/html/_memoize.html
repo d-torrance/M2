@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>memoize -- record results of function evaluation for future use</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="index.html">Documentation </a> <br><a href="_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> » <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> » <a href="_caching_spcomputation_spresults.html">caching computation results</a> » <a title="record results of function evaluation for future use" href="_memoize.html">memoize</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_status.html">next</a> | <a href="_cache.html">previous</a> | <a href="_status.html">forward</a> | <a href="_cache.html">backward</a> | <a href="_caching_spcomputation_spresults.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>memoize -- record results of function evaluation for future use</h1>
+      <div>
+        <h2>Description</h2>
+<span class="tt">memoize f</span> -- produces, from a function <span class="tt">f</span>, a new function that behaves the same as <span class="tt">f</span>, but remembers previous answers to be provided the next time the same arguments are presented.        <p></p>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : fib = n -> if n &lt;= 1 then 1 else fib(n-1) + fib(n-2)
+
+o1 = fib
+
+o1 : FunctionClosure</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : time fib 28
+ -- used 1.08165s (cpu); 0.763264s (thread); 0s (gc)
+
+o2 = 514229</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : fib = memoize fib
+
+o3 = fib
+
+o3 : FunctionClosure</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : time fib 28
+ -- used 5.888e-05s (cpu); 5.8569e-05s (thread); 0s (gc)
+
+o4 = 514229</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : time fib 28
+ -- used 2.364e-06s (cpu); 2.144e-06s (thread); 0s (gc)
+
+o5 = 514229</code></pre>
+            </td>
+          </tr>
+        </table>
+        <p>An optional second argument to memoize provides a list of initial values, each of the form <span class="tt">x => v</span>, where <span class="tt">v</span> is the value to be provided for the argument <span class="tt">x</span>.</p>
+        <p>Alternatively, values can be provided after defining the memoized function using the syntax <span class="tt">f x = v</span>. A slightly more efficient implementation of the above would be</p>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : fib = memoize( n -> fib(n-1) + fib(n-2) )
+
+o6 = fib
+
+o6 : FunctionClosure</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : fib 0 = fib 1 = 1;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : fib 28
+
+o8 = 514229</code></pre>
+            </td>
+          </tr>
+        </table>
+        <p>The function <span class="tt">memoize</span> operates by constructing a <a title="the class of all mutable hash tables" href="___Mutable__Hash__Table.html">MutableHashTable</a>, in which the arguments are used as keys for accessing the return value of the function.  This mutable hash table can be obtained using the function <span class="tt">memoizeValues</span>, as follows.</p>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : peek memoizeValues fib
+
+o9 = MutableHashTable{0 => 1      }
+                      1 => 1
+                      2 => 2
+                      3 => 3
+                      4 => 5
+                      5 => 8
+                      6 => 13
+                      7 => 21
+                      8 => 34
+                      9 => 55
+                      10 => 89
+                      11 => 144
+                      12 => 233
+                      13 => 377
+                      14 => 610
+                      15 => 987
+                      16 => 1597
+                      17 => 2584
+                      18 => 4181
+                      19 => 6765
+                      20 => 10946
+                      21 => 17711
+                      22 => 28657
+                      23 => 46368
+                      24 => 75025
+                      25 => 121393
+                      26 => 196418
+                      27 => 317811
+                      28 => 514229</code></pre>
+            </td>
+          </tr>
+        </table>
+        <p>That hash table can be replaced by an empty one with the function <span class="tt">memoizeClear</span>.</p>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : memoizeClear fib</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : peek memoizeValues fib
+
+o11 = MutableHashTable{}</code></pre>
+            </td>
+          </tr>
+        </table>
+        <p>Warning: the new function created by <span class="tt">memoize</span> will save references to all arguments and values it encounters, and this will often prevent those arguments and values from being garbage-collected as soon as they might have been.  If the arguments are implemented as mutable hash tables (modules, matrices and rings are implemented this way) then a viable strategy is to stash computed results in the arguments themselves.  See also <span class="tt">CacheTable</span>.</p>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">memoize</span>:</h2>
+          <ul>
+            <li><kbd>memoize(Function)</kbd></li>
+            <li><kbd>memoize(Function,List)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="record results of function evaluation for future use" href="_memoize.html">memoize</a> is <span>a <a title="a type of method function" href="___Method__Function.html">method function</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Macaulay2Doc/ov_repl.m2:708:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

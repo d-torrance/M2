@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>SLPexpressions -- Straight Line Programs and expressions for evaluation circuits</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="straight line programs and algebraic circuits" href="index.html">SLPexpressions</a> :: <a title="straight line programs and algebraic circuits" href="index.html">SLPexpressions</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_arithmetic_spwith_spcircuits.html">next</a> | previous | <a href="_arithmetic_spwith_spcircuits.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>SLPexpressions -- Straight Line Programs and expressions for evaluation circuits</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>Many polynomials can be stored and evaluated efficiently when represented as a straight line program (SLP), also known as an <a href="https://en.wikipedia.org/wiki/Circuit_%28computer_science%29">algebraic circuit</a>. By contrast, elements of a <a title="the class of all ordered monoid rings" href="../../Macaulay2Doc/html/___Polynomial__Ring.html">PolynomialRing</a> in Macaulay2 are necessarily represented in &quot;expanded&quot; form, e.g. via a monomial basis.</p>
+          <p>This package provides basic types and methods for constructing and evaluating SLPs.</p>
+          <p>Here is a simple example illustrating an advantage of SLP representations.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : declareVariable x
+
+o1 = x
+
+o1 : InputGate</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : f = x + 1
+
+o2 = (x + 1)
+
+o2 : SumGate</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : n = 12;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : for i from 1 to n do f = f*f -- f = (x+1)^(2^n)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : slp = makeInterpretedSLProgram({x},{f})
+
+o5 = InterpretedSLProgram{cache => CacheTable{}               }
+                          &quot;constant positions&quot; => {-2}
+                          &quot;constants&quot; => | 1 |
+                          &quot;number of inputs&quot; => 1
+                          &quot;number of outputs&quot; => 1
+                          RawSLProgram => SLProgram (
+                                            consts+vars: 2
+                                            noninput nodes: 13
+                                            output nodes: 1
+                                            )
+
+                          &quot;variable positions&quot; => {-1}
+
+o5 : InterpretedSLProgram</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : time A = evaluate(slp,matrix{{1}});
+ -- used 0.000203871s (cpu); 0.000201657s (thread); 0s (gc)
+
+              1       1
+o6 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : ZZ[y];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : time B = sub((y+1)^(2^n),{y=>1})
+ -- used 4.75849s (cpu); 3.51888s (thread); 0s (gc)
+
+o8 = 104438888141315250669175271071662438257996424904738378038423348328395390
+     797155745684882681193499755834089010671443926283798757343818579360726323
+     608785136527794595697654370999834036159013438371831442807001185594622637
+     631883939771274567233468434458661749680790870580370407128404874011860911
+     446797778359802900668693897688178778594690563019026094059957945343282346
+     930302669644305902501597239986771421554169383555988529148631823791443449
+     673408781187263949647510018904134900841706167509366833385055103297208826
+     955076998361636941193301521379682583718809183365675122131849284636812555
+     022599830041234478486259567449219461702380650591324561082573183538008760
+     862210283427019769820231316901767800667519548507992163641937028537512478
+     401490715913545998279051339961155179427110683113409058427288427979155484
+     978295432353451706522326906139490598769300212296339568778287894844061600
+     741294567491982305057164237715481632138063104590291613692670834285644073
+     044789997190178146576347322385026725305989979599609079946920177462481771
+     844986745565925017832907047311943316555080756822184657174637329688491281
+     952031745700244092661691087414838507841192980452298185733897764810312608
+     590300130241346718972667321649151113160292078173803343609024380470834040
+     3154190336</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : A == B
+
+o9 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="types used in Numerical Algebraic Geometry" href="../../NAGtypes/html/index.html">NAGtypes</a> -- types used in Numerical Algebraic Geometry</span></li>
+          <li><span><span class="tt">makeCompiledSLProgram</span> (missing documentation)<!--tag: makeCompiledSLProgram-->
+</span></li>
+        </ul>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Authors</h2>
+            <ul>
+              <li><a href="https://people.math.gatech.edu/~aleykin3">Anton Leykin</a><span> &lt;<a href="mailto:leykin%40math.gatech.edu">leykin@math.gatech.edu</a>></span></li>
+              <li><a href="http://people.math.gatech.edu/~tduff3">Timothy Duff</a><span> &lt;<a href="mailto:tduff3%40gatech.edu">tduff3@gatech.edu</a>></span></li>
+              <li><a href="https://people.math.gatech.edu/~jchen646">Justin Chen</a><span> &lt;<a href="mailto:jchen646%40math.gatech.edu">jchen646@math.gatech.edu</a>></span></li>
+              <li><a href="http://www.math.cornell.edu/~mike">Mike Stillman</a><span> &lt;<a href="mailto:mike%40math.cornell.edu">mike@math.cornell.edu</a>></span></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>1.21</b> of SLPexpressions, released <b>Nov 2022</b>.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{SLPexpressionsSource,
+  title = {{SLPexpressions: straight line programs and algebraic circuits. Version~1.21}},
+  author = {Anton Leykin and Timothy Duff and Justin Chen and Mike Stillman},
+  howpublished = {A \emph{Macaulay2} package available at
+    &quot;http://people.math.gatech.edu/~aleykin3/NAG4M2&quot;}
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Types                  <ul>
+                    <li><span><span class="tt">CompiledSLProgram</span> (missing documentation)<!--tag: CompiledSLProgram-->
+</span></li>
+                    <li><span><kbd>DetGate</kbd> -- see <span><a title="the class of all gates" href="___Gate.html">Gate</a> -- the class of all gates</span></span></li>
+                    <li><span><kbd>DivideGate</kbd> -- see <span><a title="the class of all gates" href="___Gate.html">Gate</a> -- the class of all gates</span></span></li>
+                    <li><span><a title="the class of all gates" href="___Gate.html">Gate</a> -- the class of all gates</span></li>
+                    <li><span><kbd>InputGate</kbd> -- see <span><a title="the class of all gates" href="___Gate.html">Gate</a> -- the class of all gates</span></span></li>
+                    <li><span><kbd>ProductGate</kbd> -- see <span><a title="the class of all gates" href="___Gate.html">Gate</a> -- the class of all gates</span></span></li>
+                    <li><span><kbd>SumGate</kbd> -- see <span><a title="the class of all gates" href="___Gate.html">Gate</a> -- the class of all gates</span></span></li>
+                    <li><span><a title="a matrix of Gates" href="___Gate__Matrix.html">GateMatrix</a> -- a matrix of Gates</span></li>
+                    <li><span><kbd>InterpretedSLProgram</kbd> -- see <span><a title="create a straight-line program" href="_make__Interpreted__S__L__Program.html">makeInterpretedSLProgram</a> -- create a straight-line program</span></span></li>
+                    <li><span><span class="tt">SLProgram</span> (missing documentation)<!--tag: SLProgram-->
+</span></li>
+                    <li><span><kbd>ValueHashTable</kbd> -- see <span><a title="creates a hash table of values for evaluation" href="_value__Hash__Table.html">valueHashTable</a> -- creates a hash table of values for evaluation</span></span></li>
+                  </ul>
+                </li>
+                <li>Functions and commands                  <ul>
+                    <li><span><kbd>detGate</kbd> -- see <span><a href="_creating_spgates.html">creating gates</a></span></span></li>
+                    <li><span><kbd>inputGate</kbd> -- see <span><a href="_creating_spgates.html">creating gates</a></span></span></li>
+                    <li><span><kbd>productGate</kbd> -- see <span><a href="_creating_spgates.html">creating gates</a></span></span></li>
+                    <li><span><kbd>sumGate</kbd> -- see <span><a href="_creating_spgates.html">creating gates</a></span></span></li>
+                    <li><span><a title="assigns an input gate to a given variable name" href="_declare__Variable.html">declareVariable</a> -- assigns an input gate to a given variable name</span></li>
+                    <li><span><a title="create a GateMatrix" href="_gate__Matrix.html">gateMatrix</a> -- create a GateMatrix</span></li>
+                    <li><span><a title="creates an input gate for a given polynomial" href="_gate__Polynomial.html">gatePolynomial</a> -- creates an input gate for a given polynomial</span></li>
+                    <li><span><a title="returns the input gates for variables in a polynomial ring" href="_get__Var__Gates.html">getVarGates</a> -- returns the input gates for variables in a polynomial ring</span></li>
+                    <li><span><span class="tt">makeCompiledSLProgram</span> (missing documentation)<!--tag: makeCompiledSLProgram-->
+</span></li>
+                    <li><span><a title="create a straight-line program" href="_make__Interpreted__S__L__Program.html">makeInterpretedSLProgram</a> -- create a straight-line program</span></li>
+                    <li><span><a title="create a straight-line program (either interpreted or compiled)" href="_make__S__L__Program.html">makeSLProgram</a> -- create a straight-line program (either interpreted or compiled)</span></li>
+                    <li><span><kbd>setTryJustInTimeCompilation</kbd> -- see <span><a title="create a straight-line program (either interpreted or compiled)" href="_make__S__L__Program.html">makeSLProgram</a> -- create a straight-line program (either interpreted or compiled)</span></span></li>
+                    <li><span><kbd>countGates</kbd> -- see <span><a href="_measuring_spthe_spsize_spof_spcircuits.html">measuring the size of circuits</a></span></span></li>
+                    <li><span><a title="clears assignment of an input gate to a variable name" href="_undeclare__Variable.html">undeclareVariable</a> -- clears assignment of an input gate to a variable name</span></li>
+                    <li><span><a title="creates a hash table of values for evaluation" href="_value__Hash__Table.html">valueHashTable</a> -- creates a hash table of values for evaluation</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><kbd>- Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate * Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate * Matrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate * Number</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate * RingElement</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate + Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate + Number</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate + RingElement</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate - Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate - Number</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate - RingElement</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate / Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Gate ^ ZZ</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>GateMatrix * GateMatrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>GateMatrix * Matrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>GateMatrix * RingElement</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>GateMatrix + GateMatrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>GateMatrix + Matrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>GateMatrix - GateMatrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>GateMatrix - Matrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>GateMatrix ^ List</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Matrix * Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Matrix * GateMatrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Matrix + GateMatrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Matrix - GateMatrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Number * Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Number + Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>Number - Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>RingElement * Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>RingElement * GateMatrix</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>RingElement + Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><kbd>RingElement - Gate</kbd> -- see <span><a href="_arithmetic_spwith_spcircuits.html">arithmetic with circuits</a></span></span></li>
+                    <li><span><span class="tt">cCode(GateMatrix,GateMatrix,File)</span> (missing documentation)<!--tag: (cCode,GateMatrix,GateMatrix,File)-->
+</span></li>
+                    <li><span><span class="tt">cCode(List,List,File)</span> (missing documentation)<!--tag: (cCode,List,List,File)-->
+</span></li>
+                    <li><span><kbd>compress(Gate)</kbd> -- see <span><a href="_compressing_spcircuits.html">compressing circuits</a></span></span></li>
+                    <li><span><kbd>compress(GateMatrix)</kbd> -- see <span><a href="_compressing_spcircuits.html">compressing circuits</a></span></span></li>
+                    <li><span><kbd>detGate(List)</kbd> -- see <span><a href="_creating_spgates.html">creating gates</a></span></span></li>
+                    <li><span><kbd>inputGate(Thing)</kbd> -- see <span><a href="_creating_spgates.html">creating gates</a></span></span></li>
+                    <li><span><kbd>productGate(List)</kbd> -- see <span><a href="_creating_spgates.html">creating gates</a></span></span></li>
+                    <li><span><kbd>sumGate(List)</kbd> -- see <span><a href="_creating_spgates.html">creating gates</a></span></span></li>
+                    <li><span><kbd>vars(IndexedVariable)</kbd> -- see <span><a href="_creating_spvariables_spas_spobjects_spof_sptype_sp__Input__Gate.html">creating variables as objects of type InputGate</a></span></span></li>
+                    <li><span><kbd>vars(InputGate)</kbd> -- see <span><a href="_creating_spvariables_spas_spobjects_spof_sptype_sp__Input__Gate.html">creating variables as objects of type InputGate</a></span></span></li>
+                    <li><span><kbd>vars(Symbol)</kbd> -- see <span><a href="_creating_spvariables_spas_spobjects_spof_sptype_sp__Input__Gate.html">creating variables as objects of type InputGate</a></span></span></li>
+                    <li><span><kbd>declareVariable(IndexedVariable)</kbd> -- see <span><a title="assigns an input gate to a given variable name" href="_declare__Variable.html">declareVariable</a> -- assigns an input gate to a given variable name</span></span></li>
+                    <li><span><kbd>declareVariable(InputGate)</kbd> -- see <span><a title="assigns an input gate to a given variable name" href="_declare__Variable.html">declareVariable</a> -- assigns an input gate to a given variable name</span></span></li>
+                    <li><span><kbd>declareVariable(Symbol)</kbd> -- see <span><a title="assigns an input gate to a given variable name" href="_declare__Variable.html">declareVariable</a> -- assigns an input gate to a given variable name</span></span></li>
+                    <li><span><kbd>declareVariable(Thing)</kbd> -- see <span><a title="assigns an input gate to a given variable name" href="_declare__Variable.html">declareVariable</a> -- assigns an input gate to a given variable name</span></span></li>
+                    <li><span><span class="tt">detGate(GateMatrix)</span> (missing documentation)<!--tag: (detGate,GateMatrix)-->
+</span></li>
+                    <li><span><kbd>diff(GateMatrix,GateMatrix)</kbd> -- see <span><a href="_differentiating_spcircuits.html">differentiating circuits</a></span></span></li>
+                    <li><span><kbd>diff(InputGate,Gate)</kbd> -- see <span><a href="_differentiating_spcircuits.html">differentiating circuits</a></span></span></li>
+                    <li><span><kbd>diff(InputGate,GateMatrix)</kbd> -- see <span><a href="_differentiating_spcircuits.html">differentiating circuits</a></span></span></li>
+                    <li><span><span class="tt">evaluate(CompiledSLProgram,MutableMatrix,MutableMatrix)</span> (missing documentation)<!--tag: (evaluate,CompiledSLProgram,MutableMatrix,MutableMatrix)-->
+</span></li>
+                    <li><span><span class="tt">evaluate(InterpretedSLProgram,MutableMatrix,MutableMatrix)</span> (missing documentation)<!--tag: (evaluate,InterpretedSLProgram,MutableMatrix,MutableMatrix)-->
+</span></li>
+                    <li><span><kbd>evaluate(SLProgram,Matrix)</kbd> -- see <span><a title="evaluate a straight-line program" href="_evaluate_lp__S__L__Program_cm__Mutable__Matrix_cm__Mutable__Matrix_rp.html">evaluate(SLProgram,MutableMatrix,MutableMatrix)</a> -- evaluate a straight-line program</span></span></li>
+                    <li><span><a title="evaluate a straight-line program" href="_evaluate_lp__S__L__Program_cm__Mutable__Matrix_cm__Mutable__Matrix_rp.html">evaluate(SLProgram,MutableMatrix,MutableMatrix)</a> -- evaluate a straight-line program</span></li>
+                    <li><span><kbd>value(DetGate,ValueHashTable)</kbd> -- see <span><a href="_evaluating_spgates.html">evaluating gates</a></span></span></li>
+                    <li><span><kbd>value(DivideGate,ValueHashTable)</kbd> -- see <span><a href="_evaluating_spgates.html">evaluating gates</a></span></span></li>
+                    <li><span><kbd>value(Gate,ValueHashTable)</kbd> -- see <span><a href="_evaluating_spgates.html">evaluating gates</a></span></span></li>
+                    <li><span><kbd>value(GateMatrix,ValueHashTable)</kbd> -- see <span><a href="_evaluating_spgates.html">evaluating gates</a></span></span></li>
+                    <li><span><kbd>value(InputGate,ValueHashTable)</kbd> -- see <span><a href="_evaluating_spgates.html">evaluating gates</a></span></span></li>
+                    <li><span><kbd>value(ProductGate,ValueHashTable)</kbd> -- see <span><a href="_evaluating_spgates.html">evaluating gates</a></span></span></li>
+                    <li><span><kbd>value(SumGate,ValueHashTable)</kbd> -- see <span><a href="_evaluating_spgates.html">evaluating gates</a></span></span></li>
+                    <li><span><span class="tt">expression(DetGate)</span> (missing documentation)<!--tag: (expression,DetGate)-->
+</span></li>
+                    <li><span><span class="tt">expression(DivideGate)</span> (missing documentation)<!--tag: (expression,DivideGate)-->
+</span></li>
+                    <li><span><span class="tt">expression(GateMatrix)</span> (missing documentation)<!--tag: (expression,GateMatrix)-->
+</span></li>
+                    <li><span><span class="tt">expression(InputGate)</span> (missing documentation)<!--tag: (expression,InputGate)-->
+</span></li>
+                    <li><span><span class="tt">expression(ProductGate)</span> (missing documentation)<!--tag: (expression,ProductGate)-->
+</span></li>
+                    <li><span><span class="tt">expression(SumGate)</span> (missing documentation)<!--tag: (expression,SumGate)-->
+</span></li>
+                    <li><span><span class="tt">flatten(GateMatrix)</span> (missing documentation)<!--tag: (flatten,GateMatrix)-->
+</span></li>
+                    <li><span><kbd>gateMatrix(GateMatrix)</kbd> -- see <span><a title="create a GateMatrix" href="_gate__Matrix.html">gateMatrix</a> -- create a GateMatrix</span></span></li>
+                    <li><span><kbd>gateMatrix(List)</kbd> -- see <span><a title="create a GateMatrix" href="_gate__Matrix.html">gateMatrix</a> -- create a GateMatrix</span></span></li>
+                    <li><span><kbd>gateMatrix(Matrix)</kbd> -- see <span><a title="create a GateMatrix" href="_gate__Matrix.html">gateMatrix</a> -- create a GateMatrix</span></span></li>
+                    <li><span><kbd>gatePolynomial(Matrix)</kbd> -- see <span><a title="creates an input gate for a given polynomial" href="_gate__Polynomial.html">gatePolynomial</a> -- creates an input gate for a given polynomial</span></span></li>
+                    <li><span><kbd>gatePolynomial(RingElement)</kbd> -- see <span><a title="creates an input gate for a given polynomial" href="_gate__Polynomial.html">gatePolynomial</a> -- creates an input gate for a given polynomial</span></span></li>
+                    <li><span><kbd>getVarGates(PolynomialRing)</kbd> -- see <span><a title="returns the input gates for variables in a polynomial ring" href="_get__Var__Gates.html">getVarGates</a> -- returns the input gates for variables in a polynomial ring</span></span></li>
+                    <li><span><span class="tt">html(Gate)</span> (missing documentation)<!--tag: (html,Gate)-->
+</span></li>
+                    <li><span><span class="tt">html(GateMatrix)</span> (missing documentation)<!--tag: (html,GateMatrix)-->
+</span></li>
+                    <li><span><a title="Passing .. to InputGate names (see code). TO DO: expand this." href="___Input__Gate_sp.._sp__Input__Gate.html">InputGate .. InputGate</a> -- Passing .. to InputGate names (see code). TO DO: expand this.</span></li>
+                    <li><span><a title="whether an input gate is constant" href="_is__Constant_lp__Input__Gate_rp.html">isConstant(InputGate)</a> -- whether an input gate is constant</span></li>
+                    <li><span><span class="tt">makeCompiledSLProgram(GateMatrix,GateMatrix)</span> (missing documentation)<!--tag: (makeCompiledSLProgram,GateMatrix,GateMatrix)-->
+</span></li>
+                    <li><span><span class="tt">makeCompiledSLProgram(List,List)</span> (missing documentation)<!--tag: (makeCompiledSLProgram,List,List)-->
+</span></li>
+                    <li><span><kbd>makeInterpretedSLProgram(GateMatrix,GateMatrix)</kbd> -- see <span><a title="create a straight-line program" href="_make__Interpreted__S__L__Program.html">makeInterpretedSLProgram</a> -- create a straight-line program</span></span></li>
+                    <li><span><kbd>makeInterpretedSLProgram(List,List)</kbd> -- see <span><a title="create a straight-line program" href="_make__Interpreted__S__L__Program.html">makeInterpretedSLProgram</a> -- create a straight-line program</span></span></li>
+                    <li><span><kbd>makeSLProgram(GateMatrix,GateMatrix)</kbd> -- see <span><a title="create a straight-line program (either interpreted or compiled)" href="_make__S__L__Program.html">makeSLProgram</a> -- create a straight-line program (either interpreted or compiled)</span></span></li>
+                    <li><span><kbd>makeSLProgram(List,List)</kbd> -- see <span><a title="create a straight-line program (either interpreted or compiled)" href="_make__S__L__Program.html">makeSLProgram</a> -- create a straight-line program (either interpreted or compiled)</span></span></li>
+                    <li><span><kbd>setTryJustInTimeCompilation(Boolean)</kbd> -- see <span><a title="create a straight-line program (either interpreted or compiled)" href="_make__S__L__Program.html">makeSLProgram</a> -- create a straight-line program (either interpreted or compiled)</span></span></li>
+                    <li><span><span class="tt">matrix(GateMatrix)</span> (missing documentation)<!--tag: (matrix,GateMatrix)-->
+</span></li>
+                    <li><span><kbd>countGates(Gate)</kbd> -- see <span><a href="_measuring_spthe_spsize_spof_spcircuits.html">measuring the size of circuits</a></span></span></li>
+                    <li><span><kbd>countGates(GateMatrix)</kbd> -- see <span><a href="_measuring_spthe_spsize_spof_spcircuits.html">measuring the size of circuits</a></span></span></li>
+                    <li><span><kbd>depth(DetGate)</kbd> -- see <span><a href="_measuring_spthe_spsize_spof_spcircuits.html">measuring the size of circuits</a></span></span></li>
+                    <li><span><kbd>depth(DivideGate)</kbd> -- see <span><a href="_measuring_spthe_spsize_spof_spcircuits.html">measuring the size of circuits</a></span></span></li>
+                    <li><span><kbd>depth(GateMatrix)</kbd> -- see <span><a href="_measuring_spthe_spsize_spof_spcircuits.html">measuring the size of circuits</a></span></span></li>
+                    <li><span><kbd>depth(InputGate)</kbd> -- see <span><a href="_measuring_spthe_spsize_spof_spcircuits.html">measuring the size of circuits</a></span></span></li>
+                    <li><span><kbd>depth(ProductGate)</kbd> -- see <span><a href="_measuring_spthe_spsize_spof_spcircuits.html">measuring the size of circuits</a></span></span></li>
+                    <li><span><kbd>depth(SumGate)</kbd> -- see <span><a href="_measuring_spthe_spsize_spof_spcircuits.html">measuring the size of circuits</a></span></span></li>
+                    <li><span><span class="tt">net(Gate)</span> (missing documentation)<!--tag: (net,Gate)-->
+</span></li>
+                    <li><span><span class="tt">toExternalString(InputGate)</span> (missing documentation)<!--tag: (toExternalString,InputGate)-->
+</span></li>
+                    <li><span><kbd>undeclareVariable(InputGate)</kbd> -- see <span><a title="clears assignment of an input gate to a variable name" href="_undeclare__Variable.html">undeclareVariable</a> -- clears assignment of an input gate to a variable name</span></span></li>
+                    <li><span><kbd>valueHashTable(List,List)</kbd> -- see <span><a title="creates a hash table of values for evaluation" href="_value__Hash__Table.html">valueHashTable</a> -- creates a hash table of values for evaluation</span></span></li>
+                    <li><span><kbd>determinant(GateMatrix)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>entries(GateMatrix)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>GateMatrix _ List</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>GateMatrix _ Sequence</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>GateMatrix | GateMatrix</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>GateMatrix | Matrix</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>GateMatrix || GateMatrix</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>GateMatrix || Matrix</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>Matrix | GateMatrix</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>Matrix || GateMatrix</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>numColumns(GateMatrix)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>numRows(GateMatrix)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>submatrix(GateMatrix,List,List)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>substitute(GateMatrix,GateMatrix,GateMatrix)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>substitute(GateMatrix,HashTable)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>substitute(GateMatrix,List)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>substitute(GateMatrix,Option)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                    <li><span><kbd>transpose(GateMatrix)</kbd> -- see <span><a href="_working_spwith_spgate_spmatrices.html">working with gate matrices</a></span></span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="straight line programs and algebraic circuits" href="index.html">SLPexpressions</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">SLPexpressions.m2</span>, with auxiliary files in <span class="tt">SLPexpressions/</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SLPexpressions/doc.m2:29:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

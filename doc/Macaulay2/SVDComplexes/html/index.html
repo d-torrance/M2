@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>SVDComplexes -- support for computing homology, ranks and SVD complexes, for a chain complex over the real numbers</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="SVD (singular value decomposition) of a complex over the reals and related functions" href="index.html">SVDComplexes</a> :: <a title="SVD (singular value decomposition) of a complex over the reals and related functions" href="index.html">SVDComplexes</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_are__Pseudo__Inverses.html">next</a> | previous | <a href="_are__Pseudo__Inverses.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>SVDComplexes -- support for computing homology, ranks and SVD complexes, for a chain complex over the real numbers</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>This package implements the algorithms in the paper &quot;Singular value decomposition of complexes&quot;, by D. Brake, J. Hauenstein, F. Schreyer, A. Sommese, and M. Stillman, <a href="https://arxiv.org/abs/1804.09838">https://arxiv.org/abs/1804.09838</a>.</p>
+          <p>Singular value decompositions of matrices are extremely useful in practice.  In particular, an SVD can often reveal the rank (numeric rank) of a matrix.</p>
+          <p>In the above paper, we extend the notion of singular value decomposition from matrices over the reals or complexes to a complex of matrices over the reals or complexes.</p>
+          <p>For some applications, one obtains a complex over the (approximate) reals, and one would like to know what the ranks of the matrices are, and therefore the ranks of the homology groups. One way to do this would be to compute the SVD of each matrix separately, often revealing the desired ranks.  This is less than satisfactory however, as it ignores the fact that this sequence is an approximation of a complex, i.e. each two consecutive matrices multiply to zero.</p>
+          <p>In this package, and the referenced paper, we give 2 algorithms for computing the SVD of a complex, and the resulting putative ranks of the matrices or ranks of the homology groups.</p>
+          <p>Here is an example of the usage.  We construct a random chain complex whose homology modules have ranks 1, 4, 6, 5, and 1:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : needsPackage &quot;RandomComplexes&quot;
+
+o1 = RandomComplexes
+
+o1 : Package</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : h = {1,4,6,5,1}
+
+o2 = {1, 4, 6, 5, 1}
+
+o2 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : r = {1,3,3,4}
+
+o3 = {1, 3, 3, 4}
+
+o3 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : C = randomChainComplex(h,r)
+
+       2       8       12       12       5
+o4 = ZZ  &lt;-- ZZ  &lt;-- ZZ   &lt;-- ZZ   &lt;-- ZZ
+                                        
+     0       1       2        3        4
+
+o4 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : CQ = C ** QQ
+
+       2       8       12       12       5
+o5 = QQ  &lt;-- QQ  &lt;-- QQ   &lt;-- QQ   &lt;-- QQ
+                                        
+     0       1       2        3        4
+
+o5 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : prune HH CQ
+
+       1       4       6       5       1
+o6 = QQ  &lt;-- QQ  &lt;-- QQ  &lt;-- QQ  &lt;-- QQ
+                                      
+     0       1       2       3       4
+
+o6 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : CR = C ** RR_53
+
+         2         8         12         12         5
+o7 = RR    &lt;-- RR    &lt;-- RR     &lt;-- RR     &lt;-- RR
+       53        53        53         53         53
+                                                
+     0         1         2          3          4
+
+o7 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : (h,U) = SVDComplex CR
+
+                            
+o8 = (HashTable{0 => 1}, 0 :
+                1 => 4      
+                2 => 6      
+                3 => 5
+                4 => 1      
+                         1 :
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+
+                            
+                         2 :
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+
+                            
+                         3 :
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+
+                            
+                         4 :
+                            
+                            
+                            
+                            
+                            
+     ------------------------------------------------------------------------
+         2                     2
+     RR    &lt;-------------- RR    : 0                                         
+       53     | -.6 .8 |     53
+              | .8  .6 |
+
+         8                                                                   
+     RR    &lt;-----------------------------------------------------------------
+       53     | .29173   -.137215  .131623  .0468896 -.0531994  .0813747  -.8
+              | -.29173  -.164224  -.226171 .42752   .620643    .0676841  -.2
+              | -.437595 -.0180683 -.352459 -.694466 -.00592661 .400455   -.2
+              | .29173   -.0673769 .0868048 -.188439 -.37341    -.0668651 -.2
+              | .29173   -.0270088 -.357794 .38063   -.268139   .738149   .15
+              | -.29173  .834227   -.117388 .248267  -.269867   -.0844963 -.2
+              | -.437595 -.0881199 .763237  .133167  -.134626   .420698   .00
+              | -.437595 -.494881  -.27465  .270161  -.556464   -.308173  -.0
+
+         12                                                                  
+     RR     &lt;----------------------------------------------------------------
+       53      | .278738    -.330931 -.0636129 .127695   .645269    -.37313  
+               | .181387    .0175177 -.109373  -.0842121 -.00579485 -.28904  
+               | -.0897273  -.357747 .0394609  .281164   -.32376    -.508571 
+               | -.00779127 .080533  .485993   .0152504  .318467    -.0354616
+               | .091828    .285434  -.641126  .323891   -.0936544  -.0475192
+               | -.23277    -.569208 -.360463  -.127208  -.144131   .166691  
+               | -.41609    .111251  -.220639  .417497   .399399    -.0792484
+               | .262495    .0747623 -.0367352 .0137386  -.0441806  .248257  
+               | .352222    .43251   -.0761961 .150879   -.0524196  -.110043 
+               | .265256    -.242179 .306708   .7236     -.236879   .269692  
+               | .51068     -.142759 -.0770441 -.233553  -.161111   -.294916 
+               | -.348465   .257248  .22232    .0287713  -.318621   -.497548 
+
+         12                                                                  
+     RR     &lt;----------------------------------------------------------------
+       53      | .409642   .0932651  -.0489842 .127274   -.698196  .343166   
+               | .437938   .55024    .565887   -.223659  .115315   -.072463  
+               | .371333   -.393548  -.0292137 -.216358  .191764   .456632   
+               | -.309475  .419368   -.11574   -.208793  .0489245  .372494   
+               | .0467424  .228516   -.385956  .230435   .19515    .222109   
+               | .250774   .131081   -.27622   -.241195  .112536   -.413502  
+               | -.285925  -.0416247 -.240923  -.617916  -.306378  -.0890825 
+               | -.0952472 -.196698  .199861   .355998   -.349078  -.133132  
+               | -.155527  .0656166  .0763583  .393519   .288769   -.060593  
+               | -.218964  -.248338  .489768   -.210814  -.0915731 -.125286  
+               | .199112   -.41337   .0745986  -.151334  .315891   .17688    
+               | -.372912  .105413   .29767    -.0366188 .0450206  .482794   
+
+         5                                                              5
+     RR    &lt;------------------------------------------------------- RR    : 4
+       53     | -.67986  -.314387  .266634  .10376   .597571    |     53
+              | .011089  -.0216509 -.466133 .882608  .0559598   |
+              | -.100377 .927993   .220916  .124605  .253818    |
+              | -.562364 .0587547  .259779  .193793  -.758455   |
+              | -.459716 .189918   -.771581 -.396428 -.00999282 |
+     ------------------------------------------------------------------------
+                                                                             
+
+
+
+                               8
+     --------------------- RR    : 1
+     6115   .354274    |     53
+     90387  -.42414    |
+     02919  -.00991045 |
+     09775  -.824256   |
+     6524   .00251973  |
+     47435  -.0484808  |
+     780049 -.0728648  |
+     559336 .0862144   |
+
+                                                                           12
+     ----------------------------------------------------------------- RR    
+      -.280374  -.0783132 .28273    .229054   -.140167  -.00686699 |     53
+      .153303   .781732   .190231   -.436235  -.0354612 -.0425185  |
+      .0478373  -.338573  -.0699034 -.369088  .135706   -.378737   |
+      .756765   -.164423  .212965   -.0511157 .0703199  .0413875   |
+      .338731   -.0464741 .267142   .331848   .228482   -.180355   |
+      .256978   -.100693  .27294    -.104159  -.277277  .434443    |
+      .127136   .103344   -.550512  -.150677  -.235241  .133262    |
+      .114938   -.108461  .00708927 -.0855039 -.759786  -.500774   |
+      -.14532   -.365862  .134486   -.460497  -.107647  .498741    |
+      -.0207342 .253803   .0212025  .147634   -.014881  .192776    |
+      .298369   -.0133253 -.567777  .285384   -.0609097 .220645    |
+      -.0467394 .0889065  .209174   .390014   -.422512  .169111    |
+
+                                                                       12
+     ------------------------------------------------------------- RR     : 3
+     -.159003 -.302798 .0547485  .0541313  .0972685  -.259421  |     53
+     -.031799 .144407  .152352   -.0630421 -.256868  .0401825  |
+     -.239502 .237218  -.453189  -.246814  -.158924  .0953569  |
+     .102106  -.401257 -.0739132 -.523936  .10186    .261609   |
+     -.280777 -.120544 .144159   .441453   -.453851  .375644   |
+     -.556437 -.091209 -.0286065 -.028667  .508657   .153284   |
+     -.226562 .189958  .250644   -.0712865 -.414855  -.217771  |
+     -.271929 .212036  .251256   -.415901  -.0852799 .532633   |
+     -.46663  -.172028 -.0257508 -.326515  -.215258  -.568164  |
+     -.230163 -.552391 -.294833  .288541   -.148419  .177944   |
+     .0501992 -.330977 .709884   -.0777603 .0872107  -.0168893 |
+     -.344887 .349302  .154501   .296642   .410933   -.0553848 |
+     ------------------------------------------------------------------------
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     : 2
+
+o8 : Sequence</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p><span class="tt">U</span> is a map from the SVD complex of C, to C.  h is a HashTable whose values are the (putative) ranks of the homology groups. Note that the entries of the matrices of this complex are the singular values, but they are not on the main diagonal.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : source U
+
+         2         8         12         12         5
+o9 = RR    &lt;-- RR    &lt;-- RR     &lt;-- RR     &lt;-- RR
+       53        53        53         53         53
+                                                
+     0         1         2          3          4
+
+o9 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : (source U).dd
+
+              2                                    8
+o10 = 0 : RR    &lt;----------------------------- RR    : 1
+            53     | 34.2783 0 0 0 0 0 0 0 |     53
+                   | 0       0 0 0 0 0 0 0 |
+
+              8                                                        12
+      1 : RR    &lt;------------------------------------------------- RR     : 2
+            53     | 0       0       0       0 0 0 0 0 0 0 0 0 |     53
+                   | 160.387 0       0       0 0 0 0 0 0 0 0 0 |
+                   | 0       85.9914 0       0 0 0 0 0 0 0 0 0 |
+                   | 0       0       40.2416 0 0 0 0 0 0 0 0 0 |
+                   | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                   | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                   | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                   | 0       0       0       0 0 0 0 0 0 0 0 0 |
+
+              12                                                        12
+      2 : RR     &lt;------------------------------------------------- RR     : 3
+            53      | 0       0       0       0 0 0 0 0 0 0 0 0 |     53
+                    | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                    | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                    | 252.014 0       0       0 0 0 0 0 0 0 0 0 |
+                    | 0       179.404 0       0 0 0 0 0 0 0 0 0 |
+                    | 0       0       55.8422 0 0 0 0 0 0 0 0 0 |
+                    | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                    | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                    | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                    | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                    | 0       0       0       0 0 0 0 0 0 0 0 0 |
+                    | 0       0       0       0 0 0 0 0 0 0 0 0 |
+
+              12                                                5
+      3 : RR     &lt;----------------------------------------- RR    : 4
+            53      | 0       0       0       0       0 |     53
+                    | 0       0       0       0       0 |
+                    | 0       0       0       0       0 |
+                    | 186.288 0       0       0       0 |
+                    | 0       138.149 0       0       0 |
+                    | 0       0       113.687 0       0 |
+                    | 0       0       0       36.8099 0 |
+                    | 0       0       0       0       0 |
+                    | 0       0       0       0       0 |
+                    | 0       0       0       0       0 |
+                    | 0       0       0       0       0 |
+                    | 0       0       0       0       0 |
+
+o10 : ComplexMap</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>The algorithms in this package work well in many cases, but it would be nice if a numeric analyst would improve the algorithms!</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Compute the SVD decomposition of a chain complex over RR" href="___S__V__D__Complex.html">SVDComplex</a> -- Compute the SVD decomposition of a chain complex over RR</span></li>
+          <li><span><a title="Estimate the homology of a chain complex over RR with the SVD decomposition" href="___S__V__D__Homology.html">SVDHomology</a> -- Estimate the homology of a chain complex over RR with the SVD decomposition</span></li>
+        </ul>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Authors</h2>
+            <ul>
+              <li><a href="http://www.math.uni-sb.de/ag/schreyer/">Frank-Olaf Schreyer</a><span> &lt;<a href="mailto:schreyer%40math.uni-sb.de">schreyer@math.uni-sb.de</a>></span></li>
+              <li><a href="http://www.math.cornell.edu/~mike">Mike Stillman</a><span> &lt;<a href="mailto:mike%40math.cornell.edu">mike@math.cornell.edu</a>></span></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>0.3</b> of SVDComplexes, released <b>May 23, 2018</b>.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{SVDComplexesSource,
+  title = {{SVDComplexes: A \emph{Macaulay2} package. Version~0.3}},
+  author = {Frank-Olaf Schreyer and Mike Stillman},
+  howpublished = {A \emph{Macaulay2} package available at
+    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Functions and commands                  <ul>
+                    <li><span><a title="check the Penrose relations for the pseudo inverse" href="_are__Pseudo__Inverses.html">arePseudoInverses</a> -- check the Penrose relations for the pseudo inverse</span></li>
+                    <li><span><span class="tt">checkSVDComplex</span> (missing documentation)<!--tag: checkSVDComplex-->
+</span></li>
+                    <li><span><a title="lists of positions, where they coincide up to threshold" href="_common__Entries.html">commonEntries</a> -- lists of positions, where they coincide up to threshold</span></li>
+                    <li><span><a title="compute the euclidean distance of two chain complexes" href="_euclidean__Distance.html">euclideanDistance</a> -- compute the euclidean distance of two chain complexes</span></li>
+                    <li><span><a title="compute the laplacians of a chain complex" href="_laplacians.html">laplacians</a> -- compute the laplacians of a chain complex</span></li>
+                    <li><span><a title="approximate rank of a matrix, using SVD" href="_numeric__Rank.html">numericRank</a> -- approximate rank of a matrix, using SVD</span></li>
+                    <li><span><a title="compute a nearby complex with the projection method" href="_project__To__Complex.html">projectToComplex</a> -- compute a nearby complex with the projection method</span></li>
+                    <li><span><a title="compute the pseudoInverse of a chain complex" href="_pseudo__Inverse.html">pseudoInverse</a> -- compute the pseudoInverse of a chain complex</span></li>
+                    <li><span><span class="tt">pseudoInverse1</span> (missing documentation)<!--tag: pseudoInverse1-->
+</span></li>
+                    <li><span><a title="Compute the SVD decomposition of a chain complex over RR" href="___S__V__D__Complex.html">SVDComplex</a> -- Compute the SVD decomposition of a chain complex over RR</span></li>
+                    <li><span><a title="Estimate the homology of a chain complex over RR with the SVD decomposition" href="___S__V__D__Homology.html">SVDHomology</a> -- Estimate the homology of a chain complex over RR with the SVD decomposition</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><kbd>arePseudoInverses(Complex,Complex)</kbd> -- see <span><a title="check the Penrose relations for the pseudo inverse" href="_are__Pseudo__Inverses.html">arePseudoInverses</a> -- check the Penrose relations for the pseudo inverse</span></span></li>
+                    <li><span><kbd>arePseudoInverses(Matrix,Matrix)</kbd> -- see <span><a title="check the Penrose relations for the pseudo inverse" href="_are__Pseudo__Inverses.html">arePseudoInverses</a> -- check the Penrose relations for the pseudo inverse</span></span></li>
+                    <li><span><kbd>commonEntries(List,List)</kbd> -- see <span><a title="lists of positions, where they coincide up to threshold" href="_common__Entries.html">commonEntries</a> -- lists of positions, where they coincide up to threshold</span></span></li>
+                    <li><span><kbd>euclideanDistance(Complex,Complex)</kbd> -- see <span><a title="compute the euclidean distance of two chain complexes" href="_euclidean__Distance.html">euclideanDistance</a> -- compute the euclidean distance of two chain complexes</span></span></li>
+                    <li><span><kbd>laplacians(Complex)</kbd> -- see <span><a title="compute the laplacians of a chain complex" href="_laplacians.html">laplacians</a> -- compute the laplacians of a chain complex</span></span></li>
+                    <li><span><kbd>numericRank(Matrix)</kbd> -- see <span><a title="approximate rank of a matrix, using SVD" href="_numeric__Rank.html">numericRank</a> -- approximate rank of a matrix, using SVD</span></span></li>
+                    <li><span><kbd>numericRank(MutableMatrix)</kbd> -- see <span><a title="approximate rank of a matrix, using SVD" href="_numeric__Rank.html">numericRank</a> -- approximate rank of a matrix, using SVD</span></span></li>
+                    <li><span><kbd>numericRank(RR,Matrix)</kbd> -- see <span><a title="approximate rank of a matrix, using SVD" href="_numeric__Rank.html">numericRank</a> -- approximate rank of a matrix, using SVD</span></span></li>
+                    <li><span><kbd>numericRank(RR,MutableMatrix)</kbd> -- see <span><a title="approximate rank of a matrix, using SVD" href="_numeric__Rank.html">numericRank</a> -- approximate rank of a matrix, using SVD</span></span></li>
+                    <li><span><kbd>projectToComplex(Complex,HashTable)</kbd> -- see <span><a title="compute a nearby complex with the projection method" href="_project__To__Complex.html">projectToComplex</a> -- compute a nearby complex with the projection method</span></span></li>
+                    <li><span><kbd>pseudoInverse(Complex)</kbd> -- see <span><a title="compute the pseudoInverse of a chain complex" href="_pseudo__Inverse.html">pseudoInverse</a> -- compute the pseudoInverse of a chain complex</span></span></li>
+                    <li><span><span class="tt">pseudoInverse1(Complex)</span> (missing documentation)<!--tag: (pseudoInverse1,Complex)-->
+</span></li>
+                    <li><span><span class="tt">pseudoInverse1(Matrix)</span> (missing documentation)<!--tag: (pseudoInverse1,Matrix)-->
+</span></li>
+                    <li><span><kbd>SVDComplex(Complex)</kbd> -- see <span><a title="Compute the SVD decomposition of a chain complex over RR" href="___S__V__D__Complex.html">SVDComplex</a> -- Compute the SVD decomposition of a chain complex over RR</span></span></li>
+                    <li><span><kbd>SVDComplex(Complex,Complex)</kbd> -- see <span><a title="Compute the SVD decomposition of a chain complex over RR" href="___S__V__D__Complex.html">SVDComplex</a> -- Compute the SVD decomposition of a chain complex over RR</span></span></li>
+                    <li><span><kbd>SVDHomology(Complex)</kbd> -- see <span><a title="Estimate the homology of a chain complex over RR with the SVD decomposition" href="___S__V__D__Homology.html">SVDHomology</a> -- Estimate the homology of a chain complex over RR with the SVD decomposition</span></span></li>
+                    <li><span><kbd>SVDHomology(Complex,Complex)</kbd> -- see <span><a title="Estimate the homology of a chain complex over RR with the SVD decomposition" href="___S__V__D__Homology.html">SVDHomology</a> -- Estimate the homology of a chain complex over RR with the SVD decomposition</span></span></li>
+                  </ul>
+                </li>
+                <li>Symbols                  <ul>
+                    <li><span><a title="Option for SVDHomology and SVDComplex" href="___Laplacian.html">Laplacian</a> -- Option for SVDHomology and SVDComplex</span></li>
+                    <li><span><span class="tt">newChainComplexMap</span> (missing documentation)<!--tag: newChainComplexMap-->
+</span></li>
+                    <li><span><a title="Option for SVDHomology and SVDComplex" href="___Projection.html">Projection</a> -- Option for SVDHomology and SVDComplex</span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="SVD (singular value decomposition) of a complex over the reals and related functions" href="index.html">SVDComplexes</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">SVDComplexes.m2</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SVDComplexes.m2:920:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

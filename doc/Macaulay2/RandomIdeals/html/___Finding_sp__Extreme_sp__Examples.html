@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Finding Extreme Examples -- Ways to use random ideals to search for (counter)-examples</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="creating random ideals of various sorts" href="index.html">RandomIdeals</a> :: <a title="Ways to use random ideals to search for (counter)-examples" href="___Finding_sp__Extreme_sp__Examples.html">Finding Extreme Examples</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_ideal__Chain__From__Shelling.html">next</a> | <a href="___Alexander__Probability.html">previous</a> | <a href="_ideal__Chain__From__Shelling.html">forward</a> | <a href="___Alexander__Probability.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Finding Extreme Examples -- Ways to use random ideals to search for (counter)-examples</h1>
+      <div>
+        <div>
+          <p>A common use of Macaulay2 is to look for extreme or particularly interesting examples. Here are some examples of how this may be done.</p>
+          <p>Supposing first that some space of examples is finite; for example, we might be interested in monomial ideals with a certain number of generators of a certain degree d. Suppose, to be concrete, that we want to compare the maximum degree of a first syzygy with the regularity of the ideal, and also with the maximum degree of the last syzygy. (To make the comparison interesting, it seems reasonable to subtract i from the maximum degree of an i-th syzygy.)</p>
+        </div>
+        <div>
+          <p>We may have no idea where to look for extreme examples, and it seems that examples with small numbers of variables and generators may not show the range of phenomena that actually occur. In large degree there may be too many examples to search systematically; so instead we may choose many examples at random, and hope to see a pattern.</p>
+          <p>Here is a simple example First we tally the projective dimensions of 500 random square-free monomial ideals (what's the average?), then looking how big the difference between the regularity of R/I and the &quot;relation degree&quot;-2 can be. It turns out this the differences are rather small, only 1 in a typical run of 5000. So one might look for ideals with a difference of 2, as in the following (in a real run, one would make the number of iterations much bigger; here we keep it small so that Macaulay2 doesn't take too long to build it's documentation files.)</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : kk=ZZ/101
+
+o1 = kk
+
+o1 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : S=kk[vars(0..5)]
+
+o2 = S
+
+o2 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : L=for n from 1 to 100 list res randomSquareFreeMonomialIdeal(10:3,S);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : tally apply(L, F -> length F)
+
+o4 = Tally{3 => 20}
+           4 => 80
+
+o4 : Tally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : tally apply(L, F -> regularity F - ((max flatten degrees F_2) - 2))
+
+o5 = Tally{0 => 96}
+           1 => 4
+
+o5 : Tally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : L=for n from 1 to 500 list res randomSquareFreeMonomialIdeal(10:3,S);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : scan(L, F -> if 1&lt;(regularity F - (max flatten degrees F_2) + 2) then print F.dd_1)</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>A typical problem might be to find how high the regularity of R/I can be when R has reasonably few variables, and the degrees of the generators of I are reasonably small; despite the wild examples of Mayr-Mayer, we don't know how to make examples with large regularity without letting the number of variables become large. The following program computes &quot;rep&quot; examples of random ideals with monomial and binomial generators, and prints any whose regularity exceeds the number &quot;bound&quot;</p>
+          <p></p>
+          <p>looper = (rep,bound, L1, L2) -> (for i from 1 to rep do ( if i % 1000 == 0 then &lt;&lt; &quot;.&quot; &lt;&lt; flush; J := randomMonomialIdeal(L1,S) + randomBinomialIdeal(L2,S); m := regularity coker gens J; if m >= bound then &lt;&lt; &quot;reg &quot; &lt;&lt; m &lt;&lt; &quot; &quot; &lt;&lt; toString J &lt;&lt; endl;))</p>
+          <p></p>
+          <p>For example: kk=ZZ/2 S=kk[a,b,c,d] looper(30000,10,{4},{4,4}) -- finds examples with on monomial of degree 4 and 2 binomials of degree 4. The largest largest regularity it has found (and the largest I know for an ideal in 4 variables of degree 4) is 14. Here is an example it found: ideal(a*b^3,a^4+b^4,b*c^3+a*d^3)</p>
+          <p>Similarly:</p>
+          <p>looper(30000,10,{4,4},{4}) -- looks for examples with 2 monomials and 1 binomial of degree 4. Suggestively, the largest regularity it found was also 14: betti res ideal(c^4,b^4,a^3*c+b*d^3) -- reg 14</p>
+        </div>
+        <div>
+          <p>A more sophisticated and difficult situation arises when the space of examples is not necessarily finite (except over a finite field) but is a unirational variety (such as the space of ideals generated by (at most) a certain number of forms of certain given degrees, or the space of smooth curves of genus g for some g &lt;= 14) one may be able to do a search for random examples, taking a rational parametrization of the space of examples and plugging in random inputs.</p>
+          <p>If the &quot;interesting&quot; examples live in a subvariety whose codimension is small, then, working over a small field (say 2,3, or 5 elements) one might hope to see elements of the subvariety &quot;not too rarely&quot;. This principle has been used to good effect for example by (Caviglia and Decker-Schreyer, ****--Schreyer).</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="randomIdeal made from a given set of monomials" href="_random__Ideal.html">randomIdeal</a> -- randomIdeal made from a given set of monomials</span></li>
+          <li><span><a title="random monomial ideal with given degree generators" href="_random__Monomial__Ideal.html">randomMonomialIdeal</a> -- random monomial ideal with given degree generators</span></li>
+          <li><span><a title="random square-free monomial ideal with given degree generators" href="_random__Square__Free__Monomial__Ideal.html">randomSquareFreeMonomialIdeal</a> -- random square-free monomial ideal with given degree generators</span></li>
+          <li><span><a title="Choose a random monomial of given degree in a given ring" href="_random__Monomial.html">randomMonomial</a> -- Choose a random monomial of given degree in a given ring</span></li>
+          <li><span><a title="randomBinomialIdeal with binomials of given degrees" href="_random__Binomial__Ideal.html">randomBinomialIdeal</a> -- randomBinomialIdeal with binomials of given degrees</span></li>
+          <li><span><a title="randomPureBinomialIdeal with binomials of given degrees" href="_random__Pure__Binomial__Ideal.html">randomPureBinomialIdeal</a> -- randomPureBinomialIdeal with binomials of given degrees</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">RandomIdeals.m2:1363:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

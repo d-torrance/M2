@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Filtrations and tensor product complexes</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="spectral sequences" href="index.html">SpectralSequences</a> :: <a href="___Filtrations_spand_sptensor_spproduct_spcomplexes.html">Filtrations and tensor product complexes</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_hilbert__Polynomial_lp__Spectral__Sequence__Page_rp.html">next</a> | <a href="___Filtrations_spand_sphomomorphism_spcomplexes.html">previous</a> | <a href="_hilbert__Polynomial_lp__Spectral__Sequence__Page_rp.html">forward</a> | <a href="___Filtrations_spand_sphomomorphism_spcomplexes.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Filtrations and tensor product complexes</h1>
+      <div>
+        <div>
+          <p>Let $S$ be a commutative ring and let $B : \dots \rightarrow B_{i} \rightarrow B_{i - 1} \rightarrow \dots $ and $C : \dots \rightarrow C_{i} \rightarrow C_{i - 1} \rightarrow \dots $ be chain complexes.</p>
+          <p>For all integers $p$ and $q$ let $K_{p,q} := B_p \otimes_S C_q$, let $d'_{p,q} : K_{p,q} \rightarrow K_{p - 1, q}$ denote the homorphism $\partial^B_{p} \otimes 1$, and let $d''_{p,q} : K_{p,q} \rightarrow K_{p, q - 1} $ denote the homorphism $(-1)^p \otimes \partial_q^C $.</p>
+          <p>The chain complex $B \otimes_S C$ is given by $ (B \otimes_S C)_k := \oplus_{p + q = k} B_p \otimes_S C_q$ and the differentials by $\partial := d' + d''$. It carries two natural ascending filtrations $F'B \otimes_S C$ and $F'' B \otimes_S C$.</p>
+          <p>The first is obtained by letting $F'_n (B \otimes_S C)$ be the chain complex determined by setting $F'_n (B \otimes_S C)_k := \oplus_{p + q = k , p \leq n} B_{p} \otimes_S C_q$ and the differentials $\partial := d' + d''$.</p>
+          <p>The second is obtained by letting $F''_n (B \otimes_S C)$ be the chain complex determined by setting $F''_n (B \otimes_S C)_k := \oplus_{p + q = k , q \leq n} B_{p} \otimes_S C_q$ and the differentials $\partial := d' + d''$.</p>
+          <p>In Macaulay2 we can compute these filtered complexes as follows.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : A = QQ[x,y,z,w];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : B = freeResolution monomialCurveIdeal(A,{1,2,3});</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : C = freeResolution monomialCurveIdeal(A,{1,3,4});</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : F' = (filteredComplex B) ** C
+
+o4 = -1 : image 0 &lt;-- image 0 &lt;-- image 0 &lt;-- image 0 &lt;-- image 0 &lt;-- image 0
+                                                                       
+          0           1           2           3           4           5
+
+     0 : image | 1 | &lt;-- image {2} | 1 0 0 0 0 0 0 | &lt;-- image {4} | 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image {5} | 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image 0 &lt;-- image 0
+                               {3} | 0 1 0 0 0 0 0 |           {4} | 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |                  
+         0                     {3} | 0 0 1 0 0 0 0 |           {4} | 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |     4           5
+                               {3} | 0 0 0 1 0 0 0 |           {4} | 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 0 0 |           {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 0 0 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 0 0 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                         1                                     {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                                                                                     {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                         2                                                           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                                                                                     {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                                                                                
+                                                                                                               3
+
+     1 : image | 1 | &lt;-- image {2} | 1 0 0 0 0 0 0 | &lt;-- image {4} | 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image {5} | 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image {7} | 1 0 0 0 0 0 0 0 0 0 0 | &lt;-- image 0
+                               {3} | 0 1 0 0 0 0 0 |           {4} | 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 1 0 0 0 0 0 0 0 0 0 |      
+         0                     {3} | 0 0 1 0 0 0 0 |           {4} | 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 1 0 0 0 0 0 0 0 0 |     5
+                               {3} | 0 0 0 1 0 0 0 |           {4} | 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 1 0 0 |           {4} | 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 1 0 |           {5} | 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 0 1 |           {5} | 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |
+                         1                                     {4} | 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 |      
+                                                               {4} | 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 |     4
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                                                                                     {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                         2                                                           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                                                                                     {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                                                                                
+                                                                                                               3
+
+          1      7      18      21      11      2
+     2 : A  &lt;-- A  &lt;-- A   &lt;-- A   &lt;-- A   &lt;-- A
+                                                
+         0      1      2       3       4       5
+
+o4 : FilteredComplex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : F'' = B ** (filteredComplex C)
+
+o5 = -1 : image 0 &lt;-- image 0 &lt;-- image 0 &lt;-- image 0 &lt;-- image 0 &lt;-- image 0
+                                                                       
+          0           1           2           3           4           5
+
+     0 : image | 1 | &lt;-- image {2} | 0 0 0 0 0 0 0 | &lt;-- image {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image 0 &lt;-- image 0 &lt;-- image 0
+                               {3} | 0 0 0 0 0 0 0 |           {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |                              
+         0                     {3} | 0 0 0 0 0 0 0 |           {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |     3           4           5
+                               {3} | 0 0 0 0 0 0 0 |           {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 1 0 0 |           {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 1 0 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 0 1 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                         1                                     {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 |
+                                                          
+                                                         2
+
+     1 : image | 1 | &lt;-- image {2} | 1 0 0 0 0 0 0 | &lt;-- image {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image 0 &lt;-- image 0
+                               {3} | 0 1 0 0 0 0 0 |           {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |                  
+         0                     {3} | 0 0 1 0 0 0 0 |           {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |     4           5
+                               {3} | 0 0 0 1 0 0 0 |           {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 1 0 0 |           {4} | 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 1 0 |           {5} | 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 0 1 |           {5} | 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                         1                                     {4} | 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {4} | 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 |
+                                                                                                                     {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 |
+                                                         2                                                           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 |
+                                                                                                                     {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 |
+                                                                                                                
+                                                                                                               3
+
+     2 : image | 1 | &lt;-- image {2} | 1 0 0 0 0 0 0 | &lt;-- image {4} | 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image {7} | 0 0 0 0 0 0 0 0 0 0 0 | &lt;-- image 0
+                               {3} | 0 1 0 0 0 0 0 |           {4} | 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |      
+         0                     {3} | 0 0 1 0 0 0 0 |           {4} | 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 0 |     5
+                               {3} | 0 0 0 1 0 0 0 |           {4} | 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 1 0 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 1 0 0 |           {4} | 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 1 0 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 1 0 |           {5} | 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 1 0 0 0 0 0 |
+                               {2} | 0 0 0 0 0 0 1 |           {5} | 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 1 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 1 0 0 0 |
+                         1                                     {4} | 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 1 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 1 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 |           {7} | 0 0 0 0 0 0 0 0 0 0 1 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 |      
+                                                               {4} | 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 |     4
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 |
+                                                               {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 |           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 |
+                                                               {3} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 |           {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 |
+                                                                                                                     {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 |
+                                                         2                                                           {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 |
+                                                                                                                     {6} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 |
+                                                                                                                
+                                                                                                               3
+
+          1      7      18      21      11      2
+     3 : A  &lt;-- A  &lt;-- A   &lt;-- A   &lt;-- A   &lt;-- A
+                                                
+         0      1      2       3       4       5
+
+o5 : FilteredComplex</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The pages of the resulting spectral sequences take the form:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : E' = prune spectralSequence F';</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : E'' = prune spectralSequence F'';</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : E' ^0
+
+     +------+------+------+
+     | 1    | 3    | 2    |
+o8 = |A     |A     |A     |
+     |      |      |      |
+     |{0, 3}|{1, 3}|{2, 3}|
+     +------+------+------+
+     | 4    | 12   | 8    |
+     |A     |A     |A     |
+     |      |      |      |
+     |{0, 2}|{1, 2}|{2, 2}|
+     +------+------+------+
+     | 4    | 12   | 8    |
+     |A     |A     |A     |
+     |      |      |      |
+     |{0, 1}|{1, 1}|{2, 1}|
+     +------+------+------+
+     | 1    | 3    | 2    |
+     |A     |A     |A     |
+     |      |      |      |
+     |{0, 0}|{1, 0}|{2, 0}|
+     +------+------+------+
+
+o8 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : E' ^ 1
+
+     +----------------------------------------+----------------------------------------------------------------------------------------------------+------------------------------------------------------------------------+
+o9 = |cokernel | yz-xw z3-yw2 xz2-y2w y3-x2z ||cokernel {2} | yz-xw 0     0     z3-yw2 xz2-y2w y3-x2z 0      0       0      0      0       0      ||cokernel {3} | yz-xw 0     z3-yw2 xz2-y2w y3-x2z 0      0       0      ||
+     |                                        |         {2} | 0     yz-xw 0     0      0       0      z3-yw2 xz2-y2w y3-x2z 0      0       0      ||         {3} | 0     yz-xw 0      0       0      z3-yw2 xz2-y2w y3-x2z ||
+     |{0, 0}                                  |         {2} | 0     0     yz-xw 0      0       0      0      0       0      z3-yw2 xz2-y2w y3-x2z ||                                                                        |
+     |                                        |                                                                                                    |{2, 0}                                                                  |
+     |                                        |{1, 0}                                                                                              |                                                                        |
+     +----------------------------------------+----------------------------------------------------------------------------------------------------+------------------------------------------------------------------------+
+
+o9 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : E'' ^0
+
+      +------+------+------+------+
+      | 2    | 8    | 8    | 2    |
+o10 = |A     |A     |A     |A     |
+      |      |      |      |      |
+      |{0, 2}|{1, 2}|{2, 2}|{3, 2}|
+      +------+------+------+------+
+      | 3    | 12   | 12   | 3    |
+      |A     |A     |A     |A     |
+      |      |      |      |      |
+      |{0, 1}|{1, 1}|{2, 1}|{3, 1}|
+      +------+------+------+------+
+      | 1    | 4    | 4    | 1    |
+      |A     |A     |A     |A     |
+      |      |      |      |      |
+      |{0, 0}|{1, 0}|{2, 0}|{3, 0}|
+      +------+------+------+------+
+
+o10 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : E'' ^1
+
+      +------------------------------+----------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------+----------------------------------+
+o11 = |cokernel | z2-yw yz-xw y2-xz ||cokernel {2} | z2-yw yz-xw y2-xz 0     0     0     0     0     0     0     0     0     ||cokernel {4} | z2-yw yz-xw y2-xz 0     0     0     0     0     0     0     0     0     ||cokernel {5} | z2-yw yz-xw y2-xz ||
+      |                              |         {3} | 0     0     0     z2-yw yz-xw y2-xz 0     0     0     0     0     0     ||         {4} | 0     0     0     z2-yw yz-xw y2-xz 0     0     0     0     0     0     ||                                  |
+      |{0, 0}                        |         {3} | 0     0     0     0     0     0     z2-yw yz-xw y2-xz 0     0     0     ||         {4} | 0     0     0     0     0     0     z2-yw yz-xw y2-xz 0     0     0     ||{3, 0}                            |
+      |                              |         {3} | 0     0     0     0     0     0     0     0     0     z2-yw yz-xw y2-xz ||         {4} | 0     0     0     0     0     0     0     0     0     z2-yw yz-xw y2-xz ||                                  |
+      |                              |                                                                                        |                                                                                        |                                  |
+      |                              |{1, 0}                                                                                  |{2, 0}                                                                                  |                                  |
+      +------------------------------+----------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------+----------------------------------+
+
+o11 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a href="___Balancing_sp__Tor.html">Balancing Tor</a></span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SpectralSequences.m2:1272:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

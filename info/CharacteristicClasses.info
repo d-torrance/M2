@@ -1,0 +1,3337 @@
+ -*- coding: utf-8 -*- This is CharacteristicClasses.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* CharacteristicClasses: (CharacteristicClasses).  CSM classes, Segre classes and the Euler characteristic
+END-INFO-DIR-ENTRY
+
+
+File: CharacteristicClasses.info, Node: Top, Next: bertiniCheck, Up: (dir)
+
+CharacteristicClasses -- Chern classes and other characteristic classes of subschemes of certain smooth toric varieties, including products of projective spaces
+****************************************************************************************************************************************************************
+
+Description
+===========
+
+The package CharacteristicClasses provides commands to compute the Chern class,
+Chern-Schwartz-MacPherson class Segre class and Euler characteristic of closed
+subschemes of certain smooth complete varieties, including products of
+projective spaces \PP^{n_1} x ... x \PP^{n_m}. In particular the methods of
+this package are applicable for toric varieties for which all Cartier divisors
+are numerically effective (nef), see [7] for details. For simplicity a method
+(*note CheckToricVarietyValid: CheckToricVarietyValid,) is provided which
+allows the user to determine if these methods can be applied to a given object
+of class NormalToricVariety. Note that to perform computations involving toric
+varieties it is required that the package NormalToricVarieties is also loaded.
+
+More precisely the CharacteristicClasses package computes the pushforward of
+the respective classes to the Chow ring of either a product of projective space
+or of the appropriate toric variety. In the case where the input is an ideal I
+(in the appropriate graded coordinate ring) defining a subscheme V of \PP^{n_1}
+x ... x \PP^{n_m} the characteristic class is returned as an element of the
+Chow ring A^*(\PP^{n_1} x ... x
+\PP^{n_m})=\ZZ[h_1,...,h_m]/(h_1^{n_1+1},...,h_m^{n_m+1}); here h_i represents
+(the pullback of) the rational equivalence class of a hyperplane in \PP^i. In
+the case where V is a subscheme of a smooth toric variety X_{\Sigma} with total
+coordinate ring (that is Cox ring) R the characteristic classes will be
+represented as elements of the Chow ring of X, A^*(X_{\Sigma})=R/(I+J) where I
+is the Stanley-Reisner Ideal of the fan \Sigma  and J is the ideal defined by
+linear relations among the rays. See Theorem 12.5.3 of "Toric varieties" by
+Cox, Little and Schenck.
+
+If V is smooth, then by definition the (total) Chern classes of V is the Chern
+classes of the tangent bundle T_V, that is c(V)=c(T_V)\cap [V]. The Chern
+classes are cycles in the Chow ring of V, i.e., linear combinations of
+subvarieties of V modulo rational equivalence.
+
+In practice all cycle classes will be represented in terms of integers
+multiplied by hyperplane classes. Consider, for example, a hypersurface V=V(f)
+in \PP^{n_1} x ... x \PP^{n_m} where f has multi-degree (d_1,...,d_m), then
+[V]=d_1h_1+...+d_mh_m. This extends linearly to linear combinations of cycles.
+Computing the Chern class of V is equivalent to computing the pushforward of
+the Chern classes to the Chow ring of the ambient space. Also by definition,
+the Segre classes of V a subscheme of X are the Segre classes of V in X, that
+is the Segre classes of the normal cone to V in X, C_VX. For definitions of the
+concepts used so far see, for example, "Intersection Theory" by W. Fulton.
+Chern-Schwartz-MacPherson (CSM) classes are a generalization of Chern classes
+of smooth schemes to possibly singular schemes with nice functorial properties
+including the a relation to the Euler characteristic.
+
+The functions computing characteristic classes in this package can have several
+different types of output, with the default form being objects of type
+QuotientRingElelement, that is elements in the appropriate Chow ring. See the
+function documentation for more details.
+
+This implementation offers several different algorithms to compute
+characteristic classes. For the general case of subschemes of smooth toric
+varieties or the case of products of projective spaces \PP^{n_1} x ... x
+\PP^{n_m} (with m>1) the computational method used is
+CompMethod=>ProjectiveDegree. These methods, in the toric case, are described
+in [7]. In the case of projective space see also [5]. The main computational
+step of this approach is the computation of the projective degrees. This can be
+done symbolically, using Gr&ouml;bner bases, or numerically using a package
+such as Bertini, however only the symbolic implementation is offered at
+present.
+
+To compute the CSM class the default method is inclusion-exclusion, which uses
+the inclusion-exclusion property of CSM classes to compute the CSM class for
+codimension greater than one (this is the option Method=>InclusionExclusion).
+When V is a complete intersection subscheme of an applicable toric variety then
+CSM(V) may also be computed Method=>DirectCompleteInt may also be used; this
+method is described in [6] and [7] and may offer a performance improvement in
+some applicable cases, particularly in projective space.
+
+In the special case where the ambient space is \PP^n the computational methods
+CompMethod=>PnResidual and CompMethod=>bertini may be used. These methods are
+described in [1, 2, 8]. The main step in this approach is the computation of
+the residuals. This can be done symbolically, using Gr&ouml;bner bases, and
+numerically, using the regenerative cascade implemented in Bertini. The
+regenerative cascade is described in [3].
+
+All algorithms are probabilistic but will succeed with high probability. In the
+case of the symbolic implementation of the ProjectiveDegree method practical
+experience and algorithm testing indicate that a finite field with over 25000
+elements is more than sufficient, i.e. using the finite field kk=ZZ/25073 the
+experimental chance of failure with the ProjectiveDegree algorithm on a variety
+of examples was less than 1/2000. Using kk=ZZ/32749 resulted in no failures in
+over 10000 attempts of several different examples. Read more under *note
+probabilistic algorithm: probabilistic algorithm,.
+
+References: \break [1] David Eklund, Christine Jost, Chris Peterson. A method
+to compute Segre classes, Journal of Algebra and Its Applications 12(2), 2013
+\break [2] Daniel J. Bates, Jonathan D. Hauenstein, Andrew J. Sommese, Charles
+W. Wampler. Bertini: Software for Numerical Algebraic Geometry, available at
+http://www.nd.edu/~sommese/bertini \break [3] Jonathan D. Hauenstein, Andrew J.
+Sommese, Charles W. Wampler. Regenerative cascade homotopies for solving
+polynomial systems, Applied Mathematics and Computation 218(4), 2011 \break [4]
+Christine Jost. An algorithm for computing the topological Euler characteristic
+of complex projective varieties, submitted, arXiv:1301.4128 [math.AG] \break
+[5] Martin Helmer. Algorithms to compute the topological Euler characteristic,
+Chern-Schwartz-Macpherson class and Segre class of projective varieties.
+Journal of Symbolic Computation, 2015. Preprint on arXiv at arXiv:1402.2930.
+\break [6] Martin Helmer. A Direct Algorithm to Compute the Topological Euler
+Characteristic and Chern-Schwartz-MacPherson Class of Projective Complete
+Intersection Varieties. (2014). arXiv preprint arXiv:1410.4113. \break [7]
+Martin Helmer. An Algorithm to Compute the Topological Euler Characteristic,
+the Chern-Schwartz-MacPherson Class and the Segre class of Subschemes of Some
+Smooth Complete Toric Varieties. (2015). arXiv preprint arXiv:1508.03785 \break
+[8]Sandra Di Rocco, David Eklund, Chris Peterson, and Andrew J. Sommese. Chern
+numbers of smooth varieties via homotopy continuation and intersection theory.
+Journal of symbolic computation 46, no. 1 (2011): 23-33.
+
+Authors
+=======
+
+  * Martin Helmer (see http://martin-helmer.com/ )
+    <martin.helmer@swansea.ac.uk>
+  * Christine Jost <christine.e.jost@gmail.com>
+
+Certification a gold star
+=========================
+
+Version 1.1 of this package was accepted for publication in volume 7 (see
+https://msp.org/jsag/2015/7-1/ ) of The Journal of Software for Algebra and
+Geometry (see https://msp.org/jsag/ ) on 5 June 2015, in the article Computing
+characteristic classes and the topological Euler characteristic of complex
+projective schemes (see https://msp.org/jsag/2015/7-1/p04.xhtml ) (DOI:
+10.2140/jsag.2015.7.31 (see https://doi.org/10.2140/jsag.2015.7.31 )). That
+version can be obtained from the journal (see
+https://msp.org/jsag/2015/7-1/jsag-v7-n1-x04-CharacteristicClasses.m2 ).
+
+Version
+=======
+
+This documentation describes version 2.1 of CharacteristicClasses, released
+June 24, 2025.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{CharacteristicClassesSource,                                           |
+|  title = {{CharacteristicClasses: CSM classes, Segre classes and            |
+|  author = {Martin Helmer and Christine Jost},                               |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2            |
+|}                                                                            |
+|                                                                             |
+|@article{CharacteristicClassesArticle,                                       |
+|  title = {{Computing characteristic classes and the topological             |
+|  author = {Martin Helmer and Christine Jost},                               |
+|  journal = {The Journal of Software for Algebra and Geometry},              |
+|  volume = {7},                                                              |
+|  year = {2015},                                                             |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+| the Euler characteristic. Version~2.1}},                                    |
+|                                                                             |
+|                                                                             |
+|/packages}}                                                                  |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|Euler characteristic of complex projective schemes}},                        |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note bertiniCheck: bertiniCheck, -- Checks whether the numerical
+        version of the algorithms using Bertini works
+      * *note CheckToricVarietyValid: CheckToricVarietyValid, -- Checks if the
+        input normal toric variety X is a valid choice for an ambient space
+        when computing characteristic classes of subschemes V of X
+      * *note Chern: Chern, -- The Chern class
+      * *note ChowRing: ChowRing, -- Computes the Chow ring of a product of
+        projective spaces m projective spaces given the coordinate ring
+      * *note ClassInChowRing: ClassInChowRing, -- Gives the class of a
+        hypersurface in the associated Chow ring of a product of projective
+        spaces
+      * *note ClassInToricChowRing: ClassInToricChowRing, -- Gives the class of
+        a hypersurface in the associated Chow ring of a toric variety
+      * *note CSM: CSM, -- The Chern-Schwartz-MacPherson class
+      * *note Euler: Euler, -- The Euler Characteristic
+      * *note EulerAffine: EulerAffine, -- The Euler Characteristic of an
+        affine variety.
+      * *note isMultiHomogeneous: isMultiHomogeneous, -- Checks if an ideal is
+        homogeneous with respect to the grading on its ring (i.e.
+        multi-homogeneous in the multi-graded case)
+      * *note MultiProjCoordRing: MultiProjCoordRing, -- A quick way to build
+        the coordinate ring of a product of projective spaces
+      * *note Segre: Segre, -- The Segre class of a subscheme
+      * *note ToricChowRing: ToricChowRing, -- Computes the Chow ring of a
+        normal toric variety
+  * Methods
+      * "Chern(Ideal)" -- see *note Chern: Chern, -- The Chern class
+      * "Chern(Ideal,Symbol)" -- see *note Chern: Chern, -- The Chern class
+      * "Chern(QuotientRing,Ideal)" -- see *note Chern: Chern, -- The Chern
+        class
+      * "ChowRing(Ring)" -- see *note ChowRing: ChowRing, -- Computes the Chow
+        ring of a product of projective spaces m projective spaces given the
+        coordinate ring
+      * "ChowRing(Ring,Symbol)" -- see *note ChowRing: ChowRing, -- Computes
+        the Chow ring of a product of projective spaces m projective spaces
+        given the coordinate ring
+      * "ClassInChowRing(QuotientRing,RingElement)" -- see *note
+        ClassInChowRing: ClassInChowRing, -- Gives the class of a hypersurface
+        in the associated Chow ring of a product of projective spaces
+      * "ClassInToricChowRing(QuotientRing,RingElement)" -- see *note
+        ClassInToricChowRing: ClassInToricChowRing, -- Gives the class of a
+        hypersurface in the associated Chow ring of a toric variety
+      * "CSM(Ideal)" -- see *note CSM: CSM, -- The Chern-Schwartz-MacPherson
+        class
+      * "CSM(Ideal,Symbol)" -- see *note CSM: CSM, -- The
+        Chern-Schwartz-MacPherson class
+      * "CSM(QuotientRing,Ideal)" -- see *note CSM: CSM, -- The
+        Chern-Schwartz-MacPherson class
+      * "CSM(QuotientRing,Ideal,MutableHashTable)" -- see *note CSM: CSM, --
+        The Chern-Schwartz-MacPherson class
+      * "Euler(Ideal)" -- see *note Euler: Euler, -- The Euler Characteristic
+      * "Euler(RingElement)" -- see *note Euler: Euler, -- The Euler
+        Characteristic
+      * "EulerAffine(Ideal)" -- see *note EulerAffine: EulerAffine, -- The
+        Euler Characteristic of an affine variety.
+      * "isMultiHomogeneous(Ideal)" -- see *note isMultiHomogeneous:
+        isMultiHomogeneous, -- Checks if an ideal is homogeneous with respect
+        to the grading on its ring (i.e. multi-homogeneous in the multi-graded
+        case)
+      * "isMultiHomogeneous(RingElement)" -- see *note isMultiHomogeneous:
+        isMultiHomogeneous, -- Checks if an ideal is homogeneous with respect
+        to the grading on its ring (i.e. multi-homogeneous in the multi-graded
+        case)
+      * "MultiProjCoordRing(List)" -- see *note MultiProjCoordRing:
+        MultiProjCoordRing, -- A quick way to build the coordinate ring of a
+        product of projective spaces
+      * "MultiProjCoordRing(Ring,List)" -- see *note MultiProjCoordRing:
+        MultiProjCoordRing, -- A quick way to build the coordinate ring of a
+        product of projective spaces
+      * "MultiProjCoordRing(Ring,Symbol,List)" -- see *note MultiProjCoordRing:
+        MultiProjCoordRing, -- A quick way to build the coordinate ring of a
+        product of projective spaces
+      * "MultiProjCoordRing(Symbol,List)" -- see *note MultiProjCoordRing:
+        MultiProjCoordRing, -- A quick way to build the coordinate ring of a
+        product of projective spaces
+      * "Segre(Ideal)" -- see *note Segre: Segre, -- The Segre class of a
+        subscheme
+      * "Segre(Ideal,Symbol)" -- see *note Segre: Segre, -- The Segre class of
+        a subscheme
+      * "Segre(QuotientRing,Ideal)" -- see *note Segre: Segre, -- The Segre
+        class of a subscheme
+  * Symbols
+      * *note CheckSmooth: CheckSmooth,
+      * "bertini" -- see *note CompMethod: CompMethod,
+      * *note CompMethod: CompMethod,
+      * "PnResidual" -- see *note CompMethod: CompMethod,
+      * "ProjectiveDegree" -- see *note CompMethod: CompMethod,
+      * *note IndsOfSmooth: IndsOfSmooth,
+      * *note InputIsSmooth: InputIsSmooth,
+      * "DirectCompleteInt" -- see *note Method: Method,
+      * "InclusionExclusion" -- see *note Method: Method,
+      * *note Method: Method,
+      * "ChowRingElement" -- see *note Output: Output,
+      * "HashForm" -- see *note Output: Output,
+      * "HashFormXL" -- see *note Output: Output,
+      * *note Output: Output,
+
+For the programmer
+==================
+
+The object *note CharacteristicClasses: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in CharacteristicClasses.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:1678:0.
+
+File: CharacteristicClasses.info, Node: bertiniCheck, Next: CheckSmooth, Prev: Top, Up: Top
+
+bertiniCheck -- Checks whether the numerical version of the algorithms using Bertini works
+******************************************************************************************
+
+  * Usage: 
+        bertiniCheck()
+
+Description
+===========
+
+The functions *note Chern: Chern,, *note Segre: Segre,, *note CSM: CSM, and
+*note Euler: Euler, have the option *note CompMethod: CompMethod,, which can be
+any of *note ProjectiveDegree: CompMethod,, *note PnResidual: CompMethod,, or
+*note bertini: CompMethod,. The option "bertini" uses the external program
+Bertini, which might not be installed on the user's system. The function
+bertiniCheck checks whether Bertini is properly installed and configured. See
+also *note configuring Bertini: configuring Bertini,.
+
+For the programmer
+==================
+
+The object *note bertiniCheck: bertiniCheck, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2349:0.
+
+File: CharacteristicClasses.info, Node: CheckSmooth, Next: CheckToricVarietyValid, Prev: bertiniCheck, Up: Top
+
+CheckSmooth
+***********
+
+Description
+===========
+
+The option CheckSmooth is only used by the commands *note CSM: CSM, and only
+when computing the CSM class of a toric variety. It is set to true by default.
+When true it will check if the toric variety is smooth before proceeding, if it
+is this will speed up computation; however checking for smoothness does take
+some time.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "NormalToricVarieties"                                     |
+|                                                                             |
+|o1 = NormalToricVarieties                                                    |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : U = toricProjectiveSpace 7                                              |
+|                                                                             |
+|o2 = U                                                                       |
+|                                                                             |
+|o2 : NormalToricVariety                                                      |
++-----------------------------------------------------------------------------+
+|i3 : time CSM U                                                              |
+| -- used 0.252891s (cpu); 0.212922s (thread); 0s (gc)                        |
+|                                                                             |
+|       7      6      5      4      3      2                                  |
+|o3 = 8x  + 28x  + 56x  + 70x  + 56x  + 28x  + 8x  + 1                        |
+|       7      7      7      7      7      7     7                            |
+|                                                                             |
+|                                                ZZ[x ..x ]                   |
+|                                                    0   7                    |
+|o3 : ------------------------------------------------------------------------|
+|     (x x x x x x x x , - x  + x , - x  + x , - x  + x , - x  + x , - x  + x |
+|       0 1 2 3 4 5 6 7     0    1     0    2     0    3     0    4     0    5|
+|-----------------------------------------------------------------------------|
+|-----------------------                                                      |
+|, - x  + x , - x  + x )                                                      |
+|     0    6     0    7                                                       |
++-----------------------------------------------------------------------------+
+|i4 : time CSM(U,CheckSmooth=>false)                                          |
+| -- used 0.420271s (cpu); 0.376967s (thread); 0s (gc)                        |
+|                                                                             |
+|       7      6      5      4      3      2                                  |
+|o4 = 8x  + 28x  + 56x  + 70x  + 56x  + 28x  + 8x  + 1                        |
+|       7      7      7      7      7      7     7                            |
+|                                                                             |
+|                                                ZZ[x ..x ]                   |
+|                                                    0   7                    |
+|o4 : ------------------------------------------------------------------------|
+|     (x x x x x x x x , - x  + x , - x  + x , - x  + x , - x  + x , - x  + x |
+|       0 1 2 3 4 5 6 7     0    1     0    2     0    3     0    4     0    5|
+|-----------------------------------------------------------------------------|
+|-----------------------                                                      |
+|, - x  + x , - x  + x )                                                      |
+|     0    6     0    7                                                       |
++-----------------------------------------------------------------------------+
+
+Functions with optional argument named CheckSmooth:
+===================================================
+
+  * "CSM(...,CheckSmooth=>...)" -- see *note CSM: CSM, -- The
+    Chern-Schwartz-MacPherson class
+
+For the programmer
+==================
+
+The object *note CheckSmooth: CheckSmooth, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2514:0.
+
+File: CharacteristicClasses.info, Node: CheckToricVarietyValid, Next: Chern, Prev: CheckSmooth, Up: Top
+
+CheckToricVarietyValid -- Checks if the input normal toric variety X is a valid choice for an ambient space when computing characteristic classes of subschemes V of X
+**********************************************************************************************************************************************************************
+
+  * Usage: 
+        CheckToricVarietyValid X
+  * Inputs:
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,, a normal toric variety which
+        is a candidate for an ambient space in which to perform characteristic
+        class computations
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, 
+
+Description
+===========
+
+Note that if you are working with subvarieties of some product of projective
+spaces \PP^{n_1}\times \cdots \times \PP^{n_m} then the ambient space is a
+valid choice for use with the ChacteristicsClasses package and there is no need
+to load the NormalToricVarieties Package or to check validity. For other cases
+the CheckToricVarietyValid method returns true if the input toric variety X may
+be used as an ambient space for other characteristic class computations, i.e.
+if this method returns true we may use methods such as CSM(X,I), Chern(X,I) and
+Segre(X,I) for I an ideal in the coordinate ring of X. We will see an example
+of a valid toric variety which is not a product of projective spaces and a
+smooth toric variety which is not valid.
+
++-----------------------------------------------------------------------+
+|i1 : needsPackage "NormalToricVarieties"                               |
+|                                                                       |
+|o1 = NormalToricVarieties                                              |
+|                                                                       |
+|o1 : Package                                                           |
++-----------------------------------------------------------------------+
+|i2 : Rho = {{1,0,0},{0,1,0},{0,0,1},{-1,-1,0},{0,0,-1}}                |
+|                                                                       |
+|o2 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, -1, 0}, {0, 0, -1}}        |
+|                                                                       |
+|o2 : List                                                              |
++-----------------------------------------------------------------------+
+|i3 : Sigma = {{0,1,2},{1,2,3},{0,2,3},{0,1,4},{1,3,4},{0,3,4}}         |
+|                                                                       |
+|o3 = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 3, 4}}|
+|                                                                       |
+|o3 : List                                                              |
++-----------------------------------------------------------------------+
+|i4 : X = normalToricVariety(Rho,Sigma,CoefficientRing =>ZZ/32749)      |
+|                                                                       |
+|o4 = X                                                                 |
+|                                                                       |
+|o4 : NormalToricVariety                                                |
++-----------------------------------------------------------------------+
+|i5 : CheckToricVarietyValid(X)                                         |
+|                                                                       |
+|o5 = true                                                              |
++-----------------------------------------------------------------------+
+|i6 : R=ring(X)                                                         |
+|                                                                       |
+|o6 = R                                                                 |
+|                                                                       |
+|o6 : PolynomialRing                                                    |
++-----------------------------------------------------------------------+
+|i7 : I=ideal(R_0^4*R_1,R_0*R_3*R_4*R_2-R_2^2*R_0^2)                    |
+|                                                                       |
+|             4       2 2                                               |
+|o7 = ideal (x x , - x x  + x x x x )                                   |
+|             0 1     0 2    0 2 3 4                                    |
+|                                                                       |
+|o7 : Ideal of R                                                        |
++-----------------------------------------------------------------------+
+|i8 : Segre(X,I)                                                        |
+|                                                                       |
+|          2       2                                                    |
+|o8 = - 72x x  + 3x  + 8x x  + x                                        |
+|          3 4     3     3 4    3                                       |
+|                                                                       |
+|                     ZZ[x ..x ]                                        |
+|                         0   4                                         |
+|o8 : -----------------------------------------                         |
+|     (x x , x x x , x  - x , x  - x , x  - x )                         |
+|       2 4   0 1 3   0    3   1    3   2    4                          |
++-----------------------------------------------------------------------+
+|i9 : W = smoothFanoToricVariety(4,123)                                 |
+|                                                                       |
+|o9 = W                                                                 |
+|                                                                       |
+|o9 : NormalToricVariety                                                |
++-----------------------------------------------------------------------+
+|i10 : CheckToricVarietyValid(W)                                        |
+|                                                                       |
+|o10 = false                                                            |
++-----------------------------------------------------------------------+
+
+Even if we can not perform computations on subschemes we may still compute the
+CSM class of the toric variety itself using the *note CSM: CSM, command.
+
++-----------------------------------------------------------------------------+
+|i11 : Ch=ToricChowRing W                                                     |
+|                                                                             |
+|o11 = Ch                                                                     |
+|                                                                             |
+|o11 : QuotientRing                                                           |
++-----------------------------------------------------------------------------+
+|i12 : CSM W                                                                  |
+|                                                                             |
+|           4       2       2        2        2      3     2     2     2      |
+|o12 = - 24x  + 5x x  + 5x x  + 10x x  + 10x x  - 10x  + 3x  + 3x  - 3x  +    |
+|           8     2 8     5 8      6 8      7 8      8     2     5     6      |
+|      -----------------------------------------------------------------------|
+|               2                                   2                         |
+|      x x  - 3x  + 9x x  + 9x x  + x x  + x x  + 6x  + 3x  + 3x  - x  - x  + |
+|       6 7     7     2 8     5 8    6 8    7 8     8     2     5    6    7   |
+|      -----------------------------------------------------------------------|
+|      5x  + 1                                                                |
+|        8                                                                    |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|o12 : -----------------------------------------------------------------------|
+|      (x x , x x , x x , x x x , x x x , x x x , x x x , x x x , x x x , x x |
+|        0 3   1 4   2 5   0 1 2   0 1 8   0 2 7   0 7 8   1 2 6   1 6 8   2 6|
+|-----------------------------------------------------------------------------|
+|                               ZZ[x ..x ]                                    |
+|                                   0   8                                     |
+|-----------------------------------------------------------------------------|
+|x , x x x , x x x , x x x , x x x , x x x , x x x , x x x , x x x , x  - x  +|
+| 7   3 4 5   3 4 8   3 5 7   3 7 8   4 5 6   4 6 8   5 6 7   6 7 8   0    2  |
+|-----------------------------------------------------------------------------|
+|------------------------------------------------------------------           |
+| x  - x , x  - x  + x  - x , x  - x  + x  - x , x  - x  + x  - x )           |
+|  6    8   1    2    7    8   3    5    6    8   4    5    7    8            |
++-----------------------------------------------------------------------------+
+|i13 : CSM(Ch,W)                                                              |
+|                                                                             |
+|           4       2       2        2        2      3     2     2     2      |
+|o13 = - 24x  + 5x x  + 5x x  + 10x x  + 10x x  - 10x  + 3x  + 3x  - 3x  +    |
+|           8     2 8     5 8      6 8      7 8      8     2     5     6      |
+|      -----------------------------------------------------------------------|
+|               2                                   2                         |
+|      x x  - 3x  + 9x x  + 9x x  + x x  + x x  + 6x  + 3x  + 3x  - x  - x  + |
+|       6 7     7     2 8     5 8    6 8    7 8     8     2     5    6    7   |
+|      -----------------------------------------------------------------------|
+|      5x  + 1                                                                |
+|        8                                                                    |
+|                                                                             |
+|o13 : Ch                                                                     |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note CheckToricVarietyValid: CheckToricVarietyValid, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2085:0.
+
+File: CharacteristicClasses.info, Node: Chern, Next: ChowRing, Prev: CheckToricVarietyValid, Up: Top
+
+Chern -- The Chern class
+************************
+
+  * Usage: 
+        Chern I
+        Chern(A,I)
+        Chern(X,J)
+        Chern(Ch,X,J)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, a multi-homogeneous ideal in a
+        graded polynomial ring over a field defining a closed subscheme V of
+        \PP^{n_1}x...x\PP^{n_m}
+      * A, a *note quotient ring: (Macaulay2Doc)QuotientRing,,
+        A=\ZZ[h_1,...,h_m]/(h_1^{n_1+1},...,h_m^{n_m+1}) quotient ring
+        representing the Chow ring of \PP^{n_1}x...x\PP^{n_m}, this ring should
+        be built using the *note ChowRing: ChowRing, command
+      * J, an *note ideal: (Macaulay2Doc)Ideal,, in the graded polynomial ring
+        which is coordinate ring of the Normal Toric Variety X
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,, which is the ambient space
+        that we are working in
+      * Ch, a *note quotient ring: (Macaulay2Doc)QuotientRing,, the Chow ring
+        of the toric variety X, Ch=(ring J)/(SR+LR) where SR is the
+        Stanley-Reisner ideal of the fan defining X and LR is the linear
+        relations ideal, this ring should be built using the *note
+        ToricChowRing: ToricChowRing, command
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CompMethod (missing documentation) => ..., default value
+        ProjectiveDegree, ProjectiveDegree, this algorithm may be used for
+        subschemes of any applicable toric variety (this may be checked using
+        the *note CheckToricVarietyValid: CheckToricVarietyValid, command)
+      * CompMethod (missing documentation) => ..., default value
+        ProjectiveDegree, PnResidual, this algorithm may be used for subschemes
+        of \PP^n only, see *note CompMethod: CompMethod,
+      * Output => ..., default value ChowRingElement, ChowRingElement, returns
+        a RingElement in the Chow ring of the appropriate ambient space
+      * Output => ..., default value ChowRingElement, HashForm, returns a
+        MutableHashTable containing the following keys: "Chern" (the Total
+        Chern class),"G" (the polynomial with coefficients of the hyperplane
+        classes representing the projective degrees), "Glist" (the list form of
+        "G") , "Segre" (the total Segre class of the input),"SegreList" (the
+        list form of "Segre") ,  "CF" (the total Chern-Fulton class)
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the pushforward of
+        the total Chern class of the input to the Chow ring of the appropriate
+        ambient space
+
+Description
+===========
+
+For a non-singular n-dimensional subscheme V of an applicable toric variety X,
+this command computes the push-forward of the total Chern class of V to the
+Chow ring of X. The output is an element of the Chow ring of X, that is a
+polynomial in the hyperplane classes h_1,...,h_m if X=\PP^{n_1}\times... \times
+\PP^{n_m} is a product of projective space. Otherwise it is a polynomial in
+R/(SR+LR) where R is the Cox ring, SR the Stanely-Reilser Ideal and LR the
+ideal generated by linear relations among the rays.
+
++----------------------------------------------+
+|i1 : setRandomSeed 438;                       |
+| -- setting random seed to 438                |
++----------------------------------------------+
+|i2 : R = QQ[v,y,z,w]                          |
+|                                              |
+|o2 = R                                        |
+|                                              |
+|o2 : PolynomialRing                           |
++----------------------------------------------+
+|i3 : B = matrix{{v,y,z},{y,z,w}}              |
+|                                              |
+|o3 = | v y z |                                |
+|     | y z w |                                |
+|                                              |
+|             2      3                         |
+|o3 : Matrix R  <-- R                          |
++----------------------------------------------+
+|i4 : Chern minors(2,B)                        |
+|                                              |
+|       3     2                                |
+|o4 = 2h  + 3h                                 |
+|       1     1                                |
+|                                              |
+|     ZZ[h ]                                   |
+|         1                                    |
+|o4 : ------                                   |
+|        4                                     |
+|       h                                      |
+|        1                                     |
++----------------------------------------------+
+|i5 : Chern(minors(2,B),CompMethod=>PnResidual)|
+|                                              |
+|       3     2                                |
+|o5 = 2H  + 3H                                 |
+|                                              |
+|     ZZ[H]                                    |
+|o5 : -----                                    |
+|        4                                     |
+|       H                                      |
++----------------------------------------------+
+
+The 2x2-minors of the matrix A form the ideal of the twisted cubic. It is
+well-known that its degree is 3 and its genus is 0. The calculations confirm
+that deg c_1 = 2-2g = 2 and deg  c_0 = 3. It is also possible to input the Chow
+ring of \PP^3 so that the answers are returned in this ring allowing us to
+check equality:
+
++------------------------------------------------------+
+|i6 : A=ChowRing(R)                                    |
+|                                                      |
+|o6 = A                                                |
+|                                                      |
+|o6 : QuotientRing                                     |
++------------------------------------------------------+
+|i7 : c1=Chern(A, minors(2,B))                         |
+|                                                      |
+|       3     2                                        |
+|o7 = 2h  + 3h                                         |
+|       1     1                                        |
+|                                                      |
+|o7 : A                                                |
++------------------------------------------------------+
+|i8 : cHash=Chern(A,minors(2,B),Output=>HashForm)      |
+|                                                      |
+|o8 = MutableHashTable{...6...}                        |
+|                                                      |
+|o8 : MutableHashTable                                 |
++------------------------------------------------------+
+|i9 : peek cHash                                       |
+|                                                      |
+|                                            2      3  |
+|o9 = MutableHashTable{SegreList => {0, 0, 3h , -10h }}|
+|                                            1      1  |
+|                                         2            |
+|                      Glist => {1, 2h , h , 0}        |
+|                                     1   1            |
+|                                    3     2           |
+|                      Segre => - 10h  + 3h            |
+|                                    1     1           |
+|                                 3     2              |
+|                      Chern => 2h  + 3h               |
+|                                 1     1              |
+|                              3     2                 |
+|                      CF => 2h  + 3h                  |
+|                              1     1                 |
+|                            2                         |
+|                      G => h  + 2h  + 1               |
+|                            1     1                   |
++------------------------------------------------------+
+|i10 : c1==cHash#"Chern"                               |
+|                                                      |
+|o10 = true                                            |
++------------------------------------------------------+
+
+Now consider an example in \PP^2 \times \PP^2, if we input the Chow ring A the
+output will be returned in the same ring. We may also return a
+MutableHashTable.
+
++----------------------------------------------+
+|i11 : R=MultiProjCoordRing({2,2})             |
+|                                              |
+|o11 = R                                       |
+|                                              |
+|o11 : PolynomialRing                          |
++----------------------------------------------+
+|i12 : r=gens R                                |
+|                                              |
+|o12 = {x , x , x , x , x , x }                |
+|        0   1   2   3   4   5                 |
+|                                              |
+|o12 : List                                    |
++----------------------------------------------+
+|i13 : I=ideal(r_0^2*r_3-r_4*r_1*r_2,r_2^2*r_5)|
+|                                              |
+|              2              2                |
+|o13 = ideal (x x  - x x x , x x )             |
+|              0 3    1 2 4   2 5              |
+|                                              |
+|o13 : Ideal of R                              |
++----------------------------------------------+
+|i14 : Chern I                                 |
+|                                              |
+|         2 2       2     2            2       |
+|o14 = 15h h  + 3h h  + 4h  + 4h h  + h        |
+|         1 2     1 2     1     1 2    2       |
+|                                              |
+|      ZZ[h ..h ]                              |
+|          1   2                               |
+|o14 : ----------                              |
+|         3   3                                |
+|       (h , h )                               |
+|         1   2                                |
++----------------------------------------------+
+
+In the case where the ambient space is a toric variety which is not a product
+of projective spaces we must load the NormalToricVarieties package and must
+also input the toric variety. If the toric variety is a product of projective
+space it is recommended to use the form above rather than inputting the toric
+variety for efficiency reasons. Below we verify that the Chern-Fulton class
+equals the Chern class for this smooth subvariety.
+
++------------------------------------------------------------------------+
+|i15 : needsPackage "NormalToricVarieties"                               |
+|                                                                        |
+|o15 = NormalToricVarieties                                              |
+|                                                                        |
+|o15 : Package                                                           |
++------------------------------------------------------------------------+
+|i16 : Rho = {{1,0,0},{0,1,0},{0,0,1},{-1,-1,0},{0,0,-1}}                |
+|                                                                        |
+|o16 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, -1, 0}, {0, 0, -1}}        |
+|                                                                        |
+|o16 : List                                                              |
++------------------------------------------------------------------------+
+|i17 : Sigma = {{0,1,2},{1,2,3},{0,2,3},{0,1,4},{1,3,4},{0,3,4}}         |
+|                                                                        |
+|o17 = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 3, 4}}|
+|                                                                        |
+|o17 : List                                                              |
++------------------------------------------------------------------------+
+|i18 : X = normalToricVariety(Rho,Sigma,CoefficientRing =>ZZ/32749)      |
+|                                                                        |
+|o18 = X                                                                 |
+|                                                                        |
+|o18 : NormalToricVariety                                                |
++------------------------------------------------------------------------+
+|i19 : CheckToricVarietyValid(X)                                         |
+|                                                                        |
+|o19 = true                                                              |
++------------------------------------------------------------------------+
+|i20 : R=ring(X)                                                         |
+|                                                                        |
+|o20 = R                                                                 |
+|                                                                        |
+|o20 : PolynomialRing                                                    |
++------------------------------------------------------------------------+
+|i21 : I=ideal(R_0^4*R_1,R_0*R_3*R_4*R_2-R_2^2*R_0^2)                    |
+|                                                                        |
+|              4       2 2                                               |
+|o21 = ideal (x x , - x x  + x x x x )                                   |
+|              0 1     0 2    0 2 3 4                                    |
+|                                                                        |
+|o21 : Ideal of R                                                        |
++------------------------------------------------------------------------+
+|i22 : Chern(X,I)                                                        |
+|                                                                        |
+|           2       2                                                    |
+|o22 = - 36x x  + 6x  + 10x x  + x                                       |
+|           3 4     3      3 4    3                                      |
+|                                                                        |
+|                      ZZ[x ..x ]                                        |
+|                          0   4                                         |
+|o22 : -----------------------------------------                         |
+|      (x x , x x x , x  - x , x  - x , x  - x )                         |
+|        2 4   0 1 3   0    3   1    3   2    4                          |
++------------------------------------------------------------------------+
+|i23 : Ch=ToricChowRing(X)                                               |
+|                                                                        |
+|o23 = Ch                                                                |
+|                                                                        |
+|o23 : QuotientRing                                                      |
++------------------------------------------------------------------------+
+|i24 : s3=Chern(Ch,X,I)                                                  |
+|                                                                        |
+|           2       2                                                    |
+|o24 = - 36x x  + 6x  + 10x x  + x                                       |
+|           3 4     3      3 4    3                                      |
+|                                                                        |
+|o24 : Ch                                                                |
++------------------------------------------------------------------------+
+|i25 : s3==(product(gens(Ch),a->a+1)*Segre(Ch,X,I))                      |
+|                                                                        |
+|o25 = true                                                              |
++------------------------------------------------------------------------+
+
+All the examples were done using symbolic computations with Gr\"obner bases.
+Changing the option *note CompMethod: CompMethod, to bertini will do the main
+computations numerically, provided Bertini is *note installed and configured:
+configuring Bertini,. Note that the bertini and PnResidual options may only be
+used for subschemes of \PP^n.
+
+The command Chern actually computes the push-forward of the total Chern-Fulton
+class of the subscheme V of an applicable toric variety X. The Chern-Fulton
+class is one of several generalizations of Chern classes to possibly singular
+subschemes. It is defined as c_{CF}(V) = c(T_{X}|_V) \cap s(V,X). For
+non-singular schemes, the Chern-Fulton class coincides with the Chern class of
+the tangent bundle. So for non-singular input, the command will compute just
+the usual Chern class.
+
+Observe that the algorithm is a probabilistic algorithm and may give a wrong
+answer with a small but nonzero probability. Read more under *note
+probabilistic algorithm: probabilistic algorithm,.
+
+Ways to use Chern:
+==================
+
+  * "Chern(Ideal)"
+  * "Chern(Ideal,Symbol)"
+  * "Chern(QuotientRing,Ideal)"
+
+For the programmer
+==================
+
+The object *note Chern: Chern, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:1858:0.
+
+File: CharacteristicClasses.info, Node: ChowRing, Next: ClassInChowRing, Prev: Chern, Up: Top
+
+ChowRing -- Computes the Chow ring of a product of projective spaces m projective spaces given the coordinate ring
+******************************************************************************************************************
+
+  * Usage: 
+        ChowRing R
+  * Inputs:
+      * R, a *note ring: (Macaulay2Doc)Ring,, the graded coordinate ring of the
+        product of projective spaces \PP^{n_1}\times \cdots \times \PP^{n_m}
+  * Outputs:
+      * a *note quotient ring: (Macaulay2Doc)QuotientRing,, the Chow ring
+        A=\ZZ[h_1,...,h_m]/(h_1^{n_1+1},...,h_m^{n_m+1}) of a product of
+        projective spaces \PP^{n_1}\times \cdots \times\PP^{n_m}
+
+Description
+===========
+
+This method computes the Chow ring
+A=\ZZ[h_1,...,h_m]/(h_1^{n_1+1},...,h_m^{n_m+1}) of a product of projective
+spaces \PP^{n_1}\times \cdots \times\PP^{n_m}. It is needed for input into the
+methods *note Segre: Segre,, *note Chern: Chern, and *note CSM: CSM, to ensure
+that these methods return results in the same ring. We give an example of the
+use of this method to work with elements of the Chow ring of \PP^3x\PP^4.
+
++-----------------------------------------------------------------------------+
+|i1 : R=MultiProjCoordRing({3,4})                                             |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : A=ChowRing(R)                                                           |
+|                                                                             |
+|o2 = A                                                                       |
+|                                                                             |
+|o2 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i3 : I=ideal(random({1,0},R));                                               |
+|                                                                             |
+|o3 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i4 : K=ideal(random({1,1},R));                                               |
+|                                                                             |
+|o4 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i5 : c=Chern(A,I)                                                            |
+|                                                                             |
+|        3 4      3 3      2 4      3 2      2 3       4      3        2 2    |
+|o5 = 15h h  + 30h h  + 15h h  + 30h h  + 30h h  + 5h h  + 15h h  + 30h h  +  |
+|        1 2      1 2      1 2      1 2      1 2     1 2      1 2      1 2    |
+|     ------------------------------------------------------------------------|
+|          3     3      2          2     2                                    |
+|     10h h  + 3h  + 15h h  + 10h h  + 3h  + 5h h  + h                        |
+|        1 2     1      1 2      1 2     1     1 2    1                       |
+|                                                                             |
+|o5 : A                                                                       |
++-----------------------------------------------------------------------------+
+|i6 : s=Segre(A,K)                                                            |
+|                                                                             |
+|        3 4      3 3      2 4      3 2      2 3       4     3       2 2      |
+|o6 = 35h h  - 20h h  - 15h h  + 10h h  + 10h h  + 5h h  - 4h h  - 6h h  -    |
+|        1 2      1 2      1 2      1 2      1 2     1 2     1 2     1 2      |
+|     ------------------------------------------------------------------------|
+|         3    4    3     2         2    3    2            2                  |
+|     4h h  - h  + h  + 3h h  + 3h h  + h  - h  - 2h h  - h  + h  + h         |
+|       1 2    2    1     1 2     1 2    2    1     1 2    2    1    2        |
+|                                                                             |
+|o6 : A                                                                       |
++-----------------------------------------------------------------------------+
+|i7 : s-c                                                                     |
+|                                                                             |
+|        3 4      3 3      2 4      3 2      2 3      3        2 2        3   |
+|o7 = 20h h  - 50h h  - 30h h  - 20h h  - 20h h  - 19h h  - 36h h  - 14h h  - |
+|        1 2      1 2      1 2      1 2      1 2      1 2      1 2      1 2   |
+|     ------------------------------------------------------------------------|
+|      4     3      2         2    3     2            2                       |
+|     h  - 2h  - 12h h  - 7h h  + h  - 4h  - 7h h  - h  + h                   |
+|      2     1      1 2     1 2    2     1     1 2    2    2                  |
+|                                                                             |
+|o7 : A                                                                       |
++-----------------------------------------------------------------------------+
+|i8 : s*c                                                                     |
+|                                                                             |
+|        3 4      3 3      2 4      3 2      2 3       4      3        2 2    |
+|o8 = 12h h  + 21h h  + 12h h  + 20h h  + 19h h  + 4h h  + 10h h  + 15h h  +  |
+|        1 2      1 2      1 2      1 2      1 2     1 2      1 2      1 2    |
+|     ------------------------------------------------------------------------|
+|         3     3     2         2    2                                        |
+|     6h h  + 2h  + 6h h  + 4h h  + h  + h h                                  |
+|       1 2     1     1 2     1 2    1    1 2                                 |
+|                                                                             |
+|o8 : A                                                                       |
++-----------------------------------------------------------------------------+
+
+We may also specify the variable to be used for the Chow ring.
+
++----------------------------+
+|i9 : A2=ChowRing(R,symbol v)|
+|                            |
+|o9 = A2                     |
+|                            |
+|o9 : QuotientRing           |
++----------------------------+
+|i10 : describe A2           |
+|                            |
+|      ZZ[v ..v ]            |
+|          1   2             |
+|o10 = ----------            |
+|         4   5              |
+|       (v , v )             |
+|         1   2              |
++----------------------------+
+
+Ways to use ChowRing:
+=====================
+
+  * "ChowRing(Ring)"
+  * "ChowRing(Ring,Symbol)"
+
+For the programmer
+==================
+
+The object *note ChowRing: ChowRing, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:1892:0.
+
+File: CharacteristicClasses.info, Node: ClassInChowRing, Next: ClassInToricChowRing, Prev: ChowRing, Up: Top
+
+ClassInChowRing -- Gives the class of a hypersurface in the associated Chow ring of a product of projective spaces
+******************************************************************************************************************
+
+  * Usage: 
+        ClassInToricChowRing(A,f)
+  * Inputs:
+      * A, a *note quotient ring: (Macaulay2Doc)QuotientRing,, the Chow ring of
+        \PP^{n_1} x...x\PP^{n_1}
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, an element of the
+        coordinate ring of \PP^{n_1} x...x\PP^{n_1}
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the class of V(f),
+        [V(f)] in the Chow ring of \PP^{n_1} x...x\PP^{n_1}
+
+Description
+===========
+
+This method finds the class [V(f)] of the hypersurface V(f) where f is a
+polynomial in the graded coordinate ring of \PP^{n_1} x...x\PP^{n_1}. The class
+[V(f)] is an element of the Chow ring of  \PP^{n_1} x...x\PP^{n_1}. Consider
+\PP^3x\PP^4x\PP^1
+
++----------------------------------+
+|i1 : R=MultiProjCoordRing({3,4,1})|
+|                                  |
+|o1 = R                            |
+|                                  |
+|o1 : PolynomialRing               |
++----------------------------------+
+|i2 : A=ChowRing(R)                |
+|                                  |
+|o2 = A                            |
+|                                  |
+|o2 : QuotientRing                 |
++----------------------------------+
+|i3 : f=random({1,1,1},R);         |
++----------------------------------+
+|i4 : ClassInChowRing(A,f)         |
+|                                  |
+|o4 = h  + h  + h                  |
+|      1    2    3                 |
+|                                  |
+|o4 : A                            |
++----------------------------------+
+
+Ways to use ClassInChowRing:
+============================
+
+  * "ClassInChowRing(QuotientRing,RingElement)"
+
+For the programmer
+==================
+
+The object *note ClassInChowRing: ClassInChowRing, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:1918:0.
+
+File: CharacteristicClasses.info, Node: ClassInToricChowRing, Next: CompMethod, Prev: ClassInChowRing, Up: Top
+
+ClassInToricChowRing -- Gives the class of a hypersurface in the associated Chow ring of a toric variety
+********************************************************************************************************
+
+  * Usage: 
+        ClassInToricChowRing(Ch,f)
+  * Inputs:
+      * Ch, a *note quotient ring: (Macaulay2Doc)QuotientRing,, the Chow ring
+        of a normal toric variety X
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, an element of the
+        coordinate ring of the toric variety X
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the class of V(f),
+        [V(f)] in the Chow ring of X
+
+Description
+===========
+
+This method finds the class [V(f)] of the hypersurface V(f) where f is a
+polynomial in the graded coordinate ring of a toric variety X. The class [V(f)]
+is an element of the Chow ring of X.
+
++-----------------------------------------------------------------------+
+|i1 : needsPackage "NormalToricVarieties"                               |
+|                                                                       |
+|o1 = NormalToricVarieties                                              |
+|                                                                       |
+|o1 : Package                                                           |
++-----------------------------------------------------------------------+
+|i2 : Rho = {{1,0,0},{0,1,0},{0,0,1},{-1,-1,0},{0,0,-1}}                |
+|                                                                       |
+|o2 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, -1, 0}, {0, 0, -1}}        |
+|                                                                       |
+|o2 : List                                                              |
++-----------------------------------------------------------------------+
+|i3 : Sigma = {{0,1,2},{1,2,3},{0,2,3},{0,1,4},{1,3,4},{0,3,4}}         |
+|                                                                       |
+|o3 = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 3, 4}}|
+|                                                                       |
+|o3 : List                                                              |
++-----------------------------------------------------------------------+
+|i4 : X = normalToricVariety(Rho,Sigma,CoefficientRing =>ZZ/32749)      |
+|                                                                       |
+|o4 = X                                                                 |
+|                                                                       |
+|o4 : NormalToricVariety                                                |
++-----------------------------------------------------------------------+
+|i5 : R=ring X                                                          |
+|                                                                       |
+|o5 = R                                                                 |
+|                                                                       |
+|o5 : PolynomialRing                                                    |
++-----------------------------------------------------------------------+
+|i6 : Ch=ToricChowRing(X)                                               |
+|                                                                       |
+|o6 = Ch                                                                |
+|                                                                       |
+|o6 : QuotientRing                                                      |
++-----------------------------------------------------------------------+
+|i7 : f=random({1,0},R)                                                 |
+|                                                                       |
+|o7 = 107x  + 4376x  - 6316x                                            |
+|         0        1        3                                           |
+|                                                                       |
+|o7 : R                                                                 |
++-----------------------------------------------------------------------+
+|i8 : ClassInToricChowRing(Ch,f)                                        |
+|                                                                       |
+|o8 = -1833x                                                            |
+|           3                                                           |
+|                                                                       |
+|o8 : Ch                                                                |
++-----------------------------------------------------------------------+
+
+Ways to use ClassInToricChowRing:
+=================================
+
+  * "ClassInToricChowRing(QuotientRing,RingElement)"
+
+For the programmer
+==================
+
+The object *note ClassInToricChowRing: ClassInToricChowRing, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:1980:0.
+
+File: CharacteristicClasses.info, Node: CompMethod, Next: configuring Bertini, Prev: ClassInToricChowRing, Up: Top
+
+CompMethod
+**********
+
+Description
+===========
+
+The option CompMethod determines which algorithm is used for the main
+computational steps of the calculation. This option map be used with methods
+*note CSM: CSM,, *note Segre: Segre,, *note Chern: Chern, , and *note Euler:
+Euler,. Note, however, that CompMethod can only be set to PnResidual and
+bertini when the input ideal defines a subscheme of a projective space \PP^n.
+In all other cases this option will be ignored and ProjectiveDegree will be
+used automatically.
+
++----------------------------------------------------------------------------+
+|i1 : R = ZZ/32749[r,y,z,w];                                                 |
++----------------------------------------------------------------------------+
+|i2 : Chern( minors(2,matrix{{r,y,z},{y,z,w}}), CompMethod=>ProjectiveDegree)|
+|                                                                            |
+|       3     2                                                              |
+|o2 = 2h  + 3h                                                               |
+|       1     1                                                              |
+|                                                                            |
+|     ZZ[h ]                                                                 |
+|         1                                                                  |
+|o2 : ------                                                                 |
+|        4                                                                   |
+|       h                                                                    |
+|        1                                                                   |
++----------------------------------------------------------------------------+
+
+There are three algorithms which can be used, ProjectiveDegree, PnResidual, and
+Bertini. When choosing the ProjectiveDegree option, the main step is the
+computation of projective degrees, for which Gr\"obner basis methods will be
+used. When choosing ResidualSymbolic, Gr\"obner basis methods will be used to
+compute so-called residuals. These computations can also be done numerically
+using the regenerative cascade implemented in Bertini. This is done by choosing
+the option bertini, provided Bertini is *note installed and configured:
+configuring Bertini,.
+
++----------------------------------------------------------------+
+|i3 : R=ZZ/32749[v_0..v_5];                                      |
++----------------------------------------------------------------+
+|i4 : I=ideal(4*v_3*v_1*v_2-8*v_1*v_3^2,v_5*(v_0*v_1*v_4-v_2^3));|
+|                                                                |
+|o4 : Ideal of R                                                 |
++----------------------------------------------------------------+
+|i5 : time CSM(I,CompMethod=>ProjectiveDegree)                   |
+| -- used 0.397212s (cpu); 0.353733s (thread); 0s (gc)           |
+|                                                                |
+|       5      4      3      2                                   |
+|o5 = 6h  + 14h  + 14h  + 10h                                    |
+|       1      1      1      1                                   |
+|                                                                |
+|     ZZ[h ]                                                     |
+|         1                                                      |
+|o5 : ------                                                     |
+|        6                                                       |
+|       h                                                        |
+|        1                                                       |
++----------------------------------------------------------------+
+|i6 : time CSM(I,CompMethod=>PnResidual)                         |
+| -- used 2.70401s (cpu); 2.43484s (thread); 0s (gc)             |
+|                                                                |
+|       5      4      3      2                                   |
+|o6 = 6H  + 14H  + 14H  + 10H                                    |
+|                                                                |
+|     ZZ[H]                                                      |
+|o6 : -----                                                      |
+|        6                                                       |
+|       H                                                        |
++----------------------------------------------------------------+
+|i7 : codim I                                                    |
+|                                                                |
+|o7 = 2                                                          |
++----------------------------------------------------------------+
+|i8 : S=QQ[s_0..s_3];                                            |
++----------------------------------------------------------------+
+|i9 : K=ideal(4*s_3*s_2-s_2^2,(s_0*s_1*s_3-s_2^3));              |
+|                                                                |
+|o9 : Ideal of S                                                 |
++----------------------------------------------------------------+
+|i10 : time CSM(K,CompMethod=>ProjectiveDegree)                  |
+| -- used 0.190923s (cpu); 0.190922s (thread); 0s (gc)           |
+|                                                                |
+|        3     2                                                 |
+|o10 = 3h  + 5h                                                  |
+|        1     1                                                 |
+|                                                                |
+|      ZZ[h ]                                                    |
+|          1                                                     |
+|o10 : ------                                                    |
+|         4                                                      |
+|        h                                                       |
+|         1                                                      |
++----------------------------------------------------------------+
+|i11 : time CSM(K,CompMethod=>PnResidual)                        |
+| -- used 0.177758s (cpu); 0.130494s (thread); 0s (gc)           |
+|                                                                |
+|        3     2                                                 |
+|o11 = 3H  + 5H                                                  |
+|                                                                |
+|      ZZ[H]                                                     |
+|o11 : -----                                                     |
+|         4                                                      |
+|        H                                                       |
++----------------------------------------------------------------+
+
+The options PnResidual and bertini may only be used for subschemes of a single
+projective space of fixed dimension. For subschemes of products of projective
+spaces and for subschemes of toric varieties only the ProjectiveDegree option
+is available and other options will be ignored by the methods *note Segre:
+Segre,, *note CSM: CSM,, *note Chern: Chern, and *note Euler: Euler,.
+
++-------------------------------------------+
+|i12 : R=MultiProjCoordRing({1,2,2})        |
+|                                           |
+|o12 = R                                    |
+|                                           |
+|o12 : PolynomialRing                       |
++-------------------------------------------+
+|i13 : I=ideal(R_0*R_1*R_3-R_0^2*R_2)       |
+|                                           |
+|               2                           |
+|o13 = ideal(- x x  + x x x )               |
+|               0 2    0 1 3                |
+|                                           |
+|o13 : Ideal of R                           |
++-------------------------------------------+
+|i14 : Segre I                              |
+|                                           |
+|          2            2                   |
+|o14 = 6h h  - 4h h  - h  + 2h  + h         |
+|        1 2     1 2    2     1    2        |
+|                                           |
+|       ZZ[h ..h ]                          |
+|           1   3                           |
+|o14 : ------------                         |
+|        2   3   3                          |
+|      (h , h , h )                         |
+|        1   2   3                          |
++-------------------------------------------+
+|i15 : Segre(I,CompMethod=>ProjectiveDegree)|
+|                                           |
+|          2            2                   |
+|o15 = 6h h  - 4h h  - h  + 2h  + h         |
+|        1 2     1 2    2     1    2        |
+|                                           |
+|       ZZ[h ..h ]                          |
+|           1   3                           |
+|o15 : ------------                         |
+|        2   3   3                          |
+|      (h , h , h )                         |
+|        1   2   3                          |
++-------------------------------------------+
+
+Functions with optional argument named CompMethod:
+==================================================
+
+  * Chern(...,CompMethod=>...) (missing documentation)
+  * "CSM(...,CompMethod=>...)" -- see *note CSM: CSM, -- The
+    Chern-Schwartz-MacPherson class
+  * Euler(...,CompMethod=>...) (missing documentation)
+  * Segre(...,CompMethod=>...) (missing documentation)
+
+For the programmer
+==================
+
+The object *note CompMethod: CompMethod, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2415:0.
+
+File: CharacteristicClasses.info, Node: configuring Bertini, Next: CSM, Prev: CompMethod, Up: Top
+
+configuring Bertini
+*******************
+
+Using the numeric version of any command in the package CharacteristicClasses
+needs version 1.3 or higher of Bertini to be installed. Download and
+installation of Bertini are explained at the Bertini homepage (see
+http://www.nd.edu/~sommese/bertini/ ).
+
+Bertini should be installed in a directory in the user's PATH. As an
+alternative you can tell the package how to find Bertini. Usually, when the
+package is installed, a file called init-CharacteristicClasses.m2 is created
+automatically in the user's *note application directory:
+(Macaulay2Doc)applicationDirectory,. See also the option Configuration under
+*note newPackage: (Macaulay2Doc)newPackage,. In the file
+init-CharacteristicClasses.m2, replace "" in  the line "pathToBertini" => "" by
+the path to Bertini in quotation marks, for example "pathToBertini" =>
+"/usr/local/BertiniLinux64&#95;v1.3.1/". The / at the end is important. Windows
+users should use the path relative to the cygwin directory, for example
+"/usr/local/BertiniWindows32&#95;v1.3.1/" if Bertini is installed under
+pathToTheCygwinDirectory&#92;cygwin&#92;usr&#92;local&#92;BertiniWindows32&#95;
+v1.3.1 .
+
+To check whether Bertini is working properly with the functions in the package
+CharacteristicClasses, use *note bertiniCheck: bertiniCheck,.
+
+
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2334:0.
+
+File: CharacteristicClasses.info, Node: CSM, Next: Euler, Prev: configuring Bertini, Up: Top
+
+CSM -- The Chern-Schwartz-MacPherson class
+******************************************
+
+  * Usage: 
+        CSM I
+        CSM(A,I)
+        CSM(A,I,M)
+        CSM(X,J)
+        CSM(Ch,X,J)
+        CSM(Ch,X,J,M)
+        CSM X
+        CSM(Ch,X)
+        CSM(I,h)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, a multi-homogeneous ideal in a
+        graded polynomial ring over a field defining a closed subscheme V of
+        \PP^{n_1}x...x\PP^{n_m}
+      * A, a *note quotient ring: (Macaulay2Doc)QuotientRing,,
+        A=\ZZ[h_1,...,h_m]/(h_1^{n_1+1},...,h_m^{n_m+1}) quotient ring
+        representing the Chow ring of \PP^{n_1}x...x\PP^{n_m}, this ring should
+        be built using the *note ChowRing: ChowRing, command
+      * J, an *note ideal: (Macaulay2Doc)Ideal,, an ideal in the graded
+        polynomial ring which is coordinate ring of the Normal Toric Variety X
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,, which is the ambient space
+        containing V(J)
+      * Ch, a *note quotient ring: (Macaulay2Doc)QuotientRing,, the Chow ring
+        of the toric variety X, Ch=(ring J)/(SR+LR) where SR is the
+        Stanley-Reisner ideal of the fan defining X and LR is the linear
+        relations ideal, this ring should be built using the *note
+        ToricChowRing: ToricChowRing, command
+      * h, a *note symbol: (Macaulay2Doc)Symbol,, to be used as the
+        intermediate for the Chow ring (this may only be used for subschemes of
+        \PP^{n_1}x...x\PP^{n_m})
+      * M, a *note mutable hash table: (Macaulay2Doc)MutableHashTable,,
+        containing known CSM classes of hypersurfaces appearing in the
+        inclusion-exclusion procedure
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CompMethod => ..., default value ProjectiveDegree, ProjectiveDegree,
+        this is the default algorithm used for the main computational steps in
+        the computation
+      * CompMethod => ..., default value ProjectiveDegree, PnResidual, this
+        algorithm may be used for subschemes of \PP^n only
+      * Method => ..., default value InclusionExclusion, InclusionExclusion,
+        this is the default method and is applicable for all inputs
+      * Method => ..., default value InclusionExclusion, DirectCompleteInt,
+        this method may provide a performance improvement when the input is a
+        complete intersection, if the input is not a complete intersection a
+        warning will be given and the InclusionExclusion option will be used
+        instead
+      * CheckSmooth => ..., default value true, this option is only used when
+        computing the CSM class of a input toric variety X (not of a
+        subscheme), if true it checks if the toric variety is smooth before
+        computing its CSM class, this will lead to faster computation in the
+        smooth cases
+      * InputIsSmooth => ..., default value false, this option has values
+        true/false and tells the method whether to assume the input ideal
+        defines a smooth scheme, and hence to call the method Chern instead for
+        reduced run time, alternatively the Chern function can be used directly
+      * Output => ..., default value ChowRingElement, ChowRingElement, the type
+        of output to return, "ChowRingElement" is default and returns a
+        RingElement in the Chow ring of the appropriate ambient space
+      * Output => ..., default value ChowRingElement, HashForm, the type of
+        output to return, HashForm returns a MutableHashTable containing the
+        key "CSM" (the CSM class), and keys of the form
+        \{0\},\{1\},\{2\},...,\{0,1\},\{0,2\} ....\{0,1,2\}... and so on which
+        correspond to the indices of the possible subsets of the generators of
+        the input ideal, for each set of indices the CSM class of the
+        hypersurface given by the product of all polynomials in the
+        corresponding set of generators is stored, there is no extra cost to
+        using this option
+      * IndsOfSmooth => ..., default value {}, this option may speed up the run
+        time when using the DirectCompleteInt Method if the user knows
+        additional information about the input ideal, see *note IndsOfSmooth:
+        IndsOfSmooth,
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the pushforward of
+        the CSM class to the Chow ring of the appropriate ambient space
+
+Description
+===========
+
+For a non-singular n-dimensional subscheme V of an applicable toric variety X,
+this command computes the push-forward of the total Chern class of V to the
+Chow ring of X. The output is an element of the Chow ring of X, that is a
+polynomial in the hyperplane classes h_1,...,h_m if X=\PP^{n_1}\times\PP^{n_m}
+is a product of projective space. Otherwise it is a polynomial in R/(SR+LR)
+where R is the Cox ring, SR the Stanely-Reilser Ideal and LR the ideal
+generated by linear relations among the rays.
+
++------------------------------------------------------+
+|i1 : kk=ZZ/32749;                                     |
++------------------------------------------------------+
+|i2 : R=kk[x_0..x_4]                                   |
+|                                                      |
+|o2 = R                                                |
+|                                                      |
+|o2 : PolynomialRing                                   |
++------------------------------------------------------+
+|i3 : I=ideal(random(1,R),random(2,R),x_0*x_2-x_3*x_0);|
+|                                                      |
+|o3 : Ideal of R                                       |
++------------------------------------------------------+
+|i4 : CSM(ideal I_0,CompMethod=>PnResidual)            |
+|                                                      |
+|       4     3     2                                  |
+|o4 = 4H  + 6H  + 4H  + H                              |
+|                                                      |
+|     ZZ[H]                                            |
+|o4 : -----                                            |
+|        5                                             |
+|       H                                              |
++------------------------------------------------------+
+|i5 : csmI=CSM(I)                                      |
+|                                                      |
+|       4     3                                        |
+|o5 = 2h  + 4h                                         |
+|       1     1                                        |
+|                                                      |
+|     ZZ[h ]                                           |
+|         1                                            |
+|o5 : ------                                           |
+|        5                                             |
+|       h                                              |
+|        1                                             |
++------------------------------------------------------+
+|i6 : A=ring csmI                                      |
+|                                                      |
+|o6 = A                                                |
+|                                                      |
+|o6 : QuotientRing                                     |
++------------------------------------------------------+
+|i7 : csmIHash=CSM(A,I,Output=>HashForm);              |
++------------------------------------------------------+
+|i8 : csmIHash#{0,1}==CSM(A,ideal(I_0*I_1))            |
+|                                                      |
+|o8 = true                                             |
++------------------------------------------------------+
+
+Note that the ideal above is a complete intersection, thus we may change the
+method option which may speed computation in some cases. We may also note that
+the ideal generated by the first 2 generators of I defines a smooth scheme and
+input this information into the method.
+
++------------------------------------------------------------+
+|i9 : csmI==CSM(A,I,Method=>DirectCompleteInt)               |
+|                                                            |
+|o9 = true                                                   |
++------------------------------------------------------------+
+|i10 : CSM(A,I,Method=>DirectCompleteInt,IndsOfSmooth=>{0,1})|
+|                                                            |
+|        4     3                                             |
+|o10 = 2h  + 4h                                              |
+|        1     1                                             |
+|                                                            |
+|o10 : A                                                     |
++------------------------------------------------------------+
+
+Now consider an example in \PP^2 \times \PP^2, if we input the Chow ring A the
+output will be returned in the same ring. We may also return a
+MutableHashTable.
+
++--------------------------------------------------+
+|i11 : R=MultiProjCoordRing({2,2})                 |
+|                                                  |
+|o11 = R                                           |
+|                                                  |
+|o11 : PolynomialRing                              |
++--------------------------------------------------+
+|i12 : A=ChowRing(R)                               |
+|                                                  |
+|o12 = A                                           |
+|                                                  |
+|o12 : QuotientRing                                |
++--------------------------------------------------+
+|i13 : r=gens R                                    |
+|                                                  |
+|o13 = {x , x , x , x , x , x }                    |
+|        0   1   2   3   4   5                     |
+|                                                  |
+|o13 : List                                        |
++--------------------------------------------------+
+|i14 : K=ideal(r_0^2*r_3-r_4*r_1*r_2,r_2^2*r_5)    |
+|                                                  |
+|              2              2                    |
+|o14 = ideal (x x  - x x x , x x )                 |
+|              0 3    1 2 4   2 5                  |
+|                                                  |
+|o14 : Ideal of R                                  |
++--------------------------------------------------+
+|i15 : time csmK=CSM(A,K)                          |
+| -- used 0.4066s (cpu); 0.36591s (thread); 0s (gc)|
+|                                                  |
+|        2 2     2         2    2            2     |
+|o15 = 7h h  + 5h h  + 4h h  + h  + 3h h  + h      |
+|        1 2     1 2     1 2    1     1 2    2     |
+|                                                  |
+|o15 : A                                           |
++--------------------------------------------------+
+|i16 : csmKHash= CSM(A,K,Output=>HashForm)         |
+|                                                  |
+|o16 = MutableHashTable{...4...}                   |
+|                                                  |
+|o16 : MutableHashTable                            |
++--------------------------------------------------+
+|i17 : csmK==csmKHash#"CSM"                        |
+|                                                  |
+|o17 = true                                        |
++--------------------------------------------------+
+|i18 : CSM(A,ideal(K_0))==csmKHash#{0}             |
+|                                                  |
+|o18 = true                                        |
++--------------------------------------------------+
+
+Suppose we have already computed some of CSM classes of hypersurfaces involved
+in the inclusion-exclusion procedure, then we may input these to be used by the
+CSM function. In the example below we input the CSM class of V(K_0) (that is of
+the hypersurface defined by the first polynomial generating K) and the CSM
+class of the hypersurface defined by the product of the generators of K.
+
++-----------------------------------------------------------+
+|i19 : m=new MutableHashTable;                              |
++-----------------------------------------------------------+
+|i20 : m#{0}=csmKHash#{0}                                   |
+|                                                           |
+|        2 2     2         2     2             2            |
+|o20 = 8h h  + 7h h  + 6h h  + 2h  + 5h h  + 2h  + 2h  + h  |
+|        1 2     1 2     1 2     1     1 2     2     1    2 |
+|                                                           |
+|o20 : A                                                    |
++-----------------------------------------------------------+
+|i21 : m#{0,1}=csmKHash#{0,1}                               |
+|                                                           |
+|        2 2     2         2     2             2            |
+|o21 = 9h h  + 9h h  + 9h h  + 3h  + 7h h  + 3h  + 3h  + 2h |
+|        1 2     1 2     1 2     1     1 2     2     1     2|
+|                                                           |
+|o21 : A                                                    |
++-----------------------------------------------------------+
+|i22 : time CSM(A,K,m)                                      |
+| -- used 0.0786094s (cpu); 0.0780255s (thread); 0s (gc)    |
+|                                                           |
+|        2 2     2         2    2            2              |
+|o22 = 7h h  + 5h h  + 4h h  + h  + 3h h  + h               |
+|        1 2     1 2     1 2    1     1 2    2              |
+|                                                           |
+|o22 : A                                                    |
++-----------------------------------------------------------+
+
+In the case where the ambient space is a toric variety which is not a product
+of projective spaces we must load the NormalToricVarieties package and must
+also input the toric variety. If the toric variety is a product of projective
+space it is recommend to use the form above rather than inputting the toric
+variety for efficiency reasons.
+
++------------------------------------------------------------------------+
+|i23 : needsPackage "NormalToricVarieties"                               |
+|                                                                        |
+|o23 = NormalToricVarieties                                              |
+|                                                                        |
+|o23 : Package                                                           |
++------------------------------------------------------------------------+
+|i24 : Rho = {{1,0,0},{0,1,0},{0,0,1},{-1,-1,0},{0,0,-1}}                |
+|                                                                        |
+|o24 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, -1, 0}, {0, 0, -1}}        |
+|                                                                        |
+|o24 : List                                                              |
++------------------------------------------------------------------------+
+|i25 : Sigma = {{0,1,2},{1,2,3},{0,2,3},{0,1,4},{1,3,4},{0,3,4}}         |
+|                                                                        |
+|o25 = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 3, 4}}|
+|                                                                        |
+|o25 : List                                                              |
++------------------------------------------------------------------------+
+|i26 : X = normalToricVariety(Rho,Sigma,CoefficientRing =>ZZ/32749)      |
+|                                                                        |
+|o26 = X                                                                 |
+|                                                                        |
+|o26 : NormalToricVariety                                                |
++------------------------------------------------------------------------+
+|i27 : csmX=CSM X                                                        |
+|                                                                        |
+|        2       2                                                       |
+|o27 = 6x x  + 3x  + 6x x  + 3x  + 2x  + 1                               |
+|        3 4     3     3 4     3     4                                   |
+|                                                                        |
+|                      ZZ[x ..x ]                                        |
+|                          0   4                                         |
+|o27 : -----------------------------------------                         |
+|      (x x , x x x , x  - x , x  - x , x  - x )                         |
+|        2 4   0 1 3   0    3   1    3   2    4                          |
++------------------------------------------------------------------------+
+|i28 : Ch=ring csmX                                                      |
+|                                                                        |
+|o28 = Ch                                                                |
+|                                                                        |
+|o28 : QuotientRing                                                      |
++------------------------------------------------------------------------+
+|i29 : CheckToricVarietyValid(X)                                         |
+|                                                                        |
+|o29 = true                                                              |
++------------------------------------------------------------------------+
+|i30 : R=ring(X)                                                         |
+|                                                                        |
+|o30 = R                                                                 |
+|                                                                        |
+|o30 : PolynomialRing                                                    |
++------------------------------------------------------------------------+
+|i31 : I=ideal(R_0^4*R_1,R_0*R_3*R_4*R_2-R_2^2*R_0^2)                    |
+|                                                                        |
+|              4       2 2                                               |
+|o31 = ideal (x x , - x x  + x x x x )                                   |
+|              0 1     0 2    0 2 3 4                                    |
+|                                                                        |
+|o31 : Ideal of R                                                        |
++------------------------------------------------------------------------+
+|i32 : CSM(X,I)                                                          |
+|                                                                        |
+|        2       2                                                       |
+|o32 = 5x x  + 3x  + 4x x  + x                                           |
+|        3 4     3     3 4    3                                          |
+|                                                                        |
+|                      ZZ[x ..x ]                                        |
+|                          0   4                                         |
+|o32 : -----------------------------------------                         |
+|      (x x , x x x , x  - x , x  - x , x  - x )                         |
+|        2 4   0 1 3   0    3   1    3   2    4                          |
++------------------------------------------------------------------------+
+|i33 : CSM(Ch,X,I)                                                       |
+|                                                                        |
+|        2       2                                                       |
+|o33 = 8x x  + 3x  + 5x x  + x                                           |
+|        3 4     3     3 4    3                                          |
+|                                                                        |
+|o33 : Ch                                                                |
++------------------------------------------------------------------------+
+
+This function may also compute the CSM class of a normal toric variety defined
+by a fan. In this case a combinatorial method is used. This method is accessed
+with the usual CSM command with either only a toric variety or a toric variety
+and a Chow ring as input. In this case we only require that the input toric
+variety is complete and simplicial (in particular we do not need it to be
+smooth).
+
++------------------------------------------+
+|i34 : needsPackage "NormalToricVarieties" |
+|                                          |
+|o34 = NormalToricVarieties                |
+|                                          |
+|o34 : Package                             |
++------------------------------------------+
+|i35 : U = hirzebruchSurface 7             |
+|                                          |
+|o35 = U                                   |
+|                                          |
+|o35 : NormalToricVariety                  |
++------------------------------------------+
+|i36 : Ch=ToricChowRing(U)                 |
+|                                          |
+|o36 = Ch                                  |
+|                                          |
+|o36 : QuotientRing                        |
++------------------------------------------+
+|i37 : CSM U                               |
+|                                          |
+|                 2                        |
+|o37 = - 3x x  + x  - 5x  + 2x  + 1        |
+|          2 3    3     2     3            |
+|                                          |
+|                   ZZ[x ..x ]             |
+|                       0   3              |
+|o37 : ------------------------------------|
+|      (x x , x x , x  - x , x  + 7x  - x )|
+|        0 2   1 3   0    2   1     2    3 |
++------------------------------------------+
+|i38 : csm1=CSM(Ch,U)                      |
+|                                          |
+|                 2                        |
+|o38 = - 3x x  + x  - 5x  + 2x  + 1        |
+|          2 3    3     2     3            |
+|                                          |
+|o38 : Ch                                  |
++------------------------------------------+
+
+All the examples were done using symbolic computations with Gr\"obner bases.
+Changing the option *note CompMethod: CompMethod, to bertini will do the main
+computations numerically, provided Bertini is *note installed and configured:
+configuring Bertini,. Note that the bertini and PnResidual options may only be
+used for subschemes of \PP^n.
+
+Observe that the algorithm is a probabilistic algorithm and may give a wrong
+answer with a small but nonzero probability. Read more under *note
+probabilistic algorithm: probabilistic algorithm,.
+
+
+
+Ways to use CSM:
+================
+
+  * "CSM(Ideal)"
+  * "CSM(Ideal,Symbol)"
+  * "CSM(QuotientRing,Ideal)"
+  * "CSM(QuotientRing,Ideal,MutableHashTable)"
+
+For the programmer
+==================
+
+The object *note CSM: CSM, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2221:0.
+
+File: CharacteristicClasses.info, Node: Euler, Next: EulerAffine, Prev: CSM, Up: Top
+
+Euler -- The Euler Characteristic
+*********************************
+
+  * Usage: 
+        Euler I
+        Euler(X,J)
+        Euler csm
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, a multi-homogeneous ideal in a
+        graded polynomial ring over a field defining a closed subscheme V of
+        \PP^{n_1}x...x\PP^{n_m}
+      * J, an *note ideal: (Macaulay2Doc)Ideal,, an ideal in the graded
+        polynomial ring which is coordinate ring of the Normal Toric Variety X
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,, a normal toric variety which
+        is the ambient space that we are working in
+      * csm, a *note ring element: (Macaulay2Doc)RingElement,, the CSM class of
+        some variety V
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CompMethod (missing documentation) => ..., default value
+        ProjectiveDegree, ProjectiveDegree, applicable for all cases where the
+        methods in the package may be used
+      * CompMethod (missing documentation) => ..., default value
+        ProjectiveDegree, PnResidual, this algorithm may be used for subschemes
+        of \PP^n only
+      * Method (missing documentation) => ..., default value
+        InclusionExclusion, InclusionExclusion, applicable for all inputs
+      * Method (missing documentation) => ..., default value
+        InclusionExclusion, DirectCompleteInt, this method may provide a
+        performance improvement when the input is a complete intersection, if
+        the input is not a complete intersection inclusion/exclusion it will
+        return an error
+      * InputIsSmooth (missing documentation) => ..., default value false, this
+        option has values true/false and tells the method whether to assume the
+        input ideal defines a smooth scheme, and hence to call the method Chern
+        instead for reduced run time, alternatively the Chern function can be
+        used directly
+      * Output => ..., default value ChowRingElement, the type of output to
+        return the default output is an integer
+      * Output => ..., default value ChowRingElement, HashForm, the type of
+        output to return, HashForm returns a MutableHashTable containing the
+        key "CSM" (the CSM class), and keys of the form
+        \{0\},\{1\},\{2\},...,\{0,1\},\{0,2\} ....\{0,1,2\}... and so on which
+        correspond to the indices of the possible subsets of the generators of
+        the input ideal, for each set of indices the CSM class of the
+        hypersurface given by the product of all polynomials in the
+        corresponding set of generators is stored, there is no extra cost to
+        using this option
+      * IndsOfSmooth (missing documentation) => ..., default value {}, this
+        option may speed up the run time when using the DirectCompleteInt
+        Method if the user knows additional information about the input ideal,
+        see *note IndsOfSmooth: IndsOfSmooth,
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the Euler
+        characteristic
+
+Description
+===========
+
+For a subscheme V of an applicable toric variety X, this command computes the
+Euler characteristic
+
++-----------------------------------------------------------------------------+
+|i1 : kk=ZZ/32749;                                                            |
++-----------------------------------------------------------------------------+
+|i2 : R=kk[x_0..x_4]                                                          |
+|                                                                             |
+|o2 = R                                                                       |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i3 : I=ideal(random(1,R),random(2,R))                                        |
+|                                                                             |
+|                                                              2              |
+|o3 = ideal (107x  + 4376x  - 6316x  + 3187x  + 3783x , - 6053x  + 8570x x  + |
+|                0        1        2        3        4         0        0 1   |
+|     ------------------------------------------------------------------------|
+|           2                               2                                 |
+|     10359x  - 16090x x  - 8210x x  + 5071x  + 8444x x  - 8997x x  - 6949x x |
+|           1         0 2        1 2        2        0 3        1 3        2 3|
+|     ------------------------------------------------------------------------|
+|             2                                                        2      |
+|     - 14254x  - 11226x x  + 2653x x  + 12365x x  - 10226x x  - 12696x )     |
+|             3         0 4        1 4         2 4         3 4         4      |
+|                                                                             |
+|o3 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i4 : time Euler(I,InputIsSmooth=>true)                                       |
+| -- used 0.0514818s (cpu); 0.0513392s (thread); 0s (gc)                      |
+|                                                                             |
+|o4 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : time Euler I                                                            |
+| -- used 0.228128s (cpu); 0.181187s (thread); 0s (gc)                        |
+|                                                                             |
+|o5 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i6 : EulerIHash=Euler(I,Output=>HashForm);                                   |
++-----------------------------------------------------------------------------+
+|i7 : A=ring EulerIHash#"CSM"                                                 |
+|                                                                             |
+|o7 = A                                                                       |
+|                                                                             |
+|o7 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i8 : EulerIHash#{0,1}==CSM(A,ideal(I_0*I_1))                                 |
+|                                                                             |
+|o8 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : J=I+ideal(x_0*x_2-x_3*x_0)                                              |
+|                                                                             |
+|                                                              2              |
+|o9 = ideal (107x  + 4376x  - 6316x  + 3187x  + 3783x , - 6053x  + 8570x x  + |
+|                0        1        2        3        4         0        0 1   |
+|     ------------------------------------------------------------------------|
+|           2                               2                                 |
+|     10359x  - 16090x x  - 8210x x  + 5071x  + 8444x x  - 8997x x  - 6949x x |
+|           1         0 2        1 2        2        0 3        1 3        2 3|
+|     ------------------------------------------------------------------------|
+|             2                                                        2      |
+|     - 14254x  - 11226x x  + 2653x x  + 12365x x  - 10226x x  - 12696x , x x |
+|             3         0 4        1 4         2 4         3 4         4   0 2|
+|     ------------------------------------------------------------------------|
+|     - x x )                                                                 |
+|        0 3                                                                  |
+|                                                                             |
+|o9 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+
+Note that the ideal J above is a complete intersection, thus we may change the
+method option which may speed computation in some cases. We may also note that
+the ideal generated by the first 2 generators of I defines a smooth scheme and
+input this information into the method. This may also improve computation
+speed.
+
++-----------------------------------------------------------------+
+|i10 : time Euler(J,Method=>DirectCompleteInt)                    |
+| -- used 0.0981438s (cpu); 0.0967532s (thread); 0s (gc)          |
+|                                                                 |
+|o10 = 2                                                          |
++-----------------------------------------------------------------+
+|i11 : time Euler(J,Method=>DirectCompleteInt,IndsOfSmooth=>{0,1})|
+| -- used 0.0776602s (cpu); 0.0772545s (thread); 0s (gc)          |
+|                                                                 |
+|o11 = 2                                                          |
++-----------------------------------------------------------------+
+
+Now consider an example in \PP^2 \times \PP^2.
+
++----------------------------------------------+
+|i12 : R=MultiProjCoordRing({2,2})             |
+|                                              |
+|o12 = R                                       |
+|                                              |
+|o12 : PolynomialRing                          |
++----------------------------------------------+
+|i13 : r=gens R                                |
+|                                              |
+|o13 = {x , x , x , x , x , x }                |
+|        0   1   2   3   4   5                 |
+|                                              |
+|o13 : List                                    |
++----------------------------------------------+
+|i14 : K=ideal(r_0^2*r_3-r_4*r_1*r_2,r_2^2*r_5)|
+|                                              |
+|              2              2                |
+|o14 = ideal (x x  - x x x , x x )             |
+|              0 3    1 2 4   2 5              |
+|                                              |
+|o14 : Ideal of R                              |
++----------------------------------------------+
+|i15 : EulerK=Euler(K)                         |
+|                                              |
+|o15 = 7                                       |
++----------------------------------------------+
+|i16 : csmK= CSM(K)                            |
+|                                              |
+|        2 2     2         2    2            2 |
+|o16 = 7h h  + 5h h  + 4h h  + h  + 3h h  + h  |
+|        1 2     1 2     1 2    1     1 2    2 |
+|                                              |
+|      ZZ[h ..h ]                              |
+|          1   2                               |
+|o16 : ----------                              |
+|         3   3                                |
+|       (h , h )                               |
+|         1   2                                |
++----------------------------------------------+
+|i17 : EulerK==Euler(csmK)                     |
+|                                              |
+|o17 = true                                    |
++----------------------------------------------+
+
+In the case where the ambient space is a toric variety which is not a product
+of projective spaces we must load the NormalToricVarieties package and must
+also input the toric variety. If the toric variety is a product of projective
+space it is recommended to use the form above rather than inputting the toric
+variety for efficiency reasons.
+
++------------------------------------------------------------------------+
+|i18 : needsPackage "NormalToricVarieties"                               |
+|                                                                        |
+|o18 = NormalToricVarieties                                              |
+|                                                                        |
+|o18 : Package                                                           |
++------------------------------------------------------------------------+
+|i19 : Rho = {{1,0,0},{0,1,0},{0,0,1},{-1,-1,0},{0,0,-1}}                |
+|                                                                        |
+|o19 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, -1, 0}, {0, 0, -1}}        |
+|                                                                        |
+|o19 : List                                                              |
++------------------------------------------------------------------------+
+|i20 : Sigma = {{0,1,2},{1,2,3},{0,2,3},{0,1,4},{1,3,4},{0,3,4}}         |
+|                                                                        |
+|o20 = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 3, 4}}|
+|                                                                        |
+|o20 : List                                                              |
++------------------------------------------------------------------------+
+|i21 : X = normalToricVariety(Rho,Sigma,CoefficientRing =>ZZ/32749)      |
+|                                                                        |
+|o21 = X                                                                 |
+|                                                                        |
+|o21 : NormalToricVariety                                                |
++------------------------------------------------------------------------+
+|i22 : CheckToricVarietyValid(X)                                         |
+|                                                                        |
+|o22 = true                                                              |
++------------------------------------------------------------------------+
+|i23 : R=ring(X)                                                         |
+|                                                                        |
+|o23 = R                                                                 |
+|                                                                        |
+|o23 : PolynomialRing                                                    |
++------------------------------------------------------------------------+
+|i24 : I=ideal(R_0^4*R_1,R_0*R_3*R_4*R_2-R_2^2*R_0^2)                    |
+|                                                                        |
+|              4       2 2                                               |
+|o24 = ideal (x x , - x x  + x x x x )                                   |
+|              0 1     0 2    0 2 3 4                                    |
+|                                                                        |
+|o24 : Ideal of R                                                        |
++------------------------------------------------------------------------+
+|i25 : csmI=CSM(X,I)                                                     |
+|                                                                        |
+|        2       2                                                       |
+|o25 = 5x x  + 3x  + 4x x  + x                                           |
+|        3 4     3     3 4    3                                          |
+|                                                                        |
+|                      ZZ[x ..x ]                                        |
+|                          0   4                                         |
+|o25 : -----------------------------------------                         |
+|      (x x , x x x , x  - x , x  - x , x  - x )                         |
+|        2 4   0 1 3   0    3   1    3   2    4                          |
++------------------------------------------------------------------------+
+|i26 : EulerI=Euler(X,I)                                                 |
+|                                                                        |
+|o26 = 5                                                                 |
++------------------------------------------------------------------------+
+|i27 : Euler(csmI)==EulerI                                               |
+|                                                                        |
+|o27 = true                                                              |
++------------------------------------------------------------------------+
+
+All the examples were done using symbolic computations with Gr\"obner bases.
+Changing the option *note CompMethod: CompMethod, to bertini will do the main
+computations numerically, provided Bertini is *note installed and configured:
+configuring Bertini,. Note that the bertini and PnResidual options may only be
+used for subschemes of \PP^n.
+
+Observe that the algorithm is a probabilistic algorithm and may give a wrong
+answer with a small but nonzero probability. Read more under *note
+probabilistic algorithm: probabilistic algorithm,.
+
+Ways to use Euler:
+==================
+
+  * "Euler(Ideal)"
+  * "Euler(RingElement)"
+
+For the programmer
+==================
+
+The object *note Euler: Euler, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2312:0.
+
+File: CharacteristicClasses.info, Node: EulerAffine, Next: IndsOfSmooth, Prev: Euler, Up: Top
+
+EulerAffine -- The Euler Characteristic of an affine variety.
+*************************************************************
+
+  * Usage: 
+        EulerAffine I
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, an ideal in a polynomial ring
+        over a field defining an affine variety.
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the Euler
+        characteristic
+
+Description
+===========
+
+This command computes the Euler characteristic of a complex affine variety.
+
++-------------------------------------------------------+
+|i1 : kk=ZZ/32749;                                      |
++-------------------------------------------------------+
+|i2 : R=kk[x_1..x_3]                                    |
+|                                                       |
+|o2 = R                                                 |
+|                                                       |
+|o2 : PolynomialRing                                    |
++-------------------------------------------------------+
+|i3 : I=ideal(x_1^2+x_2^2+x_3^2-1)                      |
+|                                                       |
+|            2    2    2                                |
+|o3 = ideal(x  + x  + x  - 1)                           |
+|            1    2    3                                |
+|                                                       |
+|o3 : Ideal of R                                        |
++-------------------------------------------------------+
+|i4 : time EulerAffine I                                |
+| -- used 0.0663021s (cpu); 0.0660964s (thread); 0s (gc)|
+|                                                       |
+|o4 = 2                                                 |
++-------------------------------------------------------+
+
+Observe that the algorithm is a probabilistic algorithm and may give a wrong
+answer with a small but nonzero probability. Read more under *note
+probabilistic algorithm: probabilistic algorithm,.
+
+Ways to use EulerAffine:
+========================
+
+  * "EulerAffine(Ideal)"
+
+For the programmer
+==================
+
+The object *note EulerAffine: EulerAffine, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2541:0.
+
+File: CharacteristicClasses.info, Node: IndsOfSmooth, Next: InputIsSmooth, Prev: EulerAffine, Up: Top
+
+IndsOfSmooth
+************
+
+Description
+===========
+
+The option IndsOfSmooth is only used by the commands *note CSM: CSM,, and *note
+Euler: Euler, in combination with the option Method=>DirectCompletInt. When
+used this option may allow the user to speed up the computation by telling
+giving the method a list of indices for the generators of the input ideal that,
+when taken together, define a smooth subscheme of the ambient space. This
+option will be ignored otherwise.
+
++--------------------------------------------------------------------+
+|i1 : R = MultiProjCoordRing({2,2})                                  |
+|                                                                    |
+|o1 = R                                                              |
+|                                                                    |
+|o1 : PolynomialRing                                                 |
++--------------------------------------------------------------------+
+|i2 : I=ideal(R_0*R_1*R_3-R_0^2*R_3,random({0,1},R),random({1,2},R));|
+|                                                                    |
+|o2 : Ideal of R                                                     |
++--------------------------------------------------------------------+
+|i3 : time CSM(I,Method=>DirectCompletInt)                           |
+| -- used 1.40988s (cpu); 1.2076s (thread); 0s (gc)                  |
+|                                                                    |
+|       2 2     2         2                                          |
+|o3 = 2h h  + 2h h  + 5h h                                           |
+|       1 2     1 2     1 2                                          |
+|                                                                    |
+|     ZZ[h ..h ]                                                     |
+|         1   2                                                      |
+|o3 : ----------                                                     |
+|        3   3                                                       |
+|      (h , h )                                                      |
+|        1   2                                                       |
++--------------------------------------------------------------------+
+|i4 : time CSM(I,Method=>DirectCompletInt,IndsOfSmooth=>{1,2})       |
+| -- used 1.41031s (cpu); 1.22437s (thread); 0s (gc)                 |
+|                                                                    |
+|       2 2     2         2                                          |
+|o4 = 2h h  + 2h h  + 5h h                                           |
+|       1 2     1 2     1 2                                          |
+|                                                                    |
+|     ZZ[h ..h ]                                                     |
+|         1   2                                                      |
+|o4 : ----------                                                     |
+|        3   3                                                       |
+|      (h , h )                                                      |
+|        1   2                                                       |
++--------------------------------------------------------------------+
+
+Functions with optional argument named IndsOfSmooth:
+====================================================
+
+  * "CSM(...,IndsOfSmooth=>...)" -- see *note CSM: CSM, -- The
+    Chern-Schwartz-MacPherson class
+  * Euler(...,IndsOfSmooth=>...) (missing documentation)
+
+For the programmer
+==================
+
+The object *note IndsOfSmooth: IndsOfSmooth, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2482:0.
+
+File: CharacteristicClasses.info, Node: InputIsSmooth, Next: isMultiHomogeneous, Prev: IndsOfSmooth, Up: Top
+
+InputIsSmooth
+*************
+
+Description
+===========
+
+The option InputIsSmooth is only used by the commands *note CSM: CSM,, and
+*note Euler: Euler,. If the input ideal is known to define a smooth subscheme
+setting this option to true will speed up computations (it is set to false by
+default).
+
++------------------------------------------------------+
+|i1 : R = ZZ/32749[x_0..x_4];                          |
++------------------------------------------------------+
+|i2 : I=ideal(random(2,R),random(2,R),random(1,R));    |
+|                                                      |
+|o2 : Ideal of R                                       |
++------------------------------------------------------+
+|i3 : time CSM I                                       |
+| -- used 0.564168s (cpu); 0.472454s (thread); 0s (gc) |
+|                                                      |
+|       3                                              |
+|o3 = 4h                                               |
+|       1                                              |
+|                                                      |
+|     ZZ[h ]                                           |
+|         1                                            |
+|o3 : ------                                           |
+|        5                                             |
+|       h                                              |
+|        1                                             |
++------------------------------------------------------+
+|i4 : time CSM(I,InputIsSmooth=>true)                  |
+| -- used 0.042608s (cpu); 0.0424344s (thread); 0s (gc)|
+|                                                      |
+|       3                                              |
+|o4 = 4h                                               |
+|       1                                              |
+|                                                      |
+|     ZZ[h ]                                           |
+|         1                                            |
+|o4 : ------                                           |
+|        5                                             |
+|       h                                              |
+|        1                                             |
++------------------------------------------------------+
+
+Note that one could, equivalently, use the command *note Chern: Chern, instead
+in this case.
+
++-------------------------------------------------------+
+|i5 : time Chern I                                      |
+| -- used 0.0412247s (cpu); 0.0410462s (thread); 0s (gc)|
+|                                                       |
+|       3                                               |
+|o5 = 4h                                                |
+|       1                                               |
+|                                                       |
+|     ZZ[h ]                                            |
+|         1                                             |
+|o5 : ------                                            |
+|        5                                              |
+|       h                                               |
+|        1                                              |
++-------------------------------------------------------+
+
+Functions with optional argument named InputIsSmooth:
+=====================================================
+
+  * "CSM(...,InputIsSmooth=>...)" -- see *note CSM: CSM, -- The
+    Chern-Schwartz-MacPherson class
+  * Euler(...,InputIsSmooth=>...) (missing documentation)
+
+For the programmer
+==================
+
+The object *note InputIsSmooth: InputIsSmooth, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2500:0.
+
+File: CharacteristicClasses.info, Node: isMultiHomogeneous, Next: Method, Prev: InputIsSmooth, Up: Top
+
+isMultiHomogeneous -- Checks if an ideal is homogeneous with respect to the grading on its ring (i.e. multi-homogeneous in the multi-graded case)
+*************************************************************************************************************************************************
+
+  * Usage: 
+        isMultiHomogeneous I
+        isMultiHomogeneous f
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, an ideal in a graded or
+        multi-graded ring
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, a element in a
+        graded or multi-graded ring
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, 
+
+Description
+===========
+
+Tests if the input Ideal or RingElement is Homogeneous with respect to the
+grading on the ring. Homogeneous input is required for all methods to compute
+characteristic classes.
+
+This method works for ideals in the graded coordinate rings of toric varieties,
+and hence for products of projective spaces. These can be created directly, or
+using methods the *note MultiProjCoordRing: MultiProjCoordRing, method of this
+package, or with methods from the NormalToricVarieties Package.
+
++---------------------------------------------------------------+
+|i1 : R=MultiProjCoordRing({1,2,1})                             |
+|                                                               |
+|o1 = R                                                         |
+|                                                               |
+|o1 : PolynomialRing                                            |
++---------------------------------------------------------------+
+|i2 : x=gens(R)                                                 |
+|                                                               |
+|o2 = {x , x , x , x , x , x , x }                              |
+|       0   1   2   3   4   5   6                               |
+|                                                               |
+|o2 : List                                                      |
++---------------------------------------------------------------+
+|i3 : I=ideal(x_0^2*x_3-x_1*x_0*x_4,x_6^3)                      |
+|                                                               |
+|             2              3                                  |
+|o3 = ideal (x x  - x x x , x )                                 |
+|             0 3    0 1 4   6                                  |
+|                                                               |
+|o3 : Ideal of R                                                |
++---------------------------------------------------------------+
+|i4 : isMultiHomogeneous I                                      |
+|                                                               |
+|o4 = true                                                      |
++---------------------------------------------------------------+
+|i5 : isMultiHomogeneous ideal(x_0*x_3-x_1*x_0*x_4,x_6^3)       |
+|Input term below is not homogeneous with respect to the grading|
+|- x x x  + x x                                                 |
+|   0 1 4    0 3                                                |
+|                                                               |
+|o5 = false                                                     |
++---------------------------------------------------------------+
+
+Note that for an ideal to be multi-homogeneous the degree vector of all
+monomials in a given generator must be the same.
+
+Ways to use isMultiHomogeneous:
+===============================
+
+  * "isMultiHomogeneous(Ideal)"
+  * "isMultiHomogeneous(RingElement)"
+
+For the programmer
+==================
+
+The object *note isMultiHomogeneous: isMultiHomogeneous, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2012:0.
+
+File: CharacteristicClasses.info, Node: Method, Next: MultiProjCoordRing, Prev: isMultiHomogeneous, Up: Top
+
+Method
+******
+
+Description
+===========
+
+The option Method is only used by the commands *note CSM: CSM, and *note Euler:
+Euler, and only in combination with *note CompMethod:
+CompMethod,=>ProjectiveDegree. The Method InclusionExclusion will always be
+used with *note CompMethod: CompMethod, PnResidual or bertini. When the input
+ideal is a complete intersection one may, potentially, speed up the computation
+by setting Method=> DirectCompleteInt. The option Method is only used by the
+commands *note CSM: CSM, and *note Euler: Euler, and only in combination with
+*note CompMethod: CompMethod,=>ProjectiveDegree. The Method InclusionExclusion
+will always be used with *note CompMethod: CompMethod, PnResidual or bertini.
+
++--------------------------------------------------------+
+|i1 : R = ZZ/32749[x_0..x_6]                             |
+|                                                        |
+|o1 = R                                                  |
+|                                                        |
+|o1 : PolynomialRing                                     |
++--------------------------------------------------------+
+|i2 : I=ideal(random(2,R),random(1,R),R_0*R_1*R_6-R_0^3);|
+|                                                        |
+|o2 : Ideal of R                                         |
++--------------------------------------------------------+
+|i3 : time CSM I                                         |
+| -- used 1.20477s (cpu); 1.06817s (thread); 0s (gc)     |
+|                                                        |
+|        5      4     3                                  |
+|o3 = 12h  + 10h  + 6h                                   |
+|        1      1     1                                  |
+|                                                        |
+|     ZZ[h ]                                             |
+|         1                                              |
+|o3 : ------                                             |
+|        7                                               |
+|       h                                                |
+|        1                                               |
++--------------------------------------------------------+
+|i4 : time CSM(I,Method=>DirectCompleteInt)              |
+| -- used 0.299155s (cpu); 0.269978s (thread); 0s (gc)   |
+|                                                        |
+|        5      4     3                                  |
+|o4 = 12h  + 10h  + 6h                                   |
+|        1      1     1                                  |
+|                                                        |
+|     ZZ[h ]                                             |
+|         1                                              |
+|o4 : ------                                             |
+|        7                                               |
+|       h                                                |
+|        1                                               |
++--------------------------------------------------------+
+
+When using the DirectCompleteInt method one may potentially further speed up
+computation time by specifying what subset of the generators of the input ideal
+define a smooth subscheme (if this is known), see *note IndsOfSmooth:
+IndsOfSmooth,.
+
+Functions with optional argument named Method:
+==============================================
+
+  * "CSM(...,Method=>...)" -- see *note CSM: CSM, -- The
+    Chern-Schwartz-MacPherson class
+  * Euler(...,Method=>...) (missing documentation)
+
+For the programmer
+==================
+
+The object *note Method: Method, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2432:0.
+
+File: CharacteristicClasses.info, Node: MultiProjCoordRing, Next: Output, Prev: Method, Up: Top
+
+MultiProjCoordRing -- A quick way to build the coordinate ring of a product of projective spaces
+************************************************************************************************
+
+  * Usage: 
+        MultiProjCoordRing Dims
+        MultiProjCoordRing (CoeffRing,Dims)
+        MultiProjCoordRing (var,Dims)
+        MultiProjCoordRing (CoeffRing,var,Dims)
+  * Inputs:
+      * Dims, a *note list: (Macaulay2Doc)List,, representing the dimensions of
+        the projective spaces, i.e. {n_1,...,n_m} corresponds to \PP^{n_1}
+        x.... x \PP^{n_m}
+      * CoeffRing, a *note ring: (Macaulay2Doc)Ring,, the coefficient ring of
+        the graded polynomial ring to be built by the method, by default this
+        is \ZZ/32749
+      * var, a *note symbol: (Macaulay2Doc)Symbol,, to be used for the
+        intermediates of the graded polynomial ring to be built by the method
+  * Outputs:
+      * a *note ring: (Macaulay2Doc)Ring,, the graded coordinate ring of the
+        \PP^{n_1} x.... x \PP^{n_m} where {n_1,...,n_m} is the input list of
+        dimensions
+
+Description
+===========
+
+Computes the graded coordinate ring of the \PP^{n_1} x.... x \PP^{n_m} where
+{n_1,...,n_m} is the input list of dimensions. This method is used to quickly
+build the coordinate ring of a product of projective spaces for use in
+computations.
+
++-----------------------------------------------------------------------------+
+|i1 : S=MultiProjCoordRing(QQ,symbol z,{1,3,3})                               |
+|                                                                             |
+|o1 = S                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : degrees S                                                               |
+|                                                                             |
+|o2 = {{1, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}, {0,  |
+|     ------------------------------------------------------------------------|
+|     0, 1}, {0, 0, 1}, {0, 0, 1}, {0, 0, 1}}                                 |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : R=MultiProjCoordRing {2,3}                                              |
+|                                                                             |
+|o3 = R                                                                       |
+|                                                                             |
+|o3 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i4 : coefficientRing R                                                       |
+|                                                                             |
+|       ZZ                                                                    |
+|o4 = -----                                                                   |
+|     32749                                                                   |
+|                                                                             |
+|o4 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i5 : describe R                                                              |
+|                                                                             |
+|       ZZ                                                                    |
+|o5 = -----[x ..x , Degrees => {3:{1}, 4:{0}}, Heft => {2:1}]                 |
+|     32749  0   6                {0}    {1}                                  |
++-----------------------------------------------------------------------------+
+|i6 : A=ChowRing R                                                            |
+|                                                                             |
+|o6 = A                                                                       |
+|                                                                             |
+|o6 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i7 : describe A                                                              |
+|                                                                             |
+|     ZZ[h ..h ]                                                              |
+|         1   2                                                               |
+|o7 = ----------                                                              |
+|        3   4                                                                |
+|      (h , h )                                                               |
+|        1   2                                                                |
++-----------------------------------------------------------------------------+
+|i8 : Segre(A,ideal random({1,1},R))                                          |
+|                                                                             |
+|        2 3     2 2       3     2         2    3    2            2           |
+|o8 = 10h h  - 6h h  - 4h h  + 3h h  + 3h h  + h  - h  - 2h h  - h  + h  + h  |
+|        1 2     1 2     1 2     1 2     1 2    2    1     1 2    2    1    2 |
+|                                                                             |
+|o8 : A                                                                       |
++-----------------------------------------------------------------------------+
+
+Ways to use MultiProjCoordRing:
+===============================
+
+  * "MultiProjCoordRing(List)"
+  * "MultiProjCoordRing(Ring,List)"
+  * "MultiProjCoordRing(Ring,Symbol,List)"
+  * "MultiProjCoordRing(Symbol,List)"
+
+For the programmer
+==================
+
+The object *note MultiProjCoordRing: MultiProjCoordRing, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2050:0.
+
+File: CharacteristicClasses.info, Node: Output, Next: probabilistic algorithm, Prev: MultiProjCoordRing, Up: Top
+
+Output
+******
+
+Description
+===========
+
+The option Output is only used by the commands *note CSM: CSM,, *note Segre:
+Segre,, *note Chern: Chern, and *note Euler: Euler, to specify the type of
+output to be returned to the used. This option will be ignored when used with
+*note CompMethod: CompMethod, PnResidual or bertini. The option will also be
+ignore when *note Method: Method,=>DirectCompleteInt is used. The default
+output for all these methods is ChowRingElelment which will return an element
+of the appropriate Chow ring. All methods also have an option HashForm which
+returns additional information computed by the methods during their standard
+operation.
+
++-----------------------------------------------------------------------------+
+|i1 : R = ZZ/32749[x_0..x_6]                                                  |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : A=ChowRing(R)                                                           |
+|                                                                             |
+|o2 = A                                                                       |
+|                                                                             |
+|o2 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i3 : I=ideal(random(2,R),R_0*R_1*R_6-R_0^3);                                 |
+|                                                                             |
+|o3 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i4 : csm=CSM(A,I,Output=>HashForm)                                           |
+|                                                                             |
+|o4 = MutableHashTable{...4...}                                               |
+|                                                                             |
+|o4 : MutableHashTable                                                        |
++-----------------------------------------------------------------------------+
+|i5 : peek csm                                                                |
+|                                                                             |
+|                                  6      5      4      3      2              |
+|o5 = MutableHashTable{{0, 1} => 2h  + 23h  + 32h  + 33h  + 18h  + 5h }       |
+|                                  1      1      1      1      1     1        |
+|                                6      5      4      3     2                 |
+|                      CSM => 10h  + 12h  + 22h  + 16h  + 6h                  |
+|                                1      1      1      1     1                 |
+|                               6      5      4      3      2                 |
+|                      {0} => 6h  + 18h  + 26h  + 22h  + 10h  + 2h            |
+|                               1      1      1      1      1     1           |
+|                               6      5      4      3      2                 |
+|                      {1} => 6h  + 17h  + 28h  + 27h  + 14h  + 3h            |
+|                               1      1      1      1      1     1           |
++-----------------------------------------------------------------------------+
+|i6 : CSM(A,ideal I_0)==csm#{0}                                               |
+|                                                                             |
+|o6 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : CSM(A,ideal(I_0*I_1))==csm#{0,1}                                        |
+|                                                                             |
+|o7 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : c=Chern( I, Output=>HashForm)                                           |
+|                                                                             |
+|o8 = MutableHashTable{...6...}                                               |
+|                                                                             |
+|o8 : MutableHashTable                                                        |
++-----------------------------------------------------------------------------+
+|i9 : peek c                                                                  |
+|                                                                             |
+|                                            2      3      4       5       6  |
+|o9 = MutableHashTable{SegreList => {0, 0, 6h , -30h , 114h , -390h , 1266h }}|
+|                                            1      1      1       1       1  |
+|                                          2    3    4    5    6              |
+|                      Glist => {1, 3h , 3h , 3h , 3h , 3h , 3h }             |
+|                                     1    1    1    1    1    1              |
+|                                    6       5       4      3     2           |
+|                      Segre => 1266h  - 390h  + 114h  - 30h  + 6h            |
+|                                    1       1       1      1     1           |
+|                                  6      5      4      3     2               |
+|                      Chern => 90h  - 12h  + 30h  + 12h  + 6h                |
+|                                  1      1      1      1     1               |
+|                               6      5      4      3     2                  |
+|                      CF => 90h  - 12h  + 30h  + 12h  + 6h                   |
+|                               1      1      1      1     1                  |
+|                             6     5     4     3     2                       |
+|                      G => 3h  + 3h  + 3h  + 3h  + 3h  + 3h  + 1             |
+|                             1     1     1     1     1     1                 |
++-----------------------------------------------------------------------------+
+|i10 : seg=Segre( I, Output=>HashForm)                                        |
+|                                                                             |
+|o10 = MutableHashTable{...4...}                                              |
+|                                                                             |
+|o10 : MutableHashTable                                                       |
++-----------------------------------------------------------------------------+
+|i11 : peek seg                                                               |
+|                                                                             |
+|                                             2      3      4       5         |
+|o11 = MutableHashTable{SegreList => {0, 0, 6h , -30h , 114h , -390h ,        |
+|                                             1      1      1       1         |
+|                                           2    3    4    5    6             |
+|                       Glist => {1, 3h , 3h , 3h , 3h , 3h , 3h }            |
+|                                      1    1    1    1    1    1             |
+|                                     6       5       4      3     2          |
+|                       Segre => 1266h  - 390h  + 114h  - 30h  + 6h           |
+|                                     1       1       1      1     1          |
+|                              6     5     4     3     2                      |
+|                       G => 3h  + 3h  + 3h  + 3h  + 3h  + 3h  + 1            |
+|                              1     1     1     1     1     1                |
+|-----------------------------------------------------------------------------|
+|     6                                                                       |
+|1266h }}                                                                     |
+|     1                                                                       |
++-----------------------------------------------------------------------------+
+|i12 : eu=Euler( I, Output=>HashForm)                                         |
+|                                                                             |
+|o12 = MutableHashTable{...5...}                                              |
+|                                                                             |
+|o12 : MutableHashTable                                                       |
++-----------------------------------------------------------------------------+
+|i13 : peek eu                                                                |
+|                                                                             |
+|o13 = MutableHashTable{Euler => 10                                    }      |
+|                                   6      5      4      3      2             |
+|                       {0, 1} => 2h  + 23h  + 32h  + 33h  + 18h  + 5h        |
+|                                   1      1      1      1      1     1       |
+|                                 6      5      4      3     2                |
+|                       CSM => 10h  + 12h  + 22h  + 16h  + 6h                 |
+|                                 1      1      1      1     1                |
+|                                6      5      4      3      2                |
+|                       {0} => 6h  + 18h  + 26h  + 22h  + 10h  + 2h           |
+|                                1      1      1      1      1     1          |
+|                                6      5      4      3      2                |
+|                       {1} => 6h  + 17h  + 28h  + 27h  + 14h  + 3h           |
+|                                1      1      1      1      1     1          |
++-----------------------------------------------------------------------------+
+
+The MutableHashTable returned with the option Output=>HashForm contains
+different information depending on the method with which it is used.
+Additionally if the option *note InputIsSmooth: InputIsSmooth, is used then the
+hash table returned by the methods Euler and CSM will be the same as that
+returned by Chern. When using the *note CSM: CSM,  command in the default
+configurations (that is *note Method: Method,=>InclusionExclusion, *note
+CompMethod: CompMethod,=>ProjectiveDegree) there is the additional option to
+set Output=>HashFormXL. This returns all the usual information that
+Output=>HashForm would for this configuration with the addition of the
+projective degrees and Segre classes of singularity subschemes generated by the
+hypersurfaces considered in the inclusion/exclusion procedure, that is in
+finding the CSM class of all hypersurfaces generated by taking a product of
+some subsets of generators of the input ideal. Note that, since the CSM class
+of a subscheme equals the CSM class of its reduced scheme, or equivalently for
+us the CSM class corresponding to an ideal I equals the CSM class of the
+radical of I, then internally we always work with radical ideals (for
+efficiency reasons). Hence the projective degrees and Segre classes computed
+internally will be those of the radical of an ideal defined by a polynomial
+which is a product of some subset of the generators. We illustrate this with an
+example below.
+
++-----------------------------------------------------------------------------+
+|i14 : csmXLhash=CSM(A,I,Output=>HashFormXL)                                  |
+|                                                                             |
+|o14 = MutableHashTable{...10...}                                             |
+|                                                                             |
+|o14 : MutableHashTable                                                       |
++-----------------------------------------------------------------------------+
+|i15 : peek csmXLhash                                                         |
+|                                                                             |
+|o15 = MutableHashTable{G(Jacobian){0} => 0                                   |
+|                       Segre(Jacobian){0} => 0                               |
+|                                                    6       5       4        |
+|                       Segre(Jacobian){0, 1} => 390h  - 386h  + 150h  -      |
+|                                                    1       1       1        |
+|                                                   6      5     3     2      |
+|                       Segre(Jacobian){1} => - 160h  + 32h  - 4h  + 2h       |
+|                                                   1      1     1     1      |
+|                                               6      5      4      3        |
+|                       G(Jacobian){0, 1} => 10h  + 10h  + 10h  + 10h  +      |
+|                                               1      1      1      1        |
+|                                           2                                 |
+|                       G(Jacobian){1} => 2h  + 2h  + 1                       |
+|                                           1     1                           |
+|                                   6      5      4      3      2             |
+|                       {0, 1} => 2h  + 23h  + 32h  + 33h  + 18h  + 5h        |
+|                                   1      1      1      1      1     1       |
+|                                 6      5      4      3     2                |
+|                       CSM => 10h  + 12h  + 22h  + 16h  + 6h                 |
+|                                 1      1      1      1     1                |
+|                                6      5      4      3      2                |
+|                       {0} => 6h  + 18h  + 26h  + 22h  + 10h  + 2h           |
+|                                1      1      1      1      1     1          |
+|                                6      5      4      3      2                |
+|                       {1} => 6h  + 17h  + 28h  + 27h  + 14h  + 3h           |
+|                                1      1      1      1      1     1          |
+|-----------------------------------------------------------------------------|
+|             }                                                               |
+|                                                                             |
+|   3     2                                                                   |
+|42h  + 8h                                                                    |
+|   1     1                                                                   |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|  2                                                                          |
+|8h  + 4h  + 1                                                                |
+|  1     1                                                                    |
++-----------------------------------------------------------------------------+
+|i16 : K=ideal I_0*I_1;                                                       |
+|                                                                             |
+|o16 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i17 : CSM(A,radical K)==CSM(A,K)                                             |
+|                                                                             |
+|o17 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i18 : J=ideal jacobian radical K;                                            |
+|                                                                             |
+|o18 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i19 : segJ=Segre(A,J,Output=>HashForm)                                       |
+|                                                                             |
+|o19 = MutableHashTable{...4...}                                              |
+|                                                                             |
+|o19 : MutableHashTable                                                       |
++-----------------------------------------------------------------------------+
+|i20 : csmXLhash#("G(Jacobian)"|toString({0,1}))==segJ#"G"                    |
+|                                                                             |
+|o20 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i21 : csmXLhash#("Segre(Jacobian)"|toString({0,1}))==segJ#"Segre"            |
+|                                                                             |
+|o21 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+Functions with optional argument named Output:
+==============================================
+
+  * "Chern(...,Output=>...)" -- see *note Chern: Chern, -- The Chern class
+  * "CSM(...,Output=>...)" -- see *note CSM: CSM, -- The
+    Chern-Schwartz-MacPherson class
+  * "Euler(...,Output=>...)" -- see *note Euler: Euler, -- The Euler
+    Characteristic
+  * "Segre(...,Output=>...)" -- see *note Segre: Segre, -- The Segre class of a
+    subscheme
+
+For the programmer
+==================
+
+The object *note Output: Output, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2469:0.
+
+File: CharacteristicClasses.info, Node: probabilistic algorithm, Next: Segre, Prev: Output, Up: Top
+
+probabilistic algorithm
+***********************
+
+The algorithms used for the computation of characteristic classes are
+probabilistic. Theoretically, they calculate the classes correctly for a
+general choice of certain polynomials. That is, there is an open dense Zariski
+set for which the algorithm yields the correct class, i.e., the correct class
+is calculated with probability 1. However, since the implementation works over
+a discrete probability space there is a very small, but non-zero, probability
+of not computing the correct class. Skeptical users should repeat calculations
+several times to increase the probability of computing the correct class.
+
+In the case of the symbolic implementation of the ProjectiveDegree method
+practical experience and algorithm testing indicate that a finite field with
+over 25000 elements is more than sufficient to expect a correct result with
+high probability, i.e. using the finite field kk=ZZ/25073 the experimental
+chance of failure with the ProjectiveDegree algorithm on a variety of examples
+was less than 1/2000. Using the finite field kk=ZZ/32749 resulted in no
+failures in over 10000 attempts of several different examples.
+
+We illustrate the probabilistic behaviour with an example where the chosen
+random seed leads to a wrong result in the first calculation.
+
++------------------------------------------------+
+|i1 : setRandomSeed 121;                         |
+| -- setting random seed to 121                  |
++------------------------------------------------+
+|i2 : R = QQ[x,y,z,w]                            |
+|                                                |
+|o2 = R                                          |
+|                                                |
+|o2 : PolynomialRing                             |
++------------------------------------------------+
+|i3 : I = minors(2,matrix{{x,y,z},{y,z,w}})      |
+|                                                |
+|               2                        2       |
+|o3 = ideal (- y  + x*z, - y*z + x*w, - z  + y*w)|
+|                                                |
+|o3 : Ideal of R                                 |
++------------------------------------------------+
+|i4 : Chern (I,CompMethod=>PnResidual)           |
+|                                                |
+|       3     2                                  |
+|o4 = 2H  + 3H                                   |
+|                                                |
+|     ZZ[H]                                      |
+|o4 : -----                                      |
+|        4                                       |
+|       H                                        |
++------------------------------------------------+
+|i5 : Chern (I,CompMethod=>PnResidual)           |
+|                                                |
+|       3     2                                  |
+|o5 = 2H  + 3H                                   |
+|                                                |
+|     ZZ[H]                                      |
+|o5 : -----                                      |
+|        4                                       |
+|       H                                        |
++------------------------------------------------+
+|i6 : Chern (I,CompMethod=>PnResidual)           |
+|                                                |
+|       3     2                                  |
+|o6 = 2H  + 3H                                   |
+|                                                |
+|     ZZ[H]                                      |
+|o6 : -----                                      |
+|        4                                       |
+|       H                                        |
++------------------------------------------------+
+|i7 : Chern(I,CompMethod=>ProjectiveDegree)      |
+|                                                |
+|       3     2                                  |
+|o7 = 2h  + 3h                                   |
+|       1     1                                  |
+|                                                |
+|     ZZ[h ]                                     |
+|         1                                      |
+|o7 : ------                                     |
+|        4                                       |
+|       h                                        |
+|        1                                       |
++------------------------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:2378:0.
+
+File: CharacteristicClasses.info, Node: Segre, Next: ToricChowRing, Prev: probabilistic algorithm, Up: Top
+
+Segre -- The Segre class of a subscheme
+***************************************
+
+  * Usage: 
+        Segre I
+        Segre(A,I)
+        Segre(X,J)
+        Segre(Ch,X,J)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, a multi-homogeneous ideal in a
+        graded polynomial ring over a field defining a closed subscheme V of
+        \PP^{n_1}x...x\PP^{n_m}
+      * A, a *note quotient ring: (Macaulay2Doc)QuotientRing,,
+        A=\ZZ[h_1,...,h_m]/(h_1^{n_1+1},...,h_m^{n_m+1}) quotient ring
+        representing the Chow ring of \PP^{n_1}x...x\PP^{n_m}, this ring should
+        be built using the *note ChowRing: ChowRing, command
+      * J, an *note ideal: (Macaulay2Doc)Ideal,, in the graded polynomial ring
+        which is coordinate ring of the Normal Toric Variety X
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,, which is the ambient space
+        which contains V(J)
+      * Ch, a *note quotient ring: (Macaulay2Doc)QuotientRing,, the Chow ring
+        of the toric variety X, Ch=(ring J)/(SR+LR) where SR is the
+        Stanley-Reisner ideal of the fan defining X and LR is the linear
+        relations ideal, this ring should be built using the *note
+        ToricChowRing: ToricChowRing, command
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CompMethod (missing documentation) => ..., default value
+        ProjectiveDegree, ProjectiveDegree, this algorithm may be used for
+        subschemes of any applicable toric variety (this may be checked using
+        the *note CheckToricVarietyValid: CheckToricVarietyValid, command)
+      * CompMethod (missing documentation) => ..., default value
+        ProjectiveDegree, PnResidual, this algorithm may be used for subschemes
+        of \PP^n only
+      * Output => ..., default value ChowRingElement, ChowRingElement, returns
+        a RingElement in the Chow ring of the appropriate ambient space
+      * Output => ..., default value ChowRingElement, HashForm, HashForm
+        returns a MutableHashTable containing the following keys: "G" (the
+        polynomial with coefficients of the hyperplane classes representing the
+        projective degrees), "Glist" (the list form of "G") , "Segre" (the
+        total Segre class of the input),"SegreList" (the list form of "Segre")
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the pushforward of
+        the total Segre class of the scheme V defined by the input ideal to the
+        appropriate Chow ring
+
+Description
+===========
+
+For a subscheme V of an applicable toric variety X this command computes the
+push-forward of the total Segre class s(V,X) of V in X to the Chow ring of X.
+
++---------------------------------------------+
+|i1 : setRandomSeed 72;                       |
+| -- setting random seed to 72                |
++---------------------------------------------+
+|i2 : R = ZZ/32749[w,y,z]                     |
+|                                             |
+|o2 = R                                       |
+|                                             |
+|o2 : PolynomialRing                          |
++---------------------------------------------+
+|i3 : Segre(ideal(w*y),CompMethod=>PnResidual)|
+|                                             |
+|         2                                   |
+|o3 = - 4H  + 2H                              |
+|                                             |
+|     ZZ[H]                                   |
+|o3 : -----                                   |
+|        3                                    |
+|       H                                     |
++---------------------------------------------+
+|i4 : A=ChowRing(R)                           |
+|                                             |
+|o4 = A                                       |
+|                                             |
+|o4 : QuotientRing                            |
++---------------------------------------------+
+|i5 : Segre(A,ideal(w^2*y,w*y^2))             |
+|                                             |
+|         2                                   |
+|o5 = - 3h  + 2h                              |
+|         1     1                             |
+|                                             |
+|o5 : A                                       |
++---------------------------------------------+
+
+Now consider an example in \PP^2 \times \PP^2, if we input the Chow ring A the
+output will be returned in the same ring. To ensure proper function of the
+methods we build the Chow ring using the *note ChowRing: ChowRing, command. We
+may also return a MutableHashTable.
+
++-----------------------------------------------------------------------------+
+|i6 : R=MultiProjCoordRing({2,2})                                             |
+|                                                                             |
+|o6 = R                                                                       |
+|                                                                             |
+|o6 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i7 : r=gens R                                                                |
+|                                                                             |
+|o7 = {x , x , x , x , x , x }                                                |
+|       0   1   2   3   4   5                                                 |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : A=ChowRing(R)                                                           |
+|                                                                             |
+|o8 = A                                                                       |
+|                                                                             |
+|o8 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i9 : I=ideal(r_0^2*r_3-r_4*r_1*r_2,r_2^2*r_5)                                |
+|                                                                             |
+|             2              2                                                |
+|o9 = ideal (x x  - x x x , x x )                                             |
+|             0 3    1 2 4   2 5                                              |
+|                                                                             |
+|o9 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i10 : Segre I                                                                |
+|                                                                             |
+|         2 2      2          2     2            2                            |
+|o10 = 72h h  - 24h h  - 12h h  + 4h  + 4h h  + h                             |
+|         1 2      1 2      1 2     1     1 2    2                            |
+|                                                                             |
+|      ZZ[h ..h ]                                                             |
+|          1   2                                                              |
+|o10 : ----------                                                             |
+|         3   3                                                               |
+|       (h , h )                                                              |
+|         1   2                                                               |
++-----------------------------------------------------------------------------+
+|i11 : s1=Segre(A,I)                                                          |
+|                                                                             |
+|         2 2      2          2     2            2                            |
+|o11 = 72h h  - 24h h  - 12h h  + 4h  + 4h h  + h                             |
+|         1 2      1 2      1 2     1     1 2    2                            |
+|                                                                             |
+|o11 : A                                                                      |
++-----------------------------------------------------------------------------+
+|i12 : SegHash=Segre(A,I,Output=>HashForm)                                    |
+|                                                                             |
+|o12 = MutableHashTable{...4...}                                              |
+|                                                                             |
+|o12 : MutableHashTable                                                       |
++-----------------------------------------------------------------------------+
+|i13 : peek SegHash                                                           |
+|                                                                             |
+|o13 = MutableHashTable{G => 2h  + h  + 1                                     |
+|                              1    2                                         |
+|                       Glist => {1, 2h  + h , 0, 0, 0}                       |
+|                                      1    2                                 |
+|                                             2            2                  |
+|                       SegreList => {0, 0, 4h  + 4h h  + h , -               |
+|                                             1     1 2    2                  |
+|                                   2 2      2          2     2               |
+|                       Segre => 72h h  - 24h h  - 12h h  + 4h                |
+|                                   1 2      1 2      1 2     1               |
+|-----------------------------------------------------------------------------|
+|                        }                                                    |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|   2          2     2 2                                                      |
+|24h h  - 12h h , 72h h }                                                     |
+|   1 2      1 2     1 2                                                      |
+|           2                                                                 |
+|+ 4h h  + h                                                                  |
+|    1 2    2                                                                 |
++-----------------------------------------------------------------------------+
+|i14 : s1==SegHash#"Segre"                                                    |
+|                                                                             |
+|o14 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+In the case where the ambient space is a toric variety which is not a product
+of projective spaces we must load the NormalToricVarieties package and must
+also input the toric variety. If the toric variety is a product of projective
+space it is recommended to use the form above rather than inputting the toric
+variety for efficiency reasons.
+
++------------------------------------------------------------------------+
+|i15 : needsPackage "NormalToricVarieties"                               |
+|                                                                        |
+|o15 = NormalToricVarieties                                              |
+|                                                                        |
+|o15 : Package                                                           |
++------------------------------------------------------------------------+
+|i16 : Rho = {{1,0,0},{0,1,0},{0,0,1},{-1,-1,0},{0,0,-1}}                |
+|                                                                        |
+|o16 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, -1, 0}, {0, 0, -1}}        |
+|                                                                        |
+|o16 : List                                                              |
++------------------------------------------------------------------------+
+|i17 : Sigma = {{0,1,2},{1,2,3},{0,2,3},{0,1,4},{1,3,4},{0,3,4}}         |
+|                                                                        |
+|o17 = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 3, 4}}|
+|                                                                        |
+|o17 : List                                                              |
++------------------------------------------------------------------------+
+|i18 : X = normalToricVariety(Rho,Sigma,CoefficientRing =>ZZ/32749)      |
+|                                                                        |
+|o18 = X                                                                 |
+|                                                                        |
+|o18 : NormalToricVariety                                                |
++------------------------------------------------------------------------+
+|i19 : CheckToricVarietyValid(X)                                         |
+|                                                                        |
+|o19 = true                                                              |
++------------------------------------------------------------------------+
+|i20 : R=ring(X)                                                         |
+|                                                                        |
+|o20 = R                                                                 |
+|                                                                        |
+|o20 : PolynomialRing                                                    |
++------------------------------------------------------------------------+
+|i21 : I=ideal(R_0^4*R_1,R_0*R_3*R_4*R_2-R_2^2*R_0^2)                    |
+|                                                                        |
+|              4       2 2                                               |
+|o21 = ideal (x x , - x x  + x x x x )                                   |
+|              0 1     0 2    0 2 3 4                                    |
+|                                                                        |
+|o21 : Ideal of R                                                        |
++------------------------------------------------------------------------+
+|i22 : Segre(X,I)                                                        |
+|                                                                        |
+|           2       2                                                    |
+|o22 = - 72x x  + 3x  + 8x x  + x                                        |
+|           3 4     3     3 4    3                                       |
+|                                                                        |
+|                      ZZ[x ..x ]                                        |
+|                          0   4                                         |
+|o22 : -----------------------------------------                         |
+|      (x x , x x x , x  - x , x  - x , x  - x )                         |
+|        2 4   0 1 3   0    3   1    3   2    4                          |
++------------------------------------------------------------------------+
+|i23 : Ch=ToricChowRing(X)                                               |
+|                                                                        |
+|o23 = Ch                                                                |
+|                                                                        |
+|o23 : QuotientRing                                                      |
++------------------------------------------------------------------------+
+|i24 : s3=Segre(Ch,X,I)                                                  |
+|                                                                        |
+|           2       2                                                    |
+|o24 = - 72x x  + 3x  + 8x x  + x                                        |
+|           3 4     3     3 4    3                                       |
+|                                                                        |
+|o24 : Ch                                                                |
++------------------------------------------------------------------------+
+
+All the examples were done using symbolic computations with Gr\"obner bases.
+Changing the option *note CompMethod: CompMethod, to bertini will do the main
+computations numerically, provided Bertini is  *note installed and configured:
+configuring Bertini,. Note that the bertini option is only available for
+subschemes of \PP^n.
+
+Observe that the algorithm is a probabilistic algorithm and may give a wrong
+answer with a small but nonzero probability. Read more under *note
+probabilistic algorithm: probabilistic algorithm,.
+
+Ways to use Segre:
+==================
+
+  * "Segre(Ideal)"
+  * "Segre(Ideal,Symbol)"
+  * "Segre(QuotientRing,Ideal)"
+
+For the programmer
+==================
+
+The object *note Segre: Segre, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:1763:0.
+
+File: CharacteristicClasses.info, Node: ToricChowRing, Prev: Segre, Up: Top
+
+ToricChowRing -- Computes the Chow ring of a normal toric variety
+*****************************************************************
+
+  * Usage: 
+        ToricChowRing X
+  * Inputs:
+      * R, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,, A normal toric variety
+  * Outputs:
+      * a *note quotient ring: (Macaulay2Doc)QuotientRing,, 
+
+Description
+===========
+
+Let X be a toric variety with total coordinate ring (Cox ring) R. This method
+computes the Chow ring  Chow ring Ch=R/(SR+LR) of X; here SR is the
+Stanley-Reisner ideal of the corresponding fan and LR is the ideal of linear
+relations amount the rays. It is needed for input into the methods *note Segre:
+Segre,, *note Chern: Chern, and *note CSM: CSM, in the cases where a toric
+variety is also input to ensure that these methods return results in the same
+ring. We give an example of the use of this method to work with elements of the
+Chow ring of a toric variety
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "NormalToricVarieties"                                     |
+|                                                                             |
+|o1 = NormalToricVarieties                                                    |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : Rho = {{1,0,0},{0,1,0},{0,0,1},{-1,-1,0},{0,0,-1}}                      |
+|                                                                             |
+|o2 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, -1, 0}, {0, 0, -1}}              |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : Sigma = {{0,1,2},{1,2,3},{0,2,3},{0,1,4},{1,3,4},{0,3,4}}               |
+|                                                                             |
+|o3 = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 3, 4}}      |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : X = normalToricVariety(Rho,Sigma,CoefficientRing =>ZZ/32749)            |
+|                                                                             |
+|o4 = X                                                                       |
+|                                                                             |
+|o4 : NormalToricVariety                                                      |
++-----------------------------------------------------------------------------+
+|i5 : R=ring X                                                                |
+|                                                                             |
+|o5 = R                                                                       |
+|                                                                             |
+|o5 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i6 : Ch=ToricChowRing(X)                                                     |
+|                                                                             |
+|o6 = Ch                                                                      |
+|                                                                             |
+|o6 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i7 : describe Ch                                                             |
+|                                                                             |
+|                     ZZ[x ..x ]                                              |
+|                         0   4                                               |
+|o7 = -----------------------------------------                               |
+|     (x x , x x x , x  - x , x  - x , x  - x )                               |
+|       2 4   0 1 3   0    3   1    3   2    4                                |
++-----------------------------------------------------------------------------+
+|i8 : r=gens R                                                                |
+|                                                                             |
+|o8 = {x , x , x , x , x }                                                    |
+|       0   1   2   3   4                                                     |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : I=ideal(random({1,0},R))                                                |
+|                                                                             |
+|o9 = ideal(107x  + 4376x  - 6316x )                                          |
+|               0        1        3                                           |
+|                                                                             |
+|o9 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i10 : K=ideal(random({1,1},R))                                               |
+|                                                                             |
+|o10 = ideal(3187x x  - 6053x x  - 16090x x  + 3783x x  + 8570x x  + 8444x x )|
+|                 0 2        1 2         2 3        0 4        1 4        3 4 |
+|                                                                             |
+|o10 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i11 : c=Chern(Ch,X,I)                                                        |
+|                                                                             |
+|        2       2                                                            |
+|o11 = 4x x  + 2x  + 2x x  + x                                                |
+|        3 4     3     3 4    3                                               |
+|                                                                             |
+|o11 : Ch                                                                     |
++-----------------------------------------------------------------------------+
+|i12 : s=Segre(Ch,X,K)                                                        |
+|                                                                             |
+|        2      2                                                             |
+|o12 = 3x x  - x  - 2x x  + x  + x                                            |
+|        3 4    3     3 4    3    4                                           |
+|                                                                             |
+|o12 : Ch                                                                     |
++-----------------------------------------------------------------------------+
+|i13 : s-c                                                                    |
+|                                                                             |
+|         2       2                                                           |
+|o13 = - x x  - 3x  - 4x x  + x                                               |
+|         3 4     3     3 4    4                                              |
+|                                                                             |
+|o13 : Ch                                                                     |
++-----------------------------------------------------------------------------+
+|i14 : s*c                                                                    |
+|                                                                             |
+|        2      2                                                             |
+|o14 = 2x x  + x  + x x                                                       |
+|        3 4    3    3 4                                                      |
+|                                                                             |
+|o14 : Ch                                                                     |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note ToricChowRing: ToricChowRing, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CharacteristicClasses.m2:1951:0.
+
+Tag Table:
+Node: Top291
+Node: bertiniCheck16636
+Node: CheckSmooth17784
+Node: CheckToricVarietyValid22511
+Node: Chern33433
+Node: ChowRing50872
+Node: ClassInChowRing58534
+Node: ClassInToricChowRing60825
+Node: CompMethod65999
+Node: configuring Bertini75857
+Node: CSM77423
+Node: Euler100890
+Node: EulerAffine118698
+Node: IndsOfSmooth121141
+Node: InputIsSmooth125027
+Node: isMultiHomogeneous128941
+Node: Method132950
+Node: MultiProjCoordRing136830
+Node: Output143429
+Node: probabilistic algorithm161878
+Node: Segre166504
+Node: ToricChowRing184342
+
+End Tag Table

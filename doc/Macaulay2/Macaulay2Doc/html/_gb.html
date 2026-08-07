@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>gb -- compute a Gröbner basis</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="index.html">Documentation </a> <br><a href="_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> » <a href="_commutative_spalgebra.html">commutative algebra</a> » <a href="___Gr%C3%B6bner_spbases.html">Gröbner bases</a> » <a href="_computing_sp__Groebner_spbases.html">computing Groebner bases</a> » <a title="compute a Gröbner basis" href="_gb.html">gb</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_groebner__Basis.html">next</a> | previous | <a href="___Groebner__Basis.html">forward</a> | <a href="_computing_sp__Groebner_spbases.html">backward</a> | <a href="_computing_sp__Groebner_spbases.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>gb -- compute a Gröbner basis</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">gb I</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">I</span>, an ideal, module, or matrix</span></li>
+          </ul>
+        </li>
+        <li><a href="_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:          <ul>
+            <li><span><a href="___Gr%C3%B6bner_spbasis_spalgorithms.html">Algorithm</a><span class="tt"> => </span><span>a <a title="the class of all symbols" href="___Symbol.html">symbol</a></span>, <span>default value Inhomogeneous</span>, possible values: <span class="tt">Homogeneous</span>, <span class="tt">Inhomogeneous</span>, <span class="tt">Homogeneous2</span>, and <span class="tt">Sugarless</span>. Experimental options include <span class="tt">LinearAlgebra</span> and <span class="tt">Toric</span>.</span></li>
+            <li><span><span class="tt">BasisElementLimit</span><span class="tt"> => </span><span>an <a title="the class of all integers" href="___Z__Z.html">integer</a></span>, <span>default value infinity</span>, stop when this number of (nonminimal) Gröbner basis elements has been found</span></li>
+            <li><span><span class="tt">ChangeMatrix</span><span class="tt"> => </span><span>a <a title="the class of boolean values" href="___Boolean.html">Boolean value</a></span>, <span>default value false</span>, whether to compute the change of basis matrix from Gröbner basis elements to original generators.  Use <a title="get the change of basis matrix" href="_get__Change__Matrix.html">getChangeMatrix</a> to recover it.</span></li>
+            <li><span><span class="tt">CodimensionLimit</span><span class="tt"> => </span><span>an <a title="the class of all integers" href="___Z__Z.html">integer</a></span>, <span>default value infinity</span>, stop computation once codimension of submodule of lead terms reaches this value (not functional yet)</span></li>
+            <li><span><span class="tt">DegreeLimit</span><span class="tt"> => </span><span>a <a title="the class of all lists -- {...}" href="___List.html">list</a></span>, <span>default value {}</span>, stop after the Gröbner basis in this degree has been computed</span></li>
+            <li><span><span class="tt">GBDegrees</span><span class="tt"> => </span><span>a <a title="the class of all lists -- {...}" href="___List.html">list</a></span>, <span>default value null</span>, a list of positive integer weights, one for each variable in the ring, to be used for organizing the computation by degrees (the 'sugar' ecart vector)</span></li>
+            <li><span><span class="tt">HardDegreeLimit</span><span class="tt"> => </span><span class="tt">...</span>, <span>default value null</span>, throws away all S-pairs of degrees beyond the limit. The computation will be re-initialized if higher degrees are required.</span></li>
+            <li><span><span class="tt">Hilbert</span><span class="tt"> => </span><span class="tt">...</span>, <span>default value null</span>, informs Macaulay2 that this is the <a title="assemble degrees of a ring, module, or ideal into a polynomial" href="_poincare.html">poincare</a> polynomial, and can be used to aid in the computation of the Gröbner basis (Hilbert driven)</span></li>
+            <li><span><span class="tt">MaxReductionCount</span><span class="tt"> => </span><span>an <a title="the class of all integers" href="___Z__Z.html">integer</a></span>, <span>default value 10</span>, the maximum number of reductions of an S-pair done before requeueing it, if the <span class="tt">Inhomogeneous</span> algorithm is in use</span></li>
+            <li><span><span class="tt">PairLimit</span><span class="tt"> => </span><span>an <a title="the class of all integers" href="___Z__Z.html">integer</a></span>, <span>default value infinity</span>, stop after this number of spairs has been considered</span></li>
+            <li><span><span class="tt">StopBeforeComputation</span><span class="tt"> => </span><span>a <a title="the class of boolean values" href="___Boolean.html">Boolean value</a></span>, <span>default value false</span>, whether to initialize the Gröbner basis engine but return before doing any computation (useful for using or viewing partially computed Gröbner bases)</span></li>
+            <li><span><span class="tt">StopWithMinimalGenerators</span><span class="tt"> => </span><span>a <a title="the class of boolean values" href="___Boolean.html">Boolean value</a></span>, <span>default value false</span>, whether to stop as soon as the minimal set (or a trimmed set, if not homogeneous or local) of generators is known.  Intended for internal use only</span></li>
+            <li><span><span class="tt">Strategy</span><span class="tt"> => </span><span class="tt">...</span>, <span>default value {}</span>, either <a title="a Strategy option value" href="___Long__Polynomial.html">LongPolynomial</a>, <span class="tt">Sort</span> (missing documentation)<!--tag: Sort-->
+, or a list of these.  <a title="a Strategy option value" href="___Long__Polynomial.html">LongPolynomial</a>: use a geobucket data structure while reducing polynomials; <span class="tt">Sort</span>: sort the S-pairs by lead term (usually this is a bad idea). Another symbol usable here is <span class="tt">UseSyzygies</span>. Usually S-pairs are processed degree by degree in the order that they were constructed.</span></li>
+            <li><span><span class="tt">SubringLimit</span><span class="tt"> => </span><span>an <a title="the class of all integers" href="___Z__Z.html">integer</a></span>, <span>default value infinity</span>, stop after this number of elements of the Gröbner basis lie in the first subring</span></li>
+            <li><span><span class="tt">Syzygies</span><span class="tt"> => </span><span>a <a title="the class of boolean values" href="___Boolean.html">Boolean value</a></span>, <span>default value false</span>, whether to collect syzygies on the original generators during the computation.  Intended for internal use only</span></li>
+            <li><span><span class="tt">SyzygyLimit</span><span class="tt"> => </span><span>an <a title="the class of all integers" href="___Z__Z.html">integer</a></span>, <span>default value infinity</span>, stop when this number of non-zero syzygies has been found</span></li>
+            <li><span><span class="tt">SyzygyRows</span><span class="tt"> => </span><span>an <a title="the class of all integers" href="___Z__Z.html">integer</a></span>, <span>default value infinity</span>, for each syzygy and change of basis element, keep only this many rows of each syzygy</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span>a <a title="the class of all Gröbner bases" href="___Groebner__Basis.html">Gröbner basis</a></span>, a Gröbner basis computation object</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+See <a href="___Gr%C3%B6bner_spbases.html">Gröbner bases</a> for more information and examples.        <p></p>
+The returned value is not the Gröbner basis itself.  The matrix whose columns form a sorted, auto-reduced Gröbner basis are obtained by applying <a title="provide matrix or list of generators" href="_generators.html">generators</a> (synonym: <span class="tt">gens</span>) to the result of <span class="tt">gb</span>.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[a..d]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I = ideal(a^3-b^2*c, b*c^2-c*d^2, c^3)
+
+             3    2      2      2   3
+o2 = ideal (a  - b c, b*c  - c*d , c )
+
+o2 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : G = gens gb I
+
+o3 = | c3 bc2-cd2 a3-b2c c2d2 cd4 |
+
+             1      5
+o3 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <p>When <span class="tt">I</span> is a subquotient module <span class="tt">M/N</span> of a free module <span class="tt">F</span>, then <span class="tt">N</span> is generated by <span class="tt">relations I</span> and <span class="tt">M</span> is generated by the concatenated matrix <span class="tt">generators I || relations I</span> -- it is the Gröbner basis of that matrix which is computed, so that reduction modulo the Gröbner basis can be used to determine membership in <span class="tt">M</span>.  When relations are present, the option <a title="an optional argument" href="___Syzygy__Rows.html">SyzygyRows</a> is set to the number of columns of <span class="tt">generators I</span>, so that if <span class="tt">ChangeMatrix => true</span> is used, then division by the Gröbner basis can be to express an element of <span class="tt">F</span> as a linear combination of columns of <span class="tt">generators I</span>, avoiding the computation of the coefficients of the columns of <span class="tt">relations I</span>, leaving all the information that is required to specify an element of <span class="tt">I</span>.</p>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : R = QQ[x,y]
+
+o4 = R
+
+o4 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : M = subquotient(matrix {{x}}, matrix {{x+y}})
+
+o5 = subquotient (| x |, | x+y |)
+
+                               1
+o5 : R-module, subquotient of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : gens gb M
+
+o6 = | y x |
+
+             1      2
+o6 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : matrix {{x}} // gb(M,ChangeMatrix=>true)
+
+o7 = {1} | 1 |
+
+             1      1
+o7 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : matrix {{y}} // gb(M,ChangeMatrix=>true)
+
+o8 = {1} | -1 |
+
+             1      1
+o8 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Gröbner basis, as a matrix" href="_groebner__Basis.html">groebnerBasis</a> -- Gröbner basis, as a matrix</span></li>
+          <li><span><a title="the generator matrix of a Gröbner basis" href="_generators_lp__Groebner__Basis_rp.html">generators(GroebnerBasis)</a> -- the generator matrix of a Gröbner basis</span></li>
+          <li><span><a title="assemble degrees of a ring, module, or ideal into a polynomial" href="_poincare.html">poincare</a> -- assemble degrees of a ring, module, or ideal into a polynomial</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="the class of all Gröbner bases" href="___Groebner__Basis.html">GroebnerBasis</a> -- the class of all Gröbner bases</span></li>
+          <li><span><a href="___Groebner__Basis__Options.html">GroebnerBasisOptions</a></span></li>
+          <li><span><a href="___Gr%C3%B6bner_spbasis_spalgorithms.html">Gröbner basis algorithms</a></span></li>
+          <li><span><a title="the Gröbner basis matrix as so far computed" href="_gb__Snapshot.html">gbSnapshot</a> -- the Gröbner basis matrix as so far computed</span></li>
+          <li><span><a title="remove Gröbner basis" href="_gb__Remove.html">gbRemove</a> -- remove Gröbner basis</span></li>
+          <li><span><a title="current engine computation tracing level" href="_gb__Trace.html">gbTrace</a> -- current engine computation tracing level</span></li>
+          <li><span><a title="a Strategy option value" href="___Long__Polynomial.html">LongPolynomial</a> -- a Strategy option value</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">gb</span>:</h2>
+          <ul>
+            <li><kbd>gb(Ideal)</kbd></li>
+            <li><kbd>gb(Matrix)</kbd></li>
+            <li><kbd>gb(Module)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="compute a Gröbner basis" href="_gb.html">gb</a> is <span>a <a title="a type of method function" href="___Method__Function__With__Options.html">method function with options</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Macaulay2Doc/functions/gb-doc.m2:116:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

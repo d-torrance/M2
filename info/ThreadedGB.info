@@ -1,0 +1,1042 @@
+ -*- coding: utf-8 -*- This is ThreadedGB.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* ThreadedGB: (ThreadedGB).     Compute a Groebner basis using the classical Buchberger with multiple threads
+END-INFO-DIR-ENTRY
+
+
+File: ThreadedGB.info, Node: Top, Next: LineageTable, Up: (dir)
+
+ThreadedGB -- a package for distributed computation of Gröbner bases
+********************************************************************
+
+Description
+===========
+
+The complexity of Gröbner computations has inspired many improvements to
+Buchberger's algorithm over the years. While this package does not propose an
+improvement to the way the algorithm operates mathematically, it offers a way
+to distribute the algorithm among threads that run in parallel. It is our hope
+that such a distributed version of the algorithm should be written in the core
+of the program; however, there are still important insights one can obtain from
+the current implementation.
+
+To us, the most interesting is the insight into lineages (see below) of
+non-zero remainders that are added to the basis during a run of Buchberger. How
+are these affected by the structure of the input system? What do they say about
+the complexity of the computation itself (and not only the complexity of the
+basis)? These are questions at the heart of what we are aiming to discover, and
+the output of the threaded Gröbner bases method *note tgb: tgb, returns this
+information in form of a lineage table.
+
++-----------------------------------------------------------------------------+
+|i1 : QQ[x_1,x_0,x_3,x_5,x_4,x_2,MonomialOrder=>Lex]                          |
+|                                                                             |
+|o1 = QQ[x , x , x , x , x , x ]                                              |
+|         1   0   3   5   4   2                                               |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : rnc = minors(2, matrix{{x_0..x_4},{x_1..x_5}})                          |
+|                                                                             |
+|               2                                2                            |
+|o2 = ideal (- x  + x x , - x x  + x x , x x  - x , - x x  + x x , x x  -     |
+|               1    0 2     1 2    0 3   1 3    2     1 3    0 4   1 4       |
+|     ------------------------------------------------------------------------|
+|              2                                                            2 |
+|     x x , - x  + x x , - x x  + x x , x x  - x x , - x x  + x x , x x  - x )|
+|      3 2     3    4 2     1 4    0 5   1 5    4 2     3 4    5 2   3 5    4 |
+|                                                                             |
+|o2 : Ideal of QQ[x , x , x , x , x , x ]                                     |
+|                  1   0   3   5   4   2                                      |
++-----------------------------------------------------------------------------+
+|i3 : allowableThreads  =  4                                                  |
+|                                                                             |
+|o3 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i4 : g = tgb(rnc)                                                            |
+|                                                                             |
+|                                  2                                          |
+|o4 = LineageTable{((2, 3), 6) => x x  - x x x }                              |
+|                                  0 5    0 3 2                               |
+|                                        3                                    |
+|                  (1, 2) => - x x x  + x                                     |
+|                               0 4 2    2                                    |
+|                                          2                                  |
+|                  (1, 4) => - x x x  + x x                                   |
+|                               0 5 2    3 2                                  |
+|                                 2      2                                    |
+|                  (1, 7) => - x x  + x x                                     |
+|                               0 4    4 2                                    |
+|                                    2                                        |
+|                  (2, 3) => x x  - x                                         |
+|                             0 4    2                                        |
+|                  (4, 6) => x x  - x x                                       |
+|                             0 5    3 2                                      |
+|                               2      3                                      |
+|                  (8, 9) => - x x  + x                                       |
+|                               5 2    4                                      |
+|                          2                                                  |
+|                  0 => - x  + x x                                            |
+|                          1    0 2                                           |
+|                  1 => - x x  + x x                                          |
+|                          1 2    0 3                                         |
+|                               2                                             |
+|                  2 => x x  - x                                              |
+|                        1 3    2                                             |
+|                  3 => - x x  + x x                                          |
+|                          1 3    0 4                                         |
+|                  4 => x x  - x x                                            |
+|                        1 4    3 2                                           |
+|                          2                                                  |
+|                  5 => - x  + x x                                            |
+|                          3    4 2                                           |
+|                  6 => - x x  + x x                                          |
+|                          1 4    0 5                                         |
+|                  7 => x x  - x x                                            |
+|                        1 5    4 2                                           |
+|                  8 => - x x  + x x                                          |
+|                          3 4    5 2                                         |
+|                               2                                             |
+|                  9 => x x  - x                                              |
+|                        3 5    4                                             |
+|                                                                             |
+|o4 : LineageTable                                                            |
++-----------------------------------------------------------------------------+
+
+The lineage table is a hash table, whose values are Gröbner basis elements, and
+whose keys are the lineages.
+
+Definition. A lineage of a polynomial is a natural number, or an ordered pair
+of lineages, tracing its history in the given Gröbner basis computation.
+
+Lineages that are natural numbers are assigned to the original input
+polynomials. In the example above, the 10 minors have lineages $0,\dots,9$.
+
++-------------------------------+
+|i5 : g#1                       |
+|                               |
+|o5 = - x x  + x x              |
+|        1 2    0 3             |
+|                               |
+|o5 : QQ[x , x , x , x , x , x ]|
+|         1   0   3   5   4   2 |
++-------------------------------+
+|i6 : g#2                       |
+|                               |
+|             2                 |
+|o6 = x x  - x                  |
+|      1 3    2                 |
+|                               |
+|o6 : QQ[x , x , x , x , x , x ]|
+|         1   0   3   5   4   2 |
++-------------------------------+
+
+If the S-polynomial of g#"i" and g#"j" produces a non-zero remainder in
+Buchberger's algorithm, that remainder is added to the hashtable g with key
+(i-j), as in the following example.
+
++-------------------------------+
+|i7 : g#(1,2)                   |
+|                               |
+|                 3             |
+|o7 = - x x x  + x              |
+|        0 4 2    2             |
+|                               |
+|o7 : QQ[x , x , x , x , x , x ]|
+|         1   0   3   5   4   2 |
++-------------------------------+
+
+As the algorithm continues, keys are concatenated, so that for example the
+remainder of S(0,S(1,2)) will have lineage (0,(1,2)), and so on.   For more
+complicated lineage examples, see *note tgb: tgb,.
+
+Naturally, one can obtain a minimal basis or the reduced one as follows. In the
+output below, elements that are reduced are replaced by null, but their lineage
+keys are retained for informative purposes.
+
++----------------------------------------+
+|i8 : minimize g                         |
+|                                        |
+|o8 = LineageTable{((2, 3), 6) => null  }|
+|                  (1, 2) => null        |
+|                  (1, 4) => null        |
+|                  (1, 7) => null        |
+|                                    2   |
+|                  (2, 3) => x x  - x    |
+|                             0 4    2   |
+|                  (4, 6) => x x  - x x  |
+|                             0 5    3 2 |
+|                             2      3   |
+|                  (8, 9) => x x  - x    |
+|                             5 2    4   |
+|                        2               |
+|                  0 => x  - x x         |
+|                        1    0 2        |
+|                  1 => x x  - x x       |
+|                        1 2    0 3      |
+|                  2 => null             |
+|                  3 => x x  - x x       |
+|                        1 3    0 4      |
+|                  4 => null             |
+|                        2               |
+|                  5 => x  - x x         |
+|                        3    4 2        |
+|                  6 => x x  - x x       |
+|                        1 4    0 5      |
+|                  7 => x x  - x x       |
+|                        1 5    4 2      |
+|                  8 => x x  - x x       |
+|                        3 4    5 2      |
+|                               2        |
+|                  9 => x x  - x         |
+|                        3 5    4        |
+|                                        |
+|o8 : LineageTable                       |
++----------------------------------------+
+|i9 : gRed = reduce g                    |
+|                                        |
+|o9 = LineageTable{((2, 3), 6) => null  }|
+|                  (1, 2) => null        |
+|                  (1, 4) => null        |
+|                  (1, 7) => null        |
+|                                    2   |
+|                  (2, 3) => x x  - x    |
+|                             0 4    2   |
+|                  (4, 6) => x x  - x x  |
+|                             0 5    3 2 |
+|                             2      3   |
+|                  (8, 9) => x x  - x    |
+|                             5 2    4   |
+|                        2               |
+|                  0 => x  - x x         |
+|                        1    0 2        |
+|                  1 => x x  - x x       |
+|                        1 2    0 3      |
+|                  2 => null             |
+|                               2        |
+|                  3 => x x  - x         |
+|                        1 3    2        |
+|                  4 => null             |
+|                        2               |
+|                  5 => x  - x x         |
+|                        3    4 2        |
+|                  6 => x x  - x x       |
+|                        1 4    3 2      |
+|                  7 => x x  - x x       |
+|                        1 5    4 2      |
+|                  8 => x x  - x x       |
+|                        3 4    5 2      |
+|                               2        |
+|                  9 => x x  - x         |
+|                        3 5    4        |
+|                                        |
+|o9 : LineageTable                       |
++----------------------------------------+
+
+To get the Gröbner basis in standard M2 matrix format, simply call the
+following:
+
++-----------------------------------------------------------------------------+
+|i10 : matrix gRed                                                            |
+|                                                                             |
+|o10 = | x_1^2-x_0x_2 x_1x_2-x_0x_3 x_1x_3-x_2^2 x_0x_5-x_3x_2 x_3^2-x_4x_2   |
+|      -----------------------------------------------------------------------|
+|      x_1x_4-x_3x_2 x_1x_5-x_4x_2 x_3x_4-x_5x_2 x_3x_5-x_4^2 x_5^2x_2-x_4^3  |
+|      -----------------------------------------------------------------------|
+|      x_0x_4-x_2^2 |                                                         |
+|                                                                             |
+|                                         1                                 11|
+|o10 : Matrix (QQ[x , x , x , x , x , x ])  <-- (QQ[x , x , x , x , x , x ])  |
+|                  1   0   3   5   4   2             1   0   3   5   4   2    |
++-----------------------------------------------------------------------------+
+
+Nuts and Bolts
+
+The main function,  *note tgb: tgb,, uses  *note Task: (Macaulay2Doc)Task,s to
+distribute the reduction of S-polynomials using a a current version of the
+Gröbner basis. It can reduce and minimize upon request or print out  task
+scheduling information as it creates new tasks. The interesting part of the
+output may be the lineages of the basis polynomials, in addition to the Gröbner
+basis itself. Here is an example where the Gröbner basis is trivial.
+
++---------------------------------------------------------------------------+
+|i11 : QQ[a..d]                                                             |
+|                                                                           |
+|o11 = QQ[a..d]                                                             |
+|                                                                           |
+|o11 : PolynomialRing                                                       |
++---------------------------------------------------------------------------+
+|i12 : I=ideal( -c^3+a^2+b*d, a*b*c-1,a*b*c)                                |
+|                                                                           |
+|                3    2                                                     |
+|o12 = ideal (- c  + a  + b*d, a*b*c - 1, a*b*c)                            |
+|                                                                           |
+|o12 : Ideal of QQ[a..d]                                                    |
++---------------------------------------------------------------------------+
+|i13 : allowableThreads =  2;                                               |
++---------------------------------------------------------------------------+
+|i14 : T = tgb(I,Verbose=>true)                                             |
+|Scheduling a task for lineage (0,1)                                        |
+|Scheduling task for lineage ((0,1),0)                                      |
+|Scheduling task for lineage ((0,1),1)                                      |
+|Scheduling task for lineage ((0,1),2)                                      |
+|Adding the following remainder to GB: -a^3*b-a*b^2*d+c^2 from lineage (0,1)|
+|Scheduling task for lineage (((0,1),2),0)                                  |
+|Scheduling task for lineage (((0,1),2),1)                                  |
+|Scheduling task for lineage (((0,1),2),(0,1))                              |
+|Scheduling task for lineage (((0,1),2),2)                                  |
+|Adding the following remainder to GB: -a^2 from lineage ((0,1),2)          |
+|Scheduling task for lineage ((((0,1),2),1),0)                              |
+|Scheduling task for lineage ((((0,1),2),1),1)                              |
+|Scheduling task for lineage ((((0,1),2),1),(0,1))                          |
+|Scheduling task for lineage ((((0,1),2),1),2)                              |
+|Scheduling task for lineage ((((0,1),2),1),((0,1),2))                      |
+|Adding the following remainder to GB: a from lineage (((0,1),2),1)         |
+|Scheduling a task for lineage (0,2)                                        |
+|Scheduling a task for lineage (1,2)                                        |
+|Scheduling task for lineage ((((0,1),2),(0,1)),0)                          |
+|Scheduling task for lineage ((((0,1),2),(0,1)),1)                          |
+|Scheduling task for lineage ((((0,1),2),(0,1)),(0,1))                      |
+|Scheduling task for lineage ((((0,1),2),(0,1)),2)                          |
+|Scheduling task for lineage ((((0,1),2),(0,1)),((0,1),2))                  |
+|Scheduling task for lineage ((((0,1),2),(0,1)),(((0,1),2),1))              |
+|Adding the following remainder to GB: c^2 from lineage (((0,1),2),(0,1))   |
+|Adding the following remainder to GB: 1 from lineage ((((0,1),2),1),1)     |
+|Found a unit in the Groebner basis; reducing now.                          |
+|                                                                           |
+|o14 = LineageTable{((((0, 1), 2), 1), 1) => 1   }                          |
+|                   (((0, 1), 2), (0, 1)) => null                           |
+|                   (((0, 1), 2), 1) => null                                |
+|                   ((0, 1), 2) => null                                     |
+|                   (0, 1) => null                                          |
+|                   0 => null                                               |
+|                   1 => null                                               |
+|                   2 => null                                               |
+|                                                                           |
+|o14 : LineageTable                                                         |
++---------------------------------------------------------------------------+
+|i15 : allowableThreads = 1;                                                |
++---------------------------------------------------------------------------+
+
+In particular, the lineages of null values tell us what S-polynomials didn't
+reduce to zero until $1$ was found as a remainder.
+
+Contributors
+============
+
+Tanner Zielinski (see https://www.linkedin.com/in/tannerzielinski/ )
+<tzielin1@hawk.iit.edu>
+
+See also
+========
+
+  * *note tgb: tgb, -- threaded Gröbner bases
+
+Authors
+=======
+
+  * Sonja Petrovic (see http://math.iit.edu/~spetrov1/ )
+    <sonja.petrovic@iit.edu>
+  * Sara Jamshidi Zelenberg (see https://www.sjzelenberg.com/ )
+    <szelenberg@mx.lakeforest.edu>
+
+Certification a gold star
+=========================
+
+Version 1.1 of this package was accepted for publication in volume 11 (see
+https://msp.org/jsag/2021/11-1/ ) of The Journal of Software for Algebra and
+Geometry (see https://msp.org/jsag/ ) on 8 October 2021, in the article
+Threaded Gröbner bases: a Macaulay2 package (see
+https://msp.org/jsag/2021/11-1/p12.xhtml ) (DOI: 10.2140/jsag.2021.11.123 (see
+https://doi.org/10.2140/jsag.2021.11.123 )). That version can be obtained from
+the journal (see https://msp.org/jsag/2021/11-1/jsag-v11-n1-x12-ThreadedGB.m2
+).
+
+Version
+=======
+
+This documentation describes version 1.1 of ThreadedGB, released November 12,
+2020.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{ThreadedGBSource,                                                     |
+|  title = {{ThreadedGB: A \emph{Macaulay2} package. Version~1.1}},          |
+|  author = {Sonja Petrovic and Sara Jamshidi Zelenberg},                    |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
+|@article{ThreadedGBArticle,                                                 |
+|  title = {{Threaded Gröbner bases: a \emph{Macaulay2} package}},           |
+|  author = {Sonja Petrovic and Sara Jamshidi Zelenberg},                    |
+|  journal = {The Journal of Software for Algebra and Geometry},             |
+|  volume = {11},                                                            |
+|  year = {2021},                                                            |
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note LineageTable: LineageTable, -- a hash table of Gröbner basis
+        polynomials and their lineages
+  * Functions and commands
+      * *note reduce: reduce, -- produce a reduced Gröbner basis from one
+        computed by threaded Gröbner bases
+      * *note tgb: tgb, -- threaded Gröbner bases
+  * Methods
+      * *note matrix(LineageTable): matrix_lpLineageTable_rp, -- extract a
+        matrix of polynomials from values of a LineageTable after deleting null
+        values
+      * *note minimize(LineageTable): minimize_lpLineageTable_rp, -- turn a
+        Gröbner basis computed using threaded Gröbner bases into a minimal one
+      * "reduce(LineageTable)" -- see *note reduce: reduce, -- produce a
+        reduced Gröbner basis from one computed by threaded Gröbner bases
+      * "tgb(Ideal)" -- see *note tgb: tgb, -- threaded Gröbner bases
+      * "tgb(List)" -- see *note tgb: tgb, -- threaded Gröbner bases
+  * Symbols
+      * *note Minimal: Minimal, -- Option to specify whether the end Gröbner
+        basis should be a minimal Gröbner basis
+
+For the programmer
+==================
+
+The object *note ThreadedGB: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in ThreadedGB.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ThreadedGB.m2:397:0.
+
+File: ThreadedGB.info, Node: LineageTable, Next: matrix_lpLineageTable_rp, Prev: Top, Up: Top
+
+LineageTable -- a hash table of Gröbner basis polynomials and their lineages
+****************************************************************************
+
+Description
+===========
+
+A lineage table is a hashtable whose values are a Gröbner basis for the ideal I
+or the ideal generated by L, and keys are the lineages of the corresponding
+elements.
+
+A lineage of a polynomial is a natural number, or an ordered pair of lineages,
+tracing its history in the given Gröbner basis computation. Lineages that are
+natural numbers are assigned to the original input polynomials.
+
+See also
+========
+
+  * *note tgb: tgb, -- threaded Gröbner bases
+
+Functions and methods returning an object of class LineageTable:
+================================================================
+
+  * *note minimize(LineageTable): minimize_lpLineageTable_rp, -- turn a Gröbner
+    basis computed using threaded Gröbner bases into a minimal one
+  * *note reduce: reduce, -- produce a reduced Gröbner basis from one computed
+    by threaded Gröbner bases
+  * "reduce(LineageTable)" -- see *note reduce: reduce, -- produce a reduced
+    Gröbner basis from one computed by threaded Gröbner bases
+  * *note tgb: tgb, -- threaded Gröbner bases
+  * "tgb(List)" -- see *note tgb: tgb, -- threaded Gröbner bases
+
+Methods that use an object of class LineageTable:
+=================================================
+
+  * *note matrix(LineageTable): matrix_lpLineageTable_rp, -- extract a matrix
+    of polynomials from values of a LineageTable after deleting null values
+
+For the programmer
+==================
+
+The object *note LineageTable: LineageTable, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note HashTable:
+(Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ThreadedGB.m2:482:0.
+
+File: ThreadedGB.info, Node: matrix_lpLineageTable_rp, Next: Minimal, Prev: LineageTable, Up: Top
+
+matrix(LineageTable) -- extract a matrix of polynomials from values of a LineageTable after deleting null values
+****************************************************************************************************************
+
+  * Function: *note matrix: (Macaulay2Doc)matrix,
+  * Usage: 
+        matrix LineageTable
+  * Inputs:
+      * H, an instance of the type *note LineageTable: LineageTable,, whose
+        values are polynomials
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Degree: (Macaulay2Doc)matrix_lpList_rp, => ..., default value
+        null,
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, of non-null values of H
+
+Description
+===========
+
+This simple function just returns the Gröbner basis computed with threaded
+Gröbner basis function *note tgb: tgb, in the expected Macaulay2 format, so
+that further computation are one step easier to set up.
+
++--------------------------------------------------+
+|i1 : R = ZZ/101[a,b,c];                           |
++--------------------------------------------------+
+|i2 : allowableThreads= 2;                         |
++--------------------------------------------------+
+|i3 : T = reduce tgb( ideal "abc+c2,ab2-b3c+ac,b2")|
+|                                                  |
+|o3 = LineageTable{(((0, 1), 0), 0) => null}       |
+|                  ((0, 1), 0) => null             |
+|                                  2               |
+|                  ((1, 2), 0) => c                |
+|                  (0, 1) => null                  |
+|                  (0, 2) => null                  |
+|                  (1, 2) => a*c                   |
+|                  0 => null                       |
+|                  1 => null                       |
+|                        2                         |
+|                  2 => b                          |
+|                                                  |
+|o3 : LineageTable                                 |
++--------------------------------------------------+
+|i4 : matrix T                                     |
+|                                                  |
+|o4 = | b2 c2 ac |                                 |
+|                                                  |
+|             1      3                             |
+|o4 : Matrix R  <-- R                              |
++--------------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note matrix(LineageTable): matrix_lpLineageTable_rp, -- extract a matrix
+    of polynomials from values of a LineageTable after deleting null values
+-------------------------------------------------------------------------------
+
+The source of this document is in ThreadedGB.m2:561:0.
+
+File: ThreadedGB.info, Node: Minimal, Next: minimize_lpLineageTable_rp, Prev: matrix_lpLineageTable_rp, Up: Top
+
+Minimal -- Option to specify whether the end Gröbner basis should be a minimal Gröbner basis
+********************************************************************************************
+
+  * Usage: 
+        tgb(...,Minimal=>Boolean)
+
+Description
+===========
+
+Use Minimal=>True as an argument in the function *note tgb: tgb, for ensure the
+resulting Gröbner basis is minimized. Lineages of non-minimal Gröbner basis
+elements that were added to the basis during the distributed computation are
+saved, with the corresponding entry in the table being null.
+
++----------------------------------------------------------+
+|i1 : S = ZZ/101[a,b,c];                                   |
++----------------------------------------------------------+
+|i2 : allowableThreads= 2;                                 |
++----------------------------------------------------------+
+|i3 : T = tgb( ideal "abc+c2,ab2-b3c+ac,b2", Minimal=>true)|
+|                                                          |
+|o3 = LineageTable{(((0, 1), 0), 0) => null}               |
+|                  ((0, 1), 0) => null                     |
+|                  ((0, 1), 1) => null                     |
+|                                  2                       |
+|                  ((1, 2), 0) => c                        |
+|                  (0, 1) => null                          |
+|                  (0, 2) => null                          |
+|                  (1, 2) => a*c                           |
+|                  0 => null                               |
+|                  1 => null                               |
+|                        2                                 |
+|                  2 => b                                  |
+|                                                          |
+|o3 : LineageTable                                         |
++----------------------------------------------------------+
+
+By default, the option is false. The basis can also be minimized after the
+distributed computation is finished:
+
++-------------------------------------------+
+|i4 : T = tgb( ideal "abc+c2,ab2-b3c+ac,b2")|
+|                                           |
+|                                     2     |
+|o4 = LineageTable{((0, 1), 0) => -a*c    } |
+|                                   3       |
+|                  ((0, 2), 0) => -c        |
+|                                   2       |
+|                  ((1, 2), 0) => -c        |
+|                             2             |
+|                  (0, 1) => a c            |
+|                               2           |
+|                  (0, 2) => b*c            |
+|                  (1, 2) => -a*c           |
+|                                2          |
+|                  0 => a*b*c + c           |
+|                          3       2        |
+|                  1 => - b c + a*b  + a*c  |
+|                        2                  |
+|                  2 => b                   |
+|                                           |
+|o4 : LineageTable                          |
++-------------------------------------------+
+|i5 : minimize T                            |
+|                                           |
+|o5 = LineageTable{((0, 1), 0) => null}     |
+|                  ((0, 2), 0) => null      |
+|                                  2        |
+|                  ((1, 2), 0) => c         |
+|                  (0, 1) => null           |
+|                  (0, 2) => null           |
+|                  (1, 2) => a*c            |
+|                  0 => null                |
+|                  1 => null                |
+|                        2                  |
+|                  2 => b                   |
+|                                           |
+|o5 : LineageTable                          |
++-------------------------------------------+
+
+Functions with optional argument named Minimal:
+===============================================
+
+  * "tgb(...,Minimal=>...)"
+
+For the programmer
+==================
+
+The object *note Minimal: Minimal, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ThreadedGB.m2:605:0.
+
+File: ThreadedGB.info, Node: minimize_lpLineageTable_rp, Next: reduce, Prev: Minimal, Up: Top
+
+minimize(LineageTable) -- turn a Gröbner basis computed using threaded Gröbner bases into a minimal one
+*******************************************************************************************************
+
+  * Function: *note minimize: (Macaulay2Doc)minimize,
+  * Usage: 
+        minimize(LineageTable)
+  * Inputs:
+      * H, an instance of the type *note LineageTable: LineageTable,, whose
+        values are polynomials
+  * Outputs:
+      * an instance of the type *note LineageTable: LineageTable,, where values
+        in H whose initial terms are divisible by others are replaced by null
+
+Description
+===========
+
+Scans values of a hash table H and retains only those whose initial terms are
+minimal generators of the ideal generated by the leading terms of the values of
+H. If the values of H constitute a Gröbner basis of the ideal they generate,
+this method returns a minimal Gröbner basis.
+
++-------------------------------------------+
+|i1 : R = ZZ/101[a,b,c];                    |
++-------------------------------------------+
+|i2 : allowableThreads= 2;                  |
++-------------------------------------------+
+|i3 : T = tgb( ideal "abc+c2,ab2-b3c+ac,b2")|
+|                                           |
+|                                       3   |
+|o3 = LineageTable{(((0, 1), 0), 1) => c  } |
+|                                     2     |
+|                  ((0, 1), 0) => -a*c      |
+|                                  3        |
+|                  ((0, 1), 1) => a c       |
+|                                   2       |
+|                  ((1, 2), 0) => -c        |
+|                             2             |
+|                  (0, 1) => a c            |
+|                               2           |
+|                  (0, 2) => b*c            |
+|                  (1, 2) => -a*c           |
+|                                2          |
+|                  0 => a*b*c + c           |
+|                          3       2        |
+|                  1 => - b c + a*b  + a*c  |
+|                        2                  |
+|                  2 => b                   |
+|                                           |
+|o3 : LineageTable                          |
++-------------------------------------------+
+|i4 : minimize T                            |
+|                                           |
+|o4 = LineageTable{(((0, 1), 0), 1) => null}|
+|                  ((0, 1), 0) => null      |
+|                  ((0, 1), 1) => null      |
+|                                  2        |
+|                  ((1, 2), 0) => c         |
+|                  (0, 1) => null           |
+|                  (0, 2) => null           |
+|                  (1, 2) => a*c            |
+|                  0 => null                |
+|                  1 => null                |
+|                        2                  |
+|                  2 => b                   |
+|                                           |
+|o4 : LineageTable                          |
++-------------------------------------------+
+
+Polynomials are normalized so that the leading coefficient is 1. Note that keys
+of non-minimal entries are retained, and the corresponding table value is null.
+
+Ways to use this method:
+========================
+
+  * *note minimize(LineageTable): minimize_lpLineageTable_rp, -- turn a Gröbner
+    basis computed using threaded Gröbner bases into a minimal one
+-------------------------------------------------------------------------------
+
+The source of this document is in ThreadedGB.m2:509:0.
+
+File: ThreadedGB.info, Node: reduce, Next: tgb, Prev: minimize_lpLineageTable_rp, Up: Top
+
+reduce -- produce a reduced Gröbner basis from one computed by threaded Gröbner bases
+*************************************************************************************
+
+  * Usage: 
+        reduce LineageTable
+  * Inputs:
+      * H, an instance of the type *note LineageTable: LineageTable,, whose
+        values are polynomials
+  * Outputs:
+      * an instance of the type *note LineageTable: LineageTable,, where values
+        in H whose initial terms are divisible by others are replaced by null
+        and the remaining values are replaced by their remainder upon division
+        by the rest
+
+Description
+===========
+
+Minimalizes first, then replaces each of the values of a hash table H by its
+remainder on the division by the remaining values H.
+
+If values H constitute a Gröbner basis of the ideal they generate, this method
+returns a reduced Gröbner basis.
+
++-------------------------------------------+
+|i1 : R = ZZ/101[a,b,c];                    |
++-------------------------------------------+
+|i2 : allowableThreads= 2;                  |
++-------------------------------------------+
+|i3 : T = tgb ideal "abc+c2,ab2-b3c+ac,b2"  |
+|                                           |
+|                                        3  |
+|o3 = LineageTable{(((0, 1), 0), 0) => -c } |
+|                                     2     |
+|                  ((0, 1), 0) => -a*c      |
+|                                   2       |
+|                  ((1, 2), 0) => -c        |
+|                             2             |
+|                  (0, 1) => a c            |
+|                               2           |
+|                  (0, 2) => b*c            |
+|                  (1, 2) => -a*c           |
+|                                2          |
+|                  0 => a*b*c + c           |
+|                          3       2        |
+|                  1 => - b c + a*b  + a*c  |
+|                        2                  |
+|                  2 => b                   |
+|                                           |
+|o3 : LineageTable                          |
++-------------------------------------------+
+|i4 : reduce T                              |
+|                                           |
+|o4 = LineageTable{(((0, 1), 0), 0) => null}|
+|                  ((0, 1), 0) => null      |
+|                                  2        |
+|                  ((1, 2), 0) => c         |
+|                  (0, 1) => null           |
+|                  (0, 2) => null           |
+|                  (1, 2) => a*c            |
+|                  0 => null                |
+|                  1 => null                |
+|                        2                  |
+|                  2 => b                   |
+|                                           |
+|o4 : LineageTable                          |
++-------------------------------------------+
+
+Polynomials are normalized so that the leading coefficient is 1. Note that keys
+of non-minimal entries are retained, and the corresponding table value is null.
+
+Ways to use reduce:
+===================
+
+  * "reduce(LineageTable)"
+
+For the programmer
+==================
+
+The object *note reduce: reduce, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ThreadedGB.m2:538:0.
+
+File: ThreadedGB.info, Node: tgb, Next: tgb_lp_pd_pd_pd_cmVerbose=>_pd_pd_pd_rp, Prev: reduce, Up: Top
+
+tgb -- threaded Gröbner bases
+*****************************
+
+  * Usage: 
+        tgb(List)
+        tgb(Ideal)
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, of polynomials
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Minimal: Minimal, => ..., default value false, Option to specify
+        whether the end Gröbner basis should be a minimal Gröbner basis
+      * *note Verbose: tgb_lp_pd_pd_pd_cmVerbose=>_pd_pd_pd_rp, => ..., default
+        value false, Option to specify whether additional output is wanted.
+  * Outputs:
+      * an instance of the type *note LineageTable: LineageTable,, a hashtable
+        whose values are a Gröbner basis for the ideal I or the ideal generated
+        by L, and keys are the lineages of the corresponding elements.
+
+Description
+===========
+
+Threaded Gröbner basis uses  *note Task: (Macaulay2Doc)Task,s to compute a
+Gröbner basis of I or ideal L using $n$ threads.
+
++-----------------------------------------------------------------------------+
+|i1 : R = ZZ/101[x,y,z, MonomialOrder=>Lex];                                  |
++-----------------------------------------------------------------------------+
+|i2 : I = ideal {2*x + 10*y^2*z, 8*x^2*y + 10*x*y*z^3, 5*x*y^3*z^2 + 9*x*z^3, |
+|                                                                             |
+|o2 : Ideal of R                                                              |
+|-----------------------------------------------------------------------------|
+|9*x*y^3*z + 10*x*y^3};                                                       |
++-----------------------------------------------------------------------------+
+|i3 : allowableThreads  = 4;                                                  |
++-----------------------------------------------------------------------------+
+|i4 : H = tgb I                                                               |
+|                                                                             |
+|                                    2 4                                      |
+|o4 = LineageTable{((0, 1), 2) => 19y z              }                        |
+|                                         2 4                                 |
+|                  ((0, 2), (0, 1)) => -5y z                                  |
+|                                    2 5                                      |
+|                  ((0, 2), 1) => -7y z                                       |
+|                                         5       2 4                         |
+|                  ((0, 3), (0, 1)) => 46y z + 40y z                          |
+|                                      2 5      2 4                           |
+|                  ((0, 3), 2) => - 48y z  + 19y z                            |
+|                                 5 2      3 4                                |
+|                  (0, 1) => - 25y z  - 19y z                                 |
+|                                 3 5     2 4                                 |
+|                  (0, 2) => - 24y z  + 9y z                                  |
+|                              5 2      5                                     |
+|                  (0, 3) => 5y z  + 28y z                                    |
+|                                 4 5      3 8                                |
+|                  (1, 2) => - 45y z  + 30y z                                 |
+|                                 2 6      2 5                                |
+|                  (1, 3) => - 14y z  - 38y z                                 |
+|                              3 4     2 4                                    |
+|                  (2, 3) => 7y z  - 9y z                                     |
+|                               2                                             |
+|                  0 => 2x + 10y z                                            |
+|                         2           3                                       |
+|                  1 => 8x y + 10x*y*z                                        |
+|                           3 2       3                                       |
+|                  2 => 5x*y z  + 9x*z                                        |
+|                           3         3                                       |
+|                  3 => 9x*y z + 10x*y                                        |
+|                                                                             |
+|o4 : LineageTable                                                            |
++-----------------------------------------------------------------------------+
+
+The keys of the hashtable are meaningful; for example, the polynomial with key
+((0,2),1) in the hashtable tgb(L,n) is the remainder upon division of the
+S-polynomial $(g, I_1)$, where $g$ is calculated from the S-pair $(I_0, I_2)$.
+For this reason, we say that the key communicates the "lineage" of the
+resulting polynomial. (See *note ThreadedGB: Top,.)
+
+Note that the keys in the hash table are strings, and the keys of input
+polynomials are 0..#L, as in the following example.
+
++----------------------+
+|i5 : H#(0,1)          |
+|                      |
+|          5 2      3 4|
+|o5 = - 25y z  - 19y z |
+|                      |
+|o5 : R                |
++----------------------+
+
+Some may be curious  how tgb works.
+
+The starting basis $L$ (the input list L or L=gens I) populates the entries
+numbered $0$ through $n-1$ of a mutable hash table $G$, where  $n$ is the
+length of $L$. The method creates all possible S-polynomials of $L$ and
+schedules their reduction with respect to $G$ as tasks. Throughout the
+computation, every nonzero remainder added to the basis is added to $G$ with
+its lineage as the key. Each such remainder also triggers the creation of
+S-polynomials using it and every element in $G$ and scheduling the reduction
+thereof as additional tasks. The process is done when there are no remaining
+tasks.
+
+There is a way to track the tasks being created by turning on the option
+Verbose.
+
++-------------------------------------------------------------------+
+|i6 : QQ[a..d];                                                     |
++-------------------------------------------------------------------+
+|i7 : f0 = a*b-c^2;                                                 |
++-------------------------------------------------------------------+
+|i8 : f1 = b*c-d^2;                                                 |
++-------------------------------------------------------------------+
+|i9 : allowableThreads=2;                                           |
++-------------------------------------------------------------------+
+|i10 : tgb({f0,f1},Verbose=>true)                                   |
+|Scheduling a task for lineage (0,1)                                |
+|Scheduling task for lineage ((0,1),0)                              |
+|Scheduling task for lineage ((0,1),1)                              |
+|Adding the following remainder to GB: -c^3+a*d^2 from lineage (0,1)|
+|                                                                   |
+|                                3      2                           |
+|o10 = LineageTable{(0, 1) => - c  + a*d }                          |
+|                               2                                   |
+|                   0 => a*b - c                                    |
+|                               2                                   |
+|                   1 => b*c - d                                    |
+|                                                                   |
+|o10 : LineageTable                                                 |
++-------------------------------------------------------------------+
+
+In the example above, the S-polynomial S(f0,f1) didn't reduce to zero, hence
+the remainder was added to the output with key (0,1). The additional two
+S-polynomials reduced and the process ended.
+
+Caveat
+======
+
+Due to threads running in parallel, it can happen that there are redundant
+elements in the final Gröbner basis. However these can be easily removed using
+*note minimize(LineageTable): minimize_lpLineageTable_rp,, for example.
+
+Also, allowableThreads needs to be set to an integer larger than 1, prior to
+calling *note tgb: tgb,. Otherwise, errors may occur. It may be a good idea to
+reset allowableThreads to 1 after the threaded computations are done.
+
+See also
+========
+
+  * *note minimize(LineageTable): minimize_lpLineageTable_rp, -- turn a Gröbner
+    basis computed using threaded Gröbner bases into a minimal one
+  * *note reduce: reduce, -- produce a reduced Gröbner basis from one computed
+    by threaded Gröbner bases
+
+Ways to use tgb:
+================
+
+  * "tgb(Ideal)"
+  * "tgb(List)"
+
+For the programmer
+==================
+
+The object *note tgb: tgb, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ThreadedGB.m2:466:0.
+
+File: ThreadedGB.info, Node: tgb_lp_pd_pd_pd_cmVerbose=>_pd_pd_pd_rp, Prev: tgb, Up: Top
+
+tgb(...,Verbose=>...) -- Option to specify whether additional output is wanted.
+*******************************************************************************
+
+  * Usage: 
+        tgb(...,Verbose=>Boolean)
+
+Description
+===========
+
+Use Verbose=>True as an argument in the function *note tgb: tgb, for additional
+output, including information about each new generated thread (i.e., each new
+S-polynomial reduction computation) as well as each new Gröbner basis element
+added to the current basis. Lineages are reported as well.
+
++-------------------------------------------------------------------+
+|i1 : S = QQ[x,y,z,w];                                              |
++-------------------------------------------------------------------+
+|i2 : allowableThreads= 2;                                          |
++-------------------------------------------------------------------+
+|i3 : tgb({x*y-z^2,y*z-w^2},Verbose=>true);                         |
+|Scheduling a task for lineage (0,1)                                |
+|Scheduling task for lineage ((0,1),0)                              |
+|Scheduling task for lineage ((0,1),1)                              |
+|Adding the following remainder to GB: -z^3+x*w^2 from lineage (0,1)|
++-------------------------------------------------------------------+
+
+Functions with optional argument named Verbose:
+===============================================
+
+  * "check(...,Verbose=>...)" -- see *note check: (Macaulay2Doc)check, --
+    perform tests of a package
+  * "copyDirectory(...,Verbose=>...)" -- see *note
+    copyDirectory(String,String):
+    (Macaulay2Doc)copyDirectory_lpString_cmString_rp,
+  * "copyFile(...,Verbose=>...)" -- see *note copyFile(String,String):
+    (Macaulay2Doc)copyFile_lpString_cmString_rp,
+  * "findProgram(...,Verbose=>...)" -- see *note findProgram:
+    (Macaulay2Doc)findProgram, -- load external program
+  * "installPackage(...,Verbose=>...)" -- see *note installPackage:
+    (Macaulay2Doc)installPackage, -- load and install a package and its
+    documentation
+  * "moveFile(...,Verbose=>...)" -- see *note moveFile(String,String):
+    (Macaulay2Doc)moveFile_lpString_cmString_rp,
+  * "runProgram(...,Verbose=>...)" -- see *note runProgram:
+    (Macaulay2Doc)runProgram, -- run an external program
+  * "symlinkDirectory(...,Verbose=>...)" -- see *note
+    symlinkDirectory(String,String):
+    (Macaulay2Doc)symlinkDirectory_lpString_cmString_rp, -- make symbolic links
+    for all files in a directory tree
+  * *note tgb(...,Verbose=>...): tgb_lp_pd_pd_pd_cmVerbose=>_pd_pd_pd_rp, --
+    Option to specify whether additional output is wanted.
+
+Further information
+===================
+
+  * Default value: *note false: (Macaulay2Doc)false,
+  * Function: *note tgb: tgb, -- threaded Gröbner bases
+  * Option key: *note Verbose: (Macaulay2Doc)Verbose, -- an optional argument
+-------------------------------------------------------------------------------
+
+The source of this document is in ThreadedGB.m2:580:0.
+
+Tag Table:
+Node: Top283
+Node: LineageTable22893
+Node: matrix_lpLineageTable_rp24891
+Node: Minimal27744
+Node: minimize_lpLineageTable_rp32047
+Node: reduce35665
+Node: tgb39111
+Node: tgb_lp_pd_pd_pd_cmVerbose=>_pd_pd_pd_rp48308
+
+End Tag Table

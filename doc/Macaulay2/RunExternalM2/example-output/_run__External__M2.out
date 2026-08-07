@@ -1,0 +1,194 @@
+-- -*- M2-comint -*- hash: 2927978066455787395
+
+i1 : fn=temporaryFileName()|".m2"
+
+o1 = /tmp/M2-45270-0/0.m2
+
+i2 : fn<</// square = (x) -> (stderr<<"Running"<<endl; sleep(1); x^2); ///<<endl;
+
+i3 : fn<</// justexit = () -> ( exit(27); ); ///<<endl;
+
+i4 : fn<</// spin = (x) -> (stderr<<"Spinning!!"<<endl; startTime:=cpuTime(); while(cpuTime()-startTime<x) do for i to 10000000 do i; return(x);); ///<<endl;
+
+i5 : fn<<flush;
+
+i6 : h=runExternalM2(fn,"square",(4));
+Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q  <"/tmp/M2-45270-0/1.m2" >"/tmp/M2-45270-0/1.out" 2>&1 ))
+Finished running.
+
+i7 : h
+
+o7 = HashTable{"answer file" => null}
+               "exit code" => 0
+               "output file" => null
+               "return code" => 0
+               "statistics" => null
+               "time used" => 5
+               value => 16
+
+o7 : HashTable
+
+i8 : h#value===4^2
+
+o8 = true
+
+i9 : h#"exit code"===0
+
+o9 = true
+
+i10 : h=runExternalM2(fn,"justexit",());
+Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q  <"/tmp/M2-45270-0/2.m2" >"/tmp/M2-45270-0/2.out" 2>&1 ))
+Finished running.
+RunExternalM2: expected answer file does not exist
+
+i11 : h
+
+o11 = HashTable{"answer file" => /tmp/M2-45270-0/2.ans}
+                "exit code" => 27
+                "output file" => /tmp/M2-45270-0/2.out
+                "return code" => 6912
+                "statistics" => null
+                "time used" => 4
+                value => null
+
+o11 : HashTable
+
+i12 : fileExists(h#"output file")
+
+o12 = true
+
+i13 : fileExists(h#"answer file")
+
+o13 = false
+
+i14 : h=runExternalM2(fn,"spin",10,PreRunScript=>"ulimit -t 2");
+Running (ulimit -t 2 && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q  <"/tmp/M2-45270-0/3.m2" >"/tmp/M2-45270-0/3.out" 2>&1 ))
+Killed
+Finished running.
+RunExternalM2: expected answer file does not exist
+
+i15 : h
+
+o15 = HashTable{"answer file" => /tmp/M2-45270-0/3.ans}
+                "exit code" => 0
+                "output file" => /tmp/M2-45270-0/3.out
+                "return code" => 9
+                "statistics" => null
+                "time used" => 2
+                value => null
+
+o15 : HashTable
+
+i16 : if h#"output file" =!= null and fileExists(h#"output file") then get(h#"output file")
+
+o16 = 
+
+i17 : if h#"answer file" =!= null and fileExists(h#"answer file") then get(h#"answer file")
+
+i18 : h=runExternalM2(fn,"spin",3,KeepStatistics=>true);
+Running (true && ( (/usr/bin/time --verbose sh -c '/usr/local/bin/M2-binary  --stop --no-debug --silent  -q  <"/tmp/M2-45270-0/4.m2" >"/tmp/M2-45270-0/4.out" 2>&1') >"/tmp/M2-45270-0/4.stat" 2>&1 ))
+Finished running.
+
+i19 : h#"statistics"
+
+o19 =         Command being timed: "sh -c /usr/local/bin/M2-binary  --stop --no-debug --silent  -q  <"/tmp/M2-45270-0/4.m2" >"/tmp/M2-45270-0/4.out" 2>&1"
+              User time (seconds): 8.36
+              System time (seconds): 0.20
+              Percent of CPU this job got: 98%
+              Elapsed (wall clock) time (h:mm:ss or m:ss): 0:08.72
+              Average shared text size (kbytes): 0
+              Average unshared data size (kbytes): 0
+              Average stack size (kbytes): 0
+              Average total size (kbytes): 0
+              Maximum resident set size (kbytes): 238580
+              Average resident set size (kbytes): 0
+              Major (requiring I/O) page faults: 0
+              Minor (reclaiming a frame) page faults: 9576
+              Voluntary context switches: 2319
+              Involuntary context switches: 2611
+              Swaps: 0
+              File system inputs: 0
+              File system outputs: 16
+              Socket messages sent: 0
+              Socket messages received: 0
+              Signals delivered: 0
+              Page size (bytes): 4096
+              Exit status: 0
+
+
+i20 : v=/// A complicated string^%&C@#CERQVASDFQ#BQBSDH"' ewrjwklsf///;
+
+i21 : (runExternalM2(fn,identity,v))#value===v
+Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q  <"/tmp/M2-45270-0/6.m2" >"/tmp/M2-45270-0/6.out" 2>&1 ))
+Finished running.
+
+o21 = true
+
+i22 : R=QQ[x,y];
+
+i23 : v=coker random(R^2,R^{3:-1})
+
+o23 = cokernel | 9/2x+9/4y 7/9x+7/10y 7x+3/7y |
+               | 3/4x+7/4y 7/10x+7/3y 6/7x+6y |
+
+                             2
+o23 : R-module, quotient of R
+
+i24 : h=runExternalM2(fn,identity,v)
+Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q  <"/tmp/M2-45270-0/7.m2" >"/tmp/M2-45270-0/7.out" 2>&1 ))
+Finished running.
+RunExternalM2: expected answer file does not exist
+
+o24 = HashTable{"answer file" => /tmp/M2-45270-0/7.ans}
+                "exit code" => 1
+                "output file" => /tmp/M2-45270-0/7.out
+                "return code" => 256
+                "statistics" => null
+                "time used" => 3
+                value => null
+
+o24 : HashTable
+
+i25 : get(h#"output file")
+
+o25 = 
+      i1 : -- Script /tmp/M2-45270-0/7.m2 automatically generated by RunExternalM2
+           needsPackage("RunExternalM2",Configuration=>{"isChild"=>true});
+
+      i2 : load "/tmp/M2-45270-0/0.m2";
+
+      i3 : runExternalM2ReturnAnswer("/tmp/M2-45270-0/7.ans",identity (cokernel(map(R^2,R^{3:{-1}},{{(9/2)*x+(9/4)*y, (7/9)*x+(7/10)*y, 7*x+(3/7)*y}, {(3/4)*x+(7/4)*y, (7/10)*x+(7/3)*y, (6/7)*x+6*y}}))));
+      stdio:4:74:(3):[2]: error: no method for binary operator ^ applied to objects:
+                  R (of class Symbol)
+            ^     2 (of class ZZ)
+
+
+i26 : fn<<///R=QQ[x,y];///<<endl<<flush;
+
+i27 : (runExternalM2(fn,identity,v))#value===v
+Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q  <"/tmp/M2-45270-0/8.m2" >"/tmp/M2-45270-0/8.out" 2>&1 ))
+Finished running.
+
+o27 = true
+
+i28 : v=R;
+
+i29 : h=runExternalM2(fn,identity,v);
+Running (true && (/usr/local/bin/M2-binary  --stop --no-debug --silent  -q  <"/tmp/M2-45270-0/9.m2" >"/tmp/M2-45270-0/9.out" 2>&1 ))
+Finished running.
+
+i30 : h#value
+
+o30 = QQ[x..y]
+
+o30 : PolynomialRing
+
+i31 : v===h#value
+
+o31 = false
+
+i32 : R===value(toExternalString(R))
+
+o32 = false
+
+i33 : 

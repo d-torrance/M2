@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Fitting ideals of finite modules -- An introductory example</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Fitting ideals of finite modules" href="index.html">FiniteFittingIdeals</a> :: <a title="An introductory example" href="___Fitting_spideals_spof_spfinite_spmodules.html">Fitting ideals of finite modules</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_gauss__Col.html">next</a> | <a href="_co1__Fitting.html">previous</a> | <a href="_gauss__Col.html">forward</a> | <a href="_co1__Fitting.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Fitting ideals of finite modules -- An introductory example</h1>
+      <div>
+        <div>
+          <p>Consider a polynomial ring S=\mathbb{Z}[x_0,\dots,x_r], and a quotient Q=S^p/N where N is a homogeneous submodule generated in degrees at most d. Suppose that Q_d is free of rank n. We then have a short exact sequence 0\to N_d\to S_d^p\to Q_d\to 0 where also N_d is free. Thus, N_d\otimes S_1\to S^p_{d+1}\to Q_{d+1}\to 0 is a free presentation of Q_{d+1}. If the basis of Q_d can be chosen as a so called Gotzmann set, then Q_{d+1} is free of rank n if and only if the (n-1)'th Fitting ideal of Q_{d+1} is zero.</p>
+          <p>As an example, we consider a quotient Q of S^2=\mathbb{Z}[x_0,x_1]^2 such that Q_1 is free of rank 1. As S^2_1=\mathbb{Z}&lt;xe_1,ye_1,xe_2,ye_2> is a free \mathbb{Z}^4-module we have that Q_1 is the cokernel of a (1\times 4)-matrix.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : S=ZZ[x_0,x_1];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : R=ZZ[a_1..a_4];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : Q1=matrix{{a_1,a_2,a_3,a_4}}
+
+o3 = | a_1 a_2 a_3 a_4 |
+
+             1      4
+o3 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Suppose that Q_1 has a basis given by xe_1, corresponding to the 0'th column. We check that this is a Gotzmann set, and calculate a free presentation of Q_2.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : gotzmannTest(S^2,1,{0})
+
+o4 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : Q1=affinePart(Q1,{0})
+
+o5 = | 1 a_2 a_3 a_4 |
+
+             1      4
+o5 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : N1=gens ker Q1
+
+o6 = {0} | a_2 a_3 a_4 |
+     {1} | -1  0   0   |
+     {1} | 0   -1  0   |
+     {1} | 0   0   -1  |
+
+             4      3
+o6 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : N2=nextDegree(N1,1,S)
+
+o7 = {-1} | a_2 0   a_3 0   a_4 0   |
+     {-1} | -1  a_2 0   a_3 0   a_4 |
+     {0}  | 0   -1  0   0   0   0   |
+     {0}  | 0   0   -1  0   0   0   |
+     {0}  | 0   0   0   -1  -1  0   |
+     {0}  | 0   0   0   0   0   -1  |
+
+             6      6
+o7 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>N_2 is the matrix corresponding to the map N_1\otimes S_1\to S^2_2, so Q_2 is the cokernel. We want to calculate the (n-1)'th Fitting ideal of N_2 with n=1.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : co1Fitting(N2)
+
+o8 = ideal(a a  - a )
+            2 3    4
+
+o8 : Ideal of R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Thus, the obstruction for Q_2 to be free of rank 1 is the equation a_2a_3-a_4.</p>
+          <p>A result is that the Quot scheme of rank n quotients of \mathcal{O}^p is cut out by a single (n-1)'th Fitting ideal in the Grassmannian of locally free rank n quotients of a push forward of \mathcal{O}(d)^p for d\ge n.</p>
+          <p>In the case above, we have the Grassmannian Gr(1,4)=\mathbb{P}^3, and the Quot scheme is given by a (n-1)'th Fitting ideal. All of the above calculations can also be done directly by:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : quotScheme(S^2,1,{0})
+
+o9 = ideal(a a  - a )
+            2 3    4
+
+o9 : Ideal of ZZ[a ..a ]
+                  1   4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We can calculate much bigger examples with these function than with the ordinary Fitting ideal function. As an example, we consider the following with rank 2 quotients of S^2.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : S=ZZ[x,y];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : R=ZZ[a_1..a_12];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : Q2=matrix{toList(a_1..a_6),toList(a_7..a_12)}
+
+o12 = | a_1 a_2 a_3 a_4  a_5  a_6  |
+      | a_7 a_8 a_9 a_10 a_11 a_12 |
+
+              2      6
+o12 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : Q2=affinePart(Q2,{0,1})
+
+o13 = | 1 0 a_3 a_4  a_5  a_6  |
+      | 0 1 a_9 a_10 a_11 a_12 |
+
+              2      6
+o13 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : K3=nextDegree(gens ker Q2,2,S);
+
+              8      8
+o14 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : time I=co1Fitting(K3)
+ -- used 0.0588971s (cpu); 0.0221848s (thread); 0s (gc)
+
+o15 = ideal (a a   + a  - a  , a a   - a , a a   + a  - a  , a a   - a )
+              9 11    5    12   3 11    6   9 10    4    11   3 10    5
+
+o15 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : time J=fittingIdeal(2-1,coker K3);
+ -- used 0.00865458s (cpu); 0.00865624s (thread); 0s (gc)
+
+o16 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : I==J
+
+o17 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Note that our method is a bit faster for this small example, and for rank 2 quotients of S^3=\mathbb{Z}[x,y]^3 the time difference is massive.</p>
+          <p></p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Makes column reductions of a matrix" href="_gauss__Col.html">gaussCol</a> -- Makes column reductions of a matrix</span></li>
+          <li><span><a title="Calculates the (n-1)'th Fitting ideal of a finite module" href="_co1__Fitting.html">co1Fitting</a> -- Calculates the (n-1)'th Fitting ideal of a finite module</span></li>
+          <li><span><a title="Lifts the kernel to the next degree" href="_next__Degree.html">nextDegree</a> -- Lifts the kernel to the next degree</span></li>
+          <li><span><a title="Checks if a set of monomials is a Gotzmann set" href="_gotzmann__Test.html">gotzmannTest</a> -- Checks if a set of monomials is a Gotzmann set</span></li>
+          <li><span><a title="Replaces columns in a matrix with an identity matrix" href="_affine__Part.html">affinePart</a> -- Replaces columns in a matrix with an identity matrix</span></li>
+          <li><span><a title="Calculates the defining equations for Quot schemes of points" href="_quot__Scheme.html">quotScheme</a> -- Calculates the defining equations for Quot schemes of points</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">FiniteFittingIdeals.m2:284:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

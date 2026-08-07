@@ -1,0 +1,257 @@
+ -*- coding: utf-8 -*- This is Pullback.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* Pullback: (Pullback).         pullback of rings
+END-INFO-DIR-ENTRY
+
+
+File: Pullback.info, Node: Top, Next: internalUseDirectSum, Up: (dir)
+
+Pullback -- pullback in the category of rings
+*********************************************
+
+Description
+===========
+
+Pullback is a package that implements pullback for diagrams of rings
+
+Caveat
+======
+
+Works only for maps of rings finitely generated over a base field and one of
+the two maps is surjective
+
+Authors
+=======
+
+  * Drew Ellingson
+  * Karl Schwede
+
+Version
+=======
+
+This documentation describes version 1.03 of Pullback, released March 8, 2018.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{PullbackSource,                                                       |
+|  title = {{Pullback: pullback of rings. Version~1.03}},                    |
+|  author = {Drew Ellingson and Karl Schwede},                               |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note internalUseDirectSum: internalUseDirectSum, -- Compute direct sum
+        of two rings.
+  * Methods
+      * "internalUseDirectSum(Ring,Ring)" -- see *note internalUseDirectSum:
+        internalUseDirectSum, -- Compute direct sum of two rings.
+      * *note pullback(RingMap,RingMap): pullback_lpRingMap_cmRingMap_rp, --
+        Compute the pullback of a diagram of rings
+
+For the programmer
+==================
+
+The object *note Pullback: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in Pullback.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Pullback.m2:400:0.
+
+File: Pullback.info, Node: internalUseDirectSum, Next: pullback_lpRingMap_cmRingMap_rp, Prev: Top, Up: Top
+
+internalUseDirectSum -- Compute direct sum of two rings.
+********************************************************
+
+  * Usage: 
+        internalUseDirectSum(A,C)
+  * Inputs:
+      * f
+      * g
+  * Outputs:
+      * The ring A times C
+      * The idempotent (1_A, 0)
+
+Description
+===========
+
+A method which computes the product of two rings in the category of rings.This
+function requires that $A$ and $C$ have the same coefficient field and that the
+variable names of $A$ and $C$ are distinct.  The variable names of the two
+rings in the direct sum ring remain the same.  This function was originally
+going to be internal (hence the name), but may be useful in other cases too.
+We compute an example
++----------------------------------+
+|i1 : A = QQ[x];                   |
++----------------------------------+
+|i2 : C = QQ[y];                   |
++----------------------------------+
+|i3 : (internalUseDirectSum(A,C))#0|
+|                                  |
+|            QQ[x, e1, y]          |
+|o3 = --------------------------   |
+|        2                         |
+|     (e1  - e1, x*e1 - x, e1*y)   |
+|                                  |
+|o3 : QuotientRing                 |
++----------------------------------+
+
+Ways to use internalUseDirectSum:
+=================================
+
+  * "internalUseDirectSum(Ring,Ring)"
+
+For the programmer
+==================
+
+The object *note internalUseDirectSum: internalUseDirectSum, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Pullback.m2:455:0.
+
+File: Pullback.info, Node: pullback_lpRingMap_cmRingMap_rp, Prev: internalUseDirectSum, Up: Top
+
+pullback(RingMap,RingMap) -- Compute the pullback of a diagram of rings
+***********************************************************************
+
+  * Function: *note pullback: (Macaulay2Doc)pullback,
+  * Usage: 
+        pullback(f,g)
+  * Inputs:
+      * f, a *note ring map: (Macaulay2Doc)RingMap,
+      * g, a *note ring map: (Macaulay2Doc)RingMap,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Verbose => ..., default value false
+  * Outputs:
+      * The pullback R of (f: A->B<-C :g) as a ring
+      * the induced map R->A
+      * the induced map R->C
+
+Description
+===========
+
+The pullback functor in the category of rings.  Given ring maps $f : A \to B$
+and $g : C \to B$, this tries to compute the pullback of $\{A \to B \leftarrow
+C\}$ in the category of rings.  It requires that $A \to B$ is a surjective map
+of rings (otherwise it will give an error) and it requires that $C \to B$ is
+finite (otherwise it will never terminate).  Currently, it requires that the
+variable names of the rings $A$ and $C$ are distinct and that the variable
+names of $A$ are variable names of $B$ and those variables get sent to one
+another.  If the Verbose option is turned on, then certain steps in the process
+will be specified.We begin by doing a pullback which glues two lines together.
++-------------------------+
+|i1 : A = QQ[x];          |
++-------------------------+
+|i2 : I = ideal(x);       |
+|                         |
+|o2 : Ideal of A          |
++-------------------------+
+|i3 : B = A/I;            |
++-------------------------+
+|i4 : C = QQ[y];          |
++-------------------------+
+|i5 : f = map(B, A);      |
+|                         |
+|o5 : RingMap B <-- A     |
++-------------------------+
+|i6 : g = map(B, C, {0}); |
+|                         |
+|o6 : RingMap B <-- C     |
++-------------------------+
+|i7 : (pullback(f,g))#0   |
+|                         |
+|     QQ[IGen1, CGensInA1]|
+|o7 = --------------------|
+|        IGen1*CGensInA1  |
+|                         |
+|o7 : QuotientRing        |
++-------------------------+
+We next construct the pinch point, otherwise known as Whitneys umbrella, by
+gluing.
++----------------------------------+
+|i8 : A = QQ[x,y];                 |
++----------------------------------+
+|i9 : I = ideal(x);                |
+|                                  |
+|o9 : Ideal of A                   |
++----------------------------------+
+|i10 : B = A/I;                    |
++----------------------------------+
+|i11 : C = QQ[u];                  |
++----------------------------------+
+|i12 : f = map(B, A);              |
+|                                  |
+|o12 : RingMap B <-- A             |
++----------------------------------+
+|i13 : g = map(B, C, {y^2});       |
+|                                  |
+|o13 : RingMap B <-- C             |
++----------------------------------+
+|i14 : (pullback(f,g))#0           |
+|                                  |
+|      QQ[IGen1, CGensInA1, KGens1]|
+|o14 = ----------------------------|
+|             2                  2 |
+|        IGen1 CGensInA1 - KGens1  |
+|                                  |
+|o14 : QuotientRing                |
++----------------------------------+
+We include a final example showing how to create a cusp.
++------------------------+
+|i15 : A = QQ[x];        |
++------------------------+
+|i16 : I = ideal(x^2);   |
+|                        |
+|o16 : Ideal of A        |
++------------------------+
+|i17 : B = A/I;          |
++------------------------+
+|i18 : C = QQ[];         |
++------------------------+
+|i19 : f = map(B, A);    |
+|                        |
+|o19 : RingMap B <-- A   |
++------------------------+
+|i20 : g = map(B, C, {});|
+|                        |
+|o20 : RingMap B <-- C   |
++------------------------+
+|i21 : (pullback(f,g))#0 |
+|                        |
+|      QQ[IGen1, KGens1] |
+|o21 = ----------------- |
+|            3         2 |
+|       IGen1  - KGens1  |
+|                        |
+|o21 : QuotientRing      |
++------------------------+
+
+Ways to use this method:
+========================
+
+  * *note pullback(RingMap,RingMap): pullback_lpRingMap_cmRingMap_rp, --
+    Compute the pullback of a diagram of rings
+-------------------------------------------------------------------------------
+
+The source of this document is in Pullback.m2:439:0.
+
+Tag Table:
+Node: Top221
+Node: internalUseDirectSum2264
+Node: pullback_lpRingMap_cmRingMap_rp3995
+
+End Tag Table

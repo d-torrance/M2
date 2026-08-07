@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Intersection Theory Section 4.1 -- The coordinate ring of the Grassmannian</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="examples to accompany the eponymous book by Eisenbud and Harris" href="index.html">Book3264Examples</a> » <a title="The coordinate ring of the Grassmannian" href="___Intersection_sp__Theory_sp__Section_sp4.1.html">Intersection Theory Section 4.1</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Intersection_sp__Theory_sp__Section_sp4.2.html">next</a> | previous | <a href="___Intersection_sp__Theory_sp__Section_sp4.2.html">forward</a> | <a href="index.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Intersection Theory Section 4.1 -- The coordinate ring of the Grassmannian</h1>
+      <div>
+        <div>
+          <p>Subsection 4.1.1</p>
+          <p>We can use Macaulay2 to build the coordinate ring of $G(k,n)$ using the Plücker embedding.  Exercise 4.4 is the simplest interesting case, $G(2,4) = {\mathbb G}(1,3)$.  We'll start there before writing more general code for this.</p>
+          <p>Exercise 4.4:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : kk = ZZ/32003 --Our base field
+
+o1 = kk
+
+o1 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : R = kk[x_1 .. x_8]
+
+o2 = R
+
+o2 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : M = genericMatrix(R,x_1,2,4) -- A generic 2x4 matrix in the x_i
+
+o3 = | x_1 x_3 x_5 x_7 |
+     | x_2 x_4 x_6 x_8 |
+
+             2      4
+o3 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : I = minors(2,M) -- The ideal of 2x2 minors of M
+
+o4 = ideal (- x x  + x x , - x x  + x x , - x x  + x x , - x x  + x x , -
+               2 3    1 4     2 5    1 6     4 5    3 6     2 7    1 8   
+     ------------------------------------------------------------------------
+     x x  + x x , - x x  + x x )
+      4 7    3 8     6 7    5 8
+
+o4 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : P5 = kk[p_0 .. p_5] -- The coordinate ring of PP^5
+
+o5 = P5
+
+o5 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : f = map(R,P5, gens I) -- The Plücker map for GG(1,3)
+
+o6 = map (R, P5, {- x x  + x x , - x x  + x x , - x x  + x x , - x x  + x x , - x x  + x x , - x x  + x x })
+                     2 3    1 4     2 5    1 6     4 5    3 6     2 7    1 8     4 7    3 8     6 7    5 8
+
+o6 : RingMap R &lt;-- P5</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : J = saturate ker f -- The ideal of GG(1,3) in PP^3
+
+o7 = ideal(p p  - p p  + p p )
+            2 3    1 4    0 5
+
+o7 : Ideal of P5</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We see that the ideal $J$ of ${\mathbb G}(1,3)$ in ${\mathbb P}^5$ is indeed generated by the single relation given in the text.</p>
+          <p>More generally, we can build $G(k,n)$ in its Plücker embedding for any $n$ and $k$:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : kk = ZZ/32003
+
+o8 = kk
+
+o8 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : pluckerIdeal = (k,n) -> (
+       assert (k &lt;= n);
+       N := k*n; --number of variables in our generic matrix
+       R := kk[x_1 .. x_N];
+       M := genericMatrix(R,x_1,k,n); --the generic k-by-n matrix
+       s := binomial(n,k) - 1; --the dimension of PP(Wedge^k(kk^n))
+       Ps = kk[p_0 .. p_s];
+       f := map(R,Ps, gens minors(k,M)); --the Plücker map
+       J = saturate ker f) --the kernel of the Plücker map is the ideal we want
+
+o9 = pluckerIdeal
+
+o9 : FunctionClosure</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p></p>
+          <p>Now we can do Exercise 4.4 in one line:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : pluckerIdeal(2,4)
+
+o10 = ideal(p p  - p p  + p p )
+             2 3    1 4    0 5
+
+o10 : Ideal of Ps</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The reader is invited to try running <span class="tt">pluckerIdeal(4,7)</span>.  On our machine, this computation had not terminated after 15 minutes of runtime.</p>
+          <p>We can do a little better by using the built-in function <a title="compute the ideal of the Grassmannian of linear subspaces of a vector space" href="../../Macaulay2Doc/html/___Grassmannian.html">Grassmannian</a>, which computes the Plücker ideal in a more efficient way:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : Grassmannian(1,4)
+
+o11 = ideal (p   p    - p   p    + p   p   , p   p    - p   p    + p   p   ,
+              2,3 1,4    1,3 2,4    1,2 3,4   2,3 0,4    0,3 2,4    0,2 3,4 
+      -----------------------------------------------------------------------
+      p   p    - p   p    + p   p   , p   p    - p   p    + p   p   ,
+       1,3 0,4    0,3 1,4    0,1 3,4   1,2 0,4    0,2 1,4    0,1 2,4 
+      -----------------------------------------------------------------------
+      p   p    - p   p    + p   p   )
+       1,2 0,3    0,2 1,3    0,1 2,3
+
+o11 : Ideal of ZZ[p   ..p   , p   , p   , p   , p   , p   , p   , p   , p   ]
+                   0,1   0,2   1,2   0,3   1,3   2,3   0,4   1,4   2,4   3,4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The reader should try running <span class="tt">Grassmannian(4,7)</span> (which runs very quickly) to see just how large this ideal is.  Running <span class="tt">Grasmannian(4,10)</span>, on the other hand, is likely to never terminate.</p>
+          <p>Given how large these rings are and how difficult it is to compute in them, we need to simplify our computational system if we want to get answers to harder questions.</p>
+          <p>Subsection 4.1.3</p>
+          <p>It is possible to use Macaulay2 to build the universal sub- and quotient- bundles of the Grassmannian using explicit equations.  However, as above, computations very quickly become intractable.  We need some simplifications if we hope to compute anything. Schubert2 makes two major simplifications that allow us to do intersection theory with computers:</p>
+          <p>1) Varieties are replaced by their Chow rings 2) Bundles are replaced by their (total) Chern classes (see Ch. 5)</p>
+          <p>Here is Schubert code that will build the Grassmannian and its universal sub- and quotient bundles.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : grass = (k,n) -> flagBundle({k,n-k}) --In Schubert, we build Grassmannians as special cases
+
+o12 = grass
+
+o12 : FunctionClosure</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : G = grass(2,4) -- Our favorite GG(1,3)
+
+o13 = G
+
+o13 : a flag bundle with subquotient ranks {2:2}</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : (S,Q) = G.Bundles -- S is the universal subbundle, Q is the universal quotient bundle
+
+o14 = (S, Q)
+
+o14 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : S -- Schubert tells us that S is an abstract sheaf of rank 2
+
+o15 = S
+
+o15 : an abstract sheaf of rank 2 on G</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : Q -- And so is Q.
+
+o16 = Q
+
+o16 : an abstract sheaf of rank 2 on G</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Book3264Examples.m2:268:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

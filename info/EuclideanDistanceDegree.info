@@ -1,0 +1,1068 @@
+ -*- coding: utf-8 -*- This is EuclideanDistanceDegree.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* EuclideanDistanceDegree: (EuclideanDistanceDegree).  produce critical equations and compute ED degrees
+END-INFO-DIR-ENTRY
+
+
+File: EuclideanDistanceDegree.info, Node: Top, Up: (dir)
+
+EuclideanDistanceDegree -- produce critical equations and compute ED degrees
+****************************************************************************
+
+Description
+===========
+
+The Euclidean distance (ED) degree of a varieties arises from the following
+problem: given a (generic) data point, find the point on a given variety which
+minimizes the (possibly weighted) Euclidean distance function. The number of
+nonsingular critical points of the distance function is the ED degree of the
+variety.
+
+This package provides several routines for determining the (generic or unit)
+Euclidean distance degree of an algebraic variety. These routines include
+symbolic methods and numerical methods for determining these degrees; they can
+be grouped into four main types:
+
+  * *note symbolicWeightEDDegree: symbolicWeightEDDegree, -- symbolically
+    compute ED degrees of affine varieties
+  * *note leftKernelWeightEDDegree: leftKernelWeightEDDegree, -- numerically
+    compute Euclidean distance degrees of complete intersections
+  * *note numericWeightEDDegree: numericWeightEDDegree, -- numerically compute
+    ED degrees of affine cones using homotopy continuation
+  * *note parameterizedWeightEDDegree: parameterizedWeightEDDegree, -- compute
+    ED degrees of parameterized varieties
+
+As an example, this code computes the (unit) ED degree of a circle both
+symbolically and numerically
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                                            |
++-----------------------------------------------------------------------------+
+|i2 : F = {x^2 + y^2 - 1};                                                    |
++-----------------------------------------------------------------------------+
+|i3 : determinantalUnitEDDegree(F)                                            |
+|                                                                             |
+|o3 = 2                                                                       |
++-----------------------------------------------------------------------------+
+|i4 : leftKernelUnitEDDegree(F)                                               |
+|Warning: The HomVariableGroup is written first and then the AffVariableGroup |
+|                                                                             |
+|o4 = 2                                                                       |
+|-----------------------------------------------------------------------------|
+|is written second.                                                           |
++-----------------------------------------------------------------------------+
+
+When the variety is an affine cone, one is able to compute ED degrees using ED
+degree homotopies, i.e., a structured parameter homotopy. The easiest case is
+when the variety is a hypersurface (or more generally, a complete intersection)
+
++----------------------------------------------------------------+
+|i5 : R = QQ[x1,x2,x3,x4];                                       |
++----------------------------------------------------------------+
+|i6 : F = G = {det genericMatrix(R,2,2)};                        |
++----------------------------------------------------------------+
+|i7 : numericGenericEDDegree(F, G)                               |
+|-- warning: experimental computation over inexact field begun   |
+|--          results not reliable (one warning given per session)|
+|                                                                |
+|o7 = 6                                                          |
++----------------------------------------------------------------+
+
+When a $V(F)$ is not a complete intersection we incorporate a membership test
+to filter out residual critical points. Here $V(F)$ is an irreducible component
+of $V(G)$ (a reducible variety) and `#G===codim ideal F`.  These methods employ
+an equation by equation method called regeneration.
+
++---------------------------------------------+
+|i8 : R = QQ[x1,x2,x3,x4,x5,x6];              |
++---------------------------------------------+
+|i9 : F = (minors(2, genericMatrix(R,3,2)))_*;|
++---------------------------------------------+
+|i10 : G = drop(F, -1);                       |
++---------------------------------------------+
+|i11 : #G == codim ideal F;                   |
++---------------------------------------------+
+|i12 : numericGenericEDDegree(F, G)           |
+|                                             |
+|o12 = 10                                     |
++---------------------------------------------+
+
+One may also determine ED degrees using a parameter homotopy called a Weight-ED
+Degree Homotopy. This code computes a unit ED degree:
+
++-------------------------------------------------+
+|i13 : R = QQ[x1,x2,x3,x4,x5,x6];                 |
++-------------------------------------------------+
+|i14 : F = (minors(2, genericMatrix(R,3,2)))_*;   |
++-------------------------------------------------+
+|i15 : G = drop(F, -1);                           |
++-------------------------------------------------+
+|i16 : NCO = newNumericalComputationOptions(F, G);|
++-------------------------------------------------+
+|i17 : NCO#"TargetWeight" = apply(#gens R, i->1); |
++-------------------------------------------------+
+|i18 : homotopyEDDegree(NCO, "Weight", true, true)|
+|                                                 |
+|o18 = 2                                          |
++-------------------------------------------------+
+* Menu:
+
+* symbolicWeightEDDegree::      symbolically compute ED degrees of affine varieties
+* leftKernelWeightEDDegree::    numerically compute Euclidean distance degrees of complete intersections
+* numericWeightEDDegree::       numerically compute ED degrees of affine cones using homotopy continuation
+* parameterizedWeightEDDegree::  compute ED degrees of parameterized varieties
+* averageNumericEDDegree::      compute average ED degrees using sampled data
+
+Authors
+=======
+
+  * Jose Israel Rodriguez (see http://www.math.wisc.edu/~jose/ )
+    <Jose@Math.wisc.edu>
+  * Will Huang (see  ) <whuang259@wisc.edu>
+
+Version
+=======
+
+This documentation describes version 1.1 of EuclideanDistanceDegree, released
+April 2026.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{EuclideanDistanceDegreeSource,                                         |
+|  title = {{EuclideanDistanceDegree: produce critical equations and compute  |
+|  author = {Jose Israel Rodriguez and Will Huang},                           |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|ED degrees. Version~1.1}},                                                   |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note NumericalComputationOptions: NumericalComputationOptions, --
+        define homotopy options and configurations
+  * Functions and commands
+      * *note averageNumericEDDegree: averageNumericEDDegree, -- compute
+        average ED degrees using sampled data
+      * *note homotopyEDDegree: homotopyEDDegree, -- numerically compute ED
+        degrees of affine cones using homotopy continuation
+      * "leftKernelGenericEDDegree" -- see *note leftKernelWeightEDDegree:
+        leftKernelWeightEDDegree, -- numerically compute Euclidean distance
+        degrees of complete intersections
+      * "leftKernelUnitEDDegree" -- see *note leftKernelWeightEDDegree:
+        leftKernelWeightEDDegree, -- numerically compute Euclidean distance
+        degrees of complete intersections
+      * *note leftKernelWeightEDDegree: leftKernelWeightEDDegree, --
+        numerically compute Euclidean distance degrees of complete
+        intersections
+      * *note newNumericalComputationOptions: newNumericalComputationOptions,
+        -- define homotopy options and configurations
+      * "numericGenericEDDegree" -- see *note numericWeightEDDegree:
+        numericWeightEDDegree, -- numerically compute ED degrees of affine
+        cones using homotopy continuation
+      * "numericUnitEDDegree" -- see *note numericWeightEDDegree:
+        numericWeightEDDegree, -- numerically compute ED degrees of affine
+        cones using homotopy continuation
+      * *note numericWeightEDDegree: numericWeightEDDegree, -- numerically
+        compute ED degrees of affine cones using homotopy continuation
+      * "parameterizedGenericEDDegree" -- see *note
+        parameterizedWeightEDDegree: parameterizedWeightEDDegree, -- compute ED
+        degrees of parameterized varieties
+      * "parameterizedUnitEDDegree" -- see *note parameterizedWeightEDDegree:
+        parameterizedWeightEDDegree, -- compute ED degrees of parameterized
+        varieties
+      * *note parameterizedWeightEDDegree: parameterizedWeightEDDegree, --
+        compute ED degrees of parameterized varieties
+      * "determinantalGenericEDDegree" -- see *note symbolicWeightEDDegree:
+        symbolicWeightEDDegree, -- symbolically compute ED degrees of affine
+        varieties
+      * "determinantalUnitEDDegree" -- see *note symbolicWeightEDDegree:
+        symbolicWeightEDDegree, -- symbolically compute ED degrees of affine
+        varieties
+      * *note symbolicWeightEDDegree: symbolicWeightEDDegree, -- symbolically
+        compute ED degrees of affine varieties
+  * Methods
+      * "averageNumericEDDegree(List,List,ZZ)" -- see *note
+        averageNumericEDDegree: averageNumericEDDegree, -- compute average ED
+        degrees using sampled data
+      * "homotopyEDDegree(NumericalComputationOptions,String,Boolean,Boolean)"
+        -- see *note homotopyEDDegree: homotopyEDDegree, -- numerically compute
+        ED degrees of affine cones using homotopy continuation
+      * "leftKernelGenericEDDegree(List)" -- see *note
+        leftKernelWeightEDDegree: leftKernelWeightEDDegree, -- numerically
+        compute Euclidean distance degrees of complete intersections
+      * "leftKernelUnitEDDegree(List)" -- see *note leftKernelWeightEDDegree:
+        leftKernelWeightEDDegree, -- numerically compute Euclidean distance
+        degrees of complete intersections
+      * "leftKernelWeightEDDegree(List,List,List)" -- see *note
+        leftKernelWeightEDDegree: leftKernelWeightEDDegree, -- numerically
+        compute Euclidean distance degrees of complete intersections
+      * "newNumericalComputationOptions(List,List)" -- see *note
+        newNumericalComputationOptions: newNumericalComputationOptions, --
+        define homotopy options and configurations
+      * "numericGenericEDDegree(List,List)" -- see *note numericWeightEDDegree:
+        numericWeightEDDegree, -- numerically compute ED degrees of affine
+        cones using homotopy continuation
+      * "numericUnitEDDegree(List,List)" -- see *note numericWeightEDDegree:
+        numericWeightEDDegree, -- numerically compute ED degrees of affine
+        cones using homotopy continuation
+      * "numericWeightEDDegree(List,List,List,List)" -- see *note
+        numericWeightEDDegree: numericWeightEDDegree, -- numerically compute ED
+        degrees of affine cones using homotopy continuation
+      * "parameterizedGenericEDDegree(List)" -- see *note
+        parameterizedWeightEDDegree: parameterizedWeightEDDegree, -- compute ED
+        degrees of parameterized varieties
+      * "parameterizedUnitEDDegree(List)" -- see *note
+        parameterizedWeightEDDegree: parameterizedWeightEDDegree, -- compute ED
+        degrees of parameterized varieties
+      * "parameterizedWeightEDDegree(List,List,List)" -- see *note
+        parameterizedWeightEDDegree: parameterizedWeightEDDegree, -- compute ED
+        degrees of parameterized varieties
+      * "determinantalGenericEDDegree(List)" -- see *note
+        symbolicWeightEDDegree: symbolicWeightEDDegree, -- symbolically compute
+        ED degrees of affine varieties
+      * "determinantalUnitEDDegree(List)" -- see *note symbolicWeightEDDegree:
+        symbolicWeightEDDegree, -- symbolically compute ED degrees of affine
+        varieties
+      * "symbolicWeightEDDegree(List,List,List)" -- see *note
+        symbolicWeightEDDegree: symbolicWeightEDDegree, -- symbolically compute
+        ED degrees of affine varieties
+  * Symbols
+      * *note ReturnCriticalIdeal: ReturnCriticalIdeal, -- whether to return
+        the ideal of critical points
+      * SampleGenerator (missing documentation)
+      * Submodel (missing documentation)
+      * *note TempDirectory: TempDirectory, -- set directory for Bertini runs
+      * *note UseMonodromy: UseMonodromy, -- whether to use monodromy methods
+        to compute degrees
+
+For the programmer
+==================
+
+The object *note EuclideanDistanceDegree: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in EuclideanDistanceDegree.m2, with auxiliary
+files in EuclideanDistanceDegree/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:141:0.
+
+File: EuclideanDistanceDegree.info, Node: symbolicWeightEDDegree, Next: leftKernelWeightEDDegree, Up: Top
+
+symbolicWeightEDDegree -- symbolically compute ED degrees of affine varieties
+*****************************************************************************
+
+  * Usage: 
+        UED = determinantalUnitEDDegree(F)
+        GED = determinantalGenericEDDegree(F)
+        GED = symbolicWeightEDDegree(F,U,W)
+  * Inputs:
+      * F, a *note list: (Macaulay2Doc)List,, a system of polynomials (system
+        need not be square)
+      * U, a *note list: (Macaulay2Doc)List,, a (generic) data vector
+      * W, a *note list: (Macaulay2Doc)List,, a (generic) weight vector
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note ReturnCriticalIdeal: ReturnCriticalIdeal, => ..., default value
+        false, whether to return the ideal of critical points
+  * Outputs:
+      * ED, an *note integer: (Macaulay2Doc)ZZ,, a generic/unit Euclidean
+        distance degree
+      * ICP, an *note ideal: (Macaulay2Doc)Ideal,, ideal of critical points (if
+        ReturnCriticalIdeal is set)
+
+Description
+===========
+
+This method computes Euclidean distance (ED) degrees for the variety defined by
+the system $F$ via symbolic computation. The ideal of critical points is formed
+by saturating the defining ideal of the variety with minors of the Jacobian and
+Augmented Jacobian. The degree of this ideal is the ED degree of the variety.
+The unit variant of this method computes an ED degree using random (integer)
+data and unit weights, whereas the generic variant will use random data and
+random weights.
+
++-----------------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                                      |
++-----------------------------------------------------------------------+
+|i2 : F = {x^2 + y^2 - 1};                                              |
++-----------------------------------------------------------------------+
+|i3 : (U,W) = ({12, 23}, {15, 331});                                    |
++-----------------------------------------------------------------------+
+|i4 : UED = determinantalUnitEDDegree F                                 |
+|                                                                       |
+|o4 = 2                                                                 |
++-----------------------------------------------------------------------+
+|i5 : GED = determinantalGenericEDDegree F                              |
+|                                                                       |
+|o5 = 4                                                                 |
++-----------------------------------------------------------------------+
+|i6 : ICP = symbolicWeightEDDegree(F, U, W, ReturnCriticalIdeal => true)|
+|                                                                       |
+|                                    2    2                             |
+|o6 = ideal (316x*y - 7613x + 180y, x  + y  - 1)                        |
+|                                                                       |
+|o6 : Ideal of R                                                        |
++-----------------------------------------------------------------------+
+* Menu:
+
+* ReturnCriticalIdeal::         whether to return the ideal of critical points
+
+Ways to use symbolicWeightEDDegree:
+===================================
+
+  * "symbolicWeightEDDegree(List,List,List)"
+
+For the programmer
+==================
+
+The object *note symbolicWeightEDDegree: symbolicWeightEDDegree, is a *note
+method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:206:0.
+
+File: EuclideanDistanceDegree.info, Node: ReturnCriticalIdeal, Up: symbolicWeightEDDegree
+
+ReturnCriticalIdeal -- whether to return the ideal of critical points
+*********************************************************************
+
+  * Usage: 
+        ICP = symbolicWeightEDDegree(F, U, W, ReturnCriticalIdeal => true)
+
+Description
+===========
+
+Symbolic methods compute the Euclidean Distance degree of a variety by
+computing the degree of its critical ideal, which defines the critical points
+of the distance function on the variety. Setting this option will cause
+symbolic methods to return this ideal rather than its degree.
+
++-----------------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                                      |
++-----------------------------------------------------------------------+
+|i2 : F = {x^2 + y^2 - 1};                                              |
++-----------------------------------------------------------------------+
+|i3 : (U,W) = ({12, 23}, {15, 331});                                    |
++-----------------------------------------------------------------------+
+|i4 : ICP = symbolicWeightEDDegree(F, U, W, ReturnCriticalIdeal => true)|
+|                                                                       |
+|                                    2    2                             |
+|o4 = ideal (316x*y - 7613x + 180y, x  + y  - 1)                        |
+|                                                                       |
+|o4 : Ideal of R                                                        |
++-----------------------------------------------------------------------+
+
+Functions with optional argument named ReturnCriticalIdeal:
+===========================================================
+
+  * "determinantalGenericEDDegree(...,ReturnCriticalIdeal=>...)"
+  * "determinantalUnitEDDegree(...,ReturnCriticalIdeal=>...)"
+  * "symbolicWeightEDDegree(...,ReturnCriticalIdeal=>...)"
+
+For the programmer
+==================
+
+The object *note ReturnCriticalIdeal: ReturnCriticalIdeal, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:163:0.
+
+File: EuclideanDistanceDegree.info, Node: leftKernelWeightEDDegree, Next: numericWeightEDDegree, Prev: symbolicWeightEDDegree, Up: Top
+
+leftKernelWeightEDDegree -- numerically compute Euclidean distance degrees of complete intersections
+****************************************************************************************************
+
+  * Usage: 
+        UED = leftKernelUnitEDDegree(F)
+        GED = leftKernelGenericEDDegree(F)
+        GED = leftKernelWeightEDDegree(F,U,W)
+  * Inputs:
+      * F, a *note list: (Macaulay2Doc)List,, a system of polynomials (need not
+        be square) defining an affine variety that is a complete intersection
+      * U, a *note list: (Macaulay2Doc)List,, a (generic) data vector
+      * W, a *note list: (Macaulay2Doc)List,, a (generic) weight vector
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note TempDirectory: TempDirectory, => ..., default value null, set
+        directory for Bertini runs
+  * Outputs:
+      * ED, an *note integer: (Macaulay2Doc)ZZ,, a generic/unit Euclidean
+        distance degree
+
+Description
+===========
+
+This method computes Euclidean distance (ED) degrees for affine varieties
+defined by the system $F$ numerically using Lagrange multipliers. If the
+resulting variety is a complete intersection, the left kernel of the augmented
+Jacobian is used to derive a set of critical erquations which are passed into
+Bertini. The resulting number of critical points is returned as the ED degree.
+The unit variant of this method computes an ED degree using random (complex)
+data and unit weights, whereas `leftKernelGenericEDDegree` will use random data
+and random weights.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                                            |
++-----------------------------------------------------------------------------+
+|i2 : F = {x^2 + y^2 - 1};                                                    |
++-----------------------------------------------------------------------------+
+|i3 : (U,W) = ({.12, .23}, {.15, .331});                                      |
++-----------------------------------------------------------------------------+
+|i4 : UED = leftKernelUnitEDDegree F                                          |
+|Warning: The HomVariableGroup is written first and then the AffVariableGroup |
+|                                                                             |
+|o4 = 2                                                                       |
+|-----------------------------------------------------------------------------|
+|is written second.                                                           |
++-----------------------------------------------------------------------------+
+|i5 : GED = leftKernelGenericEDDegree F                                       |
+|Warning: The HomVariableGroup is written first and then the AffVariableGroup |
+|                                                                             |
+|o5 = 4                                                                       |
+|-----------------------------------------------------------------------------|
+|is written second.                                                           |
++-----------------------------------------------------------------------------+
+|i6 : GED = leftKernelWeightEDDegree(F, U, W)                                 |
+|Warning: The HomVariableGroup is written first and then the AffVariableGroup |
+|                                                                             |
+|o6 = 4                                                                       |
+|-----------------------------------------------------------------------------|
+|is written second.                                                           |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+The computed ED degree may be lower than expected due to path tracking.
+
+* Menu:
+
+* TempDirectory::               set directory for Bertini runs
+
+Ways to use leftKernelWeightEDDegree:
+=====================================
+
+  * "leftKernelWeightEDDegree(List,List,List)"
+
+For the programmer
+==================
+
+The object *note leftKernelWeightEDDegree: leftKernelWeightEDDegree, is a *note
+method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:339:0.
+
+File: EuclideanDistanceDegree.info, Node: TempDirectory, Up: leftKernelWeightEDDegree
+
+TempDirectory -- set directory for Bertini runs
+***********************************************
+
+  * Usage: 
+        GED = leftKernelGenericEDDegree(F, U, W, TempDirectory => dir)
+
+Description
+===========
+
+This option is used to change the directory from which Bertini files are
+written to and run from for the numerical methods. If unset, a temp directory
+will be created and used.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                                            |
++-----------------------------------------------------------------------------+
+|i2 : F = {x^2 + y^2 - 1};                                                    |
++-----------------------------------------------------------------------------+
+|i3 : dir = temporaryFileName();                                              |
++-----------------------------------------------------------------------------+
+|i4 : GED = leftKernelGenericEDDegree(F, TempDirectory => dir)                |
+|Warning: The HomVariableGroup is written first and then the AffVariableGroup |
+|                                                                             |
+|o4 = 4                                                                       |
+|-----------------------------------------------------------------------------|
+|is written second.                                                           |
++-----------------------------------------------------------------------------+
+
+Functions with optional argument named TempDirectory:
+=====================================================
+
+  * "newNumericalComputationOptions(...,TempDirectory=>...)" -- see *note
+    newNumericalComputationOptions: newNumericalComputationOptions, -- define
+    homotopy options and configurations
+  * "averageNumericEDDegree(...,TempDirectory=>...)"
+  * "leftKernelGenericEDDegree(...,TempDirectory=>...)"
+  * "leftKernelUnitEDDegree(...,TempDirectory=>...)"
+  * "leftKernelWeightEDDegree(...,TempDirectory=>...)"
+  * "numericGenericEDDegree(...,TempDirectory=>...)"
+  * "numericUnitEDDegree(...,TempDirectory=>...)"
+  * "numericWeightEDDegree(...,TempDirectory=>...)"
+
+For the programmer
+==================
+
+The object *note TempDirectory: TempDirectory, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:295:0.
+
+File: EuclideanDistanceDegree.info, Node: numericWeightEDDegree, Next: parameterizedWeightEDDegree, Prev: leftKernelWeightEDDegree, Up: Top
+
+numericWeightEDDegree -- numerically compute ED degrees of affine cones using homotopy continuation
+***************************************************************************************************
+
+  * Usage: 
+        UED = numericUnitEDDegree(F,G)
+        GED = numericGenericEDDegree(F,G)
+        GED = homotopyEDDegree(F,G,U,V)
+  * Inputs:
+      * F, a *note list: (Macaulay2Doc)List,, a system of polynomials (need not
+        be square) defining the variety
+      * G, a *note list: (Macaulay2Doc)List,, a system of polynomials (complete
+        intersection) such that $V(F)$ is an irreducible component of $V(G)$,
+        i.e. a witness model
+      * U, a *note list: (Macaulay2Doc)List,, a (generic) data vector
+      * W, a *note list: (Macaulay2Doc)List,, a (generic) weight vector
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Submodel => a *note list: (Macaulay2Doc)List,, default value {}, list
+        of linear polynomials to slice the variety
+      * *note TempDirectory: TempDirectory, => ..., default value null, set
+        directory for Bertini runs
+  * Outputs:
+      * ED, an *note integer: (Macaulay2Doc)ZZ,, a generic/unit Euclidean
+        distance degree
+
+Description
+===========
+
+Special instances of the *note homotopyEDDegree: homotopyEDDegree, method that
+uses a homotopy on weights. The unit variant of this method computes an ED
+degree using random (complex) data and unit weights, whereas
+`numericGenericEDDegree` will use random data and random weights.
+
++----------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                               |
++----------------------------------------------------------------+
+|i2 : F = G = {x^2+y^2-1};                                       |
++----------------------------------------------------------------+
+|i3 : (U,W) = ({.12, .23}, {.15, .331});                         |
++----------------------------------------------------------------+
+|i4 : UED = numericUnitEDDegree(F, G)                            |
+|                                                                |
+|o4 = 2                                                          |
++----------------------------------------------------------------+
+|i5 : GED = numericGenericEDDegree(F, G)                         |
+|-- warning: experimental computation over inexact field begun   |
+|--          results not reliable (one warning given per session)|
+|                                                                |
+|o5 = 4                                                          |
++----------------------------------------------------------------+
+|i6 : GED = numericWeightEDDegree(F, G, U, W)                    |
+|                                                                |
+|o6 = 4                                                          |
++----------------------------------------------------------------+
+
+Caveat
+======
+
+Inaccurate results may be returned if $V(F)$ is contained in $V(L)$. The
+computed ED degree may be lower than expected due to path tracking.
+
+* Menu:
+
+* homotopyEDDegree::            numerically compute ED degrees of affine cones using homotopy continuation
+* Submodel::
+
+Ways to use numericWeightEDDegree:
+==================================
+
+  * "numericWeightEDDegree(List,List,List,List)"
+
+For the programmer
+==================
+
+The object *note numericWeightEDDegree: numericWeightEDDegree, is a *note
+method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:491:0.
+
+File: EuclideanDistanceDegree.info, Node: homotopyEDDegree, Next: Submodel, Up: numericWeightEDDegree
+
+homotopyEDDegree -- numerically compute ED degrees of affine cones using homotopy continuation
+**********************************************************************************************
+
+  * Usage: 
+        GED = homotopyEDDegree(NCO, "Weight", true, false)
+  * Inputs:
+      * NCO, an instance of the type *note NumericalComputationOptions:
+        NumericalComputationOptions,, a MutableHashTable to keeps track of the
+        options and configurations for the homotopy methods
+      * ht, a *note string: (Macaulay2Doc)String,, one of "Weight" or "Data"
+        which defines the type of homotopy to execute
+      * isStageOne, a *note Boolean value: (Macaulay2Doc)Boolean,, if set, runs
+        stage 1 to solve the start system
+      * isStageTwo, a *note Boolean value: (Macaulay2Doc)Boolean,, if set, runs
+        stage 2 to solve the target system via path tracking
+  * Outputs:
+      * ED, an *note integer: (Macaulay2Doc)ZZ,, a generic/unit Euclidean
+        distance degree
+
+Description
+===========
+
+Executes the homotopy defined by the passed in *note
+NumericalComputationOptions: NumericalComputationOptions, object. A weight
+homotopy will vary the weights of the distance function whereas a data homotopy
+will vary the data point. A stage1 homotopy solves the start system as defined
+in NCO whereas stage2 will perform the weight/data homotopy to solve the
+defined target system. It is possible to perform stage2 multiple times for
+different target systems without rerunning stage1, but at least one stage1
+homotopy must be executed in the directory specified in NCO for stage2 to
+executed properly.
+
++----------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                               |
++----------------------------------------------------------------+
+|i2 : F = G = {x^2+y^2-1};                                       |
++----------------------------------------------------------------+
+|i3 : NCO = newNumericalComputationOptions(F, G);                |
++----------------------------------------------------------------+
+|i4 : NCO#"TargetWeight" = apply(#gens R, i -> random RR);       |
++----------------------------------------------------------------+
+|i5 : GED = homotopyEDDegree(NCO, "Weight", true, true)          |
+|-- warning: experimental computation over inexact field begun   |
+|--          results not reliable (one warning given per session)|
+|                                                                |
+|o5 = 4                                                          |
++----------------------------------------------------------------+
+|i6 : NCO#"TargetWeight" = apply(#gens R, i -> 1_R);             |
++----------------------------------------------------------------+
+|i7 : UED = homotopyEDDegree(NCO, "Weight", false, true)         |
+|                                                                |
+|o7 = 2                                                          |
++----------------------------------------------------------------+
+
+Caveat
+======
+
+Inaccurate results may be returned if $V(F)$ is contained in $V(L)$. The
+computed ED degree may be lower than expected due to path tracking.
+
+* Menu:
+
+* NumericalComputationOptions::  define homotopy options and configurations
+* newNumericalComputationOptions::  define homotopy options and configurations
+
+Ways to use homotopyEDDegree:
+=============================
+
+  * "homotopyEDDegree(NumericalComputationOptions,String,Boolean,Boolean)"
+
+For the programmer
+==================
+
+The object *note homotopyEDDegree: homotopyEDDegree, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:442:0.
+
+File: EuclideanDistanceDegree.info, Node: NumericalComputationOptions, Next: newNumericalComputationOptions, Up: homotopyEDDegree
+
+NumericalComputationOptions -- define homotopy options and configurations
+*************************************************************************
+
+Description
+===========
+
+This object stores all the options needed compute an ED degree using homotopy
+continuation with Bertini. It is created using the *note
+newNumericalComputationOptions: newNumericalComputationOptions, method.
+
+Keys available to customize the homotopy include: "Directory" to change the
+directory Bertini is run from, the directory need not exist initially.
+"StartData" and "TargetData" if executing a Data homotopy, defaults to random
+complex data. "StartWeight" and "TargetWeight" if executing a Weight homotopy,
+defaults to random complex and unit weights respectively. "Infinity" to add a
+hyperplane at infinity for homogenization, one is created by default in *note
+homotopyEDDegree: homotopyEDDegree, if not present. "PrimalCoordinates" to add
+additional variables to the ambient space. By default this field will already
+contain the variables of `ring F`, thus it is safer to append extra variables
+rather than overwriting the less, otherwise subsequent methods may fail.
+
+Keys are also available to customize the Bertini run: "FinerRestriction" a list
+of polynomials to filter down critical points. Critical points will only be
+kept if they vanish for every polynomial in this list.
+"BertiniStartFiberSolveConfiguration" a list of options (e.g. `FinalTol ->
+1e-8`) that will be passed into the Berni inputs file. By default, the options
+`{"TrackType"=>0, "PrintPathProgress"=>1000}` are included.
+
+Methods that use an object of class NumericalComputationOptions:
+================================================================
+
+  * "homotopyEDDegree(NumericalComputationOptions,String,Boolean,Boolean)" --
+    see *note homotopyEDDegree: homotopyEDDegree, -- numerically compute ED
+    degrees of affine cones using homotopy continuation
+
+For the programmer
+==================
+
+The object *note NumericalComputationOptions: NumericalComputationOptions, is a
+*note type: (Macaulay2Doc)Type,, with ancestor classes *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:364:0.
+
+File: EuclideanDistanceDegree.info, Node: newNumericalComputationOptions, Prev: NumericalComputationOptions, Up: homotopyEDDegree
+
+newNumericalComputationOptions -- define homotopy options and configurations
+****************************************************************************
+
+  * Usage: 
+        NCO = newNumericalComputationOptions(F, G)
+  * Inputs:
+      * F, a *note list: (Macaulay2Doc)List,, a system of polynomials (need not
+        be square) defining the variety
+      * G, a *note list: (Macaulay2Doc)List,, a system of polynomials (complete
+        intersection) such that V(F) is an irreducible component of V(G), i.e.
+        a witness model
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Submodel => a *note list: (Macaulay2Doc)List,, default value {}, a
+        system of linear polynomials to slice the variety
+      * TempDirectory => ..., default value null
+  * Outputs:
+      * NCO, an instance of the type *note NumericalComputationOptions:
+        NumericalComputationOptions,, a MutableHashTable to keep track of
+        options and configurations for the homotopy methods
+
+Description
+===========
+
+Creates a *note NumericalComputationOptions: NumericalComputationOptions,
+object. At mimumum it requires the model $F$ for which the ED Degree will be
+computed and a witness model $G$. A submodel $L$ may be passed in to "slice"
+the variety, by default it will be the empty set. A String indicating the
+temporary directory from which Bertini will read/write files during the run may
+also be passed in as an optional argument, by default it will be a random
+temporary file name. The temporary directory will be created if it does not
+exist.
+
++----------------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                                     |
++----------------------------------------------------------------------+
+|i2 : F = G = {x^2 + y^2 - 1};                                         |
++----------------------------------------------------------------------+
+|i3 : dir = temporaryFileName();                                       |
++----------------------------------------------------------------------+
+|i4 : NCO = newNumericalComputationOptions(F, G, TempDirectory => dir);|
++----------------------------------------------------------------------+
+|i5 : NCO#"TargetWeight" = apply(#gens R, i -> 1_R);                   |
++----------------------------------------------------------------------+
+|i6 : UED = homotopyEDDegree(NCO, "Weight", true, true)                |
+|-- warning: experimental computation over inexact field begun         |
+|--          results not reliable (one warning given per session)      |
+|                                                                      |
+|o6 = 2                                                                |
++----------------------------------------------------------------------+
+
+Ways to use newNumericalComputationOptions:
+===========================================
+
+  * "newNumericalComputationOptions(List,List)"
+
+For the programmer
+==================
+
+The object *note newNumericalComputationOptions:
+newNumericalComputationOptions, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:399:0.
+
+File: EuclideanDistanceDegree.info, Node: Submodel, Prev: homotopyEDDegree, Up: numericWeightEDDegree
+
+Submodel
+********
+
+Functions with optional argument named Submodel:
+================================================
+
+  * "averageNumericEDDegree(...,Submodel=>...)" -- see *note
+    averageNumericEDDegree: averageNumericEDDegree, -- compute average ED
+    degrees using sampled data
+  * "newNumericalComputationOptions(...,Submodel=>...)" -- see *note
+    newNumericalComputationOptions: newNumericalComputationOptions, -- define
+    homotopy options and configurations
+  * "numericGenericEDDegree(...,Submodel=>...)" -- see *note
+    numericWeightEDDegree: numericWeightEDDegree, -- numerically compute ED
+    degrees of affine cones using homotopy continuation
+  * "numericUnitEDDegree(...,Submodel=>...)" -- see *note
+    numericWeightEDDegree: numericWeightEDDegree, -- numerically compute ED
+    degrees of affine cones using homotopy continuation
+  * "numericWeightEDDegree(...,Submodel=>...)" -- see *note
+    numericWeightEDDegree: numericWeightEDDegree, -- numerically compute ED
+    degrees of affine cones using homotopy continuation
+
+For the programmer
+==================
+
+The object Submodel (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:389.
+
+File: EuclideanDistanceDegree.info, Node: parameterizedWeightEDDegree, Next: averageNumericEDDegree, Prev: numericWeightEDDegree, Up: Top
+
+parameterizedWeightEDDegree -- compute ED degrees of parameterized varieties
+****************************************************************************
+
+  * Usage: 
+        UED = parameterizedUnitEDDegree(F)
+        GED = parameterizedGenericEDDegree(F)
+        GED = parameterizedWeightEDDegree(F,U,W)
+  * Inputs:
+      * F, a *note list: (Macaulay2Doc)List,, a system of polynomials in $d$
+        variables parameterizing a $d$-dimensional variety
+      * U, a *note list: (Macaulay2Doc)List,, a (generic) data vector
+      * W, a *note list: (Macaulay2Doc)List,, a (generic) weight vector
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note UseMonodromy: UseMonodromy, => ..., default value false, whether
+        to use monodromy methods to compute degrees
+  * Outputs:
+      * ED, an *note integer: (Macaulay2Doc)ZZ,, a generic/unit Euclidean
+        distance degree
+
+Description
+===========
+
+This method computes Euclidean distance (ED) degrees for the variety
+parameterized by the a set of polynomials $F$ in $d$ variables. If the
+resulting variety is $d$-dimensional, then by finding a global description for
+the kernel of the transpose of the Jacobian map, the critical equations of the
+variety can be computed. The unit variant of this method computes an ED degree
+using random (integer) data and unit weights, whereas the generic variant will
+use random data and random weights.
+
++-----------------------------------------------+
+|i1 : R = QQ[x,y];                              |
++-----------------------------------------------+
+|i2 : F = {x^2 + 1, x * y, y - 1};              |
++-----------------------------------------------+
+|i3 : (U,W) = ({12, 23, 25}, {15, 331, 1});     |
++-----------------------------------------------+
+|i4 : UED = parameterizedUnitEDDegree F         |
+|                                               |
+|o4 = 7                                         |
++-----------------------------------------------+
+|i5 : GED = parameterizedGenericEDDegree F      |
+|                                               |
+|o5 = 7                                         |
++-----------------------------------------------+
+|i6 : GED = parameterizedWeightEDDegree(F, U, W)|
+|                                               |
+|o6 = 7                                         |
++-----------------------------------------------+
+* Menu:
+
+* UseMonodromy::                whether to use monodromy methods to compute degrees
+
+Ways to use parameterizedWeightEDDegree:
+========================================
+
+  * "parameterizedWeightEDDegree(List,List,List)"
+
+For the programmer
+==================
+
+The object *note parameterizedWeightEDDegree: parameterizedWeightEDDegree, is a
+*note method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:270:0.
+
+File: EuclideanDistanceDegree.info, Node: UseMonodromy, Up: parameterizedWeightEDDegree
+
+UseMonodromy -- whether to use monodromy methods to compute degrees
+*******************************************************************
+
+  * Usage: 
+        GED = parameterizedWeightEDDegree(F, U, W, UseMonodromy => true)
+
+Description
+===========
+
+If this option is set, the parameterized ED degree methods will use the
+MonodromySolver to numerically solve the critical equations and report the
+number of regular solutions as the ED degree of the parameterized variety.
+
++----------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                               |
++----------------------------------------------------------------+
+|i2 : F = {x^2 + 1, x * y, y - 1};                               |
++----------------------------------------------------------------+
+|i3 : GED = parameterizedGenericEDDegree(F, UseMonodromy => true)|
+|                                                                |
+|o3 = 7                                                          |
++----------------------------------------------------------------+
+
+Caveat
+======
+
+Using monodromy may result in an ED degree that is less than expected. In
+particular, if the parameterization map is $n$-to-one, using monodromy to solve
+for the degree may result in a degree than is off by a factor of $n$.
+
+Functions with optional argument named UseMonodromy:
+====================================================
+
+  * "parameterizedGenericEDDegree(...,UseMonodromy=>...)"
+  * "parameterizedUnitEDDegree(...,UseMonodromy=>...)"
+  * "parameterizedWeightEDDegree(...,UseMonodromy=>...)"
+
+For the programmer
+==================
+
+The object *note UseMonodromy: UseMonodromy, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:229:0.
+
+File: EuclideanDistanceDegree.info, Node: averageNumericEDDegree, Prev: parameterizedWeightEDDegree, Up: Top
+
+averageNumericEDDegree -- compute average ED degrees using sampled data
+***********************************************************************
+
+  * Usage: 
+        aED = averageNumericEDDegree(F, G, 10)
+  * Inputs:
+      * F, a *note list: (Macaulay2Doc)List,, a system of polynomials (need not
+        be square) defining the variety
+      * G, a *note list: (Macaulay2Doc)List,, list of polynomials (complete
+        intersection) such that $V(F)$ is an irreducible component of $V(G)$,
+        i.e. a witness model
+      * n, an *note integer: (Macaulay2Doc)ZZ,, number of samples to take
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Submodel => a *note list: (Macaulay2Doc)List,, default value {}, list
+        of linear polynomials to slice the variety
+      * SampleGenerator => a *note function closure:
+        (Macaulay2Doc)FunctionClosure,, default value null, a function which
+        generates data samples
+      * Tolerance => a *note real number: (Macaulay2Doc)RR,, default value
+        .000001, tolerance to use when checking if a critical point is real
+      * *note TempDirectory: TempDirectory, => ..., default value null, set
+        directory for Bertini runs
+  * Outputs:
+      * aED, a *note real number: (Macaulay2Doc)RR,, average ED degree after n
+        trials
+
+Description
+===========
+
+Generate data samples using the given function and uses homotopy continuation
+to find critical points of the distance function. The average number of real
+critical points after $n$ trials is returned. This method creates a *note
+NumericalComputationOptions: NumericalComputationOptions, object and computes
+critical points using the *note homotopyEDDegree: homotopyEDDegree, method. By
+default, `random(RR)` is used to generate data samples. Points are tested using
+the *note realPoints: (NAGtypes)realPoints, function from the *note
+NumericalAlgebraicGeometry: (NumericalAlgebraicGeometry)Top, package, a
+tolerance can be passed along using the `Tolerance` option, by default it is
+1e-6.
+
++-------------------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                                        |
++-------------------------------------------------------------------------+
+|i2 : F = G = {x^2 + y^2 - 1};                                            |
++-------------------------------------------------------------------------+
+|i3 : sampleGen = () -> apply(#gens R, i -> random(RR));                  |
++-------------------------------------------------------------------------+
+|i4 : aED = averageNumericEDDegree(F, G, 10, SampleGenerator => sampleGen)|
+|                                                                         |
+|o4 = 1.9                                                                 |
+|                                                                         |
+|o4 : RR (of precision 53)                                                |
++-------------------------------------------------------------------------+
+* Menu:
+
+* SampleGenerator::
+
+Ways to use averageNumericEDDegree:
+===================================
+
+  * "averageNumericEDDegree(List,List,ZZ)"
+
+For the programmer
+==================
+
+The object *note averageNumericEDDegree: averageNumericEDDegree, is a *note
+method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EuclideanDistanceDegree.m2:534:0.
+
+File: EuclideanDistanceDegree.info, Node: SampleGenerator, Up: averageNumericEDDegree
+
+SampleGenerator
+***************
+
+Functions with optional argument named SampleGenerator:
+=======================================================
+
+  * "averageNumericEDDegree(...,SampleGenerator=>...)" -- see *note
+    averageNumericEDDegree: averageNumericEDDegree, -- compute average ED
+    degrees using sampled data
+
+For the programmer
+==================
+
+The object SampleGenerator (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:389.
+
+Tag Table:
+Node: Top291
+Node: symbolicWeightEDDegree13652
+Node: ReturnCriticalIdeal17457
+Node: leftKernelWeightEDDegree19723
+Node: TempDirectory24274
+Node: numericWeightEDDegree26820
+Node: homotopyEDDegree30648
+Node: NumericalComputationOptions34541
+Node: newNumericalComputationOptions37054
+Node: Submodel40500
+Node: parameterizedWeightEDDegree41914
+Node: UseMonodromy45016
+Node: averageNumericEDDegree46976
+Node: SampleGenerator50608
+
+End Tag Table

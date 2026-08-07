@@ -1,0 +1,96 @@
+-- -*- M2-comint -*- hash: 11913268809499872385
+
+i1 : Q = QQ[x,y,z,w]
+
+o1 = Q
+
+o1 : PolynomialRing
+
+i2 : I = ideal (w^2, y*w+z*w, x*w, y*z+z^2, y^2+z*w, x*y+x*z, x^2+z*w)
+
+             2                         2   2                    2
+o2 = ideal (w , y*w + z*w, x*w, y*z + z , y  + z*w, x*y + x*z, x  + z*w)
+
+o2 : Ideal of Q
+
+i3 : R = Q/I
+
+o3 = R
+
+o3 : QuotientRing
+
+i4 : KR = koszulComplexDGA R
+
+o4 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,4
+      Differential => {x, y, z, w}
+
+o4 : DGAlgebra
+
+i5 : cxKR = toComplex KR
+
+      1      4      6      4      1
+o5 = R  <-- R  <-- R  <-- R  <-- R
+                                  
+     0      1      2      3      4
+
+o5 : Complex
+
+i6 : HKR = HH(KR)
+ -- used 0.135412s (cpu); 0.133441s (thread); 0s (gc)
+Finding easy relations           : 
+o6 = HKR
+
+o6 : QuotientRing
+
+i7 : degList = first entries vars Q / degree / first
+
+o7 = {1, 1, 1, 1}
+
+o7 : List
+
+i8 : M = Ext^4(Q^1/I,Q^{-(sum degList)}) ** R
+
+o8 = cokernel {-2} | w x z 0   0 0  0   0 -zw 0     0  |
+              {-2} | 0 0 w y+z 0 x  0   w 0   z2+zw 0  |
+              {-2} | 0 0 0 0   w -z y+z x 0   0     z2 |
+
+                            3
+o8 : R-module, quotient of R
+
+i9 : HKM = homologyModule(KR,M);
+
+i10 : hsHKR = value numerator reduceHilbert hilbertSeries HKR
+
+              2     2 4     2 3     3 5     3 4     4 6
+o10 = 1 + 7T T  + 6T T  + 8T T  + 8T T  + 3T T  + 3T T
+            0 1     0 1     0 1     0 1     0 1     0 1
+
+o10 : ZZ[T ..T ]
+          0   1
+
+i11 : hsHKM = value numerator reduceHilbert hilbertSeries HKM
+
+        -2             -1     2       2     3 2    4 4
+o11 = 3T   + 3T  + 8T T   + 8T T  + 6T  + 7T T  + T T
+        1      0     0 1      0 1     0     0 1    0 1
+
+o11 : ZZ[T ..T ]
+          0   1
+
+i12 : AA = ring hsHKR
+
+o12 = AA
+
+o12 : PolynomialRing
+
+i13 : e = numgens Q
+
+o13 = 4
+
+i14 : hsHKR == T_0^e*T_1^e*sub(hsHKM, {T_0 => T_0^(-1), T_1 => T_1^(-1)})
+
+o14 = true
+
+i15 : 

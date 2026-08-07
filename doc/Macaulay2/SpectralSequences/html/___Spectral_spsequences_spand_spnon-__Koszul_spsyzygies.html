@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Spectral sequences and non-Koszul syzygies</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="spectral sequences" href="index.html">SpectralSequences</a> :: <a href="___Spectral_spsequences_spand_spnon-__Koszul_spsyzygies.html">Spectral sequences and non-Koszul syzygies</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Spectral__Sequence.html">next</a> | <a href="___Spectral_spsequences_spand_sphypercohomology_spcalculations.html">previous</a> | <a href="___Spectral__Sequence.html">forward</a> | <a href="___Spectral_spsequences_spand_sphypercohomology_spcalculations.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Spectral sequences and non-Koszul syzygies</h1>
+      <div>
+        <div>
+          <p>We illustrate some aspects of the paper &quot;A case study in bigraded commutative algebra&quot; by Cox-Dickenstein-Schenck. In that paper, an appropriate term on the E_2 page of a suitable spectral sequence corresponds to non-koszul syzygies.</p>
+          <p>Using our indexing conventions, the E^2_{3,-1} term will be what the $E^{0,1}_2$ term is in their paper.</p>
+          <p>We illustrate an instance of the non-generic case for non-Koszul syzygies. To do this we look at the three polynomials used in their Example 4.3. The behaviour that we expect to exhibit is predicted by their Proposition 5.2.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[x,y,z,w, Degrees => {{1,0},{1,0},{0,1},{0,1}}];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : B = ideal(x*z, x*w, y*z, y*w);
+
+o2 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : p_0 = x^2*z;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : p_1 = y^2*w;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : p_2 = y^2*z+x^2*w;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : I = ideal(p_0,p_1,p_2);
+
+o6 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : B = B_*/(x -> x^2)//ideal;
+
+o7 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : G = freeResolution image gens B;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : F = koszulComplex gens I;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : K = Hom(G, filteredComplex(F));</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : E = prune spectralSequence K;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : E^1
+
+      +---------------------------------+---------------------------------------------------------+--------------------------------------------------------+--------------------------------+
+      | 1                               | 3                                                       | 3                                                      | 1                              |
+o12 = |R                                |R                                                        |R                                                       |R                               |
+      |                                 |                                                         |                                                        |                                |
+      |{0, 0}                           |{1, 0}                                                   |{2, 0}                                                  |{3, 0}                          |
+      +---------------------------------+---------------------------------------------------------+--------------------------------------------------------+--------------------------------+
+      |cokernel {-4, 0} | y2 x2 0  0  | |cokernel {-2, 1} | y2 x2 0  0  0  0  0  0  0  0  0  0  | |cokernel {0, 2}  | y2 x2 0  0  0  0  0  0  0  0  0  0  ||cokernel {2, 3}  | y2 x2 0  0  ||
+      |         {0, -4} | 0  0  w2 z2 | |         {-2, 1} | 0  0  y2 x2 0  0  0  0  0  0  0  0  | |         {0, 2}  | 0  0  y2 x2 0  0  0  0  0  0  0  0  ||         {6, -1} | 0  0  w2 z2 ||
+      |                                 |         {-2, 1} | 0  0  0  0  y2 x2 0  0  0  0  0  0  | |         {0, 2}  | 0  0  0  0  y2 x2 0  0  0  0  0  0  ||                                |
+      |{0, -1}                          |         {2, -3} | 0  0  0  0  0  0  w2 z2 0  0  0  0  | |         {4, -2} | 0  0  0  0  0  0  w2 z2 0  0  0  0  ||{3, -1}                         |
+      |                                 |         {2, -3} | 0  0  0  0  0  0  0  0  w2 z2 0  0  | |         {4, -2} | 0  0  0  0  0  0  0  0  w2 z2 0  0  ||                                |
+      |                                 |         {2, -3} | 0  0  0  0  0  0  0  0  0  0  w2 z2 | |         {4, -2} | 0  0  0  0  0  0  0  0  0  0  w2 z2 ||                                |
+      |                                 |                                                         |                                                        |                                |
+      |                                 |{1, -1}                                                  |{2, -1}                                                 |                                |
+      +---------------------------------+---------------------------------------------------------+--------------------------------------------------------+--------------------------------+
+      |cokernel {-4, -4} | w2 z2 y2 x2 ||cokernel {-2, -3} | w2 z2 y2 x2 0  0  0  0  0  0  0  0  ||cokernel {0, -2} | w2 z2 y2 x2 0  0  0  0  0  0  0  0  ||cokernel {2, -1} | w2 z2 y2 x2 ||
+      |                                 |         {-2, -3} | 0  0  0  0  w2 z2 y2 x2 0  0  0  0  ||         {0, -2} | 0  0  0  0  w2 z2 y2 x2 0  0  0  0  ||                                |
+      |{0, -2}                          |         {-2, -3} | 0  0  0  0  0  0  0  0  w2 z2 y2 x2 ||         {0, -2} | 0  0  0  0  0  0  0  0  w2 z2 y2 x2 ||{3, -2}                         |
+      |                                 |                                                         |                                                        |                                |
+      |                                 |{1, -2}                                                  |{2, -2}                                                 |                                |
+      +---------------------------------+---------------------------------------------------------+--------------------------------------------------------+--------------------------------+
+
+o12 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : E^2
+
+      +------------------------------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------+
+o13 = |cokernel | y2w y2z+x2w x2z |                    |cokernel {2, 3} | y2 x2 0 0 |                                             |0                                                                 |0                               |
+      |                                                |         {6, 1} | 0  0  w z |                                             |                                                                  |                                |
+      |{0, 0}                                          |                                                                          |{2, 0}                                                            |{3, 0}                          |
+      |                                                |{1, 0}                                                                    |                                                                  |                                |
+      +------------------------------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------+
+      |cokernel {-4, 0} | y2 x2 0  0  0   0       0   ||cokernel {-2, 1} | y2 x2 0  0  0  0  0 0 0 0 0 0  0   0  0   0   0   0 0 ||cokernel {0, 2}  | y2 x2 0  0  0  0  0 0 0 0 0 0 0   0   0 0 0 0 ||cokernel {2, 3} | y2 x2 0 0 |   |
+      |         {0, -4} | 0  0  w2 z2 y2w y2z+x2w x2z ||         {-2, 1} | 0  0  y2 x2 0  0  0 0 0 0 0 0  0   0  0   0   0   0 0 ||         {0, 2}  | 0  0  y2 x2 0  0  0 0 0 0 0 0 0   0   0 0 0 0 ||         {6, 1} | 0  0  w z |   |
+      |                                                |         {-2, 1} | 0  0  0  0  y2 x2 0 0 0 0 0 0  0   0  0   0   0   0 0 ||         {0, 2}  | 0  0  0  0  y2 x2 0 0 0 0 0 0 0   0   0 0 0 0 ||                                |
+      |{0, -1}                                         |         {2, -2} | 0  0  0  0  0  0  z 0 0 0 w w2 0   0  -y2 y2w 0   0 0 ||         {4, 0}  | 0  0  0  0  0  0  w z 0 0 0 0 x2  -y2 0 0 0 0 ||{3, -1}                         |
+      |                                                |         {2, -2} | 0  0  0  0  0  0  0 w z 0 0 0  x2  0  0   0   0   0 0 ||         {4, 0}  | 0  0  0  0  0  0  0 0 w z 0 0 -y2 0   0 0 0 0 ||                                |
+      |                                                |         {2, -2} | 0  0  0  0  0  0  0 0 w z 0 0  -y2 0  0   0   0   0 0 ||         {4, 0}  | 0  0  0  0  0  0  0 0 0 0 w z 0   x2  0 0 0 0 ||                                |
+      |                                                |         {2, -2} | 0  0  0  0  0  0  0 0 0 w z 0  0   w2 x2  0   y2w 0 0 ||         {6, -1} | 0  0  0  0  0  0  0 0 0 0 0 0 0   0   w z 0 0 ||                                |
+      |                                                |         {6, -3} | 0  0  0  0  0  0  0 0 0 0 0 0  0   0  0   0   0   w z ||         {6, -1} | 0  0  0  0  0  0  0 0 0 0 0 0 0   0   0 0 w z ||                                |
+      |                                                |                                                                          |                                                                  |                                |
+      |                                                |{1, -1}                                                                   |{2, -1}                                                           |                                |
+      +------------------------------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------+
+      |cokernel {-4, -4} | w2 z2 y2 x2 |               |cokernel {-2, -3} | w2 z2 y2 x2 0  0  0  0  0  0  0  0  |                 |cokernel {0, -2} | w2 z2 y2 x2 0  0  0  0  0  0  0  0  |          |cokernel {2, -1} | w2 z2 y2 x2 ||
+      |                                                |         {-2, -3} | 0  0  0  0  w2 z2 y2 x2 0  0  0  0  |                 |         {0, -2} | 0  0  0  0  w2 z2 y2 x2 0  0  0  0  |          |                                |
+      |{0, -2}                                         |         {-2, -3} | 0  0  0  0  0  0  0  0  w2 z2 y2 x2 |                 |         {0, -2} | 0  0  0  0  0  0  0  0  w2 z2 y2 x2 |          |{3, -2}                         |
+      |                                                |                                                                          |                                                                  |                                |
+      |                                                |{1, -2}                                                                   |{2, -2}                                                           |                                |
+      +------------------------------------------------+--------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------+
+
+o13 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The degree zero piece of the module $E^2_{3,-1}$ twisted by $R((2,3))$ below shows that there is a $1$-dimensional space of non-Koszul syzygies of bi-degree $(2,3)$.  This is what is predicted by the paper.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : E^2_{3,-1}
+
+o14 = cokernel {2, 3} | y2 x2 0 0 |
+               {6, 1} | 0  0  w z |
+
+                             2
+o14 : R-module, quotient of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : basis({0,0}, E^2_{3, -1} ** R^{{2, 3}})
+
+o15 = {0, 0}  | 1 |
+      {4, -2} | 0 |
+
+o15 : Matrix</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : E^2 .dd_{3, -1}
+
+o16 = {2, 3} | 1 0  |
+      {6, 1} | 0 -1 |
+
+o16 : Matrix</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : basis({0,0}, image E^2 .dd_{3,-1} ** R^{{2,3}})
+
+o17 = {0, 0}  | 1 |
+      {4, -2} | 0 |
+
+o17 : Matrix</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : basis({0,0}, E^2_{1,0} ** R^{{2,3}})
+
+o18 = {0, 0}  | 1 |
+      {4, -2} | 0 |
+
+o18 : Matrix</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The degree zero piece of the module $E^2_{3,-1}$ twisted by $R((6,1))$ below shows that there is a $1$-dimensional space of non-Koszul syzygies of bi-degree $(6,1)$.  This is also what is predicted by the paper.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : basis({0,0}, E^2 _{3, -1} ** R^{{6,1}})
+
+o19 = {-4, 2} | 0 |
+      {0, 0}  | 1 |
+
+o19 : Matrix</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : isIsomorphism(E^2 .dd_{3, -1})
+
+o20 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SpectralSequences.m2:1661:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

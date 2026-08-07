@@ -1,0 +1,2674 @@
+ -*- coding: utf-8 -*- This is SVDComplexes.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* SVDComplexes: (SVDComplexes).  SVD (singular value decomposition) of a complex over the reals and related functions
+END-INFO-DIR-ENTRY
+
+
+File: SVDComplexes.info, Node: Top, Next: arePseudoInverses, Up: (dir)
+
+SVDComplexes -- support for computing homology, ranks and SVD complexes, for a chain complex over the real numbers
+******************************************************************************************************************
+
+Description
+===========
+
+This package implements the algorithms in the paper "Singular value
+decomposition of complexes", by D. Brake, J. Hauenstein, F. Schreyer, A.
+Sommese, and M. Stillman, https://arxiv.org/abs/1804.09838.
+
+Singular value decompositions of matrices are extremely useful in practice.  In
+particular, an SVD can often reveal the rank (numeric rank) of a matrix.
+
+In the above paper, we extend the notion of singular value decomposition from
+matrices over the reals or complexes to a complex of matrices over the reals or
+complexes.
+
+For some applications, one obtains a complex over the (approximate) reals, and
+one would like to know what the ranks of the matrices are, and therefore the
+ranks of the homology groups. One way to do this would be to compute the SVD of
+each matrix separately, often revealing the desired ranks.  This is less than
+satisfactory however, as it ignores the fact that this sequence is an
+approximation of a complex, i.e. each two consecutive matrices multiply to
+zero.
+
+In this package, and the referenced paper, we give 2 algorithms for computing
+the SVD of a complex, and the resulting putative ranks of the matrices or ranks
+of the homology groups.
+
+Here is an example of the usage.  We construct a random chain complex whose
+homology modules have ranks 1, 4, 6, 5, and 1:
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                          |
+|                                                                             |
+|o1 = RandomComplexes                                                         |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : h = {1,4,6,5,1}                                                         |
+|                                                                             |
+|o2 = {1, 4, 6, 5, 1}                                                         |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : r = {1,3,3,4}                                                           |
+|                                                                             |
+|o3 = {1, 3, 3, 4}                                                            |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : C = randomChainComplex(h,r)                                             |
+|                                                                             |
+|       2       8       12       12       5                                   |
+|o4 = ZZ  <-- ZZ  <-- ZZ   <-- ZZ   <-- ZZ                                    |
+|                                                                             |
+|     0       1       2        3        4                                     |
+|                                                                             |
+|o4 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i5 : CQ = C ** QQ                                                            |
+|                                                                             |
+|       2       8       12       12       5                                   |
+|o5 = QQ  <-- QQ  <-- QQ   <-- QQ   <-- QQ                                    |
+|                                                                             |
+|     0       1       2        3        4                                     |
+|                                                                             |
+|o5 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i6 : prune HH CQ                                                             |
+|                                                                             |
+|       1       4       6       5       1                                     |
+|o6 = QQ  <-- QQ  <-- QQ  <-- QQ  <-- QQ                                      |
+|                                                                             |
+|     0       1       2       3       4                                       |
+|                                                                             |
+|o6 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i7 : CR = C ** RR_53                                                         |
+|                                                                             |
+|         2         8         12         12         5                         |
+|o7 = RR    <-- RR    <-- RR     <-- RR     <-- RR                            |
+|       53        53        53         53         53                          |
+|                                                                             |
+|     0         1         2          3          4                             |
+|                                                                             |
+|o7 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i8 : (h,U) = SVDComplex CR                                                   |
+|                                                                             |
+|                                                                             |
+|o8 = (HashTable{0 => 1}, 0 :                                                 |
+|                1 => 4                                                       |
+|                2 => 6                                                       |
+|                3 => 5                                                       |
+|                4 => 1                                                       |
+|                         1 :                                                 |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                         2 :                                                 |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                         3 :                                                 |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                         4 :                                                 |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|     ------------------------------------------------------------------------|
+|         2                     2                                             |
+|     RR    <-------------- RR    : 0                                         |
+|       53     | -.6 .8 |     53                                              |
+|              | .8  .6 |                                                     |
+|                                                                             |
+|         8                                                                   |
+|     RR    <-----------------------------------------------------------------|
+|       53     | .29173   -.137215  .131623  .0468896 -.0531994  .0813747  -.8|
+|              | -.29173  -.164224  -.226171 .42752   .620643    .0676841  -.2|
+|              | -.437595 -.0180683 -.352459 -.694466 -.00592661 .400455   -.2|
+|              | .29173   -.0673769 .0868048 -.188439 -.37341    -.0668651 -.2|
+|              | .29173   -.0270088 -.357794 .38063   -.268139   .738149   .15|
+|              | -.29173  .834227   -.117388 .248267  -.269867   -.0844963 -.2|
+|              | -.437595 -.0881199 .763237  .133167  -.134626   .420698   .00|
+|              | -.437595 -.494881  -.27465  .270161  -.556464   -.308173  -.0|
+|                                                                             |
+|         12                                                                  |
+|     RR     <----------------------------------------------------------------|
+|       53      | .278738    -.330931 -.0636129 .127695   .645269    -.37313  |
+|               | .181387    .0175177 -.109373  -.0842121 -.00579485 -.28904  |
+|               | -.0897273  -.357747 .0394609  .281164   -.32376    -.508571 |
+|               | -.00779127 .080533  .485993   .0152504  .318467    -.0354616|
+|               | .091828    .285434  -.641126  .323891   -.0936544  -.0475192|
+|               | -.23277    -.569208 -.360463  -.127208  -.144131   .166691  |
+|               | -.41609    .111251  -.220639  .417497   .399399    -.0792484|
+|               | .262495    .0747623 -.0367352 .0137386  -.0441806  .248257  |
+|               | .352222    .43251   -.0761961 .150879   -.0524196  -.110043 |
+|               | .265256    -.242179 .306708   .7236     -.236879   .269692  |
+|               | .51068     -.142759 -.0770441 -.233553  -.161111   -.294916 |
+|               | -.348465   .257248  .22232    .0287713  -.318621   -.497548 |
+|                                                                             |
+|         12                                                                  |
+|     RR     <----------------------------------------------------------------|
+|       53      | .409642   .0932651  -.0489842 .127274   -.698196  .343166   |
+|               | .437938   .55024    .565887   -.223659  .115315   -.072463  |
+|               | .371333   -.393548  -.0292137 -.216358  .191764   .456632   |
+|               | -.309475  .419368   -.11574   -.208793  .0489245  .372494   |
+|               | .0467424  .228516   -.385956  .230435   .19515    .222109   |
+|               | .250774   .131081   -.27622   -.241195  .112536   -.413502  |
+|               | -.285925  -.0416247 -.240923  -.617916  -.306378  -.0890825 |
+|               | -.0952472 -.196698  .199861   .355998   -.349078  -.133132  |
+|               | -.155527  .0656166  .0763583  .393519   .288769   -.060593  |
+|               | -.218964  -.248338  .489768   -.210814  -.0915731 -.125286  |
+|               | .199112   -.41337   .0745986  -.151334  .315891   .17688    |
+|               | -.372912  .105413   .29767    -.0366188 .0450206  .482794   |
+|                                                                             |
+|         5                                                              5    |
+|     RR    <------------------------------------------------------- RR    : 4|
+|       53     | -.67986  -.314387  .266634  .10376   .597571    |     53     |
+|              | .011089  -.0216509 -.466133 .882608  .0559598   |            |
+|              | -.100377 .927993   .220916  .124605  .253818    |            |
+|              | -.562364 .0587547  .259779  .193793  -.758455   |            |
+|              | -.459716 .189918   -.771581 -.396428 -.00999282 |            |
+|     ------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                               8                                             |
+|     --------------------- RR    : 1                                         |
+|     6115   .354274    |     53                                              |
+|     90387  -.42414    |                                                     |
+|     02919  -.00991045 |                                                     |
+|     09775  -.824256   |                                                     |
+|     6524   .00251973  |                                                     |
+|     47435  -.0484808  |                                                     |
+|     780049 -.0728648  |                                                     |
+|     559336 .0862144   |                                                     |
+|                                                                             |
+|                                                                           12|
+|     ----------------------------------------------------------------- RR    |
+|      -.280374  -.0783132 .28273    .229054   -.140167  -.00686699 |     53  |
+|      .153303   .781732   .190231   -.436235  -.0354612 -.0425185  |         |
+|      .0478373  -.338573  -.0699034 -.369088  .135706   -.378737   |         |
+|      .756765   -.164423  .212965   -.0511157 .0703199  .0413875   |         |
+|      .338731   -.0464741 .267142   .331848   .228482   -.180355   |         |
+|      .256978   -.100693  .27294    -.104159  -.277277  .434443    |         |
+|      .127136   .103344   -.550512  -.150677  -.235241  .133262    |         |
+|      .114938   -.108461  .00708927 -.0855039 -.759786  -.500774   |         |
+|      -.14532   -.365862  .134486   -.460497  -.107647  .498741    |         |
+|      -.0207342 .253803   .0212025  .147634   -.014881  .192776    |         |
+|      .298369   -.0133253 -.567777  .285384   -.0609097 .220645    |         |
+|      -.0467394 .0889065  .209174   .390014   -.422512  .169111    |         |
+|                                                                             |
+|                                                                       12    |
+|     ------------------------------------------------------------- RR     : 3|
+|     -.159003 -.302798 .0547485  .0541313  .0972685  -.259421  |     53      |
+|     -.031799 .144407  .152352   -.0630421 -.256868  .0401825  |             |
+|     -.239502 .237218  -.453189  -.246814  -.158924  .0953569  |             |
+|     .102106  -.401257 -.0739132 -.523936  .10186    .261609   |             |
+|     -.280777 -.120544 .144159   .441453   -.453851  .375644   |             |
+|     -.556437 -.091209 -.0286065 -.028667  .508657   .153284   |             |
+|     -.226562 .189958  .250644   -.0712865 -.414855  -.217771  |             |
+|     -.271929 .212036  .251256   -.415901  -.0852799 .532633   |             |
+|     -.46663  -.172028 -.0257508 -.326515  -.215258  -.568164  |             |
+|     -.230163 -.552391 -.294833  .288541   -.148419  .177944   |             |
+|     .0501992 -.330977 .709884   -.0777603 .0872107  -.0168893 |             |
+|     -.344887 .349302  .154501   .296642   .410933   -.0553848 |             |
+|     ------------------------------------------------------------------------|
+|        )                                                                    |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|     : 2                                                                     |
+|                                                                             |
+|o8 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+
+U is a map from the SVD complex of C, to C.  h is a HashTable whose values are
+the (putative) ranks of the homology groups. Note that the entries of the
+matrices of this complex are the singular values, but they are not on the main
+diagonal.
+
++-----------------------------------------------------------------------------+
+|i9 : source U                                                                |
+|                                                                             |
+|         2         8         12         12         5                         |
+|o9 = RR    <-- RR    <-- RR     <-- RR     <-- RR                            |
+|       53        53        53         53         53                          |
+|                                                                             |
+|     0         1         2          3          4                             |
+|                                                                             |
+|o9 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i10 : (source U).dd                                                          |
+|                                                                             |
+|              2                                    8                         |
+|o10 = 0 : RR    <----------------------------- RR    : 1                     |
+|            53     | 34.2783 0 0 0 0 0 0 0 |     53                          |
+|                   | 0       0 0 0 0 0 0 0 |                                 |
+|                                                                             |
+|              8                                                        12    |
+|      1 : RR    <------------------------------------------------- RR     : 2|
+|            53     | 0       0       0       0 0 0 0 0 0 0 0 0 |     53      |
+|                   | 160.387 0       0       0 0 0 0 0 0 0 0 0 |             |
+|                   | 0       85.9914 0       0 0 0 0 0 0 0 0 0 |             |
+|                   | 0       0       40.2416 0 0 0 0 0 0 0 0 0 |             |
+|                   | 0       0       0       0 0 0 0 0 0 0 0 0 |             |
+|                   | 0       0       0       0 0 0 0 0 0 0 0 0 |             |
+|                   | 0       0       0       0 0 0 0 0 0 0 0 0 |             |
+|                   | 0       0       0       0 0 0 0 0 0 0 0 0 |             |
+|                                                                             |
+|              12                                                        12   |
+|      2 : RR     <------------------------------------------------- RR     : |
+|            53      | 0       0       0       0 0 0 0 0 0 0 0 0 |     53     |
+|                    | 0       0       0       0 0 0 0 0 0 0 0 0 |            |
+|                    | 0       0       0       0 0 0 0 0 0 0 0 0 |            |
+|                    | 252.014 0       0       0 0 0 0 0 0 0 0 0 |            |
+|                    | 0       179.404 0       0 0 0 0 0 0 0 0 0 |            |
+|                    | 0       0       55.8422 0 0 0 0 0 0 0 0 0 |            |
+|                    | 0       0       0       0 0 0 0 0 0 0 0 0 |            |
+|                    | 0       0       0       0 0 0 0 0 0 0 0 0 |            |
+|                    | 0       0       0       0 0 0 0 0 0 0 0 0 |            |
+|                    | 0       0       0       0 0 0 0 0 0 0 0 0 |            |
+|                    | 0       0       0       0 0 0 0 0 0 0 0 0 |            |
+|                    | 0       0       0       0 0 0 0 0 0 0 0 0 |            |
+|                                                                             |
+|              12                                                5            |
+|      3 : RR     <----------------------------------------- RR    : 4        |
+|            53      | 0       0       0       0       0 |     53             |
+|                    | 0       0       0       0       0 |                    |
+|                    | 0       0       0       0       0 |                    |
+|                    | 186.288 0       0       0       0 |                    |
+|                    | 0       138.149 0       0       0 |                    |
+|                    | 0       0       113.687 0       0 |                    |
+|                    | 0       0       0       36.8099 0 |                    |
+|                    | 0       0       0       0       0 |                    |
+|                    | 0       0       0       0       0 |                    |
+|                    | 0       0       0       0       0 |                    |
+|                    | 0       0       0       0       0 |                    |
+|                    | 0       0       0       0       0 |                    |
+|                                                                             |
+|o10 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|3                                                                            |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+The algorithms in this package work well in many cases, but it would be nice if
+a numeric analyst would improve the algorithms!
+
+See also
+========
+
+  * *note SVDComplex: SVDComplex, -- Compute the SVD decomposition of a chain
+    complex over RR
+  * *note SVDHomology: SVDHomology, -- Estimate the homology of a chain complex
+    over RR with the SVD decomposition
+
+Authors
+=======
+
+  * Frank-Olaf Schreyer (see http://www.math.uni-sb.de/ag/schreyer/ )
+    <schreyer@math.uni-sb.de>
+  * Mike Stillman (see http://www.math.cornell.edu/~mike )
+    <mike@math.cornell.edu>
+
+Version
+=======
+
+This documentation describes version 0.3 of SVDComplexes, released May 23,
+2018.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{SVDComplexesSource,                                                   |
+|  title = {{SVDComplexes: A \emph{Macaulay2} package. Version~0.3}},        |
+|  author = {Frank-Olaf Schreyer and Mike Stillman},                         |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note arePseudoInverses: arePseudoInverses, -- check the Penrose
+        relations for the pseudo inverse
+      * checkSVDComplex (missing documentation)
+      * *note commonEntries: commonEntries, -- lists of positions, where they
+        coincide up to threshold
+      * *note euclideanDistance: euclideanDistance, -- compute the euclidean
+        distance of two chain complexes
+      * *note laplacians: laplacians, -- compute the laplacians of a chain
+        complex
+      * *note numericRank: numericRank, -- approximate rank of a matrix, using
+        SVD
+      * *note projectToComplex: projectToComplex, -- compute a nearby complex
+        with the projection method
+      * *note pseudoInverse: pseudoInverse, -- compute the pseudoInverse of a
+        chain complex
+      * pseudoInverse1 (missing documentation)
+      * *note SVDComplex: SVDComplex, -- Compute the SVD decomposition of a
+        chain complex over RR
+      * *note SVDHomology: SVDHomology, -- Estimate the homology of a chain
+        complex over RR with the SVD decomposition
+  * Methods
+      * "arePseudoInverses(Complex,Complex)" -- see *note arePseudoInverses:
+        arePseudoInverses, -- check the Penrose relations for the pseudo
+        inverse
+      * "arePseudoInverses(Matrix,Matrix)" -- see *note arePseudoInverses:
+        arePseudoInverses, -- check the Penrose relations for the pseudo
+        inverse
+      * "commonEntries(List,List)" -- see *note commonEntries: commonEntries,
+        -- lists of positions, where they coincide up to threshold
+      * "euclideanDistance(Complex,Complex)" -- see *note euclideanDistance:
+        euclideanDistance, -- compute the euclidean distance of two chain
+        complexes
+      * "laplacians(Complex)" -- see *note laplacians: laplacians, -- compute
+        the laplacians of a chain complex
+      * "numericRank(Matrix)" -- see *note numericRank: numericRank, --
+        approximate rank of a matrix, using SVD
+      * "numericRank(MutableMatrix)" -- see *note numericRank: numericRank, --
+        approximate rank of a matrix, using SVD
+      * "numericRank(RR,Matrix)" -- see *note numericRank: numericRank, --
+        approximate rank of a matrix, using SVD
+      * "numericRank(RR,MutableMatrix)" -- see *note numericRank: numericRank,
+        -- approximate rank of a matrix, using SVD
+      * "projectToComplex(Complex,HashTable)" -- see *note projectToComplex:
+        projectToComplex, -- compute a nearby complex with the projection
+        method
+      * "pseudoInverse(Complex)" -- see *note pseudoInverse: pseudoInverse, --
+        compute the pseudoInverse of a chain complex
+      * pseudoInverse1(Complex) (missing documentation)
+      * pseudoInverse1(Matrix) (missing documentation)
+      * "SVDComplex(Complex)" -- see *note SVDComplex: SVDComplex, -- Compute
+        the SVD decomposition of a chain complex over RR
+      * "SVDComplex(Complex,Complex)" -- see *note SVDComplex: SVDComplex, --
+        Compute the SVD decomposition of a chain complex over RR
+      * "SVDHomology(Complex)" -- see *note SVDHomology: SVDHomology, --
+        Estimate the homology of a chain complex over RR with the SVD
+        decomposition
+      * "SVDHomology(Complex,Complex)" -- see *note SVDHomology: SVDHomology,
+        -- Estimate the homology of a chain complex over RR with the SVD
+        decomposition
+  * Symbols
+      * *note Laplacian: Laplacian, -- Option for SVDHomology and SVDComplex
+      * newChainComplexMap (missing documentation)
+      * *note Projection: Projection, -- Option for SVDHomology and SVDComplex
+
+For the programmer
+==================
+
+The object *note SVDComplexes: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in SVDComplexes.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:920:0.
+
+File: SVDComplexes.info, Node: arePseudoInverses, Next: checkSVDComplex, Prev: Top, Up: Top
+
+arePseudoInverses -- check the Penrose relations for the pseudo inverse
+***********************************************************************
+
+  * Usage: 
+        arePseudoInverses(A,B)
+        arePseudoInverses(C,Cplus)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, 
+      * B, a *note matrix: (Macaulay2Doc)Matrix,, or
+      * C, a *note complex: (Complexes)Complex,, 
+      * Cplus, a *note complex: (Complexes)Complex,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Threshold (missing documentation) => a *note real number:
+        (Macaulay2Doc)RR,, default value 1e-10, an absolute error up to which
+        the identities should hold
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, 
+
+Description
+===========
+
+The functions returns true, if the Penrose relations A*B*A == A, B*A*B == B,
+A*B==transpose(A*B) and B*A=transpose(B*A)) are satisfied. In case of an
+inexact field the relation should hold up to a threshold. In case of two chain
+complexes, these relation should hold for each pair of pseudo inverse
+differentials.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                          |
+|                                                                             |
+|o1 = RandomComplexes                                                         |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : setRandomSeed "a pretty good example";                                  |
+| -- setting random seed to 1187585617994339702977441899450513636117846       |
++-----------------------------------------------------------------------------+
+|i3 : h={2,2}                                                                 |
+|                                                                             |
+|o3 = {2, 2}                                                                  |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : r={3}                                                                   |
+|                                                                             |
+|o4 = {3}                                                                     |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : C=randomChainComplex(h,r,Height=>100,ZeroMean=>true)                    |
+|                                                                             |
+|       5       5                                                             |
+|o5 = ZZ  <-- ZZ                                                              |
+|                                                                             |
+|     0       1                                                               |
+|                                                                             |
+|o5 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i6 : C.dd                                                                    |
+|                                                                             |
+|           5                                         5                       |
+|o6 = 0 : ZZ  <------------------------------------ ZZ  : 1                   |
+|                | 1546  30    2470  -4255 -821 |                             |
+|                | 632   1576  -1296 3098  826  |                             |
+|                | -377  -983  -815  1588  -889 |                             |
+|                | 602   130   2096  -4119 57   |                             |
+|                | -2313 -1407 -307  -830  521  |                             |
+|                                                                             |
+|o6 : ComplexMap                                                              |
++-----------------------------------------------------------------------------+
+|i7 : CQ=C**QQ                                                                |
+|                                                                             |
+|       5       5                                                             |
+|o7 = QQ  <-- QQ                                                              |
+|                                                                             |
+|     0       1                                                               |
+|                                                                             |
+|o7 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i8 : CR=C**RR                                                                |
+|                                                                             |
+|         5         5                                                         |
+|o8 = RR    <-- RR                                                            |
+|       53        53                                                          |
+|                                                                             |
+|     0         1                                                             |
+|                                                                             |
+|o8 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i9 : CRplus = pseudoInverse CR                                               |
+|                                                                             |
+|         5         5                                                         |
+|o9 = RR    <-- RR                                                            |
+|       53        53                                                          |
+|                                                                             |
+|     -1        0                                                             |
+|                                                                             |
+|o9 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i10 : arePseudoInverses(CR,CRplus,Threshold=>1e-10)                          |
+|                                                                             |
+|o10 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i11 : arePseudoInverses(CR,CRplus,Threshold=>1e-1000)                        |
+|                                                                             |
+|o11 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i12 : CQplus = pseudoInverse CQ                                              |
+|                                                                             |
+|        5       5                                                            |
+|o12 = QQ  <-- QQ                                                             |
+|                                                                             |
+|      -1      0                                                              |
+|                                                                             |
+|o12 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i13 : CRplus.dd                                                              |
+|                                                                             |
+|               5                                                             |
+|o13 = -1 : RR    <-----------------------------------------------------------|
+|             53     | .000118165   .0000277114 .0000837524   -.0000345714 -.0|
+|                    | -.0000350254 .000195274  -.000230323   .0000878808  -.0|
+|                    | .0000551618  -.000013564 -.00000307303 .0000283795  -.0|
+|                    | -.000032967  .000030606  .0000868877   -.0000937862 -.0|
+|                    | -.000132106  .000180547  -.000322462   .000131406   .00|
+|                                                                             |
+|o13 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                  5                                                          |
+|------------- RR    : 0                                                      |
+|00242182  |     53                                                           |
+|000398381 |                                                                  |
+|000409136 |                                                                  |
+|000779539 |                                                                  |
+|0167433   |                                                                  |
++-----------------------------------------------------------------------------+
+|i14 : CQplus.dd                                                              |
+|                                                                             |
+|             5                                                               |
+|o14 = -1 : QQ  <-------------------------------------------------------------|
+|                  | 71151349234648083/602134959628339728532  8343005942002339|
+|                  | -21090035137352797/602134959628339728532 5879077246988918|
+|                  | 8303709139666510/150533739907084932133   -204183811672584|
+|                  | -134125646514711/4068479456948241409     124519948928892/|
+|                  | -70269839740806/531921342427861951       96036713556510/5|
+|                                                                             |
+|o14 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|-----------------------------------------------------------------------------|
+|/301067479814169864266  12607564180912259/150533739907084932133  -20816677525|
+|7/301067479814169864266 -34671448552663381/150533739907084932133 529160933727|
+|0/150533739907084932133 -462595206106534/150533739907084932133   427207299058|
+|4068479456948241409     707001894857497/8136958913896482818      -38156723396|
+|31921342427861951       -343048951382053/1063842684855723902     698976435977|
+|-----------------------------------------------------------------------------|
+|                                                                            5|
+|------------------------------------------------------------------------- QQ |
+|577215/602134959628339728532 -72913216530598587/301067479814169864266 |      |
+|16489/602134959628339728532  -11993947552589491/301067479814169864266 |      |
+|0713/150533739907084932133   -6158878614523632/150533739907084932133  |      |
+|0404/4068479456948241409     -634307450213339/8136958913896482818     |      |
+|68/531921342427861951        178122214661423/1063842684855723902      |      |
+|-----------------------------------------------------------------------------|
+|: 0                                                                          |
++-----------------------------------------------------------------------------+
+|i15 : (CQplus**RR_53).dd                                                     |
+|                                                                             |
+|               5                                                             |
+|o15 = -1 : RR    <-----------------------------------------------------------|
+|             53     | .000118165   .0000277114 .0000837524   -.0000345714 -.0|
+|                    | -.0000350254 .000195274  -.000230323   .0000878808  -.0|
+|                    | .0000551618  -.000013564 -.00000307303 .0000283795  -.0|
+|                    | -.000032967  .000030606  .0000868877   -.0000937862 -.0|
+|                    | -.000132106  .000180547  -.000322462   .000131406   .00|
+|                                                                             |
+|o15 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                  5                                                          |
+|------------- RR    : 0                                                      |
+|00242182  |     53                                                           |
+|000398381 |                                                                  |
+|000409136 |                                                                  |
+|000779539 |                                                                  |
+|0167433   |                                                                  |
++-----------------------------------------------------------------------------+
+|i16 : arePseudoInverses(CQ,CQplus)                                           |
+|                                                                             |
+|o16 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i17 : Fp=ZZ/nextPrime 10^3                                                   |
+|                                                                             |
+|o17 = Fp                                                                     |
+|                                                                             |
+|o17 : QuotientRing                                                           |
++-----------------------------------------------------------------------------+
+|i18 : Cp=C**Fp                                                               |
+|                                                                             |
+|        5       5                                                            |
+|o18 = Fp  <-- Fp                                                             |
+|                                                                             |
+|      0       1                                                              |
+|                                                                             |
+|o18 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i19 : Cpplus=pseudoInverse Cp                                                |
+|                                                                             |
+|        5       5                                                            |
+|o19 = Fp  <-- Fp                                                             |
+|                                                                             |
+|      -1      0                                                              |
+|                                                                             |
+|o19 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i20 : Cpplus.dd                                                              |
+|                                                                             |
+|             5                                    5                          |
+|o20 = -1 : Fp  <------------------------------- Fp  : 0                      |
+|                  | -59  120  -141 286  361 |                                |
+|                  | -385 -144 400  -165 484 |                                |
+|                  | -217 115  -269 348  55  |                                |
+|                  | 134  449  -241 -226 222 |                                |
+|                  | 423  491  311  -354 442 |                                |
+|                                                                             |
+|o20 : ComplexMap                                                             |
++-----------------------------------------------------------------------------+
+|i21 : arePseudoInverses(CQ,CQplus)                                           |
+|                                                                             |
+|o21 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i22 : arePseudoInverses(Cp,Cpplus)                                           |
+|                                                                             |
+|o22 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+Over finite fields our algorithm to compute the pseudo inverse might fail.
+Hence we need this test to check the assertion.
+
+See also
+========
+
+  * *note pseudoInverse: pseudoInverse, -- compute the pseudoInverse of a chain
+    complex
+
+Ways to use arePseudoInverses:
+==============================
+
+  * "arePseudoInverses(Complex,Complex)"
+  * "arePseudoInverses(Matrix,Matrix)"
+
+For the programmer
+==================
+
+The object *note arePseudoInverses: arePseudoInverses, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1241:0.
+
+File: SVDComplexes.info, Node: checkSVDComplex, Next: commonEntries, Prev: arePseudoInverses, Up: Top
+
+checkSVDComplex
+***************
+
+For the programmer
+==================
+
+The object checkSVDComplex (missing documentation) is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:378.
+
+File: SVDComplexes.info, Node: commonEntries, Next: euclideanDistance, Prev: checkSVDComplex, Up: Top
+
+commonEntries -- lists of positions, where they coincide up to threshold
+************************************************************************
+
+  * Usage: 
+        (P1,P2)=commonEntries(L1,L2)
+  * Inputs:
+      * L1, a *note list: (Macaulay2Doc)List,, 
+      * L2, a *note list: (Macaulay2Doc)List,, descending lists of non-negative
+        real numbers
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Threshold (missing documentation) => a *note real number:
+        (Macaulay2Doc)RR,, default value .0001, relative error allowed for
+        equality
+  * Outputs:
+      * P1, a *note list: (Macaulay2Doc)List,, 
+      * P2, a *note list: (Macaulay2Doc)List,, 
+
+Description
+===========
+
+Determine the positions, where the non-zero numbers in both lists which
+coincide up to a threshold. This is needed in the Laplacian method to compute
+the SVD normal form of a complex
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                          |
+|                                                                             |
+|o1 = RandomComplexes                                                         |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : setRandomSeed "a good example";                                         |
+| -- setting random seed to 11076724743355249016474237734                     |
++-----------------------------------------------------------------------------+
+|i3 : h={2,3,5,3}                                                             |
+|                                                                             |
+|o3 = {2, 3, 5, 3}                                                            |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : r={4,3,5}                                                               |
+|                                                                             |
+|o4 = {4, 3, 5}                                                               |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : elapsedTime C=randomChainComplex(h,r,Height=>100,ZeroMean=>true)        |
+| -- .00475154s elapsed                                                       |
+|                                                                             |
+|       6       10       13       8                                           |
+|o5 = ZZ  <-- ZZ   <-- ZZ   <-- ZZ                                            |
+|                                                                             |
+|     0       1        2        3                                             |
+|                                                                             |
+|o5 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i6 : C.dd^2                                                                  |
+|                                                                             |
+|o6 = 0                                                                       |
+|                                                                             |
+|o6 : ComplexMap                                                              |
++-----------------------------------------------------------------------------+
+|i7 : D=disturb(C**RR_53,1e-4)                                                |
+|                                                                             |
+|         6         10         13         8                                   |
+|o7 = RR    <-- RR     <-- RR     <-- RR                                      |
+|       53        53         53         53                                    |
+|                                                                             |
+|     0         1          2          3                                       |
+|                                                                             |
+|o7 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i8 : Delta=laplacians D;                                                     |
++-----------------------------------------------------------------------------+
+|i9 : L0=(SVD Delta#0)_0, L1=(SVD Delta#1)_0,L2=(SVD Delta#2)_0,L3=(SVD       |
+|                                                                             |
+|o9 = ({60648900}, {28210500000}, {28210500000}, {2056900000})                |
+|      {55489200}  {9617270000 }  {9617270000 }  {1028620000}                 |
+|      {29990300}  {3132530000 }  {3132530000 }  {754460000 }                 |
+|      {9100710 }  {60649000   }  {2056900000 }  {484906000 }                 |
+|      {.327165 }  {55489300   }  {1028620000 }  {49026600  }                 |
+|      {.0102018}  {29990300   }  {754460000  }  {3.7497    }                 |
+|                  {9100740    }  {484906000  }  {2.9526    }                 |
+|                  {38.8744    }  {49026600   }  {1.35595   }                 |
+|                  {21.2473    }  {51.0793    }                               |
+|                  {5.85738    }  {29.3294    }                               |
+|                                 {20.8771    }                               |
+|                                 {3.48837    }                               |
+|                                 {2.04772    }                               |
+|                                                                             |
+|o9 : Sequence                                                                |
+|-----------------------------------------------------------------------------|
+|Delta#3)_0                                                                   |
++-----------------------------------------------------------------------------+
+|i10 : commonEntries(L0,L1)                                                   |
+|                                                                             |
+|o10 = ({0, 1, 2, 3}, {3, 4, 5, 6})                                           |
+|                                                                             |
+|o10 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i11 : commonEntries(L1,L2)                                                   |
+|                                                                             |
+|o11 = ({0, 1, 2}, {0, 1, 2})                                                 |
+|                                                                             |
+|o11 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i12 : commonEntries(L2,L3)                                                   |
+|                                                                             |
+|o12 = ({3, 4, 5, 6, 7}, {0, 1, 2, 3, 4})                                     |
+|                                                                             |
+|o12 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+
+
+
+
+See also
+========
+
+  * *note laplacians: laplacians, -- compute the laplacians of a chain complex
+  * *note SVDComplex: SVDComplex, -- Compute the SVD decomposition of a chain
+    complex over RR
+
+Ways to use commonEntries:
+==========================
+
+  * "commonEntries(List,List)"
+
+For the programmer
+==================
+
+The object *note commonEntries: commonEntries, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1379:0.
+
+File: SVDComplexes.info, Node: euclideanDistance, Next: Laplacian, Prev: commonEntries, Up: Top
+
+euclideanDistance -- compute the euclidean distance of two chain complexes
+**************************************************************************
+
+  * Usage: 
+        euclideanDistance(C,D)
+  * Inputs:
+      * C, a *note complex: (Complexes)Complex,, 
+      * D, a *note complex: (Complexes)Complex,, two chain complexes over RR or
+        QQ
+  * Outputs:
+      * a *note real number: (Macaulay2Doc)RR,, 
+
+Description
+===========
+
+Compute the distance in the L^2-norm of two complexes viewed as a sequence of
+matrices
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                          |
+|                                                                             |
+|o1 = RandomComplexes                                                         |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : setRandomSeed "a good example";                                         |
+| -- setting random seed to 11076724743355249016474237734                     |
++-----------------------------------------------------------------------------+
+|i3 : h={2,3,5,2}                                                             |
+|                                                                             |
+|o3 = {2, 3, 5, 2}                                                            |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : r={4,3,3}                                                               |
+|                                                                             |
+|o4 = {4, 3, 3}                                                               |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : elapsedTime C=randomChainComplex(h,r,Height=>5,ZeroMean=>true)          |
+| -- .00348552s elapsed                                                       |
+|                                                                             |
+|       6       10       11       5                                           |
+|o5 = ZZ  <-- ZZ   <-- ZZ   <-- ZZ                                            |
+|                                                                             |
+|     0       1        2        3                                             |
+|                                                                             |
+|o5 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i6 : C.dd^2                                                                  |
+|                                                                             |
+|o6 = 0                                                                       |
+|                                                                             |
+|o6 : ComplexMap                                                              |
++-----------------------------------------------------------------------------+
+|i7 : CR=(C**RR_53)                                                           |
+|                                                                             |
+|         6         10         11         5                                   |
+|o7 = RR    <-- RR     <-- RR     <-- RR                                      |
+|       53        53         53         53                                    |
+|                                                                             |
+|     0         1          2          3                                       |
+|                                                                             |
+|o7 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i8 : h=(SVDHomology CR)_0                                                    |
+|                                                                             |
+|o8 = HashTable{0 => 2}                                                       |
+|               1 => 3                                                        |
+|               2 => 5                                                        |
+|               3 => 2                                                        |
+|                                                                             |
+|o8 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i9 : D=disturb(C,1e-2,Strategy=>Discrete)                                    |
+|                                                                             |
+|         6         10         11         5                                   |
+|o9 = RR    <-- RR     <-- RR     <-- RR                                      |
+|       53        53         53         53                                    |
+|                                                                             |
+|     0         1          2          3                                       |
+|                                                                             |
+|o9 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i10 : C.dd_1                                                                 |
+|                                                                             |
+|o10 = | -3 4  -4 -2 0  2  -4 -1 -1 -2 |                                      |
+|      | -4 4  -3 -1 -2 1  -2 -1 1  -6 |                                      |
+|      | -1 -4 2  2  0  -2 0  5  -1 -2 |                                      |
+|      | 2  -2 3  -1 4  1  -1 -3 7  5  |                                      |
+|      | -5 2  -3 -3 4  3  -9 0  4  -1 |                                      |
+|      | 2  4  -3 -3 2  3  -2 -5 -1 6  |                                      |
+|                                                                             |
+|               6       10                                                    |
+|o10 : Matrix ZZ  <-- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i11 : D.dd_1                                                                 |
+|                                                                             |
+|o11 = | -3.03 4.04  -3.96 -2.02 0     2.02  -3.96 -.99  -1.01 -1.98 |        |
+|      | -4.04 4.04  -3.03 -1.01 -1.98 1.01  -1.98 -.99  1.01  -5.94 |        |
+|      | -.99  -4.04 1.98  1.98  0     -2.02 0     4.95  -1.01 -2.02 |        |
+|      | 1.98  -2.02 3.03  -.99  4.04  .99   -1.01 -2.97 6.93  5.05  |        |
+|      | -4.95 2.02  -3.03 -2.97 4.04  2.97  -9.09 0     4.04  -.99  |        |
+|      | 2.02  4.04  -2.97 -3.03 2.02  3.03  -1.98 -4.95 -1.01 5.94  |        |
+|                                                                             |
+|                 6         10                                                |
+|o11 : Matrix RR    <-- RR                                                    |
+|               53        53                                                  |
++-----------------------------------------------------------------------------+
+|i12 : D.dd^2                                                                 |
+|                                                                             |
+|              6                                                              |
+|o12 = 0 : RR    <------------------------------------------------------------|
+|            53     | .404    -1.0068 1.5192  1.1538  1.9168  -.96   .463   -.|
+|                   | .0646   -1.1216 .8444   1.6532  1.8214  -.2892 .4242  -1|
+|                   | -.1616  .2424   -1.3062 -.932   -1.1766 .5156  -.524  .4|
+|                   | .4674   -.5608  .3608   -1.2064 -.004   -.7272 .1204  1.|
+|                   | -1.0218 -.7936  -.4102  -.2552  -.0934  -.1212 -.1192 1.|
+|                   | -.1818  1.23    1.303   1.7906  .596    .1688  .5644  -1|
+|                                                                             |
+|              10                                                      5      |
+|      1 : RR     <----------------------------------------------- RR    : 3  |
+|            53      | -.6666  -.2352  -3.0378 .1148   -.2808  |     53       |
+|                    | -4.9212 -3.1936 3.2648  -.5656  -.0446  |              |
+|                    | -.948   -.2004  1.4232  -.4356  -1.6118 |              |
+|                    | .0082   .7928   -.6338  .6336   -3.4756 |              |
+|                    | -.96    -1.0344 -.906   -.5544  1.8058  |              |
+|                    | -2.7814 -.6764  1.3226  .358    -3.0424 |              |
+|                    | -2.8502 -1.7236 1.2766  -.8808  .2148   |              |
+|                    | -1.7776 -.9696  -.6352  -1.2024 1.158   |              |
+|                    | -.5156  -.4808  .1528   -.4008  .7854   |              |
+|                    | -2.7992 -1.0312 2.1204  .2796   -2.8468 |              |
+|                                                                             |
+|o12 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                                          11                                 |
+|------------------------------------- RR     : 2                             |
+|5122  .6336        -2.0516 1.8312 |     53                                   |
+|.2694 -7.10543e-15 -2.2028 1.676  |                                          |
+|172   -1.12        2.0808  -.198  |                                          |
+|2226  1.0408       -.1148  -.3548 |                                          |
+|031   -2.0768      1.2952  -.2756 |                                          |
+|.0064 .3944        -1.2468 -.3224 |                                          |
++-----------------------------------------------------------------------------+
+|i13 : C'=projectToComplex(D,h)                                               |
+|                                                                             |
+|          6         10         11         5                                  |
+|o13 = RR    <-- RR     <-- RR     <-- RR                                     |
+|        53        53         53         53                                   |
+|                                                                             |
+|      0         1          2          3                                      |
+|                                                                             |
+|o13 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i14 : C'.dd^2                                                                |
+|                                                                             |
+|              6                                                              |
+|o14 = 0 : RR    <------------------------------------------------------------|
+|            53     | -7.10543e-15 7.10543e-15  -1.06581e-14 7.10543e-15  -3.5|
+|                   | 1.06581e-14  -2.13163e-14 1.77636e-14  7.10543e-15  2.84|
+|                   | 8.88178e-15  -1.42109e-14 1.86517e-14  2.57572e-14  2.57|
+|                   | 3.55271e-15  -2.4869e-14  5.32907e-15  -1.77636e-14 7.10|
+|                   | -7.10543e-15 -1.42109e-14 1.42109e-14  4.26326e-14  1.42|
+|                   | -1.77636e-14 3.55271e-14  -4.9738e-14  -5.15143e-14 -4.9|
+|                                                                             |
+|              10                                                             |
+|      1 : RR     <-----------------------------------------------------------|
+|            53      | 5.21666e-14  2.18159e-14  -7.01383e-14 -3.55271e-15 -7.|
+|                    | 4.53465e-14  5.43034e-15  2.1686e-14   -1.41276e-14 3.5|
+|                    | -2.01644e-14 -1.55431e-14 6.54476e-14  3.55271e-15  1.9|
+|                    | 2.55872e-15  4.54498e-16  1.04153e-14  -3.55271e-15 1.4|
+|                    | 2.41127e-14  2.09416e-14  -4.88637e-14 -7.10543e-15 0  |
+|                    | -4.07244e-14 -3.52496e-14 7.41074e-14  7.10543e-15  1.4|
+|                    | -2.40814e-14 -1.61537e-14 -1.2837e-15  0            -1.|
+|                    | 1.6917e-14   1.06165e-15  -3.09475e-15 -1.77636e-15 1.8|
+|                    | 1.3372e-15   6.4716e-15   -1.63133e-14 1.47105e-15  1.1|
+|                    | -1.21569e-14 -1.9082e-14  5.36307e-14  0            8.8|
+|                                                                             |
+|o14 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|-----------------------------------------------------------------------------|
+|5271e-15 3.55271e-15  4.44089e-16  1.06581e-14  -1.42109e-14 1.06581e-14  -7.|
+|217e-14  -1.42109e-14 7.10543e-15  7.10543e-15  4.26326e-14  -2.84217e-14 3.5|
+|572e-14  -7.10543e-15 1.12133e-14  -2.13163e-14 1.95399e-14  -3.90799e-14 1.8|
+|543e-15  -1.42109e-14 2.88658e-15  8.88178e-15  2.4869e-14   -7.10543e-15 7.1|
+|109e-14  -7.10543e-15 1.06581e-14  -2.13163e-14 4.26326e-14  -2.13163e-14 2.1|
+|738e-14  0            -2.70894e-14 3.90799e-14  -6.39488e-14 6.75016e-14  -7.|
+|                                                                             |
+|                  5                                                          |
+|------------- RR    : 3                                                      |
+|10543e-15 |     53                                                           |
+|5965e-14  |                                                                  |
+|5399e-14  |                                                                  |
+|2109e-14  |                                                                  |
+|          |                                                                  |
+|2109e-14  |                                                                  |
+|77636e-15 |                                                                  |
+|6517e-14  |                                                                  |
+|241e-15   |                                                                  |
+|8178e-15  |                                                                  |
+|-----------------------------------------------------------------------------|
+|                  11                                                         |
+|------------- RR     : 2                                                     |
+|10543e-15 |     53                                                           |
+|5271e-14  |                                                                  |
+|6517e-14  |                                                                  |
+|0543e-15  |                                                                  |
+|3163e-14  |                                                                  |
+|10543e-14 |                                                                  |
++-----------------------------------------------------------------------------+
+|i15 : euclideanDistance(C',D)                                                |
+|                                                                             |
+|o15 = .448104803679268                                                       |
+|                                                                             |
+|o15 : RR (of precision 53)                                                   |
++-----------------------------------------------------------------------------+
+|i16 : euclideanDistance(CR,D)                                                |
+|                                                                             |
+|o16 = .3206000000000015                                                      |
+|                                                                             |
+|o16 : RR (of precision 53)                                                   |
++-----------------------------------------------------------------------------+
+|i17 : euclideanDistance(C',CR)                                               |
+|                                                                             |
+|o17 = .4768576907289092                                                      |
+|                                                                             |
+|o17 : RR (of precision 53)                                                   |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+
+
+
+
+See also
+========
+
+  * *note projectToComplex: projectToComplex, -- compute a nearby complex with
+    the projection method
+
+Ways to use euclideanDistance:
+==============================
+
+  * "euclideanDistance(Complex,Complex)"
+
+For the programmer
+==================
+
+The object *note euclideanDistance: euclideanDistance, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1338:0.
+
+File: SVDComplexes.info, Node: Laplacian, Next: laplacians, Prev: euclideanDistance, Up: Top
+
+Laplacian -- Option for SVDHomology and SVDComplex
+**************************************************
+
+Description
+===========
+
+Strategy for the computation of the SVD normal form of a complex
+
+For the programmer
+==================
+
+The object *note Laplacian: Laplacian, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1428:0.
+
+File: SVDComplexes.info, Node: laplacians, Next: newChainComplexMap, Prev: Laplacian, Up: Top
+
+laplacians -- compute the laplacians of a chain complex
+*******************************************************
+
+  * Usage: 
+        delta=laplacians C
+  * Inputs:
+      * C, a *note complex: (Complexes)Complex,, defined over RR
+  * Outputs:
+      * delta, a *note hash table: (Macaulay2Doc)HashTable,, of the laplacians
+
+Description
+===========
+
+For a chain complex over RR defined by matrices A_i=C.dd_i the i-th laplacian
+is defined by delta#i = transpose(A_i)*A_i+A_{i+1}*transpose A_{i+1}.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                          |
+|                                                                             |
+|o1 = RandomComplexes                                                         |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : setRandomSeed "a good example";                                         |
+| -- setting random seed to 11076724743355249016474237734                     |
++-----------------------------------------------------------------------------+
+|i3 : h={2,3,5,3}                                                             |
+|                                                                             |
+|o3 = {2, 3, 5, 3}                                                            |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : r={4,3,5}                                                               |
+|                                                                             |
+|o4 = {4, 3, 5}                                                               |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : C=randomChainComplex(h,r,Height=>100,ZeroMean=>true)                    |
+|                                                                             |
+|       6       10       13       8                                           |
+|o5 = ZZ  <-- ZZ   <-- ZZ   <-- ZZ                                            |
+|                                                                             |
+|     0       1        2        3                                             |
+|                                                                             |
+|o5 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i6 : C.dd^2                                                                  |
+|                                                                             |
+|o6 = 0                                                                       |
+|                                                                             |
+|o6 : ComplexMap                                                              |
++-----------------------------------------------------------------------------+
+|i7 : D=disturb(C**RR_53,1e-4)                                                |
+|                                                                             |
+|         6         10         13         8                                   |
+|o7 = RR    <-- RR     <-- RR     <-- RR                                      |
+|       53        53         53         53                                    |
+|                                                                             |
+|     0         1          2          3                                       |
+|                                                                             |
+|o7 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i8 : delta=laplacians D                                                      |
+|                                                                             |
+|o8 = HashTable{0 => | 40968300  -18096200 12519600 -6333510 -8778030  -961232|
+|                    | -18096200 18114000  -6139670 1920640  2483360   2721690|
+|                    | 12519600  -6139670  10491100 9492560  4486190   -727601|
+|                    | -6333510  1920640   9492560  25114500 3648080   4334860|
+|                    | -8778030  2483360   4486190  3648080  31627800  -251787|
+|                    | -9612320  2721690   -7276010 4334860  -25178700 2891350|
+|               1 => | 2681610000  2770930000  -3585750000 2744420000  -274723|
+|                    | 2770930000  5842380000  -8192680000 4634410000  -255108|
+|                    | -3585750000 -8192680000 14739600000 -6.772e9    3555930|
+|                    | 2744420000  4634410000  -6.772e9    3960790000  -268191|
+|                    | -2747230000 -2551080000 3555930000  -2681910000 2916820|
+|                    | -21682100   -974718000  2588810000  -718188000  2904600|
+|                    | 1458620000  578651000   998672000   745035000   -1.466e|
+|                    | 1217550000  3309520000  -2932580000 2301530000  -872977|
+|                    | 390139000   2353860000  -3974070000 1657420000  -279468|
+|                    | 2132970000  1651270000  435634000   1569670000  -202130|
+|               2 => | 1458050000  -565025000  -2399920000 164373000   1463470|
+|                    | -565025000  695447000   1558820000  -367865000  -106442|
+|                    | -2399920000 1558820000  5831910000  -825802000  -282835|
+|                    | 164373000   -367865000  -825802000  2027060000  3801690|
+|                    | 1463470000  -1064420000 -2828350000 380169000   3472310|
+|                    | -1218450000 936635000   3050640000  -1042440000 -815682|
+|                    | 1338170000  -1290720000 -3519650000 2322330000  2487760|
+|                    | -332270000  -170515000  -333619000  1443550000  8448160|
+|                    | 3104280000  -1888480000 -6412780000 2124670000  3498870|
+|                    | -1940640000 1369690000  4252030000  -1564960000 -241493|
+|                    | -1143350000 121074000   1702200000  1181680000  -311741|
+|                    | -103255000  118554000   484021000   -1765030000 -543504|
+|                    | -657007000  624418000   1717320000  -1188790000 -209828|
+|               3 => | 373590000  238254000  -50812600  -437085000 74181500   |
+|                    | 238254000  698531000  -480720000 -382529000 -162466000 |
+|                    | -50812600  -480720000 464199000  75246600   279787000  |
+|                    | -437085000 -382529000 75246600   891490000  -44759100  |
+|                    | 74181500   -162466000 279787000  -44759100  282194000  |
+|                    | -41332800  200661000  -77707800  141150000  112362000  |
+|                    | 37454200   144062000  -17571400  -407019000 -8247220   |
+|                    | -393315000 -388569000 353222000  316331000  195236000  |
+|                                                                             |
+|o8 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|0  |                                                                         |
+|   |                                                                         |
+|0  |                                                                         |
+|   |                                                                         |
+|00 |                                                                         |
+|0  |                                                                         |
+|0000 -21682100  1458620000 1217550000  390139000   2132970000  |             |
+|0000 -974718000 578651000  3309520000  2353860000  1651270000  |             |
+|000  2588810000 998672000  -2932580000 -3974070000 435634000   |             |
+|0000 -718188000 745035000  2301530000  1657420000  1569670000  |             |
+|000  29046000   -1.466e9   -872977000  -279468000  -2021300000 |             |
+|0    730696000  840960000  17571600    -793548000  1062580000  |             |
+|9    840960000  1898870000 897709000   -631797000  2598700000  |             |
+|000  17571600   897709000  3080210000  1256510000  2039920000  |             |
+|000  -793548000 -631797000 1256510000  1439290000  -425770000  |             |
+|0000 1062580000 2598700000 2039920000  -425770000  3825220000  |             |
+|000  -1218450000 1338170000  -332270000  3104280000  -1940640000 -1143350000 |
+|0000 936635000   -1290720000 -170515000  -1888480000 1369690000  121074000   |
+|0000 3050640000  -3519650000 -333619000  -6412780000 4252030000  1702200000  |
+|00   -1042440000 2322330000  1443550000  2124670000  -1564960000 1181680000  |
+|000  -815682000  2487760000  844816000   3498870000  -2414930000 -311741000  |
+|000  2586970000  -2054670000 250788000   -3675360000 2338900000  1093810000  |
+|000  -2054670000 4378470000  1921520000  5550280000  -3873580000 833202000   |
+|00   250788000   1921520000  2448470000  775936000   -852074000  1931870000  |
+|000  -3675360000 5550280000  775936000   9723090000  -6185740000 -1059630000 |
+|0000 2338900000  -3873580000 -852074000  -6185740000 4230560000  235472000   |
+|000  1093810000  833202000   1931870000  -1059630000 235472000   2668450000  |
+|000  217784000   -1786720000 -1928530000 -592912000  1113840000  -1578040000 |
+|0000 306884000   -2488120000 -1857690000 -2395660000 1977350000  -1066020000 |
+|-41332800 37454200   -393315000 |                                            |
+|200661000 144062000  -388569000 |                                            |
+|-77707800 -17571400  353222000  |                                            |
+|141150000 -407019000 316331000  |                                            |
+|112362000 -8247220   195236000  |                                            |
+|381327000 -46660400  149778000  |                                            |
+|-46660400 357298000  129866000  |                                            |
+|149778000 129866000  925279000  |                                            |
+|-----------------------------------------------------------------------------|
+|                         }                                                   |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|-103255000  -657007000  |                                                    |
+|118554000   624418000   |                                                    |
+|484021000   1717320000  |                                                    |
+|-1765030000 -1188790000 |                                                    |
+|-543504000  -2098280000 |                                                    |
+|217784000   306884000   |                                                    |
+|-1786720000 -2488120000 |                                                    |
+|-1928530000 -1857690000 |                                                    |
+|-592912000  -2395660000 |                                                    |
+|1113840000  1977350000  |                                                    |
+|-1578040000 -1066020000 |                                                    |
+|3536380000  1930360000  |                                                    |
+|1930360000  2277050000  |                                                    |
++-----------------------------------------------------------------------------+
+|i9 : L0=(SVD delta#0)_0, L1=(SVD delta#1)_0,L2=(SVD delta#2)_0,L3=(SVD       |
+|                                                                             |
+|o9 = ({60648900}, {28210500000}, {28210500000}, {2056900000})                |
+|      {55489200}  {9617270000 }  {9617270000 }  {1028620000}                 |
+|      {29990300}  {3132530000 }  {3132530000 }  {754460000 }                 |
+|      {9100710 }  {60649000   }  {2056900000 }  {484906000 }                 |
+|      {.327165 }  {55489300   }  {1028620000 }  {49026600  }                 |
+|      {.0102018}  {29990300   }  {754460000  }  {3.7497    }                 |
+|                  {9100740    }  {484906000  }  {2.9526    }                 |
+|                  {38.8744    }  {49026600   }  {1.35595   }                 |
+|                  {21.2473    }  {51.0793    }                               |
+|                  {5.85738    }  {29.3294    }                               |
+|                                 {20.8771    }                               |
+|                                 {3.48837    }                               |
+|                                 {2.04772    }                               |
+|                                                                             |
+|o9 : Sequence                                                                |
+|-----------------------------------------------------------------------------|
+|delta#3)_0                                                                   |
++-----------------------------------------------------------------------------+
+|i10 : commonEntries(L0,L1)                                                   |
+|                                                                             |
+|o10 = ({0, 1, 2, 3}, {3, 4, 5, 6})                                           |
+|                                                                             |
+|o10 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i11 : commonEntries(L1,L2)                                                   |
+|                                                                             |
+|o11 = ({0, 1, 2}, {0, 1, 2})                                                 |
+|                                                                             |
+|o11 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i12 : commonEntries(L2,L3)                                                   |
+|                                                                             |
+|o12 = ({3, 4, 5, 6, 7}, {0, 1, 2, 3, 4})                                     |
+|                                                                             |
+|o12 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+
+
+
+
+See also
+========
+
+  * *note commonEntries: commonEntries, -- lists of positions, where they
+    coincide up to threshold
+  * *note SVDComplex: SVDComplex, -- Compute the SVD decomposition of a chain
+    complex over RR
+
+Ways to use laplacians:
+=======================
+
+  * "laplacians(Complex)"
+
+For the programmer
+==================
+
+The object *note laplacians: laplacians, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1418:0.
+
+File: SVDComplexes.info, Node: newChainComplexMap, Next: numericRank, Prev: laplacians, Up: Top
+
+newChainComplexMap
+******************
+
+For the programmer
+==================
+
+The object newChainComplexMap (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:378.
+
+File: SVDComplexes.info, Node: numericRank, Next: Projection, Prev: newChainComplexMap, Up: Top
+
+numericRank -- approximate rank of a matrix, using SVD
+******************************************************
+
+  * Usage: 
+        rk = numericRank A
+        rk = numericRank(eps, A)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, a matrix or a mutable matrix
+        over RR_{53} or CC_{53}
+      * eps, a *note real number: (Macaulay2Doc)RR,, a relative threshold for
+        consecutive singular values, if not present then the default value 1e-4
+        is taken
+  * Outputs:
+      * rk, an *note integer: (Macaulay2Doc)ZZ,, an approximation to the rank
+        of the matrix A
+
+Description
+===========
+
+The singular value decomposition (over RR_{53}, or CC_{53}) of the matrix A is
+performed.  If there is a large cutoff in the list of singular values, that
+value separates the zero singular values from the rest, and the number of
+singular values larger than this separating value is called the numeric rank.
+
++----------------------------------------------+
+|i1 : B = random(RR^30, RR^5);                 |
+|                                              |
+|                30         5                  |
+|o1 : Matrix RR     <-- RR                     |
+|              53         53                   |
++----------------------------------------------+
+|i2 : C = random(RR^5, RR^30);                 |
+|                                              |
+|                5         30                  |
+|o2 : Matrix RR    <-- RR                      |
+|              53        53                    |
++----------------------------------------------+
+|i3 : A = B*C;                                 |
+|                                              |
+|                30         30                 |
+|o3 : Matrix RR     <-- RR                     |
+|              53         53                   |
++----------------------------------------------+
+|i4 : numericRank A                            |
+|                                              |
+|o4 = 5                                        |
++----------------------------------------------+
+|i5 : first SVD A                              |
+|                                              |
+|o5 = {37.3735    }                            |
+|     {2.8333     }                            |
+|     {2.49293    }                            |
+|     {2.28935    }                            |
+|     {1.7274     }                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {3.65608e-15}                            |
+|     {4.27123e-16}                            |
+|                                              |
+|o5 : VerticalList                             |
++----------------------------------------------+
+|i6 : B = mutableMatrix random(RR^100, RR^50); |
++----------------------------------------------+
+|i7 : C = mutableMatrix random(RR^50, RR^100); |
++----------------------------------------------+
+|i8 : A = B*C;                                 |
++----------------------------------------------+
+|i9 : numericRank A                            |
+|                                              |
+|o9 = 50                                       |
++----------------------------------------------+
+|i10 : B = mutableMatrix random(CC^100, CC^50);|
++----------------------------------------------+
+|i11 : C = mutableMatrix random(CC^50, CC^100);|
++----------------------------------------------+
+|i12 : A = B*C;                                |
++----------------------------------------------+
+|i13 : numericRank A                           |
+|                                              |
+|o13 = 50                                      |
++----------------------------------------------+
+
+Caveat
+======
+
+The heuristic for determining approximate rank is just that: a heuristic. Thus
+if you really need to make sure the answer is correct or meaningful, you should
+review the singular values yourself
+
+See also
+========
+
+  * *note SVD: (Macaulay2Doc)SVD, -- singular value decomposition of a matrix
+
+Ways to use numericRank:
+========================
+
+  * "numericRank(Matrix)"
+  * "numericRank(MutableMatrix)"
+  * "numericRank(RR,Matrix)"
+  * "numericRank(RR,MutableMatrix)"
+
+For the programmer
+==================
+
+The object *note numericRank: numericRank, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1007:0.
+
+File: SVDComplexes.info, Node: Projection, Next: projectToComplex, Prev: numericRank, Up: Top
+
+Projection -- Option for SVDHomology and SVDComplex
+***************************************************
+
+Description
+===========
+
+Strategy for the computation of the SVD normal form of a complex
+
+For the programmer
+==================
+
+The object *note Projection: Projection, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1438:0.
+
+File: SVDComplexes.info, Node: projectToComplex, Next: pseudoInverse, Prev: Projection, Up: Top
+
+projectToComplex -- compute a nearby complex with the projection method
+***********************************************************************
+
+  * Usage: 
+        C = projectToComplex(D,h) or
+  * Inputs:
+      * D, a *note complex: (Complexes)Complex,, an approximate complex over
+        over RR_{53}
+      * h, a *note hash table: (Macaulay2Doc)HashTable,, the desired homology
+        groups
+  * Outputs:
+      * C, a *note complex: (Complexes)Complex,, a nearby chain complex
+
+Description
+===========
+
+Using the iterated projection method we compute a nearby chain complex C with
+homology h.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                          |
+|                                                                             |
+|o1 = RandomComplexes                                                         |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : setRandomSeed "a good example";                                         |
+| -- setting random seed to 11076724743355249016474237734                     |
++-----------------------------------------------------------------------------+
+|i3 : h={2,3,5,2}                                                             |
+|                                                                             |
+|o3 = {2, 3, 5, 2}                                                            |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : r={4,3,3}                                                               |
+|                                                                             |
+|o4 = {4, 3, 3}                                                               |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : elapsedTime C=randomChainComplex(h,r,Height=>5,ZeroMean=>true)          |
+| -- .00348759s elapsed                                                       |
+|                                                                             |
+|       6       10       11       5                                           |
+|o5 = ZZ  <-- ZZ   <-- ZZ   <-- ZZ                                            |
+|                                                                             |
+|     0       1        2        3                                             |
+|                                                                             |
+|o5 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i6 : C.dd^2                                                                  |
+|                                                                             |
+|o6 = 0                                                                       |
+|                                                                             |
+|o6 : ComplexMap                                                              |
++-----------------------------------------------------------------------------+
+|i7 : CR=(C**RR_53)                                                           |
+|                                                                             |
+|         6         10         11         5                                   |
+|o7 = RR    <-- RR     <-- RR     <-- RR                                      |
+|       53        53         53         53                                    |
+|                                                                             |
+|     0         1          2          3                                       |
+|                                                                             |
+|o7 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i8 : h=(SVDHomology CR)_0                                                    |
+|                                                                             |
+|o8 = HashTable{0 => 2}                                                       |
+|               1 => 3                                                        |
+|               2 => 5                                                        |
+|               3 => 2                                                        |
+|                                                                             |
+|o8 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i9 : D=disturb(C,1e-2,Strategy=>Discrete)                                    |
+|                                                                             |
+|         6         10         11         5                                   |
+|o9 = RR    <-- RR     <-- RR     <-- RR                                      |
+|       53        53         53         53                                    |
+|                                                                             |
+|     0         1          2          3                                       |
+|                                                                             |
+|o9 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i10 : C.dd_1                                                                 |
+|                                                                             |
+|o10 = | -3 4  -4 -2 0  2  -4 -1 -1 -2 |                                      |
+|      | -4 4  -3 -1 -2 1  -2 -1 1  -6 |                                      |
+|      | -1 -4 2  2  0  -2 0  5  -1 -2 |                                      |
+|      | 2  -2 3  -1 4  1  -1 -3 7  5  |                                      |
+|      | -5 2  -3 -3 4  3  -9 0  4  -1 |                                      |
+|      | 2  4  -3 -3 2  3  -2 -5 -1 6  |                                      |
+|                                                                             |
+|               6       10                                                    |
+|o10 : Matrix ZZ  <-- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i11 : D.dd_1                                                                 |
+|                                                                             |
+|o11 = | -3.03 4.04  -3.96 -2.02 0     2.02  -3.96 -.99  -1.01 -1.98 |        |
+|      | -4.04 4.04  -3.03 -1.01 -1.98 1.01  -1.98 -.99  1.01  -5.94 |        |
+|      | -.99  -4.04 1.98  1.98  0     -2.02 0     4.95  -1.01 -2.02 |        |
+|      | 1.98  -2.02 3.03  -.99  4.04  .99   -1.01 -2.97 6.93  5.05  |        |
+|      | -4.95 2.02  -3.03 -2.97 4.04  2.97  -9.09 0     4.04  -.99  |        |
+|      | 2.02  4.04  -2.97 -3.03 2.02  3.03  -1.98 -4.95 -1.01 5.94  |        |
+|                                                                             |
+|                 6         10                                                |
+|o11 : Matrix RR    <-- RR                                                    |
+|               53        53                                                  |
++-----------------------------------------------------------------------------+
+|i12 : D.dd^2                                                                 |
+|                                                                             |
+|              6                                                              |
+|o12 = 0 : RR    <------------------------------------------------------------|
+|            53     | .404    -1.0068 1.5192  1.1538  1.9168  -.96   .463   -.|
+|                   | .0646   -1.1216 .8444   1.6532  1.8214  -.2892 .4242  -1|
+|                   | -.1616  .2424   -1.3062 -.932   -1.1766 .5156  -.524  .4|
+|                   | .4674   -.5608  .3608   -1.2064 -.004   -.7272 .1204  1.|
+|                   | -1.0218 -.7936  -.4102  -.2552  -.0934  -.1212 -.1192 1.|
+|                   | -.1818  1.23    1.303   1.7906  .596    .1688  .5644  -1|
+|                                                                             |
+|              10                                                      5      |
+|      1 : RR     <----------------------------------------------- RR    : 3  |
+|            53      | -.6666  -.2352  -3.0378 .1148   -.2808  |     53       |
+|                    | -4.9212 -3.1936 3.2648  -.5656  -.0446  |              |
+|                    | -.948   -.2004  1.4232  -.4356  -1.6118 |              |
+|                    | .0082   .7928   -.6338  .6336   -3.4756 |              |
+|                    | -.96    -1.0344 -.906   -.5544  1.8058  |              |
+|                    | -2.7814 -.6764  1.3226  .358    -3.0424 |              |
+|                    | -2.8502 -1.7236 1.2766  -.8808  .2148   |              |
+|                    | -1.7776 -.9696  -.6352  -1.2024 1.158   |              |
+|                    | -.5156  -.4808  .1528   -.4008  .7854   |              |
+|                    | -2.7992 -1.0312 2.1204  .2796   -2.8468 |              |
+|                                                                             |
+|o12 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                                          11                                 |
+|------------------------------------- RR     : 2                             |
+|5122  .6336        -2.0516 1.8312 |     53                                   |
+|.2694 -7.10543e-15 -2.2028 1.676  |                                          |
+|172   -1.12        2.0808  -.198  |                                          |
+|2226  1.0408       -.1148  -.3548 |                                          |
+|031   -2.0768      1.2952  -.2756 |                                          |
+|.0064 .3944        -1.2468 -.3224 |                                          |
++-----------------------------------------------------------------------------+
+|i13 : C'=projectToComplex(D,h)                                               |
+|                                                                             |
+|          6         10         11         5                                  |
+|o13 = RR    <-- RR     <-- RR     <-- RR                                     |
+|        53        53         53         53                                   |
+|                                                                             |
+|      0         1          2          3                                      |
+|                                                                             |
+|o13 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i14 : C'.dd^2                                                                |
+|                                                                             |
+|              6                                                              |
+|o14 = 0 : RR    <------------------------------------------------------------|
+|            53     | -7.10543e-15 7.10543e-15  -1.06581e-14 7.10543e-15  -3.5|
+|                   | 1.06581e-14  -2.13163e-14 1.77636e-14  7.10543e-15  2.84|
+|                   | 8.88178e-15  -1.42109e-14 1.86517e-14  2.57572e-14  2.57|
+|                   | 3.55271e-15  -2.4869e-14  5.32907e-15  -1.77636e-14 7.10|
+|                   | -7.10543e-15 -1.42109e-14 1.42109e-14  4.26326e-14  1.42|
+|                   | -1.77636e-14 3.55271e-14  -4.9738e-14  -5.15143e-14 -4.9|
+|                                                                             |
+|              10                                                             |
+|      1 : RR     <-----------------------------------------------------------|
+|            53      | 5.21666e-14  2.18159e-14  -7.01383e-14 -3.55271e-15 -7.|
+|                    | 4.53465e-14  5.43034e-15  2.1686e-14   -1.41276e-14 3.5|
+|                    | -2.01644e-14 -1.55431e-14 6.54476e-14  3.55271e-15  1.9|
+|                    | 2.55872e-15  4.54498e-16  1.04153e-14  -3.55271e-15 1.4|
+|                    | 2.41127e-14  2.09416e-14  -4.88637e-14 -7.10543e-15 0  |
+|                    | -4.07244e-14 -3.52496e-14 7.41074e-14  7.10543e-15  1.4|
+|                    | -2.40814e-14 -1.61537e-14 -1.2837e-15  0            -1.|
+|                    | 1.6917e-14   1.06165e-15  -3.09475e-15 -1.77636e-15 1.8|
+|                    | 1.3372e-15   6.4716e-15   -1.63133e-14 1.47105e-15  1.1|
+|                    | -1.21569e-14 -1.9082e-14  5.36307e-14  0            8.8|
+|                                                                             |
+|o14 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|-----------------------------------------------------------------------------|
+|5271e-15 3.55271e-15  4.44089e-16  1.06581e-14  -1.42109e-14 1.06581e-14  -7.|
+|217e-14  -1.42109e-14 7.10543e-15  7.10543e-15  4.26326e-14  -2.84217e-14 3.5|
+|572e-14  -7.10543e-15 1.12133e-14  -2.13163e-14 1.95399e-14  -3.90799e-14 1.8|
+|543e-15  -1.42109e-14 2.88658e-15  8.88178e-15  2.4869e-14   -7.10543e-15 7.1|
+|109e-14  -7.10543e-15 1.06581e-14  -2.13163e-14 4.26326e-14  -2.13163e-14 2.1|
+|738e-14  0            -2.70894e-14 3.90799e-14  -6.39488e-14 6.75016e-14  -7.|
+|                                                                             |
+|                  5                                                          |
+|------------- RR    : 3                                                      |
+|10543e-15 |     53                                                           |
+|5965e-14  |                                                                  |
+|5399e-14  |                                                                  |
+|2109e-14  |                                                                  |
+|          |                                                                  |
+|2109e-14  |                                                                  |
+|77636e-15 |                                                                  |
+|6517e-14  |                                                                  |
+|241e-15   |                                                                  |
+|8178e-15  |                                                                  |
+|-----------------------------------------------------------------------------|
+|                  11                                                         |
+|------------- RR     : 2                                                     |
+|10543e-15 |     53                                                           |
+|5271e-14  |                                                                  |
+|6517e-14  |                                                                  |
+|0543e-15  |                                                                  |
+|3163e-14  |                                                                  |
+|10543e-14 |                                                                  |
++-----------------------------------------------------------------------------+
+|i15 : euclideanDistance(C',D)                                                |
+|                                                                             |
+|o15 = .448104803679268                                                       |
+|                                                                             |
+|o15 : RR (of precision 53)                                                   |
++-----------------------------------------------------------------------------+
+|i16 : euclideanDistance(CR,D)                                                |
+|                                                                             |
+|o16 = .3206000000000015                                                      |
+|                                                                             |
+|o16 : RR (of precision 53)                                                   |
++-----------------------------------------------------------------------------+
+|i17 : euclideanDistance(C',CR)                                               |
+|                                                                             |
+|o17 = .4768576907289092                                                      |
+|                                                                             |
+|o17 : RR (of precision 53)                                                   |
++-----------------------------------------------------------------------------+
+|i18 : Dd=dual D                                                              |
+|                                                                             |
+|          5         11         10         6                                  |
+|o18 = RR    <-- RR     <-- RR     <-- RR                                     |
+|        53        53         53         53                                   |
+|                                                                             |
+|      -3        -2         -1         0                                      |
+|                                                                             |
+|o18 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i19 : Dd[1]                                                                  |
+|                                                                             |
+|          5         11         10         6                                  |
+|o19 = RR    <-- RR     <-- RR     <-- RR                                     |
+|        53        53         53         53                                   |
+|                                                                             |
+|      -4        -3         -2         -1                                     |
+|                                                                             |
+|o19 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i20 : hd=(SVDHomology((dual CR)[1]))_0                                       |
+|                                                                             |
+|o20 = HashTable{-1 => 2}                                                     |
+|                -2 => 3                                                      |
+|                -3 => 5                                                      |
+|                -4 => 2                                                      |
+|                                                                             |
+|o20 : HashTable                                                              |
++-----------------------------------------------------------------------------+
+|i21 : C''=(dual projectToComplex(Dd[1],hd))[1]                               |
+|                                                                             |
+|          6         10         11         5                                  |
+|o21 = RR    <-- RR     <-- RR     <-- RR                                     |
+|        53        53         53         53                                   |
+|                                                                             |
+|      0         1          2          3                                      |
+|                                                                             |
+|o21 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i22 : C''.dd_1,C'.dd_1                                                       |
+|                                                                             |
+|o22 = (| -2.97399 4.01598  -4.00388 -1.98841 -.00795313 1.99116  -3.99867    |
+|       | -4.01021 4.00367  -3.04727 -1.00345 -1.99798   .989343  -2.01634    |
+|       | -.997709 -4.00146 1.99202  1.99776  -.0167308  -1.99845 .00771421   |
+|       | 2.01706  -2.01388 3.00792  -1.00651 4.0411     .991679  -1.0065     |
+|       | -4.97537 2.02324  -3.01162 -3.00574 4.04238    2.9954   -9.06241    |
+|       | 2.01966  4.03259  -2.96766 -2.99251 2.00767    3.01007  -2.01016    |
+|      -----------------------------------------------------------------------|
+|      -1.01104 -1.00052 -2.00054 |, | -2.98033 4.0351   -3.99782 -1.99981    |
+|      -1.02492 1.00473  -5.95672 |  | -4.04257 4.04465  -3.0238  -.998421    |
+|      4.98934  -.992694 -1.99532 |  | -.969222 -4.03547 1.97053  2.00736     |
+|      -2.94224 6.94681  5.04002  |  | 2.00364  -2.02012 3.01414  -.974022    |
+|      .016532  4.03644  -.983487 |  | -4.97333 2.02011  -3.01434 -2.98577    |
+|      -4.98017 -1.0168  5.94281  |  | 2.01721  4.04465  -2.96366 -3.01857    |
+|      -----------------------------------------------------------------------|
+|      -.00179207 2.00275 -3.98027  -.98734     -.994252 -1.99461 |)          |
+|      -1.9914    1.0103  -1.98875  -.990828    1.01093  -5.93308 |           |
+|      -.0179669  -2.0281 -.0231496 4.95008     -1.00079 -2.01688 |           |
+|      4.03335    .981491 -1.02459  -2.96908    6.93838  5.04616  |           |
+|      4.04657    2.9784  -9.0756   -.000905901 4.03173  -.986208 |           |
+|      2.00866    3.03038 -1.98861  -4.95084    -1.00914 5.94695  |           |
+|                                                                             |
+|o22 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i23 : euclideanDistance(CR,D), euclideanDistance(C'',D),                     |
+|                                                                             |
+|o23 = (.3206, .209381, .448105)                                              |
+|                                                                             |
+|o23 : Sequence                                                               |
+|-----------------------------------------------------------------------------|
+|euclideanDistance(C',D)                                                      |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+The algorithm does not produces the closest nearby complex in the euclidean
+norm. Instead it is a reminder to develop such function.
+
+See also
+========
+
+  * *note SVDComplex: SVDComplex, -- Compute the SVD decomposition of a chain
+    complex over RR
+
+Ways to use projectToComplex:
+=============================
+
+  * "projectToComplex(Complex,HashTable)"
+
+For the programmer
+==================
+
+The object *note projectToComplex: projectToComplex, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1184:0.
+
+File: SVDComplexes.info, Node: pseudoInverse, Next: pseudoInverse1, Prev: projectToComplex, Up: Top
+
+pseudoInverse -- compute the pseudoInverse of a chain complex
+*************************************************************
+
+  * Usage: 
+        Cplus = pseudoInverse C
+  * Inputs:
+      * C, a *note complex: (Complexes)Complex,, an approximate complex over an
+        field
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Strategy (missing documentation) => a *note symbol:
+        (Macaulay2Doc)Symbol,, default value Projection, Laplacian or
+        Projection for the method used
+      * Threshold (missing documentation) => a *note real number:
+        (Macaulay2Doc)RR,, default value .0001, the relative threshold used to
+        detect the zero singular values
+  * Outputs:
+      * Cplus, a *note complex: (Complexes)Complex,, the pseudo inverse complex
+
+Description
+===========
+
+In case the field is RR we use the SVD normal form to compute the pseudo
+inverse. In case of QQ we compute the pseudo inverse directly over QQ.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                          |
+|                                                                             |
+|o1 = RandomComplexes                                                         |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : setRandomSeed "a pretty good example";                                  |
+| -- setting random seed to 1187585617994339702977441899450513636117846       |
++-----------------------------------------------------------------------------+
+|i3 : h={2,3,1}                                                               |
+|                                                                             |
+|o3 = {2, 3, 1}                                                               |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : r={2,3}                                                                 |
+|                                                                             |
+|o4 = {2, 3}                                                                  |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : C=randomChainComplex(h,r,Height=>11,ZeroMean=>true)                     |
+|                                                                             |
+|       4       8       4                                                     |
+|o5 = ZZ  <-- ZZ  <-- ZZ                                                      |
+|                                                                             |
+|     0       1       2                                                       |
+|                                                                             |
+|o5 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i6 : C.dd                                                                    |
+|                                                                             |
+|           4                                          8                      |
+|o6 = 0 : ZZ  <------------------------------------- ZZ  : 1                  |
+|                | -4 -18 -6 -14 -10 -18 -16 -28 |                            |
+|                | 8  16  22 -12 -20 -14 -8  6   |                            |
+|                | 6  15  15 -3  -9  -3  0   12  |                            |
+|                | 2  7   4  3   1   4   4   9   |                            |
+|                                                                             |
+|           8                            4                                    |
+|     1 : ZZ  <----------------------- ZZ  : 2                                |
+|                | -5  22  19  -41 |                                          |
+|                | -54 26  55  -66 |                                          |
+|                | 31  -26 -29 25  |                                          |
+|                | 33  50  -23 36  |                                          |
+|                | -20 -16 24  -47 |                                          |
+|                | 2   -22 -1  -10 |                                          |
+|                | -12 -6  3   9   |                                          |
+|                | 25  -16 -30 43  |                                          |
+|                                                                             |
+|o6 : ComplexMap                                                              |
++-----------------------------------------------------------------------------+
+|i7 : CQ=C**QQ                                                                |
+|                                                                             |
+|       4       8       4                                                     |
+|o7 = QQ  <-- QQ  <-- QQ                                                      |
+|                                                                             |
+|     0       1       2                                                       |
+|                                                                             |
+|o7 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i8 : CR=C**RR_53                                                             |
+|                                                                             |
+|         4         8         4                                               |
+|o8 = RR    <-- RR    <-- RR                                                  |
+|       53        53        53                                                |
+|                                                                             |
+|     0         1         2                                                   |
+|                                                                             |
+|o8 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i9 : CRplus = pseudoInverse CR                                               |
+|                                                                             |
+|         4         8         4                                               |
+|o9 = RR    <-- RR    <-- RR                                                  |
+|       53        53        53                                                |
+|                                                                             |
+|     -2        -1        0                                                   |
+|                                                                             |
+|o9 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i10 : CQplus = pseudoInverse CQ                                              |
+|                                                                             |
+|        4       8       4                                                    |
+|o10 = QQ  <-- QQ  <-- QQ                                                     |
+|                                                                             |
+|      -2      -1      0                                                      |
+|                                                                             |
+|o10 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i11 : CRplus.dd                                                              |
+|                                                                             |
+|               4                                                             |
+|o11 = -2 : RR    <-----------------------------------------------------------|
+|             53     | .0130658   -.00710013 .00910891  .00617097   .00616535 |
+|                    | .00363228  .00323956  -.00408194 .0104004    -.00386761|
+|                    | -.00265724 .00380405  -.00358933 -.0016806   -.00115101|
+|                    | -.0129721  .00195488  -.00650979 -.000997146 -.00888455|
+|                                                                             |
+|               8                                                          4  |
+|      -1 : RR    <--------------------------------------------------- RR    :|
+|             53     | -.00131432 .00348016  .0024824   .000742313 |     53   |
+|                    | -.00687747 .00658955  .00601697  .0027222   |          |
+|                    | -.00148997 .00975584  .0063005   .00142258  |          |
+|                    | -.00652617 -.0059618  -.00161923 .00136167  |          |
+|                    | -.00521185 -.00944196 -.00410162 .000619358 |          |
+|                    | -.008322   -.00701722 -.00171373 .00179488  |          |
+|                    | -.00718333 -.00422171 -.00037803 .00173283  |          |
+|                    | -.0116078  .00168319  .00449225  .00365066  |          |
+|                                                                             |
+|o11 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                                           8                                 |
+|-------------------------------------- RR    : -1                            |
+| .00510154  -.0108838  -.00160172  |     53                                  |
+| -.00421635 -.00125529 -.00211786  |                                         |
+| -.00166389 .00291106  -.000639162 |                                         |
+| -.0055727  .0094004   .00387383   |                                         |
+|                                                                             |
+|                                                                             |
+| 0                                                                           |
++-----------------------------------------------------------------------------+
+|i12 : CQplus.dd                                                              |
+|                                                                             |
+|             4                                                               |
+|o12 = -2 : QQ  <-------------------------------------------------------------|
+|                  | 22455062/1718617773  -305060062/42965444325 391368268/429|
+|                  | 2080832/572872591    46396386/14321814775   -58460804/143|
+|                  | -1522260/572872591   54480883/14321814775   -51405662/143|
+|                  | -22294079/1718617773 83992087/42965444325   -279696193/42|
+|                                                                             |
+|             8                                                               |
+|      -1 : QQ  <-------------------------------------------------------------|
+|                  | -6884/5237683  18228/5237683  1182/476153  3888/5237683  |
+|                  | -36022/5237683 34514/5237683  2865/476153  14258/5237683 |
+|                  | -7804/5237683  51098/5237683  3000/476153  7451/5237683  |
+|                  | -34182/5237683 -31226/5237683 -771/476153  7132/5237683  |
+|                  | -27298/5237683 -49454/5237683 -1953/476153 3244/5237683  |
+|                  | -2564/308099   -2162/308099   -48/28009    553/308099    |
+|                  | -37624/5237683 -22112/5237683 -180/476153  9076/5237683  |
+|                  | -60798/5237683 8816/5237683   2139/476153  19121/5237683 |
+|                                                                             |
+|o12 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|-----------------------------------------------------------------------------|
+|65444325  88379471/14321814775  264897193/42965444325  219189842/42965444325 |
+|21814775  148952386/14321814775 -55391154/14321814775  -60385726/14321814775 |
+|21814775  -24069267/14321814775 -16484537/14321814775  -23829853/14321814775 |
+|965444325 -14280946/14321814775 -381728443/42965444325 -239433617/42965444325|
+|                                                                             |
+|      4                                                                      |
+|--- QQ  : 0                                                                  |
+||                                                                            |
+||                                                                            |
+||                                                                            |
+||                                                                            |
+||                                                                            |
+||                                                                            |
+||                                                                            |
+||                                                                            |
+|-----------------------------------------------------------------------------|
+|                                                  8                          |
+|----------------------------------------------- QQ  : -1                     |
+| -467627593/42965444325 -2219954/1385982075 |                                |
+| -17977996/14321814775  -978438/461994025   |                                |
+| 41691712/14321814775   -295289/461994025   |                                |
+| 403892368/42965444325  5369054/1385982075  |                                |
++-----------------------------------------------------------------------------+
+|i13 : (CQplus**RR_53).dd                                                     |
+|                                                                             |
+|               4                                                             |
+|o13 = -2 : RR    <-----------------------------------------------------------|
+|             53     | .0130658   -.00710013 .00910891  .00617097   .00616535 |
+|                    | .00363228  .00323956  -.00408194 .0104004    -.00386761|
+|                    | -.00265724 .00380405  -.00358933 -.0016806   -.00115101|
+|                    | -.0129721  .00195488  -.00650979 -.000997146 -.00888455|
+|                                                                             |
+|               8                                                          4  |
+|      -1 : RR    <--------------------------------------------------- RR    :|
+|             53     | -.00131432 .00348016  .0024824   .000742313 |     53   |
+|                    | -.00687747 .00658955  .00601697  .0027222   |          |
+|                    | -.00148997 .00975584  .0063005   .00142258  |          |
+|                    | -.00652617 -.0059618  -.00161923 .00136167  |          |
+|                    | -.00521185 -.00944196 -.00410162 .000619358 |          |
+|                    | -.008322   -.00701722 -.00171373 .00179488  |          |
+|                    | -.00718333 -.00422171 -.00037803 .00173283  |          |
+|                    | -.0116078  .00168319  .00449225  .00365066  |          |
+|                                                                             |
+|o13 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|                                           8                                 |
+|-------------------------------------- RR    : -1                            |
+| .00510154  -.0108838  -.00160172  |     53                                  |
+| -.00421635 -.00125529 -.00211786  |                                         |
+| -.00166389 .00291106  -.000639162 |                                         |
+| -.0055727  .0094004   .00387383   |                                         |
+|                                                                             |
+|                                                                             |
+| 0                                                                           |
++-----------------------------------------------------------------------------+
+|i14 : CRplus.dd^2                                                            |
+|                                                                             |
+|               4                                                             |
+|o14 = -2 : RR    <-----------------------------------------------------------|
+|             53     | -8.47033e-20 -1.15196e-19 -3.38813e-20 8.47033e-21  |  |
+|                    | 1.94818e-20  1.18585e-20  1.01644e-20  -2.11758e-21 |  |
+|                    | 2.28699e-20  4.40457e-20  2.20229e-20  -8.47033e-22 |  |
+|                    | 6.77626e-20  1.15196e-19  4.06576e-20  -6.77626e-21 |  |
+|                                                                             |
+|o14 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|    4                                                                        |
+|RR    : 0                                                                    |
+|  53                                                                         |
++-----------------------------------------------------------------------------+
+|i15 : CQplus.dd^2                                                            |
+|                                                                             |
+|o15 = 0                                                                      |
+|                                                                             |
+|o15 : ComplexMap                                                             |
++-----------------------------------------------------------------------------+
+
+Pseudo inverses frequently exist also over finite fields.
+
++-----------------------------------------------------------------------+
+|i16 : Fp=ZZ/nextPrime 10^3                                             |
+|                                                                       |
+|o16 = Fp                                                               |
+|                                                                       |
+|o16 : QuotientRing                                                     |
++-----------------------------------------------------------------------+
+|i17 : Cp=C**Fp                                                         |
+|                                                                       |
+|        4       8       4                                              |
+|o17 = Fp  <-- Fp  <-- Fp                                               |
+|                                                                       |
+|      0       1       2                                                |
+|                                                                       |
+|o17 : Complex                                                          |
++-----------------------------------------------------------------------+
+|i18 : Cpplus=pseudoInverse Cp                                          |
+|                                                                       |
+|        4       8       4                                              |
+|o18 = Fp  <-- Fp  <-- Fp                                               |
+|                                                                       |
+|      -2      -1      0                                                |
+|                                                                       |
+|o18 : Complex                                                          |
++-----------------------------------------------------------------------+
+|i19 : Cpplus.dd                                                        |
+|                                                                       |
+|             4                                                   8     |
+|o19 = -2 : Fp  <---------------------------------------------- Fp  : -1|
+|                  | -503 196  106  -420 -383 278  -1  308  |           |
+|                  | -447 -399 -485 370  -440 -273 157 266  |           |
+|                  | -56  -279 92   145  65   351  358 -70  |           |
+|                  | 166  39   -496 -313 -356 126  276 -330 |           |
+|                                                                       |
+|             8                                4                        |
+|      -1 : Fp  <--------------------------- Fp  : 0                    |
+|                  | -33  -170 -193 -108 |                              |
+|                  | 384  -230 -455 -340 |                              |
+|                  | 441  -18  -244 -235 |                              |
+|                  | 445  475  -353 -86  |                              |
+|                  | 478  -364 -160 22   |                              |
+|                  | 426  68   -87  -121 |                              |
+|                  | -76  390  55   -140 |                              |
+|                  | -161 -357 -65  -391 |                              |
+|                                                                       |
+|o19 : ComplexMap                                                       |
++-----------------------------------------------------------------------+
+|i20 : Cpplus.dd^2                                                      |
+|                                                                       |
+|o20 = 0                                                                |
+|                                                                       |
+|o20 : ComplexMap                                                       |
++-----------------------------------------------------------------------+
+|i21 : arePseudoInverses(Cp,Cpplus)                                     |
+|                                                                       |
+|o21 = true                                                             |
++-----------------------------------------------------------------------+
+
+Caveat
+======
+
+Over finite fields the algorithm can fail.
+
+See also
+========
+
+  * *note arePseudoInverses: arePseudoInverses, -- check the Penrose relations
+    for the pseudo inverse
+  * *note SVDComplex: SVDComplex, -- Compute the SVD decomposition of a chain
+    complex over RR
+
+Ways to use pseudoInverse:
+==========================
+
+  * "pseudoInverse(Complex)"
+
+For the programmer
+==================
+
+The object *note pseudoInverse: pseudoInverse, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1296:0.
+
+File: SVDComplexes.info, Node: pseudoInverse1, Next: SVDComplex, Prev: pseudoInverse, Up: Top
+
+pseudoInverse1
+**************
+
+Ways to use pseudoInverse1:
+===========================
+
+  * pseudoInverse1(Complex) (missing documentation)
+  * pseudoInverse1(Matrix) (missing documentation)
+
+For the programmer
+==================
+
+The object pseudoInverse1 (missing documentation) is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:378.
+
+File: SVDComplexes.info, Node: SVDComplex, Next: SVDHomology, Prev: pseudoInverse1, Up: Top
+
+SVDComplex -- Compute the SVD decomposition of a chain complex over RR
+**********************************************************************
+
+  * Usage: 
+        (h,U)=SVDComplex C or
+        (h,U)=SVDComplex(C,C')
+  * Inputs:
+      * C, a *note complex: (Complexes)Complex,, over RR_{53}
+      * C', a *note complex: (Complexes)Complex,, in a lower precision
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Strategy => a *note symbol: (Macaulay2Doc)Symbol,, default value
+        Projection, Laplacian or Projection for the method used
+      * Threshold => a *note real number: (Macaulay2Doc)RR,, default value
+        .0001, the relative threshold used to detect the zero singular values
+  * Outputs:
+      * h, a *note hash table: (Macaulay2Doc)HashTable,, the dimensions of the
+        homology groups HH C
+      * U, a *note map of complexes: (Complexes)ComplexMap,, a map C <- Sigma
+        where the source is the chain complex of the singular value matrices
+        and U is given by orthogonal matrices
+
+Description
+===========
+
+We compute the singular value decomposition either by the iterated Projections
+or by the Laplacian method. In case the input consists of two chain complexes
+we use the iterated Projection method, and identify the stable singular values.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                          |
+|                                                                             |
+|o1 = RandomComplexes                                                         |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : h={1,3,5,2,1}                                                           |
+|                                                                             |
+|o2 = {1, 3, 5, 2, 1}                                                         |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : r={5,11,3,2}                                                            |
+|                                                                             |
+|o3 = {5, 11, 3, 2}                                                           |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : elapsedTime C=randomChainComplex(h,r,Height=>4)                         |
+| -- .0467346s elapsed                                                        |
+|                                                                             |
+|       6       19       19       7       3                                   |
+|o4 = ZZ  <-- ZZ   <-- ZZ   <-- ZZ  <-- ZZ                                    |
+|                                                                             |
+|     0       1        2        3       4                                     |
+|                                                                             |
+|o4 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i5 : C.dd^2                                                                  |
+|                                                                             |
+|o5 = 0                                                                       |
+|                                                                             |
+|o5 : ComplexMap                                                              |
++-----------------------------------------------------------------------------+
+|i6 : CR=(C**RR_53)[1]                                                        |
+|                                                                             |
+|         6         19         19         7         3                         |
+|o6 = RR    <-- RR     <-- RR     <-- RR    <-- RR                            |
+|       53        53         53         53        53                          |
+|                                                                             |
+|     -1        0          1          2         3                             |
+|                                                                             |
+|o6 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i7 : elapsedTime (h,U)=SVDComplex CR;                                        |
+| -- .00287101s elapsed                                                       |
++-----------------------------------------------------------------------------+
+|i8 : h                                                                       |
+|                                                                             |
+|o8 = HashTable{-1 => 1}                                                      |
+|               0 => 3                                                        |
+|               1 => 5                                                        |
+|               2 => 2                                                        |
+|               3 => 1                                                        |
+|                                                                             |
+|o8 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i9 : Sigma =source U                                                         |
+|                                                                             |
+|         6         19         19         7         3                         |
+|o9 = RR    <-- RR     <-- RR     <-- RR    <-- RR                            |
+|       53        53         53         53        53                          |
+|                                                                             |
+|     -1        0          1          2         3                             |
+|                                                                             |
+|o9 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i10 : Sigma.dd_0                                                             |
+|                                                                             |
+|o10 = | 20.7789 0       0       0       0       0 0 0 0 0 0 0 0 0 0 0 0 0 0 ||
+|      | 0       18.3883 0       0       0       0 0 0 0 0 0 0 0 0 0 0 0 0 0 ||
+|      | 0       0       9.51991 0       0       0 0 0 0 0 0 0 0 0 0 0 0 0 0 ||
+|      | 0       0       0       7.19109 0       0 0 0 0 0 0 0 0 0 0 0 0 0 0 ||
+|      | 0       0       0       0       2.40088 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ||
+|      | 0       0       0       0       0       0 0 0 0 0 0 0 0 0 0 0 0 0 0 ||
+|                                                                             |
+|                 6         19                                                |
+|o10 : Matrix RR    <-- RR                                                    |
+|               53        53                                                  |
++-----------------------------------------------------------------------------+
+|i11 : errors=apply(toList(min CR+1..max                                      |
+|-----------------------------------------------------------------------------|
+|CR),ell->CR.dd_ell-U_(ell-1)*Sigma.dd_ell*transpose U_ell);                  |
++-----------------------------------------------------------------------------+
+|i12 : maximalEntry complex errors                                            |
+|                                                                             |
+|o12 = {6.21725e-15, 1.63425e-13, 7.81597e-14, 1.24345e-14}                   |
+|                                                                             |
+|o12 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i13 : elapsedTime (hL,U)=SVDComplex(CR,Strategy=>Laplacian);                 |
+| -- .00645268s elapsed                                                       |
++-----------------------------------------------------------------------------+
+|i14 : hL === h                                                               |
+|                                                                             |
+|o14 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i15 : SigmaL =source U;                                                      |
++-----------------------------------------------------------------------------+
+|i16 : for i from min CR+1 to max CR list maximalEntry(SigmaL.dd_i            |
+|                                                                             |
+|o16 = {1.06581e-14, 5.68434e-14, 2.84217e-14, 1.06581e-14}                   |
+|                                                                             |
+|o16 : List                                                                   |
+|-----------------------------------------------------------------------------|
+|-Sigma.dd_i)                                                                 |
++-----------------------------------------------------------------------------+
+|i17 : errors=apply(toList(min C+1..max                                       |
+|-----------------------------------------------------------------------------|
+|C),ell->CR.dd_ell-U_(ell-1)*SigmaL.dd_ell*transpose U_ell);                  |
++-----------------------------------------------------------------------------+
+|i18 : maximalEntry complex errors                                            |
+|                                                                             |
+|o18 = {3.02425e-13, 9.41469e-14, 3.3884e-13, -infinity}                      |
+|                                                                             |
+|o18 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+The optional argument
+
+Caveat
+======
+
+The algorithm might fail if the condition numbers of the differential are too
+bad
+
+Ways to use SVDComplex:
+=======================
+
+  * "SVDComplex(Complex)"
+  * "SVDComplex(Complex,Complex)"
+
+For the programmer
+==================
+
+The object *note SVDComplex: SVDComplex, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1068:0.
+
+File: SVDComplexes.info, Node: SVDHomology, Prev: SVDComplex, Up: Top
+
+SVDHomology -- Estimate the homology of a chain complex over RR with the SVD decomposition
+******************************************************************************************
+
+  * Usage: 
+        (h,h1)=SVDHomology C or
+        (h,h1)=SVDHomology(C,C')
+  * Inputs:
+      * C, a *note complex: (Complexes)Complex,, over RR_{53}
+      * C', a *note complex: (Complexes)Complex,, in a lower precision
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Strategy => a *note symbol: (Macaulay2Doc)Symbol,, default value
+        Projection, Laplacian or Projection for the method used
+      * Threshold => a *note real number: (Macaulay2Doc)RR,, default value
+        .0001, the relative threshold used to detect the zero singular values
+  * Outputs:
+      * h, a *note hash table: (Macaulay2Doc)HashTable,, the dimensions of the
+        homology groups HH C
+      * h1, a *note hash table: (Macaulay2Doc)HashTable,, information about the
+        singular values
+
+Description
+===========
+
+We compute the singular value decomposition either by the iterated Projections
+or by the Laplacian method. In case of the projection method we record in h1
+the last two nonzero singular values and first singular value expected to be
+really zero.
+
+In case of the Laplacian method we record in h1 the smallest common Eigenvalues
+of the neighboring Laplacians, and the first Eigenvalue expected to be zero.
+
+In case the input consists of two chain complexes we use the iterated
+Projection method, and identify the stable singular values.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                          |
+|                                                                             |
+|o1 = RandomComplexes                                                         |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : h={1,3,5,2}                                                             |
+|                                                                             |
+|o2 = {1, 3, 5, 2}                                                            |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : r={4,3,3}                                                               |
+|                                                                             |
+|o3 = {4, 3, 3}                                                               |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : elapsedTime C=randomChainComplex(h,r,Height=>5,ZeroMean=>true)          |
+| -- .041897s elapsed                                                         |
+|                                                                             |
+|       5       10       11       5                                           |
+|o4 = ZZ  <-- ZZ   <-- ZZ   <-- ZZ                                            |
+|                                                                             |
+|     0       1        2        3                                             |
+|                                                                             |
+|o4 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i5 : C.dd^2                                                                  |
+|                                                                             |
+|o5 = 0                                                                       |
+|                                                                             |
+|o5 : ComplexMap                                                              |
++-----------------------------------------------------------------------------+
+|i6 : CR=(C**RR_53)                                                           |
+|                                                                             |
+|         5         10         11         5                                   |
+|o6 = RR    <-- RR     <-- RR     <-- RR                                      |
+|       53        53         53         53                                    |
+|                                                                             |
+|     0         1          2          3                                       |
+|                                                                             |
+|o6 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i7 : elapsedTime (h,h1)=SVDHomology CR                                       |
+| -- .000617367s elapsed                                                      |
+|                                                                             |
+|o7 = (HashTable{0 => 1}, HashTable{1 => (7.87842, 1.31052, )           })    |
+|                1 => 3             2 => (37.9214, 30.3707, 4.44441e-15)      |
+|                2 => 5             3 => (14.972, 8.57847, 2.56036e-15)       |
+|                3 => 2                                                       |
+|                                                                             |
+|o7 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+|i8 : elapsedTime (hL,hL1)=SVDHomology(CR,Strategy=>Laplacian)                |
+| -- .00146271s elapsed                                                       |
+|                                                                             |
+|o8 = (HashTable{0 => 1}, HashTable{0 => (, 1.71747, -1.49161e-14)      })    |
+|                1 => 3             1 => (1.71747, 922.381, 6.04463e-13)      |
+|                2 => 5             2 => (922.381, 73.5901, 1.85733e-13)      |
+|                3 => 2             3 => (73.5901, , 5.10357e-14)             |
+|                                                                             |
+|o8 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+|i9 : hL === h                                                                |
+|                                                                             |
+|o9 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : (h1#1_1)^2, hL1#1_0, (h1#1_1)^2-hL1#1_0                                |
+|                                                                             |
+|o10 = (1.71747, 1.71747, -3.83693e-13)                                       |
+|                                                                             |
+|o10 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i11 : (h1#2_1)^2, hL1#2_0, (h1#2_1)^2-hL1#2_0                                |
+|                                                                             |
+|o11 = (922.381, 922.381, -9.09495e-13)                                       |
+|                                                                             |
+|o11 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i12 : (h1#3_1)^2, hL1#3_0, (h1#3_1)^2-hL1#3_0                                |
+|                                                                             |
+|o12 = (73.5901, 73.5901, -1.42109e-14)                                       |
+|                                                                             |
+|o12 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i13 : D=disturb(C,1e-3,Strategy=>Discrete)                                   |
+|                                                                             |
+|          5         10         11         5                                  |
+|o13 = RR    <-- RR     <-- RR     <-- RR                                     |
+|        53        53         53         53                                   |
+|                                                                             |
+|      0         1          2          3                                      |
+|                                                                             |
+|o13 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i14 : C.dd_1                                                                 |
+|                                                                             |
+|o14 = | -1 -1 -5 -3 -4 -2 3 -3 7  -1 |                                       |
+|      | -5 -2 -1 5  -3 1  5 4  3  0  |                                       |
+|      | 1  -3 5  5  0  3  4 3  -9 -3 |                                       |
+|      | 0  -3 -4 -2 -5 -1 6 -3 4  -3 |                                       |
+|      | -1 -2 3  5  1  3  3 4  -5 0  |                                       |
+|                                                                             |
+|               5       10                                                    |
+|o14 : Matrix ZZ  <-- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i15 : D.dd_1                                                                 |
+|                                                                             |
+|o15 = | -.999  -1.001 -4.995 -2.997 -3.996 -2.002 2.997 -3.003 6.993  -.999  |
+|      | -5.005 -2.002 -.999  4.995  -2.997 1.001  5.005 3.996  3.003  0      |
+|      | .999   -3.003 5.005  4.995  0      3.003  4.004 3.003  -8.991 -3.003 |
+|      | 0      -2.997 -3.996 -2.002 -4.995 -1.001 6.006 -3.003 4.004  -3.003 |
+|      | -1.001 -2.002 2.997  5.005  1.001  2.997  3.003 3.996  -4.995 0      |
+|      -----------------------------------------------------------------------|
+|      |                                                                      |
+|      |                                                                      |
+|      |                                                                      |
+|      |                                                                      |
+|      |                                                                      |
+|                                                                             |
+|                 5         10                                                |
+|o15 : Matrix RR    <-- RR                                                    |
+|               53        53                                                  |
++-----------------------------------------------------------------------------+
+|i16 : (hd,hd1)=SVDHomology(CR,D,Threshold=>1e-2)                             |
+|                                                                             |
+|o16 = (HashTable{0 => 1}, HashTable{1 => (7.87842, 1.31052, )           })   |
+|                 1 => 3             2 => (37.9214, 30.3707, 4.44441e-15)     |
+|                 2 => 5             3 => (14.972, 8.57847, 2.56036e-15)      |
+|                 3 => 2                                                      |
+|                                                                             |
+|o16 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i17 : hd === h                                                               |
+|                                                                             |
+|o17 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i18 : hd1 === h1                                                             |
+|                                                                             |
+|o18 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+The algorithm might fail if the condition numbers of the differential are too
+bad
+
+See also
+========
+
+  * *note SVDComplex: SVDComplex, -- Compute the SVD decomposition of a chain
+    complex over RR
+
+Ways to use SVDHomology:
+========================
+
+  * "SVDHomology(Complex)"
+  * "SVDHomology(Complex,Complex)"
+
+For the programmer
+==================
+
+The object *note SVDHomology: SVDHomology, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SVDComplexes.m2:1132:0.
+
+Tag Table:
+Node: Top293
+Node: arePseudoInverses31095
+Node: checkSVDComplex49575
+Node: commonEntries50001
+Node: euclideanDistance58673
+Node: Laplacian76798
+Node: laplacians77348
+Node: newChainComplexMap94137
+Node: numericRank94547
+Node: Projection100165
+Node: projectToComplex100720
+Node: pseudoInverse124801
+Node: pseudoInverse1148673
+Node: SVDComplex149247
+Node: SVDHomology160634
+
+End Tag Table

@@ -1,0 +1,45 @@
+-- -*- M2-comint -*- hash: 3663593407511283300
+
+i1 : server = new JSONRPCServer
+
+o1 = server
+
+o1 : JSONRPCServer
+
+i2 : registerMethod(server, "sum", plus)
+
+i3 : logfile = temporaryFileName();
+
+i4 : setLogger(server, x -> (printerr x; logfile << x << endl;));
+
+i5 : handleRequest(server, makeRequest("sum", {2, 3}, 1))
+ -- received request: {"method": "sum", "id": 1, "jsonrpc": "2.0", "params": [2, 3]}
+ -- calling method "sum" with params [2, 3]
+ -- method "sum" returned: 5
+ -- sending response: {"result": 5, "jsonrpc": "2.0", "id": 1}
+
+o5 = {"result": 5, "jsonrpc": "2.0", "id": 1}
+
+i6 : handleRequest(server, makeRequest("sum", {4, 5}, 2))
+ -- received request: {"method": "sum", "id": 2, "jsonrpc": "2.0", "params": [4, 5]}
+ -- calling method "sum" with params [4, 5]
+ -- method "sum" returned: 9
+ -- sending response: {"result": 9, "jsonrpc": "2.0", "id": 2}
+
+o6 = {"result": 9, "jsonrpc": "2.0", "id": 2}
+
+i7 : logfile << close;
+
+i8 : get logfile
+
+o8 = received request: {"method": "sum", "id": 1, "jsonrpc": "2.0", "params": [2, 3]}
+     calling method "sum" with params [2, 3]
+     method "sum" returned: 5
+     sending response: {"result": 5, "jsonrpc": "2.0", "id": 1}
+     received request: {"method": "sum", "id": 2, "jsonrpc": "2.0", "params": [4, 5]}
+     calling method "sum" with params [4, 5]
+     method "sum" returned: 9
+     sending response: {"result": 9, "jsonrpc": "2.0", "id": 2}
+
+
+i9 : 

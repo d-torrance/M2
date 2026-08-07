@@ -1,0 +1,136 @@
+-- -*- M2-comint -*- hash: 10262246230276877998
+
+i1 : f = {a=>3, c=>12} >> opts -> val -> if val == 1 then opts.a + opts.c;
+
+i2 : g = method(Options => {b => 5});
+
+i3 : g ZZ := opts -> val -> if val == 2 then opts.b + 1;
+
+i4 : h = val -> if val == 3 then 24;
+
+i5 : foo = method(Options => true);
+
+i6 : addHook((foo, ZZ), f)
+
+o6 = f
+
+o6 : FunctionClosure
+
+i7 : addHook((foo, ZZ), g, Strategy => "G")
+
+o7 = g
+
+o7 : MethodFunctionWithOptions
+
+i8 : addHook((foo, ZZ), h)
+
+o8 = h
+
+o8 : FunctionClosure
+
+i9 : foo ZZ := true >> opts -> args -> runHooks((foo, ZZ), args, opts);
+
+i10 : importFrom_Core "debugHooksLevel"
+
+o10 = {debugHooksLevel}
+
+o10 : List
+
+i11 : debugHooksLevel = 1
+
+o11 = 1
+
+i12 : assert( foo 1 == 15 )
+ -- (foo,ZZ)( with Strategy => , 2) from h
+ -- (foo,ZZ)( with Strategy => , G) from g
+ -- (foo,ZZ)( with Strategy => , 0) from f
+
+i13 : assert( foo(2, b => 9) == 10 )
+ -- (foo,ZZ)( with Strategy => , 2) from h
+ -- (foo,ZZ)( with Strategy => , G) from g
+
+i14 : assert( foo 3 == 24 )
+ -- (foo,ZZ)( with Strategy => , 2) from h
+
+i15 : hooks(foo, ZZ)
+
+o15 = {0 => (foo, ZZ, Strategy => 0)}
+      {1 => (foo, ZZ, Strategy => G)}
+      {2 => (foo, ZZ, Strategy => 2)}
+
+o15 : NumberedVerticalList
+
+i16 : assert( foo(3, Strategy => 2) == 24 )
+ -- (foo,ZZ)( with Strategy => , 2) from h
+
+i17 : assert( foo(2, Strategy => "G") == 6 )
+ -- (foo,ZZ)( with Strategy => , G) from g
+
+i18 : hooks(quotient, Ideal, Ideal)
+
+o18 = {0 => (quotient, Ideal, Ideal, Strategy => Quotient)}
+      {1 => (quotient, Ideal, Ideal, Strategy => Iterate) }
+      {2 => (quotient, Ideal, Ideal, Strategy => Monomial)}
+
+o18 : NumberedVerticalList
+
+i19 : code 1
+
+o19 = -- code for strategy: quotient(Ideal,Ideal,Strategy => Iterate)
+      /usr/local/share/Macaulay2/Saturation.m2:217:15-223:
+      82: --source code:
+          Iterate => (opts, I, J) -> (
+              R := ring I;
+              -- TODO: extend this into a strategy for any PID
+              if R === ZZ then return ideal sub(gcd I_* / gcd flatten(I_*, J_*), ZZ);
+              fold(first entries mingens J, ideal 1_R, (f, M1) ->
+                  if generators(f * M1) % generators I == 0 then M1
+                  else intersect(M1, quotient(I, ideal f, opts, Strategy => Quotient)))),
+
+i20 : importFrom_Core { "getHookStore", "Hooks", "HookPriority", "HookAlgorithms" }
+
+o20 = {getHookStore, Hooks, HookPriority, HookAlgorithms}
+
+o20 : List
+
+i21 : Ideal.Hooks === getHookStore((quotient, Ideal, Ideal), false)
+
+o21 = true
+
+i22 : peek Ideal.Hooks
+
+o22 = MutableHashTable{(associatedPrimes, Ideal) => MutableHashTable{...2...}     }
+                       (intersect, Ideal, Ideal) => MutableHashTable{...2...}
+                       (minimalPrimes, Ideal) => MutableHashTable{...2...}
+                       (primaryDecomposition, Ideal) => MutableHashTable{...2...}
+                       (quotient, Ideal, Ideal) => MutableHashTable{...2...}
+                       (quotient, Module, Ideal) => MutableHashTable{...2...}
+                       (radical, Ideal) => MutableHashTable{...2...}
+                       (saturate, Ideal, Ideal) => MutableHashTable{...2...}
+                       (saturate, Ideal, RingElement) => MutableHashTable{...2...}
+                       (saturate, Module, Ideal) => MutableHashTable{...2...}
+
+i23 : peek Ideal.Hooks#(quotient, Ideal, Ideal)
+
+o23 = MutableHashTable{HookAlgorithms => MutableHashTable{...3...}}
+                       HookPriority => MutableList{...3...}
+
+i24 : peek Ideal.Hooks#(quotient, Ideal, Ideal).HookPriority
+
+o24 = MutableList{Quotient, Iterate, Monomial}
+
+i25 : peek Ideal.Hooks#(quotient, Ideal, Ideal).HookAlgorithms
+
+o25 = MutableHashTable{Iterate => FunctionClosure[/home/m2user/work/M2/M2/M2/
+                       Monomial => FunctionClosure[/home/m2user/work/M2/M2/M2
+                       Quotient => FunctionClosure[/home/m2user/work/M2/M2/M2
+      -----------------------------------------------------------------------
+      Macaulay2/packages/Saturation.m2:217:15-223:82] }
+      /Macaulay2/packages/Saturation.m2:248:16-257:85]
+      /Macaulay2/packages/Saturation.m2:226:16-238:25]
+
+i26 : peek GlobalHookStore
+
+o26 = MutableHashTable{1 : (ReduceHooks) => MutableHashTable{...2...}}
+
+i27 : 

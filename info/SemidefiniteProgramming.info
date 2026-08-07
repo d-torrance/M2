@@ -1,0 +1,984 @@
+ -*- coding: utf-8 -*- This is SemidefiniteProgramming.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* SemidefiniteProgramming: (SemidefiniteProgramming).  semidefinite programming
+END-INFO-DIR-ENTRY
+
+
+File: SemidefiniteProgramming.info, Node: Top, Next: changeSolver, Up: (dir)
+
+SemidefiniteProgramming -- A package for solving semidefinite programs
+**********************************************************************
+
+Description
+===========
+
+This is a package for solving semidefinite programming (SDP) problems.
+
+Given symmetric matrices $C, A_i$ and a vector $b$, the primal SDP problem is
+
+$$min_{X} \, C \bullet X \,\,\, s.t. \,\,\, A_i \bullet X = b_i \, and \, X
+\geq 0$$
+
+and the dual SDP problem is
+
+$$max_{y,Z} \, \sum_i b_i y_i \,\,\, s.t. \,\,\, Z = C - \sum_i y_i A_i \, and
+\, Z \geq 0$$
+
+We can construct a semidefinite program using the method *note sdp: SDP,.
+
++--------------------------------------------------------------------+
+|i1 : P = sdp(matrix{{1,0},{0,2}}, matrix{{0,1},{1,0}}, matrix{{-1}})|
+|                                                                    |
+|o1 = SDP{"A" => 1 : (| 0 1 |)}                                      |
+|                     | 1 0 |                                        |
+|         "b" => | -1 |                                              |
+|         "C" => | 1 0 |                                             |
+|                | 0 2 |                                             |
+|                                                                    |
+|o1 : SDP                                                            |
++--------------------------------------------------------------------+
+
+The semidefinite program can be solved numerically using the method *note
+optimize: optimize,.
+
++----------------------------------------+
+|i2 : (X,y,Z,stat) = optimize P;         |
++----------------------------------------+
+|i3 : (X,y)                              |
+|                                        |
+|o3 = (| .707057 -.5     |, | -1.41421 |)|
+|      | -.5     .353578 |               |
+|                                        |
+|o3 : Sequence                           |
++----------------------------------------+
+
+See *note Solver: Solver, for a discussion of the available SDP solvers. The
+method *note refine: refine_lpSDP_cmSequence_rp, can be used to improve the
+precision of the solution.
+
+In small cases it is possible to solve the SDP symbolically, by forming the
+ideal of *note critical equations: criticalIdeal,.
+
++------------------------------------------------+
+|i4 : (I,X,y,Z) = criticalIdeal P;               |
++------------------------------------------------+
+|i5 : radical I                                  |
+|                                                |
+|                                          2     |
+|o5 = ideal (4x  + y , 2x  + 1, 2x  + y , y  - 2)|
+|              2    0    1        0    0   0     |
+|                                                |
+|o5 : Ideal of QQ[x ..x , y ]                    |
+|                  0   2   0                     |
++------------------------------------------------+
+
+
+Authors
+=======
+
+  * Diego Cifuentes (see http://www.mit.edu/~diegcif/ ) <diegcif@mit.edu>
+  * Thomas Kahle (see https://thomas-kahle.de/ ) <thomas.kahle@ovgu.de>
+  * Pablo A. Parrilo (see http://www.mit.edu/~parrilo/ ) <parrilo@mit.edu>
+  * Helfried Peyrl (see https://scholar.google.com/citations?user=cFOV7nYAAAAJ&
+    hl=de ) <peyrl@control.ee.ethz.ch>
+
+Version
+=======
+
+This documentation describes version 0.3 of SemidefiniteProgramming, released
+May 2021.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{SemidefiniteProgrammingSource,                                         |
+|  title = {{SemidefiniteProgramming: A \emph{Macaulay2} package.             |
+|  author = {Diego Cifuentes and Thomas Kahle and Pablo A. Parrilo            |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2            |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Version~0.3}},                                                               |
+| and Helfried Peyrl},                                                        |
+|                                                                             |
+|/packages}}                                                                  |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note SDP: SDP, -- construct a semidefinite program
+  * Functions and commands
+      * *note changeSolver: changeSolver, -- change the SDP solver
+      * *note checkOptimize: checkOptimize, -- check an SDP solver
+      * *note criticalIdeal: criticalIdeal, -- ideal of critical equations of a
+        semidefinite program
+      * *note optimize: optimize, -- solve a semidefinite program
+      * *note PSDdecomposition: PSDdecomposition, -- factorization of a
+        positive semidefinite matrix
+      * *note roundPSDmatrix: roundPSDmatrix, -- rational rounding of a PSD
+        matrix
+      * "sdp" -- see *note SDP: SDP, -- construct a semidefinite program
+      * *note smat2vec: smat2vec, -- vectorization of a symmetric matrix
+      * "vec2smat" -- see *note smat2vec: smat2vec, -- vectorization of a
+        symmetric matrix
+  * Methods
+      * "checkOptimize(String)" -- see *note checkOptimize: checkOptimize, --
+        check an SDP solver
+      * "criticalIdeal(SDP)" -- see *note criticalIdeal: criticalIdeal, --
+        ideal of critical equations of a semidefinite program
+      * "criticalIdeal(SDP,ZZ)" -- see *note criticalIdeal: criticalIdeal, --
+        ideal of critical equations of a semidefinite program
+      * "optimize(SDP)" -- see *note optimize: optimize, -- solve a
+        semidefinite program
+      * "optimize(SDP,Matrix)" -- see *note optimize: optimize, -- solve a
+        semidefinite program
+      * *note refine(SDP,Sequence): refine_lpSDP_cmSequence_rp, -- refine an
+        SDP solution
+      * "ring(SDP)" -- see *note SDP: SDP, -- construct a semidefinite program
+      * "sdp(List,Matrix,RingElement)" -- see *note SDP: SDP, -- construct a
+        semidefinite program
+      * "sdp(Matrix,Matrix,Matrix)" -- see *note SDP: SDP, -- construct a
+        semidefinite program
+      * "sdp(Matrix,Sequence,Matrix)" -- see *note SDP: SDP, -- construct a
+        semidefinite program
+      * "smat2vec(List)" -- see *note smat2vec: smat2vec, -- vectorization of a
+        symmetric matrix
+      * "smat2vec(Matrix)" -- see *note smat2vec: smat2vec, -- vectorization of
+        a symmetric matrix
+      * "vec2smat(List)" -- see *note smat2vec: smat2vec, -- vectorization of a
+        symmetric matrix
+      * "vec2smat(Matrix)" -- see *note smat2vec: smat2vec, -- vectorization of
+        a symmetric matrix
+  * Symbols
+      * "Scaling" -- see *note smat2vec: smat2vec, -- vectorization of a
+        symmetric matrix
+      * *note Solver: Solver, -- picking a semidefinite programming solver
+
+For the programmer
+==================
+
+The object *note SemidefiniteProgramming: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in SemidefiniteProgramming.m2, with auxiliary
+files in SemidefiniteProgramming/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:39:0.
+
+File: SemidefiniteProgramming.info, Node: changeSolver, Next: checkOptimize, Prev: Top, Up: Top
+
+changeSolver -- change the SDP solver
+*************************************
+
+  * Usage: 
+        changeSolver (solver, path)
+  * Inputs:
+      * Solver, a *note string: (Macaulay2Doc)String,, the name of the solver
+        to configure: CSDP, MOSEK, or SDPA
+      * path, a *note string: (Macaulay2Doc)String,, the full path to the
+        executable of the solver
+
+Description
+===========
+
+The path can be specified as an absolute or relative path of the executable and
+must include the name of the executable.
+
++-------------------------------------------+
+|i1 : changeSolver ("CSDP", "/path/to/csdp")|
+|                                           |
+|o1 = CSDP                                  |
++-------------------------------------------+
+
+Caveat
+======
+
+The function does not check if the specified executable exists or is
+functional.  To find out try *note checkOptimize: checkOptimize,.
+
+See also
+========
+
+  * *note Solver: Solver, -- picking a semidefinite programming solver
+
+For the programmer
+==================
+
+The object *note changeSolver: changeSolver, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:460:0.
+
+File: SemidefiniteProgramming.info, Node: checkOptimize, Next: criticalIdeal, Prev: changeSolver, Up: Top
+
+checkOptimize -- check an SDP solver
+************************************
+
+  * Usage: 
+        checkOptimize (solver)
+  * Inputs:
+      * solver, a *note string: (Macaulay2Doc)String,, the name of the solver
+        to configure: CSDP, MOSEK, M2, or SDPA
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Verbosity: Verbosity, => ..., default value 0, control the level
+        of information printed
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, indicating whether the solver passed
+        each of the tests
+
+Description
+===========
+
+Use this function to run some basic checks with an SDP solver
+
++-----------------------------------+
+|i1 : checkOptimize ("CSDP")        |
+|                                   |
+|o1 = {true, true, true, true, true}|
+|                                   |
+|o1 : List                          |
++-----------------------------------+
+
+Caveat
+======
+
+See also
+========
+
+  * *note Solver: Solver, -- picking a semidefinite programming solver
+
+Ways to use checkOptimize:
+==========================
+
+  * "checkOptimize(String)"
+
+For the programmer
+==================
+
+The object *note checkOptimize: checkOptimize, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:484:0.
+
+File: SemidefiniteProgramming.info, Node: criticalIdeal, Next: mosekexec, Prev: checkOptimize, Up: Top
+
+criticalIdeal -- ideal of critical equations of a semidefinite program
+**********************************************************************
+
+  * Usage: 
+        (I,X,y,Z) = criticalIdeal(P)
+        (I,X,y,Z) = criticalIdeal(P,rk)
+  * Inputs:
+      * P, an instance of the type *note SDP: SDP,, a semidefinite programming
+        problem
+      * rk, an *note integer: (Macaulay2Doc)ZZ,, the rank of the primal matrix
+        (optional)
+  * Outputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, of critical equations
+      * X, an $n\times n$ matrix, primal variable
+      * y, an $m\times 1$ matrix, dual variable
+      * Z, an $n\times n$ matrix, dual variable
+
+Description
+===========
+
+This method computes the ideal of critical equations of an SDP. This ideal can
+be used to solve the SDP symbolically.
+
++-----------------------------------------------------------------------------+
+|i1 : A = (-matrix{{0,1,0},{1,0,0},{0,0,1}}, matrix{{0,0,1},{0,0,0},{1,0,0}}, |
+|-----------------------------------------------------------------------------|
+|-matrix{{0,0,0},{0,0,1},{0,1,0}});                                           |
++-----------------------------------------------------------------------------+
+|i2 : (C, b) = (matrix{{1/1,0,3},{0,5,0},{3,0,9}}, matrix{{-1},{-1},{-1}});   |
++-----------------------------------------------------------------------------+
+|i3 : P = sdp(C,A,b);                                                         |
++-----------------------------------------------------------------------------+
+|i4 : (I,X,y,Z) = criticalIdeal P;                                            |
++-----------------------------------------------------------------------------+
+|i5 : degree I                                                                |
+|                                                                             |
+|o5 = 6                                                                       |
++-----------------------------------------------------------------------------+
+
+We can restrict the rank of the primal matrix X.
+
++--------------------------------------+
+|i6 : rk = 1;                          |
++--------------------------------------+
+|i7 : (J,X,y,Z) = criticalIdeal(P, rk);|
++--------------------------------------+
+|i8 : degree J                         |
+|                                      |
+|o8 = 4                                |
++--------------------------------------+
+
+
+Ways to use criticalIdeal:
+==========================
+
+  * "criticalIdeal(SDP)"
+  * "criticalIdeal(SDP,ZZ)"
+
+For the programmer
+==================
+
+The object *note criticalIdeal: criticalIdeal, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:312:0.
+
+File: SemidefiniteProgramming.info, Node: mosekexec, Next: optimize, Prev: criticalIdeal, Up: Top
+
+mosekexec -- Locations of executables
+*************************************
+
+The package uses these mutable variables to store the paths of the executables.
+They can be edited by the user.  The preferred way to do this is *note
+changeSolver: changeSolver,, though.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:497:0.
+
+File: SemidefiniteProgramming.info, Node: optimize, Next: project2linspace, Prev: mosekexec, Up: Top
+
+optimize -- solve a semidefinite program
+****************************************
+
+  * Usage: 
+        (X,y,Z,stat) = optimize P
+        (X,y,Z,stat) = optimize(P,y0)
+  * Inputs:
+      * P, an instance of the type *note SDP: SDP,, a semidefinite programming
+        problem
+      * y0, a *note matrix: (Macaulay2Doc)Matrix,, a dual strictly feasible
+        matrix (optional)
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Solver: Solver, => ..., default value null, picking a
+        semidefinite programming solver
+      * *note Verbosity: Verbosity, => ..., default value 0, control the level
+        of information printed
+  * Outputs:
+      * X, an $n\times n$ matrix, primal variable (not available if
+        Solver=>"M2")
+      * y, an $m\times 1$ matrix, dual variable
+      * Z, an $n\times n$ matrix, dual variable
+      * stat, a *note string: (Macaulay2Doc)String,, the status of the SDP
+        solver
+
+Description
+===========
+
+This method solves a semidefinite programming problem. There is an interface to
+the *note solvers: Solver, CSDP, SDPA and MOSEK. The default solver is CSDP,
+which is preinstalled with Macaulay2. Alternatively, there is rudimentary dual
+interior point method implemented entirely in Macaulay2 language.
+
++---------------------------------------------------------------------+
+|i1 : P = sdp(matrix{{1,0},{0,2}}, matrix{{0,1},{1,0}}, matrix{{-1}});|
++---------------------------------------------------------------------+
+|i2 : (X,y,Z,stat) = optimize P;                                      |
++---------------------------------------------------------------------+
+|i3 : y                                                               |
+|                                                                     |
+|o3 = | -1.41421 |                                                    |
+|                                                                     |
+|                1         1                                          |
+|o3 : Matrix RR    <-- RR                                             |
+|              53        53                                           |
++---------------------------------------------------------------------+
+
+References: Convex Optimization, Boyd, Vandenberghe, Cambridge University Press
+(2004), pp. 618-619, pp. 463-466.
+
+
+
+Caveat
+======
+
+The "M2" solver might fail if the dual problem is not strictly feasible. It
+also does not return the primal solution.
+
+See also
+========
+
+  * *note refine(SDP,Sequence): refine_lpSDP_cmSequence_rp, -- refine an SDP
+    solution
+
+Ways to use optimize:
+=====================
+
+  * "optimize(SDP)"
+  * "optimize(SDP,Matrix)"
+
+For the programmer
+==================
+
+The object *note optimize: optimize, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:266:0.
+
+File: SemidefiniteProgramming.info, Node: project2linspace, Next: PSDdecomposition, Prev: optimize, Up: Top
+
+project2linspace -- project a rational point onto affine subspace
+*****************************************************************
+
+  * Usage: 
+        xp = project2linspace(A,b,x0)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, 
+      * b, a *note matrix: (Macaulay2Doc)Matrix,, a vector
+      * x0, a *note matrix: (Macaulay2Doc)Matrix,, a rational vector
+  * Outputs:
+      * xp, a *note matrix: (Macaulay2Doc)Matrix,, the projection of x0
+
+Description
+===========
+
+Projects a rational point $x_0$ onto the affine subspace given by $A x = b$
+
+
+
+For the programmer
+==================
+
+The object *note project2linspace: project2linspace, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:373:0.
+
+File: SemidefiniteProgramming.info, Node: PSDdecomposition, Next: refine_lpSDP_cmSequence_rp, Prev: project2linspace, Up: Top
+
+PSDdecomposition -- factorization of a positive semidefinite matrix
+*******************************************************************
+
+  * Usage: 
+        (L,D,P) = PSDdecomposition A
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, 
+  * Outputs:
+      * L, a *note matrix: (Macaulay2Doc)Matrix,, nonsingular
+      * D, a *note matrix: (Macaulay2Doc)Matrix,, diagonal
+      * P, a *note matrix: (Macaulay2Doc)Matrix,, permutation matrix
+
+Description
+===========
+
+Given a positive semidefinite matrix $A$, this method factorizes it in the form
+$P' A P = L D L'$, where $P$ is a permutation matrix, $L$ is nonsingular, $D$
+is diagonal. If $A$ is a real matrix, this factorization is obtained from its
+eigenvalue decomposition. For rational matrices we use the LDL decomposition
+[Golub-vanLoan'89]. The method returns null if $A$ is not positive
+semidefinite.
+
++-----------------------------------------------+
+|i1 : A = matrix(QQ, {{5,3,5},{3,2,4},{5,4,10}})|
+|                                               |
+|o1 = | 5 3 5  |                                |
+|     | 3 2 4  |                                |
+|     | 5 4 10 |                                |
+|                                               |
+|              3       3                        |
+|o1 : Matrix QQ  <-- QQ                         |
++-----------------------------------------------+
+|i2 : (L,D,P) = PSDdecomposition(A)             |
+|                                               |
+|o2 = (| 1   0   0 |, | 10 0   0 |, | 0 1 0 |)  |
+|      | 1/2 1   0 |  | 0  5/2 0 |  | 0 0 1 |   |
+|      | 2/5 2/5 1 |  | 0  0   0 |  | 1 0 0 |   |
+|                                               |
+|o2 : Sequence                                  |
++-----------------------------------------------+
+|i3 : L*D*transpose(L) == transpose(P)*A*P      |
+|                                               |
+|o3 = true                                      |
++-----------------------------------------------+
+
+References: Matrix Computations, Gene Golub and Charles van Loan. Johns Hopkins
+series in the Mathematical Science (1989), 2 ed., pp. 133-148.
+
+
+
+For the programmer
+==================
+
+The object *note PSDdecomposition: PSDdecomposition, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:219:0.
+
+File: SemidefiniteProgramming.info, Node: refine_lpSDP_cmSequence_rp, Next: roundPSDmatrix, Prev: PSDdecomposition, Up: Top
+
+refine(SDP,Sequence) -- refine an SDP solution
+**********************************************
+
+  * Function: *note refine: (NumericalAlgebraicGeometry)refine_lpList_cmList_rp
+    ,
+  * Usage: 
+        (X1,y1) = refine(P,(X0,y0))
+  * Inputs:
+      * P, an instance of the type *note SDP: SDP,, a semidefinite programming
+        problem
+      * X0y0, a *note sequence: (Macaulay2Doc)Sequence,, primal and dual
+        solutions
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Bits: (NumericalAlgebraicGeometry)numerical homotopy tracking
+        options, => ..., default value null,
+      * *note ErrorTolerance: (NumericalAlgebraicGeometry)numerical homotopy
+        tracking options, => ..., default value null,
+      * *note Iterations: (NumericalAlgebraicGeometry)numerical homotopy
+        tracking options, => ..., default value null,
+      * *note ResidualTolerance: (NumericalAlgebraicGeometry)numerical homotopy
+        tracking options, => ..., default value null,
+      * *note SingularConditionNumber: (NumericalAlgebraicGeometry)setDefault,
+        => ..., default value null,
+      * *note Software: (NumericalAlgebraicGeometry)Software, => ..., default
+        value null,
+  * Outputs:
+      * X1y1, a *note list: (Macaulay2Doc)List,, refined primal and dual
+        solutions
+
+Description
+===========
+
+This function uses Newton's method to improve the precision of an optimal
+primal/dual pair. The refined solution has relative error bounded by min(*note
+ErrorTolerance: (NumericalAlgebraicGeometry)numerical homotopy tracking
+options,,2(-*note Bits: (NumericalAlgebraicGeometry)numerical homotopy tracking
+options,)). The number of iterations made is at most *note Iterations:
+(NumericalAlgebraicGeometry)numerical homotopy tracking options,.
+
++---------------------------------------------------------------------+
+|i1 : P = sdp(matrix{{1,0},{0,2}}, matrix{{0,1},{1,0}}, matrix{{-1}});|
++---------------------------------------------------------------------+
+|i2 : (X0,y0) = (matrix{{.71, -.5}, {-.5, .35}}, matrix{{-1.41}})     |
+|                                                                     |
+|o2 = (| .71 -.5 |, | -1.41 |)                                        |
+|      | -.5 .35 |                                                    |
+|                                                                     |
+|o2 : Sequence                                                        |
++---------------------------------------------------------------------+
+|i3 : (X1,y1) = refine(P,(X0,y0))                                     |
+|                                                                     |
+|o3 = (| .707107 -.5     |, | -1.41421 |)                             |
+|      | -.5     .353553 |                                            |
+|                                                                     |
+|o3 : Sequence                                                        |
++---------------------------------------------------------------------+
+
+
+See also
+========
+
+  * *note refine: (NumericalAlgebraicGeometry)refine_lpList_cmList_rp, --
+    refine numerical solutions to a system of polynomial equations
+  * *note criticalIdeal: criticalIdeal, -- ideal of critical equations of a
+    semidefinite program
+
+Ways to use this method:
+========================
+
+  * *note refine(SDP,Sequence): refine_lpSDP_cmSequence_rp, -- refine an SDP
+    solution
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:344:0.
+
+File: SemidefiniteProgramming.info, Node: roundPSDmatrix, Next: SDP, Prev: refine_lpSDP_cmSequence_rp, Up: Top
+
+roundPSDmatrix -- rational rounding of a PSD matrix
+***************************************************
+
+  * Usage: 
+        (Qp,ispsd) = roundPSDmatrix(Q,A,b,d)
+  * Inputs:
+      * Q, a *note matrix: (Macaulay2Doc)Matrix,, a symmetric matrix (real)
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, (rational)
+      * b, a *note matrix: (Macaulay2Doc)Matrix,, (rational)
+      * d, an *note integer: (Macaulay2Doc)ZZ,, the rounding precision
+  * Outputs:
+      * Qp, a *note matrix: (Macaulay2Doc)Matrix,, the rounded matrix
+        (rational)
+      * ispsd, a *note Boolean value: (Macaulay2Doc)Boolean,, true if Qp is
+        positive semidefinite
+
+Description
+===========
+
+Let $S^n$ be the space of symmetric $n\times n$ matrices, and let $L \subset
+S^n$ be a rational affine subspace. By *note vectorization: smat2vec, we may
+describe this subspace in the form  $A q = b$ for some matrix $A$ with
+$n(n+1)/2$ columns. Given a real matrix $Q\in S^n$, this method finds a nearby
+rational matrix $Q_p$ on $L$.
+
+
+
+See also
+========
+
+  * *note smat2vec: smat2vec, -- vectorization of a symmetric matrix
+
+For the programmer
+==================
+
+The object *note roundPSDmatrix: roundPSDmatrix, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:139:0.
+
+File: SemidefiniteProgramming.info, Node: SDP, Next: smat2vec, Prev: roundPSDmatrix, Up: Top
+
+SDP -- construct a semidefinite program
+***************************************
+
+  * Usage: 
+        P = sdp(C,A,b)
+        P = sdp(var,M,objFun)
+  * Inputs:
+      * C, a *note matrix: (Macaulay2Doc)Matrix,, a symmetric $n\times n$
+        matrix
+      * A, a *note sequence: (Macaulay2Doc)Sequence,, consisting of $m$
+        symmetric $n\times n$ matrices
+      * b, a *note matrix: (Macaulay2Doc)Matrix,, a $m\times 1$ matrix
+      * var, a *note list: (Macaulay2Doc)List,, of variables
+      * M, a *note matrix: (Macaulay2Doc)Matrix,, constraint matrix with
+        affine-linear entries
+      * objFun, a *note ring element: (Macaulay2Doc)RingElement,, linear
+        function to be minimized
+  * Outputs:
+      * P, an instance of the type *note SDP: SDP,, a semidefinite programming
+        problem
+
+Description
+===========
+
+A semidefinite program (SDP) is defined by a some symmetric matrices $C, A_i$
+and a vector $b$. The SDP has a primal and a dual problem. The primal problem
+is
+
+$$min_{X} \, C \bullet X \,\,\, s.t. \,\,\, A_i \bullet X = b_i \, and \, X
+\geq 0$$
+
+and the dual problem is
+
+$$max_{y,Z} \, \sum_i b_i y_i \,\,\, s.t. \,\,\, Z = C - \sum_i y_i A_i \, and
+\, Z \geq 0$$
+
+The type *note SDP: SDP, stores semidefinite programs. There are two ways to
+construct an SDP. The first option is to provide the matrices $C,A_i,b$.
+
++--------------------------------------------------------------------+
+|i1 : P = sdp(matrix{{1,0},{0,2}}, matrix{{0,1},{1,0}}, matrix{{-1}})|
+|                                                                    |
+|o1 = SDP{"A" => 1 : (| 0 1 |)}                                      |
+|                     | 1 0 |                                        |
+|         "b" => | -1 |                                              |
+|         "C" => | 1 0 |                                             |
+|                | 0 2 |                                             |
+|                                                                    |
+|o1 : SDP                                                            |
++--------------------------------------------------------------------+
+
+The second option is to provide a matrix $M(v)$, with affine entries, and a
+linear function $f(v)$. This constructs an SDP in dual form: minimize $f(v)$
+subject to $M(v)\geq 0$.
+
++-----------------------------------------------+
+|i2 : R = QQ[u,v,w];                            |
++-----------------------------------------------+
+|i3 : M = matrix {{1,u,3-v},{u,5,w},{3-v,w,9+u}}|
+|                                               |
+|o3 = | 1    u -v+3 |                           |
+|     | u    5 w    |                           |
+|     | -v+3 w u+9  |                           |
+|                                               |
+|             3      3                          |
+|o3 : Matrix R  <-- R                           |
++-----------------------------------------------+
+|i4 : objFun = u+v+w;                           |
++-----------------------------------------------+
+|i5 : P = sdp({u,v,w}, M, objFun);              |
++-----------------------------------------------+
+
+Semidefinite programs can be solved numerically using the method *note
+optimize: optimize,, and in small cases also symbolically with the method *note
+criticalIdeal: criticalIdeal,.
+
+
+
+Methods that use an object of class SDP:
+========================================
+
+  * "criticalIdeal(SDP)" -- see *note criticalIdeal: criticalIdeal, -- ideal of
+    critical equations of a semidefinite program
+  * "criticalIdeal(SDP,ZZ)" -- see *note criticalIdeal: criticalIdeal, -- ideal
+    of critical equations of a semidefinite program
+  * "optimize(SDP)" -- see *note optimize: optimize, -- solve a semidefinite
+    program
+  * "optimize(SDP,Matrix)" -- see *note optimize: optimize, -- solve a
+    semidefinite program
+  * *note refine(SDP,Sequence): refine_lpSDP_cmSequence_rp, -- refine an SDP
+    solution
+  * "ring(SDP)"
+
+For the programmer
+==================
+
+The object *note SDP: SDP, is a *note type: (Macaulay2Doc)Type,, with ancestor
+classes *note HashTable: (Macaulay2Doc)HashTable, < *note Thing:
+(Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:105:0.
+
+File: SemidefiniteProgramming.info, Node: smat2vec, Next: Solver, Prev: SDP, Up: Top
+
+smat2vec -- vectorization of a symmetric matrix
+***********************************************
+
+  * Usage: 
+        v = smat2vec A
+        A = vec2smat v
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, symmetric
+      * v, a *note matrix: (Macaulay2Doc)Matrix,, a vector
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Scaling => ..., default value 1
+  * Outputs:
+      * v, a *note matrix: (Macaulay2Doc)Matrix,, 
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, 
+
+Description
+===========
+
+The method smat2vec obtains the vectorization of a symmetric matrix. The method
+vec2smat performs the reverse operation.
+
++---------------------------------------------------------------+
+|i1 : A = matrix(QQ, {{1,2,3,4},{2,5,6,7},{3,6,8,9},{4,7,9,10}})|
+|                                                               |
+|o1 = | 1 2 3 4  |                                              |
+|     | 2 5 6 7  |                                              |
+|     | 3 6 8 9  |                                              |
+|     | 4 7 9 10 |                                              |
+|                                                               |
+|              4       4                                        |
+|o1 : Matrix QQ  <-- QQ                                         |
++---------------------------------------------------------------+
+|i2 : v = smat2vec A                                            |
+|                                                               |
+|o2 = | 1  |                                                    |
+|     | 2  |                                                    |
+|     | 3  |                                                    |
+|     | 4  |                                                    |
+|     | 5  |                                                    |
+|     | 6  |                                                    |
+|     | 7  |                                                    |
+|     | 8  |                                                    |
+|     | 9  |                                                    |
+|     | 10 |                                                    |
+|                                                               |
+|              10       1                                       |
+|o2 : Matrix QQ   <-- QQ                                        |
++---------------------------------------------------------------+
+|i3 : vec2smat v                                                |
+|                                                               |
+|o3 = | 1 2 3 4  |                                              |
+|     | 2 5 6 7  |                                              |
+|     | 3 6 8 9  |                                              |
+|     | 4 7 9 10 |                                              |
+|                                                               |
+|              4       4                                        |
+|o3 : Matrix QQ  <-- QQ                                         |
++---------------------------------------------------------------+
+
+The scaling of the off-diagonal entries can be controlled with the optional
+parameter.
+
++---------------------------+
+|i4 : smat2vec(A,Scaling=>2)|
+|                           |
+|o4 = | 1  |                |
+|     | 4  |                |
+|     | 6  |                |
+|     | 8  |                |
+|     | 5  |                |
+|     | 12 |                |
+|     | 14 |                |
+|     | 8  |                |
+|     | 18 |                |
+|     | 10 |                |
+|                           |
+|              10       1   |
+|o4 : Matrix QQ   <-- QQ    |
++---------------------------+
+
+
+Ways to use smat2vec:
+=====================
+
+  * "smat2vec(List)"
+  * "smat2vec(Matrix)"
+
+For the programmer
+==================
+
+The object *note smat2vec: smat2vec, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:180:0.
+
+File: SemidefiniteProgramming.info, Node: Solver, Next: Verbosity, Prev: smat2vec, Up: Top
+
+Solver -- picking a semidefinite programming solver
+***************************************************
+
+Description
+===========
+
+There are several specialized solvers (or tools) for semidefinite programming.
+This package interfaces some of these solvers to Macaulay2. In particular, the
+open source solver CSDP is included with Macaulay2, and is configured as the
+default. There is also a rudimentary semidefinite programming solver
+implemented in the Macaulay2 language, but for most applications it will be
+insufficient. The package supports the following solvers:
+  * "M2" -- a simple dual interior point method implemented in Macaulay2
+  * "CSDP" -- this is an open source solver, available at
+    https://projects.coin-or.org/Csdp/
+  * "SDPA" -- this is an open source solver, available at
+    http://sdpa.sourceforge.net/
+  * "MOSEK" -- this is a commercial solver, free for academic use, available at
+    https://www.mosek.com/
+In our experience CSDP and MOSEK give the best results. An easy way to make an
+additional solver available to Macaulay2 is to add the executable to the PATH
+environment variable. Another way is to explicitly specify the location of the
+executable in the package configuration:
++-----------------------------------------------------------------------------+
+|i1 : needsPackage ("SemidefiniteProgramming",                                |
+|-----------------------------------------------------------------------------|
+|Configuration=>{"CSDPexec"=>"/some/path/csdp"});                             |
++-----------------------------------------------------------------------------+
+|i2 : needsPackage ("SemidefiniteProgramming",                                |
+|-----------------------------------------------------------------------------|
+|Configuration=>{"SDPAexec"=>"/some/path/sdpa"});                             |
++-----------------------------------------------------------------------------+
+|i3 : needsPackage ("SemidefiniteProgramming",                                |
+|-----------------------------------------------------------------------------|
+|Configuration=>{"MOSEKexec"=>"/some/path/mosek"});                           |
++-----------------------------------------------------------------------------+
+A third method is to use the function *note changeSolver: changeSolver,. After
+configuring, the method *note checkOptimize: checkOptimize, can be used to
+check if a solver works.
+
+The default solver can also be specified when loading the package:
++-----------------------------------------------------------------------------+
+|i4 : needsPackage ("SemidefiniteProgramming",                                |
+|-----------------------------------------------------------------------------|
+|Configuration=>{"DefaultSolver"=>"CSDP"});                                   |
++-----------------------------------------------------------------------------+
+If no default solver is specified, the package tries to use, in this order,
+CSDP, MOSEK, SDPA, M2.
+
+Saving the configuration
+========================
+
+The configuration options "CSDPexec", "SDPAexec", "MOSEKexec", "DefaultSolver"
+can be saved by editing the file "init-SemidefiniteProgramming.m2", which is
+located in the application directory:
++-----------------------------+
+|i5 : applicationDirectory()  |
+|                             |
+|o5 = /home/m2user/.Macaulay2/|
++-----------------------------+
+
+Functions with optional argument named Solver:
+==============================================
+
+  * "optimize(...,Solver=>...)"
+
+For the programmer
+==================
+
+The object *note Solver: Solver, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:436:0.
+
+File: SemidefiniteProgramming.info, Node: Verbosity, Prev: Solver, Up: Top
+
+Verbosity -- control the level of information printed
+*****************************************************
+
+Description
+===========
+
+This optional argument indicates how much information should be given to the
+user.  The possible values are:
+  * 0 (default) -- no information is printed.
+  * 1 -- minimal information (solver used, input/output files, status of the
+    solver).
+  * 2 -- more detailed information (e.g., progress of the solver).
+
+
+Functions with optional argument named Verbosity:
+=================================================
+
+  * decompose(Ideal,Verbosity=>...) (missing documentation)
+  * isPrime(Ideal,Verbosity=>...) (missing documentation)
+  * "checkOptimize(...,Verbosity=>...)"
+  * "optimize(...,Verbosity=>...)"
+
+For the programmer
+==================
+
+The object *note Verbosity: Verbosity, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SemidefiniteProgramming/SDPdoc.m2:392:0.
+
+Tag Table:
+Node: Top266
+Node: changeSolver7721
+Node: checkOptimize9108
+Node: criticalIdeal10653
+Node: mosekexec13604
+Node: optimize14127
+Node: project2linspace17230
+Node: PSDdecomposition18215
+Node: refine_lpSDP_cmSequence_rp20774
+Node: roundPSDmatrix24492
+Node: SDP26015
+Node: smat2vec30405
+Node: Solver34611
+Node: Verbosity38510
+
+End Tag Table

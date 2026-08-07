@@ -1,0 +1,967 @@
+ -*- coding: utf-8 -*- This is MRDI.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* MRDI: (MRDI).                 serializing algebraic data with .mrdi files
+END-INFO-DIR-ENTRY
+
+
+File: MRDI.info, Node: Top, Up: (dir)
+
+MRDI -- serialization using the mrdi file format
+************************************************
+
+Description
+===========
+
+The MRDI package provides tools for serializing and deserializing mathematical
+objects in Macaulay2 using the MRDI file format, a JSON-based format for
+storing and sharing results in computer algebra without losing accuracy.  The
+format was developed as part of the Mathematics Research Data Initiative
+(MaRDI) (see https://www.mardi4nfdi.de/ ) and is described in the paper:
+
+Antony Della Vecchia, Michael Joswig, and Benjamin Lorenz, A FAIR file format
+for mathematical software (see https://doi.org/10.1007/978-3-031-64529-7_25 ),
+Mathematical software—ICMS 2024, 234–244, Lecture Notes in Comput. Sci., 14749,
+Springer, Cham.
+
+Each serialized object carries a namespace (_ns) identifying the originating
+software system and version, a type descriptor (_type) that may include
+recursive parameters, the actual data, and optionally a set of references
+(_refs) keyed by UUIDs.
+
+The package can serialize and deserialize integers, rings (*note ZZ:
+(Macaulay2Doc)ZZ,, *note QQ: (Macaulay2Doc)QQ,, finite prime fields, Galois
+fields), polynomial rings, ring elements, ideals, and matrices.  It can also
+load and save objects using the OSCAR namespace, enabling interoperability with
+the OSCAR (see https://www.oscar-system.org/ ) computer algebra system.
+
+The namespace mechanism also makes it possible to define custom serialization
+formats for exchanging data with other software systems.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y,z,w]                                                         |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : I = monomialCurveIdeal(R, {1,2,3})                                      |
+|                                                                             |
+|             2                    2                                          |
+|o2 = ideal (z  - y*w, y*z - x*w, y  - x*z)                                   |
+|                                                                             |
+|o2 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i3 : s = saveMRDI I                                                          |
+|                                                                             |
+|o3 = {"_type": {"params": "6caf806b-9118-4741-bec7-217a71096848", "name":    |
+|     "Ideal"}, "data": [[[["0", "0", "2", "0"], ["1", "1"]], [["0", "1", "0",|
+|     "1"], ["-1", "1"]]], [[["0", "1", "1", "0"], ["1", "1"]], [["1", "0",   |
+|     "0", "1"], ["-1", "1"]]], [[["0", "2", "0", "0"], ["1", "1"]], [["1",   |
+|     "0", "1", "0"], ["-1", "1"]]]], "_ns": {"Macaulay2":                    |
+|     ["https://macaulay2.com", "1.26.05"]}, "_refs":                         |
+|     {"6caf806b-9118-4741-bec7-217a71096848": {"_type": {"params": {"_type": |
+|     "Ring", "data": "QQ"}, "name": "PolynomialRing"}, "data": {"variables": |
+|     ["x", "y", "z", "w"]}}}}                                                |
++-----------------------------------------------------------------------------+
+|i4 : loadMRDI s                                                              |
+|                                                                             |
+|             2                    2                                          |
+|o4 = ideal (z  - y*w, y*z - x*w, y  - x*z)                                   |
+|                                                                             |
+|o4 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+* Menu:
+
+* saveMRDI::                    serialize a Macaulay2 object to MRDI JSON format
+* loadMRDI::                    deserialize a Macaulay2 object from MRDI format
+* Namespace::                   option specifying the namespace for MRDI serialization
+* validateMRDI::                validate an MRDI JSON object against the format specification
+
+Author
+======
+
+  * Doug Torrance (see https://d-torrance.github.io ) <dtorrance9@gatech.edu>
+
+Version
+=======
+
+This documentation describes version 0.1 of MRDI, released April 25, 2026.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{MRDISource,                                                            |
+|  title = {{MRDI: serializing algebraic data with .mrdi files. Version~0.1}},|
+|  author = {Doug Torrance},                                                  |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|                                                                             |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note addLoadMethod: addLoadMethod, -- register a method for
+        deserializing a type from MRDI format
+      * *note addNamespace: addNamespace, -- register a namespace for MRDI
+        serialization
+      * *note addSaveMethod: addSaveMethod, -- register a method for
+        serializing a type to MRDI format
+      * *note loadMRDI: loadMRDI, -- deserialize a Macaulay2 object from MRDI
+        format
+      * *note saveMRDI: saveMRDI, -- serialize a Macaulay2 object to MRDI JSON
+        format
+      * *note validateMRDI: validateMRDI, -- validate an MRDI JSON object
+        against the format specification
+  * Methods
+      * "addLoadMethod(List,Function)" -- see *note addLoadMethod:
+        addLoadMethod, -- register a method for deserializing a type from MRDI
+        format
+      * "addLoadMethod(String,Function)" -- see *note addLoadMethod:
+        addLoadMethod, -- register a method for deserializing a type from MRDI
+        format
+      * "addNamespace(String,String,String)" -- see *note addNamespace:
+        addNamespace, -- register a namespace for MRDI serialization
+      * "addSaveMethod(Type)" -- see *note addSaveMethod: addSaveMethod, --
+        register a method for serializing a type to MRDI format
+      * "addSaveMethod(Type,Function)" -- see *note addSaveMethod:
+        addSaveMethod, -- register a method for serializing a type to MRDI
+        format
+      * "addSaveMethod(Type,Function,Function)" -- see *note addSaveMethod:
+        addSaveMethod, -- register a method for serializing a type to MRDI
+        format
+      * "loadMRDI(HashTable)" -- see *note loadMRDI: loadMRDI, -- deserialize a
+        Macaulay2 object from MRDI format
+      * "loadMRDI(String)" -- see *note loadMRDI: loadMRDI, -- deserialize a
+        Macaulay2 object from MRDI format
+      * "saveMRDI(Thing)" -- see *note saveMRDI: saveMRDI, -- serialize a
+        Macaulay2 object to MRDI JSON format
+      * "validateMRDI(HashTable)" -- see *note validateMRDI: validateMRDI, --
+        validate an MRDI JSON object against the format specification
+      * "validateMRDI(String)" -- see *note validateMRDI: validateMRDI, --
+        validate an MRDI JSON object against the format specification
+      * "validateMRDI(Thing)" -- see *note validateMRDI: validateMRDI, --
+        validate an MRDI JSON object against the format specification
+  * Symbols
+      * "UseID" -- see *note addSaveMethod: addSaveMethod, -- register a method
+        for serializing a type to MRDI format
+      * *note Namespace: Namespace, -- option specifying the namespace for MRDI
+        serialization
+      * "ToString" -- see *note saveMRDI: saveMRDI, -- serialize a Macaulay2
+        object to MRDI JSON format
+
+For the programmer
+==================
+
+The object *note MRDI: Top, is a *note package: (Macaulay2Doc)Package,, defined
+in MRDI.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MRDI.m2:487:0.
+
+File: MRDI.info, Node: saveMRDI, Next: loadMRDI, Up: Top
+
+saveMRDI -- serialize a Macaulay2 object to MRDI JSON format
+************************************************************
+
+  * Usage: 
+        saveMRDI x
+  * Inputs:
+      * x, a *note thing: (Macaulay2Doc)Thing,, a Macaulay2 object to serialize
+        (must have a save method registered via *note addSaveMethod:
+        addSaveMethod,)
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * FileName => a *note string: (Macaulay2Doc)String,, default value null,
+        if given, the JSON output is written to this file
+      * Namespace => a *note string: (Macaulay2Doc)String,, default value
+        "Macaulay2", the namespace to use for serialization
+      * ToString => a *note Boolean value: (Macaulay2Doc)Boolean,, default
+        value true, if *note true: (Macaulay2Doc)true,, then the output is a
+        JSON string; if *note false: (Macaulay2Doc)false,, then the output is a
+        *note hash table: (Macaulay2Doc)HashTable, representing the JSON
+        structure
+  * Outputs:
+      * a *note string: (Macaulay2Doc)String, or a *note hash table:
+        (Macaulay2Doc)HashTable,,
+
+Description
+===========
+
+This function serializes a Macaulay2 object into a JSON string following the
+MRDI file format specification.  The output includes a namespace (_ns)
+identifying the software system and its version, a type descriptor (_type), and
+the data.
+
+For parametric types such as *note PolynomialRing:
+(Macaulay2Doc)PolynomialRing,, *note RingElement: (Macaulay2Doc)RingElement,,
+*note Ideal: (Macaulay2Doc)Ideal,, and *note Matrix: (Macaulay2Doc)Matrix,, the
+type descriptor includes a params field referencing the parent ring.  Rings and
+other objects marked with *note UseID: addSaveMethod, are assigned UUIDs so
+that multiple objects sharing the same ring refer to it by UUID rather than
+repeating its full description.
+
+We may serialize a simple integer.
+
++--------------------------------------------------------------------------+
+|i1 : saveMRDI 5                                                           |
+|                                                                          |
+|o1 = {"_ns": {"Macaulay2": ["https://macaulay2.com", "1.26.05"]}, "_type":|
+|     "ZZ", "data": "5"}                                                   |
++--------------------------------------------------------------------------+
+
+We can also serialize a polynomial ring element.
+
++-----------------------------------------------------------------------------+
+|i2 : R = QQ[x,y,z];                                                          |
++-----------------------------------------------------------------------------+
+|i3 : f = x^2 + y*z - 3*x                                                     |
+|                                                                             |
+|      2                                                                      |
+|o3 = x  + y*z - 3x                                                           |
+|                                                                             |
+|o3 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i4 : saveMRDI f                                                              |
+|                                                                             |
+|o4 = {"_type": {"params": "6caf806b-9118-4741-bec7-217a71096848", "name":    |
+|     "RingElement"}, "data": [[["2", "0", "0"], ["1", "1"]], [["0", "1",     |
+|     "1"], ["1", "1"]], [["1", "0", "0"], ["-3", "1"]]], "_ns": {"Macaulay2":|
+|     ["https://macaulay2.com", "1.26.05"]}, "_refs":                         |
+|     {"6caf806b-9118-4741-bec7-217a71096848": {"_type": {"params": {"_type": |
+|     "Ring", "data": "QQ"}, "name": "PolynomialRing"}, "data": {"variables": |
+|     ["x", "y", "z"]}}}}                                                     |
++-----------------------------------------------------------------------------+
+
+Ideals are serialized similarly.
+
++----------------------------------------------------------------------------+
+|i5 : I = ideal(x^2 - y, y^2 - z)                                            |
+|                                                                            |
+|             2       2                                                      |
+|o5 = ideal (x  - y, y  - z)                                                 |
+|                                                                            |
+|o5 : Ideal of R                                                             |
++----------------------------------------------------------------------------+
+|i6 : saveMRDI I                                                             |
+|                                                                            |
+|o6 = {"_type": {"params": "6caf806b-9118-4741-bec7-217a71096848", "name":   |
+|     "Ideal"}, "data": [[[["2", "0", "0"], ["1", "1"]], [["0", "1", "0"],   |
+|     ["-1", "1"]]], [[["0", "2", "0"], ["1", "1"]], [["0", "0", "1"], ["-1",|
+|     "1"]]]], "_ns": {"Macaulay2": ["https://macaulay2.com", "1.26.05"]},   |
+|     "_refs": {"6caf806b-9118-4741-bec7-217a71096848": {"_type": {"params": |
+|     {"_type": "Ring", "data": "QQ"}, "name": "PolynomialRing"}, "data":    |
+|     {"variables": ["x", "y", "z"]}}}}                                      |
++----------------------------------------------------------------------------+
+
+The output can be written directly to a file using the *note FileName:
+(Macaulay2Doc)FileName, option.
+
++-----------------------------------------------------------------------------+
+|i7 : fn = temporaryFileName() | ".mrdi"                                      |
+|                                                                             |
+|o7 = /tmp/M2-61295-0/0.mrdi                                                  |
++-----------------------------------------------------------------------------+
+|i8 : saveMRDI(f, FileName => fn)                                             |
+|                                                                             |
+|o8 = {"_type": {"params": "6caf806b-9118-4741-bec7-217a71096848", "name":    |
+|     "RingElement"}, "data": [[["2", "0", "0"], ["1", "1"]], [["0", "1",     |
+|     "1"], ["1", "1"]], [["1", "0", "0"], ["-3", "1"]]], "_ns": {"Macaulay2":|
+|     ["https://macaulay2.com", "1.26.05"]}, "_refs":                         |
+|     {"6caf806b-9118-4741-bec7-217a71096848": {"_type": {"params": {"_type": |
+|     "Ring", "data": "QQ"}, "name": "PolynomialRing"}, "data": {"variables": |
+|     ["x", "y", "z"]}}}}                                                     |
++-----------------------------------------------------------------------------+
+|i9 : removeFile fn                                                           |
++-----------------------------------------------------------------------------+
+
+The *note Namespace: Namespace, option selects a different namespace for
+serialization, such as OSCAR.
+
++--------------------------------------------------------------------+
+|i10 : saveMRDI(5, Namespace => "Oscar")                             |
+|                                                                    |
+|o10 = {"_ns": {"Oscar": ["https://github.com/oscar-system/Oscar.jl",|
+|      "1.6.0"]}, "_type": {"params": {"_type": "ZZRing"}, "name":   |
+|      "ZZRingElem"}, "data": "5"}                                   |
++--------------------------------------------------------------------+
+
+Setting ToString => false returns the hash table representation instead of a
+JSON string.
+
++-----------------------------------------------------------------------------+
+|i11 : saveMRDI(5, ToString => false)                                         |
+|                                                                             |
+|o11 = HashTable{"_ns" => HashTable{"Macaulay2" => {https://macaulay2.com,    |
+|                "_type" => ZZ                                                |
+|                "data" => 5                                                  |
+|                                                                             |
+|o11 : HashTable                                                              |
+|-----------------------------------------------------------------------------|
+|1.26.05}}}                                                                   |
++-----------------------------------------------------------------------------+
+
+To see which types have built-in save methods for a given namespace, call *note
+methods: (Macaulay2Doc)methods, as follows.
+
++----------------------------------------------------+
+|i12 : methods {"Macaulay2", saveMRDI}               |
+|                                                    |
+|o12 = {0 => ({Macaulay2, saveMRDI}, Matrix)        }|
+|      {1 => ({Macaulay2, saveMRDI}, GaloisField)   }|
+|      {2 => ({Macaulay2, saveMRDI}, Ideal)         }|
+|      {3 => ({Macaulay2, saveMRDI}, PolynomialRing)}|
+|      {4 => ({Macaulay2, saveMRDI}, ZZ)            }|
+|      {5 => ({Macaulay2, saveMRDI}, QuotientRing)  }|
+|      {6 => ({Macaulay2, saveMRDI}, RingElement)   }|
+|      {7 => ({Macaulay2, saveMRDI}, Ring)          }|
+|                                                    |
+|o12 : NumberedVerticalList                          |
++----------------------------------------------------+
+|i13 : methods {"Oscar", saveMRDI}                   |
+|                                                    |
+|o13 = {0 => ({Oscar, saveMRDI}, QQ)            }    |
+|      {1 => ({Oscar, saveMRDI}, ZZ)            }    |
+|      {2 => ({Oscar, saveMRDI}, RingElement)   }    |
+|      {3 => ({Oscar, saveMRDI}, Ring)          }    |
+|      {4 => ({Oscar, saveMRDI}, PolynomialRing)}    |
+|                                                    |
+|o13 : NumberedVerticalList                          |
++----------------------------------------------------+
+
+Additional types can be supported by calling *note addSaveMethod:
+addSaveMethod,.
+
+Caveat
+======
+
+Not all Macaulay2 types have save methods defined.  Attempting to serialize an
+unsupported type will produce an error. Quotient rings other than finite prime
+fields are not yet supported.
+
+See also
+========
+
+  * *note loadMRDI: loadMRDI, -- deserialize a Macaulay2 object from MRDI
+    format
+* Menu:
+
+* addSaveMethod::               register a method for serializing a type to MRDI format
+
+Ways to use saveMRDI:
+=====================
+
+  * "saveMRDI(Thing)"
+
+For the programmer
+==================
+
+The object *note saveMRDI: saveMRDI, is a *note method function with a single
+argument: (Macaulay2Doc)MethodFunctionSingle,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MRDI.m2:577:0.
+
+File: MRDI.info, Node: addSaveMethod, Up: saveMRDI
+
+addSaveMethod -- register a method for serializing a type to MRDI format
+************************************************************************
+
+  * Usage: 
+        addSaveMethod T
+        addSaveMethod(T, dataFunc)
+        addSaveMethod(T, paramsFunc, dataFunc)
+  * Inputs:
+      * T, a *note type: (Macaulay2Doc)Type,, the Macaulay2 type to be
+        serialized
+      * dataFunc, a *note function: (Macaulay2Doc)Function,, a function that
+        takes an object of type T and returns the data to be stored in the data
+        field of the MRDI JSON
+      * paramsFunc, a *note function: (Macaulay2Doc)Function,, a function that
+        takes an object of type T and returns the parameter object (e.g., the
+        coefficient ring of a polynomial ring), which will itself be serialized
+        recursively
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * UseID => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        false, if true, objects of this type are assigned UUIDs so they can be
+        referenced rather than duplicated
+      * Name => a *note function: (Macaulay2Doc)Function,, default value
+        FunctionClosure[../../../../../Macaulay2/m2/classes.m2:113:45-113:55],
+        a function (or string) that determines the type name string for the
+        _type field.  By default, the *note class: (Macaulay2Doc)class, of each
+        object (as a string) is used.
+      * Namespace => a *note string: (Macaulay2Doc)String,, default value
+        "Macaulay2", the namespace to register this save method under
+
+Description
+===========
+
+This function registers a serialization method for the given type so that *note
+saveMRDI: saveMRDI, knows how to convert objects of that type into MRDI JSON
+format.
+
+The zero-argument form addSaveMethod T is for types with no data and no
+parameters (the MRDI output will contain only a _type field).
+
+The one-argument form addSaveMethod(T, dataFunc) is for basic (non-parametric)
+types whose MRDI representation needs only a _type name and data.  The dataFunc
+receives the object and should return the data portion.
+
+The two-argument form addSaveMethod(T, paramsFunc, dataFunc) is for parametric
+types.  The paramsFunc returns an object representing the type's parameter
+(which will be recursively serialized into the _type.params field), and
+dataFunc returns the data.
+
+The *note UseID: addSaveMethod, option causes objects of this type to be
+assigned RFC 9562 version 4 UUIDs upon serialization. This is important for
+types like polynomial rings that may be shared by many objects: the ring is
+stored once in the _refs section and referenced by UUID elsewhere.
+
+The *note Namespace: Namespace, option allows registering save methods for
+different namespaces.  This is how OSCAR serialization support is implemented
+alongside Macaulay2's own namespace.
+
+Here we register a save method for a custom namespace.
+
++----------------------------------------------------------------------------+
+|i1 : addNamespace("MySystem", "https://example.com", "1.0")                 |
++----------------------------------------------------------------------------+
+|i2 : addSaveMethod(ZZ, identity, Name => "MyInt", Namespace => "MySystem")  |
++----------------------------------------------------------------------------+
+|i3 : saveMRDI(42, Namespace => "MySystem")                                  |
+|                                                                            |
+|o3 = {"_ns": {"MySystem": ["https://example.com", "1.0"]}, "_type": "MyInt",|
+|     "data": "42"}                                                          |
++----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note saveMRDI: saveMRDI, -- serialize a Macaulay2 object to MRDI JSON
+    format
+
+Ways to use addSaveMethod:
+==========================
+
+  * "addSaveMethod(Type)"
+  * "addSaveMethod(Type,Function)"
+  * "addSaveMethod(Type,Function,Function)"
+
+For the programmer
+==================
+
+The object *note addSaveMethod: addSaveMethod, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MRDI.m2:736:0.
+
+File: MRDI.info, Node: loadMRDI, Next: Namespace, Prev: saveMRDI, Up: Top
+
+loadMRDI -- deserialize a Macaulay2 object from MRDI format
+***********************************************************
+
+  * Usage: 
+        loadMRDI s
+  * Inputs:
+      * s, a *note string: (Macaulay2Doc)String, or a *note hash table:
+        (Macaulay2Doc)HashTable,, a JSON string in the MRDI file format or
+        parsed JSON hash table (e.g., from *note fromJSON: (JSON)fromJSON,)
+  * Outputs:
+      * a *note thing: (Macaulay2Doc)Thing,, the deserialized Macaulay2 object;
+
+Description
+===========
+
+This method parses an MRDI-formatted JSON string (or hash table) and
+reconstructs the corresponding Macaulay2 object.  The namespace field (_ns) in
+the JSON determines which set of load methods is used for deserialization.
+
+This function handles the _refs section of the JSON to reconstruct shared
+references via UUIDs.  For example, when an ideal and a ring element both refer
+to the same polynomial ring, the ring is constructed once and shared.
+
+A polynomial ring element can be round-tripped through the format.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y,z,w];                                                        |
++-----------------------------------------------------------------------------+
+|i2 : f = x^2 + y*z                                                           |
+|                                                                             |
+|      2                                                                      |
+|o2 = x  + y*z                                                                |
+|                                                                             |
+|o2 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i3 : s = saveMRDI f                                                          |
+|                                                                             |
+|o3 = {"_type": {"params": "6caf806b-9118-4741-bec7-217a71096848", "name":    |
+|     "RingElement"}, "data": [[["2", "0", "0", "0"], ["1", "1"]], [["0", "1",|
+|     "1", "0"], ["1", "1"]]], "_ns": {"Macaulay2": ["https://macaulay2.com", |
+|     "1.26.05"]}, "_refs": {"6caf806b-9118-4741-bec7-217a71096848": {"_type":|
+|     {"params": {"_type": "Ring", "data": "QQ"}, "name": "PolynomialRing"},  |
+|     "data": {"variables": ["x", "y", "z", "w"]}}}}                          |
++-----------------------------------------------------------------------------+
+|i4 : g = loadMRDI s                                                          |
+|                                                                             |
+|      2                                                                      |
+|o4 = x  + y*z                                                                |
+|                                                                             |
+|o4 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : f === g                                                                 |
+|                                                                             |
+|o5 = true                                                                    |
++-----------------------------------------------------------------------------+
+
+The same works for ideals.
+
++-----------------------------------------------------------------------------+
+|i6 : I = monomialCurveIdeal(R, {1,2,3})                                      |
+|                                                                             |
+|             2                    2                                          |
+|o6 = ideal (z  - y*w, y*z - x*w, y  - x*z)                                   |
+|                                                                             |
+|o6 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i7 : s = saveMRDI I                                                          |
+|                                                                             |
+|o7 = {"_type": {"params": "6caf806b-9118-4741-bec7-217a71096848", "name":    |
+|     "Ideal"}, "data": [[[["0", "0", "2", "0"], ["1", "1"]], [["0", "1", "0",|
+|     "1"], ["-1", "1"]]], [[["0", "1", "1", "0"], ["1", "1"]], [["1", "0",   |
+|     "0", "1"], ["-1", "1"]]], [[["0", "2", "0", "0"], ["1", "1"]], [["1",   |
+|     "0", "1", "0"], ["-1", "1"]]]], "_ns": {"Macaulay2":                    |
+|     ["https://macaulay2.com", "1.26.05"]}, "_refs":                         |
+|     {"6caf806b-9118-4741-bec7-217a71096848": {"_type": {"params": {"_type": |
+|     "Ring", "data": "QQ"}, "name": "PolynomialRing"}, "data": {"variables": |
+|     ["x", "y", "z", "w"]}}}}                                                |
++-----------------------------------------------------------------------------+
+|i8 : J = loadMRDI s                                                          |
+|                                                                             |
+|             2                    2                                          |
+|o8 = ideal (z  - y*w, y*z - x*w, y  - x*z)                                   |
+|                                                                             |
+|o8 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i9 : I === J                                                                 |
+|                                                                             |
+|o9 = true                                                                    |
++-----------------------------------------------------------------------------+
+
+Objects can be loaded from a file as well using *note get: (Macaulay2Doc)get,.
+
++-----------------------------------------------------------------------------+
+|i10 : fn = temporaryFileName() | ".mrdi"                                     |
+|                                                                             |
+|o10 = /tmp/M2-61277-0/0.mrdi                                                 |
++-----------------------------------------------------------------------------+
+|i11 : saveMRDI(I, FileName => fn)                                            |
+|                                                                             |
+|o11 = {"_type": {"params": "6caf806b-9118-4741-bec7-217a71096848", "name":   |
+|      "Ideal"}, "data": [[[["0", "0", "2", "0"], ["1", "1"]], [["0", "1",    |
+|      "0", "1"], ["-1", "1"]]], [[["0", "1", "1", "0"], ["1", "1"]], [["1",  |
+|      "0", "0", "1"], ["-1", "1"]]], [[["0", "2", "0", "0"], ["1", "1"]],    |
+|      [["1", "0", "1", "0"], ["-1", "1"]]]], "_ns": {"Macaulay2":            |
+|      ["https://macaulay2.com", "1.26.05"]}, "_refs":                        |
+|      {"6caf806b-9118-4741-bec7-217a71096848": {"_type": {"params": {"_type":|
+|      "Ring", "data": "QQ"}, "name": "PolynomialRing"}, "data": {"variables":|
+|      ["x", "y", "z", "w"]}}}}                                               |
++-----------------------------------------------------------------------------+
+|i12 : J = loadMRDI get fn                                                    |
+|                                                                             |
+|              2                    2                                         |
+|o12 = ideal (z  - y*w, y*z - x*w, y  - x*z)                                  |
+|                                                                             |
+|o12 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i13 : I === J                                                                |
+|                                                                             |
+|o13 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i14 : removeFile fn                                                          |
++-----------------------------------------------------------------------------+
+
+A parsed hash table can also be passed directly, for instance when using
+ToString => false with *note saveMRDI: saveMRDI,.
+
++-----------------------------------------------------------------------------+
+|i15 : h = saveMRDI(42, ToString => false)                                    |
+|                                                                             |
+|o15 = HashTable{"_ns" => HashTable{"Macaulay2" => {https://macaulay2.com,    |
+|                "_type" => ZZ                                                |
+|                "data" => 42                                                 |
+|                                                                             |
+|o15 : HashTable                                                              |
+|-----------------------------------------------------------------------------|
+|1.26.05}}}                                                                   |
++-----------------------------------------------------------------------------+
+|i16 : loadMRDI h                                                             |
+|                                                                             |
+|o16 = 42                                                                     |
++-----------------------------------------------------------------------------+
+
+The MRDI format supports cross-system interoperability. Objects serialized by
+the OSCAR computer algebra system can also be loaded.
+
++-----------------------------------------------------------------------------+
+|i17 : loadMRDI "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.|
+|                                                                             |
+|o17 = 42                                                                     |
+|-----------------------------------------------------------------------------|
+|jl\",\"1.5.0\"]},\"_type\":\"ZZRingElem\",\"data\":\"42\"}"                  |
++-----------------------------------------------------------------------------+
+
+To see which types have built-in load methods for a given namespace, call *note
+methods: (Macaulay2Doc)methods, as follows.
+
++----------------------------------------------------+
+|i18 : methods {"Macaulay2", loadMRDI}               |
+|                                                    |
+|o18 = {0 => ({Macaulay2, loadMRDI}, Ring)          }|
+|      {1 => ({Macaulay2, loadMRDI}, ZZ)            }|
+|      {2 => ({Macaulay2, loadMRDI}, Matrix)        }|
+|      {3 => ({Macaulay2, loadMRDI}, GaloisField)   }|
+|      {4 => ({Macaulay2, loadMRDI}, PolynomialRing)}|
+|      {5 => ({Macaulay2, loadMRDI}, Ideal)         }|
+|      {6 => ({Macaulay2, loadMRDI}, QuotientRing)  }|
+|      {7 => ({Macaulay2, loadMRDI}, RingElement)   }|
+|                                                    |
+|o18 : NumberedVerticalList                          |
++----------------------------------------------------+
+|i19 : methods {"Oscar", loadMRDI}                   |
+|                                                    |
+|o19 = {0 => ({Oscar, loadMRDI}, ZZRing)       }     |
+|      {1 => ({Oscar, loadMRDI}, String)       }     |
+|      {2 => ({Oscar, loadMRDI}, Base.Int)     }     |
+|      {3 => ({Oscar, loadMRDI}, MPolyRingElem)}     |
+|      {4 => ({Oscar, loadMRDI}, MPolyRing)    }     |
+|      {5 => ({Oscar, loadMRDI}, QQFieldElem)  }     |
+|      {6 => ({Oscar, loadMRDI}, QQField)      }     |
+|      {7 => ({Oscar, loadMRDI}, Float64)      }     |
+|      {8 => ({Oscar, loadMRDI}, PolyRingElem) }     |
+|      {9 => ({Oscar, loadMRDI}, FiniteField)  }     |
+|      {10 => ({Oscar, loadMRDI}, PolyRing)    }     |
+|      {11 => ({Oscar, loadMRDI}, ZZRingElem)  }     |
+|                                                    |
+|o19 : NumberedVerticalList                          |
++----------------------------------------------------+
+
+Additional types can be supported by calling *note addLoadMethod:
+addLoadMethod,.
+
+Caveat
+======
+
+If the JSON string references a namespace or type for which no load method has
+been registered, an error is produced. Use *note addLoadMethod: addLoadMethod,
+to register handlers for custom types and *note addNamespace: addNamespace, to
+register new namespaces.
+
+See also
+========
+
+  * *note saveMRDI: saveMRDI, -- serialize a Macaulay2 object to MRDI JSON
+    format
+* Menu:
+
+* addLoadMethod::               register a method for deserializing a type from MRDI format
+
+Ways to use loadMRDI:
+=====================
+
+  * "loadMRDI(HashTable)"
+  * "loadMRDI(String)"
+
+For the programmer
+==================
+
+The object *note loadMRDI: loadMRDI, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MRDI.m2:657:0.
+
+File: MRDI.info, Node: addLoadMethod, Up: loadMRDI
+
+addLoadMethod -- register a method for deserializing a type from MRDI format
+****************************************************************************
+
+  * Usage: 
+        addLoadMethod(typeName, f)
+  * Inputs:
+      * typeName, a *note string: (Macaulay2Doc)String, or a *note list:
+        (Macaulay2Doc)List,, the type name as it appears in the _type field of
+        the MRDI JSON, or a list of strings to add multiple load methods at the
+        same time
+      * f, a *note function: (Macaulay2Doc)Function,, a function (params, data)
+        -> Thing that reconstructs the object
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Namespace => a *note string: (Macaulay2Doc)String,, default value
+        "Macaulay2", the namespace to register this method under
+
+Description
+===========
+
+This method registers a deserialization method so that *note loadMRDI:
+loadMRDI, knows how to reconstruct objects of a given type within a given
+namespace.
+
+The namespace allows the same file format to be used across different computer
+algebra systems.  The Macaulay2 namespace is "Macaulay2" and the OSCAR
+namespace is "Oscar".  Each namespace maintains its own type registry.  Use
+*note addNamespace: addNamespace, to register a new namespace before adding
+load methods to it.
+
+The loading function f receives two arguments:
+
+  * params: For parametric types (e.g., *note RingElement:
+    (Macaulay2Doc)RingElement,), this is the already-deserialized parameter
+    (e.g., the parent ring).  For non-parametric types (e.g., *note ZZ:
+    (Macaulay2Doc)ZZ,), this is *note null: (Macaulay2Doc)null,.
+  * data:  The contents of the data field from the JSON, recursively
+    deserialized.
+
+The *note List: (Macaulay2Doc)List, form allows registering the same function
+for multiple type names at once, which is useful when systems use different
+names for equivalent types.
+
+Here we register a load method for a custom namespace.
+
++-----------------------------------------------------------------------------+
+|i1 : addNamespace("MySystem", "https://example.com", "1.0")                  |
++-----------------------------------------------------------------------------+
+|i2 : addLoadMethod("MyInt",                                                  |
+|         (params, data) -> value data,                                       |
+|         Namespace => "MySystem")                                            |
+|                                                                             |
+|o2 = FunctionClosure[currentString:3:4-3:32]                                 |
+|                                                                             |
+|o2 : FunctionClosure                                                         |
++-----------------------------------------------------------------------------+
+|i3 : loadMRDI "{\"_ns\":{\"MySystem\":[\"https://example.com\",\"1.0\"]},\"_ |
+|                                                                             |
+|o3 = 42                                                                      |
+|-----------------------------------------------------------------------------|
+|type\":\"MyInt\",\"data\":\"42\"}"                                           |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note loadMRDI: loadMRDI, -- deserialize a Macaulay2 object from MRDI
+    format
+
+Ways to use addLoadMethod:
+==========================
+
+  * "addLoadMethod(List,Function)"
+  * "addLoadMethod(String,Function)"
+
+For the programmer
+==================
+
+The object *note addLoadMethod: addLoadMethod, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MRDI.m2:795:0.
+
+File: MRDI.info, Node: Namespace, Next: validateMRDI, Prev: loadMRDI, Up: Top
+
+Namespace -- option specifying the namespace for MRDI serialization
+*******************************************************************
+
+Description
+===========
+
+A symbol used as an option to *note addSaveMethod: addSaveMethod,, *note
+addLoadMethod: addLoadMethod,, and *note saveMRDI: saveMRDI, to specify which
+namespace to use.
+
+Different namespaces allow the same MRDI file format to represent objects from
+different computer algebra systems. The "Macaulay2" and "Oscar" namespaces are
+built in.  Custom namespaces can be registered with *note addNamespace:
+addNamespace,.
+
+When passed to *note saveMRDI: saveMRDI,, this determines which set of save
+methods is used and what appears in the _ns field of the JSON output.
+
+When passed to *note addSaveMethod: addSaveMethod, or *note addLoadMethod:
+addLoadMethod,, this determines which namespace the method is registered under.
+
+The same object can be serialized under different namespaces.
+
++--------------------------------------------------------------------------+
+|i1 : saveMRDI 5                                                           |
+|                                                                          |
+|o1 = {"_ns": {"Macaulay2": ["https://macaulay2.com", "1.26.05"]}, "_type":|
+|     "ZZ", "data": "5"}                                                   |
++--------------------------------------------------------------------------+
+|i2 : saveMRDI(5, Namespace => "Oscar")                                    |
+|                                                                          |
+|o2 = {"_ns": {"Oscar": ["https://github.com/oscar-system/Oscar.jl",       |
+|     "1.6.0"]}, "_type": {"params": {"_type": "ZZRing"}, "name":          |
+|     "ZZRingElem"}, "data": "5"}                                          |
++--------------------------------------------------------------------------+
+* Menu:
+
+* addNamespace::                register a namespace for MRDI serialization
+
+Functions with optional argument named Namespace:
+=================================================
+
+  * "addLoadMethod(...,Namespace=>...)" -- see *note addLoadMethod:
+    addLoadMethod, -- register a method for deserializing a type from MRDI
+    format
+  * "addSaveMethod(...,Namespace=>...)" -- see *note addSaveMethod:
+    addSaveMethod, -- register a method for serializing a type to MRDI format
+  * "saveMRDI(...,Namespace=>...)" -- see *note saveMRDI: saveMRDI, --
+    serialize a Macaulay2 object to MRDI JSON format
+
+For the programmer
+==================
+
+The object *note Namespace: Namespace, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MRDI.m2:892:0.
+
+File: MRDI.info, Node: addNamespace, Up: Namespace
+
+addNamespace -- register a namespace for MRDI serialization
+***********************************************************
+
+  * Usage: 
+        addNamespace(ns, url, ver)
+  * Inputs:
+      * ns, a *note string: (Macaulay2Doc)String,, the namespace identifier; 
+      * url, a *note string: (Macaulay2Doc)String,, the URL associated with the
+        namespace;
+      * ver, a *note string: (Macaulay2Doc)String,, the version string for the
+        namespace;
+
+Description
+===========
+
+This method registers a new namespace for use with *note saveMRDI: saveMRDI,
+and *note loadMRDI: loadMRDI,.  A namespace must be registered before any save
+or load methods can be added to it using *note addSaveMethod: addSaveMethod, or
+*note addLoadMethod: addLoadMethod,.
+
+The namespace, URL, and version are written into the _ns field of the MRDI JSON
+output.
+
+The "Macaulay2" and "Oscar" namespaces are registered automatically when the
+package is loaded.
+
++-----------------------------------------------------------------------------+
+|i1 : addNamespace("MySystem", "https://example.com", "1.0")                  |
++-----------------------------------------------------------------------------+
+|i2 : addLoadMethod("MyInt",                                                  |
+|         (params, data) -> value data,                                       |
+|         Namespace => "MySystem")                                            |
+|                                                                             |
+|o2 = FunctionClosure[currentString:3:4-3:32]                                 |
+|                                                                             |
+|o2 : FunctionClosure                                                         |
++-----------------------------------------------------------------------------+
+|i3 : loadMRDI "{\"_ns\":{\"MySystem\":[\"https://example.com\",\"1.0\"]},\"_ |
+|                                                                             |
+|o3 = 42                                                                      |
+|-----------------------------------------------------------------------------|
+|type\":\"MyInt\",\"data\":\"42\"}"                                           |
++-----------------------------------------------------------------------------+
+
+Ways to use addNamespace:
+=========================
+
+  * "addNamespace(String,String,String)"
+
+For the programmer
+==================
+
+The object *note addNamespace: addNamespace, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MRDI.m2:826:0.
+
+File: MRDI.info, Node: validateMRDI, Prev: Namespace, Up: Top
+
+validateMRDI -- validate an MRDI JSON object against the format specification
+*****************************************************************************
+
+  * Usage: 
+        validateMRDI s
+  * Inputs:
+      * s, a *note string: (Macaulay2Doc)String, or a *note hash table:
+        (Macaulay2Doc)HashTable,, a JSON string or parsed JSON hash table to
+        validate
+
+Description
+===========
+
+Validates that a JSON string or hash table conforms to the MRDI file format
+specification (see https://www.oscar-system.org/schemas/mrdi.json ). This
+checks structural requirements such as:
+
+  * the presence of a _type key
+  * that _type is a string or an object with string-valued name
+  * that _ns and _refs are objects (if present)
+  * that all keys of _refs are valid UUIDs
+  * that referenced objects are themselves valid MRDI
+
+The function produces an error if validation fails and returns *note null:
+(Macaulay2Doc)null, on success.
+
++--------------------------------------------------------------------------+
+|i1 : s = saveMRDI 5                                                       |
+|                                                                          |
+|o1 = {"_ns": {"Macaulay2": ["https://macaulay2.com", "1.26.05"]}, "_type":|
+|     "ZZ", "data": "5"}                                                   |
++--------------------------------------------------------------------------+
+|i2 : validateMRDI s                                                       |
++--------------------------------------------------------------------------+
+
+Ways to use validateMRDI:
+=========================
+
+  * "validateMRDI(HashTable)"
+  * "validateMRDI(String)"
+  * "validateMRDI(Thing)"
+
+For the programmer
+==================
+
+The object *note validateMRDI: validateMRDI, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MRDI.m2:860:0.
+
+Tag Table:
+Node: Top243
+Node: saveMRDI8818
+Node: addSaveMethod19690
+Node: loadMRDI24020
+Node: addLoadMethod37290
+Node: Namespace41200
+Node: addNamespace44012
+Node: validateMRDI46737
+
+End Tag Table

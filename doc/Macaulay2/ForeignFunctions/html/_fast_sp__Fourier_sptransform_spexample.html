@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>fast Fourier transform example -- fast Fourier transforms using foreign function calls to the FFTW library</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="foreign function interface" href="index.html">ForeignFunctions</a> » <a title="fast Fourier transforms using foreign function calls to the FFTW library" href="_fast_sp__Fourier_sptransform_spexample.html">fast Fourier transform example</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_general_splinear_spmodel_spexample.html">next</a> | previous | <a href="_general_splinear_spmodel_spexample.html">forward</a> | <a href="index.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>fast Fourier transform example -- fast Fourier transforms using foreign function calls to the FFTW library</h1>
+      <div>
+        <div>
+          <p>In this example, we make foreign function calls using the <a href="https://www.fftw.org/">FFTW</a> library to compute fast Fourier transforms for polynomial multiplication.</p>
+          <p>Once FFTW is installed, there should be a file named <code>libfftw3.so</code> or <code>libfftw3.dylib</code> available on the system in one of the standard shared library directories.  We can then open the library using <a title="open a shared library" href="_open__Shared__Library.html">openSharedLibrary</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : libfftw = openSharedLibrary &quot;fftw3&quot;
+
+o2 = fftw3
+
+o2 : SharedLibrary</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Next, we create our foreign functions using the constructor method <a title="construct a foreign function" href="_foreign__Function.html">foreignFunction</a>.  We will need three: one to wrap <code>fftw_plan_dft_1d</code>, which creates the plan for a fast Fourier transform computation, one to wrap <code>fftw_execute</code>, which actually does the computation, and one to wrap <code>fftw_destroy_plan</code>, which deallocates the memory allocated by <code>fftw_plan_dft_1d</code>.</p>
+          <p>Let's walk through each of these.</p>
+          <p>According to the FFTW documentation, <code>fftw_plan_dft_1d</code> has the following signature: <code>fftw_plan fftw_plan_dft_1d(int n0, fftw_complex *in, fftw_complex *out, int sign, unsigned flags)</code>. Our goal is to compute the discrete Fourier transform $\mathscr F\{\mathbf a\}$ of a vector $\mathbf a\in\CC^n$.  In this case, <code>n0</code> will be $n$, <code>in</code> will be $\mathbf a$ represented as an array of $2n$ <a title="foreign real type" href="___Foreign__Real__Type.html">double</a> objects (alternating between real and imaginary parts), <code>out</code> will be an array ultimately containing $\mathscr F\{\mathbf a\}$, <code>sign</code> will be 1 unless we want to compute the inverse discrete Fourier transform $\mathscr F^{-1}\{\mathbf a\}$, in which case it will be $-1$.  Finally, <code>flags</code> will contain planning flags for the computation.  When setting up our foreign function objects, we won't worry about the structures of the <code>fftw_plan</code> or <code>fftw_complex</code> types and will just use <a title="foreign pointer type" href="___Foreign__Pointer__Type.html">voidstar</a> to indicate that they are pointers.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : fftwPlanDft1d = foreignFunction(libfftw, &quot;fftw_plan_dft_1d&quot;, voidstar,
+         {int, voidstar, voidstar, int, uint})
+
+o3 = fftw3::fftw_plan_dft_1d
+
+o3 : ForeignFunction</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Next, we define foreign functions for <code>fftw_execute</code>, which has signature <code>void fftw_execute(const fftw_plan plan)</code>, and <code>fftw_destroy_plan</code>, which has signature <code>void fftw_destroy_plan(fftw_plan plan)</code>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : fftwExecute = foreignFunction(libfftw, &quot;fftw_execute&quot;, void, voidstar)
+
+o4 = fftw3::fftw_execute
+
+o4 : ForeignFunction</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : fftwDestroyPlan = foreignFunction(libfftw, &quot;fftw_destroy_plan&quot;, void, voidstar)
+
+o5 = fftw3::fftw_destroy_plan
+
+o5 : ForeignFunction</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Now we wrap these functions inside Macaulay2 functions.  Since computing $\mathscr F\{\mathbf a\}$ and $\mathscr F^{-1}\{\mathbf a\}$ using FFTW requires only changing the <code>sign</code> parameter of the call to <code>fftw_plan_dft_1d</code>, we create a helper function that will do most of the work.</p>
+          <p>This helper function takes a list <code>x</code> representing the vector $\mathbf a$ as well as the value of <code>sign</code>, allocates the memory required for the <code>in</code> and <code>out</code> lists using <a title="allocate memory using the garbage collector" href="_get__Memory.html">getMemory</a>, and then calls the foreign function <code>fftwPlanDft1d</code>.  Note that we pass 64 as the value of <code>flags</code>.  This specifies the <code>FFTW_ESTIMATE</code> planning flag, which uses a simple heuristic to quickly pick a plan for the computation.  We then call <a title="register a finalizer for a foreign object" href="_register__Finalizer_lp__Foreign__Object_cm__Function_rp.html">registerFinalizer(ForeignObject,Function)</a> to make sure that the <code>fftw_plan</code> object that was returned is properly deallocated during garbage collection.  Next, we set up the <code>in</code> array by finding the real and imaginary parts of the elements of <code>x</code> and assigning them using <a title="assign value to object at address" href="__st_spvoidstar_sp_eq_sp__Thing.html">* voidstar = Thing</a>. Finally, we call <code>fftw_execute</code> and convert the result back to a list of complex numbers.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : fftHelper = (x, sign) -> (
+         n := #x;
+         inptr := getMemory(2 * n * size double);
+         outptr := getMemory(2 * n * size double);
+         p := fftwPlanDft1d(n, inptr, outptr, sign, 64);
+         registerFinalizer(p, fftwDestroyPlan);
+         dbls := splice apply(x, y -> (realPart numeric y, imaginaryPart numeric y));
+         apply(2 * n, i -> *(value inptr + i * size double) = double dbls#i);
+         fftwExecute p;
+         r := ((2 * n) * double) outptr;
+         apply(n, i -> value r_(2 * i) + ii * value r_(2 * i + 1)));</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : fastFourierTransform = method();</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : fastFourierTransform List := x -> fftHelper(x, -1);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : inverseFastFourierTransform = method();</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : inverseFastFourierTransform List := x -> fftHelper(x, 1);</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>One application of fast Fourier transforms is log-linear time multiplication of polynomials.  Indeed, if $f,g\in\CC[x]$ have degrees $m$ and $n$, respectively, and if $\mathbf a,\mathbf b\in\CC^{m+n+1}$ are the vectors formed by taking $a_i$ to be the coefficient of $x^i$ in $f$ and $b_i$ the coefficient of $x_i$ in $g$, then $\frac{1}{m+n+1}\mathscr F^{-1}\left\{\mathscr F\{\mathbf a\}\cdot \mathscr F\{\mathbf b\}\right\}$, where $\mathscr F\{\mathbf a\}\cdot \mathscr F\{\mathbf b\}$ is computed using component-wise multiplication, contains the coefficients of the product $fg$.  In some cases, this process can be faster than Macaulay2's native polynomial multiplication.</p>
+          <p>Let's look at a particular example.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : fftMultiply = (f, g) -> (
+          m := first degree f;
+          n := first degree g;
+          a := fastFourierTransform splice append(
+              apply(m + 1, i -> coefficient(x^i, f)), n:0);
+          b := fastFourierTransform splice append(
+              apply(n + 1, i -> coefficient(x^i, g)), m:0);
+          c := inverseFastFourierTransform apply(a, b, times);
+          sum(m + n + 1, i -> c#i * x^i)/(m + n + 1));</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : R = CC[x];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : f = x - 1;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : g = x^2 + x + 1;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : fftMultiply(f, g)
+
+       3
+o15 = x  - 1
+
+o15 : R</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">ForeignFunctions.m2:2203:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

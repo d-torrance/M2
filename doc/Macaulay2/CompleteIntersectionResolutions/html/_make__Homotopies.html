@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>makeHomotopies -- returns a system of higher homotopies</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Analyzing Resolutions over a Complete Intersection" href="index.html">CompleteIntersectionResolutions</a> :: <a title="returns a system of higher homotopies" href="_make__Homotopies.html">makeHomotopies</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_make__Homotopies1.html">next</a> | <a href="_make__Finite__Resolution__Codim2.html">previous</a> | <a href="_make__Homotopies1.html">forward</a> | <a href="_make__Finite__Resolution__Codim2.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>makeHomotopies -- returns a system of higher homotopies</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">H = makeHomotopies(f,F,b)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">f</span>, <span>a <a title="the class of all matrices" href="../../Macaulay2Doc/html/___Matrix.html">matrix</a></span>, 1xn matrix of elements of S</span></li>
+            <li><span><span class="tt">F</span>, <span>a <a title="the class of all chain complexes" href="../../Complexes/html/___Complex.html">complex</a></span>, admitting homotopies for the entries of f</span></li>
+            <li><span><span class="tt">b</span>, <span>an <a title="the class of all integers" href="../../Macaulay2Doc/html/___Z__Z.html">integer</a></span>, how far back to compute the homotopies (defaults to length of F)</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span class="tt">H</span>, <span>a <a title="the class of all hash tables" href="../../Macaulay2Doc/html/___Hash__Table.html">hash table</a></span>, gives the higher homotopy from F_i corresponding to a monomial with exponent vector L as the value $H#\{L,i\}$</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>Given a $1\times n$ matrix f, and a chain complex F, the script attempts to make a family of higher homotopies on F for the elements of f, in the sense described, for example, in Eisenbud &quot;Enriched Free Resolutions and Change of Rings&quot;.</p>
+          <p>The output is a hash table with entries of the form $\{J,i\}=>s$, where J is a list of non-negative integers, of length n and $H\#\{J,i\}: F_i->F_{i+2|J|-1}$ are maps satisfying the conditions $$ H\#\{e0,i\} = d; $$ and $$ H#\{e0,i+1\}*H#\{e,i\}+H#\{e,i-1\}H#\{e0,i\} = f_i, $$ where $e0 = \{0,\dots,0\}$ and $e$ is the index of degree 1 with a 1 in the $i$-th place; and, for each index list I with |I|&lt;=d, $$ sum_{J&lt;I} H#\{I\setminus J, \} H#\{J, \} = 0. $$</p>
+          <p>To make the maps homogeneous, $H\#\{J,i\}$ is actually a map from a an appropriate negative twist of F to a shift of S.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : kk=ZZ/101
+
+o1 = kk
+
+o1 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : S = kk[a,b,c,d]
+
+o2 = S
+
+o2 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : F = freeResolution ideal vars S
+
+      1      4      6      4      1
+o3 = S  &lt;-- S  &lt;-- S  &lt;-- S  &lt;-- S
+                                  
+     0      1      2      3      4
+
+o3 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : f = matrix{{a,b,c}}
+
+o4 = | a b c |
+
+             1      3
+o4 : Matrix S  &lt;-- S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : homot = makeHomotopies(f,F,2)
+
+o5 = HashTable{{{0, 0, 0}, 0} => 0                        }
+               {{0, 0, 0}, 1} => | a b c d |
+               {{0, 0, 0}, 2} => {1} | -b -c 0  -d 0  0  |
+                                 {1} | a  0  -c 0  -d 0  |
+                                 {1} | 0  a  b  0  0  -d |
+                                 {1} | 0  0  0  a  b  c  |
+               {{0, 0, 0}, 3} => {2} | c  d  0  0  |
+                                 {2} | -b 0  d  0  |
+                                 {2} | a  0  0  d  |
+                                 {2} | 0  -b -c 0  |
+                                 {2} | 0  a  0  -c |
+                                 {2} | 0  0  a  b  |
+               {{0, 0, 1}, -1} => 0
+               {{0, 0, 1}, 0} => {1} | 0 |
+                                 {1} | 0 |
+                                 {1} | 1 |
+                                 {1} | 0 |
+               {{0, 0, 1}, 1} => {2} | 0  0  0 0 |
+                                 {2} | -1 0  0 0 |
+                                 {2} | 0  -1 0 0 |
+                                 {2} | 0  0  0 0 |
+                                 {2} | 0  0  0 0 |
+                                 {2} | 0  0  0 1 |
+               {{0, 0, 1}, 2} => {3} | 1 0 0 0  0  0 |
+                                 {3} | 0 0 0 0  0  0 |
+                                 {3} | 0 0 0 -1 0  0 |
+                                 {3} | 0 0 0 0  -1 0 |
+               {{0, 0, 2}, -1} => 0
+               {{0, 1, 0}, -1} => 0
+               {{0, 1, 0}, 0} => {1} | 0 |
+                                 {1} | 1 |
+                                 {1} | 0 |
+                                 {1} | 0 |
+               {{0, 1, 0}, 1} => {2} | -1 0 0 0 |
+                                 {2} | 0  0 0 0 |
+                                 {2} | 0  0 1 0 |
+                                 {2} | 0  0 0 0 |
+                                 {2} | 0  0 0 1 |
+                                 {2} | 0  0 0 0 |
+               {{0, 1, 0}, 2} => {3} | 0 -1 0 0  0 0 |
+                                 {3} | 0 0  0 -1 0 0 |
+                                 {3} | 0 0  0 0  0 0 |
+                                 {3} | 0 0  0 0  0 1 |
+               {{0, 1, 1}, -1} => 0
+               {{0, 2, 0}, -1} => 0
+               {{1, 0, 0}, -1} => 0
+               {{1, 0, 0}, 0} => {1} | 1 |
+                                 {1} | 0 |
+                                 {1} | 0 |
+                                 {1} | 0 |
+               {{1, 0, 0}, 1} => {2} | 0 1 0 0 |
+                                 {2} | 0 0 1 0 |
+                                 {2} | 0 0 0 0 |
+                                 {2} | 0 0 0 1 |
+                                 {2} | 0 0 0 0 |
+                                 {2} | 0 0 0 0 |
+               {{1, 0, 0}, 2} => {3} | 0 0 1 0 0 0 |
+                                 {3} | 0 0 0 0 1 0 |
+                                 {3} | 0 0 0 0 0 1 |
+                                 {3} | 0 0 0 0 0 0 |
+               {{1, 0, 1}, -1} => 0
+               {{1, 1, 0}, -1} => 0
+               {{2, 0, 0}, -1} => 0
+
+o5 : HashTable</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In this case the higher homotopies are 0:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : L = sort select(keys homot, k->(homot#k!=0 and sum(k_0)>1))
+
+o6 = {}
+
+o6 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>On the other hand, if we take a complete intersection and something contained in it in a more complicated situation, the program gives nonzero higher homotopies:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : kk= ZZ/32003;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : S = kk[a,b,c,d];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : M = S^1/(ideal&quot;a2,b2,c2,d2&quot;);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : F = freeResolution M
+
+       1      4      6      4      1
+o10 = S  &lt;-- S  &lt;-- S  &lt;-- S  &lt;-- S
+                                   
+      0      1      2      3      4
+
+o10 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : setRandomSeed 0
+ -- setting random seed to 0
+
+o11 = 0</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : f = random(S^1,S^{2:-5});
+
+              1      2
+o12 : Matrix S  &lt;-- S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : homot = makeHomotopies(f,F,5)
+
+o13 = HashTable{{{0, 0}, 0} => 0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    }
+                {{0, 0}, 1} => | a2 b2 c2 d2 |
+                {{0, 0}, 2} => {2} | -b2 -c2 0   -d2 0   0   |
+                               {2} | a2  0   -c2 0   -d2 0   |
+                               {2} | 0   a2  b2  0   0   -d2 |
+                               {2} | 0   0   0   a2  b2  c2  |
+                {{0, 0}, 3} => {4} | c2  d2  0   0   |
+                               {4} | -b2 0   d2  0   |
+                               {4} | a2  0   0   d2  |
+                               {4} | 0   -b2 -c2 0   |
+                               {4} | 0   a2  0   -c2 |
+                               {4} | 0   0   a2  b2  |
+                {{0, 0}, 4} => {6} | -d2 |
+                               {6} | c2  |
+                               {6} | -b2 |
+                               {6} | a2  |
+                {{0, 0}, 5} => 0
+                {{0, 1}, -1} => 0
+                {{0, 1}, 0} => {2} | 1236a3+8922a2b-3589ab2+8971b3-5006a2c-5599abc-14165b2c+8880a2d+4259abd-3002b2d-13892acd-10521bcd                                                                |
+                               {2} | 10370ab2-7092b3-9702abc-6627b2c+8886abd+4700b2d-15acd+5969bcd                                                                                                   |
+                               {2} | 13707a3+2177a2b-7028ab2+9797b3-7021a2c+6377abc+5874b2c-7600ac2-11726bc2+1140c3+1206a2d-11435abd+9074b2d-6040acd+8022bcd+3968c2d                                 |
+                               {2} | -994a3-1946a2b-6723ab2-5483b3-6453a2c-1192abc-15250b2c-3164ac2+295bc2-7650c3-11045a2d-15333abd+10567b2d-3560acd+2292bcd+14388c2d-7194ad2+6245bd2-8639cd2+9426d3 |
+                {{0, 1}, 1} => {4} | -10370ab2+7092b3+9702abc+6627b2c+7028ac2-9797bc2-5874c3-8886abd-4700b2d+15acd-5969bcd-9074c2d+6723ad2+5483bd2+15250cd2-10567d3   1236a3+8922a2b-3589ab2+8971b3-5006a2c-5599abc-14165b2c+8880a2d+4259abd-3002b2d-13892acd-10521bcd                                                                0                                                                                                                                                              0                                                                                                                               |
+                               {4} | -13707a3-2177a2b+7021a2c-6377abc+7600ac2+11726bc2-1140c3-1206a2d+11435abd+6040acd-8022bcd-3968c2d+3164ad2-295bd2+7650cd2-14388d3 0                                                                                                                                                               1236a3+8922a2b-3589ab2+8971b3-5006a2c-5599abc-14165b2c+8880a2d+4259abd-3002b2d-13892acd-10521bcd                                                               0                                                                                                                               |
+                               {4} | 7028a3-9797a2b-5874a2c-9074a2d                                                                                                   -13707a3-2177a2b+7028ab2-9797b3+7021a2c-6377abc-5874b2c+7600ac2+11726bc2-1140c3-1206a2d+11435abd-9074b2d+6040acd-8022bcd-3968c2d+3164ad2-295bd2+7650cd2-14388d3 10370ab2-7092b3-9702abc-6627b2c+8886abd+4700b2d-15acd+5969bcd                                                                                                  0                                                                                                                               |
+                               {4} | 994a3+1946a2b+6453a2c+1192abc+11045a2d+15333abd+3560acd-2292bcd+7194ad2-6245bd2+8639cd2-9426d3                                   0                                                                                                                                                               0                                                                                                                                                              1236a3+8922a2b-3589ab2+8971b3-5006a2c-5599abc-14165b2c+8880a2d+4259abd-3002b2d-13892acd-10521bcd                                |
+                               {4} | 6723a3+5483a2b+15250a2c-10567a2d                                                                                                 994a3+1946a2b+6723ab2+5483b3+6453a2c+1192abc+15250b2c+11045a2d+15333abd-10567b2d+3560acd-2292bcd+7194ad2-6245bd2+8639cd2-9426d3                                 0                                                                                                                                                              10370ab2-7092b3-9702abc-6627b2c+8886abd+4700b2d-15acd+5969bcd                                                                   |
+                               {4} | 3164a3-295a2b+7650a2c-14388a2d                                                                                                   3164ab2-295b3+7650b2c-14388b2d                                                                                                                                  994a3+1946a2b+6723ab2+5483b3+6453a2c+1192abc+15250b2c+3164ac2-295bc2+7650c3+11045a2d+15333abd-10567b2d+3560acd-2292bcd-14388c2d+7194ad2-6245bd2+8639cd2-9426d3 13707a3+2177a2b-7028ab2+9797b3-7021a2c+6377abc+5874b2c-7600ac2-11726bc2+1140c3+1206a2d-11435abd+9074b2d-6040acd+8022bcd+3968c2d |
+                {{0, 1}, 2} => {6} | 13707a3+2177a2b-7021a2c+6377abc-7600ac2-11726bc2+1140c3+1206a2d-11435abd-6040acd+8022bcd+3968c2d-3164ad2+295bd2-7650cd2+14388d3 -10370ab2+7092b3+9702abc+6627b2c+7028ac2-9797bc2-5874c3-8886abd-4700b2d+15acd-5969bcd-9074c2d+5483bd2+15250cd2-10567d3 1236a3+8922a2b-3589ab2+8971b3-5006a2c-5599abc-14165b2c+8880a2d+4259abd-3002b2d-13892acd-10521bcd                                 7028ad2                                                                                                                                  0                                                                                                                                                               0                                                                                                |
+                               {6} | -994a3-1946a2b-6453a2c-1192abc-11045a2d-15333abd-3560acd+2292bcd-7194ad2+6245bd2-8639cd2+9426d3                                 6723ac2                                                                                                                0                                                                                                                                -10370ab2+7092b3+9702abc+6627b2c-9797bc2-5874c3-8886abd-4700b2d+15acd-5969bcd-9074c2d+6723ad2+5483bd2+15250cd2-10567d3                   1236a3+8922a2b-3589ab2+8971b3-5006a2c-5599abc-14165b2c+8880a2d+4259abd-3002b2d-13892acd-10521bcd                                                                0                                                                                                |
+                               {6} | 0                                                                                                                               -994a3-1946a2b-6723ab2-6453a2c-1192abc-11045a2d-15333abd-3560acd+2292bcd-7194ad2+6245bd2-8639cd2+9426d3                0                                                                                                                                -13707a3-2177a2b+7028ab2+7021a2c-6377abc+7600ac2+11726bc2-1140c3-1206a2d+11435abd+6040acd-8022bcd-3968c2d+3164ad2-295bd2+7650cd2-14388d3 0                                                                                                                                                               1236a3+8922a2b-3589ab2+8971b3-5006a2c-5599abc-14165b2c+8880a2d+4259abd-3002b2d-13892acd-10521bcd |
+                               {6} | 0                                                                                                                               -5483a2b-15250a2c+10567a2d                                                                                             -994a3-1946a2b-6723ab2-5483b3-6453a2c-1192abc-15250b2c-11045a2d-15333abd+10567b2d-3560acd+2292bcd-7194ad2+6245bd2-8639cd2+9426d3 -9797a2b-5874a2c-9074a2d                                                                                                                 -13707a3-2177a2b+7028ab2-9797b3+7021a2c-6377abc-5874b2c+7600ac2+11726bc2-1140c3-1206a2d+11435abd-9074b2d+6040acd-8022bcd-3968c2d+3164ad2-295bd2+7650cd2-14388d3 10370ab2-7092b3-9702abc-6627b2c+8886abd+4700b2d-15acd+5969bcd                                    |
+                {{0, 1}, 3} => {8} | 994a3+1946a2b+6723ab2+6453a2c+1192abc+11045a2d+15333abd+3560acd-2292bcd+7194ad2-6245bd2+8639cd2-9426d3 13707a3+2177a2b-7028ab2-7021a2c+6377abc-7600ac2-11726bc2+1140c3+1206a2d-11435abd-6040acd+8022bcd+3968c2d-3164ad2+295bd2-7650cd2+14388d3 -10370ab2+7092b3+9702abc+6627b2c-9797bc2-5874c3-8886abd-4700b2d+15acd-5969bcd-9074c2d+5483bd2+15250cd2-10567d3 1236a3+8922a2b-3589ab2+8971b3-5006a2c-5599abc-14165b2c+8880a2d+4259abd-3002b2d-13892acd-10521bcd |
+                {{0, 1}, 4} => 0
+                {{0, 2}, -1} => 0
+                {{0, 2}, 0} => {6} | -13795a4+2019a3b+13769a2b2+7586ab3+8649b4+6454a3c-10187a2bc-1783ab2c+9219b3c+5513a2c2+10558abc2+2590b2c2+11624a3d-5603a2bd+14058ab2d-12615b3d+7869a2cd-2052abcd-1831b2cd+6042ac2d-2561bc2d-8709a2d2-13219abd2+4209b2d2+12225acd2-2605bcd2-92c2d2+15968ad3+14860bd3-8829cd3-11274d4 |
+                               {6} | 11152a4-1336a3b+11846a2b2+10264ab3+618b4-11051a3c+12129a2bc+5927ab2c+489b3c-15383a2c2+507abc2-13804b2c2-8416ac3+92c4-11057a3d-5113a2bd-2762ab2d+14095b3d-1588a2cd+2000abcd-2080b2cd+9175ac2d-649bc2d+8829c3d+2164a2d2+8635abd2-7161b2d2+997acd2+3015bcd2+11274c2d2                 |
+                               {6} | -6338a4+10025a3b+14987a3c-9959a2bc-11691a2c2+12336abc2-7786a3d-1156a2bd+4960a2cd-5589abcd-8163ac2d-1895bc2d+9464a2d2-7253abd2+12642acd2-1958bcd2                                                                                                                                   |
+                               {6} | 2275a4-239a3b+14594a2b2-8153ab3-11945b4-8416a3c+6251a2bc-3023ab2c+5933b3c+92a2c2+5343abc2+3798b2c2-15968a3d+473a2bd+13293ab2d-3761b3d-7717a2cd-7389abcd+4723b2cd-13262ac2d+5431bc2d+11274a2d2-217abd2+1261b2d2+8201acd2-14080bcd2                                                  |
+                {{0, 2}, 1} => {8} | -9576a4-9957a3b+9804a2b2+14091a3c+13144a2bc+13899a2c2-10509abc2+15503ac3+12129a3d+14784a2bd-10608a2cd-3816abcd-13638ac2d-6159a2d2-14648abd2+3072acd2-14263ad3 -2275a2b2+239ab3+9804b4+8416ab2c-92b2c2+15968ab2d+14860b3d-8829b2cd-11274b2d2 -7648a3b-13261a2b2+3358ab3-618b4-767a3c-5580a2bc-15560ab2c-489b3c+15383a2c2-507abc2+13804b2c2+8416ac3-92c4-3588a3d+14541a2bd-8685ab2d-14095b3d+12750a2cd+4053abcd+2080b2cd-9175ac2d+649bc2d-8829c3d-2164a2d2-8635abd2+7161b2d2-997acd2-3015bcd2-11274c2d2 11958a3b+8641a2b2+9864ab3+8649b4-4417a3c+3731a2bc+7930ab2c+9219b3c+5513a2c2+10558abc2+2590b2c2+14414a3d+3844a2bd+5979ab2d-12615b3d-15957a2cd+15293abcd-1831b2cd+6042ac2d-2561bc2d-8709a2d2-13219abd2+4209b2d2+12225acd2-2605bcd2-92c2d2+15968ad3+14860bd3-8829cd3-11274d4 |
+                {{0, 3}, -1} => 0
+                {{0, 4}, -1} => 0
+                {{1, 0}, -1} => 0
+                {{1, 0}, 0} => {2} | 107a3+4376a2b+3783ab2+10359b3-5570a2c-5307abc-7464b2c+3187a2d+8570abd-8251b2d+8444acd+5071bcd                                                                     |
+                               {2} | 8231ab2+13177b3+5864abc+13990b2c+5026abd-11521b2d-7501acd-1779bcd                                                                                                 |
+                               {2} | -15344a3+2653a2b+10259ab2-1309b3+12365a2c-7216abc+5398b2c+6230ac2-5326bc2+1031c3-13508a2d-10125abd+5549b2d+9033acd+2998bcd-2036c2d                                |
+                               {2} | -10480a3-6203a2b+9534ab2+10866b3-9480a2c+7256abc-7061b2c+5107ac2+5679bc2-6325c3-11950a2d-5321abd+2627b2d-3996acd-7152bcd-11740c2d+9398ad2+15317bd2-6922cd2-5080d3 |
+                {{1, 0}, 1} => {4} | -8231ab2-13177b3-5864abc-13990b2c-10259ac2+1309bc2-5398c3-5026abd+11521b2d+7501acd+1779bcd-5549c2d-9534ad2-10866bd2+7061cd2-2627d3 107a3+4376a2b+3783ab2+10359b3-5570a2c-5307abc-7464b2c+3187a2d+8570abd-8251b2d+8444acd+5071bcd                                                                     0                                                                                                                                                                0                                                                                                                                  |
+                               {4} | 15344a3-2653a2b-12365a2c+7216abc-6230ac2+5326bc2-1031c3+13508a2d+10125abd-9033acd-2998bcd+2036c2d-5107ad2-5679bd2+6325cd2+11740d3  0                                                                                                                                                                 107a3+4376a2b+3783ab2+10359b3-5570a2c-5307abc-7464b2c+3187a2d+8570abd-8251b2d+8444acd+5071bcd                                                                    0                                                                                                                                  |
+                               {4} | -10259a3+1309a2b-5398a2c-5549a2d                                                                                                   15344a3-2653a2b-10259ab2+1309b3-12365a2c+7216abc-5398b2c-6230ac2+5326bc2-1031c3+13508a2d+10125abd-5549b2d-9033acd-2998bcd+2036c2d-5107ad2-5679bd2+6325cd2+11740d3 8231ab2+13177b3+5864abc+13990b2c+5026abd-11521b2d-7501acd-1779bcd                                                                                                0                                                                                                                                  |
+                               {4} | 10480a3+6203a2b+9480a2c-7256abc+11950a2d+5321abd+3996acd+7152bcd-9398ad2-15317bd2+6922cd2+5080d3                                   0                                                                                                                                                                 0                                                                                                                                                                107a3+4376a2b+3783ab2+10359b3-5570a2c-5307abc-7464b2c+3187a2d+8570abd-8251b2d+8444acd+5071bcd                                      |
+                               {4} | -9534a3-10866a2b+7061a2c-2627a2d                                                                                                   10480a3+6203a2b-9534ab2-10866b3+9480a2c-7256abc+7061b2c+11950a2d+5321abd-2627b2d+3996acd+7152bcd-9398ad2-15317bd2+6922cd2+5080d3                                  0                                                                                                                                                                8231ab2+13177b3+5864abc+13990b2c+5026abd-11521b2d-7501acd-1779bcd                                                                  |
+                               {4} | -5107a3-5679a2b+6325a2c+11740a2d                                                                                                   -5107ab2-5679b3+6325b2c+11740b2d                                                                                                                                  10480a3+6203a2b-9534ab2-10866b3+9480a2c-7256abc+7061b2c-5107ac2-5679bc2+6325c3+11950a2d+5321abd-2627b2d+3996acd+7152bcd+11740c2d-9398ad2-15317bd2+6922cd2+5080d3 -15344a3+2653a2b+10259ab2-1309b3+12365a2c-7216abc+5398b2c+6230ac2-5326bc2+1031c3-13508a2d-10125abd+5549b2d+9033acd+2998bcd-2036c2d |
+                {{1, 0}, 2} => {6} | -15344a3+2653a2b+12365a2c-7216abc+6230ac2-5326bc2+1031c3-13508a2d-10125abd+9033acd+2998bcd-2036c2d+5107ad2+5679bd2-6325cd2-11740d3 -8231ab2-13177b3-5864abc-13990b2c-10259ac2+1309bc2-5398c3-5026abd+11521b2d+7501acd+1779bcd-5549c2d-10866bd2+7061cd2-2627d3 107a3+4376a2b+3783ab2+10359b3-5570a2c-5307abc-7464b2c+3187a2d+8570abd-8251b2d+8444acd+5071bcd                                     -10259ad2                                                                                                                                  0                                                                                                                                                                 0                                                                                             |
+                               {6} | -10480a3-6203a2b-9480a2c+7256abc-11950a2d-5321abd-3996acd-7152bcd+9398ad2+15317bd2-6922cd2-5080d3                                  -9534ac2                                                                                                                   0                                                                                                                                 -8231ab2-13177b3-5864abc-13990b2c+1309bc2-5398c3-5026abd+11521b2d+7501acd+1779bcd-5549c2d-9534ad2-10866bd2+7061cd2-2627d3                  107a3+4376a2b+3783ab2+10359b3-5570a2c-5307abc-7464b2c+3187a2d+8570abd-8251b2d+8444acd+5071bcd                                                                     0                                                                                             |
+                               {6} | 0                                                                                                                                  -10480a3-6203a2b+9534ab2-9480a2c+7256abc-11950a2d-5321abd-3996acd-7152bcd+9398ad2+15317bd2-6922cd2-5080d3                  0                                                                                                                                 15344a3-2653a2b-10259ab2-12365a2c+7216abc-6230ac2+5326bc2-1031c3+13508a2d+10125abd-9033acd-2998bcd+2036c2d-5107ad2-5679bd2+6325cd2+11740d3 0                                                                                                                                                                 107a3+4376a2b+3783ab2+10359b3-5570a2c-5307abc-7464b2c+3187a2d+8570abd-8251b2d+8444acd+5071bcd |
+                               {6} | 0                                                                                                                                  10866a2b-7061a2c+2627a2d                                                                                                   -10480a3-6203a2b+9534ab2+10866b3-9480a2c+7256abc-7061b2c-11950a2d-5321abd+2627b2d-3996acd-7152bcd+9398ad2+15317bd2-6922cd2-5080d3 1309a2b-5398a2c-5549a2d                                                                                                                    15344a3-2653a2b-10259ab2+1309b3-12365a2c+7216abc-5398b2c-6230ac2+5326bc2-1031c3+13508a2d+10125abd-5549b2d-9033acd-2998bcd+2036c2d-5107ad2-5679bd2+6325cd2+11740d3 8231ab2+13177b3+5864abc+13990b2c+5026abd-11521b2d-7501acd-1779bcd                             |
+                {{1, 0}, 3} => {8} | 10480a3+6203a2b-9534ab2+9480a2c-7256abc+11950a2d+5321abd+3996acd+7152bcd-9398ad2-15317bd2+6922cd2+5080d3 -15344a3+2653a2b+10259ab2+12365a2c-7216abc+6230ac2-5326bc2+1031c3-13508a2d-10125abd+9033acd+2998bcd-2036c2d+5107ad2+5679bd2-6325cd2-11740d3 -8231ab2-13177b3-5864abc-13990b2c+1309bc2-5398c3-5026abd+11521b2d+7501acd+1779bcd-5549c2d-10866bd2+7061cd2-2627d3 107a3+4376a2b+3783ab2+10359b3-5570a2c-5307abc-7464b2c+3187a2d+8570abd-8251b2d+8444acd+5071bcd |
+                {{1, 0}, 4} => 0
+                {{1, 1}, -1} => 0
+                {{1, 1}, 0} => {6} | -8991a4+8982a3b+13320a2b2-7229ab3+7672b4-13689a3c+10065a2bc-8787ab2c-1726b3c+9033a2c2-14966abc2-6929b2c2+11993a3d+13593a2bd+8103ab2d-14054b3d-4240a2cd-9187abcd-14685b2cd-10581ac2d+5228bc2d-15866a2d2-1793abd2-12245b2d2+12283acd2+6730bcd2+8527c2d2+5942ad3+14925bd3-296cd3+8084d4 |
+                               {6} | -8375a4-225a3b-11039a2b2-10196ab3+4676b4+2695a3c-8977a2bc-15950ab2c-7421b3c-14919a2c2-11346abc2+14172b2c2+1910ac3+11656bc3-8527c4-8979a3d-8104a2bd+8734ab2d+5218b3d-12802a2cd-12618abcd-5728b2cd+5347ac2d+13394bc2d+296c3d+7446a2d2+10046abd2+6342b2d2-7480acd2-7843bcd2-8084c2d2    |
+                               {6} | -10857a4+14166a3b-858a3c+5335a2bc-5513a2c2+5100abc2-10723a3d-1870a2bd-9822a2cd+2760abcd+4119ac2d+5574bc2d+8831a2d2-14373abd2+13676acd2+11671bcd2                                                                                                                                     |
+                               {6} | -5508a4+13660a3b+15336a2b2-13943ab3-842b4+1910a3c+12230a2bc-9252ab2c-6448b3c-8527a2c2-7998abc2-13623b2c2-5942a3d-11150a2bd-12791ab2d-12401b3d+6638a2cd+13439abcd-12371b2cd+137ac2d-14313bc2d-8084a2d2-4552abd2+6564b2d2+5813acd2-15345bcd2                                           |
+                {{1, 1}, 1} => {8} | 5224a4-8330a3b-13153a2b2+12206a3c+13138a2bc+4498a2c2+13864abc2-978ac3-4062a3d+11982a2bd+9472a2cd+10055abcd+5890ac2d-9307a2d2+11737abd2+1337acd2-11793ad3 5508a2b2-13660ab3-13153b4-1910ab2c-11656b3c+8527b2c2+5942ab2d+14925b3d-296b2cd+8084b2d2 -10492a3b+13996a2b2-9338ab3-4676b4-9826a3c+4731a2bc-12735ab2c+7421b3c+14919a2c2+11346abc2-14172b2c2-1910ac3-11656bc3+8527c4+6770a3d-9107a2bd-8846ab2d-5218b3d-802a2cd-6332abcd+5728b2cd-5347ac2d-13394bc2d-296c3d-7446a2d2-10046abd2-6342b2d2+7480acd2+7843bcd2+8084c2d2 6409a3b-10151a2b2-3863ab3+7672b4+3762a3c-9280a2bc+12253ab2c-1726b3c+9033a2c2-14966abc2-6929b2c2-11253a3d+4921a2bd-11860ab2d-14054b3d+15299a2cd-718abcd-14685b2cd-10581ac2d+5228bc2d-15866a2d2-1793abd2-12245b2d2+12283acd2+6730bcd2+8527c2d2+5942ad3+14925bd3-296cd3+8084d4 |
+                {{1, 2}, -1} => 0
+                {{1, 3}, -1} => 0
+                {{2, 0}, -1} => 0
+                {{2, 0}, 0} => {6} | 9611a4+13127a3b-9489a2b2-464ab3+9341b4-15743a3c-9530a2bc+14935ab2c-13901b3c+15960a2c2-4501abc2+1105b2c2+6056a3d-11857a2bd+13748ab2d-11752b3d-12345a2cd-14908abcd-9894b2cd+8440ac2d+10693bc2d+12062a2d2-13626abd2+4247b2d2-12703acd2+2957bcd2-5375c2d2-10305ad3+8297bd3+10663cd3+6341d4 |
+                               {6} | -3958a4-574a3b-7101a2b2+15674ab3+6343b4+1142a3c+9820a2bc-4821ab2c+5737b3c+5028a2c2+9312abc2+1610b2c2-15936ac3+5385bc3+5375c4+7073a3d+12092a2bd+8241ab2d-4420b3d+5234a2cd+7006abcd-14921b2cd+8810ac2d-3271bc2d-10663c3d-12537a2d2+15281abd2-9346b2d2+4309acd2+8269bcd2-6341c2d2         |
+                               {6} | 2398a4+9734a3b-35a3c-4979a2bc-5053a2c2-4372abc2+10422a3d-5261a2bd-2750a2cd-9680abcd+4707ac2d-7069bc2d-3873a2d2+5632abd2+12734acd2-7960bcd2                                                                                                                                             |
+                               {6} | 6945a4+12098a3b-8978a2b2+12099ab3+9169b4-15936a3c-1975a2bc+10573ab2c+9051b3c+5375a2c2+1677abc2+1545b2c2+10305a3d-6921a2bd-3135ab2d-9105b3d-10679a2cd-14065abcd+6297b2cd+15379ac2d-12881bc2d-6341a2d2+8292abd2+11862b2d2-10516acd2-12499bcd2                                            |
+                {{2, 0}, 1} => {8} | 12798a4-6040a3b-7247a2b2-3128a3c-14165a2bc-4627a2c2-10677abc2-4633ac3+3338a3d-4025a2bd+10993a2cd+6258abcd-14597ac2d+13812a2d2+7863abd2+10757acd2-167ad3 -6945a2b2-12098ab3-7247b4+15936ab2c-5385b3c-5375b2c2-10305ab2d+8297b3d+10663b2cd+6341b2d2 -10554a3b+6842a2b2-14226ab3-6343b4-12545a3c-10015a2bc-14286ab2c-5737b3c-5028a2c2-9312abc2-1610b2c2+15936ac3-5385bc3-5375c4+6938a3d-9371a2bd-9901ab2d+4420b3d+12317a2cd+15378abcd+14921b2cd-8810ac2d+3271bc2d+10663c3d+12537a2d2-15281abd2+9346b2d2-4309acd2-8269bcd2+6341c2d2 -12051a3b+353a2b2+8518ab3+9341b4+1532a3c-2120a2bc+4932ab2c-13901b3c+15960a2c2-4501abc2+1105b2c2-14314a3d+12757a2bd+12822ab2d-11752b3d-7220a2cd-1419abcd-9894b2cd+8440ac2d+10693bc2d+12062a2d2-13626abd2+4247b2d2-12703acd2+2957bcd2-5375c2d2-10305ad3+8297bd3+10663cd3+6341d4 |
+                {{2, 1}, -1} => 0
+                {{2, 2}, -1} => 0
+                {{3, 0}, -1} => 0
+                {{3, 1}, -1} => 0
+                {{4, 0}, -1} => 0
+
+o13 : HashTable</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We can see that all 6 potential higher homotopies are nontrivial:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : L = sort select(keys homot, k->(homot#k!=0 and sum(k_0)>1))
+
+o14 = {{{0, 2}, 0}, {{0, 2}, 1}, {{1, 1}, 0}, {{1, 1}, 1}, {{2, 0}, 0}, {{2,
+      -----------------------------------------------------------------------
+      0}, 1}}
+
+o14 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : #L
+
+o15 = 6</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : netList L
+
+      +------+-+
+o16 = |{0, 2}|0|
+      +------+-+
+      |{0, 2}|1|
+      +------+-+
+      |{1, 1}|0|
+      +------+-+
+      |{1, 1}|1|
+      +------+-+
+      |{2, 0}|0|
+      +------+-+
+      |{2, 0}|1|
+      +------+-+</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>For example we have:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : homot#(L_0)
+
+o17 = {6} | -13795a4+2019a3b+13769a2b2+7586ab3+8649b4+6454a3c-10187a2bc-1783a
+      {6} | 11152a4-1336a3b+11846a2b2+10264ab3+618b4-11051a3c+12129a2bc+5927a
+      {6} | -6338a4+10025a3b+14987a3c-9959a2bc-11691a2c2+12336abc2-7786a3d-11
+      {6} | 2275a4-239a3b+14594a2b2-8153ab3-11945b4-8416a3c+6251a2bc-3023ab2c
+      -----------------------------------------------------------------------
+      b2c+9219b3c+5513a2c2+10558abc2+2590b2c2+11624a3d-5603a2bd+14058ab2d-126
+      b2c+489b3c-15383a2c2+507abc2-13804b2c2-8416ac3+92c4-11057a3d-5113a2bd-2
+      56a2bd+4960a2cd-5589abcd-8163ac2d-1895bc2d+9464a2d2-7253abd2+12642acd2-
+      +5933b3c+92a2c2+5343abc2+3798b2c2-15968a3d+473a2bd+13293ab2d-3761b3d-77
+      -----------------------------------------------------------------------
+      15b3d+7869a2cd-2052abcd-1831b2cd+6042ac2d-2561bc2d-8709a2d2-13219abd2+4
+      762ab2d+14095b3d-1588a2cd+2000abcd-2080b2cd+9175ac2d-649bc2d+8829c3d+21
+      1958bcd2                                                               
+      17a2cd-7389abcd+4723b2cd-13262ac2d+5431bc2d+11274a2d2-217abd2+1261b2d2+
+      -----------------------------------------------------------------------
+      209b2d2+12225acd2-2605bcd2-92c2d2+15968ad3+14860bd3-8829cd3-11274d4 |
+      64a2d2+8635abd2-7161b2d2+997acd2+3015bcd2+11274c2d2                 |
+                                                                          |
+      8201acd2-14080bcd2                                                  |
+
+              4      1
+o17 : Matrix S  &lt;-- S</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>But all the homotopies are minimal in this case:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : k1 = S^1/(ideal vars S);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : select(keys homot,k->(k1**homot#k)!=0)
+
+o19 = {}
+
+o19 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="returns a system of first homotopies" href="_make__Homotopies1.html">makeHomotopies1</a> -- returns a system of first homotopies</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">makeHomotopies</span>:</h2>
+          <ul>
+            <li><kbd>makeHomotopies(Matrix,Complex)</kbd></li>
+            <li><kbd>makeHomotopies(Matrix,Complex,ZZ)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="returns a system of higher homotopies" href="_make__Homotopies.html">makeHomotopies</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function.html">method function</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">CompleteIntersectionResolutions.m2:3771:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

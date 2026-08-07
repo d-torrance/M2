@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Canonical Series Tutorial -- Computing series solutions to regular holonomic systems</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Holonomic Systems" href="index.html">HolonomicSystems</a> » <a title="Computing series solutions to regular holonomic systems" href="___Canonical_sp__Series_sp__Tutorial.html">Canonical Series Tutorial</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_diff__Ops.html">next</a> | <a href="___Appell__F1.html">previous</a> | <a href="_css__Expts.html">forward</a> | <a href="___Appell__F1.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Canonical Series Tutorial -- Computing series solutions to regular holonomic systems</h1>
+      <div>
+        <div>
+          <p>If D/I is a regular holonomic D-module, the solutions of the system of differential equations I can be written as Nilsson series (Puiseux series with logarithms). The constructive version of this result is the canonical series method [<a href="https://mathscinet.ams.org/mathscinet/pdf/1734566.pdf">SST, Sections 2.5, 2.6</a>]. In this tutorial, we illustrate an implementation of this method.</p>
+          <p></p>
+        </div>
+        <div>
+          <p>If the input ideal I is not regular, this method is not guaranteed to produce convergent series, or even holonomicRank(I) formal power series solutions of I. There currently exists no computational method to verify whether D/I is a regular holonomic D-module. In the case of GKZ systems, regularity has been characterized in terms of the input matrix.</p>
+          <p></p>
+        </div>
+        <div>
+          <p>Contains the following functions:</p>
+          <p></p>
+        </div>
+        <div>
+          <p>Currently, this contains the computation of exponents with respect to a weight vector. Completing the canonical series computation is in the future. To compute the exponents for a D-ideal I with respect to w, do as follows. Compute the initial ideal of I with respect to w. Introduce the subring of D consisting of polynomials in $\theta_1 = x_1 \partial_1, ... , \theta_n= x_n \partial_n$. This is a commutative polynomial subring of D, referred to here as thetaRing. The indicial ideal of I with respect to w is produced by extending the initial ideal to the ring of differential operators with rational function coefficients, and contract to thetaRing. The exponents of I with respect to w are the roots of the indicial ideal, counted with multiplicities.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R1 = QQ[z]
+
+o1 = R1
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : W1 = makeWA R1
+
+o2 = W1
+
+o2 : PolynomialRing, 1 differential variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : a=1/2
+
+     1
+o3 = -
+     2
+
+o3 : QQ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : b=3
+
+o4 = 3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : c=5/3
+
+     5
+o5 = -
+     3
+
+o5 : QQ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : J = ideal(z*(1-z)*dz^2+(c-(a+b+1)*z)*dz-a*b) -- the Gauss hypergeometric equation, exponents 0, 1-c
+
+              2  2       2   9       5     3
+o6 = ideal(- z dz  + z*dz  - -z*dz + -dz - -)
+                             2       3     2
+
+o6 : Ideal of W1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : cssExpts(J,{1})
+
+              2
+o7 = {{0}, {- -}}
+              3
+
+o7 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : inw(J,{-1,1})
+
+                2
+o8 = ideal(6z*dz  + 10dz)
+
+o8 : Ideal of W1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : distraction(oo,QQ[s])
+
+             2
+o9 = ideal(6s  + 4s)
+
+o9 : Ideal of QQ[s]</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : factor oo_0
+
+o10 = (s)(3s + 2)(2)
+
+o10 : Expression of class Product</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : c=1  -- Now we have a single exponent of multiplicity 2
+
+o11 = 1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : J = ideal(z*(1-z)*dz^2+(c-(a+b+1)*z)*dz-a*b)
+
+               2  2       2   9            3
+o12 = ideal(- z dz  + z*dz  - -z*dz + dz - -)
+                              2            2
+
+o12 : Ideal of W1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : cssExpts(J,{1})
+
+o13 = {{0}}
+
+o13 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : cssExptsMult(J,{1})
+
+o14 = {{2, {0}}}
+
+o14 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The first step is to rewrite elements of the initial ideal in a terms of the thetaRing, in a way that will allow us to easily extend and contract see [SST]</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : R2 = QQ[x_1..x_3]
+
+o15 = R2
+
+o15 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : W2 = makeWA R2
+
+o16 = W2
+
+o16 : PolynomialRing, 3 differential variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : gens W2
+
+o17 = {x , x , x , dx , dx , dx }
+        1   2   3    1    2    3
+
+o17 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : thetaRing = QQ[t_1,t_2,t_3] -- sets variable names t_i = x_i\dx_i
+
+o18 = thetaRing
+
+o18 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : f1= x_1*dx_1 -- this element already belongs to thetaRing
+
+o19 = x dx
+       1  1
+
+o19 : W2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : distraction(f1,thetaRing)  -- checks out
+
+o20 = t
+       1
+
+o20 : thetaRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : f2 = x_1^3*dx_1^3 -- this is a descending factorial in the theta variables
+
+       3  3
+o21 = x dx
+       1  1
+
+o21 : W2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : distraction(f2,thetaRing)
+
+       3     2
+o22 = t  - 3t  + 2t
+       1     1     1
+
+o22 : thetaRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : factor oo	  -- now it looks like a descending factorial
+
+o23 = (t )(t  - 2)(t  - 1)
+        1   1       1
+
+o23 : Expression of class Product</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : f = x_1^2*x_2^2*x_3*dx_1*dx_2^2*dx_3^2
+
+       2 2       2  2
+o24 = x x x dx dx dx
+       1 2 3  1  2  3
+
+o24 : W2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : distraction(f,thetaRing)
+
+         2 2      2          2
+o25 = t t t  - t t t  - t t t  + t t t
+       1 2 3    1 2 3    1 2 3    1 2 3
+
+o25 : thetaRing</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Here is an example that can be continued when more functions are implemented. This is worked out as [page 138, ex 3.5.3, SST].</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : A = matrix{{1,1,1},{0,1,2}}
+
+o26 = | 1 1 1 |
+      | 0 1 2 |
+
+               2       3
+o26 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : I = gkz(A,{10,8})
+
+                                                           2
+o27 = ideal (x D  + x D  + x D  - 10, x D  + 2x D  - 8, - D  + D D )
+              1 1    2 2    3 3        2 2     3 3         2    1 3
+
+o27 : Ideal of QQ[x ..x , D ..D ]
+                   1   3   1   3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : holonomicRank(I)
+
+o28 = 2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : cssExpts(I,{1,0,0})
+
+o29 = {{2, 8, 0}, {0, 12, -2}}
+
+o29 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In this case, the series corresponding to the exponent (2,8,0) is logarithm-free (actually, this is a hypergeometric polynomial), while the series corresponding to (0,12,-2) has logarithms. [SST, page 138] has the polynomial, and four terms of the logarithmic series.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="the exponents of the canonical series solutions of I in the direction of a weight vector" href="_css__Expts.html">cssExpts</a> -- the exponents of the canonical series solutions of I in the direction of a weight vector</span></li>
+          <li><span><a title="the exponents and multiplicities of the canonical series solutions" href="_css__Expts__Mult.html">cssExptsMult</a> -- the exponents and multiplicities of the canonical series solutions</span></li>
+          <li><span><a title="lead term of the canonical series solutions of I" href="_css__Lead__Term.html">cssLeadTerm</a> -- lead term of the canonical series solutions of I</span></li>
+          <li><span><a title="the image in the thetaRing of a torus-fixed element or ideal in a Weyl algebra" href="_distraction.html">distraction</a> -- the image in the thetaRing of a torus-fixed element or ideal in a Weyl algebra</span></li>
+          <li><span><a title="the image in the thetaRing of an indicial ideal in a Weyl algebra" href="_indicial__Ideal.html">indicialIdeal</a> -- the image in the thetaRing of an indicial ideal in a Weyl algebra</span></li>
+          <li><span><a title="checks if an ideal in a Weyl algebra is torus-fixed" href="_is__Torus__Fixed.html">isTorusFixed</a> -- checks if an ideal in a Weyl algebra is torus-fixed</span></li>
+          <li><span><a title="solving Frobenius ideals" href="_solve__Frobenius__Ideal.html">solveFrobeniusIdeal</a> -- solving Frobenius ideals</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">HolonomicSystems/DOC/canonicalSeries.m2:86:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

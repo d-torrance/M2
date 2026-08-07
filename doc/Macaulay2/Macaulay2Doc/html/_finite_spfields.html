@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>finite fields</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="index.html">Documentation </a> <br><a href="_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> » <a href="_rings.html">rings</a> » <a href="_finite_spfields.html">finite fields</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_polynomial_springs.html">next</a> | <a href="_integers_spmodulo_spa_spprime.html">previous</a> | <a href="_is__Finite__Prime__Field.html">forward</a> | <a href="_get__Prime__With__Root__Of__Unity.html">backward</a> | <a href="_rings.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>finite fields</h1>
+      <div>
+Two basic finite fields are:        <ul>
+          <li><a href="_integers_spmodulo_spa_spprime.html">ZZ/p</a></li>
+          <li><a title="make a finite field" href="___G__F.html">GF(p^n)</a></li>
+        </ul>
+Create a finite field with $q = p^n$ elements using        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : F = GF(81,Variable=>a)
+
+o1 = F
+
+o1 : GaloisField</code></pre>
+            </td>
+          </tr>
+        </table>
+This creates the ring of characteristic 3, having 3^4 = 81 elements.  The elements of this ring are 0, a, a^2, a^3, ..., a^80.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : a^80
+
+o2 = 1
+
+o2 : F</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : a^40
+
+o3 = -1
+
+o3 : F</code></pre>
+            </td>
+          </tr>
+        </table>
+Use <a title="ambient free module of a subquotient, or ambient ring" href="_ambient.html">ambient</a> to see the quotient ring the field is made from.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : ambient F
+
+        ZZ
+        --[a]
+         3
+o4 = -----------
+      4    3
+     a  - a  - 1
+
+o4 : QuotientRing</code></pre>
+            </td>
+          </tr>
+        </table>
+Now check that <span class="tt">a</span> satisfies this equation.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : a^4 + a - 1
+
+      3
+o5 = a  + a
+
+o5 : F</code></pre>
+            </td>
+          </tr>
+        </table>
+It is often preferable to view elements of <span class="tt">F</span> as polynomials in <span class="tt">a</span> rather than as powers of <span class="tt">a</span>.  This can be accomplished by lifting the elements back to this ambient ring.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : lift(a^20, ambient F)
+
+        3    2
+o6 = - a  - a  - 1
+
+        ZZ
+        --[a]
+         3
+o6 : -----------
+      4    3
+     a  - a  - 1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : apply({20,40,80}, i -> lift(a^i, ambient F))
+
+         3    2
+o7 = {- a  - a  - 1, -1, 1}
+
+o7 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+(for more details on lift, see <a href="_working_spwith_spmultiple_springs.html">working with multiple rings</a>).        <p></p>
+Finite fields can be used as base rings for polynomial rings.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : R = F[x,y,z]
+
+o8 = R
+
+o8 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : f = random(2,R)
+
+         3      2    2          3    2          2     3                 3  
+o9 = (- a  + a)x  + a x*y + (- a  - a  - a - 1)y  + (a  + a + 1)x*z + (a  -
+     ------------------------------------------------------------------------
+      2               3    2          2
+     a  - a)y*z + (- a  - a  + a - 1)z
+
+o9 : R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : f = (leadCoefficient f)^(-1) * f
+
+       2       2                 3    2      2       3             2        
+o10 = x  + (- a  + a - 1)x*y + (a  + a  + 1)y  + (- a  - a)x*z + (a  - a)y*z
+      -----------------------------------------------------------------------
+            3      2
+      + (- a  + a)z
+
+o10 : R</code></pre>
+            </td>
+          </tr>
+        </table>
+Gröbner bases, and all related computations work in these rings.        <p></p>
+The prime finite fields can be made easily as quotient rings of <a title="the class of all integers" href="___Z__Z.html">ZZ</a>.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : ZZ/101
+
+       ZZ
+o11 = ---
+      101
+
+o11 : QuotientRing</code></pre>
+            </td>
+          </tr>
+        </table>
+In general, to make a finite field with <span class="tt">q</span> elements, we use <a title="make a finite field" href="___G__F.html">GF</a>.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : k = GF 81
+
+o12 = k
+
+o12 : GaloisField</code></pre>
+            </td>
+          </tr>
+        </table>
+The generator of the field is available as the variable <var>a</var> or it can be obtained as usual.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : a
+
+o13 = a
+
+o13 : k</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : k_0
+
+o14 = a
+
+o14 : k</code></pre>
+            </td>
+          </tr>
+        </table>
+You may use <a title="ambient free module of a subquotient, or ambient ring" href="_ambient.html">ambient</a> to see the quotient ring the field is made from.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : ambient k
+
+         ZZ
+         --[a]
+          3
+o15 = -----------
+       4    3
+      a  - a  - 1
+
+o15 : QuotientRing</code></pre>
+            </td>
+          </tr>
+        </table>
+Use <a title="make an ideal" href="_ideal.html">ideal</a> to see the ideal that defined that quotient ring.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : ideal oo
+
+             4    3
+o16 = ideal(a  - a  - 1)
+
+               ZZ
+o16 : Ideal of --[a]
+                3</code></pre>
+            </td>
+          </tr>
+        </table>
+Finally, you may use <a title="a binary operator, used for subscripting and access to elements" href="__us.html">_</a> to recover the generator of the ideal.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : oo_0
+
+       4    3
+o17 = a  - a  - 1
+
+      ZZ
+o17 : --[a]
+       3</code></pre>
+            </td>
+          </tr>
+        </table>
+To specify a different name for the generator when the field is created, use the <a title="an optional argument" href="___Variable.html">Variable</a> option.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : F = GF(16, Variable => b)
+
+o18 = F
+
+o18 : GaloisField</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : b^20 + 1
+
+       2
+o19 = b  + b + 1
+
+o19 : F</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : random F
+
+o20 = 0
+
+o20 : F</code></pre>
+            </td>
+          </tr>
+        </table>
+Finite fields can be used as base rings for polynomial rings.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : R = F[x,y,z]
+
+o21 = R
+
+o21 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : random(2,R)
+
+        3          2     3    2             2          2     2              
+o22 = (b  + b + 1)x  + (b  + b  + 1)x*y + (b  + b + 1)y  + (b  + b + 1)x*z +
+      -----------------------------------------------------------------------
+                3    2      2
+      b*y*z + (b  + b  + b)z
+
+o22 : R</code></pre>
+            </td>
+          </tr>
+        </table>
+If you have a quotient ring that you know is a finite field, then you can convert it to ring that is known by the system to be a finite field.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : GF (ZZ/2[T]/(T^9+T+1), Variable => T) 
+
+o23 = GF 512
+
+o23 : GaloisField</code></pre>
+            </td>
+          </tr>
+        </table>
+You may also provide your own choice of primitive element.  Internally, elements of the finite field are stored as powers of the primitive element. First we assign our quotient ring to a global variable to ensure that <span class="tt">T</span> gets set to a value in the quotient ring, and then we call <span class="tt">GF</span>.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : A = ZZ/2[T]/(T^9+T+1)
+
+o24 = A
+
+o24 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : k = GF (A, PrimitiveElement => T^3+1)
+
+o25 = k
+
+o25 : GaloisField</code></pre>
+            </td>
+          </tr>
+        </table>
+Notice that <span class="tt">T</span> is now recorded as an element of this finite field.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : T
+
+o26 = T
+
+o26 : k</code></pre>
+            </td>
+          </tr>
+        </table>
+The generator of A can be obtained this way:        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : A_0
+
+o27 = T
+
+o27 : A</code></pre>
+            </td>
+          </tr>
+        </table>
+Use <a title="substituting values for variables" href="_substitute.html">substitute</a> to map it to an element of the finite field.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : substitute(A_0,k)
+
+o28 = T
+
+o28 : k</code></pre>
+            </td>
+          </tr>
+        </table>
+Conversely, a given element of the finite field can be transferred back to the quotient ring with <a title="lift to another ring" href="_lift.html">lift</a>.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : lift(k_0, ring T)
+
+o29 = T
+
+o29 : k</code></pre>
+            </td>
+          </tr>
+        </table>
+We can even lift it back to the polynomial ring.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i30 : lift(k_0, ambient ring T)
+
+o30 = T
+
+o30 : A</code></pre>
+            </td>
+          </tr>
+        </table>
+For more information see <a title="the class of all Galois fields" href="___Galois__Field.html">GaloisField</a>.      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="whether a ring is a finite prime field" href="_is__Finite__Prime__Field.html">isFinitePrimeField</a> -- whether a ring is a finite prime field</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Macaulay2Doc/ov_rings.m2:663:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

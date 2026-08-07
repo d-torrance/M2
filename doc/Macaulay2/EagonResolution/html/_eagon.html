@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>eagon -- compute the Eagon double complex</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Compute the Eagon Resolution of the residue field" href="index.html">EagonResolution</a> :: <a title="compute the Eagon double complex" href="_eagon.html">eagon</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_eagon__Beta.html">next</a> | <a href="___Display__Blocks.html">previous</a> | <a href="_eagon__Beta.html">forward</a> | <a href="___Display__Blocks.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>eagon -- compute the Eagon double complex</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">E = eagon(R,b)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">R</span>, <span>a <a title="the class of all rings" href="../../Macaulay2Doc/html/___Ring.html">ring</a></span>, </span></li>
+            <li><span><span class="tt">b</span>, <span>an <a title="the class of all integers" href="../../Macaulay2Doc/html/___Z__Z.html">integer</a></span>, how far to carry the computation; -1 means &quot;delete EagonData&quot;</span></li>
+          </ul>
+        </li>
+        <li><a href="../../Macaulay2Doc/html/_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:          <ul>
+            <li><span><span class="tt">CompressBeta</span><span class="tt"> => </span><span class="tt">...</span>, <span>default value true</span></span></li>
+            <li><span><span class="tt">Verbose</span><span class="tt"> => </span><span class="tt">...</span>, <span>default value false</span></span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span class="tt">E</span>, <span>an instance of the type <a title="HashTable storing output of eagon" href="___Eagon__Data.html">EagonData</a></span>, </span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>eagon(R,b) computes the first b columns of the Eagon double complex Y^*_* of R, and caches them in a HashTable of class EagonData in of R.cache.EagonData. (The command eagon(R,-1) removes this.)</p>
+          <p>Following Gulliksen-Levin we think of Y^n_* as the n-th column, and Y^*_i as the i-th row. The columns Y^n are not acyclic. The i-th row is a resolution of the i-th module of boundaries in the Koszul complex K of the variables of R; in particular, the &quot;Eagon Resolution&quot; is the 0-th row,</p>
+          <p>Y^b_0 \to...\to Y^1_0 \to Y^0_0.</p>
+          <p>Let X_i be the free module R**H_i(K), which is also the R**F_i, where F is a minimal free resolution of R as a module over the polynomial ring on the same set of variables.</p>
+          <p>We count X_i as having homological degree i+1. With this convention, Y^*_0 has the form K\otimes T(F'), where T denotes the tensor algebra and F' is the F_1++F_2++... .</p>
+          <p>The module Y^n_i = Eagon#{0,n,i} is described in Gulliksen-Levin as: Y^0 = koszul vars R Y^{n+1}_0 = Y^n_1; and for i>0, Y^{n+1}_i = Y^n_{i+1} ++ Y^n_0**X_i</p>
+          <p>Note that Y^n_i == 0 for i>1+length koszul vars R - n,</p>
+          <p>The i-th homology of Y^n_* is H_i(Y^n) = H_0(Y^n_*)**X_i (proved in Gulliksen-Levin). Part of the inductive construction will be a map inducing this isomorphism</p>
+          <p>alpha^n_i = eagonBeta^n_i + dHor^n_0**1: Y^n_0**X_i \to Y^{n-1}_{i+1} ++ Y^{n-1}_0**X_i = Y^n</p>
+          <p></p>
+          <p>Assume that the differential of Y^n and the maps dVert^n and alpha^n are known. We take</p>
+          <p>dHor^{n+1}_0: Y^{n+1}_0 = Y^n_1 -> Y^n_0 to be dVert^n_1.</p>
+          <p>The remaining horizontal differentials dHor^{n+1}_i: Y^{n+1} \to Y^n have source and target as follows:</p>
+          <p>Y^{n+1}_i = Y^n_{i+1} ++ Y^n_0**X_i -> Y^n_i = Y^{n-1}_{i+1} ++ Y^{n-1}_0**X_i.</p>
+          <p>We take dHor^{n+1}_i to be the sum of two maps:</p>
+          <p>dVert^n_{i+1}  Y^n_{i+1} -> Y^n_i ++ Y^{n-1}_0**X_i.</p>
+          <p>and alpha^{n+1}_i = eagonBeta^{n+1}_i + dHor^n_0**1:  Y^n_0**X_i \to  Y^n_i ++ Y^{n-1}_0**X(i).</p>
+          <p>It remains to define eagonBeta^{n+1}_i; we take this to be the negative of</p>
+          <p>a lifting along the map from Y^{n+1}_{i-1} \subset Y^n_i to Y^n_{i-1} of the composite</p>
+          <p>dVert^{n+1}_{i-1} *  (dHor^n_0 ** X_i): Y^n_0**X_i -> Y^{n-1}_0.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : S = ZZ/101[a,b,c]
+
+o1 = S
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I = ideal(a,b)*ideal&quot;a3,b3,c3&quot;
+
+             4     3     3   3    4     3
+o2 = ideal (a , a*b , a*c , a b, b , b*c )
+
+o2 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : R = S/I
+
+o3 = R
+
+o3 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : needsPackage &quot;DGAlgebras&quot;; isGolod R
+
+o5 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : E = eagon(R,6)
+
+o6 = EagonData in &lt;ring>.cache computed to length 6
+
+o6 : EagonData</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We can see the vertical and horizontal strands, and the eagonBeta maps</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : verticalStrand(E,3)
+
+      27      81      81      27
+o7 = R   &lt;-- R   &lt;-- R   &lt;-- R
+                              
+     0       1       2       3
+
+o7 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : horizontalStrand(E,2)
+
+      3      9      27      81      243      729
+o8 = R  &lt;-- R  &lt;-- R   &lt;-- R   &lt;-- R    &lt;-- R
+                                             
+     0      1      2       3       4        5
+
+o8 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : horizontalStrand (E,0)
+
+      1      3      9      27      81      243
+o9 = R  &lt;-- R  &lt;-- R  &lt;-- R   &lt;-- R   &lt;-- R
+                                           
+     0      1      2      3       4       5
+
+o9 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : F = eagonResolution E
+
+       1      3      9      27      81      243      729
+o10 = R  &lt;-- R  &lt;-- R  &lt;-- R   &lt;-- R   &lt;-- R    &lt;-- R
+                                                     
+      0      1      2      3       4       5        6
+
+o10 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : eagonBeta E
+
+      +----------------------------------------------------------------+
+      |+-------+--------+                                              |
+o11 = ||       |(0, {1})|                                              |
+      |+-------+--------+                                              |
+      ||(1, {})|    *   |                                              |
+      |+-------+--------+                                              |
+      +----------------------------------------------------------------+
+      |+-------+--------+                                              |
+      ||       |(1, {1})|                                              |
+      |+-------+--------+                                              |
+      ||(2, {})|    *   |                                              |
+      |+-------+--------+                                              |
+      +----------------------------------------------------------------+
+      |+--------+--------+-----------+                                 |
+      ||        |(2, {1})|(0, {1, 1})|                                 |
+      |+--------+--------+-----------+                                 |
+      || (3, {})|    *   |     .     |                                 |
+      |+--------+--------+-----------+                                 |
+      ||(0, {2})|    .   |     .     |                                 |
+      |+--------+--------+-----------+                                 |
+      +----------------------------------------------------------------+
+      |+--------+--------+-----------+-----------+                     |
+      ||        |(3, {1})|(0, {2, 1})|(1, {1, 1})|                     |
+      |+--------+--------+-----------+-----------+                     |
+      ||(0, {3})|    .   |     .     |     .     |                     |
+      |+--------+--------+-----------+-----------+                     |
+      ||(1, {2})|    .   |     .     |     .     |                     |
+      |+--------+--------+-----------+-----------+                     |
+      +----------------------------------------------------------------+
+      |+-----------+-----------+-----------+-----------+--------------+|
+      ||           |(0, {3, 1})|(1, {2, 1})|(2, {1, 1})|(0, {1, 1, 1})||
+      |+-----------+-----------+-----------+-----------+--------------+|
+      ||  (1, {3}) |     .     |     .     |     .     |       .      ||
+      |+-----------+-----------+-----------+-----------+--------------+|
+      ||  (2, {2}) |     .     |     .     |     .     |       .      ||
+      |+-----------+-----------+-----------+-----------+--------------+|
+      ||(0, {1, 2})|     .     |     .     |     .     |       .      ||
+      |+-----------+-----------+-----------+-----------+--------------+|
+      +----------------------------------------------------------------+</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>With the default option CompressBeta => true, only a subset of the components of Y^{n+1}_{i-1} are used. To see the effect of CompressBeta => true, consider:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : eagon(R,-1)
+EagonData removed from R.cache</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : E = eagon(R,6, Verbose =>true)
+Used 1 of 1 blocks of eagonBeta (2, 1)
+Used 1 of 1 blocks of eagonBeta (2, 2)
+Used 1 of 1 blocks of eagonBeta (2, 3)
+Used 1 of 1 blocks of eagonBeta (2, 4)
+Used 1 of 2 blocks of eagonBeta (3, 1)
+Used 1 of 2 blocks of eagonBeta (3, 2)
+Used 1 of 2 blocks of eagonBeta (3, 3)
+Used 1 of 1 blocks of eagonBeta (3, 4)
+Used 1 of 3 blocks of eagonBeta (4, 1)
+Used 1 of 3 blocks of eagonBeta (4, 2)
+Used 1 of 2 blocks of eagonBeta (4, 3)
+Used 1 of 1 blocks of eagonBeta (4, 4)
+Used 1 of 5 blocks of eagonBeta (5, 1)
+Used 1 of 4 blocks of eagonBeta (5, 2)
+Used 1 of 2 blocks of eagonBeta (5, 3)
+Used 1 of 1 blocks of eagonBeta (5, 4)
+Used 1 of 7 blocks of eagonBeta (6, 1)
+Used 1 of 5 blocks of eagonBeta (6, 2)
+Used 1 of 2 blocks of eagonBeta (6, 3)
+Used 1 of 1 blocks of eagonBeta (6, 4)
+
+o13 = EagonData in &lt;ring>.cache computed to length 6
+
+o13 : EagonData</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : eagon(R,-1)
+EagonData removed from R.cache</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : En = eagon(R,6,CompressBeta => false)
+
+o15 = EagonData in &lt;ring>.cache computed to length 6
+
+o15 : EagonData</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : eagonBeta (E,4), eagonBeta(E,5)
+
+       +--------+--------+-----------+ 
+o16 = (|        |(2, {1})|(0, {1, 1})|,
+       +--------+--------+-----------+ 
+       | (3, {})|    *   |     .     | 
+       +--------+--------+-----------+ 
+       |(0, {2})|    .   |     .     | 
+       +--------+--------+-----------+ 
+      -----------------------------------------------------------------------
+      +--------+--------+-----------+-----------+
+      |        |(3, {1})|(0, {2, 1})|(1, {1, 1})|)
+      +--------+--------+-----------+-----------+
+      |(0, {3})|    .   |     .     |     .     |
+      +--------+--------+-----------+-----------+
+      |(1, {2})|    .   |     .     |     .     |
+      +--------+--------+-----------+-----------+
+
+o16 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : eagonBeta (En,4), eagonBeta(En,5)
+
+       +--------+--------+-----------+ 
+o17 = (|        |(2, {1})|(0, {1, 1})|,
+       +--------+--------+-----------+ 
+       | (3, {})|    *   |     .     | 
+       +--------+--------+-----------+ 
+       |(0, {2})|    *   |     .     | 
+       +--------+--------+-----------+ 
+      -----------------------------------------------------------------------
+      +--------+--------+-----------+-----------+
+      |        |(3, {1})|(0, {2, 1})|(1, {1, 1})|)
+      +--------+--------+-----------+-----------+
+      |(0, {3})|    .   |     .     |     *     |
+      +--------+--------+-----------+-----------+
+      |(1, {2})|    *   |     .     |     *     |
+      +--------+--------+-----------+-----------+
+
+o17 : Sequence</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>There are also ways to investigate the components of dVert, dHor, and eagonBeta; see <a title="information about components of a labeled Matrix or Complex" href="_picture.html">picture</a>, <a title="Display => &quot;DisplayBlocks&quot; option for picture" href="___Display__Blocks.html">DisplayBlocks</a>, and <a title="extract a single component from a labeled map" href="_map__Component.html">mapComponent</a>.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="extracts one vertical strand from an Eagon double complex" href="_vertical__Strand.html">verticalStrand</a> -- extracts one vertical strand from an Eagon double complex</span></li>
+          <li><span><a title="extracts one horizontal strand from an Eagon double complex" href="_horizontal__Strand.html">horizontalStrand</a> -- extracts one horizontal strand from an Eagon double complex</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">eagon</span>:</h2>
+          <ul>
+            <li><kbd>eagon(Ring,ZZ)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="compute the Eagon double complex" href="_eagon.html">eagon</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function__With__Options.html">method function with options</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">EagonResolution.m2:832:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

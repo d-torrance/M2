@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Computing the Serre Spectral Sequence associated to a Hopf Fibration</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="spectral sequences" href="index.html">SpectralSequences</a> :: <a href="___Computing_spthe_sp__Serre_sp__Spectral_sp__Sequence_spassociated_spto_spa_sp__Hopf_sp__Fibration.html">Computing the Serre Spectral Sequence associated to a Hopf Fibration</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_connecting__Morphism.html">next</a> | <a href="_complex_lp__Spectral__Sequence_rp.html">previous</a> | <a href="_connecting__Morphism.html">forward</a> | <a href="_complex_lp__Spectral__Sequence_rp.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Computing the Serre Spectral Sequence associated to a Hopf Fibration</h1>
+      <div>
+        <div>
+          <p>We compute the Serre Spectral Sequence associated to the Hopf Fibration $S^1 \rightarrow S^3 \rightarrow S^2$. This example is made possible by the minimal triangulation of this fibration given in the paper &quot;A minimal triangulation of the Hopf map and its application&quot; by K.V. Madahar and K.S Sarkaria. Geom Dedicata, 2000.</p>
+        </div>
+        <div>
+          <p>We first make the relevant simplicial complexes described on page 110 of the paper.  The simplicial complex $S3$ below is a triangulation of $S^3$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : B = QQ[a_0..a_2,b_0..b_2,c_0..c_2,d_0..d_2];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : l1 = {a_0*b_0*b_1*c_1,a_0*b_0*c_0*c_1,a_0*a_1*b_1*c_1,b_0*b_1*c_1*d_1,b_0*c_0*c_1*d_2,a_0*a_1*c_1*d_2,a_0*c_0*c_1*d_2,b_0*c_1*d_1*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : l2 = {b_1*c_1*c_2*a_2,b_1*c_1*a_1*a_2,b_1*b_2*c_2*a_2,c_1*c_2*a_2*d_1,c_1*a_1*a_2*d_2,b_1*b_2*a_2*d_2,b_1*a_1*a_2*d_2,c_1*a_2*d_1*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : l3 = {c_2*a_2*a_0*b_0,c_2*a_2*b_2*b_0,c_2*c_0*a_0*b_0,a_2*a_0*b_0*d_1,a_2*b_2*b_0*d_2,c_2*c_0*b_0*d_2,c_2*b_2*b_0*d_2,a_2*b_0*d_1*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : l4 = {a_0*b_0*b_1*d_1,a_0*b_1*d_0*d_1,b_1*c_1*c_2*d_1,b_1*c_2*d_0*d_1,a_0*a_2*c_2*d_1,a_0*c_2*d_0*d_1};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : l5 = {a_0*b_1*d_0*d_2,a_0*a_1*b_1*d_2,b_1*c_2*d_0*d_2,b_1*b_2*c_2*d_2,a_0*c_2*d_0*d_2,a_0*c_0*c_2*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : S3 = simplicialComplex(join(l1,l2,l3,l4,l5));</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We identify the two sphere $S^2$ with the simplicial complex $S2$ defined by the facets $\{abc, abd, bcd, acd \}$.  The Hopf fibration $S^1 \rightarrow S^3 \rightarrow S^2$ is then realized by the simplicial map $p: S3 \rightarrow S2$ defined by $a_i \mapsto a$, $b_i \mapsto b$, $c_i \mapsto c$, and $d_i \mapsto d$.</p>
+          <p>We now explain how to construct the filtration of $S3$ obtained by considering the $k$-skeletons of this fibration.</p>
+          <p>The simplicial complex $F1S3$ below is the subsimplicial complex of $S3$ obtained by considering the inverse images of the $1$-dimensional faces of the simplicial complex $S2$. We first describe the simplicial complex $F1S3$ in pieces.</p>
+          <p>For example, to compute $f1l1$ below, we observe that the inverse image of $ab$ under $p$ is $a_0b_0b_1, a_0a_1b_1$ etc. All of these inverse images have been computed by hand previously.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : f1l1 = {a_0*b_0*b_1,a_0*a_1*b_1,a_0*c_0*c_1,a_0*a_1*c_1,a_0*a_1*d_2,d_1*d_2,b_0*b_1*c_1,b_0*c_0*c_1,b_0*b_1*d_1,b_0*d_1*d_2,c_1*d_1*d_2,c_0*c_1*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : f1l2 = {b_1*a_1*a_2,b_1*b_2*a_2,c_1*c_2*a_2,c_1*a_1*a_2,a_1*a_2*d_2,a_2*d_1*d_2,b_1*c_1*c_2,b_1*b_2*c_2,b_1*b_2*d_2,d_1*d_2,c_1*d_1*d_2,c_1*c_2*d_1};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : f1l3 = {a_2*a_0*b_0,a_2*b_2*b_0, c_2*a_2*a_0,c_2*c_0*a_0,a_2*a_0*d_1,a_2*d_1*d_2,b_2*b_0*c_2,c_2*c_0*b_0,b_2*b_0*d_2,b_0*d_1*d_2,c_2*c_0*d_2,d_1*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : f1l4 = {a_0*b_0*b_1,a_0*a_2,a_0*a_2*c_2,c_1*c_2,a_0*d_0*d_1,a_0*a_2*d_1,b_1*c_1*c_2,b_0*b_1,b_0*b_1*d_1,b_1*d_0*d_1,c_1*c_2*d_1,c_2*d_0*d_1}
+
+o11 = {a b b , a a , a a c , c c , a d d , a a d , b c c , b b , b b d ,
+        0 0 1   0 2   0 2 2   1 2   0 0 1   0 2 1   1 1 2   0 1   0 1 1 
+      -----------------------------------------------------------------------
+      b d d , c c d , c d d }
+       1 0 1   1 2 1   2 0 1
+
+o11 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : f1l5 = {a_0*a_1*b_1,b_1*b_2,a_0*c_0*c_2,a_0*a_1,a_0*d_0*d_2,a_0*a_1*d_2,b_1*b_2*c_2,c_0*c_2,b_1*d_0*d_2,b_1*b_2*d_2,c_2*d_0*d_2,c_0*c_2*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : F1S3 = simplicialComplex(join(f1l1,f1l2,f1l3,f1l4,f1l5));</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The simplicial complex $F0S3$ below is the subsimplicial complex of $F1S3$ obtained by considering the inverse images of the $0$-dimensional faces of the simplicial complex $S2$.  Again we describe this simplicial complex in pieces.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : f0l1 = {a_0*a_1,b_0*b_1,c_0*c_1,d_1*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : f0l2 = {a_1*a_2,b_1*b_2,c_1*c_2,d_1*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : f0l3 = {a_0*a_2,b_0*b_2,c_0*c_2,d_1*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : f0l4 = {a_0*a_2,b_0*b_1,c_1*c_2,d_0*d_1};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : f0l5 = {a_0*a_1,b_1*b_2,c_0*c_2,d_0*d_2};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : F0S3 = simplicialComplex(join(f0l1,f0l2,f0l3,f0l4,f0l5));</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The simplicial complex $S3$ is obtained by considering the inverse images of the $2$ dimensional faces of $S2$.</p>
+          <p>To compute a simplicial version of the Serre spectral sequence for the $S^1 \rightarrow S^3 \rightarrow S^2$ correctly, meaning that the spectral sequence takes the form $E^2_{p,q} = H_p(S^2,H_q(S^1,QQ))$, we need to use non-reduced homology.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : K = filteredComplex({S3,F1S3,F0S3}, ReducedHomology => false);</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We now compute the various pages of the spectral sequence. To make the output intelligible we prune the spectral sequence.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : E = prune spectralSequence K;</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : E0 = E^0
+
+      +------+------+------+
+      |  12  |  36  |  36  |
+o22 = |QQ    |QQ    |QQ    |
+      |      |      |      |
+      |{0, 1}|{1, 1}|{2, 1}|
+      +------+------+------+
+      |  12  |  36  |  36  |
+      |QQ    |QQ    |QQ    |
+      |      |      |      |
+      |{0, 0}|{1, 0}|{2, 0}|
+      +------+------+------+
+
+o22 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Here are the maps.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : E0.dd
+
+o23 = {-1, 0} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-1, 1} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+      {-1, 3} : 0 &lt;----- 0 : {-1, 4}
+                     0
+
+      {2, -3} : 0 &lt;----- 0 : {2, -2}
+                     0
+
+      {2, -2} : 0 &lt;----- 0 : {2, -1}
+                     0
+
+                           36
+      {2, -1} : 0 &lt;----- QQ   : {2, 0}
+                     0
+
+                 36                                                                                                                        36
+      {2, 0} : QQ   &lt;------------------------------------------------------------------------------------------------------------------- QQ   : {2, 1}
+                       | 0  0  0  0  0  0  0  0  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  -1 0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  1  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  1  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 1  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  1  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  1  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  -1 -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  1  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  1  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  -1 0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 1  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 -1 0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  -1 0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  1  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  -1 0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  1  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  -1 0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  -1 |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  -1 0  0  0  |
+
+      {1, -2} : 0 &lt;----- 0 : {1, -1}
+                     0
+
+                           36
+      {1, -1} : 0 &lt;----- QQ   : {1, 0}
+                     0
+
+                 36                                                                                                                        36
+      {1, 0} : QQ   &lt;------------------------------------------------------------------------------------------------------------------- QQ   : {1, 1}
+                       | 0  0  0  1  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 1  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  -1 -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  1  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  1  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  -1 -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  1  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  1  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | -1 0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  -1 0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  -1 0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  -1 0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 -1 0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  1  0  0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  1  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 -1 0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  1  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  -1 0  0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  0  -1 0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  1  0  0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  -1 0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  1  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 -1 |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  1  0  |
+                       | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  -1 0  0  0  1  |
+
+                 36
+      {1, 1} : QQ   &lt;----- 0 : {1, 2}
+                       0
+
+                           12
+      {0, -1} : 0 &lt;----- QQ   : {0, 0}
+                     0
+
+                 12                                                12
+      {0, 0} : QQ   &lt;------------------------------------------- QQ   : {0, 1}
+                       | 1  1  0  0  0  0  0  0  0  0  0  0  |
+                       | -1 0  1  0  0  0  0  0  0  0  0  0  |
+                       | 0  -1 -1 0  0  0  0  0  0  0  0  0  |
+                       | 0  0  0  1  1  0  0  0  0  0  0  0  |
+                       | 0  0  0  -1 0  1  0  0  0  0  0  0  |
+                       | 0  0  0  0  -1 -1 0  0  0  0  0  0  |
+                       | 0  0  0  0  0  0  1  1  0  0  0  0  |
+                       | 0  0  0  0  0  0  -1 0  1  0  0  0  |
+                       | 0  0  0  0  0  0  0  -1 -1 0  0  0  |
+                       | 0  0  0  0  0  0  0  0  0  1  1  0  |
+                       | 0  0  0  0  0  0  0  0  0  -1 0  1  |
+                       | 0  0  0  0  0  0  0  0  0  0  -1 -1 |
+
+                 12
+      {0, 1} : QQ   &lt;----- 0 : {0, 2}
+                       0
+
+      {0, 2} : 0 &lt;----- 0 : {0, 3}
+                    0
+
+o23 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Now try the $E^1$ page.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : E1 = E^1
+
+      +------+------+------+
+      |  4   |  6   |  4   |
+o24 = |QQ    |QQ    |QQ    |
+      |      |      |      |
+      |{0, 1}|{1, 1}|{2, 1}|
+      +------+------+------+
+      |  4   |  6   |  4   |
+      |QQ    |QQ    |QQ    |
+      |      |      |      |
+      |{0, 0}|{1, 0}|{2, 0}|
+      +------+------+------+
+
+o24 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Here are the maps.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : E1.dd
+
+o25 = {-2, 1} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-2, 2} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-2, 3} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+      {-2, 4} : 0 &lt;----- 0 : {-1, 4}
+                     0
+
+      {1, -2} : 0 &lt;----- 0 : {2, -2}
+                     0
+
+      {1, -1} : 0 &lt;----- 0 : {2, -1}
+                     0
+
+                 6                        4
+      {1, 0} : QQ  &lt;------------------- QQ  : {2, 0}
+                      | -1 -1 0  0  |
+                      | 1  0  -1 0  |
+                      | 0  1  1  0  |
+                      | -1 0  0  -1 |
+                      | 0  -1 0  1  |
+                      | 0  0  -1 -1 |
+
+                 6                      4
+      {1, 1} : QQ  &lt;----------------- QQ  : {2, 1}
+                      | 1 -1 0 0  |
+                      | 0 1  1 0  |
+                      | 1 0  1 0  |
+                      | 0 -1 0 -1 |
+                      | 1 0  0 1  |
+                      | 0 0  1 -1 |
+
+      {0, -1} : 0 &lt;----- 0 : {1, -1}
+                     0
+
+                 4                              6
+      {0, 0} : QQ  &lt;------------------------- QQ  : {1, 0}
+                      | 1  1  1  0  0  0  |
+                      | -1 0  0  1  1  0  |
+                      | 0  -1 0  -1 0  1  |
+                      | 0  0  -1 0  -1 -1 |
+
+                 4                            6
+      {0, 1} : QQ  &lt;----------------------- QQ  : {1, 1}
+                      | 1  1  -1 0  0 0 |
+                      | -1 0  0  1  1 0 |
+                      | 0  -1 0  -1 0 1 |
+                      | 0  0  -1 0  1 1 |
+
+      {0, 2} : 0 &lt;----- 0 : {1, 2}
+                    0
+
+                           4
+      {-1, 0} : 0 &lt;----- QQ  : {0, 0}
+                     0
+
+                           4
+      {-1, 1} : 0 &lt;----- QQ  : {0, 1}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {0, 2}
+                     0
+
+      {-1, 3} : 0 &lt;----- 0 : {0, 3}
+                     0
+
+o25 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Now try the $E^2$ page.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : E2 = E^2
+
+      +------+------+------+
+      |  1   |      |  1   |
+o26 = |QQ    |0     |QQ    |
+      |      |      |      |
+      |{0, 1}|{1, 1}|{2, 1}|
+      +------+------+------+
+      |  1   |      |  1   |
+      |QQ    |0     |QQ    |
+      |      |      |      |
+      |{0, 0}|{1, 0}|{2, 0}|
+      +------+------+------+
+
+o26 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Here are the maps.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : E2.dd
+
+o27 = {-3, 2} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-3, 3} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-3, 4} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+      {-3, 5} : 0 &lt;----- 0 : {-1, 4}
+                     0
+
+      {0, -1} : 0 &lt;----- 0 : {2, -2}
+                     0
+
+                 1
+      {0, 0} : QQ  &lt;----- 0 : {2, -1}
+                      0
+
+                 1              1
+      {0, 1} : QQ  &lt;--------- QQ  : {2, 0}
+                      | 1 |
+
+                          1
+      {0, 2} : 0 &lt;----- QQ  : {2, 1}
+                    0
+
+      {-1, 0} : 0 &lt;----- 0 : {1, -1}
+                     0
+
+      {-1, 1} : 0 &lt;----- 0 : {1, 0}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {1, 1}
+                     0
+
+      {-1, 3} : 0 &lt;----- 0 : {1, 2}
+                     0
+
+                           1
+      {-2, 1} : 0 &lt;----- QQ  : {0, 0}
+                     0
+
+                           1
+      {-2, 2} : 0 &lt;----- QQ  : {0, 1}
+                     0
+
+      {-2, 3} : 0 &lt;----- 0 : {0, 2}
+                     0
+
+      {-2, 4} : 0 &lt;----- 0 : {0, 3}
+                     0
+
+o27 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Note that the modules on the $E^2$ page appear to have been computed correctly. The statement of the Serre spectral sequence, see for example Theorem 1.3 p. 8 of Hatcher's Spectral Sequence book, asserts that $E^2_{p,q} = H_p(S^2,H_q(S^1,QQ))$. This is exactly what we obtained above.  Also the maps on the $E^2$ page also seem to be computed correctly as the spectral sequence will abut to the homology of $S^3$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : E3 = E^3
+
+      +------+------+------+
+      |      |      |  1   |
+o28 = |0     |0     |QQ    |
+      |      |      |      |
+      |{0, 1}|{1, 1}|{2, 1}|
+      +------+------+------+
+      |  1   |      |      |
+      |QQ    |0     |0     |
+      |      |      |      |
+      |{0, 0}|{1, 0}|{2, 0}|
+      +------+------+------+
+
+o28 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : E3.dd
+
+o29 = {-4, 3} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-4, 4} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-4, 5} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+      {-4, 6} : 0 &lt;----- 0 : {-1, 4}
+                     0
+
+      {-1, 0} : 0 &lt;----- 0 : {2, -2}
+                     0
+
+      {-1, 1} : 0 &lt;----- 0 : {2, -1}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {2, 0}
+                     0
+
+                           1
+      {-1, 3} : 0 &lt;----- QQ  : {2, 1}
+                     0
+
+      {-2, 1} : 0 &lt;----- 0 : {1, -1}
+                     0
+
+      {-2, 2} : 0 &lt;----- 0 : {1, 0}
+                     0
+
+      {-2, 3} : 0 &lt;----- 0 : {1, 1}
+                     0
+
+      {-2, 4} : 0 &lt;----- 0 : {1, 2}
+                     0
+
+                           1
+      {-3, 2} : 0 &lt;----- QQ  : {0, 0}
+                     0
+
+      {-3, 3} : 0 &lt;----- 0 : {0, 1}
+                     0
+
+      {-3, 4} : 0 &lt;----- 0 : {0, 2}
+                     0
+
+      {-3, 5} : 0 &lt;----- 0 : {0, 3}
+                     0
+
+o29 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Thus the E^3 page appears to have been computed correctly.</p>
+        </div>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SpectralSequences.m2:1906:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

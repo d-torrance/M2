@@ -1,0 +1,99 @@
+-- -*- M2-comint -*- hash: 5998216334930404384
+
+i1 : S = ZZ/101[a..d, Degrees=>{2:{1,0},2:{0,1}}];
+
+i2 : h = a*c^2 + a*c*d + b*d^2;
+
+i3 : I = (ideal(a,b) * ideal(c,d))^[2]
+
+             2 2   2 2   2 2   2 2
+o3 = ideal (a c , a d , b c , b d )
+
+o3 : Ideal of S
+
+i4 : g = map(S^1/h, S^1, 1)
+
+o4 = | 1 |
+
+o4 : Matrix
+
+i5 : f = map(S^1, S^{-degree h}, {{h}})
+
+o5 = | ac2+acd+bd2 |
+
+             1      1
+o5 : Matrix S  <-- S
+
+i6 : assert isShortExactSequence(g,f)
+
+i7 : delta = connectingExtMap(S^1/I, g, f)
+
+o7 = -2 : cokernel {-3, -2} | d2 -c2 -b2 a2 | <------------------------------------- subquotient ({-4, -2} | c2 ac+bd -bc   b2 0   a2  0  ab    0  0           |, {-4, -2} | -b2 a2  0   0  ac2+acd+bd2 0           0           0           |) : -2
+                                                 {-3, -2} | 0 d -c 0 0 0 0 a 0 0 |                {-4, -2} | d2 -ad   ac+ad 0  b2  0   a2 0     0  0           |  {-4, -2} | 0   0   -b2 a2 0           ac2+acd+bd2 0           0           |
+                                                                                                  {-2, -4} | 0  0     0     d2 -c2 0   0  0     a2 ac2+acd+bd2 |  {-2, -4} | -d2 0   c2  0  0           0           ac2+acd+bd2 0           |
+                                                                                                  {-2, -4} | 0  0     0     0  0   -d2 c2 c2+cd b2 0           |  {-2, -4} | 0   -d2 0   c2 0           0           0           ac2+acd+bd2 |
+
+     -1 : subquotient ({-3, 0}  | c2 b2 0   a2  0  0  |, {-3, 0}  | -b2 a2  0   0  |) <--------------------------------------------- subquotient ({-2, -2} | ac2+acd+bd2 0           0           0           -a2cd-abd2 a3c+a2bd -a2bc     acd3+bd4   c2d4            |, {-2, -2} | -a2cd-abd2 ac2+acd+bd2 0           0           0           |) : -1
+                       {-3, 0}  | d2 0  b2  0   a2 0  |  {-3, 0}  | 0   0   -b2 a2 |     {-3, 2} | 0 0 0 0 0 0  0 ab ac2+acd-bd2 |                {-2, -2} | 0           ac2+acd+bd2 0           0           b2c2       ab2c+b3d -b3c      bc4+bc3d   c6+2c5d+c4d2    |  {-2, -2} | b2c2       0           ac2+acd+bd2 0           0           |
+                       {-1, -2} | 0  d2 -c2 0   0  a2 |  {-1, -2} | -d2 0   c2  0  |     {-1, 0} | 0 0 0 0 0 0  0 0  0           |                {-2, -2} | 0           0           ac2+acd+bd2 0           a2d2       -a3d     a3c+a3d   -ad4       d6              |  {-2, -2} | a2d2       0           0           ac2+acd+bd2 0           |
+                       {-1, -2} | 0  0  0   -d2 c2 b2 |  {-1, -2} | 0   -d2 0   c2 |     {-1, 0} | 0 0 0 0 0 0  0 0  0           |                {-2, -2} | 0           0           0           ac2+acd+bd2 b2d2       -ab2d    ab2c+ab2d bc2d2+bcd3 c4d2+2c3d3+c2d4 |  {-2, -2} | b2d2       0           0           0           ac2+acd+bd2 |
+                                                                                         {-1, 0} | 0 0 0 0 0 0  0 0  0           |
+                                                                                         {-1, 0} | 0 0 0 0 0 0  0 0  0           |
+                                                                                         {1, -2} | 0 0 0 0 0 -d c 0  0           |
+
+o7 : ComplexMap
+
+i8 : assert isWellDefined delta
+
+i9 : assert(degree delta == 0)
+
+i10 : assert(source delta_(-1) == Ext^1(comodule I, S^1/h))
+
+i11 : assert(target delta_(-1) == Ext^2(comodule I, S^{{-1,-2}}))
+
+i12 : S = ZZ/101[a..d];
+
+i13 : I = ideal(c^3-b*d^2, b*c-a*d)
+
+              3      2
+o13 = ideal (c  - b*d , b*c - a*d)
+
+o13 : Ideal of S
+
+i14 : J = ideal(a*c^2-b^2*d, b^3-a^2*c)
+
+                2    2    3    2
+o14 = ideal (a*c  - b d, b  - a c)
+
+o14 : Ideal of S
+
+i15 : g = map(S^1/(I+J), S^1/I ++ S^1/J, {{1,1}})
+
+o15 = | 1 1 |
+
+o15 : Matrix
+
+i16 : f = map(S^1/I ++ S^1/J, S^1/intersect(I,J), {{1},{-1}})
+
+o16 = | 1  |
+      | -1 |
+
+o16 : Matrix
+
+i17 : assert isShortExactSequence(g,f)
+
+i18 : delta = connectingExtMap(g, f, S^1)
+
+o18 = -2 : cokernel {-5} | d -c -b a | <------------------- cokernel {-5} | d   -c b  -a | : -2
+                                          {-5} | -1 0 0 |            {-5} | 0   0  -d c  |
+                                                                     {-6} | -ac b2 0  0  |
+
+o18 : ComplexMap
+
+i19 : assert isWellDefined delta
+
+i20 : assert(source delta_-2 == Ext^2(comodule intersect(I,J), S))
+
+i21 : assert(target delta_-2 == Ext^3(comodule (I+J), S))
+
+i22 : 

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>GroebnerWalk -- Compute Groebner bases via the Groebner walk</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Groebner bases via the Groebner walk" href="index.html">GroebnerWalk</a> :: <a title="Groebner bases via the Groebner walk" href="index.html">GroebnerWalk</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_get__Walk__Trace.html">next</a> | previous | <a href="_get__Walk__Trace.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>GroebnerWalk -- Compute Groebner bases via the Groebner walk</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>The Groebner walk is a Groebner basis conversion algorithm. This means it takes a Groebner basis of an ideal with respect to one monomial order and changes it into a Groebner basis of the same ideal over a different monomial order. Conversion algorithms can be useful since sometimes when a Groebner basis over a difficult monomial order (such as lexicographic or an elimination order) is desired, it can be faster to compute a Groebner basis directly over an easier order (such as graded reverse lexicographic) and then convert rather than computing directly in the original order. Other examples of conversion algorithms include FGLM and Hilbert-driven Buchberger.</p>
+          <p>The Groebner walk performs conversion by traveling through the Groebner fan. The Groebner basis is the same for all vectors inside a cone of the fan, and when crossing a face into a new cone a (hopefully small) adjustment of the Groebner basis is all that must be computed. Further background and details can be found in the following resources:</p>
+          <p>Cox, Little, O'Shea - Using Algebraic Geometry (2005)</p>
+          <p>Amrhein, Gloor, Kuchlin - On the Walk (1997)</p>
+          <p>Collart, Kalkbrenner, Mall - Converting Bases with the Groebner Walk (1997)</p>
+          <p>Fukuda, Jensen, Lauritzen, Thomas - The Generic Grobner Walk (2007)</p>
+          <p>Tran - A Fast Algorithm for Grobner Basis Conversion and its Applications (2000)</p>
+          <p>In Macaulay2, monomial orders must be given as options to rings. For example, the following ideal has monomial order given by first using a weight vector and then breaking ties with graded reverse lexicographic.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R1 = QQ[x,y,z,u,v, MonomialOrder=>Weights=>{1,1,1,0,0}];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I1 = ideal(u + u^2 - 2*v - 2*u^2*v + 2*u*v^2 - x,
+                -6*u + 2*v + v^2 - 5*v^3 + 2*u*v^2 - 4*u^2*v^2 - y,
+                -2 + 2*u^2 + 6*v - 3*u^2*v^2 - z);
+
+o2 : Ideal of R1</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>If we want a Groebner basis of I with respect to the monomial order given by using a different weight vector and then graded reverse lexicographic we could substitute and compute directly,</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : R2 = QQ[x,y,z,u,v, MonomialOrder=>Weights=>{0,0,0,1,1}];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : I2 = sub(I1, R2);
+
+o4 : Ideal of R2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : elapsedTime gb I2
+ -- 3.04614s elapsed
+
+o5 = GroebnerBasis[status: done; S-pairs encountered up to degree 16]
+
+o5 : GroebnerBasis</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>but it is faster to compute directly in the first order and then use the Groebner walk.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : elapsedTime groebnerWalk(gb I1, R2)
+ -- 2.38417s elapsed
+
+o6 = GroebnerBasis[status: done; S-pairs encountered up to degree 0]
+
+o6 : GroebnerBasis</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>The target ring must be the same ring as the ring of the starting ideal, except with different monomial order. The ring must be a polynomial ring over a field.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Gröbner basis, as a matrix" href="../../Macaulay2Doc/html/_groebner__Basis.html">groebnerBasis</a> -- Gröbner basis, as a matrix</span></li>
+        </ul>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Author</h2>
+            <ul>
+              <li><a href="https://www.math.cornell.edu/~djp282">Dylan Peifer</a><span> &lt;<a href="mailto:djp282%40cornell.edu">djp282@cornell.edu</a>></span></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>1.0.0</b> of GroebnerWalk, released <b>November 17, 2017</b>.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{GroebnerWalkSource,
+  title = {{GroebnerWalk: Groebner bases via the Groebner walk. Version~1.0.0}},
+  author = {Dylan Peifer},
+  howpublished = {A \emph{Macaulay2} package available at
+    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Functions and commands                  <ul>
+                    <li><span><a title="get current value of walkTrace" href="_get__Walk__Trace.html">getWalkTrace</a> -- get current value of walkTrace</span></li>
+                    <li><span><a title="convert a Groebner basis" href="_groebner__Walk.html">groebnerWalk</a> -- convert a Groebner basis</span></li>
+                    <li><span><a title="set value of walkTrace" href="_set__Walk__Trace.html">setWalkTrace</a> -- set value of walkTrace</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><kbd>groebnerWalk(GroebnerBasis,Ring)</kbd> -- see <span><a title="convert a Groebner basis" href="_groebner__Walk.html">groebnerWalk</a> -- convert a Groebner basis</span></span></li>
+                    <li><span><kbd>groebnerWalk(Ideal,Ring)</kbd> -- see <span><a title="convert a Groebner basis" href="_groebner__Walk.html">groebnerWalk</a> -- convert a Groebner basis</span></span></li>
+                    <li><span><kbd>setWalkTrace(ZZ)</kbd> -- see <span><a title="set value of walkTrace" href="_set__Walk__Trace.html">setWalkTrace</a> -- set value of walkTrace</span></span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="Groebner bases via the Groebner walk" href="index.html">GroebnerWalk</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">GroebnerWalk.m2</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">GroebnerWalk.m2:435:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

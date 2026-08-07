@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>numericRank -- approximate rank of a matrix, using SVD</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="SVD (singular value decomposition) of a complex over the reals and related functions" href="index.html">SVDComplexes</a> :: <a title="approximate rank of a matrix, using SVD" href="_numeric__Rank.html">numericRank</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Projection.html">next</a> | <a href="_new__Chain__Complex__Map.html">previous</a> | <a href="___Projection.html">forward</a> | <a href="_new__Chain__Complex__Map.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>numericRank -- approximate rank of a matrix, using SVD</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">rk = numericRank A</code></dd>
+            <dd><code class="language-macaulay2">rk = numericRank(eps, A)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">A</span>, <span>a <a title="the class of all matrices" href="../../Macaulay2Doc/html/___Matrix.html">matrix</a></span>, a matrix or a mutable matrix over RR_{53} or CC_{53}</span></li>
+            <li><span><span class="tt">eps</span>, <span>a <a title="the class of all real numbers" href="../../Macaulay2Doc/html/___R__R.html">real number</a></span>, a relative threshold for consecutive singular values, if not present then the default value 1e-4 is taken</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span class="tt">rk</span>, <span>an <a title="the class of all integers" href="../../Macaulay2Doc/html/___Z__Z.html">integer</a></span>, an approximation to the rank of the matrix A</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>The singular value decomposition (over RR_{53}, or CC_{53}) of the matrix A is performed.  If there is a large cutoff in the list of singular values, that value separates the zero singular values from the rest, and the number of singular values larger than this separating value is called the numeric rank.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : B = random(RR^30, RR^5);
+
+                30         5
+o1 : Matrix RR     &lt;-- RR
+              53         53</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : C = random(RR^5, RR^30);
+
+                5         30
+o2 : Matrix RR    &lt;-- RR
+              53        53</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : A = B*C;
+
+                30         30
+o3 : Matrix RR     &lt;-- RR
+              53         53</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : numericRank A
+
+o4 = 5</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : first SVD A
+
+o5 = {37.3735    }
+     {2.8333     }
+     {2.49293    }
+     {2.28935    }
+     {1.7274     }
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {3.65608e-15}
+     {4.27123e-16}
+
+o5 : VerticalList</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : B = mutableMatrix random(RR^100, RR^50);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : C = mutableMatrix random(RR^50, RR^100);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : A = B*C;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : numericRank A
+
+o9 = 50</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : B = mutableMatrix random(CC^100, CC^50);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : C = mutableMatrix random(CC^50, CC^100);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : A = B*C;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : numericRank A
+
+o13 = 50</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>The heuristic for determining approximate rank is just that: a heuristic. Thus if you really need to make sure the answer is correct or meaningful, you should review the singular values yourself</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="singular value decomposition of a matrix" href="../../Macaulay2Doc/html/___S__V__D.html">SVD</a> -- singular value decomposition of a matrix</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">numericRank</span>:</h2>
+          <ul>
+            <li><kbd>numericRank(Matrix)</kbd></li>
+            <li><kbd>numericRank(MutableMatrix)</kbd></li>
+            <li><kbd>numericRank(RR,Matrix)</kbd></li>
+            <li><kbd>numericRank(RR,MutableMatrix)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="approximate rank of a matrix, using SVD" href="_numeric__Rank.html">numericRank</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function.html">method function</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SVDComplexes.m2:1007:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

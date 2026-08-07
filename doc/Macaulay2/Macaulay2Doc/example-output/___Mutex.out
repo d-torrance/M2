@@ -1,0 +1,82 @@
+-- -*- M2-comint -*- hash: 11771473624115203446
+
+i1 : msgs = ""
+
+o1 = 
+
+i2 : sayhello = i -> msgs |= "hello from thread #" | toString i | newline
+
+o2 = sayhello
+
+o2 : FunctionClosure
+
+i3 : T = apply(10, i -> schedule(() -> sayhello i))
+
+o3 = {<<task, result available, task done>>, <<task, result available, task
+     ------------------------------------------------------------------------
+     done>>, <<task, result available, task done>>, <<task, result available,
+     ------------------------------------------------------------------------
+     task done>>, <<task, result available, task done>>, <<task, result
+     ------------------------------------------------------------------------
+     available, task done>>, <<task, result available, task done>>, <<task,
+     ------------------------------------------------------------------------
+     result available, task done>>, <<task, result available, task done>>,
+     ------------------------------------------------------------------------
+     <<task, result available, task done>>}
+
+o3 : List
+
+i4 : while not all(T, isReady) do null
+
+i5 : stack sort lines msgs
+
+o5 = hello from thread #0
+     hello from thread #1
+     hello from thread #2
+     hello from thread #3
+     hello from thread #4
+     hello from thread #5
+     hello from thread #6
+     hello from thread #7
+     hello from thread #9
+
+i6 : m = new Mutex
+
+o6 = m
+
+o6 : Mutex
+
+i7 : msgs = ""
+
+o7 = 
+
+i8 : T = apply(10, i -> schedule(() -> (lock m; sayhello i; unlock m)))
+
+o8 = {<<task, result available, task done>>, <<task, result available, task
+     ------------------------------------------------------------------------
+     done>>, <<task, result available, task done>>, <<task, result available,
+     ------------------------------------------------------------------------
+     task done>>, <<task, result available, task done>>, <<task, result
+     ------------------------------------------------------------------------
+     available, task done>>, <<task, result available, task done>>, <<task,
+     ------------------------------------------------------------------------
+     running>>, <<task, running>>, <<task, running>>}
+
+o8 : List
+
+i9 : while not all(T, isReady) do null
+
+i10 : stack sort lines msgs
+
+o10 = hello from thread #0
+      hello from thread #1
+      hello from thread #2
+      hello from thread #3
+      hello from thread #4
+      hello from thread #5
+      hello from thread #6
+      hello from thread #7
+      hello from thread #8
+      hello from thread #9
+
+i11 : 

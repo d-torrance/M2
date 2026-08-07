@@ -1,0 +1,1541 @@
+ -*- coding: utf-8 -*- This is Triplets.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* Triplets: (Triplets).         triplets of degree sequences and associated Betti diagrams and cohomology tables
+END-INFO-DIR-ENTRY
+
+
+File: Triplets.info, Node: Top, Next: Betti1_lpTriplet_rp, Up: (dir)
+
+Triplets -- Betti diagrams and hypercohomology tables associated to triplets of degree sequences
+************************************************************************************************
+
+Description
+===========
+
+Triplets is a package to calculate
+
+
+1) Betti diagrams of triplets of pure free squarefree complexes, as introduced
+in math.AC/1207.2071 "Triplets of pure free squarefree complexes"
+
+
+ 2) hypercohomology tables associated to homology triplets, as given in
+math.AC/1212.3675 "Zipping Tate resolutions and exterior coalgebras"
+
+
+by Gunnar Floeystad.
+
+
+Degree sequences
+================
+
+  * *note strands: strands_lpList_rp, -- strand span of degree sequence
+  * *note strandsL: strandsL_lpZZ_cmList_rp, -- strand span as a subset of
+    [0,n]
+  * *note conj: conj_lpList_cmZZ_rp, -- conjugate of degree sequence
+
+Degree triplets and homology triplets
+=====================================
+
+  * *note triplet: triplet_lpList_cmList_cmList_rp, -- make a triplet
+  * *note rotForw: rotForw_lpTriplet_rp, -- forward cyclic permutation
+  * *note rotBack: rotBack_lpTriplet_rp, -- backward cyclic permutation
+  * *note toHomology: toHomology_lpTriplet_rp, -- from degree triplet to
+    homology triplet
+  * *note toDegree: toDegree_lpTriplet_rp, -- from homology triplet to degree
+    triplet
+  * *note dualHomTriplet: dualHomTriplet_lpTriplet_rp, -- the dual homology
+    triplet
+  * *note type: type_lpTriplet_rp, -- number of variables
+
+Checking triplets
+=================
+
+  * *note isDegreeTriplet: isDegreeTriplet_lpTriplet_rp, -- checks if it is a
+    degree triplet
+  * *note isHomologyTriplet: isHomologyTriplet_lpTriplet_rp, -- checks if it is
+    a homology triplet
+
+Betti diagrams
+==============
+
+  * *note Betti1: Betti1_lpTriplet_rp, -- Betti numbers of first pure complex
+  * *note Betti3: Betti3_lpTriplet_rp, -- Betti numbers of the three pure
+    complexes
+  * *note BettiDiagram1: BettiDiagram1_lpTriplet_rp, -- Betti diagram of first
+    pure complex
+  * *note BettiDiagram3: BettiDiagram3_lpTriplet_rp, -- Betti diagrams of the
+    three pure complexes
+
+Polynomials
+===========
+
+  * *note binPol: binPol_lpRingElement_cmZZ_cmZZ_rp, -- product of two binomial
+    polynomials
+  * *note hilbCoeff: hilbCoeff_lpTriplet_rp, -- coefficients of Hilbert
+    polynomial
+  * *note hilbPol: hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert
+    polynomial
+  * *note chiPol: chiPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert
+    polynomial of cohomology sheaves
+
+Cohomology tables
+=================
+
+  * *note cohMatrix: cohMatrix_lpZZ_cmZZ_cmTriplet_rp, -- cohomology table in
+    matrix form
+  * *note cohTable: cohTable_lpZZ_cmZZ_cmTriplet_rp, -- cohomology table
+
+
+We create a Triplet using the *note triplet: triplet_lpList_cmList_cmList_rp,
+function:
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {0,2}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : isDegreeTriplet T                   |
+|                                         |
+|o2 = true                                |
++-----------------------------------------+
+We can rotate this degree triplet forwards or backwards:
++-----------------------------------+
+|i3 : rotForw T                     |
+|                                   |
+|o3 = {{0, 2}, {0, 2, 3}, {1, 2, 3}}|
+|                                   |
+|o3 : Triplet                       |
++-----------------------------------+
+|i4 : rotBack T                     |
+|                                   |
+|o4 = {{0, 2, 3}, {1, 2, 3}, {0, 2}}|
+|                                   |
+|o4 : Triplet                       |
++-----------------------------------+
+We can compute the Betti numbers and Betti diagrams associated to the degree
+sequences of this triplet:
++--------------------------------------------+
+|i5 : Betti3 T                               |
+|{1, 2, 3}   ===>   {3, 6, 2}                |
+|{0, 2}   ===>   {1, 3}                      |
+|{0, 2, 3}   ===>   {2, 3, 1}                |
++--------------------------------------------+
+|i6 : BettiDiagram3 T                        |
+|       0 1 2            0 1            0 1 2|
+|total: 3 6 2     total: 1 3     total: 2 3 1|
+|    1: 3 6 2         0: 1 .         0: 2 . .|
+|                     1: . 3         1: . 3 1|
++--------------------------------------------+
+We convert it to a homology triplet:
++-----------------------------------+
+|i7 : Th = toHomology T             |
+|                                   |
+|o7 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}|
+|                                   |
+|o7 : Triplet                       |
++-----------------------------------+
+|i8 : isHomologyTriplet Th          |
+|                                   |
+|o8 = true                          |
++-----------------------------------+
+We compute the hypercohomology table of a complex of coherent sheaves
+associated to this homology triplet:
++---------------------------------------------+
+|i9 : cohTable (-7, 5,Th)                     |
+|                                             |
+|         -7 -6 -5 -4 -3 -2 -1 0 1  2  3  4  5|
+|o9 =  2: 77 50 30 16  7  2  . . .  .  .  .  .|
+|      1:  2  2  2  2  2  2  2 1 .  .  .  .  .|
+|      0:  .  .  .  .  .  .  . . 1  2  3  4  5|
+|     -1:  .  .  .  .  .  .  . 1 4 10 20 35 56|
+|                                             |
+|o9 : CohomologyTally                         |
++---------------------------------------------+
+The dual homology triplet and its hypercohomology table:
++----------------------------------------------+
+|i10 : Thd = dualHomTriplet Th                 |
+|                                              |
+|o10 = {{0, 1, 2}, {0, 2, 3}, {1, 3}}          |
+|                                              |
+|o10 : Triplet                                 |
++----------------------------------------------+
+|i11 : cohTable (-7,5,Thd)                     |
+|                                              |
+|          -7 -6 -5 -4 -3 -2 -1 0 1  2  3  4  5|
+|o11 =  2: 56 35 20 10  4  1  . . .  .  .  .  .|
+|       1:  5  4  3  2  1  .  . . .  .  .  .  .|
+|       0:  .  .  .  .  .  1  2 2 2  2  2  2  2|
+|      -1:  .  .  .  .  .  .  . 2 7 16 30 50 77|
+|                                              |
+|o11 : CohomologyTally                         |
++----------------------------------------------+
+
+Author
+======
+
+  * Gunnar Floystad <nmagf@uib.no>
+
+Version
+=======
+
+This documentation describes version 0.1 of Triplets, released January 24,
+2013.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{TripletsSource,                                                       |
+|  title = {{Triplets: A \emph{Macaulay2} package. Version~0.1}},            |
+|  author = {Gunnar Floystad},                                               |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note Triplet: Triplet, -- triplet
+  * Functions and commands
+      * "Betti1" -- see *note Betti1(Triplet): Betti1_lpTriplet_rp, -- Betti
+        numbers of first pure complex
+      * "Betti3" -- see *note Betti3(Triplet): Betti3_lpTriplet_rp, -- Betti
+        numbers of the three pure complexes
+      * "BettiDiagram1" -- see *note BettiDiagram1(Triplet):
+        BettiDiagram1_lpTriplet_rp, -- Betti diagram of first pure complex
+      * "BettiDiagram3" -- see *note BettiDiagram3(Triplet):
+        BettiDiagram3_lpTriplet_rp, -- Betti diagrams of the three pure
+        complexes
+      * "binPol" -- see *note binPol(RingElement,ZZ,ZZ):
+        binPol_lpRingElement_cmZZ_cmZZ_rp, -- product of two binomial
+        polynomials
+      * "chiPol" -- see *note chiPol(RingElement,ZZ,List,List):
+        chiPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert polynomial of
+        cohomology sheaves
+      * "cohMatrix" -- see *note cohMatrix(ZZ,ZZ,Triplet):
+        cohMatrix_lpZZ_cmZZ_cmTriplet_rp, -- cohomology table in matrix form
+      * "cohTable" -- see *note cohTable(ZZ,ZZ,Triplet):
+        cohTable_lpZZ_cmZZ_cmTriplet_rp, -- cohomology table
+      * "conj" -- see *note conj(List,ZZ): conj_lpList_cmZZ_rp, -- conjugate of
+        degree sequence
+      * "dualHomTriplet" -- see *note dualHomTriplet(Triplet):
+        dualHomTriplet_lpTriplet_rp, -- the dual homology triplet
+      * "hilbCoeff" -- see *note hilbCoeff(Triplet): hilbCoeff_lpTriplet_rp, --
+        coefficients of Hilbert polynomial
+      * "hilbPol" -- see *note hilbPol(RingElement,ZZ,List,List):
+        hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert polynomial
+      * "isDegreeTriplet" -- see *note isDegreeTriplet(Triplet):
+        isDegreeTriplet_lpTriplet_rp, -- checks if it is a degree triplet
+      * "isHomologyTriplet" -- see *note isHomologyTriplet(Triplet):
+        isHomologyTriplet_lpTriplet_rp, -- checks if it is a homology triplet
+      * "rotBack" -- see *note rotBack(Triplet): rotBack_lpTriplet_rp, --
+        backward cyclic permutation
+      * "rotForw" -- see *note rotForw(Triplet): rotForw_lpTriplet_rp, --
+        forward cyclic permutation
+      * "strands" -- see *note strands(List): strands_lpList_rp, -- strand span
+        of degree sequence
+      * "strandsL" -- see *note strandsL(ZZ,List): strandsL_lpZZ_cmList_rp, --
+        strand span as a subset of [0,n]
+      * "toDegree" -- see *note toDegree(Triplet): toDegree_lpTriplet_rp, --
+        from homology triplet to degree triplet
+      * "toHomology" -- see *note toHomology(Triplet): toHomology_lpTriplet_rp,
+        -- from degree triplet to homology triplet
+      * "triplet" -- see *note triplet(List,List,List):
+        triplet_lpList_cmList_cmList_rp, -- make a triplet
+      * "type" -- see *note type(Triplet): type_lpTriplet_rp, -- number of
+        variables
+  * Methods
+      * *note Betti1(Triplet): Betti1_lpTriplet_rp, -- Betti numbers of first
+        pure complex
+      * *note Betti3(Triplet): Betti3_lpTriplet_rp, -- Betti numbers of the
+        three pure complexes
+      * *note BettiDiagram1(Triplet): BettiDiagram1_lpTriplet_rp, -- Betti
+        diagram of first pure complex
+      * *note BettiDiagram3(Triplet): BettiDiagram3_lpTriplet_rp, -- Betti
+        diagrams of the three pure complexes
+      * *note binPol(RingElement,ZZ,ZZ): binPol_lpRingElement_cmZZ_cmZZ_rp, --
+        product of two binomial polynomials
+      * *note chiPol(RingElement,ZZ,List,List):
+        chiPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert polynomial of
+        cohomology sheaves
+      * *note cohMatrix(ZZ,ZZ,Triplet): cohMatrix_lpZZ_cmZZ_cmTriplet_rp, --
+        cohomology table in matrix form
+      * *note cohTable(ZZ,ZZ,Triplet): cohTable_lpZZ_cmZZ_cmTriplet_rp, --
+        cohomology table
+      * *note conj(List,ZZ): conj_lpList_cmZZ_rp, -- conjugate of degree
+        sequence
+      * *note dualHomTriplet(Triplet): dualHomTriplet_lpTriplet_rp, -- the dual
+        homology triplet
+      * *note hilbCoeff(Triplet): hilbCoeff_lpTriplet_rp, -- coefficients of
+        Hilbert polynomial
+      * *note hilbPol(RingElement,ZZ,List,List):
+        hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert polynomial
+      * *note isDegreeTriplet(Triplet): isDegreeTriplet_lpTriplet_rp, -- checks
+        if it is a degree triplet
+      * *note isHomologyTriplet(Triplet): isHomologyTriplet_lpTriplet_rp, --
+        checks if it is a homology triplet
+      * *note rotBack(Triplet): rotBack_lpTriplet_rp, -- backward cyclic
+        permutation
+      * *note rotForw(Triplet): rotForw_lpTriplet_rp, -- forward cyclic
+        permutation
+      * *note strands(List): strands_lpList_rp, -- strand span of degree
+        sequence
+      * *note strandsL(ZZ,List): strandsL_lpZZ_cmList_rp, -- strand span as a
+        subset of [0,n]
+      * *note toDegree(Triplet): toDegree_lpTriplet_rp, -- from homology
+        triplet to degree triplet
+      * *note toHomology(Triplet): toHomology_lpTriplet_rp, -- from degree
+        triplet to homology triplet
+      * *note triplet(List,List,List): triplet_lpList_cmList_cmList_rp, -- make
+        a triplet
+      * *note type(Triplet): type_lpTriplet_rp, -- number of variables
+
+For the programmer
+==================
+
+The object *note Triplets: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in Triplets.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:700:0.
+
+File: Triplets.info, Node: Betti1_lpTriplet_rp, Next: Betti3_lpTriplet_rp, Prev: Top, Up: Top
+
+Betti1(Triplet) -- Betti numbers of first pure complex
+******************************************************
+
+  * Function: *note Betti1: Betti1_lpTriplet_rp,
+  * Usage: 
+        Betti1 T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a degree triplet
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, the Betti numbers
+
+Description
+===========
+
+The Betti numbers of the first complex in the triplet of pure complexes with
+the three given degree sequences.
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {0,2}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : Betti1(T)                           |
+|                                         |
+|o2 = {3, 6, 2}                           |
+|                                         |
+|o2 : List                                |
++-----------------------------------------+
+
+See also
+========
+
+  * *note Betti3: Betti3_lpTriplet_rp, -- Betti numbers of the three pure
+    complexes
+  * *note BettiDiagram1: BettiDiagram1_lpTriplet_rp, -- Betti diagram of first
+    pure complex
+
+Ways to use this method:
+========================
+
+  * *note Betti1(Triplet): Betti1_lpTriplet_rp, -- Betti numbers of first pure
+    complex
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:978:0.
+
+File: Triplets.info, Node: Betti3_lpTriplet_rp, Next: BettiDiagram1_lpTriplet_rp, Prev: Betti1_lpTriplet_rp, Up: Top
+
+Betti3(Triplet) -- Betti numbers of the three pure complexes
+************************************************************
+
+  * Function: *note Betti3: Betti3_lpTriplet_rp,
+  * Usage: 
+        Betti3 T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a degree triplet
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, The three sequences of Betti numbers
+        of the triplet of pure complexes with the three given degree sequences.
+
+Description
+===========
+
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {0,2}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : Betti3(T)                           |
+|{1, 2, 3}   ===>   {3, 6, 2}             |
+|{0, 2}   ===>   {1, 3}                   |
+|{0, 2, 3}   ===>   {2, 3, 1}             |
++-----------------------------------------+
+
+See also
+========
+
+  * *note Betti1: Betti1_lpTriplet_rp, -- Betti numbers of first pure complex
+  * *note BettiDiagram3: BettiDiagram3_lpTriplet_rp, -- Betti diagrams of the
+    three pure complexes
+
+Ways to use this method:
+========================
+
+  * *note Betti3(Triplet): Betti3_lpTriplet_rp, -- Betti numbers of the three
+    pure complexes
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:997:0.
+
+File: Triplets.info, Node: BettiDiagram1_lpTriplet_rp, Next: BettiDiagram3_lpTriplet_rp, Prev: Betti3_lpTriplet_rp, Up: Top
+
+BettiDiagram1(Triplet) -- Betti diagram of first pure complex 
+**************************************************************
+
+  * Function: *note BettiDiagram1: BettiDiagram1_lpTriplet_rp,
+  * Usage: 
+        BettiDiagram1 T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a degree triplet
+  * Outputs:
+      * a *note Betti tally: (Macaulay2Doc)BettiTally,, The Betti diagram of
+        the first complex in the triplet of pure complexes with the three given
+        degree sequences.
+
+Description
+===========
+
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {0,2}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : BettiDiagram1(T)                    |
+|                                         |
+|            0 1 2                        |
+|o2 = total: 3 6 2                        |
+|         1: 3 6 2                        |
+|                                         |
+|o2 : BettiTally                          |
++-----------------------------------------+
+
+See also
+========
+
+  * *note Betti1: Betti1_lpTriplet_rp, -- Betti numbers of first pure complex
+  * *note BettiDiagram3: BettiDiagram3_lpTriplet_rp, -- Betti diagrams of the
+    three pure complexes
+
+Ways to use this method:
+========================
+
+  * *note BettiDiagram1(Triplet): BettiDiagram1_lpTriplet_rp, -- Betti diagram
+    of first pure complex
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:1016:0.
+
+File: Triplets.info, Node: BettiDiagram3_lpTriplet_rp, Next: binPol_lpRingElement_cmZZ_cmZZ_rp, Prev: BettiDiagram1_lpTriplet_rp, Up: Top
+
+BettiDiagram3(Triplet) -- Betti diagrams of the three pure complexes
+********************************************************************
+
+  * Function: *note BettiDiagram3: BettiDiagram3_lpTriplet_rp,
+  * Usage: 
+        BettiDiagram3 T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a degree triplet
+  * Outputs:
+      * a *note Betti tally: (Macaulay2Doc)BettiTally,, The Betti diagrams of
+        the three complexes in the triplet of pure complexes with the three
+        given degree sequences.
+
+Description
+===========
+
++--------------------------------------------+
+|i1 : T = triplet({1,2,3}, {0,2}, {0,2,3})   |
+|                                            |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}         |
+|                                            |
+|o1 : Triplet                                |
++--------------------------------------------+
+|i2 : BettiDiagram3(T)                       |
+|       0 1 2            0 1            0 1 2|
+|total: 3 6 2     total: 1 3     total: 2 3 1|
+|    1: 3 6 2         0: 1 .         0: 2 . .|
+|                     1: . 3         1: . 3 1|
++--------------------------------------------+
+
+See also
+========
+
+  * *note Betti3: Betti3_lpTriplet_rp, -- Betti numbers of the three pure
+    complexes
+  * *note BettiDiagram1: BettiDiagram1_lpTriplet_rp, -- Betti diagram of first
+    pure complex
+
+Ways to use this method:
+========================
+
+  * *note BettiDiagram3(Triplet): BettiDiagram3_lpTriplet_rp, -- Betti diagrams
+    of the three pure complexes
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:1035:0.
+
+File: Triplets.info, Node: binPol_lpRingElement_cmZZ_cmZZ_rp, Next: chiPol_lpRingElement_cmZZ_cmList_cmList_rp, Prev: BettiDiagram3_lpTriplet_rp, Up: Top
+
+binPol(RingElement,ZZ,ZZ) -- product of two binomial polynomials
+****************************************************************
+
+  * Function: *note binPol: binPol_lpRingElement_cmZZ_cmZZ_rp,
+  * Usage: 
+        binPol(d,n,i)
+  * Inputs:
+      * d, a *note ring element: (Macaulay2Doc)RingElement,, the variable of
+        the polynomial ring
+      * n, an *note integer: (Macaulay2Doc)ZZ,
+      * i, an *note integer: (Macaulay2Doc)ZZ,, in [0,n]
+  * Outputs:
+      * a polynomial taking integers to integers
+
+Description
+===========
+
+The polynomial of degree <= n, with values 0 for all d in [-n,0]-{-i} and with
+value (-1)^i when d = -i.
++-------------------+
+|i1 : QQ[d]         |
+|                   |
+|o1 = QQ[d]         |
+|                   |
+|o1 : PolynomialRing|
++-------------------+
+|i2 : binPol(d,3,1) |
+|                   |
+|     1 3   5 2     |
+|o2 = -d  + -d  + 3d|
+|     2     2       |
+|                   |
+|o2 : QQ[d]         |
++-------------------+
+
+See also
+========
+
+  * *note hilbPol: hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert
+    polynomial
+
+Ways to use this method:
+========================
+
+  * *note binPol(RingElement,ZZ,ZZ): binPol_lpRingElement_cmZZ_cmZZ_rp, --
+    product of two binomial polynomials
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:1057:0.
+
+File: Triplets.info, Node: chiPol_lpRingElement_cmZZ_cmList_cmList_rp, Next: cohMatrix_lpZZ_cmZZ_cmTriplet_rp, Prev: binPol_lpRingElement_cmZZ_cmZZ_rp, Up: Top
+
+chiPol(RingElement,ZZ,List,List) -- Hilbert polynomial of cohomology sheaves
+****************************************************************************
+
+  * Function: *note chiPol: chiPol_lpRingElement_cmZZ_cmList_cmList_rp,
+  * Usage: 
+        chiPol(d,p,L,K)
+  * Inputs:
+      * d, a *note ring element: (Macaulay2Doc)RingElement,, variable in
+        polynomial ring
+      * p, an *note integer: (Macaulay2Doc)ZZ,, for the -p'th cohomology sheaf
+      * L, a *note list: (Macaulay2Doc)List,, pair {B,H} of Betti degrees and
+        homology degrees
+      * K, a *note list: (Macaulay2Doc)List,, integer coefficients of the
+        Hilbert polynomial
+  * Outputs:
+      * an *note expression: (Macaulay2Doc)Expression,, Hilbert polynomial of
+        the -p'th cohomology sheaf of the complex of coherent sheaves
+        associated to a homology triplet
+
+Description
+===========
+
+Computes the Hilbert polynomial of the -p'th cohomology sheaf of the complex of
+coherent sheaves associated to a homology triplet
++-------------------------------------------+
+|i1 : QQ[d]                                 |
+|                                           |
+|o1 = QQ[d]                                 |
+|                                           |
+|o1 : PolynomialRing                        |
++-------------------------------------------+
+|i2 : T = triplet({1,2,3}, {1,3}, {0,2,3})  |
+|                                           |
+|o2 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}        |
+|                                           |
+|o2 : Triplet                               |
++-------------------------------------------+
+|i3 : chiPol(d,0,{T#0,T#1},hilbCoeff(T))    |
+|                                           |
+|o3 = d                                     |
+|                                           |
+|o3 : QQ[d]                                 |
++-------------------------------------------+
+|i4 : chiPol(d,1,{T#0,T#1},hilbCoeff(T))    |
+|                                           |
+|     1 3   1 2   1                         |
+|o4 = -d  + -d  + -d                        |
+|     6     2     3                         |
+|                                           |
+|o4 : QQ[d]                                 |
++-------------------------------------------+
+
+See also
+========
+
+  * *note hilbPol: hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert
+    polynomial
+
+Ways to use this method:
+========================
+
+  * *note chiPol(RingElement,ZZ,List,List):
+    chiPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert polynomial of
+    cohomology sheaves
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:1126:0.
+
+File: Triplets.info, Node: cohMatrix_lpZZ_cmZZ_cmTriplet_rp, Next: cohTable_lpZZ_cmZZ_cmTriplet_rp, Prev: chiPol_lpRingElement_cmZZ_cmList_cmList_rp, Up: Top
+
+cohMatrix(ZZ,ZZ,Triplet) -- cohomology table in matrix form
+***********************************************************
+
+  * Function: *note cohMatrix: cohMatrix_lpZZ_cmZZ_cmTriplet_rp,
+  * Usage: 
+        cohMatrix(lo,hi,T)
+  * Inputs:
+      * lo, an *note integer: (Macaulay2Doc)ZZ,, the leftmost degree of the
+        table
+      * hi, an *note integer: (Macaulay2Doc)ZZ,, the rightmost degree of the
+        table
+      * T, an instance of the type *note Triplet: Triplet,, a homology triplet
+  * Outputs:
+      * a *note mutable matrix: (Macaulay2Doc)MutableMatrix,, a hypercohomology
+        table in matrix form
+
+Description
+===========
+
+The hypercohomology table is written in the shifted form with H^i(E(d) in row i
+and column d+i.
++-------------------------------------------+
+|i1 : T = triplet({1,2,3}, {1,3}, {0,2,3})  |
+|                                           |
+|o1 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}        |
+|                                           |
+|o1 : Triplet                               |
++-------------------------------------------+
+|i2 : cohMatrix(-7,4,T)                     |
+|                                           |
+|o2 = | 77 50 30 16 7 2 0 0 0 0  0  0  |    |
+|     | 2  2  2  2  2 2 2 1 0 0  0  0  |    |
+|     | 0  0  0  0  0 0 0 0 1 2  3  4  |    |
+|     | 0  0  0  0  0 0 0 1 4 10 20 35 |    |
+|                                           |
+|o2 : MutableMatrix                         |
++-------------------------------------------+
+
+See also
+========
+
+  * *note cohTable: cohTable_lpZZ_cmZZ_cmTriplet_rp, -- cohomology table
+
+Ways to use this method:
+========================
+
+  * *note cohMatrix(ZZ,ZZ,Triplet): cohMatrix_lpZZ_cmZZ_cmTriplet_rp, --
+    cohomology table in matrix form
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:1148:0.
+
+File: Triplets.info, Node: cohTable_lpZZ_cmZZ_cmTriplet_rp, Next: conj_lpList_cmZZ_rp, Prev: cohMatrix_lpZZ_cmZZ_cmTriplet_rp, Up: Top
+
+cohTable(ZZ,ZZ,Triplet) -- cohomology table
+*******************************************
+
+  * Function: *note cohTable: cohTable_lpZZ_cmZZ_cmTriplet_rp,
+  * Usage: 
+        cohTable(lo,hi,T)
+  * Inputs:
+      * lo, an *note integer: (Macaulay2Doc)ZZ,, the leftmost degree of the
+        table
+      * hi, an *note integer: (Macaulay2Doc)ZZ,, the rightmost degree of the
+        table
+      * T, an instance of the type *note Triplet: Triplet,, a homology triplet
+  * Outputs:
+      * a *note Cohomology tally: (BoijSoederberg)CohomologyTally,, a
+        hypercohomology table
+
+Description
+===========
+
+The hypercohomology table is written in the shifted form with H^i(E(d) in row i
+and column d+i.
++-------------------------------------------+
+|i1 : T = triplet({1,2,3}, {1,3}, {0,2,3})  |
+|                                           |
+|o1 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}        |
+|                                           |
+|o1 : Triplet                               |
++-------------------------------------------+
+|i2 : cohTable(-7,4,T)                      |
+|                                           |
+|         -7 -6 -5 -4 -3 -2 -1 0 1  2  3  4 |
+|o2 =  2: 77 50 30 16  7  2  . . .  .  .  . |
+|      1:  2  2  2  2  2  2  2 1 .  .  .  . |
+|      0:  .  .  .  .  .  .  . . 1  2  3  4 |
+|     -1:  .  .  .  .  .  .  . 1 4 10 20 35 |
+|                                           |
+|o2 : CohomologyTally                       |
++-------------------------------------------+
+
+See also
+========
+
+  * *note cohMatrix: cohMatrix_lpZZ_cmZZ_cmTriplet_rp, -- cohomology table in
+    matrix form
+
+Ways to use this method:
+========================
+
+  * *note cohTable(ZZ,ZZ,Triplet): cohTable_lpZZ_cmZZ_cmTriplet_rp, --
+    cohomology table
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:1170:0.
+
+File: Triplets.info, Node: conj_lpList_cmZZ_rp, Next: dualHomTriplet_lpTriplet_rp, Prev: cohTable_lpZZ_cmZZ_cmTriplet_rp, Up: Top
+
+conj(List,ZZ) -- conjugate of degree sequence
+*********************************************
+
+  * Function: *note conj: conj_lpList_cmZZ_rp,
+  * Usage: 
+        conj(D,n) 
+  * Inputs:
+      * D, a *note list: (Macaulay2Doc)List,, a sequence of integers
+      * n, an *note integer: (Macaulay2Doc)ZZ,, an integer
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, a sequence of integers
+
+Description
+===========
+
+Gives the sequence of integers n-d where d runs through D.
++-----------------+
+|i1 : n = 5       |
+|                 |
+|o1 = 5           |
++-----------------+
+|i2 : D = {2, 4,5}|
+|                 |
+|o2 = {2, 4, 5}   |
+|                 |
+|o2 : List        |
++-----------------+
+|i3 : conj(D,n)   |
+|                 |
+|o3 = {0, 1, 3}   |
+|                 |
+|o3 : List        |
++-----------------+
+
+Ways to use this method:
+========================
+
+  * *note conj(List,ZZ): conj_lpList_cmZZ_rp, -- conjugate of degree sequence
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:791:0.
+
+File: Triplets.info, Node: dualHomTriplet_lpTriplet_rp, Next: hilbCoeff_lpTriplet_rp, Prev: conj_lpList_cmZZ_rp, Up: Top
+
+dualHomTriplet(Triplet) -- the dual homology triplet
+****************************************************
+
+  * Function: *note dualHomTriplet: dualHomTriplet_lpTriplet_rp,
+  * Usage: 
+        dualHomTriplet T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a homology triplet
+        (B,H,C)
+  * Outputs:
+      * the dual homology triplet (conj(B,n),C,H), an instance of the type
+        *note Triplet: Triplet,
+
+Description
+===========
+
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {1,3}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : dualHomTriplet(T)                   |
+|                                         |
+|o2 = {{0, 1, 2}, {0, 2, 3}, {1, 3}}      |
+|                                         |
+|o2 : Triplet                             |
++-----------------------------------------+
+
+See also
+========
+
+  * *note conj: conj_lpList_cmZZ_rp, -- conjugate of degree sequence
+
+Ways to use this method:
+========================
+
+  * *note dualHomTriplet(Triplet): dualHomTriplet_lpTriplet_rp, -- the dual
+    homology triplet
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:901:0.
+
+File: Triplets.info, Node: hilbCoeff_lpTriplet_rp, Next: hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, Prev: dualHomTriplet_lpTriplet_rp, Up: Top
+
+hilbCoeff(Triplet) -- coefficients of Hilbert polynomial
+********************************************************
+
+  * Function: *note hilbCoeff: hilbCoeff_lpTriplet_rp,
+  * Usage: 
+        hilbCoeff T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a homology triplet
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, list of coefficients a_i for Hilbert
+        polynomial
+
+Description
+===========
+
+The Hilbert polynomial will be written as a linear combination of the
+polynomials a_i binPol(n,i), where *note binPol:
+binPol_lpRingElement_cmZZ_cmZZ_rp, is used to compute  these polynomials.
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {1,3}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : hilbCoeff(T)                        |
+|                                         |
+|o2 = {1, -2, 2}                          |
+|                                         |
+|o2 : List                                |
++-----------------------------------------+
+
+See also
+========
+
+  * *note hilbPol: hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert
+    polynomial
+  * *note binPol: binPol_lpRingElement_cmZZ_cmZZ_rp, -- product of two binomial
+    polynomials
+
+Ways to use this method:
+========================
+
+  * *note hilbCoeff(Triplet): hilbCoeff_lpTriplet_rp, -- coefficients of
+    Hilbert polynomial
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:1076:0.
+
+File: Triplets.info, Node: hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, Next: isDegreeTriplet_lpTriplet_rp, Prev: hilbCoeff_lpTriplet_rp, Up: Top
+
+hilbPol(RingElement,ZZ,List,List) -- Hilbert polynomial
+*******************************************************
+
+  * Function: *note hilbPol: hilbPol_lpRingElement_cmZZ_cmList_cmList_rp,
+  * Usage: 
+        hilbPol(d,n,B,K)
+  * Inputs:
+      * d, a *note ring element: (Macaulay2Doc)RingElement,, variable in the
+        polynomial ring
+      * n, an *note integer: (Macaulay2Doc)ZZ,, type of degree triplet
+      * B, a *note list: (Macaulay2Doc)List,, the Betti degrees
+      * K, a *note list: (Macaulay2Doc)List,, integer coefficients of Hilbert
+        polynomial
+  * Outputs:
+      * an *note expression: (Macaulay2Doc)Expression,, Hilbert polynomial of
+        complex of coherent sheaves associated to homology triplet
+
+Description
+===========
+
+The Hilbert polynomial of a complex of coherent sheaves associated to homology
+triplet.
++-------------------------------------------+
+|i1 : QQ[d]                                 |
+|                                           |
+|o1 = QQ[d]                                 |
+|                                           |
+|o1 : PolynomialRing                        |
++-------------------------------------------+
+|i2 : T = triplet({1,2,3}, {1,3}, {0,2,3})  |
+|                                           |
+|o2 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}        |
+|                                           |
+|o2 : Triplet                               |
++-------------------------------------------+
+|i3 : hilbPol(d,3,{1,2,3},hilbCoeff(T))     |
+|                                           |
+|       1 3   1 2   2                       |
+|o3 = - -d  - -d  + -d                      |
+|       6     2     3                       |
+|                                           |
+|o3 : QQ[d]                                 |
++-------------------------------------------+
+
+See also
+========
+
+  * *note binPol: binPol_lpRingElement_cmZZ_cmZZ_rp, -- product of two binomial
+    polynomials
+  * *note chiPol: chiPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert
+    polynomial of cohomology sheaves
+  * *note hilbCoeff: hilbCoeff_lpTriplet_rp, -- coefficients of Hilbert
+    polynomial
+
+Ways to use this method:
+========================
+
+  * *note hilbPol(RingElement,ZZ,List,List):
+    hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, -- Hilbert polynomial
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:1099:0.
+
+File: Triplets.info, Node: isDegreeTriplet_lpTriplet_rp, Next: isHomologyTriplet_lpTriplet_rp, Prev: hilbPol_lpRingElement_cmZZ_cmList_cmList_rp, Up: Top
+
+isDegreeTriplet(Triplet) -- checks if it is a degree triplet
+************************************************************
+
+  * Function: *note isDegreeTriplet: isDegreeTriplet_lpTriplet_rp,
+  * Usage: 
+        isDegreeTriplet T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a triplet of degree
+        sequences
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, whether it is a degree
+        triplet or not
+
+Description
+===========
+
++------------------------------------------+
+|i1 : T1 = triplet({1,2,3}, {0,2}, {0,2,3})|
+|                                          |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}       |
+|                                          |
+|o1 : Triplet                              |
++------------------------------------------+
+|i2 : isDegreeTriplet(T1)                  |
+|                                          |
+|o2 = true                                 |
++------------------------------------------+
+|i3 : T2 = triplet({1,2,3}, {0,2}, {0,1,3})|
+|                                          |
+|o3 = {{1, 2, 3}, {0, 2}, {0, 1, 3}}       |
+|                                          |
+|o3 : Triplet                              |
++------------------------------------------+
+|i4 : isDegreeTriplet(T2)                  |
+|second and third are underbalanced        |
+|                                          |
+|o4 = false                                |
++------------------------------------------+
+
+See also
+========
+
+  * *note isHomologyTriplet: isHomologyTriplet_lpTriplet_rp, -- checks if it is
+    a homology triplet
+
+Ways to use this method:
+========================
+
+  * *note isDegreeTriplet(Triplet): isDegreeTriplet_lpTriplet_rp, -- checks if
+    it is a degree triplet
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:938:0.
+
+File: Triplets.info, Node: isHomologyTriplet_lpTriplet_rp, Next: rotBack_lpTriplet_rp, Prev: isDegreeTriplet_lpTriplet_rp, Up: Top
+
+isHomologyTriplet(Triplet) -- checks if it is a homology triplet
+****************************************************************
+
+  * Function: *note isHomologyTriplet: isHomologyTriplet_lpTriplet_rp,
+  * Usage: 
+        isHomologyTriplet T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a triplet of degree
+        sequences
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, whether it is a homology
+        triplet or not
+
+Description
+===========
+
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {1,3}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : isHomologyTriplet(T)                |
+|                                         |
+|o2 = true                                |
++-----------------------------------------+
+
+See also
+========
+
+  * *note isDegreeTriplet: isDegreeTriplet_lpTriplet_rp, -- checks if it is a
+    degree triplet
+
+Ways to use this method:
+========================
+
+  * *note isHomologyTriplet(Triplet): isHomologyTriplet_lpTriplet_rp, -- checks
+    if it is a homology triplet
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:956:0.
+
+File: Triplets.info, Node: rotBack_lpTriplet_rp, Next: rotForw_lpTriplet_rp, Prev: isHomologyTriplet_lpTriplet_rp, Up: Top
+
+rotBack(Triplet) -- backward cyclic permutation
+***********************************************
+
+  * Function: *note rotBack: rotBack_lpTriplet_rp,
+  * Usage: 
+        rotBack T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a triplet of degree
+        sequences
+  * Outputs:
+      * an instance of the type *note Triplet: Triplet,, the cyclically shifted
+        backward triplet.
+
+Description
+===========
+
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {0,2}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : rotBack(T)                          |
+|                                         |
+|o2 = {{0, 2, 3}, {1, 2, 3}, {0, 2}}      |
+|                                         |
+|o2 : Triplet                             |
++-----------------------------------------+
+
+See also
+========
+
+  * *note rotForw: rotForw_lpTriplet_rp, -- forward cyclic permutation
+
+Ways to use this method:
+========================
+
+  * *note rotBack(Triplet): rotBack_lpTriplet_rp, -- backward cyclic
+    permutation
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:846:0.
+
+File: Triplets.info, Node: rotForw_lpTriplet_rp, Next: strands_lpList_rp, Prev: rotBack_lpTriplet_rp, Up: Top
+
+rotForw(Triplet) -- forward cyclic permutation
+**********************************************
+
+  * Function: *note rotForw: rotForw_lpTriplet_rp,
+  * Usage: 
+        rotForw T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a triplet of degree
+        sequences
+  * Outputs:
+      * an instance of the type *note Triplet: Triplet,, the cyclically shifted
+        forward triplet.
+
+Description
+===========
+
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {0,2}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : rotForw(T)                          |
+|                                         |
+|o2 = {{0, 2}, {0, 2, 3}, {1, 2, 3}}      |
+|                                         |
+|o2 : Triplet                             |
++-----------------------------------------+
+
+See also
+========
+
+  * *note rotBack: rotBack_lpTriplet_rp, -- backward cyclic permutation
+
+Ways to use this method:
+========================
+
+  * *note rotForw(Triplet): rotForw_lpTriplet_rp, -- forward cyclic permutation
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:828:0.
+
+File: Triplets.info, Node: strands_lpList_rp, Next: strandsL_lpZZ_cmList_rp, Prev: rotForw_lpTriplet_rp, Up: Top
+
+strands(List) -- strand span of degree sequence
+***********************************************
+
+  * Function: *note strands: strands_lpList_rp,
+  * Usage: 
+        strands D
+  * Inputs:
+      * D, a *note list: (Macaulay2Doc)List,, a sequence of integers, called a
+        degree sequence
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, strand span
+
+Description
+===========
+
+This is one less than the number of strands of D. Note that some of the strands
+can be empty.
++-------------------------+
+|i1 : D = {2,3,5, 9,10,11}|
+|                         |
+|o1 = {2, 3, 5, 9, 10, 11}|
+|                         |
+|o1 : List                |
++-------------------------+
+|i2 : strands(D)          |
+|                         |
+|o2 = 4                   |
++-------------------------+
+
+See also
+========
+
+  * *note strandsL: strandsL_lpZZ_cmList_rp, -- strand span as a subset of
+    [0,n]
+
+Ways to use this method:
+========================
+
+  * *note strands(List): strands_lpList_rp, -- strand span of degree sequence
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:747:0.
+
+File: Triplets.info, Node: strandsL_lpZZ_cmList_rp, Next: toDegree_lpTriplet_rp, Prev: strands_lpList_rp, Up: Top
+
+strandsL(ZZ,List) -- strand span as a subset of [0,n]
+*****************************************************
+
+  * Function: *note strandsL: strandsL_lpZZ_cmList_rp,
+  * Usage: 
+        strandsL(n,D)
+  * Inputs:
+      * n, an *note integer: (Macaulay2Doc)ZZ,, to give the interval [0,n]
+      * D, a *note list: (Macaulay2Doc)List,, a sequence of integers, called a
+        degree sequence
+  * Outputs:
+      * strand span of the subset D of [0,n], an *note integer:
+        (Macaulay2Doc)ZZ,
+
+Description
+===========
+
+This is one less than the number of strands of D as a subset of [0,n]. Note
+that some of the strands may be empty.
++------------------+
+|i1 : n = 5        |
+|                  |
+|o1 = 5            |
++------------------+
+|i2 : D = {1,2,5}  |
+|                  |
+|o2 = {1, 2, 5}    |
+|                  |
+|o2 : List         |
++------------------+
+|i3 : strandsL(n,D)|
+|                  |
+|o3 = 3            |
++------------------+
+
+See also
+========
+
+  * *note strands: strands_lpList_rp, -- strand span of degree sequence
+
+Ways to use this method:
+========================
+
+  * *note strandsL(ZZ,List): strandsL_lpZZ_cmList_rp, -- strand span as a
+    subset of [0,n]
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:770:0.
+
+File: Triplets.info, Node: toDegree_lpTriplet_rp, Next: toHomology_lpTriplet_rp, Prev: strandsL_lpZZ_cmList_rp, Up: Top
+
+toDegree(Triplet) -- from homology triplet to degree triplet
+************************************************************
+
+  * Function: *note toDegree: toDegree_lpTriplet_rp,
+  * Usage: 
+        toDegree T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a homology triplet
+        {B,H,C}
+  * Outputs:
+      * a degree triplet {B, conj(H,n),C}., an instance of the type *note
+        Triplet: Triplet,
+
+Description
+===========
+
+Takes a homology triplet and returns the corresponding degree triplet.
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {1,3}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : toDegree(T)                         |
+|                                         |
+|o2 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}      |
+|                                         |
+|o2 : Triplet                             |
++-----------------------------------------+
+
+See also
+========
+
+  * *note toHomology: toHomology_lpTriplet_rp, -- from degree triplet to
+    homology triplet
+  * *note conj: conj_lpList_cmZZ_rp, -- conjugate of degree sequence
+
+Ways to use this method:
+========================
+
+  * *note toDegree(Triplet): toDegree_lpTriplet_rp, -- from homology triplet to
+    degree triplet
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:883:0.
+
+File: Triplets.info, Node: toHomology_lpTriplet_rp, Next: Triplet, Prev: toDegree_lpTriplet_rp, Up: Top
+
+toHomology(Triplet) -- from degree triplet to homology triplet
+**************************************************************
+
+  * Function: *note toHomology: toHomology_lpTriplet_rp,
+  * Usage: 
+        toHomology T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, a degree triplet
+        {A,B,C}
+  * Outputs:
+      * a homology triplet {A, conj(B,n), C}, an instance of the type *note
+        Triplet: Triplet,
+
+Description
+===========
+
+Takes a degree triplet and returns the corresponding homology triplet.
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {0,2}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : toHomology(T)                       |
+|                                         |
+|o2 = {{1, 2, 3}, {1, 3}, {0, 2, 3}}      |
+|                                         |
+|o2 : Triplet                             |
++-----------------------------------------+
+
+See also
+========
+
+  * *note toDegree: toDegree_lpTriplet_rp, -- from homology triplet to degree
+    triplet
+  * *note conj: conj_lpList_cmZZ_rp, -- conjugate of degree sequence
+
+Ways to use this method:
+========================
+
+  * *note toHomology(Triplet): toHomology_lpTriplet_rp, -- from degree triplet
+    to homology triplet
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:864:0.
+
+File: Triplets.info, Node: Triplet, Next: triplet_lpList_cmList_cmList_rp, Prev: toHomology_lpTriplet_rp, Up: Top
+
+Triplet -- triplet
+******************
+
+Description
+===========
+
+A Triplet is a list consisting of three degree sequences, each  of which is a
+list of increasing integers. These three degree sequences fulfill certain
+compatibility conditions. There are two different but equivalent versions:
+
+
+1. A degree triplet, see Definition 2.9 in math.AC/1207.2071 "Triplets of pure
+free squarefree complexes"
+
+
+2. A homology triplet, see Definition 5.4 in math.AC/1212.3675 "Zipping Tate
+resolutions and exterior coalgebras"
+
+
+The routines *note isDegreeTriplet: isDegreeTriplet_lpTriplet_rp, and *note
+isHomologyTriplet: isHomologyTriplet_lpTriplet_rp, checks if a triplet fulfills
+the compatibility conditions for degree and homology triplets, respectively.
+The routine *note toHomology: toHomology_lpTriplet_rp, converts from a degree
+triplet to a homology triplet, and the routine *note toDegree:
+toDegree_lpTriplet_rp, converts from a homology triplet to a degree triplet.
+
+Functions and methods returning an object of class Triplet:
+===========================================================
+
+  * "rotBack" -- see *note rotBack(Triplet): rotBack_lpTriplet_rp, -- backward
+    cyclic permutation
+  * "rotForw" -- see *note rotForw(Triplet): rotForw_lpTriplet_rp, -- forward
+    cyclic permutation
+  * "toDegree" -- see *note toDegree(Triplet): toDegree_lpTriplet_rp, -- from
+    homology triplet to degree triplet
+  * "toHomology" -- see *note toHomology(Triplet): toHomology_lpTriplet_rp, --
+    from degree triplet to homology triplet
+  * "triplet" -- see *note triplet(List,List,List):
+    triplet_lpList_cmList_cmList_rp, -- make a triplet
+  * *note triplet(List,List,List): triplet_lpList_cmList_cmList_rp, -- make a
+    triplet
+
+Methods that use an object of class Triplet:
+============================================
+
+  * *note Betti1(Triplet): Betti1_lpTriplet_rp, -- Betti numbers of first pure
+    complex
+  * *note Betti3(Triplet): Betti3_lpTriplet_rp, -- Betti numbers of the three
+    pure complexes
+  * *note BettiDiagram1(Triplet): BettiDiagram1_lpTriplet_rp, -- Betti diagram
+    of first pure complex
+  * *note BettiDiagram3(Triplet): BettiDiagram3_lpTriplet_rp, -- Betti diagrams
+    of the three pure complexes
+  * *note cohMatrix(ZZ,ZZ,Triplet): cohMatrix_lpZZ_cmZZ_cmTriplet_rp, --
+    cohomology table in matrix form
+  * *note cohTable(ZZ,ZZ,Triplet): cohTable_lpZZ_cmZZ_cmTriplet_rp, --
+    cohomology table
+  * *note dualHomTriplet(Triplet): dualHomTriplet_lpTriplet_rp, -- the dual
+    homology triplet
+  * *note hilbCoeff(Triplet): hilbCoeff_lpTriplet_rp, -- coefficients of
+    Hilbert polynomial
+  * *note isDegreeTriplet(Triplet): isDegreeTriplet_lpTriplet_rp, -- checks if
+    it is a degree triplet
+  * *note isHomologyTriplet(Triplet): isHomologyTriplet_lpTriplet_rp, -- checks
+    if it is a homology triplet
+  * *note rotBack(Triplet): rotBack_lpTriplet_rp, -- backward cyclic
+    permutation
+  * *note rotForw(Triplet): rotForw_lpTriplet_rp, -- forward cyclic permutation
+  * *note toDegree(Triplet): toDegree_lpTriplet_rp, -- from homology triplet to
+    degree triplet
+  * *note toHomology(Triplet): toHomology_lpTriplet_rp, -- from degree triplet
+    to homology triplet
+  * *note type(Triplet): type_lpTriplet_rp, -- number of variables
+
+For the programmer
+==================
+
+The object *note Triplet: Triplet, is a *note type: (Macaulay2Doc)Type,, with
+ancestor classes *note List: (Macaulay2Doc)List, < *note VisibleList:
+(Macaulay2Doc)VisibleList, < *note BasicList: (Macaulay2Doc)BasicList, < *note
+Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:725:0.
+
+File: Triplets.info, Node: triplet_lpList_cmList_cmList_rp, Next: type_lpTriplet_rp, Prev: Triplet, Up: Top
+
+triplet(List,List,List) -- make a triplet
+*****************************************
+
+  * Function: *note triplet: triplet_lpList_cmList_cmList_rp,
+  * Usage: 
+        triplet(A,B,C)
+  * Inputs:
+      * A, a *note list: (Macaulay2Doc)List,, an increasing sequence of
+        integers
+      * B, a *note list: (Macaulay2Doc)List,, an increasing sequence of
+        integers
+      * C, a *note list: (Macaulay2Doc)List,, an increasing sequence of
+        integers
+  * Outputs:
+      * an instance of the type *note Triplet: Triplet,, the triplet of degree
+        sequences
+
+Description
+===========
+
++--------------------------------------------------+
+|i1 : T1 = triplet({1,2,3}, {0,2}, {0,2,3})        |
+|                                                  |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}               |
+|                                                  |
+|o1 : Triplet                                      |
++--------------------------------------------------+
+|i2 : T2 = triplet({0,3,4}, {0,2,3,4,5}, {1,3,4,5})|
+|                                                  |
+|o2 = {{0, 3, 4}, {0, 2, 3, 4, 5}, {1, 3, 4, 5}}   |
+|                                                  |
+|o2 : Triplet                                      |
++--------------------------------------------------+
+|i3 : T3 = triplet({1,3,4}, {0,2,3}, {0,2,3,4})    |
+|                                                  |
+|o3 = {{1, 3, 4}, {0, 2, 3}, {0, 2, 3, 4}}         |
+|                                                  |
+|o3 : Triplet                                      |
++--------------------------------------------------+
+
+See also
+========
+
+  * *note isDegreeTriplet: isDegreeTriplet_lpTriplet_rp, -- checks if it is a
+    degree triplet
+  * *note isHomologyTriplet: isHomologyTriplet_lpTriplet_rp, -- checks if it is
+    a homology triplet
+
+Ways to use this method:
+========================
+
+  * *note triplet(List,List,List): triplet_lpList_cmList_cmList_rp, -- make a
+    triplet
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:811:0.
+
+File: Triplets.info, Node: type_lpTriplet_rp, Prev: triplet_lpList_cmList_cmList_rp, Up: Top
+
+type(Triplet) -- number of variables
+************************************
+
+  * Function: *note type: type_lpTriplet_rp,
+  * Usage: 
+        type T
+  * Inputs:
+      * T, an instance of the type *note Triplet: Triplet,, degree triplet or
+        homology triplet
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, the number of variables in the
+        squarefree polynomial ring
+
+Description
+===========
+
++-----------------------------------------+
+|i1 : T = triplet({1,2,3}, {0,2}, {0,2,3})|
+|                                         |
+|o1 = {{1, 2, 3}, {0, 2}, {0, 2, 3}}      |
+|                                         |
+|o1 : Triplet                             |
++-----------------------------------------+
+|i2 : type(T)                             |
+|                                         |
+|o2 = 3                                   |
++-----------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note type(Triplet): type_lpTriplet_rp, -- number of variables
+-------------------------------------------------------------------------------
+
+The source of this document is in Triplets.m2:918:0.
+
+Tag Table:
+Node: Top284
+Node: Betti1_lpTriplet_rp13307
+Node: Betti3_lpTriplet_rp14946
+Node: BettiDiagram1_lpTriplet_rp16567
+Node: BettiDiagram3_lpTriplet_rp18384
+Node: binPol_lpRingElement_cmZZ_cmZZ_rp20191
+Node: chiPol_lpRingElement_cmZZ_cmList_cmList_rp21732
+Node: cohMatrix_lpZZ_cmZZ_cmTriplet_rp24587
+Node: cohTable_lpZZ_cmZZ_cmTriplet_rp26614
+Node: conj_lpList_cmZZ_rp28624
+Node: dualHomTriplet_lpTriplet_rp29836
+Node: hilbCoeff_lpTriplet_rp31366
+Node: hilbPol_lpRingElement_cmZZ_cmList_cmList_rp33199
+Node: isDegreeTriplet_lpTriplet_rp35771
+Node: isHomologyTriplet_lpTriplet_rp37811
+Node: rotBack_lpTriplet_rp39338
+Node: rotForw_lpTriplet_rp40831
+Node: strands_lpList_rp42304
+Node: strandsL_lpZZ_cmList_rp43577
+Node: toDegree_lpTriplet_rp45013
+Node: toHomology_lpTriplet_rp46700
+Node: Triplet48381
+Node: triplet_lpList_cmList_cmList_rp52202
+Node: type_lpTriplet_rp54413
+
+End Tag Table

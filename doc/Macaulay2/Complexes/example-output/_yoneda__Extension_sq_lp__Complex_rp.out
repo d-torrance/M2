@@ -1,0 +1,140 @@
+-- -*- M2-comint -*- hash: 10269713285904680855
+
+i1 : R = ZZ/101[x,y,z]/(y^2*z-x*(x-z)*(x-2*z));
+
+i2 : M = image matrix {{z,y,x}}
+
+o2 = image | z y x |
+
+                             1
+o2 : R-module, submodule of R
+
+i3 : N = R^1;
+
+i4 : E = coker map(R^{3:-1} ++ R^1,,{
+             {y, x, 0, 0},
+             {-z, 0, x, -y*z},
+             {0, -z, -y, x^2-3*x*z+2*z^2},
+             {x^2-3*x*z+2*z^2, y*z, 0, 0}
+             })
+
+o4 = cokernel {1} | y          x  0  0          |
+              {1} | -z         0  x  -yz        |
+              {1} | 0          -z -y x2-3xz+2z2 |
+              {0} | x2-3xz+2z2 yz 0  0          |
+
+                            4
+o4 : R-module, quotient of R
+
+i5 : d1 = map(M, E, (cover E)^[0])
+
+o5 = {1} | 1 0 0 0 |
+     {1} | 0 1 0 0 |
+     {1} | 0 0 1 0 |
+
+o5 : Matrix M <-- E
+
+i6 : d2 = map(E, N, (cover E)_[1])
+
+o6 = {1} | 0 |
+     {1} | 0 |
+     {1} | 0 |
+     {0} | 1 |
+
+                   1
+o6 : Matrix E <-- R
+
+i7 : C = complex{d1,d2}
+
+                  1
+o7 = M <-- E <-- R
+                  
+     0     1     2
+
+o7 : Complex
+
+i8 : assert isWellDefined C
+
+i9 : assert isHomogeneous C
+
+i10 : assert isShortExactSequence C
+
+i11 : f = yonedaExtension' C
+
+o11 = {-1} | 0 |
+      {-1} | 0 |
+      {-1} | 0 |
+      {0}  | 1 |
+
+o11 : Matrix
+
+i12 : assert(C == yonedaExtension f)
+
+i13 : assert(basis(0, Ext^1(M,N)) == f)
+
+i14 : R = ZZ/101[a,b,c,d,e];
+
+i15 : M = coker matrix"a,b,d,e"
+
+o15 = cokernel | a b d e |
+
+                             1
+o15 : R-module, quotient of R
+
+i16 : N = coker matrix"c,d,e"
+
+o16 = cokernel | c d e |
+
+                             1
+o16 : R-module, quotient of R
+
+i17 : Ext^3(M,N)
+
+o17 = subquotient ({-3} | 1 0 0 0 0 0 0 0 0 |, {-3} | 0 -b a 0  0 0 e d c 0 0 0 0 0 0 0 0 0 |)
+                   {-3} | 0 1 0 0 0 0 0 0 0 |  {-3} | 0 0  0 -b a 0 0 0 0 e d c 0 0 0 0 0 0 |
+                   {-3} | 0 0 e d c 0 0 0 a |  {-3} | 0 0  0 0  0 a 0 0 0 0 0 0 e d c 0 0 0 |
+                   {-3} | 0 0 0 0 0 e d c b |  {-3} | 0 0  0 0  0 b 0 0 0 0 0 0 0 0 0 e d c |
+
+                                4
+o17 : R-module, subquotient of R
+
+i18 : C = complex{id_M, map(M, R^0, 0), map(R^0, N, 0), id_N}
+
+o18 = M <-- M <-- 0 <-- N <-- N
+                               
+      0     1     2     3     4
+
+o18 : Complex
+
+i19 : assert isWellDefined C
+
+i20 : assert(HH C == 0)
+
+i21 : f = yonedaExtension' C
+
+o21 = 0
+
+o21 : Matrix
+
+i22 : assert(target f === Ext^3(M,N))
+
+i23 : assert(f == 0)
+
+i24 : D = yonedaExtension f
+
+             1      4
+o24 = M <-- R  <-- R  <-- cokernel {2} | d  e  0  0  0 0 0 | <-- N
+                                   {2} | -b 0  e  0  0 0 0 |      
+      0     1      2               {2} | a  0  0  e  0 0 0 |     4
+                                   {2} | 0  -b -d 0  0 0 0 |
+                                   {2} | 0  a  0  -d 0 0 0 |
+                                   {2} | 0  0  a  b  0 0 0 |
+                                   {0} | 0  0  0  0  c d e |
+                           
+                          3
+
+o24 : Complex
+
+i25 : assert(C != D)
+
+i26 : 

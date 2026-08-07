@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>caching computation results</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="index.html">Documentation </a> <br><a href="_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> » <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> » <a href="_caching_spcomputation_spresults.html">caching computation results</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_using_sphooks.html">next</a> | <a href="_making_spnew_spfunctions_spwith_spoptional_sparguments.html">previous</a> | <a href="_cache.html">forward</a> | <a href="___Torsion.html">backward</a> | <a href="___The_sp__Macaulay2_splanguage.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>caching computation results</h1>
+      <div>
+        <div>
+          <p>Here is a simple example of caching a computation in a <a title="hash tables for caching" href="___Cache__Table.html">CacheTable</a>, using the augmented null coalescing operator <a title="augmented assignment for ??" href="__qu_qu_eq.html">??=</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : pdim' = M -> M.cache.pdim' ??= ( printerr &quot;computing pdim'&quot;; pdim M );</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : R = QQ[x,y,z];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : M = coker vars R;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : elapsedTime pdim' M
+ -- computing pdim'
+ -- .00311415s elapsed
+
+o4 = 3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : elapsedTime pdim' M
+ -- .000001012s elapsed
+
+o5 = 3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : peek M.cache
+
+o6 = CacheTable{cache => MutableHashTable{}                                              }
+                isHomogeneous => true
+                minimalPresentation => (OptionTable{Exclude => {}}) => cokernel | z y x |
+                pdim' => 3
+                presentation => | x y z |</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In the example above, the function is only executed if <span class="tt">M.cache.pdim'</span> is not already defined, and once it is executed the result is stored there for future reference.</p>
+        </div>
+        <div>
+          <p>In more complicated situations, one may need to create a new table under <a title="a key under which to store cache tables" href="_cache.html">cache</a> first.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : code(hh, Sequence, ProjectiveVariety)
+
+o7 = -- code for method: hh(Sequence,ProjectiveVariety)
+     ../../../../../Macaulay2/packages/Varieties.m2:784:34-793:7: --source
+     code:
+     hh(Sequence,ProjectiveVariety) := (pq,X) -> if X.cache.?hh and X.cache.hh#?pq then X.cache.hh#pq else (
+          (p,q) := pq;
+          if class p =!= ZZ or class q =!= ZZ then error &quot;expected integer superscripts&quot;;
+          d := dim X;
+          pqs := { (p,q), (q,p), (d-p,d-q), (d-q,d-p) };
+          (p,q) = min { (p,q), (q,p), (d-p,d-q), (d-q,d-p) };
+          h := rank HH^q cotangentSheaf(p,X);
+          if not X.cache.?hh then X.cache.hh = new MutableHashTable;
+          scan(pqs, pq -> X.cache.hh#pq = h);
+          h)</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="hash tables for caching" href="___Cache__Table.html">CacheTable</a> -- hash tables for caching</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="a key under which to store cache tables" href="_cache.html">cache</a> -- a key under which to store cache tables</span></li>
+          <li><span><a title="record results of function evaluation for future use" href="_memoize.html">memoize</a> -- record results of function evaluation for future use</span></li>
+          <li><span><a title="get the status of a computation" href="_status.html">status</a> -- get the status of a computation</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Macaulay2Doc/ov_caching.m2:71:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

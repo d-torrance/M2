@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Pruning DG modules, submodules, quotients, and maps -- Minimizing presentations of DG types via prune and minimalPresentation</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Data type for DG algebras" href="index.html">DGAlgebras</a> » <a title="Minimizing presentations of DG types via prune and minimalPresentation" href="___Pruning_sp__D__G_spmodules_cm_spsubmodules_cm_spquotients_cm_spand_spmaps.html">Pruning DG modules, submodules, quotients, and maps</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Well-definedness_cm_spacyclicity_cm_spand_spquasi-isomorphism.html">next</a> | <a href="___Homology_spof_sp__D__G_spmodules_spand_sp__D__G_spmodule_spmaps.html">previous</a> | <a href="_prune_lp__D__G__Submodule_rp.html">forward</a> | <a href="_homology__Class_lp__D__G__Module_cm__Vector_rp.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Pruning DG modules, submodules, quotients, and maps -- Minimizing presentations of DG types via prune and minimalPresentation</h1>
+      <div>
+        <div>
+          <p>For each DG type <span class="tt">T</span> (DG algebra, DG module, DG submodule, DG quotient module, DG ideal, DG algebra map, DG module map), the package provides <span class="tt">prune</span> and its synonym <span class="tt">minimalPresentation</span>.  The result is an object of the same type whose underlying presentation has had redundancy removed, where possible.</p>
+        </div>
+        <div>
+          <p>Every call to <span class="tt">prune</span> caches a <span class="tt">pruningMap</span> in the <span class="tt">cache</span> table of the pruned output, encoding the canonical comparison map <span class="tt">(pruned) -> (original)</span>.  For types where pruning does nothing (see below), the cached pruningMap is the identity; for types where it does something, the pruningMap is a well-defined <a title="The class of morphisms of DG modules over a common DG algebra" href="___D__G__Module__Map.html">DGModuleMap</a> (or <a title="The class of DG algebra maps" href="___D__G__Algebra__Map.html">DGAlgebraMap</a>) whose source is the pruned object and whose target is the original. This mirrors the convention used by <span class="tt">prune</span> applied to <span class="tt">Complex</span> objects from the Complexes package for <span class="tt">Complex</span> objects.</p>
+        </div>
+        <div>
+          <p>The two active cases are:</p>
+        </div>
+        <div>
+          <p><a title="Trim a DG submodule to a minimal generating set of its inclusion" href="_prune_lp__D__G__Submodule_rp.html">prune(DGSubmodule)</a> trims the inclusion matrix to a minimal generating set of its column span.  When the inclusion matrix is already minimal, <span class="tt">prune</span> is the identity.</p>
+        </div>
+        <div>
+          <p><a title="Minimize the presentation of a DG quotient module" href="_prune_lp__D__G__Quotient__Module_rp.html">prune(DGQuotientModule)</a> first prunes the relations submodule and then additionally prunes <span class="tt">toComplex Qp</span> at the complex level, caching the result so that <span class="tt">toComplex Qp</span> returns a minimally presented complex.</p>
+        </div>
+        <div>
+          <p>The no-op cases, installed so that pruning always commutes with every constructor, are <a title="Pruning a DG module is the identity" href="_prune_lp__D__G__Module_rp.html">prune(DGModule)</a>, <a title="Pruning a DG algebra is the identity" href="_prune_lp__D__G__Algebra_rp.html">prune(DGAlgebra)</a>, <a title="Pruning a DG algebra map is the identity" href="_prune_lp__D__G__Algebra__Map_rp.html">prune(DGAlgebraMap)</a>, <a title="Pruning a DG module map is the identity" href="_prune_lp__D__G__Module__Map_rp.html">prune(DGModuleMap)</a>, and (already documented) <a title="Trim a DG ideal down to a minimal generating set" href="_prune_lp__D__G__Ideal_rp.html">prune(DGIdeal)</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ/101[x, y]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : A = koszulComplexDGA R
+
+o2 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,2
+      Differential => {x, y}
+
+o2 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : Anat = A.natural
+
+o3 = Anat
+
+o3 : PolynomialRing, 2 skew commutative variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : M = freeDGModule(A, {0})
+
+o4 = {Base ring => R               }
+      DG algebra => Anat
+                            1
+      Natural module => Anat
+      Generator degrees => {{0, 0}}
+      Differentials on gens => {0}
+
+o4 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : S = dgSubmodule(M, matrix {{1_Anat, x_Anat, y_Anat}})
+
+o5 = DGSubmodule of ambient DGModule
+     Degrees  => {{0, 0}, {0, 1}, {0, 1}}
+                     3
+     natural  => Anat
+     inclusion => | 1 x y |
+
+o5 : DGSubmodule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : Sp = prune S
+
+o6 = DGSubmodule of ambient DGModule
+     Degrees  => {{0, 0}}
+                     1
+     natural  => Anat
+     inclusion => | 1 |
+
+o6 : DGSubmodule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : numcols (inclusion S).natural
+
+o7 = 3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : numcols (inclusion Sp).natural
+
+o8 = 1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : image (inclusion S).natural == image (inclusion Sp).natural
+
+o9 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The image submodule of <span class="tt">M.natural</span> is unchanged; the presentation of <span class="tt">S</span> is reduced from three generators to one.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Trim a DG ideal down to a minimal generating set" href="_prune_lp__D__G__Ideal_rp.html">prune(DGIdeal)</a> -- Trim a DG ideal down to a minimal generating set</span></li>
+          <li><span><a title="Basic accessors on a DG ideal" href="_mingens_lp__D__G__Ideal_rp.html">mingens(DGIdeal)</a> -- Basic accessors on a DG ideal</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="Trim a DG submodule to a minimal generating set of its inclusion" href="_prune_lp__D__G__Submodule_rp.html">prune(DGSubmodule)</a> -- Trim a DG submodule to a minimal generating set of its inclusion</span></li>
+          <li><span><a title="Minimize the presentation of a DG quotient module" href="_prune_lp__D__G__Quotient__Module_rp.html">prune(DGQuotientModule)</a> -- Minimize the presentation of a DG quotient module</span></li>
+          <li><span><a title="Pruning a DG module is the identity" href="_prune_lp__D__G__Module_rp.html">prune(DGModule)</a> -- Pruning a DG module is the identity</span></li>
+          <li><span><a title="Pruning a DG algebra is the identity" href="_prune_lp__D__G__Algebra_rp.html">prune(DGAlgebra)</a> -- Pruning a DG algebra is the identity</span></li>
+          <li><span><a title="Pruning a DG algebra map is the identity" href="_prune_lp__D__G__Algebra__Map_rp.html">prune(DGAlgebraMap)</a> -- Pruning a DG algebra map is the identity</span></li>
+          <li><span><a title="Pruning a DG module map is the identity" href="_prune_lp__D__G__Module__Map_rp.html">prune(DGModuleMap)</a> -- Pruning a DG module map is the identity</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">DGAlgebras/doc.m2:4572:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

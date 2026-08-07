@@ -1,0 +1,85 @@
+-- -*- M2-comint -*- hash: 11422793294564310273
+
+i1 : src = temporaryFileName() | "/"
+
+o1 = /tmp/M2-32241-0/0/
+
+i2 : dst = temporaryFileName() | "/"
+
+o2 = /tmp/M2-32241-0/1/
+
+i3 : makeDirectory (src|"a/")
+
+o3 = /tmp/M2-32241-0/0/a/
+
+i4 : makeDirectory (src|"b/")
+
+o4 = /tmp/M2-32241-0/0/b/
+
+i5 : makeDirectory (src|"b/c/")
+
+o5 = /tmp/M2-32241-0/0/b/c/
+
+i6 : src|"a/f" << "hi there" << close
+
+o6 = /tmp/M2-32241-0/0/a/f
+
+o6 : File
+
+i7 : src|"a/g" << "hi there" << close
+
+o7 = /tmp/M2-32241-0/0/a/g
+
+o7 : File
+
+i8 : src|"b/c/g" << "ho there" << close
+
+o8 = /tmp/M2-32241-0/0/b/c/g
+
+o8 : File
+
+i9 : stack findFiles src
+
+o9 = /tmp/M2-32241-0/0/
+     /tmp/M2-32241-0/0/a/
+     /tmp/M2-32241-0/0/a/f
+     /tmp/M2-32241-0/0/a/g
+     /tmp/M2-32241-0/0/b/
+     /tmp/M2-32241-0/0/b/c/
+     /tmp/M2-32241-0/0/b/c/g
+
+i10 : copyDirectory(src,dst,Verbose=>true)
+ -- copying: /tmp/M2-32241-0/0/a/f -> /tmp/M2-32241-0/1/a/f
+ -- copying: /tmp/M2-32241-0/0/a/g -> /tmp/M2-32241-0/1/a/g
+ -- copying: /tmp/M2-32241-0/0/b/c/g -> /tmp/M2-32241-0/1/b/c/g
+
+i11 : copyDirectory(src,dst,Verbose=>true,UpdateOnly => true)
+ -- skipping: /tmp/M2-32241-0/0/a/f not newer than /tmp/M2-32241-0/1/a/f
+ -- skipping: /tmp/M2-32241-0/0/a/g not newer than /tmp/M2-32241-0/1/a/g
+ -- skipping: /tmp/M2-32241-0/0/b/c/g not newer than /tmp/M2-32241-0/1/b/c/g
+
+i12 : stack findFiles dst
+
+o12 = /tmp/M2-32241-0/1/
+      /tmp/M2-32241-0/1/a/
+      /tmp/M2-32241-0/1/a/f
+      /tmp/M2-32241-0/1/a/g
+      /tmp/M2-32241-0/1/b/
+      /tmp/M2-32241-0/1/b/c/
+      /tmp/M2-32241-0/1/b/c/g
+
+i13 : get (dst|"b/c/g")
+
+o13 = ho there
+
+i14 : rm = d -> if isDirectory d then removeDirectory d else removeFile d
+
+o14 = rm
+
+o14 : FunctionClosure
+
+i15 : scan(reverse findFiles src, rm)
+
+i16 : scan(reverse findFiles dst, rm)
+
+i17 : 

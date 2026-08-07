@@ -1,0 +1,65 @@
+-- -*- M2-comint -*- hash: 2989513528213557691
+
+i1 : src = temporaryFileName() | "/"
+
+o1 = /tmp/M2-32202-0/0/
+
+i2 : dst = temporaryFileName() | "/"
+
+o2 = /tmp/M2-32202-0/1/
+
+i3 : makeDirectory (src|"a/")
+
+o3 = /tmp/M2-32202-0/0/a/
+
+i4 : makeDirectory (src|"b/")
+
+o4 = /tmp/M2-32202-0/0/b/
+
+i5 : makeDirectory (src|"b/c/")
+
+o5 = /tmp/M2-32202-0/0/b/c/
+
+i6 : src|"a/f" << "hi there" << close
+
+o6 = /tmp/M2-32202-0/0/a/f
+
+o6 : File
+
+i7 : src|"a/g" << "hi there" << close
+
+o7 = /tmp/M2-32202-0/0/a/g
+
+o7 : File
+
+i8 : src|"b/c/g" << "ho there" << close
+
+o8 = /tmp/M2-32202-0/0/b/c/g
+
+o8 : File
+
+i9 : symlinkDirectory(src,dst,Verbose=>true)
+--symlinking: ../../0/a/f -> /tmp/M2-32202-0/1/a/f
+--symlinking: ../../0/a/g -> /tmp/M2-32202-0/1/a/g
+--symlinking: ../../../0/b/c/g -> /tmp/M2-32202-0/1/b/c/g
+
+i10 : get (dst|"b/c/g")
+
+o10 = ho there
+
+i11 : symlinkDirectory(src,dst,Verbose=>true,Undo=>true)
+--unsymlinking: ../../0/a/f -> /tmp/M2-32202-0/1/a/f
+--unsymlinking: ../../0/a/g -> /tmp/M2-32202-0/1/a/g
+--unsymlinking: ../../../0/b/c/g -> /tmp/M2-32202-0/1/b/c/g
+
+i12 : rm = d -> if isDirectory d then removeDirectory d else removeFile d
+
+o12 = rm
+
+o12 : FunctionClosure
+
+i13 : scan(reverse findFiles src, rm)
+
+i14 : scan(reverse findFiles dst, rm)
+
+i15 : 

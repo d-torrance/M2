@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Pfaffians on quadrics -- compute the quartic and betti table corresponding to a pfaffian ideal in a quadric</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="code to support the paper 'Quaternary Quartic Forms and Gorenstein Rings'" href="index.html">QuaternaryQuartics</a> :: <a title="compute the quartic and betti table corresponding to a pfaffian ideal in a quadric" href="___Pfaffians_spon_spquadrics.html">Pfaffians on quadrics</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_points__Ideal.html">next</a> | <a href="___Normalize.html">previous</a> | <a href="_points__Ideal.html">forward</a> | <a href="___Normalize.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Pfaffians on quadrics -- compute the quartic and betti table corresponding to a pfaffian ideal in a quadric</h1>
+      <div>
+        <div>
+          <p>Having a skew-symmetric map between a bundle and its dual from Proposition 7.2 we determine the Pfaffian ideal I in the ring of the quadric, the corresponding quartic $F$ to which I is fully apolar and the betti table of $F^{\perp}$ .</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R=QQ[x,y,z,t,Degrees=>{{1,0},{1,0},{0,1},{0,1}}]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : Q=QQ[a,b,c,d]
+
+o2 = Q
+
+o2 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : seg=map(R,Q, gens (ideal {x,y}* ideal (z,t)))
+
+o3 = map (R, Q, {x*z, x*t, y*z, y*t})
+
+o3 : RingMap R &lt;-- Q</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We choose a random map between suitable vector bundles as in the list below</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : NTypes = hashTable{
+         N100 => random(R^{3:{0,1}, 3:{1,0}, {0,0}}, R^{3:{0,-1}, 3:{-1,0}, {0,0}}),
+         N683 => random(R^{{2,1}, {2,1}, {-1,1}}, R^{{-2,-1}, {-2,-1}, {1,-1}}),
+         N550 => random(R^{{2,1}, {1,2}, {0,0}}, R^{{-2,-1}, {-1,-2}, {0,0}}),
+         N400 => random(R^{{1,1}, {1,1}, {1,1}}, R^{{-1,-1}, {-1,-1}, {-1,-1}}),
+         N300a => random(R^{{1,0}, {0,1}, 2:{1,1},{0,0}}, R^{{-1,0}, {0,-1}, 2:{-1,-1}, {0,0}}),
+         N300b => randomBlockMatrix({R^{{1,0},{0,0}},  R^{{0,1}, 2:{1,1}}},{R^{{-1,0},{0,0}},  R^{{0,-1}, 2:{-1,-1}}}, {{0,random},{random,random}}),
+         N300c => randomBlockMatrix({R^{{0,1}},R^{{0,0},{1,0}}, R^{ 2:{1,1}}},{R^{{0,-1}},R^{{0,0},{-1,0}}, R^{ 2:{-1,-1}}}, {{0,0,random},{0,random, random},{random, random, random}}),
+         N310 => randomBlockMatrix({R^{{0,0}},R^{{0,1},{1,0}}, R^{ 2:{1,1}}},{R^{{0,0}},R^{{0,-1},{-1,0}}, R^{ 2:{-1,-1}}}, {{0,0,random},{0,random, random},{random, random, random}}),
+         N430 => randomBlockMatrix({R^{{0,1}},R^{{0,0}},  R^{{0,0}}, R^{{1,1},{2,1}}},{R^{{0,-1}},R^{{0,0}},  R^{{0,0}},R^{ {-1,-1},{-2,-1}}}, {{0,0,random, random},{0,0,0,random},{random,0,random,random},{random, random, random, random}}),
+         N320 => random(R^{{1,0}, 2:{0,1}, {2,1},{0,0}}, R^{{-1,0}, 2:{0,-1}, {-2,-1}, {0,0}}),
+         N200 => random(R^{2:{1,0}, 2:{0,1}, {1,1}}, R^{2:{-1,0}, 2:{0,-1}, {-1,-1}}),
+         N420 => randomBlockMatrix({R^{3:{1,1}},R^{2:{0,0}}},{ R^{3:{-1,-1}},R^{ 2:{0,0}}}, {{random, random},{random,0}}),
+         N441a => random(R^{{1,2}, {2,1}, {0,1},{1,0},{-1,-1}}, R^{{-1,-2}, {-2,-1}, {0,-1},{-1,0}, {1,1}}),
+         N441b => random(R^{{1,0}, {1,0}, {1,3}}, R^{{-1,0}, {-1,0}, {-1,-3}}),
+         N551 => randomBlockMatrix({R^{{1,2}, {2,1},{0,0}}, R^{{1,1},{-1,-1}}},{ R^{{-1,-2}, {-2,-1},{0,0}},R^{{-1,-1},{1,1}}},{{random, random},{random,0}} ),
+         N562 => randomBlockMatrix({R^{{1,2}, {2,1},{0,0}},R^{{0,1},{0,-1}}},{ R^{{-1,-2}, {-2,-1},{0,0}}, R^{{0,-1},{0,1}}},{{random, random},{random,0}}),
+         };</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We define the function BettiPfaffian returning the Betti table of $F^{\perp}$ for $F$ the quartic to which the Pfaffian ideal for a random skewsymmetric map of prescribed shape is fully apolar</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : BettiPfaffian= N->(
+         NN=N-transpose N; -- NN will be a random skew-matrix of the given shape
+         K=pfaffians(numrows NN-1,NN);
+         I=preimage (seg, K);
+         Quartic=(inverseSystem (super basis(4,I)))_0; -- compute the quartic
+         Betti=betti resolution inverseSystem Quartic;
+         return Betti)
+
+o5 = BettiPfaffian
+
+o5 : FunctionClosure</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : netList for typeN in keys(NTypes) list {typeN, BettiPfaffian(NTypes#typeN)}
+
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+o6 = |N300a|total: 1 7 12 7 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 3  . . .  |
+     |     |    2: . 4 12 4 .  |
+     |     |    3: . .  . 3 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N300b|total: 1 7 12 7 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 3  . . .  |
+     |     |    2: . 4 12 4 .  |
+     |     |    3: . .  . 3 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N441a|total: 1 9 16 9 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 4  4 1 .  |
+     |     |    2: . 4  8 4 .  |
+     |     |    3: . 1  4 4 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N300c|total: 1 7 12 7 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 3  . . .  |
+     |     |    2: . 4 12 4 .  |
+     |     |    3: . .  . 3 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N441b|total: 1 9 16 9 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 4  4 1 .  |
+     |     |    2: . 4  8 4 .  |
+     |     |    3: . 1  4 4 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N550 |total: 1 6 10 6 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 5  5 . .  |
+     |     |    2: . 1  . 1 .  |
+     |     |    3: . .  5 5 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N562 |total: 1 9 16 9 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 5  6 2 .  |
+     |     |    2: . 2  4 2 .  |
+     |     |    3: . 2  6 5 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N551 |total: 1 7 12 7 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 5  5 1 .  |
+     |     |    2: . 1  2 1 .  |
+     |     |    3: . 1  5 5 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0  1  2  3 4|
+     |N100 |total: 1 13 24 13 1|
+     |     |    0: 1  .  .  . .|
+     |     |    1: .  1  .  . .|
+     |     |    2: . 12 24 12 .|
+     |     |    3: .  .  .  1 .|
+     |     |    4: .  .  .  . 1|
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N683 |total: 1 9 16 9 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 6  8 3 .  |
+     |     |    2: . .  . . .  |
+     |     |    3: . 3  8 6 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N430 |total: 1 7 12 7 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 4  3 . .  |
+     |     |    2: . 3  6 3 .  |
+     |     |    3: . .  3 4 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N320 |total: 1 9 16 9 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 3  2 . .  |
+     |     |    2: . 6 12 6 .  |
+     |     |    3: . .  2 3 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N310 |total: 1 8 14 8 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 3  1 . .  |
+     |     |    2: . 5 12 5 .  |
+     |     |    3: . .  1 3 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0  1  2  3 4|
+     |N200 |total: 1 10 18 10 1|
+     |     |    0: 1  .  .  . .|
+     |     |    1: .  2  .  . .|
+     |     |    2: .  8 18  8 .|
+     |     |    3: .  .  .  2 .|
+     |     |    4: .  .  .  . 1|
+     +-----+-------------------+
+     |     |       0 1  2 3 4  |
+     |N420 |total: 1 6 10 6 1  |
+     |     |    0: 1 .  . . .  |
+     |     |    1: . 4  2 . .  |
+     |     |    2: . 2  6 2 .  |
+     |     |    3: . .  2 4 .  |
+     |     |    4: . .  . . 1  |
+     +-----+-------------------+
+     |     |       0 1 2 3 4   |
+     |N400 |total: 1 4 6 4 1   |
+     |     |    0: 1 . . . .   |
+     |     |    1: . 4 . . .   |
+     |     |    2: . . 6 . .   |
+     |     |    3: . . . 4 .   |
+     |     |    4: . . . . 1   |
+     +-----+-------------------+</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Quaternary Quartic Forms and Gorenstein rings (Kapustka, Kapustka, Ranestad, Schenck, Stillman, Yuan, 2021)" href="_%5B__Q__Q%5D.html">[QQ]</a> -- Quaternary Quartic Forms and Gorenstein rings (Kapustka, Kapustka, Ranestad, Schenck, Stillman, Yuan, 2021)</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">QuaternaryQuartics/Section7Doc.m2:51:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

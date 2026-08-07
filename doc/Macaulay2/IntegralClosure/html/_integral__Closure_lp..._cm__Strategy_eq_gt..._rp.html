@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>integralClosure(...,Strategy=>...) -- control the algorithm used</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="integral closure" href="index.html">IntegralClosure</a> :: <a title="control the algorithm used" href="_integral__Closure_lp..._cm__Strategy_eq_gt..._rp.html">integralClosure(...,Strategy=>...)</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_integral__Closure_lp..._cm__Variable_eq_gt..._rp.html">next</a> | <a href="_integral__Closure_lp..._cm__Limit_eq_gt..._rp.html">previous</a> | <a href="_integral__Closure_lp..._cm__Variable_eq_gt..._rp.html">forward</a> | <a href="_integral__Closure_lp..._cm__Limit_eq_gt..._rp.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>integralClosure(...,Strategy=>...) -- control the algorithm used</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">integralClosure(R, Strategy=>L)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">L</span>, <span>a <a title="the class of all lists -- {...}" href="../../Macaulay2Doc/html/___List.html">list</a></span>, of a subset of the following: <span class="tt">RadicalCodim1, Radical, AllCodimensions, Vasconcelos, SimplifyFractions, StartWithOneMinor</span></span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>Overall, the default options are the best.  However, sometimes one of these is dramatically better (or worse!).  For the examples here, one doesn't notice much difference.</p>
+          <p><span class="tt">RadicalCodim1</span> chooses an alternate, often much faster, sometimes much slower, algorithm for computing the radical of ideals.  This will often produce a different presentation for the integral closure. <span class="tt">Radical</span> chooses yet another such algorithm.</p>
+          <p><span class="tt">AllCodimensions</span> tells the algorithm to bypass the computation of the S2-ification, but in each iteration of the algorithm, use the radical of the extended Jacobian ideal from the previous step, instead of using only the codimension 1 components of that.  This is useful when for some reason the S2-ification is hard to compute, or if the probabilistic algorithm for computing it fails.  In general though, this option slows down the computation for many examples.</p>
+          <p><span class="tt">StartWithOneMinor</span> tells the algorithm to not compute the entire Jacobian ideal, just find one element in it.  This is often a bad choice, unless the ideal is large enough that one can't compute the Jacobian ideal.  In the future, we plan on using the <a title="faster linear algebra operations" href="../../FastMinors/html/index.html">FastMinors</a> package to compute part of the Jacobian ideal.</p>
+          <p><span class="tt">SimplifyFractions</span> changes the fractions to hopefully be simpler.  Sometimes it succeeds, yet sometimes it makes the fractions worse.  This is because of the manner in which fraction fields work.  We are hoping that in the future, less drastic change of fractions will happen by default.</p>
+          <p><span class="tt">Vasconocelos</span> tells the routine to instead of computing Hom(J,J), to instead compute Hom(J^-1, J^-1).  This is usually a more time consuming computation, but it does potentially get to the answer in a smaller number of steps.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : S = QQ[x,y,z]
+
+o1 = S
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : f = ideal (x^8-z^6-y^2*z^4-z^3)
+
+            8    2 4    6    3
+o2 = ideal(x  - y z  - z  - z )
+
+o2 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : R = S/f
+
+o3 = R
+
+o3 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : time R' = integralClosure R
+ -- used 0.434825s (cpu); 0.388959s (thread); 0s (gc)
+
+o4 = R'
+
+o4 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : netList (ideal R')_*
+
+     +------------------------------------------------------------------------+
+     |         3                                                              |
+o5 = |w   z - x                                                               |
+     | 4,0                                                                    |
+     +------------------------------------------------------------------------+
+     |         2 2    4                                                       |
+     |w   x - y z  - z  - z                                                   |
+     | 1,1                                                                    |
+     +------------------------------------------------------------------------+
+     |     4                                                                  |
+     |w   x  - w   z                                                          |
+     | 4,0      1,1                                                           |
+     +------------------------------------------------------------------------+
+     |            2 2     2 3    2                                            |
+     |w   w    - x y z - x z  - x                                             |
+     | 4,0 1,1                                                                |
+     +------------------------------------------------------------------------+
+     | 2           3 2     2      6 2                                         |
+     |w   z + w   x y z - w    + x z                                          |
+     | 4,0     4,0         1,1                                                |
+     +------------------------------------------------------------------------+
+     | 2           4 2        2                                               |
+     |w   x + w   x y  - w   y z - w                                          |
+     | 4,0     4,0        1,1       1,1                                       |
+     +------------------------------------------------------------------------+
+     | 3      2   3 2        6       4 2       2 4      6       2        3    |
+     |w    + w   x y  + w   x z - x*y z  - 2x*y z  - x*z  - 2x*y z - 2x*z  - x|
+     | 4,0    4,0        4,0                                                  |
+     +------------------------------------------------------------------------+</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : icFractions R
+
+       3   2 2    4
+      x   y z  + z  + z
+o6 = {--, -------------, x, y, z}
+       z        x
+
+o6 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : S = QQ[x,y,z]
+
+o7 = S
+
+o7 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : f = ideal (x^8-z^6-y^2*z^4-z^3)
+
+            8    2 4    6    3
+o8 = ideal(x  - y z  - z  - z )
+
+o8 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : R = S/f
+
+o9 = R
+
+o9 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : time R' = integralClosure(R, Strategy => Radical)
+ -- used 0.487668s (cpu); 0.390021s (thread); 0s (gc)
+
+o10 = R'
+
+o10 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : netList (ideal R')_*
+
+      +------------------------------------------------------------------------+
+      |         3                                                              |
+o11 = |w   z - x                                                               |
+      | 4,0                                                                    |
+      +------------------------------------------------------------------------+
+      |         2 2    4                                                       |
+      |w   x - y z  - z  - z                                                   |
+      | 1,1                                                                    |
+      +------------------------------------------------------------------------+
+      |     4                                                                  |
+      |w   x  - w   z                                                          |
+      | 4,0      1,1                                                           |
+      +------------------------------------------------------------------------+
+      |            2 2     2 3    2                                            |
+      |w   w    - x y z - x z  - x                                             |
+      | 4,0 1,1                                                                |
+      +------------------------------------------------------------------------+
+      | 2           3 2     2      6 2                                         |
+      |w   z + w   x y z - w    + x z                                          |
+      | 4,0     4,0         1,1                                                |
+      +------------------------------------------------------------------------+
+      | 2           4 2        2                                               |
+      |w   x + w   x y  - w   y z - w                                          |
+      | 4,0     4,0        1,1       1,1                                       |
+      +------------------------------------------------------------------------+
+      | 3      2   3 2        6       4 2       2 4      6       2        3    |
+      |w    + w   x y  + w   x z - x*y z  - 2x*y z  - x*z  - 2x*y z - 2x*z  - x|
+      | 4,0    4,0        4,0                                                  |
+      +------------------------------------------------------------------------+</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : icFractions R
+
+        3   2 2    4
+       x   y z  + z  + z
+o12 = {--, -------------, x, y, z}
+        z        x
+
+o12 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : S = QQ[x,y,z]
+
+o13 = S
+
+o13 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : f = ideal (x^8-z^6-y^2*z^4-z^3)
+
+             8    2 4    6    3
+o14 = ideal(x  - y z  - z  - z )
+
+o14 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : R = S/f
+
+o15 = R
+
+o15 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : time R' = integralClosure(R, Strategy => AllCodimensions)
+ -- used 0.417712s (cpu); 0.386744s (thread); 0s (gc)
+
+o16 = R'
+
+o16 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : netList (ideal R')_*
+
+      +------------------------------------------------------------------------+
+      |         3                                                              |
+o17 = |w   z - x                                                               |
+      | 4,0                                                                    |
+      +------------------------------------------------------------------------+
+      |         2 2    4                                                       |
+      |w   x - y z  - z  - z                                                   |
+      | 1,1                                                                    |
+      +------------------------------------------------------------------------+
+      |     4                                                                  |
+      |w   x  - w   z                                                          |
+      | 4,0      1,1                                                           |
+      +------------------------------------------------------------------------+
+      |            2 2     2 3    2                                            |
+      |w   w    - x y z - x z  - x                                             |
+      | 4,0 1,1                                                                |
+      +------------------------------------------------------------------------+
+      | 2           3 2     2      6 2                                         |
+      |w   z + w   x y z - w    + x z                                          |
+      | 4,0     4,0         1,1                                                |
+      +------------------------------------------------------------------------+
+      | 2           4 2        2                                               |
+      |w   x + w   x y  - w   y z - w                                          |
+      | 4,0     4,0        1,1       1,1                                       |
+      +------------------------------------------------------------------------+
+      | 3      2   3 2        6       4 2       2 4      6       2        3    |
+      |w    + w   x y  + w   x z - x*y z  - 2x*y z  - x*z  - 2x*y z - 2x*z  - x|
+      | 4,0    4,0        4,0                                                  |
+      +------------------------------------------------------------------------+</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : S = QQ[x,y,z]
+
+o18 = S
+
+o18 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : f = ideal (x^8-z^6-y^2*z^4-z^3)
+
+             8    2 4    6    3
+o19 = ideal(x  - y z  - z  - z )
+
+o19 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : R = S/f
+
+o20 = R
+
+o20 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : time R' = integralClosure(R, Strategy => SimplifyFractions)
+ -- used 0.527559s (cpu); 0.44484s (thread); 0s (gc)
+
+o21 = R'
+
+o21 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : netList (ideal R')_*
+
+      +------------------------------------------------------------------------+
+      |         3                                                              |
+o22 = |w   z - x                                                               |
+      | 4,0                                                                    |
+      +------------------------------------------------------------------------+
+      |         2 2    4                                                       |
+      |w   x - y z  - z  - z                                                   |
+      | 1,0                                                                    |
+      +------------------------------------------------------------------------+
+      |            2 2     2 3    2                                            |
+      |w   w    - x y z - x z  - x                                             |
+      | 4,0 1,0                                                                |
+      +------------------------------------------------------------------------+
+      |     4                                                                  |
+      |w   x  - w   z                                                          |
+      | 4,0      1,0                                                           |
+      +------------------------------------------------------------------------+
+      | 2           3 2     2      6 2                                         |
+      |w   z + w   x y z - w    + x z                                          |
+      | 4,0     4,0         1,0                                                |
+      +------------------------------------------------------------------------+
+      | 2           4 2        2                                               |
+      |w   x + w   x y  - w   y z - w                                          |
+      | 4,0     4,0        1,0       1,0                                       |
+      +------------------------------------------------------------------------+
+      | 3      2   3 2        6       4 2       2 4      6       2        3    |
+      |w    + w   x y  + w   x z - x*y z  - 2x*y z  - x*z  - 2x*y z - 2x*z  - x|
+      | 4,0    4,0        4,0                                                  |
+      +------------------------------------------------------------------------+</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : S = QQ[x,y,z]
+
+o23 = S
+
+o23 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : f = ideal (x^8-z^6-y^2*z^4-z^3)
+
+             8    2 4    6    3
+o24 = ideal(x  - y z  - z  - z )
+
+o24 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : R = S/f
+
+o25 = R
+
+o25 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : time R' = integralClosure (R, Strategy => RadicalCodim1)
+ -- used 0.844499s (cpu); 0.684523s (thread); 0s (gc)
+
+o26 = R'
+
+o26 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : netList (ideal R')_*
+
+      +------------------------------------------------------------------------+
+      |         3                                                              |
+o27 = |w   z - x                                                               |
+      | 4,0                                                                    |
+      +------------------------------------------------------------------------+
+      |         2 2    4                                                       |
+      |w   x - y z  - z  - z                                                   |
+      | 1,1                                                                    |
+      +------------------------------------------------------------------------+
+      |     4                                                                  |
+      |w   x  - w   z                                                          |
+      | 4,0      1,1                                                           |
+      +------------------------------------------------------------------------+
+      |            2 2     2 3    2                                            |
+      |w   w    - x y z - x z  - x                                             |
+      | 4,0 1,1                                                                |
+      +------------------------------------------------------------------------+
+      | 2           3 2     2      6 2                                         |
+      |w   z + w   x y z - w    + x z                                          |
+      | 4,0     4,0         1,1                                                |
+      +------------------------------------------------------------------------+
+      | 2           4 2        2                                               |
+      |w   x + w   x y  - w   y z - w                                          |
+      | 4,0     4,0        1,1       1,1                                       |
+      +------------------------------------------------------------------------+
+      | 3      2   3 2        6       4 2       2 4      6       2        3    |
+      |w    + w   x y  + w   x z - x*y z  - 2x*y z  - x*z  - 2x*y z - 2x*z  - x|
+      | 4,0    4,0        4,0                                                  |
+      +------------------------------------------------------------------------+</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : S = QQ[x,y,z]
+
+o28 = S
+
+o28 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : f = ideal (x^8-z^6-y^2*z^4-z^3)
+
+             8    2 4    6    3
+o29 = ideal(x  - y z  - z  - z )
+
+o29 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i30 : R = S/f
+
+o30 = R
+
+o30 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i31 : time R' = integralClosure (R, Strategy => Vasconcelos)
+ -- used 0.519433s (cpu); 0.43722s (thread); 0s (gc)
+
+o31 = R'
+
+o31 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i32 : netList (ideal R')_*
+
+      +------------------------------------------------------------------------+
+      |         3                                                              |
+o32 = |w   z - x                                                               |
+      | 4,0                                                                    |
+      +------------------------------------------------------------------------+
+      |         2 2    4                                                       |
+      |w   x - y z  - z  - z                                                   |
+      | 1,1                                                                    |
+      +------------------------------------------------------------------------+
+      |     4                                                                  |
+      |w   x  - w   z                                                          |
+      | 4,0      1,1                                                           |
+      +------------------------------------------------------------------------+
+      |            2 2     2 3    2                                            |
+      |w   w    - x y z - x z  - x                                             |
+      | 4,0 1,1                                                                |
+      +------------------------------------------------------------------------+
+      | 2           3 2     2      6 2                                         |
+      |w   z + w   x y z - w    + x z                                          |
+      | 4,0     4,0         1,1                                                |
+      +------------------------------------------------------------------------+
+      | 2           4 2        2                                               |
+      |w   x + w   x y  - w   y z - w                                          |
+      | 4,0     4,0        1,1       1,1                                       |
+      +------------------------------------------------------------------------+
+      | 3      2   3 2        6       4 2       2 4      6       2        3    |
+      |w    + w   x y  + w   x z - x*y z  - 2x*y z  - x*z  - 2x*y z - 2x*z  - x|
+      | 4,0    4,0        4,0                                                  |
+      +------------------------------------------------------------------------+</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i33 : S = QQ[a,b,c,d]
+
+o33 = S
+
+o33 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i34 : f = monomialCurveIdeal(S,{1,3,4})
+
+                         3      2     2    2    3    2
+o34 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)
+
+o34 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i35 : R = S/f
+
+o35 = R
+
+o35 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i36 : time R' = integralClosure R
+ -- used 0.0593134s (cpu); 0.0593147s (thread); 0s (gc)
+
+o36 = R'
+
+o36 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i37 : netList (ideal R')_*
+
+      +-----------+
+o37 = |b*c - a*d  |
+      +-----------+
+      |         2 |
+      |w   d - c  |
+      | 0,0       |
+      +-----------+
+      |w   c - b*d|
+      | 0,0       |
+      +-----------+
+      |w   b - a*c|
+      | 0,0       |
+      +-----------+
+      |         2 |
+      |w   a - b  |
+      | 0,0       |
+      +-----------+
+      | 2         |
+      |w    - a*d |
+      | 0,0       |
+      +-----------+</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Rational Quartic</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i38 : S = QQ[a,b,c,d]
+
+o38 = S
+
+o38 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i39 : I = monomialCurveIdeal(S,{1,3,4})
+
+                         3      2     2    2    3    2
+o39 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)
+
+o39 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i40 : R = S/I
+
+o40 = R
+
+o40 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i41 : time R' = integralClosure(R, Strategy => Radical)
+ -- used 0.057072s (cpu); 0.0570714s (thread); 0s (gc)
+
+o41 = R'
+
+o41 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i42 : icFractions R
+
+        2
+       c
+o42 = {--, a, b, c, d}
+        d
+
+o42 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i43 : S = QQ[a,b,c,d]
+
+o43 = S
+
+o43 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i44 : I = monomialCurveIdeal(S,{1,3,4})
+
+                         3      2     2    2    3    2
+o44 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)
+
+o44 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i45 : R = S/I
+
+o45 = R
+
+o45 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i46 : time R' = integralClosure(R, Strategy => AllCodimensions)
+ -- used 0.077916s (cpu); 0.0779145s (thread); 0s (gc)
+
+o46 = R'
+
+o46 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i47 : icFractions R
+
+       b*d
+o47 = {---, a, b, c, d}
+        c
+
+o47 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i48 : S = QQ[a,b,c,d]
+
+o48 = S
+
+o48 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i49 : I = monomialCurveIdeal(S,{1,3,4})
+
+                         3      2     2    2    3    2
+o49 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)
+
+o49 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i50 : R = S/I
+
+o50 = R
+
+o50 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i51 : time R' = integralClosure (R, Strategy => RadicalCodim1)
+ -- used 0.0599291s (cpu); 0.0599219s (thread); 0s (gc)
+
+o51 = R'
+
+o51 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i52 : icFractions R
+
+        2
+       c
+o52 = {--, a, b, c, d}
+        d
+
+o52 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i53 : S = QQ[a,b,c,d]
+
+o53 = S
+
+o53 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i54 : I = monomialCurveIdeal(S,{1,3,4})
+
+                         3      2     2    2    3    2
+o54 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)
+
+o54 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i55 : R = S/I
+
+o55 = R
+
+o55 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i56 : time R' = integralClosure (R, Strategy => Vasconcelos)
+ -- used 0.145652s (cpu); 0.0960261s (thread); 0s (gc)
+
+o56 = R'
+
+o56 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i57 : icFractions R
+
+        2
+       c
+o57 = {--, a, b, c, d}
+        d
+
+o57 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Projected Veronese</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i58 : S' = QQ[symbol a .. symbol f]
+
+o58 = S'
+
+o58 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i59 : M' = genericSymmetricMatrix(S',a,3)
+
+o59 = | a b c |
+      | b d e |
+      | c e f |
+
+               3       3
+o59 : Matrix S'  &lt;-- S'</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i60 : I' = minors(2,M')
+
+                2                                                  2         
+o60 = ideal (- b  + a*d, - b*c + a*e, - c*d + b*e, - b*c + a*e, - c  + a*f, -
+      -----------------------------------------------------------------------
+                                              2
+      c*e + b*f, - c*d + b*e, - c*e + b*f, - e  + d*f)
+
+o60 : Ideal of S'</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i61 : center = ideal(b,c,e,a-d,d-f)
+
+o61 = ideal (b, c, e, a - d, d - f)
+
+o61 : Ideal of S'</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i62 : S = QQ[a,b,c,d,e]
+
+o62 = S
+
+o62 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i63 : p = map(S'/I',S,gens center)
+
+                                                                   S'
+o63 = map (------------------------------------------------------------------------------------------------------------------, S, {b, c, e, a - d, d - f})
+               2                                                  2                                                  2
+           (- b  + a*d, - b*c + a*e, - c*d + b*e, - b*c + a*e, - c  + a*f, - c*e + b*f, - c*d + b*e, - c*e + b*f, - e  + d*f)
+
+                                                                      S'
+o63 : RingMap ------------------------------------------------------------------------------------------------------------------ &lt;-- S
+                  2                                                  2                                                  2
+              (- b  + a*d, - b*c + a*e, - c*d + b*e, - b*c + a*e, - c  + a*f, - c*e + b*f, - c*d + b*e, - c*e + b*f, - e  + d*f)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i64 : I = kernel p
+
+              2     2     2     2     2       2   2     3              2  
+o64 = ideal (a d - b d - b e + c e - d e - d*e , b c - c  - a*b*d + c*d  +
+      -----------------------------------------------------------------------
+              2     3              2                   3      2          
+      c*d*e, a c - c  - a*b*d + c*d  - a*b*e + c*d*e, b  - b*c  - a*c*d +
+      -----------------------------------------------------------------------
+                2      2           2       2                   3      2  
+      b*d*e, a*b  - a*c  - b*c*d, a b - b*c  - a*c*d - a*c*e, a  - a*c  -
+      -----------------------------------------------------------------------
+                                 2
+      b*c*d - b*c*e - a*d*e - a*e )
+
+o64 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i65 : betti res I
+
+             0 1  2 3 4
+o65 = total: 1 7 10 5 1
+          0: 1 .  . . .
+          1: . .  . . .
+          2: . 7 10 5 1
+
+o65 : BettiTally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i66 : R = S/I
+
+o66 = R
+
+o66 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i67 : time R' = integralClosure(R, Strategy => Radical)
+ -- used 0.0818284s (cpu); 0.081828s (thread); 0s (gc)
+
+o67 = R'
+
+o67 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i68 : icFractions R
+
+        2    2
+       b  - c
+o68 = {-------, a, b, c, d, e}
+          d
+
+o68 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i69 : S' = QQ[a..f]
+
+o69 = S'
+
+o69 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i70 : M' = genericSymmetricMatrix(S',a,3)
+
+o70 = | a b c |
+      | b d e |
+      | c e f |
+
+               3       3
+o70 : Matrix S'  &lt;-- S'</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i71 : I' = minors(2,M')
+
+                2                                                  2         
+o71 = ideal (- b  + a*d, - b*c + a*e, - c*d + b*e, - b*c + a*e, - c  + a*f, -
+      -----------------------------------------------------------------------
+                                              2
+      c*e + b*f, - c*d + b*e, - c*e + b*f, - e  + d*f)
+
+o71 : Ideal of S'</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i72 : center = ideal(b,e,a-d,d-f)
+
+o72 = ideal (b, e, a - d, d - f)
+
+o72 : Ideal of S'</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i73 : S = QQ[a,b,d,e]
+
+o73 = S
+
+o73 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i74 : p = map(S'/I',S,gens center)
+
+                                                                   S'
+o74 = map (------------------------------------------------------------------------------------------------------------------, S, {b, e, a - d, d - f})
+               2                                                  2                                                  2
+           (- b  + a*d, - b*c + a*e, - c*d + b*e, - b*c + a*e, - c  + a*f, - c*e + b*f, - c*d + b*e, - c*e + b*f, - e  + d*f)
+
+                                                                      S'
+o74 : RingMap ------------------------------------------------------------------------------------------------------------------ &lt;-- S
+                  2                                                  2                                                  2
+              (- b  + a*d, - b*c + a*e, - c*d + b*e, - b*c + a*e, - c  + a*f, - c*e + b*f, - c*d + b*e, - c*e + b*f, - e  + d*f)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i75 : I = kernel p
+
+             4     2 2    4    2 2    2       2       2 2
+o75 = ideal(a  - 2a b  + b  - b d  - a d*e - b d*e - a e )
+
+o75 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i76 : betti res I
+
+             0 1
+o76 = total: 1 1
+          0: 1 .
+          1: . .
+          2: . .
+          3: . 1
+
+o76 : BettiTally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i77 : R = S/I
+
+o77 = R
+
+o77 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i78 : time R' = integralClosure(R, Strategy => Radical)
+ -- used 0.498366s (cpu); 0.399334s (thread); 0s (gc)
+
+o78 = R'
+
+o78 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i79 : icFractions R
+
+        2    2   2     3      2
+       a  - b   a b - b  + b*d  + b*d*e
+o79 = {-------, -----------------------, a, b, d, e}
+        d + e          a*d + a*e
+
+o79 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i80 : S = QQ[a,b,d,e]
+
+o80 = S
+
+o80 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i81 : R = S/sub(I,S)
+
+o81 = R
+
+o81 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i82 : time R' = integralClosure(R, Strategy => AllCodimensions)
+ -- used 0.470091s (cpu); 0.374355s (thread); 0s (gc)
+
+o82 = R'
+
+o82 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i83 : icFractions R
+
+        2    2   2     3      2
+       a  - b   a b - b  + b*d  + b*d*e
+o83 = {-------, -----------------------, a, b, d, e}
+        d + e          a*d + a*e
+
+o83 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i84 : S = QQ[a,b,d,e]
+
+o84 = S
+
+o84 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i85 : R = S/sub(I,S)
+
+o85 = R
+
+o85 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i86 : time R' = integralClosure (R, Strategy => RadicalCodim1, Verbosity => 1)
+ [jacobian time .000704064 sec #minors 4]
+integral closure nvars 4 numgens 1 is S2 codim 1 codimJ 2
+
+ [step 0:   time .219683 sec  #fractions 6]
+ [step 1:   time .246976 sec  #fractions 6]
+ -- used 0.471473s (cpu); 0.357616s (thread); 0s (gc)
+
+o86 = R'
+
+o86 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i87 : icFractions R
+
+        2    2   2     3      2
+       a  - b   a b - b  + b*d  + b*d*e
+o87 = {-------, -----------------------, a, b, d, e}
+        d + e          a*d + a*e
+
+o87 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i88 : S = QQ[a,b,d,e]
+
+o88 = S
+
+o88 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i89 : R = S/sub(I,S)
+
+o89 = R
+
+o89 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i90 : time R' = integralClosure (R, Strategy => Vasconcelos, Verbosity => 1)
+ [jacobian time .000713652 sec #minors 4]
+integral closure nvars 4 numgens 1 is S2 codim 1 codimJ 2
+
+ [step 0:   time .121805 sec  #fractions 6]
+ [step 1:   time .285937 sec  #fractions 6]
+ -- used 0.412589s (cpu); 0.353358s (thread); 0s (gc)
+
+o90 = R'
+
+o90 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i91 : icFractions R
+
+        2    2   2     3      2
+       a  - b   a b - b  + b*d  + b*d*e
+o91 = {-------, -----------------------, a, b, d, e}
+        d + e          a*d + a*e
+
+o91 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>One can give several of these options together.  Although note that only one of <span class="tt">AllCodimensions</span>, <span class="tt">RadicalCodim1</span>, <span class="tt">Radical</span> will be used.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i92 : S = QQ[a,b,d,e]
+
+o92 = S
+
+o92 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i93 : R = S/sub(I,S)
+
+o93 = R
+
+o93 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i94 : time R' = integralClosure (R, Strategy => {Vasconcelos, StartWithOneMinor}, Verbosity => 1)
+ [jacobian time .00088939 sec #minors 1]
+integral closure nvars 4 numgens 1 is S2 codim 1 codimJ 2
+
+ [step 0:   time .349946 sec  #fractions 6]
+ [step 1:   time .612481 sec  #fractions 6]
+ -- used 0.967452s (cpu); 0.761163s (thread); 0s (gc)
+
+o94 = R'
+
+o94 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i95 : icFractions R
+
+        2    2          2   2     3      2
+       a  - b  - d*e - e   a b - b  + b*d  + b*d*e
+o95 = {------------------, -----------------------, a, b, d, e}
+              d + e               a*d + a*e
+
+o95 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i96 : ideal R'
+
+                              2    2          2                            
+o96 = ideal (w   d + w   e - a  + b  + d*e + e , w   b - w   a + b*d + b*e,
+              0,0     0,0                         0,0     0,1              
+      -----------------------------------------------------------------------
+                      2              2          2                         
+      w   a - w   b, w    + w   e - a  + d*e + e , w   w    + w   e - a*b,
+       0,0     0,1    0,1    0,0                    0,0 0,1    0,1        
+      -----------------------------------------------------------------------
+       2              2
+      w    + w   e - b )
+       0,0    0,0
+
+o96 : Ideal of QQ[w   ..w   , a..b, d..e]
+                   0,0   0,1</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>The list of strategies may change in the future!</p>
+        </div>
+      </div>
+      <div>
+        <div>
+          <h2>Functions with optional argument named <span class="tt">Strategy</span>:</h2>
+          <ul>
+            <li><span><kbd>addHook(...,Strategy=>...)</kbd> -- see <span><a title="add a hook function to an object for later processing" href="../../Macaulay2Doc/html/_add__Hook.html">addHook</a> -- add a hook function to an object for later processing</span></span></li>
+            <li><span><kbd>annihilator(...,Strategy=>...)</kbd> -- see <span><a title="the annihilator ideal" href="../../Saturation/html/_annihilator.html">annihilator</a> -- the annihilator ideal</span></span></li>
+            <li><span><kbd>basis(...,Strategy=>...)</kbd> -- see <span><a title="basis or generating set of all or part of a ring, ideal or module" href="../../Macaulay2Doc/html/_basis.html">basis</a> -- basis or generating set of all or part of a ring, ideal or module</span></span></li>
+            <li><span><kbd>mingens(...,Strategy=>...)</kbd> -- see <span><a title="a Strategy option value" href="../../Macaulay2Doc/html/___Complement.html">Complement</a> -- a Strategy option value</span></span></li>
+            <li><span><kbd>trim(...,Strategy=>...)</kbd> -- see <span><a title="a Strategy option value" href="../../Macaulay2Doc/html/___Complement.html">Complement</a> -- a Strategy option value</span></span></li>
+            <li><span><kbd>compose(Module,Module,Module,Strategy=>...)</kbd> -- see <span><a title="composition as a pairing on Hom-modules" href="../../Macaulay2Doc/html/_compose.html">compose</a> -- composition as a pairing on Hom-modules</span></span></li>
+            <li><span><a title="choose between Bareiss, Cofactor and Dynamic algorithms" href="../../Macaulay2Doc/html/_determinant_lp..._cm__Strategy_eq_gt..._rp.html">determinant(...,Strategy=>...)</a> -- choose between Bareiss, Cofactor and Dynamic algorithms</span></li>
+            <li><span><kbd>dual(MonomialIdeal,List,Strategy=>...)</kbd> -- see <span><a href="../../Macaulay2Doc/html/_dual_lp__Monomial__Ideal_cm__Strategy_eq_gt..._rp.html">dual(MonomialIdeal,Strategy=>...)</a></span></span></li>
+            <li><span><kbd>dual(MonomialIdeal,RingElement,Strategy=>...)</kbd> -- see <span><a href="../../Macaulay2Doc/html/_dual_lp__Monomial__Ideal_cm__Strategy_eq_gt..._rp.html">dual(MonomialIdeal,Strategy=>...)</a></span></span></li>
+            <li><span><a href="../../Macaulay2Doc/html/_dual_lp__Monomial__Ideal_cm__Strategy_eq_gt..._rp.html">dual(MonomialIdeal,Strategy=>...)</a></span></li>
+            <li><span><kbd>End(...,Strategy=>...)</kbd> -- see <span><a title="module of endomorphisms" href="../../Macaulay2Doc/html/___End.html">End</a> -- module of endomorphisms</span></span></li>
+            <li><span><a title="choose between Bareiss, Cofactor and Dynamic algorithms" href="../../Macaulay2Doc/html/_exterior__Power_lp..._cm__Strategy_eq_gt..._rp.html">exteriorPower(...,Strategy=>...)</a> -- choose between Bareiss, Cofactor and Dynamic algorithms</span></li>
+            <li><span><kbd>gb(...,Strategy=>...)</kbd> -- see <span><a title="compute a Gröbner basis" href="../../Macaulay2Doc/html/_gb.html">gb</a> -- compute a Gröbner basis</span></span></li>
+            <li><span><kbd>GF(...,Strategy=>...)</kbd> -- see <span><a title="make a finite field" href="../../Macaulay2Doc/html/___G__F.html">GF</a> -- make a finite field</span></span></li>
+            <li><span><kbd>groebnerBasis(...,Strategy=>...)</kbd> -- see <span><a title="Gröbner basis, as a matrix" href="../../Macaulay2Doc/html/_groebner__Basis.html">groebnerBasis</a> -- Gröbner basis, as a matrix</span></span></li>
+            <li><span><span class="tt">hilbertFunction(...,Strategy=>...)</span> (missing documentation)<!--tag: [hilbertFunction, Strategy]-->
+</span></li>
+            <li><span><kbd>Hom(...,Strategy=>...)</kbd> -- see <span><a title="module of homomorphisms" href="../../Macaulay2Doc/html/___Hom.html">Hom</a> -- module of homomorphisms</span></span></li>
+            <li><span><kbd>homomorphism'(...,Strategy=>...)</kbd> -- see <span><a title="get the element of Hom from a homomorphism" href="../../Macaulay2Doc/html/_homomorphism_sq.html">homomorphism'</a> -- get the element of Hom from a homomorphism</span></span></li>
+            <li><span><kbd>hooks(...,Strategy=>...)</kbd> -- see <span><a title="list hooks attached to a key" href="../../Macaulay2Doc/html/_hooks.html">hooks</a> -- list hooks attached to a key</span></span></li>
+            <li><span><kbd>idealizer(...,Strategy=>...)</kbd> -- see <span><a title="compute Hom(I,I) as a quotient ring" href="_idealizer.html">idealizer</a> -- compute Hom(I,I) as a quotient ring</span></span></li>
+            <li><span><a title="control the algorithm used" href="_integral__Closure_lp..._cm__Strategy_eq_gt..._rp.html">integralClosure(...,Strategy=>...)</a> -- control the algorithm used</span></li>
+            <li><span><kbd>intersect(Ideal,Ideal,Strategy=>...)</kbd> -- see <span><a title="compute an intersection of a sequence of ideals or modules" href="../../Macaulay2Doc/html/_intersect_lp__Ideal_cm__Ideal_rp.html">intersect(Ideal,Ideal)</a> -- compute an intersection of a sequence of ideals or modules</span></span></li>
+            <li><span><kbd>intersect(Module,Module,Strategy=>...)</kbd> -- see <span><a title="compute an intersection of a sequence of ideals or modules" href="../../Macaulay2Doc/html/_intersect_lp__Ideal_cm__Ideal_rp.html">intersect(Ideal,Ideal)</a> -- compute an intersection of a sequence of ideals or modules</span></span></li>
+            <li><span><kbd>isPrime(Ideal,Strategy=>...)</kbd> -- see <span><a title="whether an ideal is prime" href="../../MinimalPrimes/html/_is__Prime_lp__Ideal_rp.html">isPrime(Ideal)</a> -- whether an ideal is prime</span></span></li>
+            <li><span><kbd>match(...,Strategy=>...)</kbd> -- see <span><a title="regular expression matching" href="../../Macaulay2Doc/html/_match.html">match</a> -- regular expression matching</span></span></li>
+            <li><span><kbd>decompose(Ideal,Strategy=>...)</kbd> -- see <span><a title="minimal primes of an ideal" href="../../MinimalPrimes/html/_minimal__Primes.html">minimalPrimes</a> -- minimal primes of an ideal</span></span></li>
+            <li><span><kbd>minimalPrimes(...,Strategy=>...)</kbd> -- see <span><a title="minimal primes of an ideal" href="../../MinimalPrimes/html/_minimal__Primes.html">minimalPrimes</a> -- minimal primes of an ideal</span></span></li>
+            <li><span><a title="choose between Bareiss, Cofactor and Dynamic algorithms" href="../../Macaulay2Doc/html/_minors_lp..._cm__Strategy_eq_gt..._rp.html">minors(...,Strategy=>...)</a> -- choose between Bareiss, Cofactor and Dynamic algorithms</span></li>
+            <li><span><span class="tt">normalCone(Ideal,RingElement,Strategy=>...)</span> (missing documentation)<!--tag: [(normalCone,Ideal,RingElement), Strategy]-->
+</span></li>
+            <li><span><span class="tt">normalCone(Ideal,Strategy=>...)</span> (missing documentation)<!--tag: [(normalCone,Ideal), Strategy]-->
+</span></li>
+            <li><span><kbd>parallelApply(...,Strategy=>...)</kbd> -- see <span><a title="apply a function to each element in parallel" href="../../Macaulay2Doc/html/_parallel__Apply.html">parallelApply</a> -- apply a function to each element in parallel</span></span></li>
+            <li><span><kbd>pushForward(...,Strategy=>...)</kbd> -- see <span><a title="compute the pushforward of a module along a ring map" href="../../Macaulay2Doc/html/_push__Forward_lp__Ring__Map_cm__Module_rp.html">pushForward(RingMap,Module)</a> -- compute the pushforward of a module along a ring map</span></span></li>
+            <li><span><span class="tt">quotient'(...,Strategy=>...)</span> (missing documentation)<!--tag: [quotient', Strategy]-->
+</span></li>
+            <li><span><a href="../../Saturation/html/_quotient_lp..._cm__Strategy_eq_gt..._rp.html">quotient(...,Strategy=>...)</a></span></li>
+            <li><span><kbd>radical(...,Strategy=>...)</kbd> -- see <span><a title="the radical of an ideal" href="../../MinimalPrimes/html/_radical.html">radical</a> -- the radical of an ideal</span></span></li>
+            <li><span><kbd>radicalContainment(...,Strategy=>...)</kbd> -- see <span><a title="whether an element is contained in the radical of an ideal" href="../../MinimalPrimes/html/_radical__Containment.html">radicalContainment</a> -- whether an element is contained in the radical of an ideal</span></span></li>
+            <li><span><a href="../../Saturation/html/_saturate_lp..._cm__Strategy_eq_gt..._rp.html">saturate(...,Strategy=>...)</a></span></li>
+            <li><span><kbd>syz(...,Strategy=>...)</kbd> -- see <span><a title="compute the syzygy matrix" href="../../Macaulay2Doc/html/_syz_lp__Matrix_rp.html">syz(Matrix)</a> -- compute the syzygy matrix</span></span></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Further information</h2>
+          <ul>
+            <li><span>Default value: <span class="tt">{}</span></span></li>
+            <li><span>Function: <span><a title="integral closure of an ideal or a domain" href="_integral__Closure.html">integralClosure</a> -- integral closure of an ideal or a domain</span></span></li>
+            <li><span>Option key: <span><a title="an optional argument" href="../../Macaulay2Doc/html/___Strategy.html">Strategy</a> -- an optional argument</span></span></li>
+          </ul>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">IntegralClosure.m2:1611:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

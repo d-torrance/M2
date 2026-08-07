@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Spectral sequences and hypercohomology calculations</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="spectral sequences" href="index.html">SpectralSequences</a> :: <a href="___Spectral_spsequences_spand_sphypercohomology_spcalculations.html">Spectral sequences and hypercohomology calculations</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Spectral_spsequences_spand_spnon-__Koszul_spsyzygies.html">next</a> | <a href="___Spectral_spsequences_spand_spconnecting_spmorphisms.html">previous</a> | <a href="___Spectral_spsequences_spand_spnon-__Koszul_spsyzygies.html">forward</a> | <a href="___Spectral_spsequences_spand_spconnecting_spmorphisms.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Spectral sequences and hypercohomology calculations</h1>
+      <div>
+        <div>
+          <p>If $\mathcal{F}$ is a coherent sheaf on a smooth toric variety $X$ then multigraded commutative algebra can be used to compute the cohomology groups $H^i(X, \mathcal{F})$.</p>
+          <p>Indeed if $B$ is the irrelevant ideal of $X$ then the cohomology group $H^i(X, \mathcal{F})$ can be realized as the degree zero piece of the multigraded module $Ext^i(B^{[l]}, F)$ for sufficiently large $l$; here $B^{[l]}$ denotes the $l$th Forbenius power of $B$ and $F$ is any multigraded module whose corresponding sheaf on $X$ is $\mathcal{F}$.</p>
+          <p>Given the fan of $X$ and $F$ a sufficiently large power of $l$ can be determined effectively. We refer to sections 2 and 3 of the paper &quot;Cohomology on Toric Varieties and Local Cohomology with Monomial Supports&quot; for more details.</p>
+          <p>In this example, we consider the case that $X = \mathbb{P}^1 \times \mathbb{P}^1$ and $F = \mathcal{O}_C(1,0)$ where $C$ is a general divisor of type $(3,3)$ on $X$. In this setting, $H^0(C,F)$ and $H^1(C, F)$ are both $2$-dimensional vector spaces.</p>
+          <p>We first make the multi-graded coordinate ring of $\mathbb{P}^1 \times \mathbb{P}^1$, the irrelevant ideal, and a sufficiently high Frobenius power of the irrelevant ideal needed for our calculations.  Also the complex $G$ below is a resolution of the irrelevant ideal.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ/101[a_0..b_1, Degrees=>{2:{1,0},2:{0,1}}]; -- PP^1 x PP^1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : B = intersect(ideal(a_0,a_1),ideal(b_0,b_1)) ; -- irrelevant ideal
+
+o2 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : B = B_*/(x -> x^5)//ideal ; -- Sufficentily high Frobenius power
+
+o3 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : G = freeResolution image gens B ;</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We next make the ideal, denoted by $I$ below, of a general divisor of type $(3,3)$ on $\mathbb{P}^1 \times \mathbb{P}^1$.  Also the chain complex $F$ below is a resolution of this ideal.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : I = ideal random(R^1, R^{{-3,-3}}) ; -- ideal of C
+
+o5 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : F = freeResolution comodule I
+
+      1      1
+o6 = R  &lt;-- R
+             
+     0      1
+
+o6 : Complex</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>To use hypercohomology to compute the cohomology groups of the line bundle $\mathcal{O}_C(1,0)$ on $C$ we twist the complex $F$ above by a line of ruling and then make a filtered complex whose associated spectral sequence abuts to the desired cohomology groups.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : K = Hom(G , filteredComplex (F ** R^{{1,0}})) ; -- Twist F by a line of ruling and make filtered complex whose ss abuts to HH OO_C(1,0)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : E = prune spectralSequence K ; --the spectral sequence degenerates on the second page</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : E^1
+
+     +-----------------------------------------------+---------------------------------------------+
+     | 1                                             | 1                                           |
+o9 = |R                                              |R                                            |
+     |                                               |                                             |
+     |{0, 0}                                         |{1, 0}                                       |
+     +-----------------------------------------------+---------------------------------------------+
+     |cokernel {-11, 0}  | a_1^5 a_0^5 0     0     | |cokernel {-8, 3} | a_1^5 a_0^5 0     0     | |
+     |         {-1, -10} | 0     0     b_1^5 b_0^5 | |         {2, -7} | 0     0     b_1^5 b_0^5 | |
+     |                                               |                                             |
+     |{0, -1}                                        |{1, -1}                                      |
+     +-----------------------------------------------+---------------------------------------------+
+     |cokernel {-11, -10} | b_1^5 b_0^5 a_1^5 a_0^5 ||cokernel {-8, -7} | b_1^5 b_0^5 a_1^5 a_0^5 ||
+     |                                               |                                             |
+     |{0, -2}                                        |{1, -2}                                      |
+     +-----------------------------------------------+---------------------------------------------+
+
+o9 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : E^2 ; -- output is a mess</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The cohomology groups we want are obtained as follows.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : basis({0,0}, E^2_{0,0}) --  == HH^0 OO_C(1,0)
+
+o11 = {-1, 0} | a_0 a_1 |
+
+o11 : Matrix</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : basis({0,0}, E^2_{1,-2}) --  == HH^1 OO_C(1,0)
+
+o12 = {-8, -1} | 0               0               |
+      {-8, -1} | 0               0               |
+      {-8, -1} | 0               0               |
+      {-7, -2} | 0               0               |
+      {-7, -2} | 0               0               |
+      {-7, -2} | 0               0               |
+      {-6, -3} | 0               0               |
+      {-6, -3} | 0               0               |
+      {-6, -3} | 0               0               |
+      {-6, -3} | 0               0               |
+      {-5, -4} | 0               0               |
+      {-5, -4} | 0               0               |
+      {-5, -4} | 0               0               |
+      {-4, -5} | 0               0               |
+      {-4, -5} | 0               0               |
+      {-6, -3} | 0               0               |
+      {-6, -3} | 0               0               |
+      {-6, -3} | 0               0               |
+      {-5, -4} | 0               0               |
+      {-5, -4} | 0               0               |
+      {-5, -4} | 0               0               |
+      {-5, -4} | 0               0               |
+      {-4, -5} | 0               0               |
+      {-4, -5} | 0               0               |
+      {-4, -5} | 0               0               |
+      {-4, -5} | 0               0               |
+      {-4, -5} | 0               0               |
+      {-3, -6} | 0               0               |
+      {-3, -6} | 0               0               |
+      {-3, -6} | 0               0               |
+      {-2, -7} | 0               0               |
+      {-2, -7} | 0               0               |
+      {-2, -7} | a_1^2b_0^4b_1^3 a_1^2b_0^3b_1^4 |
+
+o12 : Matrix</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a href="___Spectral_spsequences_spand_spconnecting_spmorphisms.html">Spectral sequences and connecting morphisms</a></span></li>
+          <li><span><a href="___Spectral_spsequences_spand_spnon-__Koszul_spsyzygies.html">Spectral sequences and non-Koszul syzygies</a></span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SpectralSequences.m2:1786:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

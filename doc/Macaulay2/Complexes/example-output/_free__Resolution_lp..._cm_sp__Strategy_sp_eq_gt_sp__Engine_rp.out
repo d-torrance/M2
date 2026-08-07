@@ -1,0 +1,131 @@
+-- -*- M2-comint -*- hash: 1612572466232392847
+
+i1 : kk = ZZ/32003;
+
+i2 : R = kk[a..f];
+
+i3 : I = ideal(a^3-b^2*c, a^3*d - c*b^3, a*e^2-c*f^2)
+
+             3    2      3     3      2      2
+o3 = ideal (a  - b c, - b c + a d, a*e  - c*f )
+
+o3 : Ideal of R
+
+i4 : M = R^1/I
+
+o4 = cokernel | a3-b2c -b3c+a3d ae2-cf2 |
+
+                            1
+o4 : R-module, quotient of R
+
+i5 : F = freeResolution(M, Strategy => Engine)
+
+      1      3      4      2
+o5 = R  <-- R  <-- R  <-- R
+                           
+     0      1      2      3
+
+o5 : Complex
+
+i6 : dd^F
+
+          1                                  3
+o6 = 0 : R  <------------------------------ R  : 1
+               | a3-b2c ae2-cf2 b3c-a3d |
+
+          3                                                       4
+     1 : R  <--------------------------------------------------- R  : 2
+               {3} | -ae2+cf2 -b3c+a3d abe2-bcf2 b3e2-a2df2  |
+               {3} | a3-b2c   0        -a3b+a3d  -a2b3+a2b2d |
+               {4} | 0        a3-b2c   ae2-cf2   b2e2-a2f2   |
+
+          4                           2
+     2 : R  <----------------------- R  : 3
+               {6} | a2b-a2d 0   |
+               {7} | -e2     f2  |
+               {7} | a2      -b2 |
+               {8} | -c      a   |
+
+o6 : ComplexMap
+
+i7 : assert isWellDefined F
+
+i8 : assert isQuasiIsomorphism(augmentationMap F, Concentration => (0,4))
+
+i9 : F1 = freeResolution(I, Strategy => Engine)
+
+      1      3      4      2
+o9 = R  <-- R  <-- R  <-- R
+                           
+     0      1      2      3
+
+o9 : Complex
+
+i10 : assert(F1 == naiveTruncation(F,0,3))
+
+i11 : F2 = freeResolution(module I, Strategy => Engine)
+
+       3      4      2
+o11 = R  <-- R  <-- R
+                     
+      0      1      2
+
+o11 : Complex
+
+i12 : dd^F1
+
+           1                                  3
+o12 = 0 : R  <------------------------------ R  : 1
+                | a3-b2c ae2-cf2 b3c-a3d |
+
+           3                                                       4
+      1 : R  <--------------------------------------------------- R  : 2
+                {3} | -ae2+cf2 -b3c+a3d abe2-bcf2 b3e2-a2df2  |
+                {3} | a3-b2c   0        -a3b+a3d  -a2b3+a2b2d |
+                {4} | 0        a3-b2c   ae2-cf2   b2e2-a2f2   |
+
+           4                           2
+      2 : R  <----------------------- R  : 3
+                {6} | a2b-a2d 0   |
+                {7} | -e2     f2  |
+                {7} | a2      -b2 |
+                {8} | -c      a   |
+
+o12 : ComplexMap
+
+i13 : dd^F2
+
+           3                                                       4
+o13 = 0 : R  <--------------------------------------------------- R  : 1
+                {3} | -ae2+cf2 b3c-a3d -ade2+cdf2 -b3e2+a2df2 |
+                {4} | 0        a3-b2c  ae2-cf2    b2e2-a2f2   |
+                {3} | a3-b2c   0       b3c-b2cd   a2b3-a2b2d  |
+
+           4                           2
+      1 : R  <----------------------- R  : 2
+                {6} | -b3+b2d 0   |
+                {7} | f2      e2  |
+                {7} | -b2     -a2 |
+                {8} | a       c   |
+
+o13 : ComplexMap
+
+i14 : code (freeResolution, Module, Strategy => Engine)
+
+o14 = -- code for strategy: freeResolution(Module,Strategy => Engine)
+      ../../../../../Macaulay2/packages/Complexes/FreeResolution.m2:382:21-
+      393:5: --source code:
+      resolutionInEngine = (opts, M) -> (
+          R := ring M;
+          if isQuotientRing R or isSkewCommutative R 
+               or (isWeylAlgebra R and isHomogeneous M) then (
+              M.cache.ResolutionObject.Strategy = 2;
+              resolutionInEngine2(opts ++ {Strategy => 2}, M)
+              )
+          else (
+              M.cache.ResolutionObject.Strategy = 1;
+              resolutionInEngine1(opts ++ {Strategy => 1}, M)
+              )
+          )
+
+i15 : 

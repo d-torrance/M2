@@ -1,0 +1,211 @@
+--		Copyright 1995-2002,2010 by Daniel R. Grayson and Michael Stillman
+-- TODO: implement better caching here
+
+needs "matrix1.m2"
+needs "basis.m2"
+
+-----------------------------------------------------------------------------
+-- helper for exteriorPower and minors
+-----------------------------------------------------------------------------
+
+hasNoQuotients = method()
+hasNoQuotients QuotientRing := (R) -> isField R
+hasNoQuotients PolynomialRing := (R) -> hasNoQuotients coefficientRing R
+hasNoQuotients Ring := (R) -> true
+
+hasFreeSupport = (R, m) -> 0 == # intersect(set \\ index \ support m, set \\ index \ support ideal R)
+
+-- Keep this in sync DET_* strategy codes in Macaulay2/e/det.hpp
+RawMinorsStrategyCodes = new HashTable from {
+    Bareiss  => 0,
+    Cofactor => 1,
+    Dynamic  => 2,
+    }
+
+getMinorsStrategy := (R, m, strat) -> RawMinorsStrategyCodes#strat ?? (
+    if strat === null then RawMinorsStrategyCodes#(
+	  -- Use the Bareiss algorithm unless R is a quotient of
+	  -- a polynomial ring.  Note that if R is non-commutative
+	  -- then either algorithm is incorrect.  What is the correct
+	  -- thing to do in this case?
+	if precision R < infinity then Cofactor else
+        if hasNoQuotients R       then Bareiss  else
+	if hasFreeSupport(R, m)   then Bareiss  else Cofactor)
+    else error "'Strategy' keyword must be 'Cofactor', 'Bareiss' or 'Dynamic")
+
+-----------------------------------------------------------------------------
+-- koszul and eagonNorthcott
+-----------------------------------------------------------------------------
+-- more methods are installed in Complexes and OldChainComplexes
+
+koszul = method()
+koszul(ZZ, Matrix) := Matrix => (i, m) -> map(ring m, rawKoszul(i, raw m))
+koszul Matrix := -* ChainComplex => *- m -> missingPackage "either Complexes or OldChainComplexes"
+
+eagonNorthcott = method()
+eagonNorthcott Matrix := -* ChainComplex => *- m -> missingPackage "either Complexes or OldChainComplexes"
+
+-----------------------------------------------------------------------------
+-- symmetricAlgebra
+-----------------------------------------------------------------------------
+
+rep := (meth, opts, args) -> prepend_opts nonnull apply(args, arg ->
+    if instance(arg, Option) and #arg == 2 and instance(arg#1, Function) then (
+	if (options meth)#(arg#0) === opts#(arg#0) then arg#0 => arg#1())
+    else arg)
+
+symmetricAlgebra = method( Options => monoidDefaults )
+symmetricAlgebra Module := Ring => opts -> M -> M.cache#(symmetricAlgebra, opts) ??= (
+	k := ring M;
+	N := monoid rep(symmetricAlgebra, opts, [
+		Variables => () -> numgens M,
+		Degrees   => () -> degrees M / prepend_1,
+		Join      => false]);
+	S := k N;
+	S  = S / ideal(vars S * promote(presentation M, S));
+	S.Module = M;
+    S)
+
+symmetricAlgebra(Ring, Ring, Matrix) := RingMap => o -> (T, S, f) -> f.cache#(symmetricAlgebra, T, S, f) ??= (
+	p := map(T, S, vars T * promote(cover f, T));
+	if f.cache.?inverse then p.cache.inverse = (
+	    map(S, T, vars S * promote(cover inverse f, S)));
+    p)
+symmetricAlgebra                   Matrix  := RingMap => o ->        f  -> symmetricAlgebra(symmetricAlgebra target f, symmetricAlgebra source f, f)
+symmetricAlgebra(Nothing, Nothing, Matrix) := RingMap => o -> (T, S, f) -> symmetricAlgebra(symmetricAlgebra target f, symmetricAlgebra source f, f)
+symmetricAlgebra(Nothing, Ring,    Matrix) := RingMap => o -> (T, S, f) -> symmetricAlgebra(symmetricAlgebra target f, S, f)
+symmetricAlgebra(Ring,    Nothing, Matrix) := RingMap => o -> (T, S, f) -> symmetricAlgebra(T, symmetricAlgebra source f, f)
+
+-----------------------------------------------------------------------------
+-- symmetricPower, exteriorPower, and wedgeProduct
+-----------------------------------------------------------------------------
+
+symmetricPower = method()
+symmetricPower(ZZ, Module) := Module => (p, M) -> M.cache#(symmetricPower, p) ??= (
+	R := ring M;
+	if p   < 0 then R^0 else
+	if p === 0 then R^1 else
+	if p === 1 then M   else
+	if isFreeModule M   then new Module from (R, rawSymmetricPower(p, raw M))
+	else coimage basis(p, symmetricAlgebra M,
+	    SourceRing => ring M, Degree => {p, degreeLength R:0})
+    )
+symmetricPower(ZZ, Matrix) := Matrix => (i, m) -> map(ring m, rawSymmetricPower(i, raw m))
+
+exteriorPower = method(Options => { Strategy => null })
+exteriorPower(ZZ, Module) := Module => opts -> (p, M) -> M.cache#(exteriorPower, p) ??= (
+	R := ring M;
+	if p   < 0 then R^0 else
+	if p === 0 then R^1 else
+	if p === 1 then M   else
+	if isFreeModule M   then new Module from (R, rawExteriorPower(p, M.RawFreeModule))
+	else (
+	    m := presentation M;
+	    F := target m;
+	    Fp1 := exteriorPower(p-1, F, opts);
+	    h1 := m ** id_Fp1;
+	    h2 := wedgeProduct(1,p-1,F);
+	    cokernel(h2 * h1))
+    )
+
+exteriorPower(ZZ, Matrix) := Matrix => opts -> (p, m) -> (
+    R := ring m;
+    if p   < 0 then id_(R^0) else
+    if p === 0 then id_(R^1) else
+    if p === 1 then m
+    -- TODO: should this be cached, too?
+    else map(
+	exteriorPower(p, target m, opts),
+	exteriorPower(p, source m, opts),
+	rawExteriorPower(p, raw m, getMinorsStrategy(R, m, opts.Strategy)))
+    )
+
+wedgeProduct = method()
+wedgeProduct(ZZ, ZZ, Module) := Matrix => (p, q, M) -> (
+     if isFreeModule M then map(ring M, rawWedgeProduct(p,q,raw M))
+     else map(exteriorPower(p+q,M),exteriorPower(p,M)**exteriorPower(q,M),wedgeProduct(p,q,cover M)))
+
+-----------------------------------------------------------------------------
+-- ideals of minors, permanents, and pfaffians
+-----------------------------------------------------------------------------
+
+-- TODO: singularLocus uses minors, but it is defined in quotring.m2
+-- TODO: Minors with prescribed rows or columns, https://github.com/Macaulay2/M2/issues/1705
+minors = method(
+    Options => {
+	Limit    => infinity,
+	First    => null,
+	Strategy => null,
+	}
+    )
+minors(ZZ, Matrix) := Ideal => opts -> (j, m) -> (
+     f := opts.First;
+     if not (
+	  f === null or (
+	       class f === List
+	       and #f == 2
+	       and all(f, s -> class s === List)
+	       )
+	  ) then error "expected a list of 2 lists of integers";
+     if j <= 0 then ideal 1_(ring m)
+     else ideal map(ring m, rawMinors(j, raw m, getMinorsStrategy(ring m, m, opts.Strategy),
+	       if opts.Limit === infinity then -1 else opts.Limit,
+	       if f =!= null then f#0, 
+	       if f =!= null then f#1)))
+
+pfaffians = method()
+pfaffians(ZZ, Matrix) := Ideal => (j, m) -> (
+     ideal(map(ring m, rawPfaffians(j,raw m))))
+
+pfaffian = method()
+pfaffian Matrix := M -> (
+    if (
+	numRows M != numColumns M or
+	not zero(M + transpose M))
+    then error "expected a skew symmetric matrix";
+    if odd numRows M then 0_(ring M)
+    else if numRows M == 0 then 1_(ring M)
+    else promote(rawPfaffian raw M, ring M))
+
+-----------------------------------------------------------------------------
+-- trace and determinant
+-----------------------------------------------------------------------------
+
+trace = method()
+trace Matrix := RingElement => f -> (
+     if rank source f != rank target f
+     or not isFreeModule source f
+     or not isFreeModule target f
+     then error "expected a square matrix";
+     sum(rank source f, i -> f_(i,i)))
+
+-- declared in mutablemat.m2
+determinant Matrix := RingElement => opts -> f -> (
+     if rank source f != rank target f
+     or not isFreeModule source f
+     or not isFreeModule target f
+     then error "expected a square matrix";
+     if hasEngineLinearAlgebra ring f and isBasicMatrix f and numRows f === numColumns f then
+       basicDet f
+     else 
+       (exteriorPower(numgens source f, f, opts))_(0,0))
+
+-- TODO: permanent
+-- TODO: immanant
+
+-----------------------------------------------------------------------------
+
+fittingIdeal = method(TypicalValue => Ideal)
+-- TODO: document this
+fittingIdeal(ZZ, Matrix) := (i, p) -> (
+     n := rank target p;
+     if n <= i
+     then ideal 1_(ring p)
+     else trim minors(n-i,p))
+fittingIdeal(ZZ, Module) := (i, M) -> fittingIdeal(i, presentation M)
+
+-- TODO: fittingImage of a ring map
+
+-- Local Variables:
+-- compile-command: "make -C $M2BUILDDIR/Macaulay2/m2 "
+-- End:

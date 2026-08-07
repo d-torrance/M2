@@ -1,0 +1,97 @@
+-- -*- M2-comint -*- hash: 10447188756620636250
+
+i1 : S = ZZ/32003[a,b,c]
+
+o1 = S
+
+o1 : PolynomialRing
+
+i2 : red = map(S,S,toList(numgens S:0_S))
+
+o2 = map (S, S, {0, 0, 0})
+
+o2 : RingMap S <-- S
+
+i3 : C = koszul gens (ideal vars S)^2
+
+      1      6      15      20      15      6      1
+o3 = S  <-- S  <-- S   <-- S   <-- S   <-- S  <-- S
+                                                   
+     0      1      2       3       4       5      6
+
+o3 : Complex
+
+i4 : G = S^{0,-1,-2,-3,-4,-5,-6}
+
+      7
+o4 = S
+
+o4 : S-module, free, degrees {0..6}
+
+i5 : D = apply(length C+1, i-> C_i++G++G)
+
+       15   20   29   34   29   20   15
+o5 = {S  , S  , S  , S  , S  , S  , S  }
+
+o5 : List
+
+i6 : zG = map(G,G,0)
+
+o6 = 0
+
+             7      7
+o6 : Matrix S  <-- S
+
+i7 : difs0 = apply(length C, i-> (map(D_i, D_(i+1), matrix{{C.dd_(i+1), map(C_i,G,0), map(C_i,G,0)},{map(G,C_(i+1),0), zG, zG},{map(G,C_(i+1),0), id_G, zG}})));
+
+i8 : len = #difs0
+
+o8 = 6
+
+i9 : Q = apply(len, i-> random(target difs0_i, target difs0_i))|
+       {random(source difs0_(len-1), source difs0_(len-1))};
+
+i10 : difs1 = apply(len, i-> Q_i*difs0_i*Q_(i+1)^(-1));
+
+i11 : E = chainComplex difs1
+
+       15      20      29      34      29      20      15
+o11 = S   <-- S   <-- S   <-- S   <-- S   <-- S   <-- S
+                                                       
+      0       1       2       3       4       5       6
+
+o11 : ChainComplex
+
+i12 : isMinimalChainComplex E
+
+o12 = false
+
+i13 : time m = minimize (E[1]);
+ -- used 0.34424s (cpu); 0.289209s (thread); 0s (gc)
+
+i14 : isQuasiIsomorphism m
+
+o14 = true
+
+i15 : E[1] == source m
+
+o15 = true
+
+i16 : E' = target m
+
+       8      6      15      20      15      6      8
+o16 = S  <-- S  <-- S   <-- S   <-- S   <-- S  <-- S
+                                                    
+      -1     0      1       2       3       4      5
+
+o16 : ChainComplex
+
+i17 : isChainComplex E'
+
+o17 = true
+
+i18 : isMinimalChainComplex E'
+
+o18 = true
+
+i19 : 

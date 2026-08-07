@@ -1,0 +1,1459 @@
+ -*- coding: utf-8 -*- This is AdjointIdeal.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* AdjointIdeal: (AdjointIdeal).  adjoint ideals of plane curves and related computations
+END-INFO-DIR-ENTRY
+
+
+File: AdjointIdeal.info, Node: Top, Next: adjointIdeal, Up: (dir)
+
+AdjointIdeal -- Adjoint ideal of a plane curve and related computations
+***********************************************************************
+
+Description
+===========
+
+
+
+Overview:
+
+AdjointIdeal is a package to compute the adjoint ideal and the geometric genus
+of projective plane curves.
+
+This is used in particular in the case of genus 0 in the package
+Parametrization to map any singular plane rational curve to a (smooth) rational
+normal curve.
+
+Suppose (note, that the implementation in *note adjointIdeal: adjointIdeal,
+does not require this) the curve C is given by {f(x,y,z) = 0} and C does not
+have singularities at infinity {z = 0} and the point (1:0:0) is not on C. Note
+that these conditions can always be met by a projective automorphism.
+
+Considering the affine curve in z!=0 we take y as transcendental and x as
+algebraic and compute an integral basis in CC(y)[x] of the integral closure of
+CC[y] in CC(x,y) using the algorithm from
+
+Mark van Hoeij: An algorithm for computing an integral basis in an algebraic
+function field, http://www.math.fsu.edu/~hoeij/papers/comments/jsc1994.html,
+Journal of Symbolic Computation, Volume 18 ,  Issue 4  (October 1994), Pages:
+353 - 363.
+
+So far we call Maple using the MapleInterface package, but once the
+functionality will be available natively in Macaulay2 this will no longer be
+necessary.
+
+From this data the adjoint ideal can be obtained by linear algebra.
+
+The package is work in progress, so there will be future improvements and more
+testing is necessary.
+
+
+
+For more theoretical details see J. Boehm: Rational parametrization of rational
+curves, https://agag-jboehm.math.rptu.de/~boehm/diplom%20janko%20boehm.pdf.
+
+
+
+Key user functions:
+
+*note adjointIdeal: adjointIdeal,  --  compute the adjoint ideal
+
+*note geometricGenus: geometricGenus,  -- compute the geometric genus of a
+plane curve
+
+Setup:
+
+This package uses the package MapleInterface, so install this first.
+
+Place the file AdjointIdeal.m2 somewhere into the M2 search path (type path to
+see it) and install the package by doing
+
+installPackage("AdjointIdeal")
+
+Author
+======
+
+  * Janko Boehm (see https://agag-jboehm.math.rptu.de/~boehm/ )
+    <boehm@mathematik.uni-kl.de>
+
+Version
+=======
+
+This documentation describes version 0.6 of AdjointIdeal, released August 25,
+2010.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{AdjointIdealSource,                                                    |
+|  title = {{AdjointIdeal: adjoint ideals of plane curves and related computat|
+|  author = {Janko Boehm},                                                    |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|ions. Version~0.6}},                                                         |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note adjointIdeal: adjointIdeal, -- Compute the adjoint ideal of a
+        plane curve
+      * *note backwardSubstitution: backwardSubstitution, -- Backward
+        substitution.
+      * *note extractLeftLower: extractLeftLower, -- Extract L from the LR
+        decomposition result.
+      * *note extractRightUpper: extractRightUpper, -- Extract R from the LR
+        decomposition result.
+      * *note forwardSubstitution: forwardSubstitution, -- Forward
+        substitution.
+      * *note geometricGenus: geometricGenus, -- Geometric genus of a plane
+        curve
+      * *note LRdecomposition: LRdecomposition, -- LR decomposition
+      * *note traceMatrix: traceMatrix, -- Compute trace matrix.
+  * Methods
+      * "adjointIdeal(Ideal)" -- see *note adjointIdeal: adjointIdeal, --
+        Compute the adjoint ideal of a plane curve
+      * "adjointIdeal(Ideal,Matrix)" -- see *note adjointIdeal: adjointIdeal,
+        -- Compute the adjoint ideal of a plane curve
+      * "adjointIdeal(Ideal,Matrix,ZZ)" -- see *note adjointIdeal:
+        adjointIdeal, -- Compute the adjoint ideal of a plane curve
+      * "backwardSubstitution(Matrix,Matrix)" -- see *note
+        backwardSubstitution: backwardSubstitution, -- Backward substitution.
+      * "extractLeftLower(Matrix)" -- see *note extractLeftLower:
+        extractLeftLower, -- Extract L from the LR decomposition result.
+      * "extractRightUpper(Matrix)" -- see *note extractRightUpper:
+        extractRightUpper, -- Extract R from the LR decomposition result.
+      * "forwardSubstitution(Matrix,Matrix)" -- see *note forwardSubstitution:
+        forwardSubstitution, -- Forward substitution.
+      * "geometricGenus(Ideal)" -- see *note geometricGenus: geometricGenus, --
+        Geometric genus of a plane curve
+      * "geometricGenus(Ideal,Matrix)" -- see *note geometricGenus:
+        geometricGenus, -- Geometric genus of a plane curve
+      * "LRdecomposition(Matrix,Function)" -- see *note LRdecomposition:
+        LRdecomposition, -- LR decomposition
+      * "traceMatrix(Ideal,Matrix)" -- see *note traceMatrix: traceMatrix, --
+        Compute trace matrix.
+      * "traceMatrix(Matrix,Matrix,List)" -- see *note traceMatrix:
+        traceMatrix, -- Compute trace matrix.
+
+For the programmer
+==================
+
+The object *note AdjointIdeal: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in AdjointIdeal.m2, with auxiliary files in AdjointIdeal/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AdjointIdeal.m2:693:0.
+
+File: AdjointIdeal.info, Node: adjointIdeal, Next: backwardSubstitution, Prev: Top, Up: Top
+
+adjointIdeal -- Compute the adjoint ideal of a plane curve
+**********************************************************
+
+  * Usage: 
+        adjointIdeal(I)
+        adjointIdeal(I,ib)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, the homogeneous ideal I of an
+        irreducible plane algebraic curve C over K
+      * ib, a *note matrix: (Macaulay2Doc)Matrix,, containing an integral basis
+        of the closure of L[C] in L(C) where L is the algebraic closure of K
+        given as a row matrix of length n=degree(I).
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, the adjoint ideal in the ring I
+
+Description
+===========
+
+Computes the adjoint ideal of an irreducible plane curve.
+
+
+
+If ib is specified (and only then) we assume that I has the following
+properties:
+
+Denote the variables of R=ring(I) by v,u,z. All singularities of C have to lie
+in the chart z!=0 and the curve should not contain the point (1:0:0).
+
+Furthermore we assume that ib has the following properties: The entries are in
+K(u)[v] inside frac(R) where the i-th entry is of degree $i$ in v for i=0..n-1.
+Note that this always can be achieved.
+
+If ib is not specified the function takes care of these conditions by applying
+an appropriate projective automorphism before doing the computation and
+afterwards applying its inverse. The algorithm will try to choose an
+automorphism as simple as possible, however note that this process may destroy
+sparseness and harm the performance.
+
+A rational curve with three double points:
+
+
+
++---------------------------------------------+
+|i1 : K=QQ                                    |
+|                                             |
+|o1 = QQ                                      |
+|                                             |
+|o1 : Ring                                    |
++---------------------------------------------+
+|i2 : R=K[v,u,z]                              |
+|                                             |
+|o2 = R                                       |
+|                                             |
+|o2 : PolynomialRing                          |
++---------------------------------------------+
+|i3 : I=ideal(v^4-2*u^3*z+3*u^2*z^2-2*v^2*z^2)|
+|                                             |
+|            4     3      2 2     2 2         |
+|o3 = ideal(v  - 2u z - 2v z  + 3u z )        |
+|                                             |
+|o3 : Ideal of R                              |
++---------------------------------------------+
+|i4 : J=adjointIdeal(I)                       |
+|                                             |
+|             2                    2          |
+|o4 = ideal (u  - u*z, v*u - v*z, v  - u*z)   |
+|                                             |
+|o4 : Ideal of R                              |
++---------------------------------------------+
+
+
+
+Same example but specifying the integral basis:
+
+
+
++----------------------------------------------------------------------------+
+|i5 : K=QQ                                                                   |
+|                                                                            |
+|o5 = QQ                                                                     |
+|                                                                            |
+|o5 : Ring                                                                   |
++----------------------------------------------------------------------------+
+|i6 : R=K[v,u,z]                                                             |
+|                                                                            |
+|o6 = R                                                                      |
+|                                                                            |
+|o6 : PolynomialRing                                                         |
++----------------------------------------------------------------------------+
+|i7 : I=ideal(v^4-2*u^3*z+3*u^2*z^2-2*v^2*z^2)                               |
+|                                                                            |
+|            4     3      2 2     2 2                                        |
+|o7 = ideal(v  - 2u z - 2v z  + 3u z )                                       |
+|                                                                            |
+|o7 : Ideal of R                                                             |
++----------------------------------------------------------------------------+
+|i8 : Rvu=K[v,u];                                                            |
++----------------------------------------------------------------------------+
+|i9 : QR=frac(Rvu);                                                          |
++----------------------------------------------------------------------------+
+|i10 : ib=matrix {{1, v, (-1+v^2)/(-1+u), 1/(-1+u)/u*v^3+(-2+u)/(-1+u)/u*v}};|
+|                                                                            |
+|               1        4                                                   |
+|o10 : Matrix QR  <--- QR                                                    |
++----------------------------------------------------------------------------+
+|i11 : J=adjointIdeal(I,ib)                                                  |
+|                                                                            |
+|              2                    2                                        |
+|o11 = ideal (u  - u*z, v*u - v*z, v  - u*z)                                 |
+|                                                                            |
+|o11 : Ideal of R                                                            |
++----------------------------------------------------------------------------+
+
+
+
+The Cusp:
+
++------------------------+
+|i12 : K=QQ              |
+|                        |
+|o12 = QQ                |
+|                        |
+|o12 : Ring              |
++------------------------+
+|i13 : R=K[v,u,z]        |
+|                        |
+|o13 = R                 |
+|                        |
+|o13 : PolynomialRing    |
++------------------------+
+|i14 : I=ideal(v^3-u^2*z)|
+|                        |
+|             3    2     |
+|o14 = ideal(v  - u z)   |
+|                        |
+|o14 : Ideal of R        |
++------------------------+
+|i15 : J=adjointIdeal(I) |
+|                        |
+|o15 = ideal (u, v)      |
+|                        |
+|o15 : Ideal of R        |
++------------------------+
+
+
+
+Same example but specifying the integral basis:
+
+
+
++-------------------------------+
+|i16 : K=QQ;                    |
++-------------------------------+
+|i17 : R=K[v,u,z];              |
++-------------------------------+
+|i18 : I=ideal(v^3-u^2*z)       |
+|                               |
+|             3    2            |
+|o18 = ideal(v  - u z)          |
+|                               |
+|o18 : Ideal of R               |
++-------------------------------+
+|i19 : Rvu=K[v,u];              |
++-------------------------------+
+|i20 : QR=frac(Rvu);            |
++-------------------------------+
+|i21 : ib=matrix({{1,v,v^2/u}});|
+|                               |
+|               1        3      |
+|o21 : Matrix QR  <--- QR       |
++-------------------------------+
+|i22 : J=adjointIdeal(I,ib)     |
+|                               |
+|o22 = ideal (u, v)             |
+|                               |
+|o22 : Ideal of R               |
++-------------------------------+
+
+
+
+A curve of genus 4:
+
++-----------------------------------------------------------------------------+
+|i23 : K=QQ                                                                   |
+|                                                                             |
+|o23 = QQ                                                                     |
+|                                                                             |
+|o23 : Ring                                                                   |
++-----------------------------------------------------------------------------+
+|i24 : R=K[v,u,z]                                                             |
+|                                                                             |
+|o24 = R                                                                      |
+|                                                                             |
+|o24 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i25 : I=ideal(v^6+(7/5)*v^2*u^4+(6/5)*u^6+(21/5)*v^2*u^3*z+(12/5)*u^5*z+(21/5|
+|                                                                             |
+|             6   7 2 4   6 6   21 2 3    12 5    21 2 2 2   6 4 2   7 2   3  |
+|o25 = ideal(v  + -v u  + -u  + --v u z + --u z + --v u z  + -u z  + -v u*z ) |
+|                 5       5      5         5       5         5       5        |
+|                                                                             |
+|o25 : Ideal of R                                                             |
+|-----------------------------------------------------------------------------|
+|)*v^2*u^2*z^2+(6/5)*u^4*z^2+(7/5)*v^2*u*z^3)                                 |
++-----------------------------------------------------------------------------+
+|i26 : J=adjointIdeal(I)                                                      |
+|                                                                             |
+|              3    2      2           2     2    3                           |
+|o26 = ideal (u  + u z, v*u  + v*u*z, v u + v z, v )                          |
+|                                                                             |
+|o26 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+
+
+
+Same example but specifying the integral basis:
+
+
+
++-----------------------------------------------------------------------------+
+|i27 : K=QQ;                                                                  |
++-----------------------------------------------------------------------------+
+|i28 : R=K[v,u,z];                                                            |
++-----------------------------------------------------------------------------+
+|i29 : I=ideal(v^6+(7/5)*v^2*u^4+(6/5)*u^6+(21/5)*v^2*u^3*z+(12/5)*u^5*z+(21/5|
+|                                                                             |
+|o29 : Ideal of R                                                             |
+|-----------------------------------------------------------------------------|
+|)*v^2*u^2*z^2+(6/5)*u^4*z^2+(7/5)*v^2*u*z^3);                                |
++-----------------------------------------------------------------------------+
+|i30 : Rvu=K[v,u];                                                            |
++-----------------------------------------------------------------------------+
+|i31 : QR=frac(Rvu);                                                          |
++-----------------------------------------------------------------------------+
+|i32 : ib=matrix({{1,v,v^2,v^3/(u+1),1/u/(u+1)*v^4,1/u^2/(u+1)*v^5-7/5*(u-1)/u|
+|                                                                             |
+|               1        6                                                    |
+|o32 : Matrix QR  <--- QR                                                     |
+|-----------------------------------------------------------------------------|
+|*v}});                                                                       |
++-----------------------------------------------------------------------------+
+|i33 : J=adjointIdeal(I,ib)                                                   |
+|                                                                             |
+|              3    2      2           2     2    3                           |
+|o33 = ideal (u  + u z, v*u  + v*u*z, v u + v z, v )                          |
+|                                                                             |
+|o33 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+
+
+
+
+
++-----------------------------------------------------------------------------+
+|i34 : K=QQ;                                                                  |
++-----------------------------------------------------------------------------+
+|i35 : R=K[v,u,z];                                                            |
++-----------------------------------------------------------------------------+
+|i36 : I=ideal(v^8-u^3*(z+u)^5);                                              |
+|                                                                             |
+|o36 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i37 : Ruv=K[v,u];                                                            |
++-----------------------------------------------------------------------------+
+|i38 : QR=frac(Ruv);                                                          |
++-----------------------------------------------------------------------------+
+|i39 : ib=matrix({{1,v,v^2/(1+u),v^3/u/(1+u),v^4/u/(1+u)^2,v^5/u/(1+u)^3,v^6/u|
+|                                                                             |
+|               1        8                                                    |
+|o39 : Matrix QR  <--- QR                                                     |
+|-----------------------------------------------------------------------------|
+|^2/(1+u)^3,v^7/u^2/(1+u)^4}});                                               |
++-----------------------------------------------------------------------------+
+|i40 : J=adjointIdeal(I,ib)                                                   |
+|                                                                             |
+|              6     5      4 2     3 3    2 4     5       4        3 2       |
+|o40 = ideal (u  + 4u z + 6u z  + 4u z  + u z , v*u  + 3v*u z + 3v*u z  +     |
+|      -----------------------------------------------------------------------|
+|         2 3   2 4     2 3      2 2 2    2   3   3 3     3 2     3   2   4 2 |
+|      v*u z , v u  + 3v u z + 3v u z  + v u*z , v u  + 2v u z + v u*z , v u  |
+|      -----------------------------------------------------------------------|
+|         4      5     5    6                                                 |
+|      + v u*z, v u + v z, v )                                                |
+|                                                                             |
+|o40 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i41 : apply((entries gens J)#0,factor)                                       |
+|                                                                             |
+|          2       4     2       3               3   2            2   3       |
+|o41 = {(u) (u + z) , (u) (u + z) (v), (u)(u + z) (v) , (u)(u + z) (v) , (u)(u|
+|      -----------------------------------------------------------------------|
+|             4            5     6                                            |
+|      + z)(v) , (u + z)(v) , (v) }                                           |
+|                                                                             |
+|o41 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+The function so far does not cache the integral basis computation.
+
+See also
+========
+
+  * *note geometricGenus: geometricGenus, -- Geometric genus of a plane curve
+  * *note integralClosure: (IntegralClosure)integralClosure, -- integral
+    closure of an ideal or a domain
+
+Ways to use adjointIdeal:
+=========================
+
+  * "adjointIdeal(Ideal)"
+  * "adjointIdeal(Ideal,Matrix)"
+  * "adjointIdeal(Ideal,Matrix,ZZ)"
+
+For the programmer
+==================
+
+The object *note adjointIdeal: adjointIdeal, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AdjointIdeal.m2:811:0.
+
+File: AdjointIdeal.info, Node: backwardSubstitution, Next: extractLeftLower, Prev: adjointIdeal, Up: Top
+
+backwardSubstitution -- Backward substitution.
+**********************************************
+
+  * Usage: 
+        backwardSubstitution(R,b)
+  * Inputs:
+      * R, a *note matrix: (Macaulay2Doc)Matrix,, invertible, right upper
+        triangular.
+      * b, a *note matrix: (Macaulay2Doc)Matrix,, one column, same number of
+        rows as R.
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, Solution of the system R*x=b.
+
+Description
+===========
+
+Solves the system R*x=b via backward substitution.
+
++----------------------------------------+
+|i1 : A=random(QQ^3,QQ^3)                |
+|                                        |
+|o1 = | 9/2 1/2 3/2 |                    |
+|     | 1/2 1   3/4 |                    |
+|     | 9/4 3/4 7/4 |                    |
+|                                        |
+|              3        3                |
+|o1 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i2 : (perm,LR)=LRdecomposition(A,j->-j);|
++----------------------------------------+
+|i3 : LR                                 |
+|                                        |
+|o3 = | 9/2 1/2   3/2   |                |
+|     | 1/9 17/18 7/12  |                |
+|     | 1/2 9/17  47/68 |                |
+|                                        |
+|              3        3                |
+|o3 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i4 : P=transpose (id_(QQ^3))_perm       |
+|                                        |
+|o4 = | 1 0 0 |                          |
+|     | 0 1 0 |                          |
+|     | 0 0 1 |                          |
+|                                        |
+|              3        3                |
+|o4 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i5 : R=extractRightUpper(LR)            |
+|                                        |
+|o5 = | 9/2 1/2   3/2   |                |
+|     | 0   17/18 7/12  |                |
+|     | 0   0     47/68 |                |
+|                                        |
+|              3        3                |
+|o5 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i6 : L=extractLeftLower(LR)             |
+|                                        |
+|o6 = | 1   0    0 |                     |
+|     | 1/9 1    0 |                     |
+|     | 1/2 9/17 1 |                     |
+|                                        |
+|              3        3                |
+|o6 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i7 : L*R==P*A                           |
+|                                        |
+|o7 = true                               |
++----------------------------------------+
+|i8 : b=random(QQ^3,QQ^1);               |
+|                                        |
+|              3        1                |
+|o8 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i9 : y=forwardSubstitution(LR,P*b)      |
+|                                        |
+|o9 = | 7/9      |                       |
+|     | 497/810  |                       |
+|     | -109/510 |                       |
+|                                        |
+|              3        1                |
+|o9 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i10 : x=backwardSubstitution(LR,y)      |
+|                                        |
+|o10 = | 386/2115  |                     |
+|      | 1778/2115 |                     |
+|      | -218/705  |                     |
+|                                        |
+|               3        1               |
+|o10 : Matrix QQ  <--- QQ                |
++----------------------------------------+
+|i11 : inverse(A)*b==x                   |
+|                                        |
+|o11 = true                              |
++----------------------------------------+
+
+See also
+========
+
+  * *note LRdecomposition: LRdecomposition, -- LR decomposition
+  * *note extractRightUpper: extractRightUpper, -- Extract R from the LR
+    decomposition result.
+  * *note extractLeftLower: extractLeftLower, -- Extract L from the LR
+    decomposition result.
+  * *note forwardSubstitution: forwardSubstitution, -- Forward substitution.
+
+Ways to use backwardSubstitution:
+=================================
+
+  * "backwardSubstitution(Matrix,Matrix)"
+
+For the programmer
+==================
+
+The object *note backwardSubstitution: backwardSubstitution, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AdjointIdeal.m2:1100:0.
+
+File: AdjointIdeal.info, Node: extractLeftLower, Next: extractRightUpper, Prev: backwardSubstitution, Up: Top
+
+extractLeftLower -- Extract L from the LR decomposition result.
+***************************************************************
+
+  * Usage: 
+        extractLeftLower(A)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, square.
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, left lower triangular with 1 on
+        the diagonal.
+
+Description
+===========
+
+Returns a left lower triangular matrix formed by the corresponding entries of A
+and with 1 on the diagonal.
+
++----------------------------------------+
+|i1 : A=random(QQ^3,QQ^3)                |
+|                                        |
+|o1 = | 9/2 1/2 3/2 |                    |
+|     | 1/2 1   3/4 |                    |
+|     | 9/4 3/4 7/4 |                    |
+|                                        |
+|              3        3                |
+|o1 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i2 : (perm,LR)=LRdecomposition(A,j->-j);|
++----------------------------------------+
+|i3 : LR                                 |
+|                                        |
+|o3 = | 9/2 1/2   3/2   |                |
+|     | 1/9 17/18 7/12  |                |
+|     | 1/2 9/17  47/68 |                |
+|                                        |
+|              3        3                |
+|o3 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i4 : P=transpose (id_(QQ^3))_perm       |
+|                                        |
+|o4 = | 1 0 0 |                          |
+|     | 0 1 0 |                          |
+|     | 0 0 1 |                          |
+|                                        |
+|              3        3                |
+|o4 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i5 : R=extractRightUpper(LR)            |
+|                                        |
+|o5 = | 9/2 1/2   3/2   |                |
+|     | 0   17/18 7/12  |                |
+|     | 0   0     47/68 |                |
+|                                        |
+|              3        3                |
+|o5 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i6 : L=extractLeftLower(LR)             |
+|                                        |
+|o6 = | 1   0    0 |                     |
+|     | 1/9 1    0 |                     |
+|     | 1/2 9/17 1 |                     |
+|                                        |
+|              3        3                |
+|o6 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i7 : L*R==P*A                           |
+|                                        |
+|o7 = true                               |
++----------------------------------------+
+
+See also
+========
+
+  * *note LRdecomposition: LRdecomposition, -- LR decomposition
+  * *note extractRightUpper: extractRightUpper, -- Extract R from the LR
+    decomposition result.
+
+Ways to use extractLeftLower:
+=============================
+
+  * "extractLeftLower(Matrix)"
+
+For the programmer
+==================
+
+The object *note extractLeftLower: extractLeftLower, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AdjointIdeal.m2:1018:0.
+
+File: AdjointIdeal.info, Node: extractRightUpper, Next: forwardSubstitution, Prev: extractLeftLower, Up: Top
+
+extractRightUpper -- Extract R from the LR decomposition result.
+****************************************************************
+
+  * Usage: 
+        extractRightUpper(A)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, square.
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, right upper triangular.
+
+Description
+===========
+
+Returns a right upper triangular matrix formed by the corresponding entries of
+A.
+
++----------------------------------------+
+|i1 : A=random(QQ^3,QQ^3)                |
+|                                        |
+|o1 = | 9/2 1/2 3/2 |                    |
+|     | 1/2 1   3/4 |                    |
+|     | 9/4 3/4 7/4 |                    |
+|                                        |
+|              3        3                |
+|o1 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i2 : (perm,LR)=LRdecomposition(A,j->-j);|
++----------------------------------------+
+|i3 : LR                                 |
+|                                        |
+|o3 = | 9/2 1/2   3/2   |                |
+|     | 1/9 17/18 7/12  |                |
+|     | 1/2 9/17  47/68 |                |
+|                                        |
+|              3        3                |
+|o3 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i4 : P=transpose (id_(QQ^3))_perm       |
+|                                        |
+|o4 = | 1 0 0 |                          |
+|     | 0 1 0 |                          |
+|     | 0 0 1 |                          |
+|                                        |
+|              3        3                |
+|o4 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i5 : R=extractRightUpper(LR)            |
+|                                        |
+|o5 = | 9/2 1/2   3/2   |                |
+|     | 0   17/18 7/12  |                |
+|     | 0   0     47/68 |                |
+|                                        |
+|              3        3                |
+|o5 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i6 : L=extractLeftLower(LR)             |
+|                                        |
+|o6 = | 1   0    0 |                     |
+|     | 1/9 1    0 |                     |
+|     | 1/2 9/17 1 |                     |
+|                                        |
+|              3        3                |
+|o6 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i7 : L*R==P*A                           |
+|                                        |
+|o7 = true                               |
++----------------------------------------+
+
+See also
+========
+
+  * *note LRdecomposition: LRdecomposition, -- LR decomposition
+  * *note extractLeftLower: extractLeftLower, -- Extract L from the LR
+    decomposition result.
+
+Ways to use extractRightUpper:
+==============================
+
+  * "extractRightUpper(Matrix)"
+
+For the programmer
+==================
+
+The object *note extractRightUpper: extractRightUpper, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AdjointIdeal.m2:987:0.
+
+File: AdjointIdeal.info, Node: forwardSubstitution, Next: geometricGenus, Prev: extractRightUpper, Up: Top
+
+forwardSubstitution -- Forward substitution.
+********************************************
+
+  * Usage: 
+        forwardSubstitution(L,b)
+  * Inputs:
+      * L, a *note matrix: (Macaulay2Doc)Matrix,, left lower triangular with 1
+        on the diagonal.
+      * b, a *note matrix: (Macaulay2Doc)Matrix,, one column, same number of
+        rows as L.
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, Solution of the system L*x=b.
+
+Description
+===========
+
+Solves the system L*x=b via forward substitution.
+
++----------------------------------------+
+|i1 : A=random(QQ^3,QQ^3)                |
+|                                        |
+|o1 = | 9/2 1/2 3/2 |                    |
+|     | 1/2 1   3/4 |                    |
+|     | 9/4 3/4 7/4 |                    |
+|                                        |
+|              3        3                |
+|o1 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i2 : (perm,LR)=LRdecomposition(A,j->-j);|
++----------------------------------------+
+|i3 : LR                                 |
+|                                        |
+|o3 = | 9/2 1/2   3/2   |                |
+|     | 1/9 17/18 7/12  |                |
+|     | 1/2 9/17  47/68 |                |
+|                                        |
+|              3        3                |
+|o3 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i4 : P=transpose (id_(QQ^3))_perm       |
+|                                        |
+|o4 = | 1 0 0 |                          |
+|     | 0 1 0 |                          |
+|     | 0 0 1 |                          |
+|                                        |
+|              3        3                |
+|o4 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i5 : R=extractRightUpper(LR)            |
+|                                        |
+|o5 = | 9/2 1/2   3/2   |                |
+|     | 0   17/18 7/12  |                |
+|     | 0   0     47/68 |                |
+|                                        |
+|              3        3                |
+|o5 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i6 : L=extractLeftLower(LR)             |
+|                                        |
+|o6 = | 1   0    0 |                     |
+|     | 1/9 1    0 |                     |
+|     | 1/2 9/17 1 |                     |
+|                                        |
+|              3        3                |
+|o6 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i7 : L*R==P*A                           |
+|                                        |
+|o7 = true                               |
++----------------------------------------+
+|i8 : b=random(QQ^3,QQ^1);               |
+|                                        |
+|              3        1                |
+|o8 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i9 : y=forwardSubstitution(LR,P*b)      |
+|                                        |
+|o9 = | 7/9      |                       |
+|     | 497/810  |                       |
+|     | -109/510 |                       |
+|                                        |
+|              3        1                |
+|o9 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i10 : x=backwardSubstitution(LR,y)      |
+|                                        |
+|o10 = | 386/2115  |                     |
+|      | 1778/2115 |                     |
+|      | -218/705  |                     |
+|                                        |
+|               3        1               |
+|o10 : Matrix QQ  <--- QQ                |
++----------------------------------------+
+|i11 : inverse(A)*b==x                   |
+|                                        |
+|o11 = true                              |
++----------------------------------------+
+
+See also
+========
+
+  * *note LRdecomposition: LRdecomposition, -- LR decomposition
+  * *note extractRightUpper: extractRightUpper, -- Extract R from the LR
+    decomposition result.
+  * *note extractLeftLower: extractLeftLower, -- Extract L from the LR
+    decomposition result.
+  * *note backwardSubstitution: backwardSubstitution, -- Backward substitution.
+
+Ways to use forwardSubstitution:
+================================
+
+  * "forwardSubstitution(Matrix,Matrix)"
+
+For the programmer
+==================
+
+The object *note forwardSubstitution: forwardSubstitution, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AdjointIdeal.m2:1058:0.
+
+File: AdjointIdeal.info, Node: geometricGenus, Next: LRdecomposition, Prev: forwardSubstitution, Up: Top
+
+geometricGenus -- Geometric genus of a plane curve
+**************************************************
+
+  * Usage: 
+        geometricGenus(I)
+        geometricGenus(I,ib)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, the homogeneous ideal I of an
+        irreducible plane algebraic curve C over K
+      * ib, a *note matrix: (Macaulay2Doc)Matrix,, containing an integral basis
+        of the closure of L[C] in L(C) where L is the algebraic closure of K
+        given as a row matrix of length n=degree(I).
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, the geometric genus of C
+
+Description
+===========
+
+Computes the geometric genus of a plane curve.
+
+
+
+If ib is specified (and only then) we assume that I has the following
+properties:
+
+Denote the variables of R=ring(I) by v,u,z. All singularities of C have to lie
+in the chart z!=0 and the curve should not contain the point (1:0:0).
+
+Furthermore we assume that ib has the following properties: The entries are in
+K(u)[v] inside frac(R) where the i-th entry is of degree $i$ in v for i=0..n-1.
+Note that this always can be achieved.
+
+If ib is not specified the function takes care of these conditions by applying
+an appropriate projective automorphism before doing the computation and
+afterwards applying its inverse. The algorithm will try to choose an
+automorphism as simple as possible, however note that this process may destroy
+sparseness and harm the performance.
+
+A rational curve with three double points:
+
+
+
++---------------------------------------------+
+|i1 : K=QQ                                    |
+|                                             |
+|o1 = QQ                                      |
+|                                             |
+|o1 : Ring                                    |
++---------------------------------------------+
+|i2 : R=K[v,u,z]                              |
+|                                             |
+|o2 = R                                       |
+|                                             |
+|o2 : PolynomialRing                          |
++---------------------------------------------+
+|i3 : I=ideal(v^4-2*u^3*z+3*u^2*z^2-2*v^2*z^2)|
+|                                             |
+|            4     3      2 2     2 2         |
+|o3 = ideal(v  - 2u z - 2v z  + 3u z )        |
+|                                             |
+|o3 : Ideal of R                              |
++---------------------------------------------+
+|i4 : geometricGenus(I)                       |
+|                                             |
+|o4 = 0                                       |
++---------------------------------------------+
+
+
+
+Same example but specifying the integral basis:
+
+
+
++----------------------------------------------------------------------------+
+|i5 : K=QQ                                                                   |
+|                                                                            |
+|o5 = QQ                                                                     |
+|                                                                            |
+|o5 : Ring                                                                   |
++----------------------------------------------------------------------------+
+|i6 : R=K[v,u,z]                                                             |
+|                                                                            |
+|o6 = R                                                                      |
+|                                                                            |
+|o6 : PolynomialRing                                                         |
++----------------------------------------------------------------------------+
+|i7 : I=ideal(v^4-2*u^3*z+3*u^2*z^2-2*v^2*z^2)                               |
+|                                                                            |
+|            4     3      2 2     2 2                                        |
+|o7 = ideal(v  - 2u z - 2v z  + 3u z )                                       |
+|                                                                            |
+|o7 : Ideal of R                                                             |
++----------------------------------------------------------------------------+
+|i8 : Rvu=K[v,u];                                                            |
++----------------------------------------------------------------------------+
+|i9 : QR=frac(Rvu);                                                          |
++----------------------------------------------------------------------------+
+|i10 : ib=matrix {{1, v, (-1+v^2)/(-1+u), 1/(-1+u)/u*v^3+(-2+u)/(-1+u)/u*v}};|
+|                                                                            |
+|               1        4                                                   |
+|o10 : Matrix QR  <--- QR                                                    |
++----------------------------------------------------------------------------+
+|i11 : geometricGenus(I,ib)                                                  |
+|                                                                            |
+|o11 = 0                                                                     |
++----------------------------------------------------------------------------+
+
+
+
+The Cusp:
+
++------------------------+
+|i12 : K=QQ;             |
++------------------------+
+|i13 : R=K[v,u,z];       |
++------------------------+
+|i14 : I=ideal(v^3-u^2*z)|
+|                        |
+|             3    2     |
+|o14 = ideal(v  - u z)   |
+|                        |
+|o14 : Ideal of R        |
++------------------------+
+|i15 : geometricGenus(I) |
+|                        |
+|o15 = 0                 |
++------------------------+
+
+
+
+Same example but specifying the integral basis:
+
+
+
++-------------------------------+
+|i16 : K=QQ;                    |
++-------------------------------+
+|i17 : R=K[v,u,z];              |
++-------------------------------+
+|i18 : I=ideal(v^3-u^2*z)       |
+|                               |
+|             3    2            |
+|o18 = ideal(v  - u z)          |
+|                               |
+|o18 : Ideal of R               |
++-------------------------------+
+|i19 : Rvu=K[v,u];              |
++-------------------------------+
+|i20 : QR=frac(Rvu);            |
++-------------------------------+
+|i21 : ib=matrix({{1,v,v^2/u}});|
+|                               |
+|               1        3      |
+|o21 : Matrix QR  <--- QR       |
++-------------------------------+
+|i22 : geometricGenus(I,ib)     |
+|                               |
+|o22 = 0                        |
++-------------------------------+
+
+
+
+A curve of genus 4:
+
++-----------------------------------------------------------------------------+
+|i23 : K=QQ;                                                                  |
++-----------------------------------------------------------------------------+
+|i24 : R=K[v,u,z];                                                            |
++-----------------------------------------------------------------------------+
+|i25 : I=ideal(v^6+(7/5)*v^2*u^4+(6/5)*u^6+(21/5)*v^2*u^3*z+(12/5)*u^5*z+(21/5|
+|                                                                             |
+|o25 : Ideal of R                                                             |
+|-----------------------------------------------------------------------------|
+|)*v^2*u^2*z^2+(6/5)*u^4*z^2+(7/5)*v^2*u*z^3);                                |
++-----------------------------------------------------------------------------+
+|i26 : geometricGenus(I)                                                      |
+|                                                                             |
+|o26 = 4                                                                      |
++-----------------------------------------------------------------------------+
+
+
+
+Same example but specifying the integral basis:
+
+
+
++-----------------------------------------------------------------------------+
+|i27 : K=QQ;                                                                  |
++-----------------------------------------------------------------------------+
+|i28 : R=K[v,u,z];                                                            |
++-----------------------------------------------------------------------------+
+|i29 : I=ideal(v^6+(7/5)*v^2*u^4+(6/5)*u^6+(21/5)*v^2*u^3*z+(12/5)*u^5*z+(21/5|
+|                                                                             |
+|o29 : Ideal of R                                                             |
+|-----------------------------------------------------------------------------|
+|)*v^2*u^2*z^2+(6/5)*u^4*z^2+(7/5)*v^2*u*z^3);                                |
++-----------------------------------------------------------------------------+
+|i30 : Rvu=K[v,u];                                                            |
++-----------------------------------------------------------------------------+
+|i31 : QR=frac(Rvu);                                                          |
++-----------------------------------------------------------------------------+
+|i32 : ib=matrix({{1,v,v^2,v^3/(u+1),1/u/(u+1)*v^4,1/u^2/(u+1)*v^5-7/5*(u-1)/u|
+|                                                                             |
+|               1        6                                                    |
+|o32 : Matrix QR  <--- QR                                                     |
+|-----------------------------------------------------------------------------|
+|*v}});                                                                       |
++-----------------------------------------------------------------------------+
+|i33 : geometricGenus(I,ib)                                                   |
+|                                                                             |
+|o33 = 4                                                                      |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+The function so far does not cache the integral basis computation.
+
+See also
+========
+
+  * *note adjointIdeal: adjointIdeal, -- Compute the adjoint ideal of a plane
+    curve
+  * *note integralClosure: (IntegralClosure)integralClosure, -- integral
+    closure of an ideal or a domain
+
+Ways to use geometricGenus:
+===========================
+
+  * "geometricGenus(Ideal)"
+  * "geometricGenus(Ideal,Matrix)"
+
+For the programmer
+==================
+
+The object *note geometricGenus: geometricGenus, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AdjointIdeal.m2:918:0.
+
+File: AdjointIdeal.info, Node: LRdecomposition, Next: traceMatrix, Prev: geometricGenus, Up: Top
+
+LRdecomposition -- LR decomposition
+***********************************
+
+  * Usage: 
+        LRdecomposition(A,pivotfunction)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, square and invertible.
+      * pivotfunction, a *note function: (Macaulay2Doc)Function,, used for
+        pivoting.
+  * Outputs:
+      * a *note sequence: (Macaulay2Doc)Sequence,, of a list with a permutation
+        of the rows of A corresponding to P, and a matrix containing L and R.
+
+Description
+===========
+
+Does the PA=LR decomposition on the matrix A, pivoting by the minimal value of
+pivotfunction. L can be extracted by the function extractLeftLower, R by
+extractRightUpper. This has been implemented with fields of rational functions
+in mind.
+
++----------------------------------------+
+|i1 : A=random(QQ^3,QQ^3)                |
+|                                        |
+|o1 = | 9/2 1/2 3/2 |                    |
+|     | 1/2 1   3/4 |                    |
+|     | 9/4 3/4 7/4 |                    |
+|                                        |
+|              3        3                |
+|o1 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i2 : (perm,LR)=LRdecomposition(A,j->-j);|
++----------------------------------------+
+|i3 : perm                               |
+|                                        |
+|o3 = {0, 1, 2}                          |
+|                                        |
+|o3 : List                               |
++----------------------------------------+
+|i4 : P=transpose (id_(QQ^3))_perm       |
+|                                        |
+|o4 = | 1 0 0 |                          |
+|     | 0 1 0 |                          |
+|     | 0 0 1 |                          |
+|                                        |
+|              3        3                |
+|o4 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i5 : R=extractRightUpper(LR)            |
+|                                        |
+|o5 = | 9/2 1/2   3/2   |                |
+|     | 0   17/18 7/12  |                |
+|     | 0   0     47/68 |                |
+|                                        |
+|              3        3                |
+|o5 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i6 : L=extractLeftLower(LR)             |
+|                                        |
+|o6 = | 1   0    0 |                     |
+|     | 1/9 1    0 |                     |
+|     | 1/2 9/17 1 |                     |
+|                                        |
+|              3        3                |
+|o6 : Matrix QQ  <--- QQ                 |
++----------------------------------------+
+|i7 : L*R==P*A                           |
+|                                        |
+|o7 = true                               |
++----------------------------------------+
+
+See also
+========
+
+  * *note extractRightUpper: extractRightUpper, -- Extract R from the LR
+    decomposition result.
+  * *note extractLeftLower: extractLeftLower, -- Extract L from the LR
+    decomposition result.
+
+Ways to use LRdecomposition:
+============================
+
+  * "LRdecomposition(Matrix,Function)"
+
+For the programmer
+==================
+
+The object *note LRdecomposition: LRdecomposition, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AdjointIdeal.m2:956:0.
+
+File: AdjointIdeal.info, Node: traceMatrix, Prev: LRdecomposition, Up: Top
+
+traceMatrix -- Compute trace matrix.
+************************************
+
+  * Usage: 
+        traceMatrix(I,ib)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, the homogeneous ideal I of an
+        irreducible plane algebraic curve C over K
+      * ib, a *note matrix: (Macaulay2Doc)Matrix,, containing an integral basis
+        of the closure of L[C] in L(C) where L is the algebraic closure of K
+        given as a row matrix of length n=degree(I).
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, the trace matrix of the integral
+        basis ib.
+
+Description
+===========
+
+Computes the trace matrix for the integral basis ib, i.e., the matrix
+containing the traces of the elements ib_(0,i)*ib_(0,j).
+
+We assume that I has the following properties:
+
+Denote the variables of R=ring(I) by v,u,z. All singularities of C have to lie
+in the chart z!=0 and the curve should not contain (1:0:0).
+
+
+
+We assume that ib has the following properties: The entries are in K(u)[v]
+inside frac(R) where the i-th entry is of degree $i$ in v for i=0..n-1. Note
+that this always can be achieved.
+
+A rational curve with three double points:
+
++---------------------------------------------------------------------------+
+|i1 : K=QQ                                                                  |
+|                                                                           |
+|o1 = QQ                                                                    |
+|                                                                           |
+|o1 : Ring                                                                  |
++---------------------------------------------------------------------------+
+|i2 : R=K[v,u,z]                                                            |
+|                                                                           |
+|o2 = R                                                                     |
+|                                                                           |
+|o2 : PolynomialRing                                                        |
++---------------------------------------------------------------------------+
+|i3 : I=ideal(v^4-2*u^3*z+3*u^2*z^2-2*v^2*z^2)                              |
+|                                                                           |
+|            4     3      2 2     2 2                                       |
+|o3 = ideal(v  - 2u z - 2v z  + 3u z )                                      |
+|                                                                           |
+|o3 : Ideal of R                                                            |
++---------------------------------------------------------------------------+
+|i4 : Rvu=K[v,u];                                                           |
++---------------------------------------------------------------------------+
+|i5 : QR=frac(Rvu);                                                         |
++---------------------------------------------------------------------------+
+|i6 : ib=matrix {{1, v, (-1+v^2)/(-1+u), 1/(-1+u)/u*v^3+(-2+u)/(-1+u)/u*v}};|
+|                                                                           |
+|              1        4                                                   |
+|o6 : Matrix QR  <--- QR                                                    |
++---------------------------------------------------------------------------+
+|i7 : traceMatrix(I,ib)                                                     |
+|                                                                           |
+|o7 = | 4 0    0    0    |                                                  |
+|     | 0 4    0    8u-4 |                                                  |
+|     | 0 0    8u+4 0    |                                                  |
+|     | 0 8u-4 0    16   |                                                  |
+|                                                                           |
+|                        4                  4                               |
+|o7 : Matrix (frac QQ[u])  <--- (frac QQ[u])                                |
++---------------------------------------------------------------------------+
+
+
+
+The Cusp:
+
++---------------------------------------------+
+|i8 : K=QQ;                                   |
++---------------------------------------------+
+|i9 : R=K[v,u,z];                             |
++---------------------------------------------+
+|i10 : I=ideal(v^3-u^2*z)                     |
+|                                             |
+|             3    2                          |
+|o10 = ideal(v  - u z)                        |
+|                                             |
+|o10 : Ideal of R                             |
++---------------------------------------------+
+|i11 : Rvu=K[v,u];                            |
++---------------------------------------------+
+|i12 : QR=frac(Rvu);                          |
++---------------------------------------------+
+|i13 : ib=matrix({{1,v,v^2/u}});              |
+|                                             |
+|               1        3                    |
+|o13 : Matrix QR  <--- QR                     |
++---------------------------------------------+
+|i14 : traceMatrix(I,ib)                      |
+|                                             |
+|o14 = | 3 0  0  |                            |
+|      | 0 0  3u |                            |
+|      | 0 3u 0  |                            |
+|                                             |
+|                         3                  3|
+|o14 : Matrix (frac QQ[u])  <--- (frac QQ[u]) |
++---------------------------------------------+
+
+
+
+A curve of genus 4:
+
++-----------------------------------------------------------------------------+
+|i15 : K=QQ;                                                                  |
++-----------------------------------------------------------------------------+
+|i16 : R=K[v,u,z];                                                            |
++-----------------------------------------------------------------------------+
+|i17 : I=ideal(v^6+(7/5)*v^2*u^4+(6/5)*u^6+(21/5)*v^2*u^3*z+(12/5)*u^5*z+(21/5|
+|                                                                             |
+|o17 : Ideal of R                                                             |
+|-----------------------------------------------------------------------------|
+|)*v^2*u^2*z^2+(6/5)*u^4*z^2+(7/5)*v^2*u*z^3);                                |
++-----------------------------------------------------------------------------+
+|i18 : Rvu=K[v,u];                                                            |
++-----------------------------------------------------------------------------+
+|i19 : QR=frac(Rvu);                                                          |
++-----------------------------------------------------------------------------+
+|i20 : ib=matrix({{1,v,v^2,v^3/(u+1),1/u/(u+1)*v^4,1/u^2/(u+1)*v^5-7/5*(u-1)/u|
+|                                                                             |
+|               1        6                                                    |
+|o20 : Matrix QR  <--- QR                                                     |
+|-----------------------------------------------------------------------------|
+|*v}});                                                                       |
++-----------------------------------------------------------------------------+
+|i21 : traceMatrix(I,ib)                                                      |
+|                                                                             |
+|o21 = | 6                0                  0                                |
+|      | 0                0                  0                                |
+|      | 0                0                  (-28u4-84u3-84u2-28u)/5          |
+|      | 0                (-28u3-56u2-28u)/5 0                                |
+|      | (-28u2-56u-28)/5 0                  (-36u4-36u3)/5                   |
+|      | 0                (-36u3-36u2)/5     0                                |
+|      -----------------------------------------------------------------------|
+|      0                            (-28u2-56u-28)/5                          |
+|      (-28u3-56u2-28u)/5           0                                         |
+|      0                            (-36u4-36u3)/5                            |
+|      -36u4/5                      0                                         |
+|      0                            (196u4+784u3+1176u2+784u+196)/25          |
+|      (196u4+980u3+1372u2+588u)/25 0                                         |
+|      -----------------------------------------------------------------------|
+|      0                            |                                         |
+|      (-36u3-36u2)/5               |                                         |
+|      0                            |                                         |
+|      (196u4+980u3+1372u2+588u)/25 |                                         |
+|      0                            |                                         |
+|      (420u4+1764u3+1260u2-84u)/25 |                                         |
+|                                                                             |
+|                         6                  6                                |
+|o21 : Matrix (frac QQ[u])  <--- (frac QQ[u])                                 |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note geometricGenus: geometricGenus, -- Geometric genus of a plane curve
+  * *note adjointIdeal: adjointIdeal, -- Compute the adjoint ideal of a plane
+    curve
+
+Ways to use traceMatrix:
+========================
+
+  * "traceMatrix(Ideal,Matrix)"
+  * "traceMatrix(Matrix,Matrix,List)"
+
+For the programmer
+==================
+
+The object *note traceMatrix: traceMatrix, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AdjointIdeal.m2:1170:0.
+
+Tag Table:
+Node: Top264
+Node: adjointIdeal6159
+Node: backwardSubstitution22628
+Node: extractLeftLower27413
+Node: extractRightUpper30818
+Node: forwardSubstitution34171
+Node: geometricGenus38960
+Node: LRdecomposition49793
+Node: traceMatrix53346
+
+End Tag Table

@@ -1,0 +1,730 @@
+ -*- coding: utf-8 -*- This is MultiplierIdealsDim2.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* MultiplierIdealsDim2: (MultiplierIdealsDim2).  multiplier ideals in 2-dimensional rings
+END-INFO-DIR-ENTRY
+
+
+File: MultiplierIdealsDim2.info, Node: Top, Next: algorithm, Up: (dir)
+
+MultiplierIdealsDim2 -- A package for Multiplier Ideals
+*******************************************************
+
+Description
+===========
+
+MultiplierIdealsDim2 is a package that contains several tools related with the
+computations of multiplier ideals. Given the self intersection matrix  and the
+divisor associated to this ideal, using the function *note MultiplierIdeals:
+(MultiplierIdeals)Top,, one can compute the jumping numbers and their
+associated multiplier ideals in the interval (*note SmallestJN:
+SmallestJN,,*note BiggestJN: BiggestJN,] using either the algorithms presented
+on [Tuc10], [AAD14] or [AADG14]. However, if we want to know the multiplicity
+of a given number as a jumping number for a given ideal, one can use *note
+MultiplicityJN: MultiplicityJN,. Another option that this package offers is to
+compute the Multiplier Ideal associated to a given number, thanks to the
+function *note MultIdeal: MultIdeal,. The package also contains two extra
+functions: to compute the relative Canonical divisor of a resolution (*note
+RelativeCanonicalDivisor: RelativeCanonicalDivisor,). And to compute the
+antinef closure of a given divisor (*note Unloading: Unloading,).
+
+Literature 
+  * [AAD14] Multiplier ideals in two-dimensional local rings with rational
+    singularities (M. Alberich-Carramiñana, J. Àlvarez Montaner, F.
+    Dachs-Cadefau, 2014).
+  * [AADG14] Poincaré series of multiplier ideals in two-dimensional local
+    rings with rational singularities (M. Alberich-Carramiñana, J. Àlvarez
+    Montaner, F. Dachs-Cadefau, V. González-Alonso, 2014)
+  * [Tuc10]  Jumping numbers on algebraic surfaces with rational singularities
+    (K. Tucker, 2010)
+
+Author
+======
+
+  * Ferran Dachs-Cadefau (see http://perswww.kuleuven.be/ferran_dachs_cadefau )
+    <ferran.dachscadefau@wis.kuleuven.be>
+
+Version
+=======
+
+This documentation describes version 1.0 of MultiplierIdealsDim2, released Aug
+27, 2015.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{MultiplierIdealsDim2Source,                                            |
+|  title = {{MultiplierIdealsDim2: multiplier ideals in 2-dimensional rings.  |
+|  author = {Ferran Dachs-Cadefau},                                           |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Version~1.0}},                                                               |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note MultIdeal: MultIdeal, -- Computes the multiplier ideal of a given
+        number.
+      * *note MultiplicityJN: MultiplicityJN, -- Computes the multiplicity as a
+        jumping number.
+      * *note MultiplierIdeals: MultiplierIdeals, -- Computes the jumping
+        numbers and their ideals
+      * *note RelativeCanonicalDivisor: RelativeCanonicalDivisor, -- computes
+        the relative canonical divisor
+      * *note Unloading: Unloading, -- Computes the antinef closure of a
+        divisor.
+  * Symbols
+      * *note algorithm: algorithm, -- Method used to compute the jumping
+        numbers and multiplier ideals
+      * *note BiggestJN: BiggestJN, -- Upper bound of the interval where we
+        want to compute the JN.
+      * *note JNandMI: JNandMI, -- HashTable containing all the information
+        about the Jumping Numbers
+      * *note JumpingDivisor: JumpingDivisor, -- Show or not the jumping
+        divisors.
+      * *note MaxIterations: MaxIterations, -- Limits the number of iterations
+        of the Unloading algorithm.
+      * *note SmallestJN: SmallestJN, -- Lower bound of the interval where we
+        want to compute the JN.
+      * *note UnloadingValue: UnloadingValue, -- Show the maximum of the
+        unloaded values
+  * Mutable symbols
+      * *note algorithm: algorithm, -- Method used to compute the jumping
+        numbers and multiplier ideals
+      * *note BiggestJN: BiggestJN, -- Upper bound of the interval where we
+        want to compute the JN.
+      * *note JNandMI: JNandMI, -- HashTable containing all the information
+        about the Jumping Numbers
+      * *note JumpingDivisor: JumpingDivisor, -- Show or not the jumping
+        divisors.
+      * *note MaxIterations: MaxIterations, -- Limits the number of iterations
+        of the Unloading algorithm.
+      * *note SmallestJN: SmallestJN, -- Lower bound of the interval where we
+        want to compute the JN.
+      * *note UnloadingValue: UnloadingValue, -- Show the maximum of the
+        unloaded values
+
+For the programmer
+==================
+
+The object *note MultiplierIdealsDim2: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in MultiplierIdealsDim2.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:558:0.
+
+File: MultiplierIdealsDim2.info, Node: algorithm, Next: BiggestJN, Prev: Top, Up: Top
+
+algorithm -- Method used to compute the jumping numbers and multiplier ideals
+*****************************************************************************
+
+Description
+===========
+
+Default value "AlbAlvDac". This variable is used to choose which method we want
+to use to compute the jumping numbers, the three options are "AlbAlvDac" for
+the algorithm in [AAD14], "Mult" for the one in [AADG14] and "Tucker" for
+[Tuc10].
+
+Literature 
+  * [AAD14] Multiplier ideals in two-dimensional local rings with rational
+    singularities (M. Alberich-Carramiñana, J. Àlvarez Montaner, F.
+    Dachs-Cadefau, 2014).
+  * [AADG14] Poincaré series of multiplier ideals in two-dimensional local
+    rings with rational singularities (M. Alberich-Carramiñana, J. Àlvarez
+    Montaner, F. Dachs-Cadefau, V. González-Alonso, 2014)
+  * [Tuc10]  Jumping numbers on algebraic surfaces with rational singularities
+    (K. Tucker, 2010)
+
+Functions with optional argument named algorithm:
+=================================================
+
+  * "MultiplierIdeals(...,algorithm=>...)"
+
+For the programmer
+==================
+
+The object *note algorithm: algorithm, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:705:0.
+
+File: MultiplierIdealsDim2.info, Node: BiggestJN, Next: JNandMI, Prev: algorithm, Up: Top
+
+BiggestJN -- Upper bound of the interval where we want to compute the JN.
+*************************************************************************
+
+Description
+===========
+
+Default value 2. Upper bound of the interval where be computed the jumping
+numbers. The lower bound is *note SmallestJN: SmallestJN,.
+
+Functions with optional argument named BiggestJN:
+=================================================
+
+  * "MultiplierIdeals(...,BiggestJN=>...)"
+
+For the programmer
+==================
+
+The object *note BiggestJN: BiggestJN, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:721:0.
+
+File: MultiplierIdealsDim2.info, Node: JNandMI, Next: JumpingDivisor, Prev: BiggestJN, Up: Top
+
+JNandMI -- HashTable containing all the information about the Jumping Numbers
+*****************************************************************************
+
+Description
+===========
+
+This HashTable contains all the information about the jumping numbers that
+computes *note MultiplierIdeals: (MultiplierIdeals)Top,. As a key, it contains
+the Jumping Number and for each Jumping Number it contains the multiplicity,
+the divisor associated to the ideal, the Maximal and Minimal Jumping Divisors
+and (if it applies) the critical chains.
++-----------------------------------------------------------------------------+
+|i1 : E = matrix({{ -5,  0,  1,  0,  1},                                      |
+|                {  0, -2,  1,  0,  0},                                       |
+|                {  1,  1, -1,  0,  0},                                       |
+|                {  0,  0,  0, -2,  1},                                       |
+|                {  1,  0,  0,  1, -1}})                                      |
+|                                                                             |
+|o1 = | -5 0  1  0  1  |                                                      |
+|     | 0  -2 1  0  0  |                                                      |
+|     | 1  1  -1 0  0  |                                                      |
+|     | 0  0  0  -2 1  |                                                      |
+|     | 1  0  0  1  -1 |                                                      |
+|                                                                             |
+|              5       5                                                      |
+|o1 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i2 : F = matrix({{4,5,10,5,10}})                                             |
+|                                                                             |
+|o2 = | 4 5 10 5 10 |                                                         |
+|                                                                             |
+|              1       5                                                      |
+|o2 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i3 : MultiplierIdeals(F,E,BiggestJN => 1)                                    |
+|                                                                             |
+|                      1                                                      |
+|o3 =  Jumping number: -  Multiplicity: 1 Multiplier ideal: | 1 1 2 1 2 |     |
+|                      2                                                      |
+|                       7                                                     |
+|      Jumping number: --  Multiplicity: 2 Multiplier ideal: | 2 2 4 2 4 |    |
+|                      10                                                     |
+|                       9                                                     |
+|      Jumping number: --  Multiplicity: 2 Multiplier ideal: | 2 3 5 3 5 |    |
+|                      10                                                     |
+|      Jumping number: 1  Multiplicity: 1 Multiplier ideal: | 3 3 6 3 6 |     |
+|                                                                             |
+|                                                                             |
+|o3 : Type of HashTable                                                       |
+|-----------------------------------------------------------------------------|
+|Maximal jumping divisor: {| 1 0 1 0 1 |}                                     |
+|Minimal jumping divisor: {| 1 0 1 0 1 |}                                     |
+|                                                                             |
+| Maximal jumping divisor: {| 0 0 1 0 1 |}                                    |
+| Minimal jumping divisor: {| 0 0 1 0 1 |}                                    |
+|                                                                             |
+| Maximal jumping divisor: {| 0 0 1 0 1 |}                                    |
+| Minimal jumping divisor: {| 0 0 1 0 1 |}                                    |
+|Maximal jumping divisor: {| 1 1 1 1 1 |}                                     |
+|Minimal jumping divisor: {| 1 0 1 0 1 |}                                     |
++-----------------------------------------------------------------------------+
+|i4 : JNandMI                                                                 |
+|                                                                             |
+|                1                                                            |
+|o4 = HashTable{{-} => {1, | 1 1 2 1 2 |, | 1 0 1 0 1 |, | 1 0 1 0 1 |} }     |
+|                2                                                            |
+|               {1} => {1, | 3 3 6 3 6 |, | 1 1 1 1 1 |, | 1 0 1 0 1 |}       |
+|                 7                                                           |
+|               {--} => {2, | 2 2 4 2 4 |, | 0 0 1 0 1 |, | 0 0 1 0 1 |}      |
+|                10                                                           |
+|                 9                                                           |
+|               {--} => {2, | 2 3 5 3 5 |, | 0 0 1 0 1 |, | 0 0 1 0 1 |}      |
+|                10                                                           |
+|                                                                             |
+|o4 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note JNandMI: JNandMI, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:689:0.
+
+File: MultiplierIdealsDim2.info, Node: JumpingDivisor, Next: MaxIterations, Prev: JNandMI, Up: Top
+
+JumpingDivisor -- Show or not the jumping divisors.
+***************************************************
+
+Description
+===========
+
+Default value true, whether to show the jumping divisors associated to each
+jumping number or not.
+
+Functions with optional argument named JumpingDivisor:
+======================================================
+
+  * "MultiplierIdeals(...,JumpingDivisor=>...)"
+
+For the programmer
+==================
+
+The object *note JumpingDivisor: JumpingDivisor, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:735:0.
+
+File: MultiplierIdealsDim2.info, Node: MaxIterations, Next: MultIdeal, Prev: JumpingDivisor, Up: Top
+
+MaxIterations -- Limits the number of iterations of the Unloading algorithm.
+****************************************************************************
+
+Description
+===========
+
+Default value 10000. This variable is used to limitate the number of iterations
+of the Unloading algorithm. If the resulting divisor is not unloaded, a warning
+will appear.
+
+Functions with optional argument named MaxIterations:
+=====================================================
+
+  * "MultIdeal(...,MaxIterations=>...)"
+  * "MultiplierIdeals(...,MaxIterations=>...)"
+  * "Unloading(...,MaxIterations=>...)"
+
+For the programmer
+==================
+
+The object *note MaxIterations: MaxIterations, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:714:0.
+
+File: MultiplierIdealsDim2.info, Node: MultIdeal, Next: MultiplicityJN, Prev: MaxIterations, Up: Top
+
+MultIdeal -- Computes the multiplier ideal of a given number.
+*************************************************************
+
+  * Usage: 
+        MultIdeal(F,E,jn)
+  * Inputs:
+      * F, Matrix
+      * E, Matrix
+      * jn, Real number
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note MaxIterations: MaxIterations, => ..., default value 10000, Limits
+        the number of iterations of the Unloading algorithm.
+  * Outputs:
+      * The multiplier ideal associated to jn.
+
+Description
+===========
+
+Starting form the divisor encoded as a matrix of dimensions 1 x m, the
+intersection matrix as presented in [AAD14] and a real number, it returns the
+multiplier ideal associated to this number.
++--------------------------------------------+
+|i1 : E = matrix({{ -5,  0,  1,  0,  1},     |
+|                     {  0, -2,  1,  0,  0}, |
+|                     {  1,  1, -1,  0,  0}, |
+|                     {  0,  0,  0, -2,  1}, |
+|                     {  1,  0,  0,  1, -1}})|
+|                                            |
+|o1 = | -5 0  1  0  1  |                     |
+|     | 0  -2 1  0  0  |                     |
+|     | 1  1  -1 0  0  |                     |
+|     | 0  0  0  -2 1  |                     |
+|     | 1  0  0  1  -1 |                     |
+|                                            |
+|              5       5                     |
+|o1 : Matrix ZZ  <-- ZZ                      |
++--------------------------------------------+
+|i2 : F = matrix({{4,5,10,5,10}})            |
+|                                            |
+|o2 = | 4 5 10 5 10 |                        |
+|                                            |
+|              1       5                     |
+|o2 : Matrix ZZ  <-- ZZ                      |
++--------------------------------------------+
+|i3 : MultIdeal(F,E,1 / 2)                   |
+|                                            |
+|o3 = | 1 1 2 1 2 |                          |
+|                                            |
+|o3 : MutableMatrix                          |
++--------------------------------------------+
+
+For the programmer
+==================
+
+The object *note MultIdeal: MultIdeal, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:648:0.
+
+File: MultiplierIdealsDim2.info, Node: MultiplicityJN, Next: MultiplierIdeals, Prev: MultIdeal, Up: Top
+
+MultiplicityJN -- Computes the multiplicity as a jumping number.
+****************************************************************
+
+  * Usage: 
+        MultiplicityJN(F,E,jn)
+  * Inputs:
+      * F, Matrix
+      * E, Matrix
+      * jn, Real number
+  * Outputs:
+      * The multiplicity of jn as a jumping number.
+
+Description
+===========
+
+Starting form the divisor encoded as a matrix of dimensions 1 x m, the
+intersection matrix as presented in [AAD14] and a real number jn, it returns
+the multiplicity of jn as a jumping number. It is important to notice that if
+jn is not a jumping number, then the multiplicity will be zero.
++---------------------------------------+
+|i1 : E = matrix({{ -5,  0,  1,  0,  1},|
+|                {  0, -2,  1,  0,  0}, |
+|                {  1,  1, -1,  0,  0}, |
+|                {  0,  0,  0, -2,  1}, |
+|                {  1,  0,  0,  1, -1}})|
+|                                       |
+|o1 = | -5 0  1  0  1  |                |
+|     | 0  -2 1  0  0  |                |
+|     | 1  1  -1 0  0  |                |
+|     | 0  0  0  -2 1  |                |
+|     | 1  0  0  1  -1 |                |
+|                                       |
+|              5       5                |
+|o1 : Matrix ZZ  <-- ZZ                 |
++---------------------------------------+
+|i2 : F = matrix({{4,5,10,5,10}})       |
+|                                       |
+|o2 = | 4 5 10 5 10 |                   |
+|                                       |
+|              1       5                |
+|o2 : Matrix ZZ  <-- ZZ                 |
++---------------------------------------+
+|i3 : MultiplicityJN(F,E,1 / 2)         |
+|                                       |
+|o3 = 1                                 |
+|                                       |
+|o3 : QQ                                |
++---------------------------------------+
+
+For the programmer
+==================
+
+The object *note MultiplicityJN: MultiplicityJN, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:673:0.
+
+File: MultiplierIdealsDim2.info, Node: MultiplierIdeals, Next: RelativeCanonicalDivisor, Prev: MultiplicityJN, Up: Top
+
+MultiplierIdeals -- Computes the jumping numbers and their ideals
+*****************************************************************
+
+  * Usage: 
+        MultiplierIdeals(F,E)
+  * Inputs:
+      * F, Matrix
+      * E, Intersection matrix.
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note algorithm: algorithm, => ..., default value "AlbAlvDac", Method
+        used to compute the jumping numbers and multiplier ideals
+      * *note BiggestJN: BiggestJN, => ..., default value 2, Upper bound of the
+        interval where we want to compute the JN.
+      * *note JumpingDivisor: JumpingDivisor, => ..., default value true, Show
+        or not the jumping divisors.
+      * *note MaxIterations: MaxIterations, => ..., default value 10000, Limits
+        the number of iterations of the Unloading algorithm.
+      * *note SmallestJN: SmallestJN, => ..., default value 0, Lower bound of
+        the interval where we want to compute the JN.
+  * Outputs:
+      * A table that contains at least the jumping number, their multiplicities
+        and the ideals
+
+Description
+===========
+
+Starting form the divisor encoded as a matrix of dimensions 1 x m, and the
+intersection matrix as presented in [AAD14], the algorithm computes the jumping
+numbers for this ideal with their multiplicities and associated ideals in the
+interval (*note SmallestJN: SmallestJN,,*note BiggestJN: BiggestJN,].
++-----------------------------------------------------------------------------+
+|i1 : E = matrix({{ -5,  0,  1,  0,  1},                                      |
+|                     {  0, -2,  1,  0,  0},                                  |
+|                     {  1,  1, -1,  0,  0},                                  |
+|                     {  0,  0,  0, -2,  1},                                  |
+|                     {  1,  0,  0,  1, -1}})                                 |
+|                                                                             |
+|o1 = | -5 0  1  0  1  |                                                      |
+|     | 0  -2 1  0  0  |                                                      |
+|     | 1  1  -1 0  0  |                                                      |
+|     | 0  0  0  -2 1  |                                                      |
+|     | 1  0  0  1  -1 |                                                      |
+|                                                                             |
+|              5       5                                                      |
+|o1 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i2 : F = matrix({{4,5,10,5,10}})                                             |
+|                                                                             |
+|o2 = | 4 5 10 5 10 |                                                         |
+|                                                                             |
+|              1       5                                                      |
+|o2 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i3 : MultiplierIdeals(F,E,BiggestJN => 1)                                    |
+|                                                                             |
+|                      1                                                      |
+|o3 =  Jumping number: -  Multiplicity: 1 Multiplier ideal: | 1 1 2 1 2 |     |
+|                      2                                                      |
+|                       7                                                     |
+|      Jumping number: --  Multiplicity: 2 Multiplier ideal: | 2 2 4 2 4 |    |
+|                      10                                                     |
+|                       9                                                     |
+|      Jumping number: --  Multiplicity: 2 Multiplier ideal: | 2 3 5 3 5 |    |
+|                      10                                                     |
+|      Jumping number: 1  Multiplicity: 1 Multiplier ideal: | 3 3 6 3 6 |     |
+|                                                                             |
+|                                                                             |
+|o3 : Type of HashTable                                                       |
+|-----------------------------------------------------------------------------|
+|Maximal jumping divisor: {| 1 0 1 0 1 |}                                     |
+|Minimal jumping divisor: {| 1 0 1 0 1 |}                                     |
+|                                                                             |
+| Maximal jumping divisor: {| 0 0 1 0 1 |}                                    |
+| Minimal jumping divisor: {| 0 0 1 0 1 |}                                    |
+|                                                                             |
+| Maximal jumping divisor: {| 0 0 1 0 1 |}                                    |
+| Minimal jumping divisor: {| 0 0 1 0 1 |}                                    |
+|Maximal jumping divisor: {| 1 1 1 1 1 |}                                     |
+|Minimal jumping divisor: {| 1 0 1 0 1 |}                                     |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note MultiplierIdeals: (MultiplierIdeals)Top, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:581:0.
+
+File: MultiplierIdealsDim2.info, Node: RelativeCanonicalDivisor, Next: SmallestJN, Prev: MultiplierIdeals, Up: Top
+
+RelativeCanonicalDivisor -- computes the relative canonical divisor
+*******************************************************************
+
+  * Usage: 
+        RelativeCanonicalDivisor(E)
+  * Inputs:
+      * E, Intersection matrix.
+  * Outputs:
+      * The relative canonical divisor of the resolution.
+
+Description
+===========
+
+Starting form the intersection matrix as presented in [AAD14], it returns the
+relative canonical divisor of the resolution as a matrix 1 x m.
++--------------------------------------------+
+|i1 : E = matrix({{ -5,  0,  1,  0,  1},     |
+|                     {  0, -2,  1,  0,  0}, |
+|                     {  1,  1, -1,  0,  0}, |
+|                     {  0,  0,  0, -2,  1}, |
+|                     {  1,  0,  0,  1, -1}})|
+|                                            |
+|o1 = | -5 0  1  0  1  |                     |
+|     | 0  -2 1  0  0  |                     |
+|     | 1  1  -1 0  0  |                     |
+|     | 0  0  0  -2 1  |                     |
+|     | 1  0  0  1  -1 |                     |
+|                                            |
+|              5       5                     |
+|o1 : Matrix ZZ  <-- ZZ                      |
++--------------------------------------------+
+|i2 : RelativeCanonicalDivisor(E)            |
+|                                            |
+|o2 = | 1 2 4 2 4 |                          |
+|                                            |
+|              1       5                     |
+|o2 : Matrix QQ  <-- QQ                      |
++--------------------------------------------+
+
+For the programmer
+==================
+
+The object *note RelativeCanonicalDivisor: RelativeCanonicalDivisor, is a *note
+function closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:602:0.
+
+File: MultiplierIdealsDim2.info, Node: SmallestJN, Next: Unloading, Prev: RelativeCanonicalDivisor, Up: Top
+
+SmallestJN -- Lower bound of the interval where we want to compute the JN.
+**************************************************************************
+
+Description
+===========
+
+Default value 0. Lower bound of the interval where be computed the jumping
+numbers. The upper bound is *note BiggestJN: BiggestJN,.
+
+Functions with optional argument named SmallestJN:
+==================================================
+
+  * "MultiplierIdeals(...,SmallestJN=>...)"
+
+For the programmer
+==================
+
+The object *note SmallestJN: SmallestJN, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:728:0.
+
+File: MultiplierIdealsDim2.info, Node: Unloading, Next: UnloadingValue, Prev: SmallestJN, Up: Top
+
+Unloading -- Computes the antinef closure of a divisor.
+*******************************************************
+
+  * Usage: 
+        Unloading(D,E)
+  * Inputs:
+      * E, Intersection matrix.
+      * D, Matrix
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note MaxIterations: MaxIterations, => ..., default value 10000, Limits
+        the number of iterations of the Unloading algorithm.
+      * *note UnloadingValue: UnloadingValue, => ..., default value false, Show
+        the maximum of the unloaded values
+  * Outputs:
+      * Starting form the divisor encoded as a matrix of dimensions 1 x m, and
+        the intersection matrix as presented in [AAD14], it returns the antinef
+        closure of the divisor.
+
+Description
+===========
+
++--------------------------------------------+
+|i1 : E = matrix({{ -5,  0,  1,  0,  1},     |
+|                     {  0, -2,  1,  0,  0}, |
+|                     {  1,  1, -1,  0,  0}, |
+|                     {  0,  0,  0, -2,  1}, |
+|                     {  1,  0,  0,  1, -1}})|
+|                                            |
+|o1 = | -5 0  1  0  1  |                     |
+|     | 0  -2 1  0  0  |                     |
+|     | 1  1  -1 0  0  |                     |
+|     | 0  0  0  -2 1  |                     |
+|     | 1  0  0  1  -1 |                     |
+|                                            |
+|              5       5                     |
+|o1 : Matrix ZZ  <-- ZZ                      |
++--------------------------------------------+
+|i2 : D = matrix({{1,9,8,8,5}})              |
+|                                            |
+|o2 = | 1 9 8 8 5 |                          |
+|                                            |
+|              1       5                     |
+|o2 : Matrix ZZ  <-- ZZ                      |
++--------------------------------------------+
+|i3 : Unloading(D,E)                         |
+|                                            |
+|o3 = | 6 9 15 8 14 |                        |
+|                                            |
+|o3 : MutableMatrix                          |
++--------------------------------------------+
+
+For the programmer
+==================
+
+The object *note Unloading: Unloading, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:624:0.
+
+File: MultiplierIdealsDim2.info, Node: UnloadingValue, Prev: Unloading, Up: Top
+
+UnloadingValue -- Show the maximum of the unloaded values
+*********************************************************
+
+Description
+===========
+
+Default value false, whether to show the maximum excess in the unloading
+procedure.
+
+Functions with optional argument named UnloadingValue:
+======================================================
+
+  * "Unloading(...,UnloadingValue=>...)"
+
+For the programmer
+==================
+
+The object *note UnloadingValue: UnloadingValue, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MultiplierIdealsDim2.m2:742:0.
+
+Tag Table:
+Node: Top273
+Node: algorithm5553
+Node: BiggestJN6974
+Node: JNandMI7788
+Node: JumpingDivisor13882
+Node: MaxIterations14651
+Node: MultIdeal15621
+Node: MultiplicityJN18110
+Node: MultiplierIdeals20359
+Node: RelativeCanonicalDivisor26212
+Node: SmallestJN28196
+Node: Unloading29033
+Node: UnloadingValue31568
+
+End Tag Table

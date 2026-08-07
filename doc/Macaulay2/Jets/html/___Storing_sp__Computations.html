@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Storing Computations -- caching scheme for jets computations</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="compute jets of various algebraic, geometric and combinatorial objects" href="index.html">Jets</a> » <a title="caching scheme for jets computations" href="___Storing_sp__Computations.html">Storing Computations</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+next | <a href="___Example_sp4.html">previous</a> | <a href="_jet.html">forward</a> | <a href="___Example_sp4.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Storing Computations -- caching scheme for jets computations</h1>
+      <div>
+        <div>
+          <p>In many cases, the <a title="compute the jets of an object" href="_jets.html">jets</a> method will store its results inside a <a title="hash tables for caching" href="../../Macaulay2Doc/html/___Cache__Table.html">CacheTable</a> in the base object. When the method is called again with the same or a lower jets order, the result is pulled from the cache.</p>
+          <p>For polynomial rings, data is stored under <span class="tt">*.jet</span>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[x,y]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : R.?jet
+
+o2 = false</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : jets(3,R)
+
+o3 = QQ[x0, y0][x1, y1][x2, y2][x3, y3]
+
+o3 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : R.?jet
+
+o4 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : peek R.jet
+
+o5 = CacheTable{jetsMaxOrder => 3                             }
+                jetsRing => QQ[x0, y0][x1, y1][x2, y2][x3, y3]</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Note also that rings of jets are built as towers from lower to higher jets orders. Therefore it is possible to store a single ring of the highest order computed thus far.</p>
+          <p>For ideals, data is stored under <span class="tt">*.cache.jet</span>. A single matrix is stored containing generators for the highest order of jets computed thus far. Generators for lower orders are recovered from this matrix without additional computations.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : I = ideal (x^2 - y)
+
+            2
+o6 = ideal(x  - y)
+
+o6 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : I.cache.?jet
+
+o7 = false</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : elapsedTime jets(3,I)
+ -- .00919824s elapsed
+
+                                                  2                 2
+o8 = ideal (2x0*x3 - y3 + 2x1*x2, 2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+
+o8 : Ideal of QQ[x0, y0][x1, y1][x2, y2][x3, y3]</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : I.cache.?jet
+
+o9 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : peek I.cache.jet
+
+o10 = CacheTable{jetsMatrix => | 2x0x3-y3+2x1x2 |}
+                               | 2x0x2-y2+x1^2  |
+                               | 2x0x1-y1       |
+                               | x0^2-y0        |
+                 jetsMaxOrder => 3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : elapsedTime jets(3,I)
+ -- .00317105s elapsed
+
+                                                   2                 2
+o11 = ideal (2x0*x3 - y3 + 2x1*x2, 2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+
+o11 : Ideal of QQ[x0, y0][x1, y1][x2, y2][x3, y3]</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : elapsedTime jets(2,I)
+ -- .00285541s elapsed
+
+                             2                 2
+o12 = ideal (2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+
+o12 : Ideal of QQ[x0, y0][x1, y1][x2, y2]</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>For quotient rings, data is stored under <span class="tt">*.jet</span>. Each jets order gives rise to a different quotient that is stored separately under <span class="tt">*.jet.jetsRing</span> (order zero jets are always included by default).</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : Q = R/I
+
+o13 = Q
+
+o13 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : Q.?jet
+
+o14 = false</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : jets(3,Q)
+
+                     QQ[x0, y0][x1, y1][x2, y2][x3, y3]
+o15 = ----------------------------------------------------------------
+                                             2                 2
+      (2x0*x3 - y3 + 2x1*x2, 2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+
+o15 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : Q.?jet
+
+o16 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : peek Q.jet.jetsRing
+
+                                     QQ[x0, y0][x1, y1][x2, y2][x3, y3]
+o17 = CacheTable{3 => ----------------------------------------------------------------}
+                                                             2                 2
+                      (2x0*x3 - y3 + 2x1*x2, 2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+                      QQ[x0, y0]
+                 0 => ----------
+                         2
+                       x0  - y0</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : jets(2,Q)
+
+              QQ[x0, y0][x1, y1][x2, y2]
+o18 = ------------------------------------------
+                       2                 2
+      (2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+
+o18 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : peek Q.jet.jetsRing
+
+                                     QQ[x0, y0][x1, y1][x2, y2][x3, y3]
+o19 = CacheTable{3 => ----------------------------------------------------------------}
+                                                             2                 2
+                      (2x0*x3 - y3 + 2x1*x2, 2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+                              QQ[x0, y0][x1, y1][x2, y2]
+                 2 => ------------------------------------------
+                                       2                 2
+                      (2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+                      QQ[x0, y0]
+                 0 => ----------
+                         2
+                       x0  - y0</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>For ring homomorphisms, data is stored under <span class="tt">*.cache.jet</span>. A single matrix is stored describing the map for the highest order of jets computed thus far. Lower orders map are recovered from this matrix without additional computations.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : S = QQ[t]
+
+o20 = S
+
+o20 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : f = map(S,Q,{t,t^2})
+
+                      2
+o21 = map (S, Q, {t, t })
+
+o21 : RingMap S &lt;-- Q</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : isWellDefined f
+
+o22 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : f.cache.?jet
+
+o23 = false</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : elapsedTime jets(3,f)
+ -- .0143209s elapsed
+
+                                              QQ[x0, y0][x1, y1][x2, y2][x3, y3]                                                      2                    2
+o24 = map (QQ[t0][t1][t2][t3], ----------------------------------------------------------------, {t3, 2t0*t3 + 2t1*t2, t2, 2t0*t2 + t1 , t1, 2t0*t1, t0, t0 })
+                                                                      2                 2
+                               (2x0*x3 - y3 + 2x1*x2, 2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+
+                                                    QQ[x0, y0][x1, y1][x2, y2][x3, y3]
+o24 : RingMap QQ[t0][t1][t2][t3] &lt;-- ----------------------------------------------------------------
+                                                                            2                 2
+                                     (2x0*x3 - y3 + 2x1*x2, 2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : f.cache.?jet
+
+o25 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : peek f.cache.jet
+
+o26 = CacheTable{jetsMatrix => | t3 2t0t3+2t1t2 |}
+                               | t2 2t0t2+t1^2  |
+                               | t1 2t0t1       |
+                               | t0 t0^2        |
+                 jetsMaxOrder => 3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : elapsedTime jets(2,f)
+ -- .00095448s elapsed
+
+                                   QQ[x0, y0][x1, y1][x2, y2]                          2                    2
+o27 = map (QQ[t0][t1][t2], ------------------------------------------, {t2, 2t0*t2 + t1 , t1, 2t0*t1, t0, t0 })
+                                            2                 2
+                           (2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+
+                                         QQ[x0, y0][x1, y1][x2, y2]
+o27 : RingMap QQ[t0][t1][t2] &lt;-- ------------------------------------------
+                                                  2                 2
+                                 (2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Projective jets data is stored separately under <span class="tt">*.projet</span> or <span class="tt">*.cache.projet</span> to accommodate for the different grading.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : jets(2,I,Projective=>true)
+
+                             2                 2
+o28 = ideal (2x0*x2 - y2 + x1 , 2x0*x1 - y1, x0  - y0)
+
+o28 : Ideal of QQ[x0, y0][x1, y1][x2, y2]</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : peek I.cache.projet
+
+o29 = CacheTable{jetsMatrix => {-2} | 2x0x2-y2+x1^2 |}
+                               {-1} | 2x0x1-y1      |
+                               {0}  | x0^2-y0       |
+                 jetsMaxOrder => 2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i30 : peek R.projet
+
+o30 = CacheTable{jetsMaxOrder => 2                     }
+                 jetsRing => QQ[x0, y0][x1, y1][x2, y2]</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>No data is cached when computing jets of affine varieties and (hyper)graphs, radicals, or principal components.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="hashtable key" href="_jet.html">jet</a> -- hashtable key</span></li>
+          <li><span><a title="hashtable key" href="_projet.html">projet</a> -- hashtable key</span></li>
+          <li><span><a title="hashtable value" href="_jets__Ring.html">jetsRing</a> -- hashtable value</span></li>
+          <li><span><a title="hashtable value" href="_jets__Max__Order.html">jetsMaxOrder</a> -- hashtable value</span></li>
+          <li><span><a title="hashtable value" href="_jets__Matrix.html">jetsMatrix</a> -- hashtable value</span></li>
+          <li><span><a title="hashtable value" href="_jets__Base.html">jetsBase</a> -- hashtable value</span></li>
+          <li><span><a title="hashtable key" href="_jets__Info.html">jetsInfo</a> -- hashtable key</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Jets.m2:1710:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

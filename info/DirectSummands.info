@@ -1,0 +1,1787 @@
+ -*- coding: utf-8 -*- This is DirectSummands.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* DirectSummands: (DirectSummands).  decompositions of modules and coherent sheaves
+END-INFO-DIR-ENTRY
+
+
+File: DirectSummands.info, Node: Top, Up: (dir)
+
+DirectSummands -- decompositions of graded modules and coherent sheaves
+***********************************************************************
+
+Description
+===========
+
+This package implements algorithms for computing indecomposable summands of
+finitely generated $R$-module $M$ over a $k$-algebra when $M$ is either a
+homogeneous module over a (multi)graded ring with $k$ a field of arbitrary
+characteristic, or when $R$ is local and $k$ a field of positive characteristic
+contained in $\overline{\mathbb F_p}$.
+
+Further, in the graded case, this package enables the computation of
+indecomposable summands of coherent sheaves on subvarieties of the projective
+space $\PP^n$ as well as other complete toric varieties, while in the local
+case it enables the study of germs of inhomogeneous singularities in positive
+characteristic.
+
+ Primary methods:
+
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+  * *note isIndecomposable: isIndecomposable, -- tests whether a module or
+    coherent sheaf is indecomposable
+
+ Supporting methods:
+
+  * *note changeBaseField: changeBaseField, -- extend scalars for modules,
+    matrices, and coherent sheaves
+  * *note generalEndomorphism: generalEndomorphism, -- construct a generic
+    degree-zero endomorphism
+  * *note findProjectors: findProjectors, -- construct projectors on a
+    homogeneous module
+  * *note findIdempotents: findIdempotents, -- construct idempotent
+    endomorphisms
+  * *note findSplitInclusion: findSplitInclusion, -- construct a split
+    inclusion of one module into another
+  * *note isomorphismTally: isomorphismTally, -- group isomorphic modules or
+    sheaves in a list
+  * *note tallySummands: tallySummands, -- tally a list of modules up to
+    isomorphism
+  * *note potentialExtension: potentialExtension, -- suggest a field extension
+    where splitting may become visible
+
+ Featured applications:
+
+  * *note Example_colon_ summands of the Frobenius pushforward: Example_co
+    summands of the Frobenius pushforward,
+  * *note Example_colon_ syzygies over Artinian rings: Example_co syzygies over
+    Artinian rings,
+  * *note Example_colon_ symbolic diagonalization: Example_co symbolic
+    diagonalization,
+
+The decomposition algorithms are randomized, so repeated runs may sample
+different endomorphisms. Over a large enough field, this implementation is
+often capable of completely decomposing a module in a single non-recursive
+iteration. When a decomposition appears only after extending scalars, the
+package can suggest or carry out a field extension via *note
+potentialExtension: potentialExtension, and *note changeBaseField:
+changeBaseField,.
+
+The package also (temporarily) includes utilities for working with the
+Frobenius map in positive characteristic: *note frobeniusMap: frobeniusMap,,
+*note frobeniusRing: frobeniusRing,, *note frobeniusPullback:
+frobeniusPullback,, *note frobeniusPushforward: frobeniusPushforward,, and
+*note frobeniusTwist: frobeniusTwist,.  These make it possible to study
+decompositions of Frobenius pushforwards of modules and sheaves, which is one
+of the motivating applications.
+
+As a sample computation, consider the splitting of the Frobenius pushforward of
+the structure sheaf of an elliptic curve over $\mathbb F_7$ and after base
+change to $\mathbb F_{49}$.
+
++--------------------------------------------------------------------+
+|i1 : R = ZZ/7[x,y,z]/(x^3+y^3+z^3);                                 |
++--------------------------------------------------------------------+
+|i2 : X = Proj R;                                                    |
++--------------------------------------------------------------------+
+|i3 : F = frobeniusPushforward(1, OO_X);                             |
++--------------------------------------------------------------------+
+|i4 : elapsedTime tallySummands summands F                           |
+| -- try using changeBaseField with GF 49                            |
+| -- try using changeBaseField with GF 49                            |
+| -- try using changeBaseField with GF 49                            |
+| -- 3.75566s elapsed                                                |
+|                                                                    |
+|o4 = Tally{cokernel {1} | x   -2z -3y -y  0   0   | => 1}           |
+|                    {1} | 3z  -y  0   x   2z  -2y |                 |
+|                    {1} | -3y x   z   -3z 0   0   |                 |
+|                    {1} | 0   0   -3y y   x   -3z |                 |
+|                    {1} | -2z 2y  x   0   -z  3y  |                 |
+|                    {1} | 0   0   -z  -3z -2y x   |                 |
+|           cokernel {1} | x   -z 2y  3y  0  0   | => 1              |
+|                    {1} | -2z 3y 0   x   z  -y  |                   |
+|                    {1} | 2y  x  -3z 2z  0  0   |                   |
+|                    {1} | 0   0  2y  -3y x  2z  |                   |
+|                    {1} | -z  y  x   0   3z -2y |                   |
+|                    {1} | 0   0  3z  2z  -y x   |                   |
+|           cokernel {1} | x  3z  y   -2y 0   0  | => 1              |
+|                    {1} | -z -2y 0   x   -3z 3y |                   |
+|                    {1} | y  x   2z  z   0   0  |                   |
+|                    {1} | 0  0   y   2y  x   z  |                   |
+|                    {1} | 3z -3y x   0   -2z -y |                   |
+|                    {1} | 0  0   -2z z   3y  x  |                   |
+|            1                                                       |
+|           R  => 1                                                  |
+|                                                                    |
+|o4 : Tally                                                          |
++--------------------------------------------------------------------+
+|i5 : elapsedTime tallySummands summands changeBaseField(GF(7, 2), F)|
+| -- 12.7434s elapsed                                                |
+|                                                                    |
+|o5 = Tally{cokernel {1} | (-2a+1)y x  z       | => 1      }         |
+|                    {1} | x        az (-a-3)y |                     |
+|                    {1} | (2a-2)z  3y x       |                     |
+|           cokernel {1} | (-3a-2)y x        2z      | => 1          |
+|                    {1} | x        (-2a+2)z (2a-1)y |               |
+|                    {1} | 3az      -y       x       |               |
+|           cokernel {1} | (-a-3)y x    -3z     | => 1               |
+|                    {1} | x       -3az (3a+2)y |                    |
+|                    {1} | (a-1)z  -2y  x       |                    |
+|           cokernel {1} | (2a-1)y x       z      | => 1             |
+|                    {1} | x       (-a+1)z (a+3)y |                  |
+|                    {1} | -2az    3y      x      |                  |
+|           cokernel {1} | (3a+2)y  x   2z       | => 1              |
+|                    {1} | x        2az (-2a+1)y |                   |
+|                    {1} | (-3a+3)z -y  x        |                   |
+|           cokernel {1} | (a+3)y x       -3z      | => 1            |
+|                    {1} | x      (3a-3)z (-3a-2)y |                 |
+|                    {1} | -az    -2y     x        |                 |
+|           / GF 49[x..z]\1                                          |
+|           |------------|  => 1                                     |
+|           | 3    3    3|                                           |
+|           \x  + y  + z /                                           |
+|                                                                    |
+|o5 : Tally                                                          |
++--------------------------------------------------------------------+
+
+Acknowledgement
+===============
+
+The authors thank the organizers of the Macaulay2 workshop at AIM (see
+https://aimath.org/pastworkshops/macaulay2efie.html ), where significant
+progress on this package was made.
+
+References
+==========
+
+Computing direct sum decompositions (see
+https://doi.org/10.1016/j.jsc.2025.102486 ), Mallory and Sayrafi, Journal of
+Symbolic Computation, Volume 133, March–April 2026 [arXiv:2412.19799] (see
+https://arxiv.org/abs/2412.19799v2 ).
+
+* Menu:
+
+* Example_colon_ summands of the Frobenius pushforward: Example_co summands of the Frobenius pushforward.
+* Example_colon_ syzygies over Artinian rings: Example_co syzygies over Artinian rings.
+* Example_colon_ symbolic diagonalization: Example_co symbolic diagonalization.
+* directSummands::              compute the direct summands of a module or coherent sheaf
+* isDirectSummand::             test whether one module is a direct summand of another
+* isIndecomposable::            tests whether a module or coherent sheaf is indecomposable
+* findProjectors::              construct projectors on a homogeneous module
+* findIdempotents::             construct idempotent endomorphisms
+* findSplitInclusion::          construct a split inclusion of one module into another
+* generalEndomorphism::         construct a generic degree-zero endomorphism
+* isomorphismTally::            group isomorphic modules or sheaves in a list
+* tallySummands::               tally a list of modules up to isomorphism
+* potentialExtension::          suggest a field extension where splitting may become visible
+* changeBaseField::             extend scalars for modules, matrices, and coherent sheaves
+
+Authors
+=======
+
+  * Devlin Mallory (see https://math.utah.edu/~malloryd/ )
+    <malloryd@math.utah.edu>
+  * Mahrud Sayrafi (see https://math.umn.edu/~mahrud/ ) <mahrud@umn.edu>
+
+Version
+=======
+
+This documentation describes version 0.4 of DirectSummands, released May 8th
+2026.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-------------------------------------------------------+
+|@article{MS26,                                         |
+|  author       = {Mallory, Devlin and Sayrafi, Mahrud},|
+|  title        = {Computing direct sum decompositions},|
+|  journal      = {J. Symbolic Comput.},                |
+|  fjournal     = {Journal of Symbolic Computation},    |
+|  volume       = {133},                                |
+|  year         = {2026},                               |
+|  doi          = {10.1016/j.jsc.2025.102486},          |
+|}                                                      |
++-------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note changeBaseField: changeBaseField, -- extend scalars for modules,
+        matrices, and coherent sheaves
+      * *note directSummands: directSummands, -- compute the direct summands of
+        a module or coherent sheaf
+      * *note findIdempotents: findIdempotents, -- construct idempotent
+        endomorphisms
+      * *note findProjectors: findProjectors, -- construct projectors on a
+        homogeneous module
+      * *note findSplitInclusion: findSplitInclusion, -- construct a split
+        inclusion of one module into another
+      * *note frobeniusMap: frobeniusMap, -- the iterated Frobenius map of a
+        ring in positive characteristic
+      * *note frobeniusPullback: frobeniusPullback, -- compute Frobenius
+        pullbacks
+      * *note frobeniusPushforward: frobeniusPushforward, -- compute Frobenius
+        pushforwards
+      * *note frobeniusRing: frobeniusRing, -- construct the source ring for an
+        iterated Frobenius map
+      * *note frobeniusTwist: frobeniusTwist, -- apply the Frobenius twist to
+        rings, modules, and matrices
+      * *note generalEndomorphism: generalEndomorphism, -- construct a generic
+        degree-zero endomorphism
+      * *note isDirectSummand: isDirectSummand, -- test whether one module is a
+        direct summand of another
+      * *note isIndecomposable: isIndecomposable, -- tests whether a module or
+        coherent sheaf is indecomposable
+      * *note isomorphismTally: isomorphismTally, -- group isomorphic modules
+        or sheaves in a list
+      * *note potentialExtension: potentialExtension, -- suggest a field
+        extension where splitting may become visible
+      * *note tallySummands: tallySummands, -- tally a list of modules up to
+        isomorphism
+  * Methods
+      * "changeBaseField(GaloisField,Module)" -- see *note changeBaseField:
+        changeBaseField, -- extend scalars for modules, matrices, and coherent
+        sheaves
+      * "changeBaseField(Ring,Matrix)" -- see *note changeBaseField:
+        changeBaseField, -- extend scalars for modules, matrices, and coherent
+        sheaves
+      * "changeBaseField(Ring,Module)" -- see *note changeBaseField:
+        changeBaseField, -- extend scalars for modules, matrices, and coherent
+        sheaves
+      * "changeBaseField(ZZ,Module)" -- see *note changeBaseField:
+        changeBaseField, -- extend scalars for modules, matrices, and coherent
+        sheaves
+      * "directSummands(List,Module)" -- see *note directSummands:
+        directSummands, -- compute the direct summands of a module or coherent
+        sheaf
+      * "directSummands(Module)" -- see *note directSummands: directSummands,
+        -- compute the direct summands of a module or coherent sheaf
+      * "directSummands(Module,Module)" -- see *note directSummands:
+        directSummands, -- compute the direct summands of a module or coherent
+        sheaf
+      * "findIdempotents(Module)" -- see *note findIdempotents:
+        findIdempotents, -- construct idempotent endomorphisms
+      * "findProjectors(Module)" -- see *note findProjectors: findProjectors,
+        -- construct projectors on a homogeneous module
+      * "findSplitInclusion(Module,Module)" -- see *note findSplitInclusion:
+        findSplitInclusion, -- construct a split inclusion of one module into
+        another
+      * "frobeniusMap(Ring,ZZ)" -- see *note frobeniusMap: frobeniusMap, -- the
+        iterated Frobenius map of a ring in positive characteristic
+      * "frobeniusMap(ZZ,Ring)" -- see *note frobeniusMap: frobeniusMap, -- the
+        iterated Frobenius map of a ring in positive characteristic
+      * "frobeniusPullback(ZZ,Ideal)" -- see *note frobeniusPullback:
+        frobeniusPullback, -- compute Frobenius pullbacks
+      * "frobeniusPullback(ZZ,Matrix)" -- see *note frobeniusPullback:
+        frobeniusPullback, -- compute Frobenius pullbacks
+      * "frobeniusPullback(ZZ,Module)" -- see *note frobeniusPullback:
+        frobeniusPullback, -- compute Frobenius pullbacks
+      * "frobeniusPullback(ZZ,Ring)" -- see *note frobeniusPullback:
+        frobeniusPullback, -- compute Frobenius pullbacks
+      * "frobeniusPushforward(ZZ,Ideal)" -- see *note frobeniusPushforward:
+        frobeniusPushforward, -- compute Frobenius pushforwards
+      * "frobeniusPushforward(ZZ,Matrix)" -- see *note frobeniusPushforward:
+        frobeniusPushforward, -- compute Frobenius pushforwards
+      * "frobeniusPushforward(ZZ,Module)" -- see *note frobeniusPushforward:
+        frobeniusPushforward, -- compute Frobenius pushforwards
+      * "frobeniusPushforward(ZZ,Ring)" -- see *note frobeniusPushforward:
+        frobeniusPushforward, -- compute Frobenius pushforwards
+      * "frobeniusRing(ZZ,Ring)" -- see *note frobeniusRing: frobeniusRing, --
+        construct the source ring for an iterated Frobenius map
+      * "frobeniusTwist(ZZ,Ideal)" -- see *note frobeniusTwist: frobeniusTwist,
+        -- apply the Frobenius twist to rings, modules, and matrices
+      * "frobeniusTwist(ZZ,Matrix)" -- see *note frobeniusTwist:
+        frobeniusTwist, -- apply the Frobenius twist to rings, modules, and
+        matrices
+      * "frobeniusTwist(ZZ,Module)" -- see *note frobeniusTwist:
+        frobeniusTwist, -- apply the Frobenius twist to rings, modules, and
+        matrices
+      * "frobeniusTwist(ZZ,Ring)" -- see *note frobeniusTwist: frobeniusTwist,
+        -- apply the Frobenius twist to rings, modules, and matrices
+      * "generalEndomorphism(Matrix,Nothing,Matrix)" -- see *note
+        generalEndomorphism: generalEndomorphism, -- construct a generic
+        degree-zero endomorphism
+      * "generalEndomorphism(Module)" -- see *note generalEndomorphism:
+        generalEndomorphism, -- construct a generic degree-zero endomorphism
+      * "generalEndomorphism(Module,Matrix)" -- see *note generalEndomorphism:
+        generalEndomorphism, -- construct a generic degree-zero endomorphism
+      * "generalEndomorphism(Module,Matrix,Matrix)" -- see *note
+        generalEndomorphism: generalEndomorphism, -- construct a generic
+        degree-zero endomorphism
+      * "generalEndomorphism(Module,Matrix,Nothing)" -- see *note
+        generalEndomorphism: generalEndomorphism, -- construct a generic
+        degree-zero endomorphism
+      * "isDirectSummand(Module,Module)" -- see *note isDirectSummand:
+        isDirectSummand, -- test whether one module is a direct summand of
+        another
+      * "isIndecomposable(Module)" -- see *note isIndecomposable:
+        isIndecomposable, -- tests whether a module or coherent sheaf is
+        indecomposable
+      * "isomorphismTally(List)" -- see *note isomorphismTally:
+        isomorphismTally, -- group isomorphic modules or sheaves in a list
+      * "potentialExtension(Module)" -- see *note potentialExtension:
+        potentialExtension, -- suggest a field extension where splitting may
+        become visible
+      * "tallySummands(List)" -- see *note tallySummands: tallySummands, --
+        tally a list of modules up to isomorphism
+
+For the programmer
+==================
+
+The object *note DirectSummands: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in DirectSummands.m2, with auxiliary files in
+DirectSummands/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: Example_co summands of the Frobenius pushforward, Next: Example_co syzygies over Artinian rings, Up: Top
+
+Example: summands of the Frobenius pushforward
+**********************************************
+
+Here we present examples of using this package to study summands of the
+Frobenius pushforward of the structure sheaf on different varieties. Depending
+on the geometry, the result may be a complete splitting into line bundles, a
+decomposition involving higher-rank indecomposable summands, a decomposition
+that becomes finer only after extending the ground field, or an indecomposable
+bundle.
+
+For further details, see Section 5 of [MS26] (see
+https://doi.org/10.1016/j.jsc.2025.102486 ), Further references for the
+geometric situations are collected in that section.
+
+The following computations illustrate several common patterns: standard and
+multigraded examples, Grassmannian examples with higher-rank summands, and
+computations on an elliptic curve.
+
++-------------------------------------------------+
+|i1 : S = ZZ/3[x_0..x_2];                         |
++-------------------------------------------------+
+|i2 : X = Proj S;                                 |
++-------------------------------------------------+
+|i3 : tally summands frobeniusPushforward(1, OO_X)|
+|                                                 |
+|              1                                  |
+|o3 = Tally{OO   => 1    }                        |
+|             X                                   |
+|              1                                  |
+|           OO  (-1) => 7                         |
+|             X                                   |
+|              1                                  |
+|           OO  (-2) => 1                         |
+|             X                                   |
+|                                                 |
+|o3 : Tally                                       |
++-------------------------------------------------+
+
+Base change is often essential when the bundle splits only over a larger finite
+field. In that situation, *note changeBaseField: changeBaseField, and *note
+potentialExtension: potentialExtension, are useful.
+
++-------------------------------------------------+
+|i4 : R = ZZ/7[x,y,z]/(x^3+y^3+z^3);              |
++-------------------------------------------------+
+|i5 : X = Proj R;                                 |
++-------------------------------------------------+
+|i6 : F = frobeniusPushforward(1, OO_X);          |
++-------------------------------------------------+
+|i7 : rank \ summands F                           |
+| -- try using changeBaseField with GF 49         |
+| -- try using changeBaseField with GF 49         |
+| -- try using changeBaseField with GF 49         |
+|                                                 |
+|o7 = {1, 2, 2, 2}                                |
+|                                                 |
+|o7 : List                                        |
++-------------------------------------------------+
+|i8 : potentialExtension F                        |
+|                                                 |
+|o8 = GF 49                                       |
+|                                                 |
+|o8 : GaloisField                                 |
++-------------------------------------------------+
+|i9 : rank \ summands changeBaseField(GF(7, 2), F)|
+|                                                 |
+|o9 = {1, 1, 1, 1, 1, 1, 1}                       |
+|                                                 |
+|o9 : List                                        |
++-------------------------------------------------+
+
+Outside of toric varieties, Frobenius pushforwards of the structure sheaf
+contain higher-rank indecomposable bundles in addition to line bundles.
+
++----------------------------------------------------------------------+
+|i10 : R = quotient Grassmannian(1, 3, CoefficientRing => ZZ/3);       |
++----------------------------------------------------------------------+
+|i11 : X = Proj R                                                      |
+|                                                                      |
+|o11 = X                                                               |
+|                                                                      |
+|o11 : ProjectiveVariety                                               |
++----------------------------------------------------------------------+
+|i12 : tallySummands summands frobeniusPushforward(1, OO_X)            |
+|                                                                      |
+|o12 = Tally{cokernel {2} | -p_(0,3) 0        -p_(2,3) -p_(1,3) | => 4}|
+|                     {2} | p_(0,2)  -p_(2,3) 0        p_(1,2)  |      |
+|                     {2} | p_(0,1)  -p_(1,3) -p_(1,2) 0        |      |
+|                     {2} | 0        p_(0,3)  p_(0,2)  p_(0,1)  |      |
+|            cokernel {2} | p_(1,2)  0        p_(2,3)  p_(1,3)  | => 4 |
+|                     {2} | -p_(0,2) p_(2,3)  0        -p_(0,3) |      |
+|                     {2} | p_(0,1)  -p_(1,3) -p_(0,3) 0        |      |
+|                     {2} | 0        p_(1,2)  p_(0,2)  p_(0,1)  |      |
+|             1                                                        |
+|            R  => 65                                                  |
+|                                                                      |
+|o12 : Tally                                                           |
++----------------------------------------------------------------------+
+|i13 : rank \ keys oo                                                  |
+|                                                                      |
+|o13 = {2, 2, 1}                                                       |
+|                                                                      |
+|o13 : List                                                            |
++----------------------------------------------------------------------+
+
+In non-homogeneous situations, decompositions indicate the local singularities
+of the ring. For example, the following ring is an example of a D51 rational
+double point singularity in characteristic 2, for which we can compute the
+Frobenius pushforward of the ring and observe that it is $F$-split; further
+pushforwards would reveal that it is not F-regular. (Note that this ring is not
+quasihomogeneous.)
+
++-----------------------------------------------------------------------------+
+|i14 : R = ZZ/2[x,y,z]/(x^2*y + x*y^2 + x*y*z + z^2);                         |
++-----------------------------------------------------------------------------+
+|i15 : F = frobeniusPushforward(1, R)                                         |
+|                                                                             |
+|o15 = cokernel | 0     0 xy xz       yz       z2       yz    |               |
+|               | z     0 0  0        xy+y2+yz yz       y2+yz |               |
+|               | x+y+z z y  z        z        0        0     |               |
+|               | 0     y y  z        0        xy+y2+yz 0     |               |
+|               | z     0 z  x2+xy+xz 0        xz+z2    xy    |               |
+|               | 0     x 0  0        z        0        z     |               |
+|               | z     z 0  0        0        yz       xy    |               |
+|                                                                             |
+|              ZZ                                  /        ZZ             \  |
+|              --[x..z]                            |        --[x..z]       |  |
+|               2                                  |         2             |7 |
+|o15 : ------------------------module, quotient of |-----------------------|  |
+|       2       2            2                     | 2       2            2|  |
+|      x y + x*y  + x*y*z + z                      \x y + x*y  + x*y*z + z /  |
++-----------------------------------------------------------------------------+
+|i16 : summands F                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|o16 = {cokernel | x+y+z z  |, cokernel | x    z     |, cokernel | y z        |
+|                | z     xy |           | xy+z xy+y2 |           | z x2+xy+xz |
+|                                                                             |
+|      -----------------------------------------------------------------------|
+|         /        ZZ             \                                           |
+|         |        --[x..z]       |                                           |
+|         |         2             |1                                          |
+|      |, |-----------------------| }                                         |
+|      |  | 2       2            2|                                           |
+|         \x y + x*y  + x*y*z + z /                                           |
+|                                                                             |
+|o16 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+  * *note changeBaseField: changeBaseField, -- extend scalars for modules,
+    matrices, and coherent sheaves
+  * *note potentialExtension: potentialExtension, -- suggest a field extension
+    where splitting may become visible
+* Menu:
+
+* frobeniusMap::                the iterated Frobenius map of a ring in positive characteristic
+* frobeniusRing::               construct the source ring for an iterated Frobenius map
+* frobeniusPullback::           compute Frobenius pullbacks
+* frobeniusPushforward::        compute Frobenius pushforwards
+* frobeniusTwist::              apply the Frobenius twist to rings, modules, and matrices
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: frobeniusMap, Next: frobeniusRing, Up: Example_co summands of the Frobenius pushforward
+
+frobeniusMap -- the iterated Frobenius map of a ring in positive characteristic
+*******************************************************************************
+
+  * Usage: 
+        frobeniusMap(e, R)
+  * Inputs:
+      * e, an *note integer: (Macaulay2Doc)ZZ,, 
+      * R, a *note ring: (Macaulay2Doc)Ring,, 
+  * Outputs:
+      * a *note ring map: (Macaulay2Doc)RingMap,, from the Frobenius source
+        ring to the twisted target ring
+
+Description
+===========
+
+This function constructs the $e$-th Frobenius ring map used by the pushforward
+and pullback routines.
+
+See also
+========
+
+  * *note frobeniusRing: frobeniusRing, -- construct the source ring for an
+    iterated Frobenius map
+  * *note frobeniusTwist: frobeniusTwist, -- apply the Frobenius twist to
+    rings, modules, and matrices
+  * *note frobeniusPushforward: frobeniusPushforward, -- compute Frobenius
+    pushforwards
+  * *note frobeniusPullback: frobeniusPullback, -- compute Frobenius pullbacks
+
+Ways to use frobeniusMap:
+=========================
+
+  * "frobeniusMap(Ring,ZZ)"
+  * "frobeniusMap(ZZ,Ring)"
+
+For the programmer
+==================
+
+The object *note frobeniusMap: frobeniusMap, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: frobeniusRing, Next: frobeniusPullback, Prev: frobeniusMap, Up: Example_co summands of the Frobenius pushforward
+
+frobeniusRing -- construct the source ring for an iterated Frobenius map
+************************************************************************
+
+  * Usage: 
+        frobeniusRing(e, R)
+  * Inputs:
+      * e, an *note integer: (Macaulay2Doc)ZZ,, 
+      * R, a *note ring: (Macaulay2Doc)Ring,, 
+  * Outputs:
+      * a *note ring: (Macaulay2Doc)Ring,, with the grading scaled by $p^e$
+
+Description
+===========
+
+This function returns the ring that serves as the source of the $e$-th
+Frobenius map on $R$.
+
+See also
+========
+
+  * *note frobeniusMap: frobeniusMap, -- the iterated Frobenius map of a ring
+    in positive characteristic
+  * *note frobeniusTwist: frobeniusTwist, -- apply the Frobenius twist to
+    rings, modules, and matrices
+
+Ways to use frobeniusRing:
+==========================
+
+  * "frobeniusRing(ZZ,Ring)"
+
+For the programmer
+==================
+
+The object *note frobeniusRing: frobeniusRing, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: frobeniusPullback, Next: frobeniusPushforward, Prev: frobeniusRing, Up: Example_co summands of the Frobenius pushforward
+
+frobeniusPullback -- compute Frobenius pullbacks
+************************************************
+
+  * Usage: 
+        frobeniusPullback(e, M)
+  * Inputs:
+      * e, an *note integer: (Macaulay2Doc)ZZ,, 
+      * M, a *note ring: (Macaulay2Doc)Ring,, an *note ideal:
+        (Macaulay2Doc)Ideal,, a *note module: (Macaulay2Doc)Module,, a *note
+        matrix: (Macaulay2Doc)Matrix,, a *note coherent sheaf:
+        (Varieties)CoherentSheaf,, or a *note morphism of sheaves:
+        (Varieties)SheafMap,,
+  * Outputs:
+      * a *note ring: (Macaulay2Doc)Ring,, 
+      * a *note module: (Macaulay2Doc)Module,, 
+      * a *note matrix: (Macaulay2Doc)Matrix,, 
+      * a *note coherent sheaf: (Varieties)CoherentSheaf,, 
+      * a *note morphism of sheaves: (Varieties)SheafMap,, 
+
+Description
+===========
+
+This function computes pullback along the $e$-fold Frobenius morphism.
+
+See also
+========
+
+  * *note frobeniusMap: frobeniusMap, -- the iterated Frobenius map of a ring
+    in positive characteristic
+  * *note frobeniusPushforward: frobeniusPushforward, -- compute Frobenius
+    pushforwards
+
+Ways to use frobeniusPullback:
+==============================
+
+  * "frobeniusPullback(ZZ,Ideal)"
+  * "frobeniusPullback(ZZ,Matrix)"
+  * "frobeniusPullback(ZZ,Module)"
+  * "frobeniusPullback(ZZ,Ring)"
+
+For the programmer
+==================
+
+The object *note frobeniusPullback: frobeniusPullback, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: frobeniusPushforward, Next: frobeniusTwist, Prev: frobeniusPullback, Up: Example_co summands of the Frobenius pushforward
+
+frobeniusPushforward -- compute Frobenius pushforwards
+******************************************************
+
+  * Usage: 
+        frobeniusPushforward(e, M)
+  * Inputs:
+      * e, an *note integer: (Macaulay2Doc)ZZ,, 
+      * M, a *note ring: (Macaulay2Doc)Ring,, an *note ideal:
+        (Macaulay2Doc)Ideal,, a *note module: (Macaulay2Doc)Module,, a *note
+        matrix: (Macaulay2Doc)Matrix,, a *note sheaf of rings:
+        (Varieties)SheafOfRings,, a *note coherent sheaf:
+        (Varieties)CoherentSheaf,, or a *note morphism of sheaves:
+        (Varieties)SheafMap,,
+  * Outputs:
+      * a *note ring: (Macaulay2Doc)Ring,, 
+      * a *note module: (Macaulay2Doc)Module,, 
+      * a *note matrix: (Macaulay2Doc)Matrix,, 
+      * a *note coherent sheaf: (Varieties)CoherentSheaf,, 
+      * a *note morphism of sheaves: (Varieties)SheafMap,, 
+
+Description
+===========
+
+This function computes the pushforward along the $e$-fold Frobenius morphism.
+In graded situations it attempts to preserve decomposed presentations.
+
+See also
+========
+
+  * *note frobeniusMap: frobeniusMap, -- the iterated Frobenius map of a ring
+    in positive characteristic
+  * *note frobeniusTwist: frobeniusTwist, -- apply the Frobenius twist to
+    rings, modules, and matrices
+  * *note frobeniusPullback: frobeniusPullback, -- compute Frobenius pullbacks
+
+Ways to use frobeniusPushforward:
+=================================
+
+  * "frobeniusPushforward(ZZ,Ideal)"
+  * "frobeniusPushforward(ZZ,Matrix)"
+  * "frobeniusPushforward(ZZ,Module)"
+  * "frobeniusPushforward(ZZ,Ring)"
+
+For the programmer
+==================
+
+The object *note frobeniusPushforward: frobeniusPushforward, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: frobeniusTwist, Prev: frobeniusPushforward, Up: Example_co summands of the Frobenius pushforward
+
+frobeniusTwist -- apply the Frobenius twist to rings, modules, and matrices
+***************************************************************************
+
+  * Usage: 
+        frobeniusTwist(e, M)
+  * Inputs:
+      * e, an *note integer: (Macaulay2Doc)ZZ,, 
+      * M, a *note ring: (Macaulay2Doc)Ring,, an *note ideal:
+        (Macaulay2Doc)Ideal,, a *note module: (Macaulay2Doc)Module,, or a *note
+        matrix: (Macaulay2Doc)Matrix,,
+  * Outputs:
+      * a *note ring: (Macaulay2Doc)Ring,, 
+      * an *note ideal: (Macaulay2Doc)Ideal,, 
+      * a *note module: (Macaulay2Doc)Module,, 
+      * a *note matrix: (Macaulay2Doc)Matrix,, 
+
+Description
+===========
+
+This function applies the $e$-fold Frobenius twist to the input, adjusting
+coefficients and gradings accordingly.
+
+See also
+========
+
+  * *note frobeniusMap: frobeniusMap, -- the iterated Frobenius map of a ring
+    in positive characteristic
+  * *note frobeniusPushforward: frobeniusPushforward, -- compute Frobenius
+    pushforwards
+
+Ways to use frobeniusTwist:
+===========================
+
+  * "frobeniusTwist(ZZ,Ideal)"
+  * "frobeniusTwist(ZZ,Matrix)"
+  * "frobeniusTwist(ZZ,Module)"
+  * "frobeniusTwist(ZZ,Ring)"
+
+For the programmer
+==================
+
+The object *note frobeniusTwist: frobeniusTwist, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: Example_co syzygies over Artinian rings, Next: Example_co symbolic diagonalization, Prev: Example_co summands of the Frobenius pushforward, Up: Top
+
+Example: syzygies over Artinian rings
+*************************************
+
+The decomposition methods in this package can be used to study the structure of
+infinite resolutions. For instance, we can look for recurring indecomposable
+summands in successive syzygies of the residue field.
+
++-----------------------------------------------------------------------+
+|i1 : R = ZZ/101[x,y]/ideal(x^3, x^2*y^3, y^5);                         |
++-----------------------------------------------------------------------+
+|i2 : F = res(coker vars R, LengthLimit => 6)                           |
+|                                                                       |
+|      1      2      4      8      16      32      64                   |
+|o2 = R  <-- R  <-- R  <-- R  <-- R   <-- R   <-- R                     |
+|                                                                       |
+|     0      1      2      3      4       5       6                     |
+|                                                                       |
+|o2 : Complex                                                           |
++-----------------------------------------------------------------------+
+|i3 : netList for i from 1 to 5 list tallySummands summands coker F.dd_i|
+|                                                                       |
+|     +----------------------------------------------+                  |
+|o3 = |Tally{cokernel | x y | => 1}                  |                  |
+|     +----------------------------------------------+                  |
+|     |Tally{cokernel {1} | -y x2 0  xy3 | => 1}     |                  |
+|     |               {1} | x  0  y4 0   |           |                  |
+|     +----------------------------------------------+                  |
+|     |Tally{cokernel {2} | x2 0 0  0 y4 0  | => 1}  |                  |
+|     |               {3} | y  x y3 0 0  0  |        |                  |
+|     |               {5} | 0  0 0  y -x x2 |        |                  |
+|     |      cokernel {5} | y x | => 1               |                  |
+|     +----------------------------------------------+                  |
+|     |Tally{cokernel {6} | x  0  y4 0   | => 3}     |                  |
+|     |               {6} | -y x2 0  xy3 |           |                  |
+|     |      cokernel {7} | y x | => 2               |                  |
+|     +----------------------------------------------+                  |
+|     |Tally{cokernel {7}  | x2  0 0  0 y4 0  | => 3}|                  |
+|     |               {8}  | 35y x y3 0 0  0  |      |                  |
+|     |               {10} | 0   0 0  y x  x2 |      |                  |
+|     |      cokernel {8} | x  0  y4 0   | => 2      |                  |
+|     |               {8} | -y x2 0  xy3 |           |                  |
+|     |      cokernel {10} | y x | => 3              |                  |
+|     +----------------------------------------------+                  |
++-----------------------------------------------------------------------+
+
+This computation records the indecomposable summands appearing in the early
+syzygies of the residue field. This family of examples is studied in Syzygies
+of the Residue Field over Golod Rings (see https://arxiv.org/abs/2408.13425 )
+by Cuong, Dao, Eisenbud, Kobayashi, Polini, and Ulrich.
+
+See also
+========
+
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+  * *note tallySummands: tallySummands, -- tally a list of modules up to
+    isomorphism
+  * *note isIndecomposable: isIndecomposable, -- tests whether a module or
+    coherent sheaf is indecomposable
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: Example_co symbolic diagonalization, Next: directSummands, Prev: Example_co syzygies over Artinian rings, Up: Top
+
+Example: symbolic diagonalization
+*********************************
+
+Another application of the package is symbolic diagonalization: by decomposing
+the cokernel of a parameterized matrix, one can recover block-diagonal or
+diagonal normal forms after an appropriate field extension.
+
++--------------------------------------------------------------------+
+|i1 : S = QQ[a,b,c,d];                                               |
++--------------------------------------------------------------------+
+|i2 : m = matrix "a,b,c,d;d,a,b,c;c,d,a,b;b,c,d,a"                   |
+|                                                                    |
+|o2 = | a b c d |                                                    |
+|     | d a b c |                                                    |
+|     | c d a b |                                                    |
+|     | b c d a |                                                    |
+|                                                                    |
+|             4      4                                               |
+|o2 : Matrix S  <-- S                                                |
++--------------------------------------------------------------------+
+|i3 : presentation directSum summands coker m                        |
+| -- try using changeBaseField with (QQ[a]/(a^2+42*a+442))[]         |
+|                                                                    |
+|o3 = | a+b+c+d 0       0    0   |                                   |
+|     | 0       a-b+c-d 0    0   |                                   |
+|     | 0       0       a-c  b-d |                                   |
+|     | 0       0       -b+d a-c |                                   |
+|                                                                    |
+|             4      4                                               |
+|o3 : Matrix S  <-- S                                                |
++--------------------------------------------------------------------+
+|i4 : factor det m                                                   |
+|                                                                    |
+|                                     2    2           2           2 |
+|o4 = (a - b + c - d)(a + b + c + d)(a  + b  - 2a*c + c  - 2b*d + d )|
+|                                                                    |
+|o4 : Expression of class Product                                    |
++--------------------------------------------------------------------+
++-------------------------------------------------------------------------+
+|i5 : K = toField(QQ[i]/(i^2+1));                                         |
++-------------------------------------------------------------------------+
+|i6 : T = K[a,b,c,d];                                                     |
++-------------------------------------------------------------------------+
+|i7 : m = matrix "a,b,c,d;d,a,b,c;c,d,a,b;b,c,d,a"                        |
+|                                                                         |
+|o7 = | a b c d |                                                         |
+|     | d a b c |                                                         |
+|     | c d a b |                                                         |
+|     | b c d a |                                                         |
+|                                                                         |
+|             4      4                                                    |
+|o7 : Matrix T  <-- T                                                     |
++-------------------------------------------------------------------------+
+|i8 : prune directSum summands coker m                                    |
+|                                                                         |
+|o8 = cokernel | a+b+c+d 0       0         0         |                    |
+|              | 0       a-b+c-d 0         0         |                    |
+|              | 0       0       a-ib-c+id 0         |                    |
+|              | 0       0       0         a+ib-c-id |                    |
+|                                                                         |
+|                            4                                            |
+|o8 : T-module, quotient of T                                             |
++-------------------------------------------------------------------------+
+|i9 : factor det m                                                        |
+|                                                                         |
+|o9 = (a - b + c - d)(a + b + c + d)(a - i*b - c + i*d)(a + i*b - c - i*d)|
+|                                                                         |
+|o9 : Expression of class Product                                         |
++-------------------------------------------------------------------------+
+
+Over $\QQ$, this matrix decomposes into fewer summands than it does over
+$\QQ(i)$. The refinement after base change reflects the further factorization
+of the symbolic matrix over the larger field.
+
+See also
+========
+
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+  * *note changeBaseField: changeBaseField, -- extend scalars for modules,
+    matrices, and coherent sheaves
+  * *note isDirectSummand: isDirectSummand, -- test whether one module is a
+    direct summand of another
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: directSummands, Next: isDirectSummand, Prev: Example_co symbolic diagonalization, Up: Top
+
+directSummands -- compute the direct summands of a module or coherent sheaf
+***************************************************************************
+
+Description
+===========
+
+split a module or coherent sheaf
+================================
+
+  * Usage: 
+        summands M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module, or a *note coherent sheaf:
+        (Varieties)CoherentSheaf,,
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, containing modules or coherent
+        sheaves which are direct summands of $M$
+
+This function attempts to find the indecomposable summands of a module or
+coherent sheaf $M$. The output is a list of modules or sheaves that are direct
+summands of $M$. The algorithm is probabilistic, and so the output may not
+necessarily consist of indecomposable summands, particularly in small
+characteristics. The user can query whether a summand is certifiably
+indecomposable using *note isIndecomposable: isIndecomposable,.
+
++----------------------------------------+
+|i1 : S = QQ[x,y]                        |
+|                                        |
+|o1 = S                                  |
+|                                        |
+|o1 : PolynomialRing                     |
++----------------------------------------+
+|i2 : M = coker matrix{{x,y},{x,x}}      |
+|                                        |
+|o2 = cokernel | x y |                   |
+|              | x x |                   |
+|                                        |
+|                            2           |
+|o2 : S-module, quotient of S            |
++----------------------------------------+
+|i3 : L = summands M                     |
+|                                        |
+|o3 = {cokernel | x |, cokernel | x-y |} |
+|                                        |
+|o3 : List                               |
++----------------------------------------+
+|i4 : apply(L, isIndecomposable)         |
+|                                        |
+|o4 = {true, true}                       |
+|                                        |
+|o4 : List                               |
++----------------------------------------+
+|i5 : assert isIsomorphic(M, directSum L)|
++----------------------------------------+
+
+Note that when the input module is not homogeneous, the calculation is treated
+as occurring over the local ring at the origin. That is, the resulting modules
+will have direct summand isomorphic to M after localizing at the origin.
+
+
+
+split prescribed summands from a module or coherent sheaf with
+==============================================================
+
+  * Usage: 
+        summands(L, M)
+        summands(N, M)
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, 
+      * N, a *note module: (Macaulay2Doc)Module, or a *note coherent sheaf:
+        (Varieties)CoherentSheaf,,
+      * M, a *note module: (Macaulay2Doc)Module, or a *note coherent sheaf:
+        (Varieties)CoherentSheaf,,
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, containing modules or coherent
+        sheaves which are direct summands of $M$
+
+If a candidates summand, or list of candidates, is provided as the first
+argument, the algorithm will split off only summands isomorphic to these
+modules. This can often be much faster than a full decomposition when the user
+has some guess for the summands, and the remaining summands can then be found
+by applying summands again to the final leftover piece.
+
++-----------------------------------------------------------------------------+
+|i6 : R = ZZ/3[x,y,z]/(y^2-x*z)                                               |
+|                                                                             |
+|o6 = R                                                                       |
+|                                                                             |
+|o6 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i7 : M = frobeniusPushforward(1, R)                                          |
+|                                                                             |
+|o7 = cokernel {0} | 0  0  0  0  0  0  0  0  |                                |
+|              {3} | -z -y 0  0  0  0  0  0  |                                |
+|              {3} | 0  0  -z -y 0  0  0  0  |                                |
+|              {3} | y  x  0  0  0  0  0  0  |                                |
+|              {3} | 0  0  y  x  0  0  0  0  |                                |
+|              {1} | 0  0  0  0  0  0  0  0  |                                |
+|              {1} | 0  0  0  0  0  0  0  0  |                                |
+|              {1} | 0  0  0  0  0  0  0  0  |                                |
+|              {2} | 0  0  0  0  -z -y 0  0  |                                |
+|              {2} | 0  0  0  0  0  0  -z -y |                                |
+|              {2} | 0  0  0  0  0  0  0  0  |                                |
+|              {2} | 0  0  0  0  y  x  0  0  |                                |
+|              {2} | 0  0  0  0  0  0  y  x  |                                |
+|                                                                             |
+|     ZZ                           /ZZ      \                                 |
+|     --[x..z]                     |--[x..z]|                                 |
+|      3                           | 3      |13                               |
+|o7 : ---------module, quotient of |--------|                                 |
+|      2                           | 2      |                                 |
+|     y  - x*z                     \y  - x*z/                                 |
++-----------------------------------------------------------------------------+
+|i8 : R1 = ring M                                                             |
+|                                                                             |
+|o8 = R1                                                                      |
+|                                                                             |
+|o8 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i9 : L = summands(R1^1, M) -- check for free summands only                   |
+|                                                                             |
+|        1                                  3                                 |
+|o9 = {R1 , cokernel {3} | -z -y 0  0  |, R1 , cokernel {2} | -z -y 0  0  |}  |
+|                    {3} | 0  0  -z -y |                {2} | 0  0  -z -y |   |
+|                    {3} | y  x  0  0  |                {2} | 0  0  0  0  |   |
+|                    {3} | 0  0  y  x  |                {2} | y  x  0  0  |   |
+|                                                       {2} | 0  0  y  x  |   |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : summands \ select(L, not isFreeModule) -- decompose remaining pieces   |
+|                                                                             |
+|                                                            1                |
+|o10 = {{cokernel {3} | -z -y |, cokernel {3} | -z -y |}, {R1 , cokernel {2} ||
+|                 {3} | y  x  |           {3} | y  x  |                  {2} ||
+|      -----------------------------------------------------------------------|
+|      -z -y |, cokernel {2} | -z -y |}}                                      |
+|      y  x  |           {2} | y  x  |                                        |
+|                                                                             |
+|o10 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note isIndecomposable: isIndecomposable, -- tests whether a module or
+    coherent sheaf is indecomposable
+  * *note findProjectors: findProjectors, -- construct projectors on a
+    homogeneous module
+  * *note findIdempotents: findIdempotents, -- construct idempotent
+    endomorphisms
+
+Ways to use directSummands:
+===========================
+
+  * "directSummands(List,Module)"
+  * "directSummands(Module)"
+  * "directSummands(Module,Module)"
+
+For the programmer
+==================
+
+The object *note directSummands: directSummands, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: isDirectSummand, Next: isIndecomposable, Prev: directSummands, Up: Top
+
+isDirectSummand -- test whether one module is a direct summand of another
+*************************************************************************
+
+  * Usage: 
+        isDirectSummand(L, M)
+  * Inputs:
+      * L, a *note module: (Macaulay2Doc)Module,, the candidate summand
+      * M, a *note module: (Macaulay2Doc)Module,, the ambient module
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Limit (missing documentation) => ..., default value null, 
+      * Splitting
+      * Strategy (missing documentation) => ..., default value 3, 
+      * Tries (missing documentation) => ..., default value null, 
+      * Verbose (missing documentation) => ..., default value false, 
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, whether the algorithm
+        finds $L$ as a direct summand of $M$
+
+Description
+===========
+
+This function tries to detect whether $L$ is a direct summand of $M$ by
+searching for maps $L \to M$ and $M \to L$ whose composition is an isomorphism
+of $L$.
+
+The computation is randomized, so a return value of true certifies that a
+summand was found, while a return value of false only means that no splitting
+was found within the allotted number of attempts.  The alias isSummand is
+provided for convenience.
+
+When $L$ is free, the method instead searches for a surjection $M \to L$, which
+is enough to split off a free summand.
+
+See also
+========
+
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+  * *note findSplitInclusion: findSplitInclusion, -- construct a split
+    inclusion of one module into another
+  * *note isIndecomposable: isIndecomposable, -- tests whether a module or
+    coherent sheaf is indecomposable
+
+Ways to use isDirectSummand:
+============================
+
+  * "isDirectSummand(Module,Module)"
+
+For the programmer
+==================
+
+The object *note isDirectSummand: isDirectSummand, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: isIndecomposable, Next: findProjectors, Prev: isDirectSummand, Up: Top
+
+isIndecomposable -- tests whether a module or coherent sheaf is indecomposable
+******************************************************************************
+
+  * Usage: 
+        isIndecomposable M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module, or a *note coherent sheaf:
+        (Varieties)CoherentSheaf,,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Strategy (missing documentation) => ..., default value null, 
+      * Verbose (missing documentation) => ..., default value false, 
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, when the algorithm
+        certifies decomposability or indecomposability
+      * when the available tests are inconclusive
+
+Description
+===========
+
+This function runs inexpensive indecomposability checks without invoking the
+full decomposition algorithm. It returns false if it finds a splitting, true if
+indecomposability is certified, and null otherwise.
+
+As an example, we prove the indecomposability of the Horrocks–Mumford bundle
+(see https://en.wikipedia.org/wiki/Horrocks–Mumford_bundle ) on $\PP^4$.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "BGG"                                                      |
+|                                                                             |
+|o1 = BGG                                                                     |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : S = ZZ/32003[x_0..x_4];                                                 |
++-----------------------------------------------------------------------------+
+|i3 : E = ZZ/32003[e_0..e_4, SkewCommutative => true];                        |
++-----------------------------------------------------------------------------+
+|i4 : alphad = map(E^5, E^{-2,-2}, transpose matrix{                          |
+|             { e_1*e_4, -e_0*e_2, -e_1*e_3, -e_2*e_4,  e_0*e_3},             |
+|             {-e_2*e_3, -e_3*e_4,  e_0*e_4, -e_0*e_1, -e_1*e_2}});           |
+|                                                                             |
+|             5      2                                                        |
+|o4 : Matrix E  <-- E                                                         |
++-----------------------------------------------------------------------------+
+|i5 : alpha = syz alphad;                                                     |
+|                                                                             |
+|             2      5                                                        |
+|o5 : Matrix E  <-- E                                                         |
++-----------------------------------------------------------------------------+
+|i6 : alphad = beilinson(alphad, S);                                          |
+|                                                                             |
+|o6 : Matrix                                                                  |
++-----------------------------------------------------------------------------+
+|i7 : alpha = beilinson(alpha, S);                                            |
+|                                                                             |
+|o7 : Matrix                                                                  |
++-----------------------------------------------------------------------------+
+|i8 : FHM = prune homology(alphad, alpha)                                     |
+|                                                                             |
+|o8 = cokernel {3} | -x_1x_4 x_3^2 0     x_1x_3  x_4^2 0      0     x_2x_3    |
+|              {3} | x_2x_3  0     x_4^2 -x_0x_4 0     x_0x_3 x_1^2 0         |
+|              {3} | 0       0     0     0       0     0      0     0         |
+|              {3} | 0       0     0     0       0     0      0     x_1x_4    |
+|              {4} | -x_0    -x_1  x_3   0       0     0      x_2   0         |
+|              {4} | 0       -x_4  0     0       0     -x_1   0     0         |
+|              {4} | 0       0     -x_2  0       0     0      0     -x_4      |
+|              {4} | 0       0     0     -x_2    x_1   0      0     0         |
+|              {4} | 0       0     0     0       -x_3  0      0     x_0       |
+|              {4} | 0       0     0     0       0     x_2    0     0         |
+|              {4} | 0       0     0     0       0     x_4    -x_3  -x_1      |
+|              {4} | 0       0     0     0       0     0      0     0         |
+|              {4} | 0       0     0     0       0     0      0     0         |
+|              {4} | 0       0     0     0       0     0      0     0         |
+|              {4} | 0       0     0     0       0     0      0     0         |
+|              {4} | 0       0     0     0       0     0      0     0         |
+|              {4} | 0       0     0     0       0     0      0     0         |
+|              {4} | 0       0     0     0       0     0      0     0         |
+|              {4} | 0       0     0     0       0     0      0     0         |
+|                                                                             |
+|                            19                                               |
+|o8 : S-module, quotient of S                                                 |
+|-----------------------------------------------------------------------------|
+|x_1^2 -x_2x_4 x_0^2   x_0x_2  0     0    -x_0x_3 0    0     0    0      0    |
+|0     x_0x_1  0       -x_3x_4 x_2^2 0    x_1x_2  0    x_3^2 0    0      0    |
+|0     0       -x_1x_4 0       0     0    0       0    0     0    x_2x_4 0    |
+|0     0       0       0       0     0    0       0    0     0    0      0    |
+|0     0       0       0       0     0    0       0    0     0    -x_1   0    |
+|0     0       0       0       0     0    0       x_0  0     0    -x_4   0    |
+|0     0       0       0       0     0    0       0    0     x_0  0      0    |
+|0     0       0       0       0     0    0       0    0     x_4  0      -x_3 |
+|-x_2  0       0       0       0     0    0       -x_2 0     0    0      0    |
+|0     0       x_4     0       0     0    0       0    0     0    0      x_4  |
+|0     0       0       0       0     x_0  0       0    0     0    0      0    |
+|-x_4  -x_3    -x_2    0       0     -x_1 0       -x_4 0     0    0      -x_2 |
+|0     0       0       -x_1    -x_3  -x_3 0       0    0     0    -x_0   0    |
+|0     0       0       0       -x_4  -x_4 0       0    -x_1  -x_1 0      0    |
+|0     0       0       0       0     0    -x_4    x_3  x_2   x_2  0      0    |
+|0     0       0       0       0     0    0       0    0     0    x_2    x_1  |
+|0     0       0       0       0     0    0       0    0     0    0      0    |
+|0     0       0       0       0     0    0       0    0     0    0      0    |
+|0     0       0       0       0     0    0       0    0     0    0      0    |
+|-----------------------------------------------------------------------------|
+|0      0      x_2^2 0      0    0      0      x_0x_4 x_1x_2 x_0x_1 0         |
+|x_0x_2 x_1x_4 0     0      0    0      x_2x_4 0      0      0      x_0^2     |
+|0      x_2x_3 0     x_1x_3 0    0      0      0      x_4^2  0      0         |
+|0      0      0     0      0    x_3x_4 x_3^2  0      0      0      -x_2x_3   |
+|0      0      -x_4  -x_4   0    x_2    0      0      0      0      0         |
+|0      -x_3   0     0      0    0      0      x_2    0      0      0         |
+|x_1    0      0     0      0    0      0      -x_3   0      0      0         |
+|0      0      0     0      x_1  x_0    0      0      0      0      0         |
+|0      0      0     0      -x_3 0      -x_1   0      0      0      0         |
+|0      0      0     -x_3   0    0      x_0    0      0      0      0         |
+|0      0      0     0      0    -x_3   0      0      0      -x_2   0         |
+|0      0      0     0      0    0      0      0      0      0      0         |
+|0      0      0     0      -x_2 0      0      0      0      0      -x_4      |
+|0      x_0    0     0      0    0      0      0      -x_3   0      0         |
+|0      0      0     x_0    0    0      0      0      0      0      0         |
+|-x_3   0      0     0      0    0      0      0      x_4    0      0         |
+|-x_4   -x_2   -x_1  -x_1   x_0  0      0      0      0      x_3    0         |
+|0      0      0     0      0    x_4    x_3    -x_1   -x_0   0      0         |
+|0      0      0     0      0    0      0      0      0      -x_4   -x_3      |
+|-----------------------------------------------------------------------------|
+|0    0      0      x_3x_4 |                                                  |
+|0    x_1x_3 0      0      |                                                  |
+|0    0      0      x_1^2  |                                                  |
+|0    x_2^2  x_1x_2 0      |                                                  |
+|0    0      x_3    0      |                                                  |
+|0    0      0      0      |                                                  |
+|0    0      -x_2   0      |                                                  |
+|0    0      0      0      |                                                  |
+|0    -x_4   0      0      |                                                  |
+|0    0      0      -x_1   |                                                  |
+|0    0      0      0      |                                                  |
+|0    0      -x_0   0      |                                                  |
+|x_4  0      0      0      |                                                  |
+|0    0      0      -x_2   |                                                  |
+|x_1  0      0      0      |                                                  |
+|0    -x_0   0      0      |                                                  |
+|0    0      0      0      |                                                  |
+|-x_2 0      0      0      |                                                  |
+|x_3  x_2    x_1    -x_0   |                                                  |
++-----------------------------------------------------------------------------+
+|i9 : assert(2 == rank FHM)                                                   |
++-----------------------------------------------------------------------------+
+|i10 : assert elapsedTime isIndecomposable FHM                                |
+| -- 1.19349s elapsed                                                         |
++-----------------------------------------------------------------------------+
+|i11 : assert({FHM} == summands FHM)                                          |
++-----------------------------------------------------------------------------+
+|i12 : assert FHM.cache.isIndecomposable                                      |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+  * *note findIdempotents: findIdempotents, -- construct idempotent
+    endomorphisms
+
+Ways to use isIndecomposable:
+=============================
+
+  * "isIndecomposable(Module)"
+
+For the programmer
+==================
+
+The object *note isIndecomposable: isIndecomposable, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: findProjectors, Next: findIdempotents, Prev: isIndecomposable, Up: Top
+
+findProjectors -- construct projectors on a homogeneous module
+**************************************************************
+
+  * Usage: 
+        findProjectors M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module, or a *note coherent sheaf:
+        (Varieties)CoherentSheaf,, expected to be homogeneous
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Limit (missing documentation) => ..., default value null, 
+      * Splitting
+      * Strategy (missing documentation) => ..., default value 3, 
+      * Tries (missing documentation) => ..., default value null, 
+      * Verbose (missing documentation) => ..., default value false, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of endomorphisms that can be used to
+        split $M$
+
+Description
+===========
+
+This routine constructs projectors from a general degree-zero endomorphism and
+its eigenvalues. It is the main splitting strategy for homogeneous modules.
+
+See also
+========
+
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+  * *note generalEndomorphism: generalEndomorphism, -- construct a generic
+    degree-zero endomorphism
+  * *note findIdempotents: findIdempotents, -- construct idempotent
+    endomorphisms
+
+Ways to use findProjectors:
+===========================
+
+  * "findProjectors(Module)"
+
+For the programmer
+==================
+
+The object *note findProjectors: findProjectors, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: findIdempotents, Next: findSplitInclusion, Prev: findProjectors, Up: Top
+
+findIdempotents -- construct idempotent endomorphisms
+*****************************************************
+
+  * Usage: 
+        findIdempotents M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module, or a *note coherent sheaf:
+        (Varieties)CoherentSheaf,,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Limit (missing documentation) => ..., default value null, 
+      * Splitting
+      * Strategy (missing documentation) => ..., default value 3, 
+      * Tries (missing documentation) => ..., default value null, 
+      * Verbose (missing documentation) => ..., default value false, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of idempotent endomorphisms of $M$
+        suitable for splitting
+
+Description
+===========
+
+This routine constructs nontrivial idempotents in the endomorphism algebra of a
+module. When successful, those idempotents can be used to recover direct sum
+decompositions. This is the main splitting strategy for modules over local
+rings.
+
+See also
+========
+
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+  * *note isIndecomposable: isIndecomposable, -- tests whether a module or
+    coherent sheaf is indecomposable
+  * *note generalEndomorphism: generalEndomorphism, -- construct a generic
+    degree-zero endomorphism
+
+Ways to use findIdempotents:
+============================
+
+  * "findIdempotents(Module)"
+
+For the programmer
+==================
+
+The object *note findIdempotents: findIdempotents, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: findSplitInclusion, Next: generalEndomorphism, Prev: findIdempotents, Up: Top
+
+findSplitInclusion -- construct a split inclusion of one module into another
+****************************************************************************
+
+  * Usage: 
+        findSplitInclusion(M, N)
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+      * N, a *note module: (Macaulay2Doc)Module,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Tries (missing documentation) => ..., default value 50, 
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, a split injection $M \to N$ when
+        one is found
+      * when no such map is found
+
+Description
+===========
+
+This function performs a randomized search for maps $M \to N$ and $N \to M$
+whose composition is an isomorphism of $M$.
+
+See also
+========
+
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+  * *note generalEndomorphism: generalEndomorphism, -- construct a generic
+    degree-zero endomorphism
+
+Ways to use findSplitInclusion:
+===============================
+
+  * "findSplitInclusion(Module,Module)"
+
+For the programmer
+==================
+
+The object *note findSplitInclusion: findSplitInclusion, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: generalEndomorphism, Next: isomorphismTally, Prev: findSplitInclusion, Up: Top
+
+generalEndomorphism -- construct a generic degree-zero endomorphism
+*******************************************************************
+
+  * Usage: 
+        generalEndomorphism M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module, or a *note coherent sheaf:
+        (Varieties)CoherentSheaf,,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CoefficientRing (missing documentation) => ..., default value null, 
+      * Density (missing documentation) => ..., default value 1, 
+      * Height (missing documentation) => ..., default value 10, 
+      * MaximalRank (missing documentation) => ..., default value false, 
+      * UpperTriangular (missing documentation) => ..., default value false, 
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix, or a *note morphism of sheaves:
+        (Varieties)SheafMap,,
+
+Description
+===========
+
+This function forms a random linear combination of generators of the
+degree-zero endomorphism space of $M$. It is used internally by the splitting
+algorithms and can also be useful for experimentation.
+
+See also
+========
+
+  * *note findProjectors: findProjectors, -- construct projectors on a
+    homogeneous module
+  * *note findIdempotents: findIdempotents, -- construct idempotent
+    endomorphisms
+
+Ways to use generalEndomorphism:
+================================
+
+  * "generalEndomorphism(Matrix,Nothing,Matrix)"
+  * "generalEndomorphism(Module)"
+  * "generalEndomorphism(Module,Matrix)"
+  * "generalEndomorphism(Module,Matrix,Matrix)"
+  * "generalEndomorphism(Module,Matrix,Nothing)"
+
+For the programmer
+==================
+
+The object *note generalEndomorphism: generalEndomorphism, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: isomorphismTally, Next: tallySummands, Prev: generalEndomorphism, Up: Top
+
+isomorphismTally -- group isomorphic modules or sheaves in a list
+*****************************************************************
+
+  * Usage: 
+        isomorphismTally L
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, of modules or coherent sheaves
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Homogeneous (missing documentation) => ..., default value true, 
+      * Strategy (missing documentation) => ..., default value null, 
+      * Strict (missing documentation) => ..., default value false, 
+      * Tries (missing documentation) => ..., default value null, 
+      * Verbose (missing documentation) => ..., default value false, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of pairs consisting of a
+        representative and its multiplicity
+
+Description
+===========
+
+The list is traversed up to isomorphism, returning one representative from each
+isomorphism class together with its count.
+
++---------------------------------------------------+
+|i1 : R = ZZ/101[x,y]/ideal(x^3, x^2*y^3, y^5);     |
++---------------------------------------------------+
+|i2 : F = res(coker vars R, LengthLimit => 5)       |
+|                                                   |
+|      1      2      4      8      16      32       |
+|o2 = R  <-- R  <-- R  <-- R  <-- R   <-- R         |
+|                                                   |
+|     0      1      2      3      4       5         |
+|                                                   |
+|o2 : Complex                                       |
++---------------------------------------------------+
+|i3 : netList isomorphismTally summands coker F.dd_5|
+|                                                   |
+|     +----------------------------------------+    |
+|o3 = |(cokernel {7}  | x2   0 0  0 y4 0  |, 3)|    |
+|     |          {8}  | -48y x y3 0 0  0  |    |    |
+|     |          {10} | 0    0 0  y x  x2 |    |    |
+|     +----------------------------------------+    |
+|     |(cokernel {8} | y x |, 3)               |    |
+|     +----------------------------------------+    |
+|     |(cokernel {8} | x  0  y4 0   |, 2)      |    |
+|     |          {8} | -y x2 0  xy3 |          |    |
+|     +----------------------------------------+    |
++---------------------------------------------------+
+
+See also
+========
+
+  * *note tallySummands: tallySummands, -- tally a list of modules up to
+    isomorphism
+
+Ways to use isomorphismTally:
+=============================
+
+  * "isomorphismTally(List)"
+
+For the programmer
+==================
+
+The object *note isomorphismTally: isomorphismTally, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: tallySummands, Next: potentialExtension, Prev: isomorphismTally, Up: Top
+
+tallySummands -- tally a list of modules up to isomorphism
+**********************************************************
+
+  * Usage: 
+        tallySummands L
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, of modules or coherent sheaves
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Homogeneous (missing documentation) => ..., default value true, 
+      * Strategy (missing documentation) => ..., default value null, 
+      * Strict (missing documentation) => ..., default value false, 
+      * Tries (missing documentation) => ..., default value null, 
+      * Verbose (missing documentation) => ..., default value false, 
+  * Outputs:
+      * a *note tally: (Macaulay2Doc)Tally,, whose keys are representatives of
+        isomorphism classes
+
+Description
+===========
+
+This function converts a list of summands into a tally modulo isomorphism.
+
++----------------------------------------------------+
+|i1 : R = ZZ/101[x,y]/ideal(x^3, x^2*y^3, y^5);      |
++----------------------------------------------------+
+|i2 : F = res(coker vars R, LengthLimit => 5)        |
+|                                                    |
+|      1      2      4      8      16      32        |
+|o2 = R  <-- R  <-- R  <-- R  <-- R   <-- R          |
+|                                                    |
+|     0      1      2      3      4       5          |
+|                                                    |
+|o2 : Complex                                        |
++----------------------------------------------------+
+|i3 : tallySummands summands coker F.dd_5            |
+|                                                    |
+|o3 = Tally{cokernel {7}  | x2   0 0  0 y4 0  | => 3}|
+|                    {8}  | -48y x y3 0 0  0  |      |
+|                    {10} | 0    0 0  y x  x2 |      |
+|           cokernel {8} | x  0  y4 0   | => 2       |
+|                    {8} | -y x2 0  xy3 |            |
+|           cokernel {8} | y x | => 3                |
+|                                                    |
+|o3 : Tally                                          |
++----------------------------------------------------+
+
+See also
+========
+
+  * *note isomorphismTally: isomorphismTally, -- group isomorphic modules or
+    sheaves in a list
+
+Ways to use tallySummands:
+==========================
+
+  * "tallySummands(List)"
+
+For the programmer
+==================
+
+The object *note tallySummands: tallySummands, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: potentialExtension, Next: changeBaseField, Prev: tallySummands, Up: Top
+
+potentialExtension -- suggest a field extension where splitting may become visible
+**********************************************************************************
+
+  * Usage: 
+        potentialExtension M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module, or a *note coherent sheaf:
+        (Varieties)CoherentSheaf,,
+  * Outputs:
+      * a *note ring: (Macaulay2Doc)Ring,, typically a splitting field of a
+        sampled endomorphism
+
+Description
+===========
+
+This function inspects a general endomorphism of $M$ and returns a candidate
+field extension that may expose further splitting.
+
+See also
+========
+
+  * *note changeBaseField: changeBaseField, -- extend scalars for modules,
+    matrices, and coherent sheaves
+  * *note generalEndomorphism: generalEndomorphism, -- construct a generic
+    degree-zero endomorphism
+
+Ways to use potentialExtension:
+===============================
+
+  * "potentialExtension(Module)"
+
+For the programmer
+==================
+
+The object *note potentialExtension: potentialExtension, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+File: DirectSummands.info, Node: changeBaseField, Prev: potentialExtension, Up: Top
+
+changeBaseField -- extend scalars for modules, matrices, and coherent sheaves
+*****************************************************************************
+
+  * Usage: 
+        changeBaseField(L, M)
+  * Inputs:
+      * L, a *note ring: (Macaulay2Doc)Ring,, a *note Galois field:
+        (Macaulay2Doc)GaloisField,, or an *note integer: (Macaulay2Doc)ZZ,, the
+        new coefficient ring or field data
+      * M, a *note module: (Macaulay2Doc)Module,, a *note matrix:
+        (Macaulay2Doc)Matrix,, or a *note coherent sheaf:
+        (Varieties)CoherentSheaf,,
+  * Outputs:
+      * a *note module: (Macaulay2Doc)Module,, 
+      * a *note matrix: (Macaulay2Doc)Matrix,, 
+      * a *note coherent sheaf: (Varieties)CoherentSheaf,, 
+
+Description
+===========
+
+This function changes the coefficient field or base ring of the input while
+reusing cached decompositions when possible.
+
+See also
+========
+
+  * *note potentialExtension: potentialExtension, -- suggest a field extension
+    where splitting may become visible
+  * *note directSummands: directSummands, -- compute the direct summands of a
+    module or coherent sheaf
+
+Ways to use changeBaseField:
+============================
+
+  * "changeBaseField(GaloisField,Module)"
+  * "changeBaseField(Ring,Matrix)"
+  * "changeBaseField(Ring,Module)"
+  * "changeBaseField(ZZ,Module)"
+
+For the programmer
+==================
+
+The object *note changeBaseField: changeBaseField, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in DirectSummands/docs.m2:680:0.
+
+Tag Table:
+Node: Top261
+Node: Example_co summands of the Frobenius pushforward18297
+Node: frobeniusMap28634
+Node: frobeniusRing30124
+Node: frobeniusPullback31389
+Node: frobeniusPushforward33141
+Node: frobeniusTwist35163
+Node: Example_co syzygies over Artinian rings36770
+Node: Example_co symbolic diagonalization40743
+Node: directSummands46419
+Node: isDirectSummand55385
+Node: isIndecomposable57666
+Node: findProjectors69525
+Node: findIdempotents71329
+Node: findSplitInclusion73217
+Node: generalEndomorphism74747
+Node: isomorphismTally76771
+Node: tallySummands79718
+Node: potentialExtension82504
+Node: changeBaseField83850
+
+End Tag Table

@@ -1,0 +1,190 @@
+-- -*- M2-comint -*- hash: 1628280291945421386
+
+i1 : kk = ZZ/101;
+
+i2 : S=kk[x_0..x_4];
+
+i3 : i= trim monomialCurveIdeal(S,{2,3,5,6})
+
+                          2                       3      2     2      2   2  
+o3 = ideal (x x  - x x , x  - x x , x x  - x x , x  - x x , x x  - x x , x x 
+             2 3    1 4   2    0 4   1 2    0 3   3    2 4   1 3    0 4   1 3
+     ------------------------------------------------------------------------
+                3    2
+     - x x x , x  - x x )
+        0 2 4   1    0 4
+
+o3 : Ideal of S
+
+i4 : time V1 = reesIdeal i;
+ -- used 0.0361089s (cpu); 0.034095s (thread); 0s (gc)
+
+o4 : Ideal of S[w ..w ]
+                 0   6
+
+i5 : time V2 = reesIdeal(i,i_0);
+ -- used 0.167311s (cpu); 0.166555s (thread); 0s (gc)
+
+o5 : Ideal of S[w ..w ]
+                 0   6
+
+i6 : S=kk[a,b,c]
+
+o6 = S
+
+o6 : PolynomialRing
+
+i7 : m=matrix{{a,0},{b,a},{0,b}}
+
+o7 = | a 0 |
+     | b a |
+     | 0 b |
+
+             3      2
+o7 : Matrix S  <-- S
+
+i8 : i=minors(2,m)
+
+             2        2
+o8 = ideal (a , a*b, b )
+
+o8 : Ideal of S
+
+i9 : time I1 = reesIdeal i;
+ -- used 0.0268894s (cpu); 0.0257097s (thread); 0s (gc)
+
+o9 : Ideal of S[w ..w ]
+                 0   2
+
+i10 : time I2 = reesIdeal(i,i_0);
+ -- used 0.0113379s (cpu); 0.0110596s (thread); 0s (gc)
+
+o10 : Ideal of S[w ..w ]
+                  0   2
+
+i11 : transpose gens I1
+
+o11 = {-1, -3} | aw_1-bw_2    |
+      {-1, -3} | aw_0-bw_1    |
+      {-2, -4} | w_1^2-w_0w_2 |
+
+                        3                1
+o11 : Matrix (S[w ..w ])  <-- (S[w ..w ])
+                 0   2            0   2
+
+i12 : transpose gens I2
+
+o12 = {-1, -3} | aw_1-bw_2    |
+      {-1, -3} | aw_0-bw_1    |
+      {-2, -4} | w_1^2-w_0w_2 |
+
+                        3                1
+o12 : Matrix (S[w ..w ])  <-- (S[w ..w ])
+                 0   2            0   2
+
+i13 : R = ZZ/32003[x,y]
+
+o13 = R
+
+o13 : PolynomialRing
+
+i14 : I = ideal(x,y)
+
+o14 = ideal (x, y)
+
+o14 : Ideal of R
+
+i15 : cusp = ideal(x^2-y^3)
+
+               3    2
+o15 = ideal(- y  + x )
+
+o15 : Ideal of R
+
+i16 : RI = reesIdeal(I)
+
+o16 = ideal(x*w  - y*w )
+               0      1
+
+o16 : Ideal of R[w ..w ]
+                  0   1
+
+i17 : S = ring RI
+
+o17 = S
+
+o17 : PolynomialRing
+
+i18 : totalTransform = substitute(cusp, S) + RI
+
+                3    2
+o18 = ideal (- y  + x , x*w  - y*w )
+                           0      1
+
+o18 : Ideal of S
+
+i19 : D = decompose totalTransform -- the components are the strict transform of the cuspidal curve and the exceptional curve
+
+                                          3    2   2              2    2
+o19 = {ideal (y, x), ideal (x*w  - y*w , y  - x , y w  - x*w , y*w  - w )}
+                               0      1              0      1     0    1
+
+o19 : List
+
+i20 : totalTransform = first flattenRing totalTransform
+
+                3    2
+o20 = ideal (- y  + x , w x - w y)
+                         0     1
+
+                 ZZ
+o20 : Ideal of -----[w ..w , x..y]
+               32003  0   1
+
+i21 : L = primaryDecomposition totalTransform
+
+               2        2                                 3    2     2       
+o21 = {ideal (y , x*y, x , w x - w y), ideal (w x - w y, y  - x , w y  - w x,
+                            0     1            0     1             0      1  
+      -----------------------------------------------------------------------
+       2     2
+      w y - w )}
+       0     1
+
+o21 : List
+
+i22 : apply(L, i -> (degree i)/(degree radical i))
+
+o22 = {2, 1}
+
+o22 : List
+
+i23 : use ring L_0
+
+        ZZ
+o23 = -----[w ..w , x..y]
+      32003  0   1
+
+o23 : PolynomialRing
+
+i24 : singular = ideal(singularLocus(L_0));
+
+                 ZZ
+o24 : Ideal of -----[w ..w , x..y]
+               32003  0   1
+
+i25 : SL = saturate(singular, ideal(x,y));
+
+                 ZZ
+o25 : Ideal of -----[w ..w , x..y]
+               32003  0   1
+
+i26 : saturate(SL, ideal(w_0,w_1))
+
+o26 = ideal 1
+
+                 ZZ
+o26 : Ideal of -----[w ..w , x..y]
+               32003  0   1
+
+i27 : 

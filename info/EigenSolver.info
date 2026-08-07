@@ -1,0 +1,216 @@
+ -*- coding: utf-8 -*- This is EigenSolver.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* EigenSolver: (EigenSolver).   polynomial system solver via eigen-computations
+END-INFO-DIR-ENTRY
+
+
+File: EigenSolver.info, Node: Top, Next: zeroDimSolve, Up: (dir)
+
+EigenSolver -- polynomial system solver via eigen-computations
+**************************************************************
+
+Description
+===========
+
+This package implements a solver for zero-dimensional polynomial systems based
+on eigenvalue/eigenvector computations. The theoretical basis for this is
+Stickelberger's Theorem (cf. [1, Theorem 2.6], also [2]), which states that if
+I is a zero-dimensional ideal in a polynomial ring $R$ over an algebraically
+closed field $k$, then the points of V(I) can be obtained as eigenvalues of
+multiplication matrices corresponding to variables, on the finite-dimensional
+$k$-vector space $R/I$.
+
+Since the main solving is done via linear algebra, this solver can be
+significantly quicker than other solvers performing nonlinear computations.
+However, a Grobner basis of the ideal I is still needed, e.g. in order to
+obtain the sizes of the multiplication matrices.
+
+
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "ExampleSystems"                                           |
+|                                                                             |
+|o1 = ExampleSystems                                                          |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : I = ideal cyclic(6, QQ)                                                 |
+|                                                                             |
+|o2 = ideal (a + b + c + d + e + f, a*b + b*c + c*d + d*e + a*f + e*f, a*b*c +|
+|     ------------------------------------------------------------------------|
+|     b*c*d + c*d*e + a*b*f + a*e*f + d*e*f, a*b*c*d + b*c*d*e + a*b*c*f +    |
+|     ------------------------------------------------------------------------|
+|     a*b*e*f + a*d*e*f + c*d*e*f, a*b*c*d*e + a*b*c*d*f + a*b*c*e*f +        |
+|     ------------------------------------------------------------------------|
+|     a*b*d*e*f + a*c*d*e*f + b*c*d*e*f, a*b*c*d*e*f - 1)                     |
+|                                                                             |
+|o2 : Ideal of QQ[a..f]                                                       |
++-----------------------------------------------------------------------------+
+|i3 : elapsedTime sols = zeroDimSolve I;                                      |
+| -- 2.42511s elapsed                                                         |
++-----------------------------------------------------------------------------+
+|i4 : #sols -- 156 solutions                                                  |
+|                                                                             |
+|o4 = 156                                                                     |
++-----------------------------------------------------------------------------+
+
+The authors would like to acknowledge the June 2020 Macaulay2 workshop held
+virtually at Warwick, where this package was first developed.
+
+References:
+
+  * [1] Sturmfels, Bernd. Solving systems of polynomial equations. No. 97.
+    American Mathematical Soc., 2002
+  * [2] Cox, David A. Stickelberger and the Eigenvalue Theorem.
+    https://arxiv.org/abs/2007.12573
+
+Authors
+=======
+
+  * Laurent Busé <Laurent.Buse@inria.fr>
+  * Justin Chen <justin.chen@math.gatech.edu>
+  * Kisun Lee <kil004@ucsd.edu>
+  * Anton Leykin <anton.leykin@gmail.com>
+  * Tomas Pajdla <pajdla@cvut.cz>
+  * Erika Pirnes <pirnes@wisc.edu>
+
+Version
+=======
+
+This documentation describes version 0.1 of EigenSolver, released June 2020.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{EigenSolverSource,                                                     |
+|  title = {{EigenSolver: polynomial system solver via eigen-computations. Ver|
+|  author = {Laurent Bus{\'e} and Justin Chen and Kisun Lee and Anton Leykin a|
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|sion~0.1}},                                                                  |
+|nd Tomas Pajdla and Erika Pirnes},                                           |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note zeroDimSolve: zeroDimSolve, -- zero-dimensional polynomial system
+        solver
+  * Methods
+      * "zeroDimSolve(Ideal)" -- see *note zeroDimSolve: zeroDimSolve, --
+        zero-dimensional polynomial system solver
+  * Symbols
+      * "Basis" -- see *note zeroDimSolve: zeroDimSolve, -- zero-dimensional
+        polynomial system solver
+      * "Multiplier" -- see *note zeroDimSolve: zeroDimSolve, --
+        zero-dimensional polynomial system solver
+
+For the programmer
+==================
+
+The object *note EigenSolver: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in EigenSolver.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EigenSolver.m2:236:0.
+
+File: EigenSolver.info, Node: zeroDimSolve, Prev: Top, Up: Top
+
+zeroDimSolve -- zero-dimensional polynomial system solver
+*********************************************************
+
+  * Usage: 
+        zeroDimSolve(I)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, a zero-dimensional ideal
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Basis (missing documentation) => ..., default value null, 
+      * Multiplier (missing documentation) => ..., default value 0, 
+      * Strategy (missing documentation) => ..., default value "Stickelberger",
+      * Tolerance (missing documentation) => ..., default value .000001, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of points on V(I)
+
+Description
+===========
+
+This function is a general-purpose solver for zero-dimensional polynomial
+systems. The default Strategy is "Stickelberger", which leverages
+Stickelberger's theorem to compute the coordinates of solution points as
+(joint) eigenvalues of multiplication matrices corresponding to the variables
+of the ring.
+
+The option Multiplier allows the user to specify the linear form used to
+construct the multiplication matrix. For example, if the ambient polynomial
+ring is $QQ[x,y,z]$ and only the $y$-coordinates of solutions are needed, then
+one can specify Multiplier => y (and ignore the coordinates of other solution
+points). By default, a random linear form is used: due to this, it may be
+helpful to run this function a couple of times to minimize the likelihood of a
+"bad" linear form being chosen.
+
+The option Basis allows the user to specify a basis of the quotient $R/I$, if
+one is known. The default value is null, in which case a basis for $R/I$ will
+be computed via a Grobner basis computation.
+
+In general, Strategy => "Stickelberger" does not require the input ideal I to
+be radical, so solutions may appear with multiplicity:
+
++-------------------------------------------------------------------------+
+|i1 : R = QQ[x,y]                                                         |
+|                                                                         |
+|o1 = R                                                                   |
+|                                                                         |
+|o1 : PolynomialRing                                                      |
++-------------------------------------------------------------------------+
+|i2 : I = ideal"x2,xy,y3"                                                 |
+|                                                                         |
+|             2        3                                                  |
+|o2 = ideal (x , x*y, y )                                                 |
+|                                                                         |
+|o2 : Ideal of R                                                          |
++-------------------------------------------------------------------------+
+|i3 : sols = zeroDimSolve I                                               |
+|                                                                         |
+|o3 = {{0, 0}, {-8.90741e-293, 0}, {0, -1.78148e-292}, {0, -1.78148e-292}}|
+|                                                                         |
+|o3 : List                                                                |
++-------------------------------------------------------------------------+
+|i4 : #sols == 4 and all(sols, p -> clean(1e-16, matrix p) == 0)          |
+|                                                                         |
+|o4 = true                                                                |
++-------------------------------------------------------------------------+
+
+See also
+========
+
+  * solveSystem (missing documentation)
+
+Ways to use zeroDimSolve:
+=========================
+
+  * "zeroDimSolve(Ideal)"
+
+For the programmer
+==================
+
+The object *note zeroDimSolve: zeroDimSolve, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in EigenSolver.m2:283:0.
+
+Tag Table:
+Node: Top254
+Node: zeroDimSolve5797
+
+End Tag Table

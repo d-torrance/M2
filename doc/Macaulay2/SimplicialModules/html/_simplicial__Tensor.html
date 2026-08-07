@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>simplicialTensor -- compute the simplicial tensor product and cache direct sum indices for easy access</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="methods for working in the category of simplicial modules" href="index.html">SimplicialModules</a> :: <a title="compute the simplicial tensor product and cache direct sum indices for easy access" href="_simplicial__Tensor.html">simplicialTensor</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_simplicial__Tensor_lp..._cm__Degeneracy_eq_gt..._rp.html">next</a> | <a href="___Simplicial__Module__Map_sp_vb_vb_sp__Simplicial__Module__Map.html">previous</a> | <a href="_simplicial__Tensor_lp..._cm__Degeneracy_eq_gt..._rp.html">forward</a> | <a href="___Simplicial__Module__Map_sp_vb_vb_sp__Simplicial__Module__Map.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>simplicialTensor -- compute the simplicial tensor product and cache direct sum indices for easy access</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">simplicialTensor(T, Options => {Degeneracy => false, TopDegree => null})</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">T</span>, <span>a <a title="the class of all lists -- {...}" href="../../Macaulay2Doc/html/___List.html">list</a></span>, A list of simplicial modules or complexes to compute the tensor product.</span></li>
+          </ul>
+        </li>
+        <li><a href="../../Macaulay2Doc/html/_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:          <ul>
+            <li><span><a title="whether to compute degeneracy maps" href="_simplicial__Tensor_lp..._cm__Degeneracy_eq_gt..._rp.html">Degeneracy</a><span class="tt"> => </span><span>a <a title="the class of boolean values" href="../../Macaulay2Doc/html/___Boolean.html">Boolean value</a></span>, <span>default value false</span>, Default value is false. Indicates whether to include degeneracy maps in the construction.</span></li>
+            <li><span><a title="top degree for the construction" href="_simplicial__Tensor_lp..._cm__Top__Degree_eq_gt..._rp.html">TopDegree</a><span class="tt"> => </span><span>an <a title="the class of all integers" href="../../Macaulay2Doc/html/___Z__Z.html">integer</a></span>, <span>default value null</span>, Default is null. If provided, specifies the top degree for the construction of the simplicial module.</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span>a <a title="the class of all simplicial modules" href="___Simplicial__Module.html">Simplicial Module</a></span>, The simplicial tensor product of the components in T, with cached direct sum indices.</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>This function computes the simplicial tensor product of a list T, which can consist of simplicial modules or complexes. It caches direct sum indices using <a title="compute the tensor product of direct summands, caching the components for easy access" href="_tensorwith__Components.html">tensorwithComponents</a> so that the user can easily access components of the resulting face/degeneracy maps on particular direct summands of the tensor product.</p>
+          <p>The simplicial tensor product of complexes is built as the Dold-Kan extension of the tensor product functor on the category of R-modules. In general, this complex looks quite different from the standard tensor product of complexes. In fact, the simplicial tensor product is always homotopy equivalent to the classically defined tensor product.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : Q = ZZ/101[x_1,x_2];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : K1 = complex {matrix{{x_1}}};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : K2 = complex {matrix{{x_2}}};</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : T1 = K1**K2
+
+      1      2      1
+o4 = Q  &lt;-- Q  &lt;-- Q
+                    
+     0      1      2
+
+o4 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : T1.dd
+
+          1                   2
+o5 = 0 : Q  &lt;--------------- Q  : 1
+               | x_2 x_1 |
+
+          2                    1
+     1 : Q  &lt;---------------- Q  : 2
+               {1} | x_1  |
+               {1} | -x_2 |
+
+o5 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : T2 = prune simplicialTensor({K1,K2})
+
+      1      3      2
+o6 = Q  &lt;-- Q  &lt;-- Q
+                    
+     0      1      2
+
+o6 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : T2.dd
+
+          1                          3
+o7 = 0 : Q  &lt;---------------------- Q  : 1
+               | x_2 x_1 x_1x_2 |
+
+          3                         2
+     1 : Q  &lt;--------------------- Q  : 2
+               {1} | -x_1 -x_1 |
+               {1} | x_2  0    |
+               {2} | 0    1    |
+
+o7 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : phi1 = extend(T1,T2,id_(T1_0))
+
+          1             1
+o8 = 0 : Q  &lt;--------- Q  : 0
+               | 1 |
+
+          2                       3
+     1 : Q  &lt;------------------- Q  : 1
+               {1} | 1 0 0   |
+               {1} | 0 1 x_2 |
+
+          1                     2
+     2 : Q  &lt;----------------- Q  : 2
+               {2} | -1 -1 |
+
+o8 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : phi2 = extend(T2,T1,id_(T1_0))
+
+          1             1
+o9 = 0 : Q  &lt;--------- Q  : 0
+               | 1 |
+
+          3                   2
+     1 : Q  &lt;--------------- Q  : 1
+               {1} | 1 0 |
+               {1} | 0 1 |
+               {2} | 0 0 |
+
+          2                  1
+     2 : Q  &lt;-------------- Q  : 2
+               {2} | -1 |
+               {2} | 0  |
+
+o9 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : phi1*phi2 == id_T1
+
+o10 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : isNullHomotopic(phi2*phi1 - id_T2)
+
+o11 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Here is how to access specific components of the face maps for a tensor product of simplicial modules:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : S1 = simplicialModule(K1, 4)
+
+       1      2      3      4      5
+o12 = Q  &lt;-- Q  &lt;-- Q  &lt;-- Q  &lt;-- Q &lt;-- ...
+                                   
+      0      1      2      3      4
+
+o12 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : S2 = simplicialModule(K2, 4)
+
+       1      2      3      4      5
+o13 = Q  &lt;-- Q  &lt;-- Q  &lt;-- Q  &lt;-- Q &lt;-- ...
+                                   
+      0      1      2      3      4
+
+o13 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : S12 = S1**S2
+
+       1      4      9      16      25
+o14 = Q  &lt;-- Q  &lt;-- Q  &lt;-- Q   &lt;-- Q  &lt;-- ...
+                                    
+      0      1      2      3       4
+
+o14 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : indices S12_4 --lists the indices of the summands
+
+o15 = {{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {1, 0}, {1, 1}, {1, 2}, {1,
+      -----------------------------------------------------------------------
+      3}, {1, 4}, {2, 0}, {2, 1}, {2, 2}, {2, 3}, {2, 4}, {3, 0}, {3, 1}, {3,
+      -----------------------------------------------------------------------
+      2}, {3, 3}, {3, 4}, {4, 0}, {4, 1}, {4, 2}, {4, 3}, {4, 4}}
+
+o15 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : netList flatten for i in indices S12_4 list (
+          for j in indices S12_3 list ( if (dd^S12_(4,0))_[i]^[j]==0 then continue else
+              horizontalJoin {net (dd^S12_(4,0))_[i]^[j], &quot; : &quot;, net i, &quot; --> &quot; , net j} ))
+
+      +-------------------------------+
+o16 = || 1 | : {0, 0} --> {0, 0}      |
+      +-------------------------------+
+      || x_2 | : {0, 1} --> {0, 0}    |
+      +-------------------------------+
+      |{1} | 1 | : {0, 2} --> {0, 1}  |
+      +-------------------------------+
+      |{1} | 1 | : {0, 3} --> {0, 2}  |
+      +-------------------------------+
+      |{1} | 1 | : {0, 4} --> {0, 3}  |
+      +-------------------------------+
+      || x_1 | : {1, 0} --> {0, 0}    |
+      +-------------------------------+
+      || x_1x_2 | : {1, 1} --> {0, 0} |
+      +-------------------------------+
+      |{1} | x_1 | : {1, 2} --> {0, 1}|
+      +-------------------------------+
+      |{1} | x_1 | : {1, 3} --> {0, 2}|
+      +-------------------------------+
+      |{1} | x_1 | : {1, 4} --> {0, 3}|
+      +-------------------------------+
+      |{1} | 1 | : {2, 0} --> {1, 0}  |
+      +-------------------------------+
+      |{1} | x_2 | : {2, 1} --> {1, 0}|
+      +-------------------------------+
+      |{2} | 1 | : {2, 2} --> {1, 1}  |
+      +-------------------------------+
+      |{2} | 1 | : {2, 3} --> {1, 2}  |
+      +-------------------------------+
+      |{2} | 1 | : {2, 4} --> {1, 3}  |
+      +-------------------------------+
+      |{1} | 1 | : {3, 0} --> {2, 0}  |
+      +-------------------------------+
+      |{1} | x_2 | : {3, 1} --> {2, 0}|
+      +-------------------------------+
+      |{2} | 1 | : {3, 2} --> {2, 1}  |
+      +-------------------------------+
+      |{2} | 1 | : {3, 3} --> {2, 2}  |
+      +-------------------------------+
+      |{2} | 1 | : {3, 4} --> {2, 3}  |
+      +-------------------------------+
+      |{1} | 1 | : {4, 0} --> {3, 0}  |
+      +-------------------------------+
+      |{1} | x_2 | : {4, 1} --> {3, 0}|
+      +-------------------------------+
+      |{2} | 1 | : {4, 2} --> {3, 1}  |
+      +-------------------------------+
+      |{2} | 1 | : {4, 3} --> {3, 2}  |
+      +-------------------------------+
+      |{2} | 1 | : {4, 4} --> {3, 3}  |
+      +-------------------------------+</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>One reason for using the simplicial tensor product is that its components as a simplicial module are more canonically built, and thus naturally extend functorial maps on the category of R-modules to the category of chain complexes.</p>
+          <p>We can see actually see this in an example. The exterior power functor admits a canonical comultiplication map $$\bigwedge^{i+j} \to \bigwedge^i \otimes \bigwedge^j.$$ This means that for any chain complex $C$ there is a canonical inclusion of complexes $$\bigwedge^{i+j} C \hookrightarrow \bigwedge^i C \otimes \bigwedge^j C.$$ Constructing this inclusion directly using the naive definition of the exterior power functor on complexes would be extremely unnatural, but filtering through the simplicial category makes this a very easy task:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : Q = ZZ/101[a,b];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : K = koszulComplex vars Q
+
+       1      2      1
+o18 = Q  &lt;-- Q  &lt;-- Q
+                     
+      0      1      2
+
+o18 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : SK = simplicialModule(K,6) --want top degree 6 since the resulting complexes should have length 6
+
+       1      3      6      10      15      21      28
+o19 = Q  &lt;-- Q  &lt;-- Q  &lt;-- Q   &lt;-- Q   &lt;-- Q   &lt;-- Q  &lt;-- ...
+                                                    
+      0      1      2      3       4       5       6
+
+o19 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : w21K = extPower(2, SK) ** SK
+
+             9      90      450      1575      4410      10584
+o20 = 0 &lt;-- Q  &lt;-- Q   &lt;-- Q    &lt;-- Q     &lt;-- Q     &lt;-- Q     &lt;-- ...
+                                                         
+      0     1      2       3        4         5         6
+
+o20 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : w3K = extPower(3, SK)
+
+             1      20      120      455      1330      3276
+o21 = 0 &lt;-- Q  &lt;-- Q   &lt;-- Q    &lt;-- Q    &lt;-- Q     &lt;-- Q    &lt;-- ...
+                                                        
+      0     1      2       3        4        5         6
+
+o21 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : H = hashTable for i from 0 to 6 list i => dual wedgeProduct(2,1, dual SK_i);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : inclusion = map(w21K, w3K, H);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : isWellDefined inclusion
+
+o24 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : isCommutative inclusion
+
+o25 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : prune ker inclusion --should be 0 since it is an inclusion
+
+o26 = 0 &lt;-- 0 &lt;-- 0 &lt;-- 0 &lt;-- 0 &lt;-- 0 &lt;-- 0&lt;-- ...
+                                           
+      0     1     2     3     4     5     6
+
+o26 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : S21' = complex { matrix {{a, b, 0, 0, -b}, {0, 0, a, b, a}}, matrix {{-b, b, 0, 0,
+                                       b, 0}, {a, -a, 0, 0, 0, b}, {0, 0, -b, b, -a, 0}, {0, 0, a, -a, 0, -a}, {0, 0, 0, 0, a, b}},
+                                      matrix {{a, b, 0, -b, -b}, {a, b, 0, 0, -2*b}, {0, a, b, a, 0}, {0, a, b, 0, a}, {0, 0, 0,
+                                        -b, b}, {0, 0, 0, a, -a}}, matrix {{3*b, 0}, {-a, 2*b}, {0, -3*a}, {a, b}, {a, b}}}
+
+       2      5      6      5      2
+o27 = Q  &lt;-- Q  &lt;-- Q  &lt;-- Q  &lt;-- Q
+                                   
+      0      1      2      3      4
+
+o27 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : S21 = S21'[-1]  --this is the S^(2,1) schur functor; note the ranks
+
+       2      5      6      5      2
+o28 = Q  &lt;-- Q  &lt;-- Q  &lt;-- Q  &lt;-- Q
+                                   
+      1      2      3      4      5
+
+o28 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : prune HH S21 --note the homology
+
+o29 = cokernel | b a 0 0 | &lt;-- cokernel {1} | b a | &lt;-- cokernel {2} | b a 0 0 |
+               | 0 0 b a |                                       {2} | 0 0 b a |
+                               2                         
+      1                                                 3
+
+o29 : Complex</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Just for sake of illustration, let us see how the above example changes in the modular setting; note that the only characteristic for which the inclusion $$\bigwedge^3 \hookrightarrow \bigwedge^2 \otimes \bigwedge^1$$ is not canonically split is for characteristic 3, so we should expect the Dold-Kan extension of the Schur functor $\mathbb{S}^{(2,1)} (K)$ to look different in characteristic 3. (the resulting minimization of $\mathbb{S}^{(2,1)} (K)$ should not have coefficients, for instance).</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i30 : Q = ZZ/3[a,b];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i31 : K = koszulComplex vars Q
+
+       1      2      1
+o31 = Q  &lt;-- Q  &lt;-- Q
+                     
+      0      1      2
+
+o31 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i32 : SK = simplicialModule(K,6) --want top degree 6 since the resulting complexes should have length 6
+
+       1      3      6      10      15      21      28
+o32 = Q  &lt;-- Q  &lt;-- Q  &lt;-- Q   &lt;-- Q   &lt;-- Q   &lt;-- Q  &lt;-- ...
+                                                    
+      0      1      2      3       4       5       6
+
+o32 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i33 : w21K = extPower(2, SK) ** SK
+
+             9      90      450      1575      4410      10584
+o33 = 0 &lt;-- Q  &lt;-- Q   &lt;-- Q    &lt;-- Q     &lt;-- Q     &lt;-- Q     &lt;-- ...
+                                                         
+      0     1      2       3        4         5         6
+
+o33 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i34 : w3K = extPower(3, SK)
+
+             1      20      120      455      1330      3276
+o34 = 0 &lt;-- Q  &lt;-- Q   &lt;-- Q    &lt;-- Q    &lt;-- Q     &lt;-- Q    &lt;-- ...
+                                                        
+      0     1      2       3        4        5         6
+
+o34 : SimplicialModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i35 : H = hashTable for i from 0 to 6 list i => dual wedgeProduct(2,1, dual SK_i);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i36 : inclusion = map(w21K, w3K, H);</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Note that the above method of computing the Schur functor $\mathbb{S}^{(2,1)} (K)$ is significantly faster than the <span class="tt">schurMap</span> command.</p>
+          <p>This method is also implemented functorially, so it can be applied to simplicial maps and complex maps.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i37 : F = freeResolution( (ideal vars Q)^2)
+
+       1      3      2
+o37 = Q  &lt;-- Q  &lt;-- Q
+                     
+      0      1      2
+
+o37 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i38 : phi = extend(K, F, id_(K_0))
+
+           1             1
+o38 = 0 : Q  &lt;--------- Q  : 0
+                | 1 |
+
+           2                     3
+      1 : Q  &lt;----------------- Q  : 1
+                {1} | a b 0 |
+                {1} | 0 0 b |
+
+           1                   2
+      2 : Q  &lt;--------------- Q  : 2
+                {2} | 0 b |
+
+o38 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i39 : prune simplicialTensor(phi, phi)
+
+           1             1
+o39 = 0 : Q  &lt;--------- Q  : 0
+                | 1 |
+
+           8                                                      15
+      1 : Q  &lt;-------------------------------------------------- Q   : 1
+                {1} | a b 0 0 0 0 0  0  0  0  0  0  0  0  0  |
+                {1} | 0 0 b 0 0 0 0  0  0  0  0  0  0  0  0  |
+                {1} | 0 0 0 a b 0 0  0  0  0  0  0  0  0  0  |
+                {1} | 0 0 0 0 0 b 0  0  0  0  0  0  0  0  0  |
+                {2} | 0 0 0 0 0 0 a2 ab 0  ab b2 0  0  0  0  |
+                {2} | 0 0 0 0 0 0 0  0  ab 0  0  b2 0  0  0  |
+                {2} | 0 0 0 0 0 0 0  0  0  0  0  0  ab b2 0  |
+                {2} | 0 0 0 0 0 0 0  0  0  0  0  0  0  0  b2 |
+
+           19                                                                                                                                                  50
+      2 : Q   &lt;---------------------------------------------------------------------------------------------------------------------------------------------- Q   : 2
+                 {2} | 0 b 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {2} | 0 0 0 0 a2 ab 0  0  0  0  ab b2 0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {2} | 0 0 0 0 0  0  ab 0  0  0  0  0  b2 0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {2} | 0 0 0 0 0  0  0  a2 ab 0  0  0  0  ab b2 0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {2} | 0 0 0 0 0  0  0  0  0  ab 0  0  0  0  0  b2 0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {2} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  ab b2 0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {2} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  b2 0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {2} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  ab b2 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {2} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  b2 0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {2} | 0 0 0 b 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {3} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 ab 0 b2 0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {3} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 b2 0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {3} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 ab 0 b2 0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {3} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 b2 0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 0  |
+                 {3} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 ab b2 0  0  0  0  0 0 0 0  |
+                 {3} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  b2 0  0  0  0 0 0 0  |
+                 {3} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  ab b2 0  0 0 0 0  |
+                 {3} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  b2 0 0 0 0  |
+                 {4} | 0 0 0 0 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0  0  0  0  0  0  0 0 0 b2 |
+
+           18                                                                                                                                                               60
+      3 : Q   &lt;----------------------------------------------------------------------------------------------------------------------------------------------------------- Q   : 3
+                 {3} | 0 ab 0 b2 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 b2 0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 ab 0 0  0 b2 0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 0  0 ab 0 0  0 b2 0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 b2 0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 b2 0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 ab b2 0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  b2 0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  ab b2 0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  b2 0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  ab b2 0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {3} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  b2 0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {4} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 b2 0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {4} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 b2 0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {4} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 b2 0 0 0 0 0 0 0 0  0 0  0 0  |
+                 {4} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 b2 0 0  0 0  |
+                 {4} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 b2 0 0  |
+                 {4} | 0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0  0 0 0 0 0 0 0 0 0 0  0  0  0  0  0  0  0  0  0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 b2 |
+
+           6                                                                     24
+      4 : Q  &lt;----------------------------------------------------------------- Q   : 4
+                {4} | 0 0 0 b2 0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                {4} | 0 0 0 0  0 0 0 0 0 b2 0 0  0 0 0 0 0 0 0 0  0 0  0 0  |
+                {4} | 0 0 0 0  0 0 0 0 0 0  0 b2 0 0 0 0 0 0 0 0  0 0  0 0  |
+                {4} | 0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 b2 0 0  0 0  |
+                {4} | 0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 b2 0 0  |
+                {4} | 0 0 0 0  0 0 0 0 0 0  0 0  0 0 0 0 0 0 0 0  0 0  0 b2 |
+
+o39 : ComplexMap</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>The user should remember to prune the output upon normalizing a simplicial tensor product.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="compute the Dold-Puppe extension of the exterior power functor to simplicial modules" href="_ext__Power.html">extPower</a> -- compute the Dold-Puppe extension of the exterior power functor to simplicial modules</span></li>
+          <li><span><a title="computes the image of the surjection from the simplicial tensor product onto the second symmetric power of a simplicial module" href="_symmetric__Quotient.html">symmetricQuotient</a> -- computes the image of the surjection from the simplicial tensor product onto the second symmetric power of a simplicial module</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">simplicialTensor</span>:</h2>
+          <ul>
+            <li><kbd>simplicialTensor(Complex,Complex)</kbd></li>
+            <li><kbd>simplicialTensor(ComplexMap,ComplexMap)</kbd></li>
+            <li><kbd>simplicialTensor(List)</kbd></li>
+            <li><kbd>simplicialTensor(ZZ,Complex)</kbd></li>
+            <li><kbd>simplicialTensor(ZZ,SimplicialModule)</kbd></li>
+            <li><span><span class="tt">simplicialTensor(SimplicialModule,SimplicialModule)</span> (missing documentation)<!--tag: (simplicialTensor,SimplicialModule,SimplicialModule)-->
+</span></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="compute the simplicial tensor product and cache direct sum indices for easy access" href="_simplicial__Tensor.html">simplicialTensor</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function__With__Options.html">method function with options</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SimplicialModules/SimplicialModuleDOC.m2:3737:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

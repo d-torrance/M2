@@ -1,0 +1,1703 @@
+ -*- coding: utf-8 -*- This is ReflexivePolytopesDB.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* ReflexivePolytopesDB: (ReflexivePolytopesDB).  simple access to Kreuzer-Skarke database of reflexive polytopes of dimensions 3 and 4
+END-INFO-DIR-ENTRY
+
+
+File: ReflexivePolytopesDB.info, Node: Top, Next: availableOffline, Up: (dir)
+
+ReflexivePolytopesDB -- simple access to Kreuzer-Skarke database of reflexive polytopes of dimensions 3 and 4
+*************************************************************************************************************
+
+Description
+===========
+
+In each given dimension $d$, it is known that the number of distinct (up to
+invertible integral change of basis) reflexive polytopes of dimension $d$ is
+finite in number.  For example, in dimension 1 there is 1, in dimension 2,
+there are 16, in dimension 3, there are 4319 distinct reflexive polytopes.
+
+In a major work, Max Kreuzer and Harold Skarke found algorithms for computing
+the set of such polytopes.  They used these algorithms to show that there are
+473,800,776 distinct 4-dimensional reflexive polytopes.  The number is
+sufficiently large that they created a website
+http://hep.itp.tuwien.ac.at/~kreuzer/CY/ and an interface to access these
+examples.  See their website for references to the algorithms used.
+
+This package, ReflexivePolytopesDB, provides access to this database of
+reflexive polytopes of dimension 3 and dimension 4.
+
+This package also contains a small part of this database for offline use, in
+case one cannot access the database.
+
+Here we describe a simple use of the package.  The actual investigation of the
+corresponding polytope or toric variety, or Calabi-Yau hypersurface, is done in
+Macaulay2 with the aid of other packages, such as *note Polyhedra:
+(Polyhedra)Top, and *note NormalToricVarieties: (NormalToricVarieties)Top,.
+
+Let's take one example polytope from the database, one whose corresponding
+Calabi-Yau 3-fold has Hodge numbers $h^{1,1}(X) = 9$ and $h^{1,2}(X) = 21$.
+
++---------------------------------------+
+|i1 : topes = kreuzerSkarke(9, 21);     |
+|using offline data file: ks9+21-n10.txt|
++---------------------------------------+
+
+This returns a list of single entries from the Kreuzer-Skarke database.  Each
+one is essentially a string, containing a description line, together with the
+vertices of the corresponding polytope.
+
+In Macaulay2, each entry is an object of class *note KSEntry: KSEntry,
+(meaning: Kreuzer-Skarke database entry).  Use *note matrix(KSEntry):
+matrix_lpKSEntry_rp, to create the matrix whose columns are the vertices of the
+reflexive polytope.  Use *note description(KSEntry): description, to see the
+associated description from the database (see *note Kreuzer-Skarke description
+headers: Kreuzer-Skarke description headers, for the description of the format
+of this description).
+
++-----------------------------------------+
+|i2 : topes_1                             |
+|                                         |
+|o2 = 4 7  M:26 7 N:12 6 H:9,21 [-24] id:1|
+|        1   1   0   0  -4   0   2        |
+|        0   3   0   0  -6   3   6        |
+|        0   0   1   1  -1  -2  -1        |
+|        0   0   0   2  -2  -1   1        |
+|                                         |
+|o2 : KSEntry                             |
++-----------------------------------------+
+|i3 : A = matrix topes_1                  |
+|                                         |
+|o3 = | 1 1 0 0 -4 0  2  |                |
+|     | 0 3 0 0 -6 3  6  |                |
+|     | 0 0 1 1 -1 -2 -1 |                |
+|     | 0 0 0 2 -2 -1 1  |                |
+|                                         |
+|              4       7                  |
+|o3 : Matrix ZZ  <-- ZZ                   |
++-----------------------------------------+
+|i4 : description topes_1                 |
+|                                         |
+|o4 = 4 7  M:26 7 N:12 6 H:9,21 [-24] id:1|
++-----------------------------------------+
+
+The corresponding reflexive polytope has 7 vertices, the columns of this
+matrix.
+
++----------------------------------------------------+
+|i5 : needsPackage "Polyhedra"                       |
+|                                                    |
+|o5 = Polyhedra                                      |
+|                                                    |
+|o5 : Package                                        |
++----------------------------------------------------+
+|i6 : P = convexHull A                               |
+|                                                    |
+|o6 = P                                              |
+|                                                    |
+|o6 : Polyhedron                                     |
++----------------------------------------------------+
+|i7 : assert isReflexive P                           |
++----------------------------------------------------+
+|i8 : P2 = polar P                                   |
+|                                                    |
+|o8 = P2                                             |
+|                                                    |
+|o8 : Polyhedron                                     |
++----------------------------------------------------+
+|i9 : (numColumns vertices P, numColumns vertices P2)|
+|                                                    |
+|o9 = (7, 6)                                         |
+|                                                    |
+|o9 : Sequence                                       |
++----------------------------------------------------+
+|i10 : (# latticePoints P, # latticePoints P2)       |
+|                                                    |
+|o10 = (26, 12)                                      |
+|                                                    |
+|o10 : Sequence                                      |
++----------------------------------------------------+
+
+We can process many examples at one time, using the list facilities in
+Macaulay2. For instance, use *note List / Function: (Macaulay2Doc)VisibleList /
+Function, to apply matrix to each element of the list, returning a list of the
+resulting matrices:
+
++-------------------------------------+
+|i11 : L = topes/matrix;              |
++-------------------------------------+
+|i12 : netList L                      |
+|                                     |
+|      +-----------------------------+|
+|o12 = || 1 0 0 2 -4 |               ||
+|      || 0 1 1 5 -7 |               ||
+|      || 0 0 3 0 -3 |               ||
+|      || 0 0 0 6 -6 |               ||
+|      +-----------------------------+|
+|      || 1 1 0 0 -4 0  2  |         ||
+|      || 0 3 0 0 -6 3  6  |         ||
+|      || 0 0 1 1 -1 -2 -1 |         ||
+|      || 0 0 0 2 -2 -1 1  |         ||
+|      +-----------------------------+|
+|      || 1 0 0 -1 1 -1 |            ||
+|      || 0 1 1 2  0 -4 |            ||
+|      || 0 0 3 3  0 -6 |            ||
+|      || 0 0 0 0  3 -3 |            ||
+|      +-----------------------------+|
+|      || 1 0 0 0 -3 -3 3  |         ||
+|      || 0 1 1 0 2  0  -4 |         ||
+|      || 0 0 3 0 3  0  -6 |         ||
+|      || 0 0 0 1 -1 -2 2  |         ||
+|      +-----------------------------+|
+|      || 1 0 0 0 -2 -4 4  -4 |      ||
+|      || 0 1 0 0 -2 -2 2  -3 |      ||
+|      || 0 0 1 1 1  3  -5 2  |      ||
+|      || 0 0 0 2 2  4  -6 3  |      ||
+|      +-----------------------------+|
+|      || 1 0 0 1 -2 -1 1  -1 -1 3  |||
+|      || 0 1 0 0 0  2  -2 0  0  -3 |||
+|      || 0 0 1 0 0  -1 1  1  -1 1  |||
+|      || 0 0 0 2 -1 -1 -1 -1 1  0  |||
+|      +-----------------------------+|
+|      || 1 0 0 0 2  0  0  -1 -3 |   ||
+|      || 0 1 1 0 -1 -1 -1 -1 3  |   ||
+|      || 0 0 2 0 -1 -1 1  -2 0  |   ||
+|      || 0 0 0 1 -1 1  -1 1  1  |   ||
+|      +-----------------------------+|
+|      || 1 0 1 0 -2 -1 -1 1  -1 3  |||
+|      || 0 1 0 0 1  2  0  -2 0  -3 |||
+|      || 0 0 2 0 -2 -1 -1 -1 1  0  |||
+|      || 0 0 0 1 0  -1 1  1  -1 1  |||
+|      +-----------------------------+|
+|      || 1 0 0 -1 0 0 1  -4 3  -6 | ||
+|      || 0 1 0 1  0 1 1  0  -1 -2 | ||
+|      || 0 0 1 1  0 1 -2 4  -2 4  | ||
+|      || 0 0 0 0  1 0 -1 1  -1 1  | ||
+|      +-----------------------------+|
+|      || 1 0 0 1  1  0 -2 4  -2 0  |||
+|      || 0 1 0 0  -1 0 3  -4 1  -2 |||
+|      || 0 0 1 -1 0  0 1  -4 3  -2 |||
+|      || 0 0 0 0  0  1 -1 1  -1 1  |||
+|      +-----------------------------+|
++-------------------------------------+
+
+Author
+======
+
+  * Mike Stillman (see http://www.math.cornell.edu/~mike )
+    <mike@math.cornell.edu>
+
+Version
+=======
+
+This documentation describes version 1.0 of ReflexivePolytopesDB, released 22
+May 2019.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{ReflexivePolytopesDBSource,                                           |
+|  title = {{ReflexivePolytopesDB: A \emph{Macaulay2} package. Version~1.0}},|
+|  author = {Mike Stillman},                                                 |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note KSEntry: KSEntry, -- an entry from the Kreuzer-Skarke database of
+        dimension 3 and 4 reflexive polytopes
+  * Functions and commands
+      * *note availableOffline: availableOffline, -- which Kreuzer-Skarke items
+        are available offline
+      * *note description: description, -- the description header
+      * *note generateOffline: generateOffline, -- generate tables of reflexive
+        4d polytopes from the Kreuzer-Skarke list
+      * *note kreuzerSkarke: kreuzerSkarke, -- access Kreuzer-Skarke dimension
+        4 reflexive polytopes database
+      * *note kreuzerSkarkeDim3: kreuzerSkarkeDim3, -- the list of 4319
+        dimension 3 reflexive polytopes in the Kreuzer-Skarke database
+      * *note matrixFromString: matrixFromString, -- convert a string to a
+        matrix of integers
+      * *note onlineTests: onlineTests, -- run a few tests which test access to
+        the Kreuzer-Skarke database
+  * Methods
+      * "description(KSEntry)" -- see *note description: description, -- the
+        description header
+      * "generateOffline(ZZ)" -- see *note generateOffline: generateOffline, --
+        generate tables of reflexive 4d polytopes from the Kreuzer-Skarke list
+      * "generateOffline(ZZ,ZZ)" -- see *note generateOffline: generateOffline,
+        -- generate tables of reflexive 4d polytopes from the Kreuzer-Skarke
+        list
+      * "kreuzerSkarke(String)" -- see *note kreuzerSkarke: kreuzerSkarke, --
+        access Kreuzer-Skarke dimension 4 reflexive polytopes database
+      * "kreuzerSkarke(ZZ)" -- see *note kreuzerSkarke: kreuzerSkarke, --
+        access Kreuzer-Skarke dimension 4 reflexive polytopes database
+      * "kreuzerSkarke(ZZ,ZZ)" -- see *note kreuzerSkarke: kreuzerSkarke, --
+        access Kreuzer-Skarke dimension 4 reflexive polytopes database
+      * *note matrix(KSEntry): matrix_lpKSEntry_rp, -- convert a Kreuzer-Skarke
+        entry to a matrix of integers
+      * "matrixFromString(String)" -- see *note matrixFromString:
+        matrixFromString, -- convert a string to a matrix of integers
+      * *note toExternalString(KSEntry): toExternalString_lpKSEntry_rp, -- a
+        string suitable for input to Macaulay2
+      * *note toString(KSEntry): toString_lpKSEntry_rp, -- the underlying
+        string of a KSEntry
+  * Symbols
+      * "Expected" -- see *note generateOffline: generateOffline, -- generate
+        tables of reflexive 4d polytopes from the Kreuzer-Skarke list
+      * "Access" -- see *note kreuzerSkarke: kreuzerSkarke, -- access
+        Kreuzer-Skarke dimension 4 reflexive polytopes database
+      * "DualLatticePoints" -- see *note kreuzerSkarke: kreuzerSkarke, --
+        access Kreuzer-Skarke dimension 4 reflexive polytopes database
+      * "Facets" -- see *note kreuzerSkarke: kreuzerSkarke, -- access
+        Kreuzer-Skarke dimension 4 reflexive polytopes database
+      * "H12" -- see *note kreuzerSkarke: kreuzerSkarke, -- access
+        Kreuzer-Skarke dimension 4 reflexive polytopes database
+      * "LatticePoints" -- see *note kreuzerSkarke: kreuzerSkarke, -- access
+        Kreuzer-Skarke dimension 4 reflexive polytopes database
+      * "Vertices" -- see *note kreuzerSkarke: kreuzerSkarke, -- access
+        Kreuzer-Skarke dimension 4 reflexive polytopes database
+
+For the programmer
+==================
+
+The object *note ReflexivePolytopesDB: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in ReflexivePolytopesDB.m2, with auxiliary
+files in ReflexivePolytopesDB/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:439:0.
+
+File: ReflexivePolytopesDB.info, Node: availableOffline, Next: description, Prev: Top, Up: Top
+
+availableOffline -- which Kreuzer-Skarke items are available offline
+********************************************************************
+
+  * Usage: 
+        availableOffline()
+  * Outputs:
+      * a *note hash table: (Macaulay2Doc)HashTable,, the keys are the h11 and
+        h12 entries which are available, and the value is either a string
+        containing the file name, or a pair containing the number downloaded,
+        and the file name.
+
+Description
+===========
+
+In the examples below, the calls to *note kreuzerSkarke: kreuzerSkarke, will be
+handled without accessing the web interface.  If we had asked for
+kreuzerSkarke(11, 24, Limit => 1000) then since only 100 are available locally,
+the local data could not be used.
+
++-----------------------------------------------------------------------------+
+|i1 : availableOffline()                                                      |
+|                                                                             |
+|o1 = HashTable{"kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|                                                                             |
+|o1 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|1)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks1-n5.txt            |
+|2)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks2-n36.txt           |
+|3)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks3-n244.txt          |
+|5, Limit => 50)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks5-n50.t|
+|5,53)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks5+53-n204.txt    |
+|9,21)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks9+21-n10.txt     |
+|11,24)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks11+24-n200.txt  |
+|21, Limit => 100)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks21-n1|
+|300)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks300-n20.txt       |
+|491)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks491-n1.txt        |
+|-----------------------------------------------------------------------------|
+|      }                                                                      |
+|                                                                             |
+|                                                                             |
+|xt                                                                           |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|00.txt                                                                       |
++-----------------------------------------------------------------------------+
+|i2 : kreuzerSkarke 491                                                       |
+|using offline data file: ks491-n1.txt                                        |
+|                                                                             |
+|o2 = {4 5  M:26 5 N:680 5 H:491,11 [960] id:0}                               |
+|          1    0    0    0  -42                                              |
+|          0    1    0    0  -28                                              |
+|          0    0    1    0  -12                                              |
+|          0    0    0    1   -1                                              |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : kreuzerSkarke(11, 24, Limit => 10)                                      |
+|using offline data file: ks11+24-n200.txt                                    |
+|                                                                             |
+|o3 = {4 14  M:29 14 N:15 10 H:11,24 [-26] id:0                , 4 12  M:30 12|
+|         1   0   0   0  -3   0   3  -3   1   1  -2  -1   2  -1     1   0   0 |
+|         0   1   0   0   0   1  -1  -1   1   1   1   1   1   1     0   1   0 |
+|         0   0   1   0   1   0  -1   1  -1  -1   0  -1  -2   0     0   0   1 |
+|         0   0   0   1   3   1  -2   2   0  -2   2   0  -2   2     0   0   0 |
+|     ------------------------------------------------------------------------|
+|     N:16 10 H:11,24 [-26] id:1        , 4 15  M:30 15 N:16 11 H:11,24       |
+|      0   0   2   2   0   0   2  -3  -3     1   0   0   0   0   2  -1        |
+|      0  -1   0   0   2  -2  -1  -2  -3     0   1   0  -1   0   2  -1        |
+|      0   1  -1  -2  -3   1  -1   3   4     0   0   1   0   0   1  -1        |
+|      1   1  -1  -1  -1  -1  -1   0   0     0   0   0   0   1   0   1        |
+|     ------------------------------------------------------------------------|
+|     [-26] id:2                    , 4 15  M:30 15 N:16 11 H:11,24 [-26] id:3|
+|     -2   0  -1  -2  -2   1  -2   0     1   0   0   0   2   0   0   0  -1   0|
+|     -1  -1  -1  -1  -1  -1  -1  -1     0   1   0  -1  -2   0  -1   1   0   2|
+|     -1  -1  -2   0  -2   0   0   2     0   0   1   0   1   0   1  -1   0  -1|
+|      1   0   0   0   0  -1  -1  -2     0   0   0   0   0   1   1   0   1  -1|
+|     ------------------------------------------------------------------------|
+|                       , 4 15  M:28 15 N:16 11 H:11,24 [-26] id:4            |
+|     -1  -2  -2  -3  -2     1   0   0   0   0   0  -1  -1  -1  -1  -1   2   0|
+|      1   1   1   2   3     0   1   0   0   0   1   3   2   2   1   1  -2  -2|
+|     -2   0  -2  -1   0     0   0   1   0  -1   1   2   1   2   1   0  -2   0|
+|      0   0   0  -1  -2     0   0   0   1   0   1   1   0   0  -1   0  -1  -1|
+|     ------------------------------------------------------------------------|
+|           , 4 15  M:30 15 N:16 11 H:11,24 [-26] id:5                    , 4 |
+|     -1  -1     1   0   0   1   0   1   1   1   0   1   1   0  -2   0  -1    |
+|      0   0     0   1   0   1   0   1   0  -1   1   0  -1  -2   0  -2  -1    |
+|     -1   1     0   0   1   1  -1   0  -1  -1   2  -1  -1  -1  -1  -1  -1    |
+|      1  -1     0   0   0   2  -1   1   0  -1   2   1   0  -1  -2  -2   0    |
+|     ------------------------------------------------------------------------|
+|     15  M:29 15 N:16 11 H:11,24 [-26] id:6                    , 4 15  M:30  |
+|      1   0   0   0   1   1  -1   1   2   0  -2   1   2   0  -1     1   0    |
+|      0   1   0   0   0  -1   1   0  -1   0   1  -2  -2   0  -1     0   1    |
+|      0   0   1   0  -1   0   0   0  -1   1   2  -1  -2  -2   0     0   0    |
+|      0   0   0   1  -1  -1   1  -1  -1  -1   2  -1  -1  -1  -1     0   0    |
+|     ------------------------------------------------------------------------|
+|     15 N:16 11 H:11,24 [-26] id:7                    , 4 16  M:30 16 N:16 11|
+|     0   1   0   1   0  -1  -1  -1  -2   0   1   0  -2     1   0   0   0   0 |
+|     0   1  -1   1  -1  -2  -1  -2  -2   1   0  -1  -1     0   1   0   0  -1 |
+|     1   1   0   1   0  -1   0  -2  -2   2   0  -2  -2     0   0   1   0   1 |
+|     0   2   0   0  -1  -2  -1  -2  -3   2   2   0  -2     0   0   0   1   0 |
+|     ------------------------------------------------------------------------|
+|     H:11,24 [-26] id:8                        , 4 14  M:29 14 N:15 11       |
+|      2  -1   3   0   1   2   0   3   2  -3  -3     1   0   0  -1   0        |
+|      2   1   2  -1   0   3   2   3   1  -3  -4     0   1   0   0   0        |
+|     -1   0  -2   0   0  -2  -1  -3  -2   2   2     0   0   1   0   0        |
+|     -2   0  -2   1  -1  -2  -1  -2  -1   2   2     0   0   0   0   1        |
+|     ------------------------------------------------------------------------|
+|     H:11,24 [-26] id:9                }                                     |
+|      0  -1  -1  -1  -1   1  -1  -1  -1                                      |
+|     -3  -1  -2  -3  -1   4   0  -2   1                                      |
+|      3   1   2   2   0  -2  -2   0  -2                                      |
+|      1   1   1   1   1  -2   0   0  -1                                      |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note kreuzerSkarke: kreuzerSkarke, -- access Kreuzer-Skarke dimension 4
+    reflexive polytopes database
+
+For the programmer
+==================
+
+The object *note availableOffline: availableOffline, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:918:0.
+
+File: ReflexivePolytopesDB.info, Node: description, Next: generateOffline, Prev: availableOffline, Up: Top
+
+description -- the description header
+*************************************
+
+  * Usage: 
+        description e
+  * Inputs:
+      * e, an *note entry from the Kreuzer-Skarke database: KSEntry,, 
+  * Outputs:
+      * a *note string: (Macaulay2Doc)String,, 
+
+Description
+===========
+
+Returns the description header of the given entry from the Kreuzer-Skarke
+database. This is simply the first line of the given entry.
+
++-----------------------------------------------------+
+|i1 : e = KSEntry "4 5  M:53 5 N:9 5 H:3,43 [-80] id:0|
+|       1   0   2   4 -10                             |
+|       0   1   3   5  -9                             |
+|       0   0   4   0  -4                             |
+|       0   0   0   8  -8                             |
+|       ";                                            |
++-----------------------------------------------------+
+|i2 : description e                                   |
+|                                                     |
+|o2 = 4 5  M:53 5 N:9 5 H:3,43 [-80] id:0             |
++-----------------------------------------------------+
+|i3 : A = matrix e                                    |
+|                                                     |
+|o3 = | 1 0 2 4 -10 |                                 |
+|     | 0 1 3 5 -9  |                                 |
+|     | 0 0 4 0 -4  |                                 |
+|     | 0 0 0 8 -8  |                                 |
+|                                                     |
+|              4       5                              |
+|o3 : Matrix ZZ  <-- ZZ                               |
++-----------------------------------------------------+
+
+See also
+========
+
+  * *note KSEntry: KSEntry, -- an entry from the Kreuzer-Skarke database of
+    dimension 3 and 4 reflexive polytopes
+  * *note matrix(KSEntry): matrix_lpKSEntry_rp, -- convert a Kreuzer-Skarke
+    entry to a matrix of integers
+
+Ways to use description:
+========================
+
+  * "description(KSEntry)"
+
+For the programmer
+==================
+
+The object *note description: description, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:833:0.
+
+File: ReflexivePolytopesDB.info, Node: generateOffline, Next: Kreuzer-Skarke description headers, Prev: description, Up: Top
+
+generateOffline -- generate tables of reflexive 4d polytopes from the Kreuzer-Skarke list
+*****************************************************************************************
+
+  * Usage: 
+        filename = generateOffline(h11,h12)
+        filename = generateOffline h11
+  * Inputs:
+      * h11, an *note integer: (Macaulay2Doc)ZZ,, As in getKreuzerSkarke, the
+        desired $h^{1,1}(X)$ of the associated Calabi-Yau 3-fold
+      * h12, an *note integer: (Macaulay2Doc)ZZ,, (Optional) As in
+        getKreuzerSkarke, the desired $h^{1,2}(X)$ of the associated Calabi-Yau
+        3-fold
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Limit (missing documentation) => an *note integer: (Macaulay2Doc)ZZ,,
+        default value 1000, Only download at most this many examples
+      * Prefix (missing documentation) => a *note string:
+        (Macaulay2Doc)String,, default value "./", The directory to place the
+        resulting file, should end in a slash, or be the empty string
+      * FileName (missing documentation) => a *note string:
+        (Macaulay2Doc)String,, default value null, If not null, then use this
+        as the filename (ignoring also the Prefix option)
+      * Expected (missing documentation) => an *note integer:
+        (Macaulay2Doc)ZZ,, default value null, The expected number of examples.
+        This is tested, and an error is given if the number retrieved is
+        different
+  * Outputs:
+      * filename, a *note string: (Macaulay2Doc)String,, The name of the file
+        to where the examples are written
+  * Consequences:
+      * A file is written in the directory given by prefix. The name is made
+        out of the arguments
+
+Description
+===========
+
+filename = generateOffline(300, Limit=>1000, Expected=>20, Prefix=>"")
+polytopes = kreuzerSkarke get filename
+
+Caveat
+======
+
+This function doesn't take all of the options that kreuzerSkarke takes
+
+See also
+========
+
+  * *note kreuzerSkarke: kreuzerSkarke, -- access Kreuzer-Skarke dimension 4
+    reflexive polytopes database
+
+Ways to use generateOffline:
+============================
+
+  * "generateOffline(ZZ)"
+  * "generateOffline(ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note generateOffline: generateOffline, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:961:0.
+
+File: ReflexivePolytopesDB.info, Node: Kreuzer-Skarke description headers, Next: kreuzerSkarke, Prev: generateOffline, Up: Top
+
+Kreuzer-Skarke description headers -- information contained in the description line
+***********************************************************************************
+
+Each 4D reflexive polytope in the Kreuzer-Skarke database contains summary
+information about the polytope. Here, we explain this information.  A 3D
+polytope description line is similar, but somewhat simpler.
+
+We will do this on an example, and see how to obtain this information directly.
+
++-------------------------------------------+
+|i1 : topes = kreuzerSkarke(5,Limit=>1);    |
+|using offline data file: ks5-n50.txt       |
++-------------------------------------------+
+|i2 : A = matrix topes_0                    |
+|                                           |
+|o2 = | 1 0 0 0 1 0 0  2  -2 -1 |           |
+|     | 0 1 0 0 0 1 -2 -1 2  0  |           |
+|     | 0 0 1 0 0 1 -1 -2 0  2  |           |
+|     | 0 0 0 1 1 0 2  0  -1 -2 |           |
+|                                           |
+|              4       10                   |
+|o2 : Matrix ZZ  <-- ZZ                     |
++-------------------------------------------+
+|i3 : header = description topes_0          |
+|                                           |
+|o3 = 4 10  M:25 10 N:10 9 H:5,20 [-30] id:0|
++-------------------------------------------+
+
+This header line is what we wish to explain now.
+
+The quick description:
+
+  * '4 10': the first 2 numbers are the number of rows and columns of the
+    matrix $A$
+  * 'M:25 10': number of lattice points and the number of vertices of the
+    4-dimensional lattice polytope $P$ which is the convex hull of the columns
+    of the matrix $A$
+  * 'N: 10 9' is the number of lattice points and the number of vertices of the
+    polar dual polytope $P^o$ of $P$
+  * 'H: 5,20 [-30]' are the Hodge numbers $h^{1,1}(X)$, $h^{1,2}(X)$, and the
+    topological Euler characteristic of $X$, where $X$ is the Calabi-Yau
+    variety described next
+  * 'id: 0' is added by {   t kreuzerSkarke}: each retrieved entry gets an id,
+    starting with 0
+
+Here, $X$ is defined as follows. Consider the Fano toric variety corresponding
+to the polytope $P$ (or, equivalently) to the fan determined by the polar dual
+polytope $P^o$. A fine regular star triangulation of $P^o$ defines a refined
+fan which corresponds to a simplicial toric variety $V$, such that a generic
+anti-canonical divisor $X$ is a smooth Calabi-Yau 3-fold hypersurface of $V$.
+The final numbers are about $X$: "H:5,20 [-30]" says that $h^{1,1}(X) = 5$ and
+$h^{1,2}(X) = 20$.  The topological Euler characteristic of $X$ is the number
+in square brackets: $2 h^{1,1}(X) - 2 h^{1,2}(X) = 10 - 40 = -30$.
+
+The first 2 integers are the dimensions of the matrix (4 by 10).
+
++------------------------------+
+|i4 : needsPackage "Polyhedra";|
++------------------------------+
+|i5 : P = convexHull A         |
+|                              |
+|o5 = P                        |
+|                              |
+|o5 : Polyhedron               |
++------------------------------+
+
+$P$ is the convex hull of the columns in the $M = \ZZ^4$ lattice. $P$ has 10
+vertices and 25 lattice points, explaining the part of the line "M:25 10".
+
++-----------------------------------------------------------------------------+
+|i6 : LP = latticePoints P                                                    |
+|                                                                             |
+|o6 = {| -2 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | 0  |, | 0  |,|
+|      | 2  |  | 0  |  | 0  |  | 0  |  | 1  |  | 1  |  | 1  |  | -2 |  | -1 | |
+|      | 0  |  | 0  |  | 1  |  | 2  |  | 0  |  | 0  |  | 1  |  | -1 |  | -1 | |
+|      | -1 |  | 0  |  | -1 |  | -2 |  | -1 |  | 0  |  | -1 |  | 2  |  | 1  | |
+|     ------------------------------------------------------------------------|
+|     | 0  |, | 0  |, | 0  |, | 0  |, 0, | 0 |, | 0  |, | 0 |, | 0 |, | 0 |, ||
+|     | -1 |  | -1 |  | 0  |  | 0  |     | 0 |  | 0  |  | 0 |  | 1 |  | 1 |  ||
+|     | 0  |  | 0  |  | -1 |  | 0  |     | 0 |  | 1  |  | 1 |  | 0 |  | 1 |  ||
+|     | 0  |  | 1  |  | 0  |  | -1 |     | 1 |  | -1 |  | 0 |  | 0 |  | 0 |  ||
+|     ------------------------------------------------------------------------|
+|     1  |, | 1  |, | 1  |, | 1 |, | 1 |, | 2  |}                             |
+|     -1 |  | -1 |  | 0  |  | 0 |  | 0 |  | -1 |                              |
+|     -1 |  | -1 |  | -1 |  | 0 |  | 0 |  | -2 |                              |
+|     0  |  | 1  |  | 0  |  | 0 |  | 1 |  | 0  |                              |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : #LP                                                                     |
+|                                                                             |
+|o7 = 25                                                                      |
++-----------------------------------------------------------------------------+
+|i8 : vertices P                                                              |
+|                                                                             |
+|o8 = | 1 0 2  0 0 -1 -2 0 1 0  |                                             |
+|     | 0 1 -1 0 1 0  2  0 0 -2 |                                             |
+|     | 0 0 -2 1 1 2  0  0 0 -1 |                                             |
+|     | 0 0 0  0 0 -2 -1 1 1 2  |                                             |
+|                                                                             |
+|              4       10                                                     |
+|o8 : Matrix QQ  <-- QQ                                                       |
++-----------------------------------------------------------------------------+
+|i9 : numColumns vertices P                                                   |
+|                                                                             |
+|o9 = 10                                                                      |
++-----------------------------------------------------------------------------+
+
+$P_2$ is the polar dual of $P$ in the $N = \ZZ^4$ lattice. $P_2$ has 9 vertices
+and 10 lattice points, explaining the part of the line "N:10 9".
+
++-----------------------------------------------------------------------------+
+|i10 : P2 = polar P                                                           |
+|                                                                             |
+|o10 = P2                                                                     |
+|                                                                             |
+|o10 : Polyhedron                                                             |
++-----------------------------------------------------------------------------+
+|i11 : LP2 = latticePoints P2                                                 |
+|                                                                             |
+|o11 = {| -1 |, | -1 |, | -1 |, | -1 |, | 0  |, | 0  |, | 0  |, 0, | 1  |, | 1|
+|       | -1 |  | -1 |  | 0  |  | 1  |  | -1 |  | -1 |  | 0  |     | 0  |  | 1|
+|       | 0  |  | 0  |  | -1 |  | -1 |  | 0  |  | 1  |  | -1 |     | -1 |  | 1|
+|       | 0  |  | 1  |  | 0  |  | 0  |  | -1 |  | -1 |  | -1 |     | -1 |  | 1|
+|      -----------------------------------------------------------------------|
+|      |}                                                                     |
+|      |                                                                      |
+|      |                                                                      |
+|      |                                                                      |
+|                                                                             |
+|o11 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i12 : #LP2                                                                   |
+|                                                                             |
+|o12 = 10                                                                     |
++-----------------------------------------------------------------------------+
+|i13 : vertices P2                                                            |
+|                                                                             |
+|o13 = | -1 -1 -1 -1 1 0  0  0  1  |                                          |
+|      | -1 0  1  -1 1 -1 -1 0  0  |                                          |
+|      | 0  -1 -1 0  1 0  1  -1 -1 |                                          |
+|      | 0  0  0  1  1 -1 -1 -1 -1 |                                          |
+|                                                                             |
+|               4       9                                                     |
+|o13 : Matrix QQ  <-- QQ                                                      |
++-----------------------------------------------------------------------------+
+|i14 : numColumns vertices P2                                                 |
+|                                                                             |
+|o14 = 9                                                                      |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note kreuzerSkarke: kreuzerSkarke, -- access Kreuzer-Skarke dimension 4
+    reflexive polytopes database
+  * *note KSEntry: KSEntry, -- an entry from the Kreuzer-Skarke database of
+    dimension 3 and 4 reflexive polytopes
+  * *note description(KSEntry): description, -- the description header
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:755:0.
+
+File: ReflexivePolytopesDB.info, Node: kreuzerSkarke, Next: kreuzerSkarkeDim3, Prev: Kreuzer-Skarke description headers, Up: Top
+
+kreuzerSkarke -- access Kreuzer-Skarke dimension 4 reflexive polytopes database
+*******************************************************************************
+
+  * Usage: 
+        kreuzerSkarke(h11, Limit=>n)
+        kreuzerSkarke(h11, h12)
+        kreuzerSkarke str
+  * Inputs:
+      * h11, an *note integer: (Macaulay2Doc)ZZ,, The desired Picard number of
+        the Calabi-Yau hypersurface, a number between 1 and 491 inclusive.
+      * h12, an *note integer: (Macaulay2Doc)ZZ,, (optional) the desired
+        $h^{1,2}$ of the Calabi-Yau hypersurface
+      * str, a *note string: (Macaulay2Doc)String,, parses the given string
+        into a list of KSEntry's
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Limit (missing documentation) => an *note integer: (Macaulay2Doc)ZZ,,
+        default value 1000, The maximum number of examples to retrieve
+      * Vertices (missing documentation) => an *note integer:
+        (Macaulay2Doc)ZZ,, default value null, Restrict to those examples with
+        this number of vertices
+      * Facets (missing documentation) => an *note integer: (Macaulay2Doc)ZZ,,
+        default value null, Restrict to those examples with this number of
+        facets
+      * LatticePoints (missing documentation) => an *note integer:
+        (Macaulay2Doc)ZZ,, default value null, Restrict to those examples with
+        this number of lattice points
+      * DualLatticePoints (missing documentation) => an *note integer:
+        (Macaulay2Doc)ZZ,, default value null, Restrict to those examples whose
+        polar dual has this number of lattice points
+      * H12 (missing documentation) => an *note integer: (Macaulay2Doc)ZZ,,
+        default value null, Restrict to those examples whose associated
+        Calabi-Yau 3-fold has the given $h^{1,2}(X)$
+      * Access (missing documentation) => a *note string:
+        (Macaulay2Doc)String,, default value null, Either null (use Macaulay2's
+        getWWW), "wget" or "curl".  Mainly an internal optional argument for
+        developers
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of *note KSEntry: KSEntry,'s, each
+        of which is one entry (one polytope) from the database. Use *note
+        matrix(KSEntry): matrix_lpKSEntry_rp, and *note description(KSEntry):
+        description, to extract information from an entry.
+
+Description
+===========
+
+As a an example, let's take the 4th example with $h^{11}=5$, $h^{21}=53$.
+
++-----------------------------------------------------------------------------+
+|i1 : topes = kreuzerSkarke(5, 53, Limit=>4)                                  |
+|using offline data file: ks5+53-n204.txt                                     |
+|                                                                             |
+|o1 = {4 5  M:51 5 N:11 5 H:5,53 [-96] id:0, 4 5  M:61 5 N:9 5 H:5,53 [-96]   |
+|         1   0   1   1  -8                     1   0   0   4  -8             |
+|         0   1   0   0  -3                     0   1   1   9 -15             |
+|         0   0   3   3 -12                     0   0   2   0  -6             |
+|         0   0   0   6 -12                     0   0   0  12 -12             |
+|     ------------------------------------------------------------------------|
+|     id:1, 4 9  M:60 9 N:10 6 H:5,53 [-96] id:2, 4 9  M:59 9 N:10 6 H:5,53   |
+|              1   1   1   1   0  -1  -1  -2  -4     1   1   1   0   0   0    |
+|              0   3   0   1   0  -1  -4   0  -4     0   2   0   0   4   0    |
+|              0   0   2   2   0   2   2  -6  -4     0   0   2   0   0   4    |
+|              0   0   0   0   1  -2  -2   3   1     0   0   0   1   1   1    |
+|     ------------------------------------------------------------------------|
+|     [-96] id:3}                                                             |
+|     -2  -2  -2                                                              |
+|     -4  -6  -6                                                              |
+|     -6  -6  -4                                                              |
+|     -3  -3  -3                                                              |
+|                                                                             |
+|o1 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i2 : assert(#topes == 4)                                                     |
++-----------------------------------------------------------------------------+
+|i3 : tope = topes_3                                                          |
+|                                                                             |
+|o3 = 4 9  M:59 9 N:10 6 H:5,53 [-96] id:3                                    |
+|        1   1   1   0   0   0  -2  -2  -2                                    |
+|        0   2   0   0   4   0  -4  -6  -6                                    |
+|        0   0   2   0   0   4  -6  -6  -4                                    |
+|        0   0   0   1   1   1  -3  -3  -3                                    |
+|                                                                             |
+|o3 : KSEntry                                                                 |
++-----------------------------------------------------------------------------+
+|i4 : header = description tope                                               |
+|                                                                             |
+|o4 = 4 9  M:59 9 N:10 6 H:5,53 [-96] id:3                                    |
++-----------------------------------------------------------------------------+
+|i5 : A = matrix tope                                                         |
+|                                                                             |
+|o5 = | 1 1 1 0 0 0 -2 -2 -2 |                                                |
+|     | 0 2 0 0 4 0 -4 -6 -6 |                                                |
+|     | 0 0 2 0 0 4 -6 -6 -4 |                                                |
+|     | 0 0 0 1 1 1 -3 -3 -3 |                                                |
+|                                                                             |
+|              4       9                                                      |
+|o5 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+
+The description line gives some information about the example, see *note
+Kreuzer-Skarke description headers: Kreuzer-Skarke description headers, for
+more details. The polytope is the convex hull of the columns of the matrix $A$.
+
+Some of the Kreuzer-Skarke data is available from this package off-line.  To
+see what is available when not connected to the net, or when the website is
+down, call *note availableOffline: availableOffline,.
+
++-----------------------------------------------------------------------------+
+|i6 : availableOffline()                                                      |
+|                                                                             |
+|o6 = HashTable{"kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|               "kreuzerSkarke(                                               |
+|                                                                             |
+|o6 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|1)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks1-n5.txt            |
+|2)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks2-n36.txt           |
+|3)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks3-n244.txt          |
+|5, Limit => 50)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks5-n50.t|
+|5,53)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks5+53-n204.txt    |
+|9,21)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks9+21-n10.txt     |
+|11,24)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks11+24-n200.txt  |
+|21, Limit => 100)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks21-n1|
+|300)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks300-n20.txt       |
+|491)" => /usr/local/share/Macaulay2/ReflexivePolytopesDB/ks491-n1.txt        |
+|-----------------------------------------------------------------------------|
+|      }                                                                      |
+|                                                                             |
+|                                                                             |
+|xt                                                                           |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|00.txt                                                                       |
++-----------------------------------------------------------------------------+
+
+If data can be obtained locally, it will, and a message indicating this is
+output.
+
+If one has a string containing Kreuzer-Skarke entries, one can use this
+function to make a list of *note KSEntry: KSEntry,'s
+
++------------------------------------------------------+
+|i7 : str = "4 12  M:34 12 N:17 8 H:17,30 [-26] id:0   |
+|       1   1   1   1   0   0   0  -3  -3  -1  -1  -3  |
+|       0   3   0   1   0   1   0  -3  -5   0  -1  -3  |
+|       0   0   2   2   0   0   1  -2  -2  -1  -1  -2  |
+|       0   0   0   0   1   1   1  -1  -1   1   1   1" |
+|                                                      |
+|o7 = 4 12  M:34 12 N:17 8 H:17,30 [-26] id:0          |
+|       1   1   1   1   0   0   0  -3  -3  -1  -1  -3  |
+|       0   3   0   1   0   1   0  -3  -5   0  -1  -3  |
+|       0   0   2   2   0   0   1  -2  -2  -1  -1  -2  |
+|       0   0   0   0   1   1   1  -1  -1   1   1   1  |
++------------------------------------------------------+
+|i8 : L = kreuzerSkarke str                            |
+|                                                      |
+|o8 = {4 12  M:34 12 N:17 8 H:17,30 [-26] id:0 id:0   }|
+|        1   1   1   1   0   0   0  -3  -3  -1  -1  -3 |
+|        0   3   0   1   0   1   0  -3  -5   0  -1  -3 |
+|        0   0   2   2   0   0   1  -2  -2  -1  -1  -2 |
+|        0   0   0   0   1   1   1  -1  -1   1   1   1 |
+|                                                      |
+|o8 : List                                             |
++------------------------------------------------------+
+|i9 : matrix first L                                   |
+|                                                      |
+|o9 = | 1 1 1 1 0 0 0 -3 -3 -1 -1 -3 |                 |
+|     | 0 3 0 1 0 1 0 -3 -5 0  -1 -3 |                 |
+|     | 0 0 2 2 0 0 1 -2 -2 -1 -1 -2 |                 |
+|     | 0 0 0 0 1 1 1 -1 -1 1  1  1  |                 |
+|                                                      |
+|              4       12                              |
+|o9 : Matrix ZZ  <-- ZZ                                |
++------------------------------------------------------+
+
+Caveat
+======
+
+The database is organized by the h11 value.  Placing filters can significantly
+slow down the database access.  Using any of the optional arguments other than
+Limit also means that the locally stored datafiles will not be used.
+
+See also
+========
+
+  * *note matrix(KSEntry): matrix_lpKSEntry_rp, -- convert a Kreuzer-Skarke
+    entry to a matrix of integers
+  * *note description(KSEntry): description, -- the description header
+  * *note Kreuzer-Skarke description headers: Kreuzer-Skarke description
+    headers, -- information contained in the description line
+  * *note kreuzerSkarkeDim3: kreuzerSkarkeDim3, -- the list of 4319 dimension 3
+    reflexive polytopes in the Kreuzer-Skarke database
+
+Ways to use kreuzerSkarke:
+==========================
+
+  * "kreuzerSkarke(String)"
+  * "kreuzerSkarke(ZZ)"
+  * "kreuzerSkarke(ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note kreuzerSkarke: kreuzerSkarke, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:622:0.
+
+File: ReflexivePolytopesDB.info, Node: kreuzerSkarkeDim3, Next: KSEntry, Prev: kreuzerSkarke, Up: Top
+
+kreuzerSkarkeDim3 -- the list of 4319 dimension 3 reflexive polytopes in the Kreuzer-Skarke database
+****************************************************************************************************
+
+  * Usage: 
+        kreuzerSkarkeDim3()
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, A list of *note KSEntry: KSEntry,'s,
+        each one representing one of the 4319 polytopes (including description
+        header information). Use *note matrix(KSEntry): matrix_lpKSEntry_rp, to
+        make any element in this list into something usable from Macaulay2.
+
+Description
+===========
+
+As a an example, let's take the 101th example on this list.
+
++-------------------------------------------+
+|i1 : topes = kreuzerSkarkeDim3();          |
++-------------------------------------------+
+|i2 : #topes                                |
+|                                           |
+|o2 = 4319                                  |
++-------------------------------------------+
+|i3 : tope = topes_100                      |
+|                                           |
+|o3 = 3 5  M:12 5 N:15 5 Pic:13 Cor:4 id:100|
+|         1    0    0   -3    1             |
+|         0    1    0    0   -2             |
+|         0    0    1   -2    2             |
+|                                           |
+|o3 : KSEntry                               |
++-------------------------------------------+
+|i4 : header = description tope             |
+|                                           |
+|o4 = 3 5  M:12 5 N:15 5 Pic:13 Cor:4 id:100|
++-------------------------------------------+
+|i5 : A = matrix tope                       |
+|                                           |
+|o5 = | 1 0 0 -3 1  |                       |
+|     | 0 1 0 0  -2 |                       |
+|     | 0 0 1 -2 2  |                       |
+|                                           |
+|              3       5                    |
+|o5 : Matrix ZZ  <-- ZZ                     |
++-------------------------------------------+
+
+The first line gives some information about the example, see *note
+Kreuzer-Skarke description headers: Kreuzer-Skarke description headers, for
+more details. The polytope is the convex hull of the columns of the matrix $A$.
+
+One can use the packages *note Polyhedra: (Polyhedra)Top, and *note
+NormalToricVarieties: (NormalToricVarieties)Top, to investigate these
+polyhedra, and the associated toric varieties.
+
++-----------------------------+
+|i6 : needsPackage "Polyhedra"|
+|                             |
+|o6 = Polyhedra               |
+|                             |
+|o6 : Package                 |
++-----------------------------+
+|i7 : P = convexHull A        |
+|                             |
+|o7 = P                       |
+|                             |
+|o7 : Polyhedron              |
++-----------------------------+
+|i8 : P2 = polar P            |
+|                             |
+|o8 = P2                      |
+|                             |
+|o8 : Polyhedron              |
++-----------------------------+
+|i9 : # latticePoints P       |
+|                             |
+|o9 = 12                      |
++-----------------------------+
+|i10 : # latticePoints P2     |
+|                             |
+|o10 = 15                     |
++-----------------------------+
+|i11 : # vertices P           |
+|                             |
+|o11 = 5                      |
++-----------------------------+
+|i12 : # vertices P2          |
+|                             |
+|o12 = 5                      |
++-----------------------------+
+|i13 : isReflexive P          |
+|                             |
+|o13 = true                   |
++-----------------------------+
++----------------------------------------------------------------------+
+|i14 : needsPackage "NormalToricVarieties"                             |
+|                                                                      |
+|o14 = NormalToricVarieties                                            |
+|                                                                      |
+|o14 : Package                                                         |
++----------------------------------------------------------------------+
+|i15 : V0 = normalToricVariety normalFan P                             |
+|                                                                      |
+|o15 = V0                                                              |
+|                                                                      |
+|o15 : NormalToricVariety                                              |
++----------------------------------------------------------------------+
+|i16 : dim V0                                                          |
+|                                                                      |
+|o16 = 3                                                               |
++----------------------------------------------------------------------+
+|i17 : max V0                                                          |
+|                                                                      |
+|o17 = {{0, 1, 2}, {0, 1, 4}, {0, 2, 3, 4}, {1, 2, 3}, {1, 3, 4}}      |
+|                                                                      |
+|o17 : List                                                            |
++----------------------------------------------------------------------+
+|i18 : rays V0                                                         |
+|                                                                      |
+|o18 = {{1, 0, -1}, {-1, -1, -1}, {1, -1, -1}, {-1, -1, 2}, {-1, 2, 2}}|
+|                                                                      |
+|o18 : List                                                            |
++----------------------------------------------------------------------+
+|i19 : V = makeSimplicial V0                                           |
+|                                                                      |
+|o19 = V                                                               |
+|                                                                      |
+|o19 : NormalToricVariety                                              |
++----------------------------------------------------------------------+
+|i20 : isSimplicial V                                                  |
+|                                                                      |
+|o20 = true                                                            |
++----------------------------------------------------------------------+
+|i21 : isProjective V                                                  |
+|                                                                      |
+|o21 = true                                                            |
++----------------------------------------------------------------------+
+|i22 : isSmooth V                                                      |
+|                                                                      |
+|o22 = false                                                           |
++----------------------------------------------------------------------+
+|i23 : dim V                                                           |
+|                                                                      |
+|o23 = 3                                                               |
++----------------------------------------------------------------------+
+
+See also
+========
+
+  * *note kreuzerSkarke: kreuzerSkarke, -- access Kreuzer-Skarke dimension 4
+    reflexive polytopes database
+  * *note matrix(KSEntry): matrix_lpKSEntry_rp, -- convert a Kreuzer-Skarke
+    entry to a matrix of integers
+  * *note description(KSEntry): description, -- the description header
+  * *note Kreuzer-Skarke description headers: Kreuzer-Skarke description
+    headers, -- information contained in the description line
+
+For the programmer
+==================
+
+The object *note kreuzerSkarkeDim3: kreuzerSkarkeDim3, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:676:0.
+
+File: ReflexivePolytopesDB.info, Node: KSEntry, Next: matrix_lpKSEntry_rp, Prev: kreuzerSkarkeDim3, Up: Top
+
+KSEntry -- an entry from the Kreuzer-Skarke database of dimension 3 and 4 reflexive polytopes
+*********************************************************************************************
+
+Description
+===========
+
+A KSEntry is essentially a string containing a description header and the
+vertices of a reflexive polytope.  We have given it its own type for ease of
+use in Macaulay2.
+
+
+
+The most common way to obtain (lists of) KSEntry's is via a call *note
+kreuzerSkarke: kreuzerSkarke, or *note kreuzerSkarkeDim3: kreuzerSkarkeDim3,.
+
++-----------------------------------------------------------------------------+
+|i1 : L = kreuzerSkarke(3, Limit=>5)                                          |
+|using offline data file: ks3-n244.txt                                        |
+|                                                                             |
+|o1 = {4 5  M:53 5 N:9 5 H:3,43 [-80] id:0, 4 5  M:48 5 N:8 5 H:3,45 [-84]    |
+|         1   0   2   4 -10                    1   0   2   4  -8              |
+|         0   1   3   5  -9                    0   1   5   3  -9              |
+|         0   0   4   0  -4                    0   0   6   0  -6              |
+|         0   0   0   8  -8                    0   0   0   6  -6              |
+|     ------------------------------------------------------------------------|
+|     id:1, 4 6  M:48 6 N:8 6 H:3,45 [-84] id:2, 4 13  M:64 13 N:8            |
+|              1   1   0   2   4  -8                1   0   0   2             |
+|              0   3   0   2   0  -6                0   1   1   3             |
+|              0   0   1  -1   3  -3                0   0   4   0             |
+|              0   0   0   0   6  -6                0   0   0   4             |
+|     ------------------------------------------------------------------------|
+|     7 H:3,51 [-96] id:3               , 4 9  M:66 9 N:8 6 H:3,57            |
+|     -2   0  -1  -1   0   2   2  -3  -3     1   0   0   1  -3   3            |
+|     -5   2   0   0   2   4   4  -6  -6     0   1   0   0   2  -4            |
+|     -4   5   4  -1   0   1   0  -4  -5     0   0   1   0   2  -2            |
+|     -4   1  -1  -1   1   5   5  -5  -5     0   0   0   2   0  -4            |
+|     ------------------------------------------------------------------------|
+|     [-108] id:4}                                                            |
+|       3  -3   5                                                             |
+|      -6   4  -8                                                             |
+|      -2   0  -4                                                             |
+|      -6   6  -6                                                             |
+|                                                                             |
+|o1 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i2 : netList L                                                               |
+|                                                                             |
+|     +----------------------------------------------------+                  |
+|o2 = |4 5  M:53 5 N:9 5 H:3,43 [-80] id:0                 |                  |
+|     |   1   0   2   4 -10                                |                  |
+|     |   0   1   3   5  -9                                |                  |
+|     |   0   0   4   0  -4                                |                  |
+|     |   0   0   0   8  -8                                |                  |
+|     +----------------------------------------------------+                  |
+|     |4 5  M:48 5 N:8 5 H:3,45 [-84] id:1                 |                  |
+|     |   1   0   2   4  -8                                |                  |
+|     |   0   1   5   3  -9                                |                  |
+|     |   0   0   6   0  -6                                |                  |
+|     |   0   0   0   6  -6                                |                  |
+|     +----------------------------------------------------+                  |
+|     |4 6  M:48 6 N:8 6 H:3,45 [-84] id:2                 |                  |
+|     |   1   1   0   2   4  -8                            |                  |
+|     |   0   3   0   2   0  -6                            |                  |
+|     |   0   0   1  -1   3  -3                            |                  |
+|     |   0   0   0   0   6  -6                            |                  |
+|     +----------------------------------------------------+                  |
+|     |4 13  M:64 13 N:8 7 H:3,51 [-96] id:3               |                  |
+|     |   1   0   0   2  -2   0  -1  -1   0   2   2  -3  -3|                  |
+|     |   0   1   1   3  -5   2   0   0   2   4   4  -6  -6|                  |
+|     |   0   0   4   0  -4   5   4  -1   0   1   0  -4  -5|                  |
+|     |   0   0   0   4  -4   1  -1  -1   1   5   5  -5  -5|                  |
+|     +----------------------------------------------------+                  |
+|     |4 9  M:66 9 N:8 6 H:3,57 [-108] id:4                |                  |
+|     |   1   0   0   1  -3   3   3  -3   5                |                  |
+|     |   0   1   0   0   2  -4  -6   4  -8                |                  |
+|     |   0   0   1   0   2  -2  -2   0  -4                |                  |
+|     |   0   0   0   2   0  -4  -6   6  -6                |                  |
+|     +----------------------------------------------------+                  |
++-----------------------------------------------------------------------------+
+
+Once one has a KSEntry, the most important function is to extract the matrix
+whose columns are the vertices of the corresponding polytope.
+
++-----------------------+
+|i3 : A = matrix L_0    |
+|                       |
+|o3 = | 1 0 2 4 -10 |   |
+|     | 0 1 3 5 -9  |   |
+|     | 0 0 4 0 -4  |   |
+|     | 0 0 0 8 -8  |   |
+|                       |
+|              4       5|
+|o3 : Matrix ZZ  <-- ZZ |
++-----------------------+
+
+Although the most common way to create (lists of) KSEntry's is via a call to
+*note kreuzerSkarke: kreuzerSkarke, or *note kreuzerSkarkeDim3:
+kreuzerSkarkeDim3, as above, it is also possible to start with a string that
+perhaps you found while searching the Kreuzer-Skarke database directly.
+
++-----------------------------------------------------+
+|i4 : e = KSEntry "4 5  M:53 5 N:9 5 H:3,43 [-80] id:0|
+|       1   0   2   4 -10                             |
+|       0   1   3   5  -9                             |
+|       0   0   4   0  -4                             |
+|       0   0   0   8  -8                             |
+|       ";                                            |
++-----------------------------------------------------+
+|i5 : A = matrix e                                    |
+|                                                     |
+|o5 = | 1 0 2 4 -10 |                                 |
+|     | 0 1 3 5 -9  |                                 |
+|     | 0 0 4 0 -4  |                                 |
+|     | 0 0 0 8 -8  |                                 |
+|                                                     |
+|              4       5                              |
+|o5 : Matrix ZZ  <-- ZZ                               |
++-----------------------------------------------------+
+
+For developers, a KSEntry is a *note SelfInitializingType:
+(Macaulay2Doc)SelfInitializingType,.
+
+See also
+========
+
+  * *note toString(KSEntry): toString_lpKSEntry_rp, -- the underlying string of
+    a KSEntry
+  * *note toExternalString(KSEntry): toExternalString_lpKSEntry_rp, -- a string
+    suitable for input to Macaulay2
+  * *note matrix(KSEntry): matrix_lpKSEntry_rp, -- convert a Kreuzer-Skarke
+    entry to a matrix of integers
+  * *note description(KSEntry): description, -- the description header
+  * *note kreuzerSkarke: kreuzerSkarke, -- access Kreuzer-Skarke dimension 4
+    reflexive polytopes database
+
+Methods that use an entry from the Kreuzer-Skarke database:
+===========================================================
+
+  * "description(KSEntry)" -- see *note description: description, -- the
+    description header
+  * *note matrix(KSEntry): matrix_lpKSEntry_rp, -- convert a Kreuzer-Skarke
+    entry to a matrix of integers
+  * *note toExternalString(KSEntry): toExternalString_lpKSEntry_rp, -- a string
+    suitable for input to Macaulay2
+  * *note toString(KSEntry): toString_lpKSEntry_rp, -- the underlying string of
+    a KSEntry
+
+For the programmer
+==================
+
+The object *note KSEntry: KSEntry, is a *note self initializing type:
+(Macaulay2Doc)SelfInitializingType,, with ancestor classes *note BasicList:
+(Macaulay2Doc)BasicList, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:803:0.
+
+File: ReflexivePolytopesDB.info, Node: matrix_lpKSEntry_rp, Next: matrixFromString, Prev: KSEntry, Up: Top
+
+matrix(KSEntry) -- convert a Kreuzer-Skarke entry to a matrix of integers
+*************************************************************************
+
+  * Function: *note matrix: (Macaulay2Doc)matrix,
+  * Usage: 
+        m = matrix e
+  * Inputs:
+      * e, an *note entry from the Kreuzer-Skarke database: KSEntry,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Degree: (Macaulay2Doc)matrix_lpList_rp, => ..., default value
+        null,
+  * Outputs:
+      * m, a *note matrix: (Macaulay2Doc)Matrix,, The matrix over the integers
+        whose columns are the vertices of the corresponding reflexive polytope
+
+Description
+===========
+
+This utility function is used to parse, as matrices of integers, example
+polytopes returned by the Kreuzer-Skarke database.
+
++-----------------------------------------------------+
+|i1 : e = KSEntry "4 5  M:53 5 N:9 5 H:3,43 [-80] id:0|
+|       1   0   2   4 -10                             |
+|       0   1   3   5  -9                             |
+|       0   0   4   0  -4                             |
+|       0   0   0   8  -8                             |
+|       ";                                            |
++-----------------------------------------------------+
+|i2 : A = matrix e                                    |
+|                                                     |
+|o2 = | 1 0 2 4 -10 |                                 |
+|     | 0 1 3 5 -9  |                                 |
+|     | 0 0 4 0 -4  |                                 |
+|     | 0 0 0 8 -8  |                                 |
+|                                                     |
+|              4       5                              |
+|o2 : Matrix ZZ  <-- ZZ                               |
++-----------------------------------------------------+
+
+The actual format allowed is the following: The first non-empty line is ignored
+(this is the description line from the Kreuzer-Skarke database), the rest of
+the lines make up the matrix: spaces, tabs, and commas are all separators for
+elements of the array.  Newlines, and ] characters separate rows.  Finally,
+each empty line is ignored, and the remaining lines must all have the same
+number of elements.
+
+The actual format allowed for matrices is described in *note matrixFromString:
+matrixFromString,. After calling *note kreuzerSkarke: kreuzerSkarke, to get a
+list of *note KSEntry: KSEntry,'s, one uses *note matrix(KSEntry):
+matrix_lpKSEntry_rp, to obtain a matrix .  Then use this function to obtain the
+matrix.
+
++-----------------------------------------------------------------------------+
+|i3 : topes = kreuzerSkarke(300, Limit=>3)                                    |
+|using offline data file: ks300-n20.txt                                       |
+|                                                                             |
+|o3 = {4 9  M:26 9 N:415 10 H:300,14 [572] id:0     , 4 9  M:27 9 N:411       |
+|          1    0    0   -7    0  -23   -1   -3   -7      1    0    0         |
+|          0    1    0   -4    0  -15   -1   -2   -5      0    1    0         |
+|          0    0    1   -2    0   -6    0   -1   -2      0    0    1         |
+|          0    0    0    0    1   -1    1    1    1      0    0    0         |
+|     ------------------------------------------------------------------------|
+|     9 H:300,14 [572] id:1      , 4 6  M:26 6 N:416 7 H:300,18 [564] id:2}   |
+|     -3    0  -23   -1   -3   -7      1    0    0  -21    0  -23             |
+|     -1    0  -15   -1   -2   -5      0    1    0  -14    0  -15             |
+|     -1    0   -6    0   -1   -2      0    0    1   -6    0   -6             |
+|      0    1   -1    1    1    1      0    0    0    0    1   -1             |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : netList topes                                                           |
+|                                                                             |
+|     +---------------------------------------------+                         |
+|o4 = |4 9  M:26 9 N:415 10 H:300,14 [572] id:0     |                         |
+|     |    1    0    0   -7    0  -23   -1   -3   -7|                         |
+|     |    0    1    0   -4    0  -15   -1   -2   -5|                         |
+|     |    0    0    1   -2    0   -6    0   -1   -2|                         |
+|     |    0    0    0    0    1   -1    1    1    1|                         |
+|     +---------------------------------------------+                         |
+|     |4 9  M:27 9 N:411 9 H:300,14 [572] id:1      |                         |
+|     |    1    0    0   -3    0  -23   -1   -3   -7|                         |
+|     |    0    1    0   -1    0  -15   -1   -2   -5|                         |
+|     |    0    0    1   -1    0   -6    0   -1   -2|                         |
+|     |    0    0    0    0    1   -1    1    1    1|                         |
+|     +---------------------------------------------+                         |
+|     |4 6  M:26 6 N:416 7 H:300,18 [564] id:2      |                         |
+|     |    1    0    0  -21    0  -23               |                         |
+|     |    0    1    0  -14    0  -15               |                         |
+|     |    0    0    1   -6    0   -6               |                         |
+|     |    0    0    0    0    1   -1               |                         |
+|     +---------------------------------------------+                         |
++-----------------------------------------------------------------------------+
+|i5 : topes/matrix                                                            |
+|                                                                             |
+|o5 = {| 1 0 0 -7 0 -23 -1 -3 -7 |, | 1 0 0 -3 0 -23 -1 -3 -7 |, | 1 0 0 -21 0|
+|      | 0 1 0 -4 0 -15 -1 -2 -5 |  | 0 1 0 -1 0 -15 -1 -2 -5 |  | 0 1 0 -14 0|
+|      | 0 0 1 -2 0 -6  0  -1 -2 |  | 0 0 1 -1 0 -6  0  -1 -2 |  | 0 0 1 -6  0|
+|      | 0 0 0 0  1 -1  1  1  1  |  | 0 0 0 0  1 -1  1  1  1  |  | 0 0 0 0   1|
+|     ------------------------------------------------------------------------|
+|     -23 |}                                                                  |
+|     -15 |                                                                   |
+|     -6  |                                                                   |
+|     -1  |                                                                   |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note matrixFromString: matrixFromString, -- convert a string to a matrix
+    of integers
+  * *note kreuzerSkarke: kreuzerSkarke, -- access Kreuzer-Skarke dimension 4
+    reflexive polytopes database
+  * *note kreuzerSkarkeDim3: kreuzerSkarkeDim3, -- the list of 4319 dimension 3
+    reflexive polytopes in the Kreuzer-Skarke database
+
+Ways to use this method:
+========================
+
+  * *note matrix(KSEntry): matrix_lpKSEntry_rp, -- convert a Kreuzer-Skarke
+    entry to a matrix of integers
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:537:0.
+
+File: ReflexivePolytopesDB.info, Node: matrixFromString, Next: onlineTests, Prev: matrix_lpKSEntry_rp, Up: Top
+
+matrixFromString -- convert a string to a matrix of integers
+************************************************************
+
+  * Usage: 
+        m = matrixFromString str
+  * Inputs:
+      * str, a *note string: (Macaulay2Doc)String,, 
+  * Outputs:
+      * m, a *note matrix: (Macaulay2Doc)Matrix,, 
+
+Description
+===========
+
+This utility function is used to parse, as matrices of integers, strings
+returned by the Kreuzer-Skarke database.  As an example,
+
++----------------------------------------------------------+
+|i1 : str = " 1   0   0   0   0   1   2   1   0  -2   0  -2|
+|             0   1   0   0   0   0  -2  -1   1   2  -1   0|
+|             0   0   1   0   0  -1   0  -1  -1   1  -1   1|
+|             0   0   0   1  -1   0   1   1  -1   0   1  -2|
+|             "                                            |
+|                                                          |
+|o1 =  1   0   0   0   0   1   2   1   0  -2   0  -2       |
+|             0   1   0   0   0   0  -2  -1   1   2  -1   0|
+|             0   0   1   0   0  -1   0  -1  -1   1  -1   1|
+|             0   0   0   1  -1   0   1   1  -1   0   1  -2|
+|                                                          |
++----------------------------------------------------------+
+|i2 : A = matrixFromString str                             |
+|                                                          |
+|o2 = | 1 0 0 0 0  1  2  1  0  -2 0  -2 |                  |
+|     | 0 1 0 0 0  0  -2 -1 1  2  -1 0  |                  |
+|     | 0 0 1 0 0  -1 0  -1 -1 1  -1 1  |                  |
+|     | 0 0 0 1 -1 0  1  1  -1 0  1  -2 |                  |
+|                                                          |
+|              4       12                                  |
+|o2 : Matrix ZZ  <-- ZZ                                    |
++----------------------------------------------------------+
+
+The actual format allowed is the following: Spaces, tabs, and commas are all
+separators for elements of the array.  Newlines, and ] characters separate
+rows.  Finally, each empty line is ignored, and the remaining lines must all
+have the same number of elements.
+
+As another example, matrices coming from Sage often use square brackets, and
+can be read using this function.
+
++-----------------------------------------------------------------------------+
+|i3 : str = "[[1, -1, -1, 1, -1, -1, -1, 1, 1, 0], [0, 1,                     |
+|       [-1, 0, 0, 0, 1, 1, 0, 0, 0, 0], [2, 0, 0, 1, -1,                     |
+|                                                                             |
+|o3 = [[1, -1, -1, 1, -1, -1, -1, 1, 1, 0], [0, 1, 0, -1,                     |
+|       [-1, 0, 0, 0, 1, 1, 0, 0, 0, 0], [2, 0, 0, 1, -1,                     |
+|-----------------------------------------------------------------------------|
+|0, -1, 1, 0, 0, -1, -1, 0],                                                  |
+|-1, -1, -1, 0, 0]]"                                                          |
+|                                                                             |
+|1, 0, 0, -1, -1, 0],                                                         |
+|-1, -1, -1, 0, 0]]                                                           |
++-----------------------------------------------------------------------------+
+|i4 : matrixFromString str                                                    |
+|                                                                             |
+|o4 = | 1  -1 -1 1  -1 -1 -1 1  1  0 |                                        |
+|     | 0  1  0  -1 1  0  0  -1 -1 0 |                                        |
+|     | -1 0  0  0  1  1  0  0  0  0 |                                        |
+|     | 2  0  0  1  -1 -1 -1 -1 0  0 |                                        |
+|                                                                             |
+|              4       10                                                     |
+|o4 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+
+Formatting of white space is generally not important, except that each row must
+be on one line, and if there are several on a line, each row is ended by a ].
+
++-------------------------------------------+
+|i5 : str = "                               |
+|      [                                    |
+|       [1, -1, -1, 1, -1, -1, -1, 1, 1, 0],|
+|       [0, 1, 0, -1, 1, 0, 0, -1, -1, 0],  |
+|       [-1, 0, 0, 0, 1, 1, 0, 0, 0, 0],    |
+|       [2, 0, 0, 1, -1, -1, -1, -1, 0, 0]  |
+|       ]                                   |
+|      "                                    |
+|                                           |
+|o5 =                                       |
+|      [                                    |
+|       [1, -1, -1, 1, -1, -1, -1, 1, 1, 0],|
+|       [0, 1, 0, -1, 1, 0, 0, -1, -1, 0],  |
+|       [-1, 0, 0, 0, 1, 1, 0, 0, 0, 0],    |
+|       [2, 0, 0, 1, -1, -1, -1, -1, 0, 0]  |
+|       ]                                   |
+|                                           |
++-------------------------------------------+
+|i6 : matrixFromString str                  |
+|                                           |
+|o6 = | 1  -1 -1 1  -1 -1 -1 1  1  0 |      |
+|     | 0  1  0  -1 1  0  0  -1 -1 0 |      |
+|     | -1 0  0  0  1  1  0  0  0  0 |      |
+|     | 2  0  0  1  -1 -1 -1 -1 0  0 |      |
+|                                           |
+|              4       10                   |
+|o6 : Matrix ZZ  <-- ZZ                     |
++-------------------------------------------+
+
+Ways to use matrixFromString:
+=============================
+
+  * "matrixFromString(String)"
+
+For the programmer
+==================
+
+The object *note matrixFromString: matrixFromString, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:490:0.
+
+File: ReflexivePolytopesDB.info, Node: onlineTests, Next: toExternalString_lpKSEntry_rp, Prev: matrixFromString, Up: Top
+
+onlineTests -- run a few tests which test access to the Kreuzer-Skarke database
+*******************************************************************************
+
+  * Usage: 
+        onlineTests()
+  * Consequences:
+      * Several web access (to Kreuzer-Skarke database) tests are run.  Errors
+        are generated if a problem is detected.
+
+Description
+===========
+
+The following call, if it runs to completion, indicates that the connection to
+the Kreuzer-Skarke web server is functional.
+
+onlineTests()
+
+See also
+========
+
+  * *note kreuzerSkarke: kreuzerSkarke, -- access Kreuzer-Skarke dimension 4
+    reflexive polytopes database
+  * *note generateOffline: generateOffline, -- generate tables of reflexive 4d
+    polytopes from the Kreuzer-Skarke list
+  * *note availableOffline: availableOffline, -- which Kreuzer-Skarke items are
+    available offline
+
+For the programmer
+==================
+
+The object *note onlineTests: onlineTests, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:984:0.
+
+File: ReflexivePolytopesDB.info, Node: toExternalString_lpKSEntry_rp, Next: toString_lpKSEntry_rp, Prev: onlineTests, Up: Top
+
+toExternalString(KSEntry) -- a string suitable for input to Macaulay2
+*********************************************************************
+
+  * Function: *note toExternalString: (Macaulay2Doc)toExternalString,
+  * Usage: 
+        toExternalString e
+  * Inputs:
+      * e, an *note entry from the Kreuzer-Skarke database: KSEntry,, 
+  * Outputs:
+      * a *note string: (Macaulay2Doc)String,, 
+
+Description
+===========
+
+Returns the underlying string of the given entry from the Kreuzer-Skarke
+database.
+
++---------------------------------------------------------------------------+
+|i1 : e = KSEntry "4 5  M:53 5 N:9 5 H:3,43 [-80] id:0                      |
+|       1   0   2   4 -10                                                   |
+|       0   1   3   5  -9                                                   |
+|       0   0   4   0  -4                                                   |
+|       0   0   0   8  -8                                                   |
+|       ";                                                                  |
++---------------------------------------------------------------------------+
+|i2 : str = toExternalString e                                              |
+|                                                                           |
+|o2 = KSEntry "4 5  M:53 5 N:9 5 H:3,43 [-80] id:0\n  1   0   2   4 -10\n  0|
+|     1   3   5  -9\n  0   0   4   0  -4\n  0   0   0   8  -8\n  "          |
++---------------------------------------------------------------------------+
+
+The main value of this function, is that one can use this string as input to
+Macaulay2.
+
++----------------------------------------+
+|i3 : e1 = value str                     |
+|                                        |
+|o3 = 4 5  M:53 5 N:9 5 H:3,43 [-80] id:0|
+|       1   0   2   4 -10                |
+|       0   1   3   5  -9                |
+|       0   0   4   0  -4                |
+|       0   0   0   8  -8                |
+|                                        |
+|                                        |
+|o3 : KSEntry                            |
++----------------------------------------+
+|i4 : e1 === e                           |
+|                                        |
+|o4 = true                               |
++----------------------------------------+
+
+See also
+========
+
+  * *note KSEntry: KSEntry, -- an entry from the Kreuzer-Skarke database of
+    dimension 3 and 4 reflexive polytopes
+  * *note matrix(KSEntry): matrix_lpKSEntry_rp, -- convert a Kreuzer-Skarke
+    entry to a matrix of integers
+  * *note toExternalString(KSEntry): toExternalString_lpKSEntry_rp, -- a string
+    suitable for input to Macaulay2
+
+Ways to use this method:
+========================
+
+  * *note toExternalString(KSEntry): toExternalString_lpKSEntry_rp, -- a string
+    suitable for input to Macaulay2
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:894:0.
+
+File: ReflexivePolytopesDB.info, Node: toString_lpKSEntry_rp, Prev: toExternalString_lpKSEntry_rp, Up: Top
+
+toString(KSEntry) -- the underlying string of a KSEntry
+*******************************************************
+
+  * Function: *note toString: (Macaulay2Doc)toString,
+  * Usage: 
+        toString e
+  * Inputs:
+      * e, an *note entry from the Kreuzer-Skarke database: KSEntry,, 
+  * Outputs:
+      * a *note string: (Macaulay2Doc)String,, 
+
+Description
+===========
+
+Returns the underlying string of the given entry from the Kreuzer-Skarke
+database.
+
++-----------------------------------------------------+
+|i1 : e = KSEntry "4 5  M:53 5 N:9 5 H:3,43 [-80] id:0|
+|       1   0   2   4 -10                             |
+|       0   1   3   5  -9                             |
+|       0   0   4   0  -4                             |
+|       0   0   0   8  -8                             |
+|       ";                                            |
++-----------------------------------------------------+
+|i2 : toString e                                      |
+|                                                     |
+|o2 = 4 5  M:53 5 N:9 5 H:3,43 [-80] id:0             |
+|       1   0   2   4 -10                             |
+|       0   1   3   5  -9                             |
+|       0   0   4   0  -4                             |
+|       0   0   0   8  -8                             |
+|                                                     |
++-----------------------------------------------------+
+
+See also
+========
+
+  * *note KSEntry: KSEntry, -- an entry from the Kreuzer-Skarke database of
+    dimension 3 and 4 reflexive polytopes
+  * *note matrix(KSEntry): matrix_lpKSEntry_rp, -- convert a Kreuzer-Skarke
+    entry to a matrix of integers
+  * *note toExternalString(KSEntry): toExternalString_lpKSEntry_rp, -- a string
+    suitable for input to Macaulay2
+
+Ways to use this method:
+========================
+
+  * *note toString(KSEntry): toString_lpKSEntry_rp, -- the underlying string of
+    a KSEntry
+-------------------------------------------------------------------------------
+
+The source of this document is in ReflexivePolytopesDB.m2:861:0.
+
+Tag Table:
+Node: Top318
+Node: availableOffline13124
+Node: description22869
+Node: generateOffline25243
+Node: Kreuzer-Skarke description headers27872
+Node: kreuzerSkarke37927
+Node: kreuzerSkarkeDim351098
+Node: KSEntry59326
+Node: matrix_lpKSEntry_rp68371
+Node: matrixFromString76004
+Node: onlineTests82077
+Node: toExternalString_lpKSEntry_rp83351
+Node: toString_lpKSEntry_rp86454
+
+End Tag Table

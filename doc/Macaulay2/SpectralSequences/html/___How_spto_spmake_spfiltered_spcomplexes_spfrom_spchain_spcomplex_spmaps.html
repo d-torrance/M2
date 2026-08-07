@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>How to make filtered complexes from chain complex maps</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="spectral sequences" href="index.html">SpectralSequences</a> :: <a href="___How_spto_spmake_spfiltered_spcomplexes_spfrom_spchain_spcomplex_spmaps.html">How to make filtered complexes from chain complex maps</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___I-adic_spfiltrations_spof_spchain_spcomplexes_spand_sptheir_spspectral_spsequences.html">next</a> | <a href="_homology__Isomorphism_lp__Spectral__Sequence_cm__Z__Z_cm__Z__Z_cm__Z__Z_rp.html">previous</a> | <a href="___I-adic_spfiltrations_spof_spchain_spcomplexes_spand_sptheir_spspectral_spsequences.html">forward</a> | <a href="_homology__Isomorphism_lp__Spectral__Sequence_cm__Z__Z_cm__Z__Z_cm__Z__Z_rp.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>How to make filtered complexes from chain complex maps</h1>
+      <div>
+        <div>
+          <p>We describe the most primitive way to create filtered complexes.</p>
+          <p>Let $C$ be a chain complex and consider a list of chain complex maps $\{\phi_n, \phi_{n - 1}, \dots, \phi_0  \}$ with properties that $C$ is the target of $\phi_i$, for $0 \leq i \leq n$, and the image of $\phi_{i-1}$ is a subchain complex of the image of $\phi_i$, for $1 \leq i \leq n$. Given this input data we produce an ascending filtered chain complex $FC$ with the properties that $F_k C = C$ for $k \geq n + 1$ and $F_k C = image \phi_k$, for $k = 0, \dots, n$.</p>
+          <p>We now illustrate how this is done in two easy examples. We first make three chain complexes $C$, $D$, and $E$, two chain complex maps, $d : D \rightarrow C$ and $e : E \rightarrow C$, and then compute the resulting filtration of $C$.</p>
+        </div>
+        <div>
+          <p>Let's make our chain complexes $C$, $D$, and $E$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[x,y,z,w] ;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : c2 = matrix(R,{{1},{0}}) ;
+
+             2      1
+o2 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : c1 = matrix(R,{{0,1}}) ;
+
+             1      2
+o3 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : C = complex ({c1,c2})
+
+      1      2      1
+o4 = R  &lt;-- R  &lt;-- R
+                    
+     0      1      2
+
+o4 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : D_2 = image matrix(R,{{1}});</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : D_1 = image matrix(R,{{1,0},{0,0}});</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : D_0 = image matrix(R,{{1}});</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : D = complex({inducedMap(D_0,D_1,C.dd_1),inducedMap(D_1,D_2,C.dd_2)})
+
+o8 = image | 1 | &lt;-- image | 1 0 | &lt;-- image | 1 |
+                           | 0 0 |      
+     0                                 2
+                     1
+
+o8 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : E_2 = image matrix(R,{{0}});</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : E_1 = image matrix(R,{{1,0},{0,0}});</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : E_0 = image matrix(R,{{1}});</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : E = complex({inducedMap(E_0,E_1,C.dd_1),inducedMap(E_1,E_2,C.dd_2)})
+
+o12 = image | 1 | &lt;-- image | 1 0 | &lt;-- image 0
+                            | 0 0 |      
+      0                                 2
+                      1
+
+o12 : Complex</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We now make our chain complex maps.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : d = map(C,D,apply(spots C, i-> inducedMap(C_i,D_i,id_C _i)))
+
+           1
+o13 = 0 : R  &lt;--------- image | 1 | : 0
+                | 1 |
+
+           2
+      1 : R  &lt;----------- image | 1 0 | : 1
+                | 1 0 |         | 0 0 |
+                | 0 0 |
+
+           1
+      2 : R  &lt;--------- image | 1 | : 2
+                | 1 |
+
+o13 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : e = map(C,E,apply(spots C, i->inducedMap(C_i,E_i, id_C _i)))
+
+           1
+o14 = 0 : R  &lt;--------- image | 1 | : 0
+                | 1 |
+
+           2
+      1 : R  &lt;----------- image | 1 0 | : 1
+                | 1 0 |         | 0 0 |
+                | 0 0 |
+
+o14 : ComplexMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We can check that these are indeed chain complex maps:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : isWellDefined d
+
+o15 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : isWellDefined e
+
+o16 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Now, given the list of chain complex maps $\{d, e\}$, we obtain a filtration of $C$ by:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : K = filteredComplex({d,e})
+
+o17 = -1 : image 0 &lt;-- image 0 &lt;-- image 0
+                                    
+           0           1           2
+
+      0 : image | 1 | &lt;-- image | 1 0 | &lt;-- image 0
+                                | 0 0 |      
+          0                                 2
+                          1
+
+      1 : image | 1 | &lt;-- image | 1 0 | &lt;-- image | 1 |
+                                | 0 0 |      
+          0                                 2
+                          1
+
+           1      2      1
+      2 : R  &lt;-- R  &lt;-- R
+                         
+          0      1      2
+
+o17 : FilteredComplex</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>If we want to specify a minimum filtration degree we can use the Shift option.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : L = filteredComplex({d,e},Shift =>1)
+
+o18 = -2 : image 0 &lt;-- image 0 &lt;-- image 0
+                                    
+           0           1           2
+
+      -1 : image | 1 | &lt;-- image | 1 0 | &lt;-- image 0
+                                 | 0 0 |      
+           0                                 2
+                           1
+
+      0 : image | 1 | &lt;-- image | 1 0 | &lt;-- image | 1 |
+                                | 0 0 |      
+          0                                 2
+                          1
+
+           1      2      1
+      1 : R  &lt;-- R  &lt;-- R
+                         
+          0      1      2
+
+o18 : FilteredComplex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : M = filteredComplex({d,e},Shift =>-1)
+
+o19 = 0 : image 0 &lt;-- image 0 &lt;-- image 0
+                                   
+          0           1           2
+
+      1 : image | 1 | &lt;-- image | 1 0 | &lt;-- image 0
+                                | 0 0 |      
+          0                                 2
+                          1
+
+      2 : image | 1 | &lt;-- image | 1 0 | &lt;-- image | 1 |
+                                | 0 0 |      
+          0                                 2
+                          1
+
+           1      2      1
+      3 : R  &lt;-- R  &lt;-- R
+                         
+          0      1      2
+
+o19 : FilteredComplex</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SpectralSequences.m2:1339:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

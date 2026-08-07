@@ -1,0 +1,141 @@
+-- -*- M2-comint -*- hash: 16812968803448591762
+
+i1 : S = QQ[a_1..a_6]
+
+o1 = S
+
+o1 : PolynomialRing
+
+i2 : R = S[t]
+
+o2 = R
+
+o2 : PolynomialRing
+
+i3 : u = a_1*t + a_2*t^2 + a_3*t^3;
+
+i4 : v = a_4*t + a_5*t^2 + a_6*t^3;
+
+i5 : X = polyPath({u^2 - v^2, 2*u*v, u^2 + v^2});
+
+i6 : sigMatrix = sig(X,2);
+
+i7 : S = QQ[s_(1,1)..s_(3,3)]
+
+o7 = S
+
+o7 : PolynomialRing
+
+i8 : vwtable = hashTable apply(gens S, i-> (i, new Array from last baseName i))
+
+o8 = HashTable{s    => [1, 1]}
+                1,1
+               s    => [1, 2]
+                1,2
+               s    => [1, 3]
+                1,3
+               s    => [2, 1]
+                2,1
+               s    => [2, 2]
+                2,2
+               s    => [2, 3]
+                2,3
+               s    => [3, 1]
+                3,1
+               s    => [3, 2]
+                3,2
+               s    => [3, 3]
+                3,3
+
+o8 : HashTable
+
+i9 : m = tensorParametrization(sigMatrix, VarWordTable => vwtable);
+
+o9 : RingMap QQ[a ..a ] <-- S
+                 1   6
+
+i10 : needsPackage "NumericalImplicitization";
+
+i11 : Snum = CC[a_1..a_6];
+
+i12 : Rnum = Snum[t];
+
+i13 : unum = sub(u, Rnum);
+
+i14 : vnum = sub(v, Rnum);
+
+i15 : Xnum = polyPath({unum^2 - vnum^2, 2*unum*vnum, unum^2 + vnum^2});
+
+i16 : sigMatrixnum = sig(Xnum,2);
+
+i17 : mnum = tensorParametrization(sigMatrixnum,CoefficientRing => CC);
+
+o17 : RingMap Snum <-- CC  [b      , b      , b      , b      , b      , b      , b      , b      , b      ]
+                         53  [2, 3]   [2, 2]   [3, 2]   [3, 1]   [2, 1]   [3, 3]   [1, 3]   [1, 1]   [1, 2]
+
+i18 : numericalImageDim(mnum,ideal 0_Snum)
+
+o18 = 5
+
+i19 : needsPackage "MultigradedImplicitization";
+
+i20 : I = sub(ideal flatten values componentsOfKernel(2, m, Grading => matrix {toList(9:1)}), S);
+warning: computation begun over finite field. resulting polynomials may not lie in the ideal
+computing total degree: 1
+number of monomials = 9
+number of distinct multidegrees = 1
+ -- .0113878s elapsed
+WARNING: There are linear relations. You may want to reduce the number of variables to speed up the computation.
+computing total degree: 2
+number of monomials = 45
+number of distinct multidegrees = 1
+ -- .79048s elapsed
+
+o20 : Ideal of S
+
+i21 : dim I
+
+o21 = 5
+
+i22 : isPrime I
+
+o22 = true
+
+i23 : betti mingens I
+
+             0 1
+o23 = total: 1 7
+          0: 1 1
+          1: . 6
+
+o23 : BettiTally
+
+i24 : degree I
+
+o24 = 4
+
+i25 : lin = select(flatten entries gens I, i-> (degree i == {1}))
+
+o25 = {- s    - s    + s   }
+          1,1    2,2    3,3
+
+o25 : List
+
+i26 : A = genericMatrix(S,3,3)
+
+o26 = | s_(1,1) s_(2,1) s_(3,1) |
+      | s_(1,2) s_(2,2) s_(3,2) |
+      | s_(1,3) s_(2,3) s_(3,3) |
+
+              3      3
+o26 : Matrix S  <-- S
+
+i27 : univI = minors(2, A + transpose(A));
+
+o27 : Ideal of S
+
+i28 : I == univI + ideal lin
+
+o28 = true
+
+i29 : 

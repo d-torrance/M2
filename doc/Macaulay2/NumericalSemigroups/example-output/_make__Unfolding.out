@@ -1,0 +1,107 @@
+-- -*- M2-comint -*- hash: 444903126438398027
+
+i1 : L={4,5,7}
+
+o1 = {4, 5, 7}
+
+o1 : List
+
+i2 : I := semigroupIdeal L;
+
+               ZZ
+o2 : Ideal of ----[x ..x , x ]
+              1009  0   1   3
+
+i3 : (A,unfolding):= makeUnfolding I;
+
+i4 : S=ring I
+
+o4 = S
+
+o4 : PolynomialRing
+
+i5 : fI=res I
+
+      1      3      2
+o5 = S  <-- S  <-- S
+                    
+     0      1      2
+
+o5 : Complex
+
+i6 : degs=flatten (gens A/degree)
+
+o6 = {15, 14, 12, 11, 10, 10, 9, 8, 8, 7, 7, 7, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3,
+     ------------------------------------------------------------------------
+     3, 2, 2, 2, 1, 1, 1}
+
+o6 : List
+
+i7 : n=floor(max degs/2+3)
+
+o7 = 10
+
+i8 : restricted=ideal select(gens A, y-> (degree y)_0<n);
+
+               ZZ
+o8 : Ideal of ----[a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a       , a      , a      ]
+              1009  {2, 0}   {1, 0}   {0, 0}   {2, 1}   {2, 2}   {1, 1}   {1, 2}   {2, 3}   {0, 1}   {2, 4}   {1, 3}   {0, 2}   {2, 5}   {1, 4}   {2, 6}   {1, 5}   {0, 3}   {2, 7}   {1, 6}   {0, 4}   {2, 8}   {1, 7}   {0, 5}   {2, 9}   {1, 8}   {0, 6}   {2, 10}   {1, 9}   {0, 7}
+
+i9 : SA=ring unfolding
+
+o9 = SA
+
+o9 : PolynomialRing
+
+i10 : runfolding=unfolding%sub(restricted,SA);
+
+               1       3
+o10 : Matrix SA  <-- SA
+
+i11 : transpose runfolding
+
+o11 = {-12} | x_0^3-x_1x_3+a_{0, 0}                           |
+      {-14} | x_0x_1^2-x_3^2+a_{1, 0}+x_0a_{1, 1}             |
+      {-15} | x_1^3-x_0^2x_3+a_{2, 0}+x_0a_{2, 1}+x_1a_{2, 2} |
+
+               3       1
+o11 : Matrix SA  <-- SA
+
+i12 : J=flatteningRelations(I,A,runfolding);
+
+                ZZ
+o12 : Ideal of ----[a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a       , a      , a      ]
+               1009  {2, 0}   {1, 0}   {0, 0}   {2, 1}   {2, 2}   {1, 1}   {1, 2}   {2, 3}   {0, 1}   {2, 4}   {1, 3}   {0, 2}   {2, 5}   {1, 4}   {2, 6}   {1, 5}   {0, 3}   {2, 7}   {1, 6}   {0, 4}   {2, 8}   {1, 7}   {0, 5}   {2, 9}   {1, 8}   {0, 6}   {2, 10}   {1, 9}   {0, 7}
+
+i13 : cJ=decompose J;#cJ
+
+o14 = 1
+
+i15 : ideal prune (A/J)
+
+o15 = ideal ()
+
+                ZZ
+o15 : Ideal of ----[a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a      , a       , a      , a      ]
+               1009  {1, 1}   {1, 2}   {2, 3}   {0, 1}   {2, 4}   {1, 3}   {0, 2}   {2, 5}   {1, 4}   {2, 6}   {1, 5}   {0, 3}   {2, 7}   {1, 6}   {0, 4}   {2, 8}   {1, 7}   {0, 5}   {2, 9}   {1, 8}   {0, 6}   {2, 10}   {1, 9}   {0, 7}
+
+i16 : family=runfolding%sub(J,SA);
+
+               1       3
+o16 : Matrix SA  <-- SA
+
+i17 : betti res ideal family == betti res I
+
+o17 = true
+
+i18 : fiber=ideal sub(family,vars S|random(S^1,S^(numgens A)));
+
+o18 : Ideal of S
+
+i19 : singFiber=radical ideal gens gb (fiber+minors(codim I,jacobian fiber))
+
+o19 = ideal 1
+
+o19 : Ideal of S
+
+i20 : 

@@ -1,0 +1,3579 @@
+ -*- coding: utf-8 -*- This is SchurFunctors.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* SchurFunctors: (SchurFunctors).  Schur modules and maps between them
+END-INFO-DIR-ENTRY
+
+
+File: SchurFunctors.info, Node: Top, Next: augmentFilling, Up: (dir)
+
+SchurFunctors -- Schur and Weyl functors from partitions and Young tableaux
+***************************************************************************
+
+Description
+===========
+
+A Schur functor $S_\lambda$ is a polynomial functor on the category of free
+modules, indexed by a partition $\lambda = (\lambda_1 \ge \lambda_2 \ge \cdots
+\ge \lambda_r)$. Classical special cases include
+
+  * $S_{(d)}(E) = \mathrm{Sym}^d(E)$, the $d$-th symmetric power
+  * $S_{(1^d)}(E) = \wedge^d(E)$, the $d$-th exterior power
+  * $S_{(d,\dots,d)}(E) = (\det E)^{\otimes k}$ on a rank-$d$ factor (repeated
+    $k$ times)
+  * $S_{(2,1)}(E) \subseteq E \otimes \wedge^2 E$, the first genuinely mixed
+    case
+
+The Weyl functor $W_\lambda$ is the divided-power analogue: in characteristic
+zero $W_\lambda(E) \cong S_\lambda(E)$, but over $\mathbb{Z}$ or in positive
+characteristic they are genuinely different functors.  They are related by
+duality and appear symmetrically in Schur-Weyl duality and in the definition of
+Weyl modules of the general linear group.
+
+Construction.  Both functors are presented by Garnir / straightening relations.
+For $S_\lambda$ one has the presentation $$\textstyle\bigotimes_{i \ge
+1}\wedge^{\lambda'_i}(E) \;\twoheadrightarrow\; S_\lambda(E),$$ where
+$\lambda'$ is the conjugate (transpose) partition: $S_\lambda(E)$ is the
+quotient of this tensor product of exterior powers by the Garnir relations
+across adjacent columns.  Dually, $W_\lambda$ is a quotient of a tensor product
+of divided powers, $$\textstyle\bigotimes_{i \ge 1} D^{\lambda_i}(E)
+\;\twoheadrightarrow\; W_\lambda(E),$$ by (divided-power) Garnir relations
+across adjacent rows.
+
+Tableaux and the semistandard basis.  A filling of a Young diagram of shape
+$\lambda$ by integers $\{0,\dots,n-1\}$ (representing a basis of $E = R^n$) is
+semistandard if its entries weakly increase along rows and strictly increase
+down columns.  Over $\mathbb{Z}$ the semistandard fillings index a free basis
+of $S_\lambda(E)$ and of $W_\lambda(E)$.  Arbitrary fillings are reduced to
+combinations of semistandard ones by the straightening algorithm; see *note
+straighten: straighten, and *note weylStraighten: weylStraighten,.
+
+In this package Schur tableaux are stored column-wise as objects of type *note
+Filling: Filling,, while Weyl tableaux are stored row-wise as objects of type
+*note WeylFilling: WeylFilling,.  Conjugation of partitions swaps the two
+conventions; see *note conjugate(Filling): conjugate_lpFilling_rp,.
+
+Representation theory.  Over a field of characteristic zero the Schur functors
+$S_\lambda(V)$, as $\lambda$ ranges over partitions with at most $\dim V$
+parts, give all the polynomial irreducible representations of $GL(V)$.  The
+character of $S_\lambda(V)$ is the Schur function $s_\lambda$ in the
+eigenvalues of the diagonal torus; computing and decomposing characters is
+handled by *note character: character,, *note weylCharacter: weylCharacter,,
+*note splitCharacter: splitCharacter,, *note characterRep: characterRep,, and
+*note decomposeRep: decomposeRep,.
+
+Package layout.  The two worlds (Schur / Weyl) expose parallel sets of
+functions:
+
+  * Modules: *note schurModule: schurModule, / *note weylModule: weylModule,.
+  * Functoriality: *note schur: schur, / *note weyl: weyl, take a map $f : E
+    \to F$ to the induced $S_\lambda(f)$ / $W_\lambda(f)$.
+  * Straightening: *note straighten: straighten, / *note weylStraighten:
+    weylStraighten, rewrite an arbitrary tableau in the semistandard basis.
+  * Module maps: *note schurModulesMap: schurModulesMap, / *note
+    weylModulesMap: weylModulesMap, build a homomorphism from its action on a
+    tableau basis.
+  * Tableau combinatorics: *note Filling: Filling, / *note WeylFilling:
+    WeylFilling,, with *note normalize: normalize, / *note weylNormalize:
+    weylNormalize,, *note isStandard: isStandard, / *note isWeylStandard:
+    isWeylStandard,, *note towardWeylStandard: towardWeylStandard,, *note
+    standardTableaux: standardTableaux, / *note standardWeylTableaux:
+    standardWeylTableaux,, *note augmentFilling: augmentFilling, / *note
+    augmentWeylFilling: augmentWeylFilling,, *note maxWeylFilling:
+    maxWeylFilling,.
+  * Divided powers: *note dividedPower: dividedPower,, *note divMult: divMult,,
+    *note divComult: divMult,.
+  * Characters: *note character: character, / *note weylCharacter:
+    weylCharacter,, *note splitCharacter: splitCharacter,, *note characterRep:
+    characterRep,, *note decomposeRep: decomposeRep,.
+  * Pretty-printing: *note printSchurModuleElement: printSchurModuleElement, /
+    *note printWeylModuleElement: printWeylModuleElement,.
+
+A first example.  Take the smallest non-hook, non-trivial shape $(2,1)$:
+
++------------------------------+
+|i1 : E = QQ^3;                |
++------------------------------+
+|i2 : M = schurModule({2,1}, E)|
+|                              |
+|       8                      |
+|o2 = QQ                       |
+|                              |
+|o2 : QQ-module, free          |
++------------------------------+
+|i3 : rank M                   |
+|                              |
+|o3 = 8                        |
++------------------------------+
+|i4 : W = weylModule({2,1}, E) |
+|                              |
+|       8                      |
+|o4 = QQ                       |
+|                              |
+|o4 : QQ-module, free          |
++------------------------------+
+|i5 : rank W                   |
+|                              |
+|o5 = 8                        |
++------------------------------+
+
+Both have rank 8, which is $\dim S_{(2,1)}(\mathbb{Q}^3) = 8$ by the Weyl
+character formula.  They are canonically isomorphic in characteristic 0, but
+are presented as quotients of different ambients: $\wedge^2(E)\otimes E
+\twoheadrightarrow \mathrm{schurModule}((2,1), \mathbb{Q}^3)$ while
+$D^2(E)\otimes D^1(E) \twoheadrightarrow \mathrm{weylModule}((2,1),
+\mathbb{Q}^3)$.
+
+References.  For the Schur side see W. Fulton, Young Tableaux, LMS Student
+Texts 35 (1997), Chapter 8. For the Weyl-module / divided-power construction
+see K. Akin, D. Buchsbaum, and J. Weyman, Schur functors and Schur complexes,
+Adv. Math. 44 (1982), 207-278; and the book J. Weyman, Cohomology of Vector
+Bundles and Syzygies, Cambridge Tracts 149 (2003).
+
+See also
+========
+
+  * *note Filling: Filling, -- a Young tableau stored column-wise
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note schurModule: schurModule, -- Schur module of a partition applied to a
+    free module
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+  * *note schur: schur, -- the Schur functor applied to a matrix
+  * *note weyl: weyl, -- construct a WeylFilling or apply the Weyl functor to a
+    map
+  * *note straighten: straighten, -- straighten a filling into a linear
+    combination of semistandard tableaux
+  * *note weylStraighten: weylStraighten, -- straighten a Weyl filling into a
+    linear combination of Weyl-semistandard tableaux
+  * *note character: character, -- the character of a composition of Schur
+    functors on GL(V)
+  * *note weylCharacter: weylCharacter, -- the character of a composition of
+    Weyl functors on GL(V)
+
+Authors
+=======
+
+  * Michael E. Stillman (see http://www.math.cornell.edu/~mike )
+    <mike@math.cornell.edu>
+  * Anton Leykin
+  * Mauricio Velasco
+  * Keller VandeBogert (see https://sites.google.com/view/kellervandebogert/
+    home ) <keller.v@uky.edu>
+
+Version
+=======
+
+This documentation describes version 1.0 of SchurFunctors, released April 18,
+2026.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{SchurFunctorsSource,                                                   |
+|  title = {{SchurFunctors: Schur modules and maps between them. Version~1.0}}|
+|  author = {Michael E. Stillman and Anton Leykin and Mauricio Velasco and Kel|
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|,                                                                            |
+|ler VandeBogert},                                                            |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note Filling: Filling, -- a Young tableau stored column-wise
+      * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for
+        the Weyl-module basis
+  * Functions and commands
+      * *note augmentFilling: augmentFilling, -- append an entry to a column of
+        a Filling
+      * *note augmentWeylFilling: augmentWeylFilling, -- append an entry to a
+        row of a WeylFilling
+      * *note character: character, -- the character of a composition of Schur
+        functors on GL(V)
+      * *note characterRep: characterRep, -- extract the character of a
+        polynomial GL-representation from its matrix
+      * *note decomposeRep: decomposeRep, -- decompose a polynomial
+        GL-representation into irreducible subspaces
+      * *note dividedPower: dividedPower, -- divided-power functor on free
+        modules and matrices
+      * "divComult" -- see *note divMult: divMult, -- multiplication and
+        comultiplication of divided powers
+      * *note divMult: divMult, -- multiplication and comultiplication of
+        divided powers
+      * *note isStandard: isStandard, -- test whether a Filling is semistandard
+      * *note isWeylStandard: isWeylStandard, -- test whether a WeylFilling is
+        Weyl-semistandard
+      * *note maxWeylFilling: maxWeylFilling, -- the lex-largest Weyl-standard
+        tableau of given shape
+      * *note normalize: normalize, -- sort each column of a Filling, with
+        Koszul sign
+      * *note printSchurModuleElement: printSchurModuleElement, -- display a
+        Schur-module element as a linear combination of tableaux
+      * *note printWeylModuleElement: printWeylModuleElement, -- display a
+        Weyl-module element as a linear combination of tableaux
+      * *note schur: schur, -- the Schur functor applied to a matrix
+      * *note schurModule: schurModule, -- Schur module of a partition applied
+        to a free module
+      * *note schurModulesMap: schurModulesMap, -- build a map between Schur
+        modules from its action on tableaux
+      * *note splitCharacter: splitCharacter, -- decompose a symmetric
+        polynomial into Schur functions
+      * *note standardTableaux: standardTableaux, -- all semistandard Young
+        tableaux of a given shape
+      * *note standardWeylTableaux: standardWeylTableaux, -- all
+        Weyl-semistandard tableaux of a given shape
+      * *note straighten: straighten, -- straighten a filling into a linear
+        combination of semistandard tableaux
+      * *note towardWeylStandard: towardWeylStandard, -- a single Garnir-style
+        straightening step for Weyl fillings
+      * *note weyl: weyl, -- construct a WeylFilling or apply the Weyl functor
+        to a map
+      * *note weylCharacter: weylCharacter, -- the character of a composition
+        of Weyl functors on GL(V)
+      * *note weylModule: weylModule, -- Weyl module of a partition applied to
+        a free module
+      * *note weylModulesMap: weylModulesMap, -- build a map between Weyl
+        modules from its action on tableaux
+      * *note weylNormalize: weylNormalize, -- sort each row of a WeylFilling
+        into weakly-increasing order
+      * *note weylStraighten: weylStraighten, -- straighten a Weyl filling into
+        a linear combination of Weyl-semistandard tableaux
+  * Methods
+      * "augmentFilling(Filling,ZZ,ZZ)" -- see *note augmentFilling:
+        augmentFilling, -- append an entry to a column of a Filling
+      * "augmentWeylFilling(WeylFilling,ZZ,ZZ)" -- see *note
+        augmentWeylFilling: augmentWeylFilling, -- append an entry to a row of
+        a WeylFilling
+      * "character(List,ZZ)" -- see *note character: character, -- the
+        character of a composition of Schur functors on GL(V)
+      * "characterRep(Matrix)" -- see *note characterRep: characterRep, --
+        extract the character of a polynomial GL-representation from its matrix
+      * *note conjugate(Filling): conjugate_lpFilling_rp, -- transpose of a
+        Young tableau
+      * *note conjugate(WeylFilling): conjugate_lpWeylFilling_rp, -- transpose
+        of a Weyl-stored Young tableau
+      * "decomposeRep(Matrix)" -- see *note decomposeRep: decomposeRep, --
+        decompose a polynomial GL-representation into irreducible subspaces
+      * "dividedPower(List,Matrix)" -- see *note dividedPower: dividedPower, --
+        divided-power functor on free modules and matrices
+      * "dividedPower(List,Module)" -- see *note dividedPower: dividedPower, --
+        divided-power functor on free modules and matrices
+      * "dividedPower(ZZ,Matrix)" -- see *note dividedPower: dividedPower, --
+        divided-power functor on free modules and matrices
+      * "dividedPower(ZZ,Module)" -- see *note dividedPower: dividedPower, --
+        divided-power functor on free modules and matrices
+      * "divComult(List,ZZ)" -- see *note divMult: divMult, -- multiplication
+        and comultiplication of divided powers
+      * "divComult(List,ZZ,ZZ)" -- see *note divMult: divMult, --
+        multiplication and comultiplication of divided powers
+      * "divComult(Sequence,ZZ)" -- see *note divMult: divMult, --
+        multiplication and comultiplication of divided powers
+      * "divMult(List,List)" -- see *note divMult: divMult, -- multiplication
+        and comultiplication of divided powers
+      * "divMult(List,List,ZZ)" -- see *note divMult: divMult, --
+        multiplication and comultiplication of divided powers
+      * "divMult(Sequence,Sequence)" -- see *note divMult: divMult, --
+        multiplication and comultiplication of divided powers
+      * "Filling ? Filling" -- see *note Filling: Filling, -- a Young tableau
+        stored column-wise
+      * "Filling _ List" -- see *note Filling: Filling, -- a Young tableau
+        stored column-wise
+      * "net(Filling)" -- see *note Filling: Filling, -- a Young tableau stored
+        column-wise
+      * "isStandard(Filling)" -- see *note isStandard: isStandard, -- test
+        whether a Filling is semistandard
+      * "isWeylStandard(WeylFilling)" -- see *note isWeylStandard:
+        isWeylStandard, -- test whether a WeylFilling is Weyl-semistandard
+      * "maxWeylFilling(List,ZZ)" -- see *note maxWeylFilling: maxWeylFilling,
+        -- the lex-largest Weyl-standard tableau of given shape
+      * "normalize(Filling)" -- see *note normalize: normalize, -- sort each
+        column of a Filling, with Koszul sign
+      * "printSchurModuleElement(Vector,Module)" -- see *note
+        printSchurModuleElement: printSchurModuleElement, -- display a
+        Schur-module element as a linear combination of tableaux
+      * "printWeylModuleElement(Vector,Module)" -- see *note
+        printWeylModuleElement: printWeylModuleElement, -- display a
+        Weyl-module element as a linear combination of tableaux
+      * "schur(List,Matrix)" -- see *note schur: schur, -- the Schur functor
+        applied to a matrix
+      * "schurModule(List,Module)" -- see *note schurModule: schurModule, --
+        Schur module of a partition applied to a free module
+      * "schurModulesMap(Module,Module,Function)" -- see *note schurModulesMap:
+        schurModulesMap, -- build a map between Schur modules from its action
+        on tableaux
+      * "splitCharacter(RingElement)" -- see *note splitCharacter:
+        splitCharacter, -- decompose a symmetric polynomial into Schur
+        functions
+      * "standardTableaux(ZZ,List)" -- see *note standardTableaux:
+        standardTableaux, -- all semistandard Young tableaux of a given shape
+      * "standardWeylTableaux(ZZ,List)" -- see *note standardWeylTableaux:
+        standardWeylTableaux, -- all Weyl-semistandard tableaux of a given
+        shape
+      * "straighten(Filling)" -- see *note straighten: straighten, --
+        straighten a filling into a linear combination of semistandard tableaux
+      * "straighten(Filling,Module)" -- see *note straighten: straighten, --
+        straighten a filling into a linear combination of semistandard tableaux
+      * "straighten(HashTable)" -- see *note straighten: straighten, --
+        straighten a filling into a linear combination of semistandard tableaux
+      * "straighten(HashTable,Module)" -- see *note straighten: straighten, --
+        straighten a filling into a linear combination of semistandard tableaux
+      * "weyl(List)" -- see *note weyl: weyl, -- construct a WeylFilling or
+        apply the Weyl functor to a map
+      * "weyl(List,Matrix)" -- see *note weyl: weyl, -- construct a WeylFilling
+        or apply the Weyl functor to a map
+      * "weylCharacter(List,ZZ)" -- see *note weylCharacter: weylCharacter, --
+        the character of a composition of Weyl functors on GL(V)
+      * "net(WeylFilling)" -- see *note WeylFilling: WeylFilling, -- a Young
+        tableau stored row-wise for the Weyl-module basis
+      * "WeylFilling == WeylFilling" -- see *note WeylFilling: WeylFilling, --
+        a Young tableau stored row-wise for the Weyl-module basis
+      * "WeylFilling ? WeylFilling" -- see *note WeylFilling: WeylFilling, -- a
+        Young tableau stored row-wise for the Weyl-module basis
+      * "WeylFilling _ List" -- see *note WeylFilling: WeylFilling, -- a Young
+        tableau stored row-wise for the Weyl-module basis
+      * "WeylFilling _ ZZ" -- see *note WeylFilling: WeylFilling, -- a Young
+        tableau stored row-wise for the Weyl-module basis
+      * "weylModule(List,Module)" -- see *note weylModule: weylModule, -- Weyl
+        module of a partition applied to a free module
+      * "weylModulesMap(Module,Module,Function)" -- see *note weylModulesMap:
+        weylModulesMap, -- build a map between Weyl modules from its action on
+        tableaux
+      * "weylNormalize(WeylFilling)" -- see *note weylNormalize: weylNormalize,
+        -- sort each row of a WeylFilling into weakly-increasing order
+      * "weylStraighten(HashTable)" -- see *note weylStraighten:
+        weylStraighten, -- straighten a Weyl filling into a linear combination
+        of Weyl-semistandard tableaux
+      * "weylStraighten(HashTable,Module)" -- see *note weylStraighten:
+        weylStraighten, -- straighten a Weyl filling into a linear combination
+        of Weyl-semistandard tableaux
+      * "weylStraighten(WeylFilling)" -- see *note weylStraighten:
+        weylStraighten, -- straighten a Weyl filling into a linear combination
+        of Weyl-semistandard tableaux
+      * "weylStraighten(WeylFilling,Module)" -- see *note weylStraighten:
+        weylStraighten, -- straighten a Weyl filling into a linear combination
+        of Weyl-semistandard tableaux
+
+For the programmer
+==================
+
+The object *note SchurFunctors: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in SchurFunctors.m2, with auxiliary files in
+SchurFunctors/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1261:0.
+
+File: SchurFunctors.info, Node: augmentFilling, Next: augmentWeylFilling, Prev: Top, Up: Top
+
+augmentFilling -- append an entry to a column of a Filling
+**********************************************************
+
+  * Usage: 
+        augmentFilling(T, c, e)
+  * Inputs:
+      * T, an instance of the type *note Filling: Filling,, 
+      * c, an *note integer: (Macaulay2Doc)ZZ,, column index
+      * e, an *note integer: (Macaulay2Doc)ZZ,, entry to append
+  * Outputs:
+      * an instance of the type *note Filling: Filling,, a new filling where e
+        has been appended to the bottom of column c, or (if c >= #T) a new
+        rightmost column {e} has been created
+
+Description
+===========
+
+This is the natural cell-adding operation for Schur-functor combinatorics:
+extending a filling by one cell at the bottom of column $c$ (or creating a new
+rightmost column if $c$ is past the current rightmost column).  It is the
+building block used to describe Schur-module maps by their action on tableaux;
+see for example the Koszul-style differential built in the example of *note
+schurModulesMap: schurModulesMap,.
+
++--------------------------------------+
+|i1 : T = new Filling from {{0,1}, {1}}|
+|                                      |
+|     +-+-+                            |
+|o1 = |0|1|                            |
+|     |1| |                            |
+|     +-+-+                            |
+|                                      |
+|o1 : Filling                          |
++--------------------------------------+
+|i2 : T                                |
+|                                      |
+|     +-+-+                            |
+|o2 = |0|1|                            |
+|     |1| |                            |
+|     +-+-+                            |
+|                                      |
+|o2 : Filling                          |
++--------------------------------------+
+|i3 : augmentFilling(T, 0, 2)          |
+|                                      |
+|     +-+-+                            |
+|o3 = |0|1|                            |
+|     |1| |                            |
+|     |2| |                            |
+|     +-+-+                            |
+|                                      |
+|o3 : Filling                          |
++--------------------------------------+
+|i4 : augmentFilling(T, 1, 2)          |
+|                                      |
+|     +-+-+                            |
+|o4 = |0|1|                            |
+|     |1|2|                            |
+|     +-+-+                            |
+|                                      |
+|o4 : Filling                          |
++--------------------------------------+
+|i5 : augmentFilling(T, 5, 3)          |
+|                                      |
+|     +-+-+-+                          |
+|o5 = |0|1|3|                          |
+|     |1| | |                          |
+|     +-+-+-+                          |
+|                                      |
+|o5 : Filling                          |
++--------------------------------------+
+
+See also
+========
+
+  * *note Filling: Filling, -- a Young tableau stored column-wise
+  * *note augmentWeylFilling: augmentWeylFilling, -- append an entry to a row
+    of a WeylFilling
+  * *note schurModulesMap: schurModulesMap, -- build a map between Schur
+    modules from its action on tableaux
+
+Ways to use augmentFilling:
+===========================
+
+  * "augmentFilling(Filling,ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note augmentFilling: augmentFilling, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1528:0.
+
+File: SchurFunctors.info, Node: augmentWeylFilling, Next: character, Prev: augmentFilling, Up: Top
+
+augmentWeylFilling -- append an entry to a row of a WeylFilling
+***************************************************************
+
+  * Usage: 
+        augmentWeylFilling(T, r, e)
+  * Inputs:
+      * T, an instance of the type *note WeylFilling: WeylFilling,, 
+      * r, an *note integer: (Macaulay2Doc)ZZ,, row index
+      * e, an *note integer: (Macaulay2Doc)ZZ,, entry to append
+  * Outputs:
+      * an instance of the type *note WeylFilling: WeylFilling,, a new filling
+        where e has been appended to the end of row r, or (if r >= #T) a new
+        final row {e} has been created
+
+Description
+===========
+
+The Weyl analogue of *note augmentFilling: augmentFilling,.  Where *note
+Filling: Filling, is column-indexed, WeylFilling is row-indexed; this routine
+grows a tableau by one cell in the natural row-wise direction and is the basic
+building block for describing Weyl-module maps tableau-by-tableau (see the
+example of *note weylModulesMap: weylModulesMap,).
+
++--------------------------------+
+|i1 : T = weyl {{0,1},{2}}       |
+|                                |
+|     +-+-+                      |
+|o1 = |0|1|                      |
+|     |2| |                      |
+|     +-+-+                      |
+|                                |
+|o1 : WeylFilling                |
++--------------------------------+
+|i2 : augmentWeylFilling(T, 0, 2)|
+|                                |
+|     +-+-+-+                    |
+|o2 = |0|1|2|                    |
+|     |2| | |                    |
+|     +-+-+-+                    |
+|                                |
+|o2 : WeylFilling                |
++--------------------------------+
+|i3 : augmentWeylFilling(T, 1, 3)|
+|                                |
+|     +-+-+                      |
+|o3 = |0|1|                      |
+|     |2|3|                      |
+|     +-+-+                      |
+|                                |
+|o3 : WeylFilling                |
++--------------------------------+
+|i4 : augmentWeylFilling(T, 2, 4)|
+|                                |
+|     +-+-+                      |
+|o4 = |0|1|                      |
+|     |2| |                      |
+|     |4| |                      |
+|     +-+-+                      |
+|                                |
+|o4 : WeylFilling                |
++--------------------------------+
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note augmentFilling: augmentFilling, -- append an entry to a column of a
+    Filling
+  * *note weylModulesMap: weylModulesMap, -- build a map between Weyl modules
+    from its action on tableaux
+
+Ways to use augmentWeylFilling:
+===============================
+
+  * "augmentWeylFilling(WeylFilling,ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note augmentWeylFilling: augmentWeylFilling, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1821:0.
+
+File: SchurFunctors.info, Node: character, Next: characterRep, Prev: augmentWeylFilling, Up: Top
+
+character -- the character of a composition of Schur functors on GL(V)
+**********************************************************************
+
+  * Usage: 
+        character(L, d)
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, a list of partitions
+        $[\lambda^{(1)}, \lambda^{(2)}, \ldots, \lambda^{(m)}]$
+      * d, an *note integer: (Macaulay2Doc)ZZ,, the rank of the underlying
+        module
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the character, as a
+        symmetric polynomial in $x_0, \ldots, x_{d-1}$, of the composed Schur
+        functor $S_{\lambda^{(1)}}(S_{\lambda^{(2)}}(\cdots
+        S_{\lambda^{(m)}}(V)))$ on the defining representation $V =
+        \mathbb{Q}^d$ of $GL_d$
+
+Description
+===========
+
+The character of a polynomial $GL_d$-representation $W$ is the trace of the
+diagonal matrix $\mathrm{diag}(x_0, \ldots, x_{d-1})$ acting on $W$.  For an
+irreducible $S_\lambda(V)$ this is the Schur polynomial $s_\lambda(x_0, \ldots,
+x_{d-1})$; for an arbitrary polynomial representation it is a non-negative
+integer combination of Schur polynomials, making character the primary input to
+*note splitCharacter: splitCharacter, and *note decomposeRep: decomposeRep,.
+
++------------------------------------------------------+
+|i1 : character({{2,1}}, 3)                            |
+|                                                      |
+|      2        2    2                2        2      2|
+|o1 = x x  + x x  + x x  + 2x x x  + x x  + x x  + x x |
+|      0 1    0 1    0 2     0 1 2    1 2    0 2    1 2|
+|                                                      |
+|o1 : QQ[x ..x ]                                       |
+|         0   2                                        |
++------------------------------------------------------+
+
+Nested compositions are supported; for example the GL_4 character of
+$\wedge^3(S^2 V) = S_{(1,1,1)}(S_{(2)}(V))$:
+
++-----------------------------------------------------------------------------+
+|i2 : character({{1,1,1}, {2}}, 4)                                            |
+|                                                                             |
+|      3 3    4         3 2       2 3        4       3   2     2 2 2       3 2|
+|o2 = x x  + x x x  + 2x x x  + 2x x x  + x x x  + 2x x x  + 2x x x  + 2x x x |
+|      0 1    0 1 2     0 1 2     0 1 2    0 1 2     0 1 2     0 1 2     0 1 2|
+|     ------------------------------------------------------------------------|
+|        3 3     2   3       2 3    3 3        4    4         3 2       2 3   |
+|     + x x  + 2x x x  + 2x x x  + x x  + x x x  + x x x  + 2x x x  + 2x x x  |
+|        0 2     0 1 2     0 1 2    1 2    0 1 2    0 1 3     0 1 3     0 1 3 |
+|     ------------------------------------------------------------------------|
+|          4      4         3           2 2           3        4         3 2  |
+|     + x x x  + x x x  + 4x x x x  + 5x x x x  + 4x x x x  + x x x  + 2x x x |
+|        0 1 3    0 2 3     0 1 2 3     0 1 2 3     0 1 2 3    1 2 3     0 2 3|
+|     ------------------------------------------------------------------------|
+|         2   2         2 2       3 2       2 3           3       2 3         |
+|     + 5x x x x  + 5x x x x  + 2x x x  + 2x x x  + 4x x x x  + 2x x x  +     |
+|         0 1 2 3     0 1 2 3     1 2 3     0 2 3     0 1 2 3     1 2 3       |
+|     ------------------------------------------------------------------------|
+|        4        4       3   2     2 2 2       3 2     3   2     2     2     |
+|     x x x  + x x x  + 2x x x  + 2x x x  + 2x x x  + 2x x x  + 5x x x x  +   |
+|      0 2 3    1 2 3     0 1 3     0 1 3     0 1 3     0 2 3     0 1 2 3     |
+|     ------------------------------------------------------------------------|
+|         2   2     3   2     2 2 2         2 2     2 2 2       3 2       3 2 |
+|     5x x x x  + 2x x x  + 2x x x  + 5x x x x  + 2x x x  + 2x x x  + 2x x x  |
+|       0 1 2 3     1 2 3     0 2 3     0 1 2 3     1 2 3     0 2 3     1 2 3 |
+|     ------------------------------------------------------------------------|
+|        3 3     2   3       2 3    3 3     2   3           3     2   3       |
+|     + x x  + 2x x x  + 2x x x  + x x  + 2x x x  + 4x x x x  + 2x x x  +     |
+|        0 3     0 1 3     0 1 3    1 3     0 2 3     0 1 2 3     1 2 3       |
+|     ------------------------------------------------------------------------|
+|         2 3       2 3    3 3        4        4        4                     |
+|     2x x x  + 2x x x  + x x  + x x x  + x x x  + x x x                      |
+|       0 2 3     1 2 3    2 3    0 1 3    0 2 3    1 2 3                     |
+|                                                                             |
+|o2 : QQ[x ..x ]                                                              |
+|         0   3                                                               |
++-----------------------------------------------------------------------------+
+
+To split such a character into irreducibles, apply *note splitCharacter:
+splitCharacter,:
+
++------------------------------------------------+
+|i3 : splitCharacter character({{1,1,1}, {2}}, 4)|
+|                                                |
+|o3 = s      + s                                 |
+|      4,1,1    3,3                              |
+|                                                |
+|o3 : schurRing (QQ, s, 4)                       |
++------------------------------------------------+
+
+See also
+========
+
+  * *note weylCharacter: weylCharacter, -- the character of a composition of
+    Weyl functors on GL(V)
+  * *note splitCharacter: splitCharacter, -- decompose a symmetric polynomial
+    into Schur functions
+  * *note characterRep: characterRep, -- extract the character of a polynomial
+    GL-representation from its matrix
+  * *note decomposeRep: decomposeRep, -- decompose a polynomial
+    GL-representation into irreducible subspaces
+  * *note schur: schur, -- the Schur functor applied to a matrix
+
+Ways to use character:
+======================
+
+  * "character(List,ZZ)"
+
+For the programmer
+==================
+
+The object *note character: character, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2619:0.
+
+File: SchurFunctors.info, Node: characterRep, Next: conjugate_lpFilling_rp, Prev: character, Up: Top
+
+characterRep -- extract the character of a polynomial GL-representation from its matrix
+***************************************************************************************
+
+  * Usage: 
+        characterRep F
+  * Inputs:
+      * F, a *note matrix: (Macaulay2Doc)Matrix,, a square matrix over a
+        polynomial ring $R[w_1, \ldots, w_{d^2}]$ representing a polynomial
+        $GL_d$-action on some module; typically the output of *note schur:
+        schur, applied to a generic matrix
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the trace of the
+        diagonal specialization of F in a fresh polynomial ring
+        $\mathbb{Q}[x_0, \ldots, x_{d-1}]$
+
+Description
+===========
+
+Given a matrix $F$ whose entries are polynomials in the $d^2$ variables of a
+generic matrix on $V = \mathbb{Q}^d$, characterRep substitutes a diagonal
+matrix $\mathrm{diag}(x_0, \ldots, x_{d-1})$ for that generic matrix and reads
+off the trace.  The result is the character of the $GL_d$-representation $F$
+encodes.
+
++------------------------------------------------------+
+|i1 : R = QQ[w_1..w_9];                                |
++------------------------------------------------------+
+|i2 : G = genericMatrix(R, 3, 3);                      |
+|                                                      |
+|             3      3                                 |
+|o2 : Matrix R  <-- R                                  |
++------------------------------------------------------+
+|i3 : F = schur({2,1}, G);                             |
+|                                                      |
+|             8      8                                 |
+|o3 : Matrix R  <-- R                                  |
++------------------------------------------------------+
+|i4 : characterRep F                                   |
+|                                                      |
+|      2        2    2                2        2      2|
+|o4 = x x  + x x  + x x  + 2x x x  + x x  + x x  + x x |
+|      0 1    0 1    0 2     0 1 2    1 2    0 2    1 2|
+|                                                      |
+|o4 : QQ[x ..x ]                                       |
+|         0   2                                        |
++------------------------------------------------------+
+|i5 : splitCharacter characterRep F                    |
+|                                                      |
+|o5 = s                                                |
+|      2,1                                             |
+|                                                      |
+|o5 : schurRing (QQ, s, 3)                             |
++------------------------------------------------------+
+
+See also
+========
+
+  * *note character: character, -- the character of a composition of Schur
+    functors on GL(V)
+  * *note splitCharacter: splitCharacter, -- decompose a symmetric polynomial
+    into Schur functions
+  * *note decomposeRep: decomposeRep, -- decompose a polynomial
+    GL-representation into irreducible subspaces
+  * *note schur: schur, -- the Schur functor applied to a matrix
+
+Ways to use characterRep:
+=========================
+
+  * "characterRep(Matrix)"
+
+For the programmer
+==================
+
+The object *note characterRep: characterRep, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2728:0.
+
+File: SchurFunctors.info, Node: conjugate_lpFilling_rp, Next: conjugate_lpWeylFilling_rp, Prev: characterRep, Up: Top
+
+conjugate(Filling) -- transpose of a Young tableau
+**************************************************
+
+  * Function: *note conjugate: (Macaulay2Doc)conjugate,
+  * Usage: 
+        conjugate T
+  * Inputs:
+      * T, an instance of the type *note Filling: Filling,, 
+  * Outputs:
+      * an instance of the type *note Filling: Filling,, the tableau of
+        conjugate (transposed) shape whose columns are the rows of T
+
+Description
+===========
+
+The conjugate partition $\mu'$ of $\mu$ has $\mu'_j = \#\{i : \mu_i \ge j\}$.
+As a Young diagram, $\mu'$ is the reflection of $\mu$ across its main diagonal.
+Since Schur tableaux are stored column-wise (each T#j is a column), conjugation
+swaps rows and columns.
+
++----------------------------------------+
+|i1 : T = new Filling from {{0,1}, {1,2}}|
+|                                        |
+|     +-+-+                              |
+|o1 = |0|1|                              |
+|     |1|2|                              |
+|     +-+-+                              |
+|                                        |
+|o1 : Filling                            |
++----------------------------------------+
+|i2 : T                                  |
+|                                        |
+|     +-+-+                              |
+|o2 = |0|1|                              |
+|     |1|2|                              |
+|     +-+-+                              |
+|                                        |
+|o2 : Filling                            |
++----------------------------------------+
+|i3 : conjugate T                        |
+|                                        |
+|     +-+-+                              |
+|o3 = |0|1|                              |
+|     |1|2|                              |
+|     +-+-+                              |
+|                                        |
+|o3 : Filling                            |
++----------------------------------------+
+
+Conjugation is an involution and intertwines the two tableau-storage
+conventions:
+
++--------------------------------------------+
+|i4 : new WeylFilling from toList conjugate T|
+|                                            |
+|     +-+-+                                  |
+|o4 = |0|1|                                  |
+|     |1|2|                                  |
+|     +-+-+                                  |
+|                                            |
+|o4 : WeylFilling                            |
++--------------------------------------------+
+
+See also
+========
+
+  * *note Filling: Filling, -- a Young tableau stored column-wise
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note conjugate(WeylFilling): conjugate_lpWeylFilling_rp, -- transpose of a
+    Weyl-stored Young tableau
+
+Ways to use this method:
+========================
+
+  * *note conjugate(Filling): conjugate_lpFilling_rp, -- transpose of a Young
+    tableau
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1360:0.
+
+File: SchurFunctors.info, Node: conjugate_lpWeylFilling_rp, Next: decomposeRep, Prev: conjugate_lpFilling_rp, Up: Top
+
+conjugate(WeylFilling) -- transpose of a Weyl-stored Young tableau
+******************************************************************
+
+  * Function: *note conjugate: (Macaulay2Doc)conjugate,
+  * Usage: 
+        conjugate T
+  * Inputs:
+      * T, an instance of the type *note WeylFilling: WeylFilling,, 
+  * Outputs:
+      * an instance of the type *note WeylFilling: WeylFilling,, the tableau of
+        conjugate shape, stored row-wise (so its rows are the columns of T)
+
+Description
+===========
+
+Conjugation of a WeylFilling is the combinatorial transpose of the underlying
+Young tableau, preserving the row-wise storage convention.
+
++-------------------------------+
+|i1 : T = weyl {{0,2,4},{1,3,5}}|
+|                               |
+|     +-+-+-+                   |
+|o1 = |0|2|4|                   |
+|     |1|3|5|                   |
+|     +-+-+-+                   |
+|                               |
+|o1 : WeylFilling               |
++-------------------------------+
+|i2 : conjugate T               |
+|                               |
+|     +-+-+                     |
+|o2 = |0|1|                     |
+|     |2|3|                     |
+|     |4|5|                     |
+|     +-+-+                     |
+|                               |
+|o2 : WeylFilling               |
++-------------------------------+
+
+The conjugate stores the columns of $T$ as its rows; equivalently, toList
+conjugate T equals the list of columns of T, each sorted in its natural
+top-to-bottom order.
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note conjugate(Filling): conjugate_lpFilling_rp, -- transpose of a Young
+    tableau
+
+Ways to use this method:
+========================
+
+  * *note conjugate(WeylFilling): conjugate_lpWeylFilling_rp, -- transpose of a
+    Weyl-stored Young tableau
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1629:0.
+
+File: SchurFunctors.info, Node: decomposeRep, Next: dividedPower, Prev: conjugate_lpWeylFilling_rp, Up: Top
+
+decomposeRep -- decompose a polynomial GL-representation into irreducible subspaces
+***********************************************************************************
+
+  * Usage: 
+        decomposeRep F
+  * Inputs:
+      * F, a *note matrix: (Macaulay2Doc)Matrix,, a square matrix representing
+        a polynomial $GL_d$-action, as in *note characterRep: characterRep,
+  * Outputs:
+      * a *note hash table: (Macaulay2Doc)HashTable,, keyed by the partitions
+        $\lambda$ appearing in the decomposition of F (as returned by *note
+        splitCharacter: splitCharacter,), with each value a matrix whose
+        columns span the $\lambda$-isotypic subspace
+
+Description
+===========
+
+Given a polynomial $GL_d$-representation $W$ whose matrix is F, decomposeRep
+computes the character via *note characterRep: characterRep,, decomposes it via
+*note splitCharacter: splitCharacter,, and for each irreducible $S_\lambda$
+appearing produces a basis of the $S_\lambda$-isotypic subspace as the syzygy
+space of two operators:
+
+  * the transvections (upper-triangular unipotent generators) must act
+    trivially on a highest-weight vector;
+  * the diagonal torus must act by the maximal-weight character of the
+    $\lambda$-isotypic piece.
+
+The partitions appearing as keys, and their multiplicities (as the number of
+columns of the corresponding basis matrix), agree with the output of
+splitCharacter characterRep F.
+
++------------------------------------------------+
+|i1 : R = QQ[w_1..w_9];                          |
++------------------------------------------------+
+|i2 : G = genericMatrix(R, 3, 3);                |
+|                                                |
+|             3      3                           |
+|o2 : Matrix R  <-- R                            |
++------------------------------------------------+
+|i3 : H = decomposeRep schur({2}, schur({2}, G));|
++------------------------------------------------+
+|i4 : keys H                                     |
+|                                                |
+|o4 = {{2, 2}, {4}}                              |
+|                                                |
+|o4 : List                                       |
++------------------------------------------------+
+
+See also
+========
+
+  * *note character: character, -- the character of a composition of Schur
+    functors on GL(V)
+  * *note splitCharacter: splitCharacter, -- decompose a symmetric polynomial
+    into Schur functions
+  * *note characterRep: characterRep, -- extract the character of a polynomial
+    GL-representation from its matrix
+  * *note schur: schur, -- the Schur functor applied to a matrix
+
+Ways to use decomposeRep:
+=========================
+
+  * "decomposeRep(Matrix)"
+
+For the programmer
+==================
+
+The object *note decomposeRep: decomposeRep, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2776:0.
+
+File: SchurFunctors.info, Node: dividedPower, Next: divMult, Prev: decomposeRep, Up: Top
+
+dividedPower -- divided-power functor on free modules and matrices
+******************************************************************
+
+  * Usage: 
+        dividedPower(d, E)
+        dividedPower(lambda, E)
+        dividedPower(d, f)
+        dividedPower(lambda, f)
+  * Inputs:
+      * d, an *note integer: (Macaulay2Doc)ZZ,, 
+      * lambda, a *note list: (Macaulay2Doc)List,, a list of nonnegative
+        integers; the output is the tensor product of divided powers
+        $D^{\lambda_1}(\cdot) \otimes \cdots \otimes D^{\lambda_k}(\cdot)$
+      * E, a *note module: (Macaulay2Doc)Module,, a free module
+      * f, a *note matrix: (Macaulay2Doc)Matrix,, a map between free modules
+  * Outputs:
+      * the divided power $D^d(E)$ or the induced map $D^d(f)$, and for list
+        input the tensor product of divided powers
+
+Description
+===========
+
+The $d$-th divided power $D^d(E)$ of a free module $E$ of rank $n$ is the
+degree-$d$ part of the divided-power algebra on $E$.  It is free of rank
+$\binom{n+d-1}{d}$, with a basis indexed by weakly-increasing tuples of length
+$d$ in $\{0,\ldots,n-1\}$ (equivalently, compositions of $d$ into $n$ parts, or
+multisets of size $d$ from $\{0,\ldots,n-1\}$).
+
+Over a field of characteristic zero $D^d(E) \cong \mathrm{Sym}^d(E)$
+canonically (the isomorphism rescales basis vectors by factorials); over
+$\mathbb{Z}$ the two functors differ.
+
++------------------------------------------------------------------+
+|i1 : E = QQ^3;                                                    |
++------------------------------------------------------------------+
+|i2 : dividedPower(2, E)                   -- rank C(4,2) = 6      |
+|                                                                  |
+|       6                                                          |
+|o2 = QQ                                                           |
+|                                                                  |
+|o2 : QQ-module, free                                              |
++------------------------------------------------------------------+
+|i3 : dividedPower({2,1,0,1}, E)           -- D^2 ⊗ D^1 ⊗ D^0 ⊗ D^1|
+|                                                                  |
+|       54                                                         |
+|o3 = QQ                                                           |
+|                                                                  |
+|o3 : QQ-module, free                                              |
++------------------------------------------------------------------+
+|i4 : f = matrix{{1_QQ,2},{3,4}};                                  |
+|                                                                  |
+|              2       2                                           |
+|o4 : Matrix QQ  <-- QQ                                            |
++------------------------------------------------------------------+
+|i5 : dividedPower(2, f)                   -- induced map on D^2   |
+|                                                                  |
+|o5 = | 1 4  4  |                                                  |
+|     | 3 10 8  |                                                  |
+|     | 9 24 16 |                                                  |
+|                                                                  |
+|              3       3                                           |
+|o5 : Matrix QQ  <-- QQ                                            |
++------------------------------------------------------------------+
+
+The single-row (non-list) form with a List partition builds the ambient tensor
+product used by *note weylModule: weylModule,:
+
++-----------------------------------------------------------------------+
+|i6 : dividedPower({2,1}, E) == dividedPower(2, E) ** dividedPower(1, E)|
+|                                                                       |
+|o6 = true                                                              |
++-----------------------------------------------------------------------+
+
+dividedPower is used as the ambient object in the construction of *note
+weylModule: weylModule,, playing the role that exteriorPower plays for *note
+schurModule: schurModule,.
+
+See also
+========
+
+  * *note weyl: weyl, -- construct a WeylFilling or apply the Weyl functor to a
+    map
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+  * *note divMult: divMult, -- multiplication and comultiplication of divided
+    powers
+  * *note divComult: divMult, -- multiplication and comultiplication of divided
+    powers
+
+Ways to use dividedPower:
+=========================
+
+  * "dividedPower(List,Matrix)"
+  * "dividedPower(List,Module)"
+  * "dividedPower(ZZ,Matrix)"
+  * "dividedPower(ZZ,Module)"
+
+For the programmer
+==================
+
+The object *note dividedPower: dividedPower, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2436:0.
+
+File: SchurFunctors.info, Node: divMult, Next: Filling, Prev: dividedPower, Up: Top
+
+divMult -- multiplication and comultiplication of divided powers
+****************************************************************
+
+Description
+===========
+
+The divided-power algebra $D^*(E) = \bigoplus_{d \ge 0} D^d(E)$ on a free
+module $E$ of rank $n$ is a graded bi-algebra.  Its basis elements are indexed
+by weakly-increasing tuples of integers, or equivalently by their exponent
+vectors.  This package provides both the multiplication $D^p \otimes D^q \to
+D^{p+q}$ and the comultiplication $D^{p+q} \to D^p \otimes D^q$ on those bases.
+
+Multiplication.  divMult(L1, L2) takes two weakly-increasing lists L1, L2
+(basis elements of $D^{|L_1|}$ and $D^{|L_2|}$) and returns the pair (c, L)
+where L is the sorted concatenation and c is the binomial coefficient encoding
+the divided-power product rule $x^{(p)} \cdot x^{(q)} = \binom{p+q}{p}\,
+x^{(p+q)}$.
+
++----------------------------+
+|i1 : divMult({0,0,1}, {0,1})|
+|                            |
+|o1 = {6, {0, 0, 0, 1, 1}}   |
+|                            |
+|o1 : List                   |
++----------------------------+
+
+Comultiplication.  divComult(L, p) takes a basis element L of $D^{|L|}$ and
+returns the set of ways to split it as a pair (A, B) with |A| = p, |B| = |L| -
+p, and $A + B = L$ as multisets.  This is the comultiplication $D^{|L|}(E) \to
+D^{p}(E) \otimes D^{|L| - p}(E)$.
+
++-----------------------------------------------------------------------------+
+|i2 : divComult({0,0,1,2}, 2)                                                 |
+|                                                                             |
+|o2 = {{{0, 0}, {1, 2}}, {{0, 1}, {0, 2}}, {{0, 2}, {0, 1}}, {{1, 2}, {0, 0}}}|
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Internally, divComult drives the Weyl-side straightening: a single Garnir
+shuffle across adjacent rows proceeds by comultiplying the concatenated row
+tails and remultiplying into the partner row; see *note towardWeylStandard:
+towardWeylStandard,.  A basis element can be stored either as a
+weakly-increasing tuple or as an exponent vector recording the multiplicity of
+each letter; for efficiency, much of the straightening uses the exponent-vector
+form, and both forms are accepted as input below.
+
+Variants.  Both operations come in three forms:
+
+  * divMult(L1, L2) and divComult(L, p): tuple (weakly-increasing list) input;
+    the alphabet size is inferred from the maximum entry appearing in the
+    input.
+  * divMult(L1, L2, n) and divComult(L, p, n): tuple input with an explicit
+    alphabet size n, useful when the tuples are padded or when the caller needs
+    all output tuples to have a uniform length.
+  * divMult(S1, S2) and divComult(S, p): sequence input, interpreted as an
+    exponent vector (that is, S_i is the multiplicity of the letter i).
+    Working directly with exponent vectors avoids the conversion to and from
+    tuples, and is the form used inside the straightening loop.
+
+See also
+========
+
+  * *note dividedPower: dividedPower, -- divided-power functor on free modules
+    and matrices
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+  * *note towardWeylStandard: towardWeylStandard, -- a single Garnir-style
+    straightening step for Weyl fillings
+
+Ways to use divMult:
+====================
+
+  * "divMult(List,List)"
+  * "divMult(List,List,ZZ)"
+  * "divMult(Sequence,Sequence)"
+
+For the programmer
+==================
+
+The object *note divMult: divMult, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2510:0.
+
+File: SchurFunctors.info, Node: Filling, Next: isStandard, Prev: divMult, Up: Top
+
+Filling -- a Young tableau stored column-wise
+*********************************************
+
+Description
+===========
+
+A Filling is a Young tableau of partition shape, stored as a list of its
+columns.  A filling of shape $\mu = (\mu_1 \ge \mu_2 \ge \cdots \ge \mu_r)$
+with entries from an alphabet $\{0, 1, \ldots, d-1\}$ is represented by new
+Filling from {c_1, c_2, ..., c_{mu_1}}, where $c_j$ is the list of entries in
+the $j$-th column read from top to bottom.  The length of $c_j$ equals
+$\mu'_j$, the length of the $j$-th column (equivalently, the $j$-th part of the
+conjugate partition $\mu'$).
+
+Because Schur modules are built from $\wedge^{\mu'_1}(E) \otimes \cdots \otimes
+\wedge^{\mu'_k}(E)$, the column-wise storage makes each column directly
+correspond to one wedge-power tensor factor.  This is the dual convention to
+*note WeylFilling: WeylFilling,, which stores rows.
+
++----------------------------------------+
+|i1 : T = new Filling from {{0,1}, {1,2}}|
+|                                        |
+|     +-+-+                              |
+|o1 = |0|1|                              |
+|     |1|2|                              |
+|     +-+-+                              |
+|                                        |
+|o1 : Filling                            |
++----------------------------------------+
+|i2 : toList T                           |
+|                                        |
+|o2 = {{0, 1}, {1, 2}}                   |
+|                                        |
+|o2 : List                               |
++----------------------------------------+
+|i3 : T#0                                |
+|                                        |
+|o3 = {0, 1}                             |
+|                                        |
+|o3 : List                               |
++----------------------------------------+
+|i4 : #T                                 |
+|                                        |
+|o4 = 2                                  |
++----------------------------------------+
+
+The tableau pretty-prints via its net method:
+
++------------+
+|i5 : T      |
+|            |
+|     +-+-+  |
+|o5 = |0|1|  |
+|     |1|2|  |
+|     +-+-+  |
+|            |
+|o5 : Filling|
++------------+
+
+Conjugation of a Filling produces the tableau of conjugate (transposed) shape:
+
++-----------------------+
+|i6 : conjugate T       |
+|                       |
+|     +-+-+             |
+|o6 = |0|1|             |
+|     |1|2|             |
+|     +-+-+             |
+|                       |
+|o6 : Filling           |
++-----------------------+
+|i7 : toList conjugate T|
+|                       |
+|o7 = {{0, 1}, {1, 2}}  |
+|                       |
+|o7 : List              |
++-----------------------+
+
+A filling is standard (in this package; equivalently, semistandard in the
+standard combinatorial sense) if its entries strictly increase down each column
+and weakly increase along each row.  Over $\mathbb{Z}$ the standard fillings of
+shape $\mu$ with entries in $\{0,\ldots,d-1\}$ index a free basis of
+$S_\mu(R^d)$.
+
++----------------------------------------+
+|i8 : S = standardTableaux(3, {2,1});    |
++----------------------------------------+
+|i9 : #S == rank schurModule({2,1}, QQ^3)|
+|                                        |
+|o9 = true                               |
++----------------------------------------+
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note isStandard: isStandard, -- test whether a Filling is semistandard
+  * *note standardTableaux: standardTableaux, -- all semistandard Young
+    tableaux of a given shape
+  * *note normalize: normalize, -- sort each column of a Filling, with Koszul
+    sign
+  * *note augmentFilling: augmentFilling, -- append an entry to a column of a
+    Filling
+  * *note conjugate(Filling): conjugate_lpFilling_rp, -- transpose of a Young
+    tableau
+  * *note schurModule: schurModule, -- Schur module of a partition applied to a
+    free module
+  * *note straighten: straighten, -- straighten a filling into a linear
+    combination of semistandard tableaux
+
+Methods that use an object of class Filling:
+============================================
+
+  * "augmentFilling(Filling,ZZ,ZZ)" -- see *note augmentFilling:
+    augmentFilling, -- append an entry to a column of a Filling
+  * *note conjugate(Filling): conjugate_lpFilling_rp, -- transpose of a Young
+    tableau
+  * "Filling ? Filling"
+  * "Filling _ List"
+  * "net(Filling)"
+  * "isStandard(Filling)" -- see *note isStandard: isStandard, -- test whether
+    a Filling is semistandard
+  * "normalize(Filling)" -- see *note normalize: normalize, -- sort each column
+    of a Filling, with Koszul sign
+  * "straighten(Filling)" -- see *note straighten: straighten, -- straighten a
+    filling into a linear combination of semistandard tableaux
+  * "straighten(Filling,Module)" -- see *note straighten: straighten, --
+    straighten a filling into a linear combination of semistandard tableaux
+
+For the programmer
+==================
+
+The object *note Filling: Filling, is a *note type: (Macaulay2Doc)Type,, with
+ancestor classes *note BasicList: (Macaulay2Doc)BasicList, < *note Thing:
+(Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1325:0.
+
+File: SchurFunctors.info, Node: isStandard, Next: isWeylStandard, Prev: Filling, Up: Top
+
+isStandard -- test whether a Filling is semistandard
+****************************************************
+
+  * Usage: 
+        isStandard T
+  * Inputs:
+      * T, an instance of the type *note Filling: Filling,, assumed to have
+        strictly increasing columns (for example, the output of *note
+        normalize: normalize,); the routine scans adjacent columns right to
+        left for the first row-ascent violation
+  * Outputs:
+      * null if T is semistandard (entries weakly increase along every row),
+        otherwise a pair (i, j) such that T#i#j > T#(i+1)#j
+
+Description
+===========
+
+In the combinatorial literature a semistandard Young tableau is a filling with
+entries strictly increasing down columns and weakly increasing along rows.
+This package calls such a filling standard; isStandard is its predicate.
+
+The return value on failure is the Garnir-violation location used by the
+straightening algorithm *note straighten: straighten, and by the main
+Schur-module construction *note schurModule: schurModule,.
+
++-----------------------------------------------+
+|i1 : isStandard new Filling from {{0,1}, {1,2}}|
++-----------------------------------------------+
+|i2 : isStandard new Filling from {{1,2}, {0,1}}|
+|                                               |
+|o2 = (0, 0)                                    |
+|                                               |
+|o2 : Sequence                                  |
++-----------------------------------------------+
+
+To enumerate all semistandard fillings of a given shape with entries in
+$\{0,\ldots,d-1\}$, use *note standardTableaux: standardTableaux,.
+
+See also
+========
+
+  * *note Filling: Filling, -- a Young tableau stored column-wise
+  * *note normalize: normalize, -- sort each column of a Filling, with Koszul
+    sign
+  * *note standardTableaux: standardTableaux, -- all semistandard Young
+    tableaux of a given shape
+  * *note straighten: straighten, -- straighten a filling into a linear
+    combination of semistandard tableaux
+  * *note schurModule: schurModule, -- Schur module of a partition applied to a
+    free module
+
+Ways to use isStandard:
+=======================
+
+  * "isStandard(Filling)"
+
+For the programmer
+==================
+
+The object *note isStandard: isStandard, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1445:0.
+
+File: SchurFunctors.info, Node: isWeylStandard, Next: maxWeylFilling, Prev: isStandard, Up: Top
+
+isWeylStandard -- test whether a WeylFilling is Weyl-semistandard
+*****************************************************************
+
+  * Usage: 
+        isWeylStandard T
+  * Inputs:
+      * T, an instance of the type *note WeylFilling: WeylFilling,, assumed to
+        have rows in sorted (weakly-increasing) order, for example the output
+        of *note weylNormalize: weylNormalize,
+  * Outputs:
+      * null if T is Weyl-standard (columns strictly increasing top-to-bottom),
+        otherwise a pair (i, j) giving the first column violation: T#i#j >=
+        T#(i+1)#j, scanning rows from bottom to top
+
+Description
+===========
+
+A WeylFilling is Weyl-standard when, in addition to having sorted rows, every
+column is strictly increasing top-to-bottom.  This is exactly the semistandard
+condition, phrased for row-wise storage.
+
++----------------------------------------------------------------------+
+|i1 : isWeylStandard weyl {{0,1}, {1,2}}                               |
++----------------------------------------------------------------------+
+|i2 : isWeylStandard weyl {{1,2}, {1,3}}   -- column 0: 1 >= 1 violates|
+|                                                                      |
+|o2 = (0, 0)                                                           |
+|                                                                      |
+|o2 : Sequence                                                         |
++----------------------------------------------------------------------+
+
+To straighten a non-standard WeylFilling into a linear combination of standard
+ones, use *note towardWeylStandard: towardWeylStandard, (single step) or *note
+weylStraighten: weylStraighten, (full reduction).
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note weylNormalize: weylNormalize, -- sort each row of a WeylFilling into
+    weakly-increasing order
+  * *note towardWeylStandard: towardWeylStandard, -- a single Garnir-style
+    straightening step for Weyl fillings
+  * *note weylStraighten: weylStraighten, -- straighten a Weyl filling into a
+    linear combination of Weyl-semistandard tableaux
+  * *note standardWeylTableaux: standardWeylTableaux, -- all Weyl-semistandard
+    tableaux of a given shape
+
+Ways to use isWeylStandard:
+===========================
+
+  * "isWeylStandard(WeylFilling)"
+
+For the programmer
+==================
+
+The object *note isWeylStandard: isWeylStandard, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1703:0.
+
+File: SchurFunctors.info, Node: maxWeylFilling, Next: normalize, Prev: isWeylStandard, Up: Top
+
+maxWeylFilling -- the lex-largest Weyl-standard tableau of given shape
+**********************************************************************
+
+  * Usage: 
+        maxWeylFilling(p, d)
+  * Inputs:
+      * p, a *note list: (Macaulay2Doc)List,, a partition
+      * d, an *note integer: (Macaulay2Doc)ZZ,, the rank of the underlying
+        module
+  * Outputs:
+      * an instance of the type *note WeylFilling: WeylFilling,, the
+        Weyl-standard filling of shape $p$ with entries in $\{0,\ldots,d-1\}$
+        which is lex-largest in the row-reversed order used to sort the ambient
+        basis in *note weylModule: weylModule,
+
+Description
+===========
+
+With $p' = (p'_1, \ldots, p'_{p_1})$ the conjugate of $p$, the cell $(i, j)$
+(0-indexed) is filled with $d - p'_j + i$.  This coincides numerically with the
+formula for the lex-largest semistandard tableau on the Schur side (the
+internal helper maxFilling), but stored row-wise.
+
++------------------------------+
+|i1 : maxWeylFilling({3, 2}, 4)|
+|                              |
+|     +-+-+-+                  |
+|o1 = |2|2|3|                  |
+|     |3|3| |                  |
+|     +-+-+-+                  |
+|                              |
+|o1 : WeylFilling              |
++------------------------------+
+|i2 : isWeylStandard oo        |
++------------------------------+
+
+Useful as a starting point for constructing extreme elements of highest-weight
+subrepresentations; see *note characterRep: characterRep, and *note
+decomposeRep: decomposeRep,.
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note isWeylStandard: isWeylStandard, -- test whether a WeylFilling is
+    Weyl-semistandard
+  * *note standardWeylTableaux: standardWeylTableaux, -- all Weyl-semistandard
+    tableaux of a given shape
+
+Ways to use maxWeylFilling:
+===========================
+
+  * "maxWeylFilling(List,ZZ)"
+
+For the programmer
+==================
+
+The object *note maxWeylFilling: maxWeylFilling, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1859:0.
+
+File: SchurFunctors.info, Node: normalize, Next: printSchurModuleElement, Prev: maxWeylFilling, Up: Top
+
+normalize -- sort each column of a Filling, with Koszul sign
+************************************************************
+
+  * Usage: 
+        (c, T') = normalize T
+  * Inputs:
+      * T, an instance of the type *note Filling: Filling,, 
+  * Outputs:
+      * a *note sequence: (Macaulay2Doc)Sequence,, a pair $(c, T')$ with $c \in
+        \{-1, 0, 1\}$ and $T'$ either a Filling or null
+
+Description
+===========
+
+Each column of a Filling represents an element of an exterior power, so
+repeated entries in a column collapse the corresponding wedge to zero, and
+reordering a column changes the sign by the parity of the permutation.
+normalize T returns
+
+  * $(0, \texttt{null})$ if any column has a repeated entry;
+  * $(1, T')$ if every column sorts into strictly increasing order under an
+    even permutation;
+  * $(-1, T')$ if the total permutation is odd.
+
+This is the first step of the straightening algorithm; after it, $T'$ lives in
+the standard ambient $\wedge^{\mu'_1}(E) \otimes \cdots \otimes
+\wedge^{\mu'_k}(E)$ with a known sign.
+
++------------------------------------------------+
+|i1 : normalize new Filling from {{1,0}, {2,1}}  |
+|                                                |
+|         +-+-+                                  |
+|o1 = (1, |0|1|)                                 |
+|         |1|2|                                  |
+|         +-+-+                                  |
+|                                                |
+|o1 : Sequence                                   |
++------------------------------------------------+
+|i2 : normalize new Filling from {{0,0}, {1,2}}  |
+|                                                |
+|o2 = (0, )                                      |
+|                                                |
+|o2 : Sequence                                   |
++------------------------------------------------+
+|i3 : normalize new Filling from {{2,1,0}, {1,0}}|
+|                                                |
+|         +-+-+                                  |
+|o3 = (1, |0|0|)                                 |
+|         |1|1|                                  |
+|         |2| |                                  |
+|         +-+-+                                  |
+|                                                |
+|o3 : Sequence                                   |
++------------------------------------------------+
+
+See also
+========
+
+  * *note Filling: Filling, -- a Young tableau stored column-wise
+  * *note isStandard: isStandard, -- test whether a Filling is semistandard
+  * *note straighten: straighten, -- straighten a filling into a linear
+    combination of semistandard tableaux
+
+Ways to use normalize:
+======================
+
+  * "normalize(Filling)"
+
+For the programmer
+==================
+
+The object *note normalize: normalize, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1403:0.
+
+File: SchurFunctors.info, Node: printSchurModuleElement, Next: printWeylModuleElement, Prev: normalize, Up: Top
+
+printSchurModuleElement -- display a Schur-module element as a linear combination of tableaux
+*********************************************************************************************
+
+  * Usage: 
+        printSchurModuleElement(v, M)
+  * Inputs:
+      * v, a *note vector: (Macaulay2Doc)Vector,, a vector in a Schur module M
+      * M, a *note module: (Macaulay2Doc)Module,, a Schur module returned by
+        *note schurModule: schurModule,
+
+Description
+===========
+
+Interprets v as an element of M and prints it as a sum $\sum_T c_T \cdot T$
+over semistandard fillings $T$ in the cached basis of M, with each T drawn via
+its net method.
+
++----------------------------------------------------------------+
+|i1 : M = schurModule({2,1}, QQ^3);                              |
++----------------------------------------------------------------+
+|i2 : v = sum(numgens M, i -> (i+1) * M_i);                      |
+|                                                                |
+|       8                                                        |
+|o2 : QQ                                                         |
++----------------------------------------------------------------+
+|i3 : printSchurModuleElement(v, M)                              |
+|  +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+ |
+|1*|0|0| 2*|0|1| 3*|0|2| 4*|0|0| 5*|0|1| 6*|0|2| 7*|1|1| 8*|1|2| |
+|  |1| |   |1| |   |1| |   |2| |   |2| |   |2| |   |2| |   |2| | |
+|  +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+ |
+|                                                                |
+|o3 = stdio                                                      |
+|                                                                |
+|o3 : File                                                       |
++----------------------------------------------------------------+
+
+See also
+========
+
+  * *note schurModule: schurModule, -- Schur module of a partition applied to a
+    free module
+  * *note printWeylModuleElement: printWeylModuleElement, -- display a
+    Weyl-module element as a linear combination of tableaux
+
+Ways to use printSchurModuleElement:
+====================================
+
+  * "printSchurModuleElement(Vector,Module)"
+
+For the programmer
+==================
+
+The object *note printSchurModuleElement: printSchurModuleElement, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2541:0.
+
+File: SchurFunctors.info, Node: printWeylModuleElement, Next: schur, Prev: printSchurModuleElement, Up: Top
+
+printWeylModuleElement -- display a Weyl-module element as a linear combination of tableaux
+*******************************************************************************************
+
+  * Usage: 
+        printWeylModuleElement(v, W)
+  * Inputs:
+      * v, a *note vector: (Macaulay2Doc)Vector,, a vector in a Weyl module W
+      * W, a *note module: (Macaulay2Doc)Module,, a Weyl module returned by
+        *note weylModule: weylModule,
+
+Description
+===========
+
+The Weyl analogue of *note printSchurModuleElement: printSchurModuleElement,:
+prints v as $\sum_T c_T \cdot T$ over Weyl-semistandard WeylFillings $T$ in the
+cached basis of W.
+
++----------------------------------------------------------------+
+|i1 : W = weylModule({2,1}, QQ^3);                               |
++----------------------------------------------------------------+
+|i2 : v = sum(numgens W, i -> (i+1) * W_i);                      |
+|                                                                |
+|       8                                                        |
+|o2 : QQ                                                         |
++----------------------------------------------------------------+
+|i3 : printWeylModuleElement(v, W)                               |
+|  +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+ |
+|1*|0|0| 2*|0|0| 3*|0|1| 4*|0|1| 5*|1|1| 6*|0|2| 7*|0|2| 8*|1|2| |
+|  |1| |   |2| |   |1| |   |2| |   |2| |   |1| |   |2| |   |2| | |
+|  +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+   +-+-+ |
++----------------------------------------------------------------+
+
+See also
+========
+
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+  * *note printSchurModuleElement: printSchurModuleElement, -- display a
+    Schur-module element as a linear combination of tableaux
+
+Ways to use printWeylModuleElement:
+===================================
+
+  * "printWeylModuleElement(Vector,Module)"
+
+For the programmer
+==================
+
+The object *note printWeylModuleElement: printWeylModuleElement, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2568:0.
+
+File: SchurFunctors.info, Node: schur, Next: schurModule, Prev: printWeylModuleElement, Up: Top
+
+schur -- the Schur functor applied to a matrix
+**********************************************
+
+  * Usage: 
+        schur(lambda, f)
+  * Inputs:
+      * lambda, a *note list: (Macaulay2Doc)List,, a partition
+      * f, a *note matrix: (Macaulay2Doc)Matrix,, a map $f : E \to F$ between
+        free modules over a ring $R$
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, the induced map $S_\lambda(f) :
+        S_\lambda(E) \to S_\lambda(F)$
+
+Description
+===========
+
+For each partition $\lambda$, $S_\lambda$ is a polynomial functor. Applied to a
+morphism $f : E \to F$ of free modules it yields a morphism $S_\lambda(f) :
+S_\lambda(E) \to S_\lambda(F)$, and the construction is functorial:
+$S_\lambda(f \circ g) = S_\lambda(f) \circ S_\lambda(g)$ and
+$S_\lambda(\mathrm{id}_E) = \mathrm{id}_{S_\lambda(E)}$.
+
+The source and target matrices have modules that carry the same cached data as
+returned by *note schurModule: schurModule,.
+
++---------------------------------------------------------------------+
+|i1 : R = QQ[x_1,x_2,x_3];                                            |
++---------------------------------------------------------------------+
+|i2 : F = map(R^1, R^3, vars R);                                      |
+|                                                                     |
+|             1      3                                                |
+|o2 : Matrix R  <-- R                                                 |
++---------------------------------------------------------------------+
+|i3 : schur({2}, F)                          -- 2nd Veronese embedding|
+|                                                                     |
+|o3 = | x_1^2 x_1x_2 x_1x_3 x_2^2 x_2x_3 x_3^2 |                      |
+|                                                                     |
+|             1      6                                                |
+|o3 : Matrix R  <-- R                                                 |
++---------------------------------------------------------------------+
+
+Classical specializations.  Top exterior power = determinant:
+
++-----------------------------------------------+
+|i4 : F = matrix{{1_QQ,2,4},{3,9,27},{4,16,64}};|
+|                                               |
+|              3       3                        |
+|o4 : Matrix QQ  <-- QQ                         |
++-----------------------------------------------+
+|i5 : det F                                     |
+|                                               |
+|o5 = 24                                        |
+|                                               |
+|o5 : QQ                                        |
++-----------------------------------------------+
+|i6 : schur({1,1,1}, F)                         |
+|                                               |
+|o6 = | 24 |                                    |
+|                                               |
+|              1       1                        |
+|o6 : Matrix QQ  <-- QQ                         |
++-----------------------------------------------+
+
+Second exterior power = matrix of $2\times2$ minors:
+
++----------------------------------------------+
+|i7 : entries schur({1,1}, F)                  |
+|                                              |
+|o7 = {{3, 15, 18}, {8, 48, 64}, {12, 84, 144}}|
+|                                              |
+|o7 : List                                     |
++----------------------------------------------+
+|i8 : entries gens minors(2, F)                |
+|                                              |
+|o8 = {{3, 8, 12, 15, 48, 84, 18, 64, 144}}    |
+|                                              |
+|o8 : List                                     |
++----------------------------------------------+
++-----------------------------------------------------------------------------+
+|i9 : S = schur({3,1}, id_(QQ^3));               -- identity maps to the      |
+|                                                                             |
+|              15       15                                                    |
+|o9 : Matrix QQ   <-- QQ                                                      |
+|-----------------------------------------------------------------------------|
+|identity                                                                     |
++-----------------------------------------------------------------------------+
+|i10 : S == id_(source S)                                                     |
+|                                                                             |
+|o10 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+Composition is compatible with matrix composition:
+
++--------------------------------------------------------------+
+|i11 : A = random(QQ^3, QQ^3);                                 |
+|                                                              |
+|               3       3                                      |
+|o11 : Matrix QQ  <-- QQ                                       |
++--------------------------------------------------------------+
+|i12 : B = random(QQ^3, QQ^3);                                 |
+|                                                              |
+|               3       3                                      |
+|o12 : Matrix QQ  <-- QQ                                       |
++--------------------------------------------------------------+
+|i13 : schur({2,1}, A * B) == schur({2,1}, A) * schur({2,1}, B)|
+|                                                              |
+|o13 = true                                                    |
++--------------------------------------------------------------+
+
+Caveat
+======
+
+The partition lambda should be nonempty and weakly decreasing.
+
+See also
+========
+
+  * *note schurModule: schurModule, -- Schur module of a partition applied to a
+    free module
+  * *note weyl: weyl, -- construct a WeylFilling or apply the Weyl functor to a
+    map
+
+Ways to use schur:
+==================
+
+  * "schur(List,Matrix)"
+
+For the programmer
+==================
+
+The object *note schur: schur, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2008:0.
+
+File: SchurFunctors.info, Node: schurModule, Next: schurModulesMap, Prev: schur, Up: Top
+
+schurModule -- Schur module of a partition applied to a free module
+*******************************************************************
+
+  * Usage: 
+        schurModule(lambda, E)
+  * Inputs:
+      * lambda, a *note list: (Macaulay2Doc)List,, a partition $\lambda =
+        (\lambda_1 \ge \cdots \ge \lambda_r)$
+      * E, a *note module: (Macaulay2Doc)Module,, a free module over some ring
+        $R$
+  * Outputs:
+      * a *note module: (Macaulay2Doc)Module,, the Schur module $S_\lambda(E)$,
+        a free $R$-module whose rank equals the number of semistandard Young
+        tableaux of shape $\lambda$ with entries in
+        $\{0,\ldots,\mathrm{rank}(E) - 1\}$
+
+Description
+===========
+
+The Schur functor $S_\lambda$ is a polynomial functor on free modules, realized
+here as the quotient of $\wedge^{\lambda'_1}(E) \otimes \cdots \otimes
+\wedge^{\lambda'_k}(E)$ by the Garnir relations across adjacent columns of the
+Young diagram.  See Fulton, Young Tableaux, Chapter 8.
+
+The partition $\lambda$ is specified as a (non-strictly) decreasing list of
+positive integers.  The rank of the output module matches the Weyl dimension
+formula $$\dim S_\lambda(R^d) = \#\{\text{SSYT of shape } \lambda \text{ with
+entries in } 1,\ldots,d\}.$$
+
+Cached data.  The returned module M stores in M.cache#"Schur" the 4-tuple (f,
+finv, AT, ST):
+
+  * f : the quotient projection $\wedge^{\lambda'_1}(E) \otimes \cdots \otimes
+    \wedge^{\lambda'_k}(E) \twoheadrightarrow M$ (the straightening map,
+    realized in the SSYT basis of M);
+  * finv : a splitting M $\to \wedge^{\lambda'_1}(E) \otimes \cdots$ sending
+    each standard-basis vector to its canonical lift in the ambient tensor
+    product (so f*finv == id_M);
+  * AT : a HashTable keyed by all column-standard Fillings of shape $\lambda$
+    with values their positions in the ambient tensor product;
+  * ST : the sub-HashTable keyed only by the SSYT (the standard basis of M).
+
+These are consumed by *note straighten: straighten, (for a fast-path module
+evaluation) and by *note schurModulesMap: schurModulesMap, (for building
+homomorphisms).
+
+Examples.  Symmetric and exterior powers recover the familiar functors; with a
+partition of shape $(k)$ we get $\mathrm{Sym}^k(E)$ and with shape $(1^k)$ we
+get $\wedge^k(E)$:
+
++------------------------------------------------------------+
+|i1 : E = QQ^3;                                              |
++------------------------------------------------------------+
+|i2 : schurModule({3}, E)                                    |
+|                                                            |
+|       10                                                   |
+|o2 = QQ                                                     |
+|                                                            |
+|o2 : QQ-module, free                                        |
++------------------------------------------------------------+
+|i3 : schurModule({1,1,1}, E)   -- top exterior power: rank 1|
+|                                                            |
+|       1                                                    |
+|o3 = QQ                                                     |
+|                                                            |
+|o3 : QQ-module, free                                        |
++------------------------------------------------------------+
+
+The first genuinely mixed shape:
+
++-----------------------------------------------------------------------------+
+|i4 : M = schurModule({2,1}, E);                                              |
++-----------------------------------------------------------------------------+
+|i5 : rank M                                                                  |
+|                                                                             |
+|o5 = 8                                                                       |
++-----------------------------------------------------------------------------+
+|i6 : standardTableaux(3, {2,1})                                              |
+|                                                                             |
+|      +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+                 |
+|o6 = {|0|0|, |0|1|, |0|2|, |0|0|, |0|1|, |0|2|, |1|1|, |1|2|}                |
+|      |1| |  |1| |  |1| |  |2| |  |2| |  |2| |  |2| |  |2| |                 |
+|      +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+                 |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : M.cache#"Schur"                                                         |
+|                                                                             |
+|                                                             +-+-+           |
+|o7 = {| 1 0 0 0 0 0 0  0 0 |, | 1 0 0 0 0 0 0 0 |, HashTable{|0|0| => 0},    |
+|      | 0 1 0 0 0 0 0  0 0 |  | 0 1 0 0 0 0 0 0 |            |1| |           |
+|      | 0 0 1 0 0 0 -1 0 0 |  | 0 0 1 0 0 0 0 0 |            +-+-+           |
+|      | 0 0 0 1 0 0 0  0 0 |  | 0 0 0 1 0 0 0 0 |            +-+-+           |
+|      | 0 0 0 0 1 0 1  0 0 |  | 0 0 0 0 1 0 0 0 |            |0|1| => 1      |
+|      | 0 0 0 0 0 1 0  0 0 |  | 0 0 0 0 0 1 0 0 |            |1| |           |
+|      | 0 0 0 0 0 0 0  1 0 |  | 0 0 0 0 0 0 0 0 |            +-+-+           |
+|      | 0 0 0 0 0 0 0  0 1 |  | 0 0 0 0 0 0 1 0 |            +-+-+           |
+|                              | 0 0 0 0 0 0 0 1 |            |0|2| => 2      |
+|                                                             |1| |           |
+|                                                             +-+-+           |
+|                                                             +-+-+           |
+|                                                             |0|0| => 3      |
+|                                                             |2| |           |
+|                                                             +-+-+           |
+|                                                             +-+-+           |
+|                                                             |0|1| => 4      |
+|                                                             |2| |           |
+|                                                             +-+-+           |
+|                                                             +-+-+           |
+|                                                             |0|2| => 5      |
+|                                                             |2| |           |
+|                                                             +-+-+           |
+|                                                             +-+-+           |
+|                                                             |1|0| => 6      |
+|                                                             |2| |           |
+|                                                             +-+-+           |
+|                                                             +-+-+           |
+|                                                             |1|1| => 7      |
+|                                                             |2| |           |
+|                                                             +-+-+           |
+|                                                             +-+-+           |
+|                                                             |1|2| => 8      |
+|                                                             |2| |           |
+|                                                             +-+-+           |
+|     ------------------------------------------------------------------------|
+|               +-+-+                                                         |
+|     HashTable{|0|0| => 0}}                                                  |
+|               |1| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |0|1| => 1                                                    |
+|               |1| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |0|2| => 2                                                    |
+|               |1| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |0|0| => 3                                                    |
+|               |2| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |0|1| => 4                                                    |
+|               |2| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |0|2| => 5                                                    |
+|               |2| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |1|1| => 6                                                    |
+|               |2| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |1|2| => 7                                                    |
+|               |2| |                                                         |
+|               +-+-+                                                         |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+The cached quotient projection / splitting satisfy f * finv == id_M by
+construction:
+
++----------------------------------------------------+
+|i8 : (f, finv, AT, ST) = toSequence M.cache#"Schur";|
++----------------------------------------------------+
+|i9 : f * finv == id_M                               |
+|                                                    |
+|o9 = true                                           |
++----------------------------------------------------+
+
+Caveat
+======
+
+The partition lambda should be nonempty and weakly decreasing.  Entries of
+lambda should not exceed rank E, or else the output module has rank 0.
+
+See also
+========
+
+  * *note schur: schur, -- the Schur functor applied to a matrix
+  * *note straighten: straighten, -- straighten a filling into a linear
+    combination of semistandard tableaux
+  * *note schurModulesMap: schurModulesMap, -- build a map between Schur
+    modules from its action on tableaux
+  * *note standardTableaux: standardTableaux, -- all semistandard Young
+    tableaux of a given shape
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+
+Ways to use schurModule:
+========================
+
+  * "schurModule(List,Module)"
+
+For the programmer
+==================
+
+The object *note schurModule: schurModule, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1949:0.
+
+File: SchurFunctors.info, Node: schurModulesMap, Next: splitCharacter, Prev: schurModule, Up: Top
+
+schurModulesMap -- build a map between Schur modules from its action on tableaux
+********************************************************************************
+
+  * Usage: 
+        schurModulesMap(N, M, F)
+  * Inputs:
+      * N, a *note module: (Macaulay2Doc)Module,, a Schur module from *note
+        schurModule: schurModule,
+      * M, a *note module: (Macaulay2Doc)Module,, a Schur module from *note
+        schurModule: schurModule,
+      * F, a *note function: (Macaulay2Doc)Function,, a function describing the
+        map on tableaux: for every SSYT T in the basis of M, F(T) should
+        produce a list of pairs (c, T') where c is a coefficient in ring N and
+        T' is a (not-necessarily-semistandard) filling of the shape of N
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, the $R$-linear map M -> N given,
+        on each basis tableau T of M, by the $R$-linear combination $\sum (c,
+        T') \in F(T)$, implicitly straightened into $N$
+
+Description
+===========
+
+This constructor is the main tool for producing Schur-module homomorphisms from
+combinatorial data.  It amounts to specifying where each tableau in a basis of
+the source goes, in a possibly-non-standard form; the straightening algorithm
+is invoked internally on each output to assemble the resulting vector in N.
+
+Example: a piece of a Koszul-type differential.  For $\lambda = (1^j)$ and
+$\lambda' = (1^{j+1})$ the natural map $\wedge^j(E) \to \wedge^{j+1}(E) \otimes
+E^*$ sends a basis tableau to $\sum_k x_k \otimes (T \cup \{k\})$.  Lifting
+this via schurModulesMap gives (a piece of) the Koszul differential:
+
++--------------------------------------------------------------------+
+|i1 : n = 4;                                                         |
++--------------------------------------------------------------------+
+|i2 : j = 2;                                                         |
++--------------------------------------------------------------------+
+|i3 : R = QQ[x_1..x_n];                                              |
++--------------------------------------------------------------------+
+|i4 : M = schurModule(toList(j : 1), R^n);                           |
++--------------------------------------------------------------------+
+|i5 : N = schurModule(toList(j+1 : 1), R^n);                         |
++--------------------------------------------------------------------+
+|i6 : F = T -> apply(numgens R, k -> (R_k, augmentFilling(T, 0, k)));|
++--------------------------------------------------------------------+
+|i7 : schurModulesMap(N, M, F)                                       |
+|                                                                    |
+|o7 = | x_3 -x_2 x_1 0    0    0   |                                 |
+|     | x_4 0    0   -x_2 x_1  0   |                                 |
+|     | 0   x_4  0   -x_3 0    x_1 |                                 |
+|     | 0   0    x_4 0    -x_3 x_2 |                                 |
+|                                                                    |
+|             4      6                                               |
+|o7 : Matrix R  <-- R                                                |
++--------------------------------------------------------------------+
+
+See also
+========
+
+  * *note schurModule: schurModule, -- Schur module of a partition applied to a
+    free module
+  * *note augmentFilling: augmentFilling, -- append an entry to a column of a
+    Filling
+  * *note straighten: straighten, -- straighten a filling into a linear
+    combination of semistandard tableaux
+  * *note weylModulesMap: weylModulesMap, -- build a map between Weyl modules
+    from its action on tableaux
+
+Ways to use schurModulesMap:
+============================
+
+  * "schurModulesMap(Module,Module,Function)"
+
+For the programmer
+==================
+
+The object *note schurModulesMap: schurModulesMap, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2142:0.
+
+File: SchurFunctors.info, Node: splitCharacter, Next: standardTableaux, Prev: schurModulesMap, Up: Top
+
+splitCharacter -- decompose a symmetric polynomial into Schur functions
+***********************************************************************
+
+  * Usage: 
+        splitCharacter(p)
+  * Inputs:
+      * p, a *note ring element: (Macaulay2Doc)RingElement,, a symmetric
+        polynomial in the eigenvalues of the diagonal torus
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the expansion of p as
+        a $\mathbb{Z}_{\ge 0}$-linear combination of Schur functions
+        $s_\lambda$
+
+Description
+===========
+
+Together with *note character: character, this gives the isotypic decomposition
+of a polynomial $GL_d$-representation $W$ whose character is p: $$\chi_W =
+\sum_\lambda m_\lambda \cdot s_\lambda \;\Longleftrightarrow\; W \cong
+\bigoplus_\lambda S_\lambda(V)^{\oplus m_\lambda}.$$ The coefficients
+$m_\lambda$ are the multiplicities of the irreducible polynomial
+$GL_d$-representations in $W$.
+
++--------------------------------------+
+|i1 : c = character({{1,1,1}, {2}}, 4);|
++--------------------------------------+
+|i2 : splitCharacter c                 |
+|                                      |
+|o2 = s      + s                       |
+|      4,1,1    3,3                    |
+|                                      |
+|o2 : schurRing (QQ, s, 4)             |
++--------------------------------------+
+
+Verifies the Hermite-reciprocity / plethysm identity $\wedge^3(S^2 V_4) =
+S_{(4,1,1)}(V_4) \oplus S_{(3,3)}(V_4)$.
+
+See also
+========
+
+  * *note character: character, -- the character of a composition of Schur
+    functors on GL(V)
+  * *note weylCharacter: weylCharacter, -- the character of a composition of
+    Weyl functors on GL(V)
+  * *note decomposeRep: decomposeRep, -- decompose a polynomial
+    GL-representation into irreducible subspaces
+
+Ways to use splitCharacter:
+===========================
+
+  * "splitCharacter(RingElement)"
+
+For the programmer
+==================
+
+The object *note splitCharacter: splitCharacter, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2690:0.
+
+File: SchurFunctors.info, Node: standardTableaux, Next: standardWeylTableaux, Prev: splitCharacter, Up: Top
+
+standardTableaux -- all semistandard Young tableaux of a given shape
+********************************************************************
+
+  * Usage: 
+        standardTableaux(d, mu)
+  * Inputs:
+      * d, an *note integer: (Macaulay2Doc)ZZ,, the size of the alphabet
+        $\{0,\ldots,d-1\}$
+      * mu, a *note list: (Macaulay2Doc)List,, a partition giving the column
+        lengths of the *note Filling: Filling, (equivalently, the conjugate of
+        the row shape $\lambda$; see *note schurModule: schurModule,)
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, all semistandard *note Filling:
+        Filling,s with column lengths $\mu$ and entries in $\{0,\ldots,d-1\}$
+
+Description
+===========
+
+The output is a $\mathbb{Z}$-basis of *note schurModule: schurModule,(mu, R^d);
+its cardinality equals the Weyl dimension $\dim S_\mu(\mathbb{Q}^d)$, given by
+the hook-content formula $$\dim S_\mu(\mathbb{Q}^d) = \prod_{(i,j)\in\mu}
+\frac{d - i + j}{h(i,j)},$$ where $h(i,j)$ is the hook length at cell $(i,j)$.
+
++------------------------------------+
+|i1 : S = standardTableaux(3, {2,1});|
++------------------------------------+
+|i2 : #S                             |
+|                                    |
+|o2 = 8                              |
++------------------------------------+
+|i3 : rank schurModule({2,1}, QQ^3)  |
+|                                    |
+|o3 = 8                              |
++------------------------------------+
+
+For $\mu = (2,1)$ and $d = 3$ the hook-content formula gives $(3 \cdot 4 \cdot
+2)/(3 \cdot 1 \cdot 1) = 8$.
+
++-------------------------------+
+|i4 : standardTableaux(2, {1,1})|
+|                               |
+|      +-+-+  +-+-+  +-+-+      |
+|o4 = {|0|0|, |0|1|, |1|1|}     |
+|      +-+-+  +-+-+  +-+-+      |
+|                               |
+|o4 : List                      |
++-------------------------------+
+|i5 : standardTableaux(4, {3})  |
+|                               |
+|      +-+  +-+  +-+  +-+       |
+|o5 = {|0|, |0|, |0|, |1|}      |
+|      |1|  |1|  |2|  |2|       |
+|      |2|  |3|  |3|  |3|       |
+|      +-+  +-+  +-+  +-+       |
+|                               |
+|o5 : List                      |
++-------------------------------+
+
+See also
+========
+
+  * *note Filling: Filling, -- a Young tableau stored column-wise
+  * *note isStandard: isStandard, -- test whether a Filling is semistandard
+  * *note schurModule: schurModule, -- Schur module of a partition applied to a
+    free module
+  * *note standardWeylTableaux: standardWeylTableaux, -- all Weyl-semistandard
+    tableaux of a given shape
+
+Ways to use standardTableaux:
+=============================
+
+  * "standardTableaux(ZZ,List)"
+
+For the programmer
+==================
+
+The object *note standardTableaux: standardTableaux, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1488:0.
+
+File: SchurFunctors.info, Node: standardWeylTableaux, Next: straighten, Prev: standardTableaux, Up: Top
+
+standardWeylTableaux -- all Weyl-semistandard tableaux of a given shape
+***********************************************************************
+
+  * Usage: 
+        standardWeylTableaux(d, lambda)
+  * Inputs:
+      * d, an *note integer: (Macaulay2Doc)ZZ,, the size of the alphabet
+        $\{0,\ldots,d-1\}$
+      * lambda, a *note list: (Macaulay2Doc)List,, a partition (the shape of
+        the tableau)
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, all Weyl-semistandard *note
+        WeylFilling: WeylFilling,s of shape $\lambda$ with entries in
+        $\{0,\ldots,d-1\}$
+
+Description
+===========
+
+The output is a $\mathbb{Z}$-basis of *note weylModule: weylModule,(lambda,
+R^d).  Its cardinality equals $\dim S_\lambda(\mathbb{Q}^d)$, the same count
+given by *note standardTableaux: standardTableaux, for the conjugate shape:
+$S_\lambda$ and $W_\lambda$ have the same rank in every characteristic.
+
++-----------------------------------------+
+|i1 : SW = standardWeylTableaux(3, {2,1});|
++-----------------------------------------+
+|i2 : #SW                                 |
+|                                         |
+|o2 = 8                                   |
++-----------------------------------------+
+|i3 : rank weylModule({2,1}, QQ^3)        |
+|                                         |
+|o3 = 8                                   |
++-----------------------------------------+
++-------------------------------------+
+|i4 : standardWeylTableaux(2, {2})    |
+|                                     |
+|      +-+-+  +-+-+  +-+-+            |
+|o4 = {|0|0|, |0|1|, |1|1|}           |
+|      +-+-+  +-+-+  +-+-+            |
+|                                     |
+|o4 : List                            |
++-------------------------------------+
+|i5 : standardWeylTableaux(3, {1,1,1})|
+|                                     |
+|      +-+                            |
+|o5 = {|0|}                           |
+|      |1|                            |
+|      |2|                            |
+|      +-+                            |
+|                                     |
+|o5 : List                            |
++-------------------------------------+
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note isWeylStandard: isWeylStandard, -- test whether a WeylFilling is
+    Weyl-semistandard
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+  * *note standardTableaux: standardTableaux, -- all semistandard Young
+    tableaux of a given shape
+
+Ways to use standardWeylTableaux:
+=================================
+
+  * "standardWeylTableaux(ZZ,List)"
+
+For the programmer
+==================
+
+The object *note standardWeylTableaux: standardWeylTableaux, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1784:0.
+
+File: SchurFunctors.info, Node: straighten, Next: towardWeylStandard, Prev: standardWeylTableaux, Up: Top
+
+straighten -- straighten a filling into a linear combination of semistandard tableaux
+*************************************************************************************
+
+  * Usage: 
+        straighten T
+        straighten H
+        straighten(T, M)
+        straighten(H, M)
+  * Inputs:
+      * T, an instance of the type *note Filling: Filling,, a Young tableau of
+        shape $\mu$
+      * H, a *note hash table: (Macaulay2Doc)HashTable,, a formal
+        $\mathbb{Z}$-linear combination of Fillings (keys) with integer
+        coefficients (values); all keys must have the same shape
+      * M, a *note module: (Macaulay2Doc)Module,, (optional) a Schur module
+        $S_\mu(R^d)$ produced by *note schurModule: schurModule,; when
+        supplied, the output is assembled as a vector in M
+  * Outputs:
+      * either a HashTable keyed by semistandard fillings, with $\sum_{T'}
+        H(T')\,T' = T$ in $S_\mu$, or (when M is supplied) the corresponding
+        Vector in M
+
+Description
+===========
+
+The straightening algorithm writes an arbitrary tableau as a unique
+$\mathbb{Z}$-linear combination of semistandard tableaux of the same shape,
+modulo the Garnir relations.  This is the standard way to reduce to the SSYT
+basis of $S_\lambda(E)$; see Fulton, Young Tableaux, §8.1.
+
+The implementation repeatedly locates a violation with *note isStandard:
+isStandard, and resolves it by a Garnir-style column shuffle, keeping track of
+the intermediate tableaux that still need to be rewritten; the process
+terminates when every tableau is semistandard.  The final output does not
+depend on the order in which violations are chosen.
+
+Symbolic straightening.  Without a module argument the output is a HashTable of
+Filling keys and integer coefficients:
+
++-----------------------------------+
+|i1 : T = new Filling from {{2,1,0}}|
+|                                   |
+|     +-+                           |
+|o1 = |2|                           |
+|     |1|                           |
+|     |0|                           |
+|     +-+                           |
+|                                   |
+|o1 : Filling                       |
++-----------------------------------+
+|i2 : straighten T                  |
+|                                   |
+|               +-+                 |
+|o2 = HashTable{|0| => -1}          |
+|               |1|                 |
+|               |2|                 |
+|               +-+                 |
+|                                   |
+|o2 : HashTable                     |
++-----------------------------------+
++--------------------------------------+
+|i3 : T = new Filling from {{1,0}, {0}}|
+|                                      |
+|     +-+-+                            |
+|o3 = |1|0|                            |
+|     |0| |                            |
+|     +-+-+                            |
+|                                      |
+|o3 : Filling                          |
++--------------------------------------+
+|i4 : straighten T                     |
+|                                      |
+|               +-+-+                  |
+|o4 = HashTable{|0|0| => -1}           |
+|               |1| |                  |
+|               +-+-+                  |
+|                                      |
+|o4 : HashTable                        |
++--------------------------------------+
+
+Linearity.  straighten is $\mathbb{Z}$-linear in its input, so it extends to
+formal linear combinations presented as a HashTable of (Filling => ZZ) pairs:
+
++----------------------------------------------+
+|i5 : H = hashTable {                          |
+|          (new Filling from {{2,1}, {0}}, 1), |
+|          (new Filling from {{1,0}, {2}}, -1)}|
+|                                              |
+|               +-+-+                          |
+|o5 = HashTable{|1|2| => -1}                   |
+|               |0| |                          |
+|               +-+-+                          |
+|               +-+-+                          |
+|               |2|0| => 1                     |
+|               |1| |                          |
+|               +-+-+                          |
+|                                              |
+|o5 : HashTable                                |
++----------------------------------------------+
+|i6 : straighten H                             |
+|                                              |
+|               +-+-+                          |
+|o6 = HashTable{|0|2| => 1 }                   |
+|               |1| |                          |
+|               +-+-+                          |
+|               +-+-+                          |
+|               |0|1| => -1                    |
+|               |2| |                          |
+|               +-+-+                          |
+|               +-+-+                          |
+|               |1|2| => -1                    |
+|               |0| |                          |
+|               +-+-+                          |
+|                                              |
+|o6 : HashTable                                |
++----------------------------------------------+
+
+Module evaluation.  When a Schur module M is supplied, straighten returns the
+element of M corresponding to the straightened combination.  This is the usual
+way to lift a combinatorially-specified element to its actual vector
+representation:
+
++--------------------------------------------------+
+|i7 : M = schurModule({1,1,1}, QQ^4);              |
++--------------------------------------------------+
+|i8 : v = straighten(new Filling from {{3,2,1}}, M)|
+|                                                  |
+|o8 = |  0 |                                       |
+|     |  0 |                                       |
+|     |  0 |                                       |
+|     | -1 |                                       |
+|                                                  |
+|       4                                          |
+|o8 : QQ                                           |
++--------------------------------------------------+
+|i9 : printSchurModuleElement(v, M)                |
+|   +-+                                            |
+|-1*|1|                                            |
+|   |2|                                            |
+|   |3|                                            |
+|   +-+                                            |
+|                                                  |
+|o9 = stdio                                        |
+|                                                  |
+|o9 : File                                         |
++--------------------------------------------------+
+
+See also
+========
+
+  * *note Filling: Filling, -- a Young tableau stored column-wise
+  * *note isStandard: isStandard, -- test whether a Filling is semistandard
+  * *note normalize: normalize, -- sort each column of a Filling, with Koszul
+    sign
+  * *note schurModule: schurModule, -- Schur module of a partition applied to a
+    free module
+  * *note weylStraighten: weylStraighten, -- straighten a Weyl filling into a
+    linear combination of Weyl-semistandard tableaux
+
+Ways to use straighten:
+=======================
+
+  * "straighten(Filling)"
+  * "straighten(Filling,Module)"
+  * "straighten(HashTable)"
+  * "straighten(HashTable,Module)"
+
+For the programmer
+==================
+
+The object *note straighten: straighten, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2089:0.
+
+File: SchurFunctors.info, Node: towardWeylStandard, Next: weyl, Prev: straighten, Up: Top
+
+towardWeylStandard -- a single Garnir-style straightening step for Weyl fillings
+********************************************************************************
+
+  * Usage: 
+        towardWeylStandard T
+  * Inputs:
+      * T, an instance of the type *note WeylFilling: WeylFilling,, 
+  * Outputs:
+      * H, a *note hash table: (Macaulay2Doc)HashTable,, mapping WeylFillings
+        T' to integer coefficients, with $\sum_{T'} H(T') \cdot T' = T$ in the
+        Weyl module and every key T' strictly larger than T in the term order
+        used by *note weylStraighten: weylStraighten,
+
+Description
+===========
+
+If T is already Weyl-standard the output is the singleton {T => 1}.  Otherwise
+towardWeylStandard performs one divided-power Garnir shuffle across the first
+violation (located by *note isWeylStandard: isWeylStandard,) and returns the
+resulting linear combination.  Repeated application terminates at a
+$\mathbb{Z}$-linear combination of Weyl-standard fillings; this is exactly what
+*note weylStraighten: weylStraighten, computes.
+
+The replacements are generated by divided-power comultiplication (see *note
+divComult: divMult,) followed by divided-power multiplication (see *note
+divMult: divMult,); the coefficients are products of binomial coefficients, so
+in general towardWeylStandard produces many terms unlike the sign-flip shuffle
+on the Schur side.
+
++-----------------------------------------------------------------------+
+|i1 : T = weyl {{1,2},{0,0}}                                            |
+|                                                                       |
+|     +-+-+                                                             |
+|o1 = |1|2|                                                             |
+|     |0|0|                                                             |
+|     +-+-+                                                             |
+|                                                                       |
+|o1 : WeylFilling                                                       |
++-----------------------------------------------------------------------+
+|i2 : isWeylStandard T                                                  |
+|                                                                       |
+|o2 = (0, 0)                                                            |
+|                                                                       |
+|o2 : Sequence                                                          |
++-----------------------------------------------------------------------+
+|i3 : a = towardWeylStandard T                                          |
+|                                                                       |
+|               +-+-+                                                   |
+|o3 = HashTable{|0|0| => -1}                                            |
+|               |1|2|                                                   |
+|               +-+-+                                                   |
+|               +-+-+                                                   |
+|               |0|1| => -1                                             |
+|               |0|2|                                                   |
+|               +-+-+                                                   |
+|               +-+-+                                                   |
+|               |0|2| => -1                                             |
+|               |0|1|                                                   |
+|               +-+-+                                                   |
+|                                                                       |
+|o3 : HashTable                                                         |
++-----------------------------------------------------------------------+
+|i4 : scan(pairs a, (U, c) -> << "  " << c << " * " << toList U << endl)|
+|  -1 * {{0, 2}, {0, 1}}                                                |
+|  -1 * {{0, 1}, {0, 2}}                                                |
+|  -1 * {{0, 0}, {1, 2}}                                                |
++-----------------------------------------------------------------------+
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note isWeylStandard: isWeylStandard, -- test whether a WeylFilling is
+    Weyl-semistandard
+  * *note weylStraighten: weylStraighten, -- straighten a Weyl filling into a
+    linear combination of Weyl-semistandard tableaux
+  * *note divComult: divMult, -- multiplication and comultiplication of divided
+    powers
+  * *note divMult: divMult, -- multiplication and comultiplication of divided
+    powers
+
+For the programmer
+==================
+
+The object *note towardWeylStandard: towardWeylStandard, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1746:0.
+
+File: SchurFunctors.info, Node: weyl, Next: weylCharacter, Prev: towardWeylStandard, Up: Top
+
+weyl -- construct a WeylFilling or apply the Weyl functor to a map
+******************************************************************
+
+  * Usage: 
+        weyl L
+        weyl(lambda, f)
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, a list of rows, each row a list
+        of integers (weakly increasing); interpreted as the rows of a
+        WeylFilling
+      * lambda, a *note list: (Macaulay2Doc)List,, a partition
+      * f, a *note matrix: (Macaulay2Doc)Matrix,, a map $f : E \to F$ between
+        free modules
+  * Outputs:
+      * in the one-argument form, a WeylFilling; in the two-argument form, a
+        Matrix giving the induced map $W_\lambda(f) : W_\lambda(E) \to
+        W_\lambda(F)$
+
+Description
+===========
+
+The one-argument form is a constructor for *note WeylFilling: WeylFilling,:
+
++------------------------------+
+|i1 : T = weyl {{0,0,1}, {1,2}}|
+|                              |
+|     +-+-+-+                  |
+|o1 = |0|0|1|                  |
+|     |1|2| |                  |
+|     +-+-+-+                  |
+|                              |
+|o1 : WeylFilling              |
++------------------------------+
+|i2 : class T                  |
+|                              |
+|o2 = WeylFilling              |
+|                              |
+|o2 : Type                     |
++------------------------------+
+|i3 : isWeylStandard T         |
++------------------------------+
+
+The two-argument form is the Weyl functor applied to a morphism of free
+modules.  Functoriality: $W_\lambda(f \circ g) = W_\lambda(f) \circ
+W_\lambda(g)$ and $W_\lambda(\mathrm{id}) = \mathrm{id}$:
+
++--------------------------------+
+|i4 : F = matrix{{1_QQ,2},{3,4}};|
+|                                |
+|              2       2         |
+|o4 : Matrix QQ  <-- QQ          |
++--------------------------------+
+|i5 : weyl({2}, F)               |
+|                                |
+|o5 = | 1 4  4  |                |
+|     | 3 10 8  |                |
+|     | 9 24 16 |                |
+|                                |
+|              3       3         |
+|o5 : Matrix QQ  <-- QQ          |
++--------------------------------+
++----------------------------------------------------------+
+|i6 : A = random(QQ^3, QQ^3);                              |
+|                                                          |
+|              3       3                                   |
+|o6 : Matrix QQ  <-- QQ                                    |
++----------------------------------------------------------+
+|i7 : B = random(QQ^3, QQ^3);                              |
+|                                                          |
+|              3       3                                   |
+|o7 : Matrix QQ  <-- QQ                                    |
++----------------------------------------------------------+
+|i8 : weyl({2,1}, A * B) == weyl({2,1}, A) * weyl({2,1}, B)|
+|                                                          |
+|o8 = true                                                 |
++----------------------------------------------------------+
+
+For special shapes $W_\lambda$ coincides with familiar functors: $W_{(d)} =
+D^d$ (divided power), $W_{(1^d)} = \wedge^d$ (exterior power, also equal to
+$S_{(1^d)}$).
+
++---------------------------------------+
+|i9 : weyl({2}, F) == dividedPower(2, F)|
+|                                       |
+|o9 = true                              |
++---------------------------------------+
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+  * *note dividedPower: dividedPower, -- divided-power functor on free modules
+    and matrices
+  * *note schur: schur, -- the Schur functor applied to a matrix
+
+Ways to use weyl:
+=================
+
+  * "weyl(List)"
+  * "weyl(List,Matrix)"
+
+For the programmer
+==================
+
+The object *note weyl: weyl, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2266:0.
+
+File: SchurFunctors.info, Node: weylCharacter, Next: WeylFilling, Prev: weyl, Up: Top
+
+weylCharacter -- the character of a composition of Weyl functors on GL(V)
+*************************************************************************
+
+  * Usage: 
+        weylCharacter(L, d)
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, a list of partitions
+      * d, an *note integer: (Macaulay2Doc)ZZ,, the rank of the underlying
+        module
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, the character, as a
+        symmetric polynomial in $x_0, \ldots, x_{d-1}$, of the composed Weyl
+        functor on the defining representation
+
+Description
+===========
+
+The Weyl analogue of *note character: character,, using *note weyl: weyl,
+instead of *note schur: schur,.  Over a field of characteristic zero
+$W_\lambda(V) \cong S_\lambda(V)$ canonically, so weylCharacter returns the
+same polynomial as character; this routine is provided for uniformity and for
+verifying that the diagonal-character computation goes through the Weyl-side
+construction end-to-end.
+
++-------------------------------------------------------------------------+
+|i1 : toString character({{2,1}}, 3) == toString weylCharacter({{2,1}}, 3)|
+|                                                                         |
+|o1 = true                                                                |
++-------------------------------------------------------------------------+
+|i2 : splitCharacter weylCharacter({{1,1,1}, {2}}, 4)                     |
+|                                                                         |
+|o2 = s      + s                                                          |
+|      4,1,1    3,3                                                       |
+|                                                                         |
+|o2 : schurRing (QQ, s, 4)                                                |
++-------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note character: character, -- the character of a composition of Schur
+    functors on GL(V)
+  * *note splitCharacter: splitCharacter, -- decompose a symmetric polynomial
+    into Schur functions
+  * *note weyl: weyl, -- construct a WeylFilling or apply the Weyl functor to a
+    map
+
+Ways to use weylCharacter:
+==========================
+
+  * "weylCharacter(List,ZZ)"
+
+For the programmer
+==================
+
+The object *note weylCharacter: weylCharacter, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2653:0.
+
+File: SchurFunctors.info, Node: WeylFilling, Next: weylModule, Prev: weylCharacter, Up: Top
+
+WeylFilling -- a Young tableau stored row-wise for the Weyl-module basis
+************************************************************************
+
+Description
+===========
+
+A WeylFilling is a Young tableau of partition shape $\lambda$, stored as the
+list of its rows.  A filling is represented by new WeylFilling from {r_1, r_2,
+..., r_k}, where r_i is the list of entries in the $i$-th row (top-to-bottom,
+left-to-right within each row), of length $\lambda_i$.
+
+The row-wise storage matches the ambient decomposition of the Weyl module
+$$W_\lambda(E) \;\subseteq\; \textstyle\bigotimes_{i=1}^{r} D^{\lambda_i}(E),$$
+so each row directly corresponds to one divided-power tensor factor.  Entries
+in a row are stored in sorted (weakly-increasing) order since divided powers of
+a free module have a basis indexed by multisets; see *note dividedPower:
+dividedPower,.
+
++------------------------------+
+|i1 : T = weyl {{0,0,1}, {1,2}}|
+|                              |
+|     +-+-+-+                  |
+|o1 = |0|0|1|                  |
+|     |1|2| |                  |
+|     +-+-+-+                  |
+|                              |
+|o1 : WeylFilling              |
++------------------------------+
+|i2 : T                        |
+|                              |
+|     +-+-+-+                  |
+|o2 = |0|0|1|                  |
+|     |1|2| |                  |
+|     +-+-+-+                  |
+|                              |
+|o2 : WeylFilling              |
++------------------------------+
+|i3 : toList T                 |
+|                              |
+|o3 = {{0, 0, 1}, {1, 2}}      |
+|                              |
+|o3 : List                     |
++------------------------------+
+|i4 : #T                       |
+|                              |
+|o4 = 2                        |
++------------------------------+
+|i5 : T#0                      |
+|                              |
+|o5 = {0, 0, 1}                |
+|                              |
+|o5 : List                     |
++------------------------------+
+
+The constructor *note weyl: weyl, with a single List argument wraps a list of
+rows into a WeylFilling; the two-argument form weyl(lambda, f) builds the
+induced module map, see *note weyl(List,Matrix): weyl,.
+
+A WeylFilling is Weyl-semistandard (= Weyl-standard in the terminology of this
+package) if its rows are weakly increasing and its columns are strictly
+increasing.  Over $\mathbb{Z}$ the Weyl-standard fillings of shape $\lambda$
+with entries in $\{0,\ldots,d-1\}$ index a free basis of $W_\lambda(R^d)$.
+
++-----------------------------------------+
+|i6 : SW = standardWeylTableaux(3, {2,1});|
++-----------------------------------------+
+|i7 : #SW == rank weylModule({2,1}, QQ^3) |
+|                                         |
+|o7 = true                                |
++-----------------------------------------+
+
+Comparison ?, equality ==, and row access T_i / T_{i_0, i_1, ...} are all
+defined and mirror the corresponding operations on *note Filling: Filling,
+(with rows in the role of columns).
+
+See also
+========
+
+  * *note Filling: Filling, -- a Young tableau stored column-wise
+  * *note weyl: weyl, -- construct a WeylFilling or apply the Weyl functor to a
+    map
+  * *note weylNormalize: weylNormalize, -- sort each row of a WeylFilling into
+    weakly-increasing order
+  * *note isWeylStandard: isWeylStandard, -- test whether a WeylFilling is
+    Weyl-semistandard
+  * *note towardWeylStandard: towardWeylStandard, -- a single Garnir-style
+    straightening step for Weyl fillings
+  * *note standardWeylTableaux: standardWeylTableaux, -- all Weyl-semistandard
+    tableaux of a given shape
+  * *note maxWeylFilling: maxWeylFilling, -- the lex-largest Weyl-standard
+    tableau of given shape
+  * *note augmentWeylFilling: augmentWeylFilling, -- append an entry to a row
+    of a WeylFilling
+  * *note conjugate(WeylFilling): conjugate_lpWeylFilling_rp, -- transpose of a
+    Weyl-stored Young tableau
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+  * *note weylStraighten: weylStraighten, -- straighten a Weyl filling into a
+    linear combination of Weyl-semistandard tableaux
+
+Functions and methods returning an object of class WeylFilling:
+===============================================================
+
+  * *note maxWeylFilling: maxWeylFilling, -- the lex-largest Weyl-standard
+    tableau of given shape
+
+Methods that use an object of class WeylFilling:
+================================================
+
+  * "augmentWeylFilling(WeylFilling,ZZ,ZZ)" -- see *note augmentWeylFilling:
+    augmentWeylFilling, -- append an entry to a row of a WeylFilling
+  * *note conjugate(WeylFilling): conjugate_lpWeylFilling_rp, -- transpose of a
+    Weyl-stored Young tableau
+  * "isWeylStandard(WeylFilling)" -- see *note isWeylStandard: isWeylStandard,
+    -- test whether a WeylFilling is Weyl-semistandard
+  * "net(WeylFilling)"
+  * "WeylFilling == WeylFilling"
+  * "WeylFilling ? WeylFilling"
+  * "WeylFilling _ List"
+  * "WeylFilling _ ZZ"
+  * "weylNormalize(WeylFilling)" -- see *note weylNormalize: weylNormalize, --
+    sort each row of a WeylFilling into weakly-increasing order
+  * "weylStraighten(WeylFilling)" -- see *note weylStraighten: weylStraighten,
+    -- straighten a Weyl filling into a linear combination of Weyl-semistandard
+    tableaux
+  * "weylStraighten(WeylFilling,Module)" -- see *note weylStraighten:
+    weylStraighten, -- straighten a Weyl filling into a linear combination of
+    Weyl-semistandard tableaux
+
+For the programmer
+==================
+
+The object *note WeylFilling: WeylFilling, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note BasicList:
+(Macaulay2Doc)BasicList, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1599:0.
+
+File: SchurFunctors.info, Node: weylModule, Next: weylModulesMap, Prev: WeylFilling, Up: Top
+
+weylModule -- Weyl module of a partition applied to a free module
+*****************************************************************
+
+  * Usage: 
+        weylModule(lambda, E)
+  * Inputs:
+      * lambda, a *note list: (Macaulay2Doc)List,, a partition $\lambda =
+        (\lambda_1 \ge \cdots \ge \lambda_r)$
+      * E, a *note module: (Macaulay2Doc)Module,, a free module over some ring
+        $R$
+  * Outputs:
+      * a *note module: (Macaulay2Doc)Module,, the Weyl module $W_\lambda(E)$,
+        a free $R$-module whose rank equals the number of Weyl-semistandard
+        fillings of shape $\lambda$ with entries in
+        $\{0,\ldots,\mathrm{rank}(E) - 1\}$
+
+Description
+===========
+
+The Weyl functor $W_\lambda$ is the divided-power analogue of $S_\lambda$.  It
+is realized here as the quotient $$D^{\lambda_1}(E) \otimes \cdots \otimes
+D^{\lambda_r}(E) \;\twoheadrightarrow\; W_\lambda(E)$$ by the divided-power
+Garnir relations across adjacent rows; see Akin-Buchsbaum-Weyman, Schur
+functors and Schur complexes, Adv. Math. 44 (1982).
+
+In characteristic zero $W_\lambda \cong S_\lambda$ canonically, but over
+$\mathbb{Z}$ (or in positive characteristic) $W_\lambda$ and $S_\lambda$ are
+distinct functors related by duality.
+
+The rank matches the usual Weyl-dimension count:
+
++----------------------------------------------------------------------+
+|i1 : E = QQ^3;                                                        |
++----------------------------------------------------------------------+
+|i2 : weylModule({2}, E)          -- divided square: rank C(3+1, 2) = 6|
+|                                                                      |
+|       6                                                              |
+|o2 = QQ                                                               |
+|                                                                      |
+|o2 : QQ-module, free                                                  |
++----------------------------------------------------------------------+
+|i3 : rank oo                                                          |
+|                                                                      |
+|o3 = 6                                                                |
++----------------------------------------------------------------------+
+|i4 : weylModule({1,1}, E)        -- W_{(1,1)} = ∧^2, rank 3           |
+|                                                                      |
+|       3                                                              |
+|o4 = QQ                                                               |
+|                                                                      |
+|o4 : QQ-module, free                                                  |
++----------------------------------------------------------------------+
+|i5 : rank oo                                                          |
+|                                                                      |
+|o5 = 3                                                                |
++----------------------------------------------------------------------+
+
+For a genuinely mixed shape:
+
++-------------------------------------------------------------+
+|i6 : W = weylModule({2,1}, E);                               |
++-------------------------------------------------------------+
+|i7 : rank W                                                  |
+|                                                             |
+|o7 = 8                                                       |
++-------------------------------------------------------------+
+|i8 : standardWeylTableaux(3, {2,1})                          |
+|                                                             |
+|      +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+ |
+|o8 = {|0|0|, |0|0|, |0|1|, |0|1|, |1|1|, |0|2|, |0|2|, |1|2|}|
+|      |1| |  |2| |  |1| |  |2| |  |2| |  |1| |  |2| |  |2| | |
+|      +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+  +-+-+ |
+|                                                             |
+|o8 : List                                                    |
++-------------------------------------------------------------+
+
+Cached data.  The returned module W stores in W.cache#"Weyl" the 4-tuple (f,
+finv, AT, ST), exactly parallel to *note schurModule: schurModule,:
+
++-----------------------------------------------------------------------------+
+|i9 : W.cache#"Weyl"                                                          |
+|                                                                             |
+|                                                                             |
+|o9 = {| 0 1 0 -1 0 0 0  0 0 0  0 0 0  0  0 0  0  0 |, | 0 0 0 0 0 0 0 0 |,   |
+|      | 0 0 1 0  0 0 0  0 0 -1 0 0 0  0  0 0  0  0 |  | 1 0 0 0 0 0 0 0 |    |
+|      | 0 0 0 0  1 0 -1 0 0 0  0 0 0  0  0 0  0  0 |  | 0 1 0 0 0 0 0 0 |    |
+|      | 0 0 0 0  0 1 0  0 0 0  0 0 -1 0  0 0  0  0 |  | 0 0 0 0 0 0 0 0 |    |
+|      | 0 0 0 0  0 0 0  0 1 0  0 0 0  -1 0 0  0  0 |  | 0 0 1 0 0 0 0 0 |    |
+|      | 0 0 0 0  0 0 0  0 0 0  1 0 -1 0  0 0  0  0 |  | 0 0 0 1 0 0 0 0 |    |
+|      | 0 0 0 0  0 0 0  0 0 0  0 1 0  0  0 -1 0  0 |  | 0 0 0 0 0 0 0 0 |    |
+|      | 0 0 0 0  0 0 0  0 0 0  0 0 0  0  1 0  -1 0 |  | 0 0 0 0 0 0 0 0 |    |
+|                                                      | 0 0 0 0 1 0 0 0 |    |
+|                                                      | 0 0 0 0 0 0 0 0 |    |
+|                                                      | 0 0 0 0 0 1 0 0 |    |
+|                                                      | 0 0 0 0 0 0 1 0 |    |
+|                                                      | 0 0 0 0 0 0 0 0 |    |
+|                                                      | 0 0 0 0 0 0 0 0 |    |
+|                                                      | 0 0 0 0 0 0 0 1 |    |
+|                                                      | 0 0 0 0 0 0 0 0 |    |
+|                                                      | 0 0 0 0 0 0 0 0 |    |
+|                                                      | 0 0 0 0 0 0 0 0 |    |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|     ------------------------------------------------------------------------|
+|               +-+-+                   +-+-+                                 |
+|     HashTable{|0|0| => 0 }, HashTable{|0|0| => 0}}                          |
+|               |0| |                   |1| |                                 |
+|               +-+-+                   +-+-+                                 |
+|               +-+-+                   +-+-+                                 |
+|               |0|0| => 1              |0|0| => 1                            |
+|               |1| |                   |2| |                                 |
+|               +-+-+                   +-+-+                                 |
+|               +-+-+                   +-+-+                                 |
+|               |0|0| => 2              |0|1| => 2                            |
+|               |2| |                   |1| |                                 |
+|               +-+-+                   +-+-+                                 |
+|               +-+-+                   +-+-+                                 |
+|               |0|1| => 3              |0|1| => 3                            |
+|               |0| |                   |2| |                                 |
+|               +-+-+                   +-+-+                                 |
+|               +-+-+                   +-+-+                                 |
+|               |0|1| => 4              |0|2| => 5                            |
+|               |1| |                   |1| |                                 |
+|               +-+-+                   +-+-+                                 |
+|               +-+-+                   +-+-+                                 |
+|               |0|1| => 5              |0|2| => 6                            |
+|               |2| |                   |2| |                                 |
+|               +-+-+                   +-+-+                                 |
+|               +-+-+                   +-+-+                                 |
+|               |0|2| => 9              |1|1| => 4                            |
+|               |0| |                   |2| |                                 |
+|               +-+-+                   +-+-+                                 |
+|               +-+-+                   +-+-+                                 |
+|               |0|2| => 10             |1|2| => 7                            |
+|               |1| |                   |2| |                                 |
+|               +-+-+                   +-+-+                                 |
+|               +-+-+                                                         |
+|               |0|2| => 11                                                   |
+|               |2| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |1|1| => 6                                                    |
+|               |0| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |1|1| => 7                                                    |
+|               |1| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |1|1| => 8                                                    |
+|               |2| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |1|2| => 12                                                   |
+|               |0| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |1|2| => 13                                                   |
+|               |1| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |1|2| => 14                                                   |
+|               |2| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |2|2| => 15                                                   |
+|               |0| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |2|2| => 16                                                   |
+|               |1| |                                                         |
+|               +-+-+                                                         |
+|               +-+-+                                                         |
+|               |2|2| => 17                                                   |
+|               |2| |                                                         |
+|               +-+-+                                                         |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : (f, finv, AT, ST) = toSequence W.cache#"Weyl";                         |
++-----------------------------------------------------------------------------+
+|i11 : f * finv == id_W                                                       |
+|                                                                             |
+|o11 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+The partition lambda should be nonempty and weakly decreasing.  Entries of
+lambda need not bound the rank of E, but the output module may of course have
+small rank.
+
+See also
+========
+
+  * *note weyl: weyl, -- construct a WeylFilling or apply the Weyl functor to a
+    map
+  * *note weylStraighten: weylStraighten, -- straighten a Weyl filling into a
+    linear combination of Weyl-semistandard tableaux
+  * *note weylModulesMap: weylModulesMap, -- build a map between Weyl modules
+    from its action on tableaux
+  * *note standardWeylTableaux: standardWeylTableaux, -- all Weyl-semistandard
+    tableaux of a given shape
+  * *note schurModule: schurModule, -- Schur module of a partition applied to a
+    free module
+  * *note dividedPower: dividedPower, -- divided-power functor on free modules
+    and matrices
+
+Ways to use weylModule:
+=======================
+
+  * "weylModule(List,Module)"
+
+For the programmer
+==================
+
+The object *note weylModule: weylModule, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2211:0.
+
+File: SchurFunctors.info, Node: weylModulesMap, Next: weylNormalize, Prev: weylModule, Up: Top
+
+weylModulesMap -- build a map between Weyl modules from its action on tableaux
+******************************************************************************
+
+  * Usage: 
+        weylModulesMap(N, M, F)
+  * Inputs:
+      * N, a *note module: (Macaulay2Doc)Module,, a Weyl module from *note
+        weylModule: weylModule,
+      * M, a *note module: (Macaulay2Doc)Module,, a Weyl module from *note
+        weylModule: weylModule,
+      * F, a *note function: (Macaulay2Doc)Function,, a function such that for
+        every Weyl-semistandard filling T in the basis of M, F(T) produces a
+        list of pairs (c, T') with c in ring N and T' a
+        (not-necessarily-standard) filling of the shape of N
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, the $R$-linear map M -> N whose
+        value on each basis tableau is straightened into N
+
+Description
+===========
+
+The Weyl analogue of *note schurModulesMap: schurModulesMap,.  The shape of N
+is the target shape of the tableaux produced by F; the straightening into the
+Weyl-standard basis is performed internally using *note weylStraighten:
+weylStraighten,.
+
+Example: a multiplication-style map $W_{(2)}(E) \to W_{(2,1)}(E) \otimes E^*$.
+The analogue of the Koszul differential, with divided-power multiplication:
+
++------------------------------------------------------------------------+
+|i1 : n = 3;                                                             |
++------------------------------------------------------------------------+
+|i2 : R = QQ[x_1..x_n];                                                  |
++------------------------------------------------------------------------+
+|i3 : M = weylModule({2}, R^n);                                          |
++------------------------------------------------------------------------+
+|i4 : N = weylModule({2,1}, R^n);                                        |
++------------------------------------------------------------------------+
+|i5 : F = T -> apply(numgens R, k -> (R_k, augmentWeylFilling(T, 1, k)));|
++------------------------------------------------------------------------+
+|i6 : weylModulesMap(N, M, F)                                            |
+|                                                                        |
+|o6 = | x_2 -x_1 0    0    0    0    |                                   |
+|     | x_3 0    0    -x_1 0    0    |                                   |
+|     | 0   x_2  -x_1 0    0    0    |                                   |
+|     | 0   x_3  0    0    -x_1 0    |                                   |
+|     | 0   0    x_3  0    -x_2 0    |                                   |
+|     | 0   0    0    x_2  -x_1 0    |                                   |
+|     | 0   0    0    x_3  0    -x_1 |                                   |
+|     | 0   0    0    0    x_3  -x_2 |                                   |
+|                                                                        |
+|             8      6                                                   |
+|o6 : Matrix R  <-- R                                                    |
++------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+  * *note augmentWeylFilling: augmentWeylFilling, -- append an entry to a row
+    of a WeylFilling
+  * *note weylStraighten: weylStraighten, -- straighten a Weyl filling into a
+    linear combination of Weyl-semistandard tableaux
+  * *note schurModulesMap: schurModulesMap, -- build a map between Schur
+    modules from its action on tableaux
+
+Ways to use weylModulesMap:
+===========================
+
+  * "weylModulesMap(Module,Module,Function)"
+
+For the programmer
+==================
+
+The object *note weylModulesMap: weylModulesMap, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2372:0.
+
+File: SchurFunctors.info, Node: weylNormalize, Next: weylStraighten, Prev: weylModulesMap, Up: Top
+
+weylNormalize -- sort each row of a WeylFilling into weakly-increasing order
+****************************************************************************
+
+  * Usage: 
+        weylNormalize T
+  * Inputs:
+      * T, an instance of the type *note WeylFilling: WeylFilling,, 
+  * Outputs:
+      * an instance of the type *note WeylFilling: WeylFilling,, the
+        WeylFilling obtained by sorting each row of T
+
+Description
+===========
+
+Each row of a WeylFilling represents a basis element $x^{(a_1)} x^{(a_2)}
+\cdots \in D^\ell(E)$ of a divided power. Divided powers of a free module have
+a basis indexed by unordered multisets of basis indices (or, equivalently,
+exponent vectors), so two WeylFillings with the same multiset of entries in
+each row represent the same element of the ambient.  weylNormalize puts every
+row into its canonical sorted representative.
+
+Unlike *note normalize: normalize, on the Schur side, no sign is produced:
+divided powers are cocommutative / symmetric, not alternating.
+
++----------------------------------------------+
+|i1 : U = new WeylFilling from {{2,0,1}, {3,1}}|
+|                                              |
+|     +-+-+-+                                  |
+|o1 = |2|0|1|                                  |
+|     |3|1| |                                  |
+|     +-+-+-+                                  |
+|                                              |
+|o1 : WeylFilling                              |
++----------------------------------------------+
+|i2 : weylNormalize U                          |
+|                                              |
+|     +-+-+-+                                  |
+|o2 = |0|1|2|                                  |
+|     |1|3| |                                  |
+|     +-+-+-+                                  |
+|                                              |
+|o2 : WeylFilling                              |
++----------------------------------------------+
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note isWeylStandard: isWeylStandard, -- test whether a WeylFilling is
+    Weyl-semistandard
+  * *note weylStraighten: weylStraighten, -- straighten a Weyl filling into a
+    linear combination of Weyl-semistandard tableaux
+
+Ways to use weylNormalize:
+==========================
+
+  * "weylNormalize(WeylFilling)"
+
+For the programmer
+==================
+
+The object *note weylNormalize: weylNormalize, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:1664:0.
+
+File: SchurFunctors.info, Node: weylStraighten, Prev: weylNormalize, Up: Top
+
+weylStraighten -- straighten a Weyl filling into a linear combination of Weyl-semistandard tableaux
+***************************************************************************************************
+
+  * Usage: 
+        weylStraighten T
+        weylStraighten H
+        weylStraighten(T, W)
+        weylStraighten(H, W)
+  * Inputs:
+      * T, an instance of the type *note WeylFilling: WeylFilling,, 
+      * H, a *note hash table: (Macaulay2Doc)HashTable,, a formal
+        $\mathbb{Z}$-linear combination of WeylFillings (all of the same shape)
+      * W, a *note module: (Macaulay2Doc)Module,, (optional) a Weyl module
+        produced by *note weylModule: weylModule,
+  * Outputs:
+      * a HashTable keyed by Weyl-semistandard fillings, or (when a module is
+        supplied) the corresponding Vector in W
+
+Description
+===========
+
+The divided-power analogue of *note straighten: straighten,.  Reduces an
+arbitrary WeylFilling (or a formal combination of them) to a unique linear
+combination of Weyl-standard tableaux modulo the divided-power Garnir
+relations.  Unlike on the Schur side, a single straightening step generally
+produces many terms with binomial-coefficient multiplicities (via *note
+divComult: divMult, / *note divMult: divMult,) rather than a single sign flip.
+
++---------------------------+
+|i1 : U = weyl {{1,2},{0,0}}|
+|                           |
+|     +-+-+                 |
+|o1 = |1|2|                 |
+|     |0|0|                 |
+|     +-+-+                 |
+|                           |
+|o1 : WeylFilling           |
++---------------------------+
+|i2 : weylStraighten U      |
+|                           |
+|               +-+-+       |
+|o2 = HashTable{|0|0| => 1} |
+|               |1|2|       |
+|               +-+-+       |
+|                           |
+|o2 : HashTable             |
++---------------------------+
+
+Linearity.
+
++------------------------------------+
+|i3 : H = hashTable {                |
+|          (weyl {{1,2},{0,0}}, 1),  |
+|          (weyl {{0,2},{1,0}}, -1)};|
++------------------------------------+
+|i4 : weylStraighten H               |
+|                                    |
+|               +-+-+                |
+|o4 = HashTable{|0|0| => 2}          |
+|               |1|2|                |
+|               +-+-+                |
+|                                    |
+|o4 : HashTable                      |
++------------------------------------+
+
+Module evaluation.  With a Weyl module W supplied, the combinatorial result is
+assembled as a vector:
+
++----------------------------------------------+
+|i5 : W = weylModule({2,2}, QQ^3);             |
++----------------------------------------------+
+|i6 : v = weylStraighten(weyl {{0,2},{1,0}}, W)|
+|                                              |
+|o6 = |  0 |                                   |
+|     | -1 |                                   |
+|     |  0 |                                   |
+|     |  0 |                                   |
+|     |  0 |                                   |
+|     |  0 |                                   |
+|                                              |
+|       6                                      |
+|o6 : QQ                                       |
++----------------------------------------------+
+|i7 : printWeylModuleElement(v, W)             |
+|   +-+-+                                      |
+|-1*|0|0|                                      |
+|   |1|2|                                      |
+|   +-+-+                                      |
++----------------------------------------------+
+
+See also
+========
+
+  * *note WeylFilling: WeylFilling, -- a Young tableau stored row-wise for the
+    Weyl-module basis
+  * *note isWeylStandard: isWeylStandard, -- test whether a WeylFilling is
+    Weyl-semistandard
+  * *note towardWeylStandard: towardWeylStandard, -- a single Garnir-style
+    straightening step for Weyl fillings
+  * *note weylModule: weylModule, -- Weyl module of a partition applied to a
+    free module
+  * *note straighten: straighten, -- straighten a filling into a linear
+    combination of semistandard tableaux
+
+Ways to use weylStraighten:
+===========================
+
+  * "weylStraighten(HashTable)"
+  * "weylStraighten(HashTable,Module)"
+  * "weylStraighten(WeylFilling)"
+  * "weylStraighten(WeylFilling,Module)"
+
+For the programmer
+==================
+
+The object *note weylStraighten: weylStraighten, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurFunctors.m2:2325:0.
+
+Tag Table:
+Node: Top247
+Node: augmentFilling19860
+Node: augmentWeylFilling23583
+Node: character26714
+Node: characterRep33147
+Node: conjugate_lpFilling_rp36697
+Node: conjugate_lpWeylFilling_rp39862
+Node: decomposeRep41981
+Node: dividedPower45095
+Node: divMult50238
+Node: Filling54165
+Node: isStandard59587
+Node: isWeylStandard62139
+Node: maxWeylFilling64901
+Node: normalize67213
+Node: printSchurModuleElement70340
+Node: printWeylModuleElement72981
+Node: schur75342
+Node: schurModule81781
+Node: schurModulesMap93958
+Node: splitCharacter98131
+Node: standardTableaux100407
+Node: standardWeylTableaux103483
+Node: straighten106570
+Node: towardWeylStandard114235
+Node: weyl119339
+Node: weylCharacter123584
+Node: WeylFilling126264
+Node: weylModule132238
+Node: weylModulesMap150397
+Node: weylNormalize154499
+Node: weylStraighten157259
+
+End Tag Table

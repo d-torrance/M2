@@ -1,0 +1,1378 @@
+ -*- coding: utf-8 -*- This is Parsing.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* Parsing: (Parsing).           a framework for creating recursive descent parsers
+END-INFO-DIR-ENTRY
+
+
+File: Parsing.info, Node: Top, Next: nil, Up: (dir)
+
+Parsing -- a framework for building parsers
+*******************************************
+
+Description
+===========
+
+*note Parsing: Top, is a package the provides a framework for building parsers.
+It introduces *note Parser: Parser,, a type of function that parses a sequence
+of tokens, and *note Analyzer: Analyzer,, a type of function that accepts input
+for the parser in its original form and separates it into a stream of tokens.
+A parser can be combined with an analyzer: see *note Parser _colon_ Analyzer:
+Parser _co Analyzer,, to produce a complete system for accepting input and
+parsing it.
+
+See the package *note Classic: (Classic)Top, for a good example of  the use of
+this framework.
+
+* Menu:
+
+* Analyzer::                    the class of all lexical analyzers
+* Parser::                      the class of all parsers
+* Parser _colon_ Analyzer: Parser _co Analyzer.  combine a parser with a lexical analyzer to make a complete system
+
+Author
+======
+
+  * Daniel R. Grayson (see http://www.math.uiuc.edu/~dan/ ) <dan@math.uiuc.edu>
+
+Version
+=======
+
+This documentation describes version 1.0 of Parsing, released June, 2006.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{ParsingSource,                                                         |
+|  title = {{Parsing: a framework for creating recursive                      |
+|  author = {Daniel R. Grayson},                                              |
+|  howpublished = {A \emph{Macaulay2} package available                       |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2                      |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+| descent parsers. Version~1.0}},                                             |
+|                                                                             |
+|at                                                                           |
+|/Macaulay2/packages}}                                                        |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note Analyzer: Analyzer, -- the class of all lexical analyzers
+      * *note Parser: Parser, -- the class of all parsers
+  * Functions and commands
+      * *note andP: andP, -- parser conjunction
+      * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+        characters from a string one at a time
+      * *note constParser: constParser, -- produce a parser that accepts a
+        fixed string, one character at a time
+      * *note deadParser: deadParser, -- a parser which accepts no tokens and
+        is not in a terminal state
+      * *note futureParser: futureParser, -- forward reference to a parser not
+        defined yet
+      * *note letterParser: letterParser, -- a parser that accepts a single
+        letter and returns it
+      * *note NNParser: NNParser, -- a parser that accepts (and returns) a
+        natural number, one character at a time
+      * *note nonspaceAnalyzer: nonspaceAnalyzer, -- a lexical analyzer that
+        provides non-white-space characters from a string one at a time
+      * *note nullParser: nullParser, -- a terminal parser that returns the
+        value nil
+      * *note optionalSignParser: optionalSignParser, -- a parser that accepts
+        an optional plus sign or minus sign
+      * *note optP: optP, -- making a parser optional
+      * *note orP: orP, -- parsing alternatives
+      * *note QQParser: QQParser, -- a parser that accepts (and returns) a
+        rational number, one character at a time
+      * *note terminalParser: terminalParser, -- produce a parser in a terminal
+        state
+      * *note ZZParser: ZZParser, -- a parser that accepts (and returns) an
+        integer, one character at a time
+  * Methods
+      * *note * Parser: _st Parser, -- repetition of a parser
+      * *note + Parser: + Parser, -- repetition of a parser at least once
+      * "Parser @ Parser" -- see *note andP: andP, -- parser conjunction
+      * "Parser @ String" -- see *note andP: andP, -- parser conjunction
+      * "String @ Parser" -- see *note andP: andP, -- parser conjunction
+      * *note Function % Parser: Function % Parser, -- transform the value
+        returned by a parser
+      * "Parser | Parser" -- see *note orP: orP, -- parsing alternatives
+      * "Parser | String" -- see *note orP: orP, -- parsing alternatives
+      * "String | Parser" -- see *note orP: orP, -- parsing alternatives
+      * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+        with a lexical analyzer to make a complete system
+  * Symbols
+      * *note nil: nil, -- a symbol a parser may return to indicate acceptance
+        of the empty string of tokens
+
+For the programmer
+==================
+
+The object *note Parsing: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in Parsing.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:184:0.
+
+File: Parsing.info, Node: Analyzer, Next: Parser, Up: Top
+
+Analyzer -- the class of all lexical analyzers
+**********************************************
+
+Description
+===========
+
+A function that accepts input in its original form and separates it into
+tokens, will be called a *note lexical analyzer: Analyzer,. These analyzers are
+functional: call one with the original input, and it returns a function of 0
+arguments (with changeable internal state) that keeps returning tokens each
+time it is called until none are left. Actually, the analyzer is to return a
+pair: (pos,token), where pos is a string indicating the position where token
+was found in the input. A position will be a sort of thing which can be
+converted to string with *note toString: (Macaulay2Doc)toString, (for printing
+error messages) and can be sorted.
+
+* Menu:
+
+* charAnalyzer::                a lexical analyzer that provides characters from a string one at a time
+* nonspaceAnalyzer::            a lexical analyzer that provides non-white-space characters from a string one at a time
+
+Methods that use a lexical analyzer:
+====================================
+
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+Protected objects of class Analyzer:
+====================================
+
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note nonspaceAnalyzer: nonspaceAnalyzer, -- a lexical analyzer that
+    provides non-white-space characters from a string one at a time
+
+For the programmer
+==================
+
+The object *note Analyzer: Analyzer, is a *note self initializing type:
+(Macaulay2Doc)SelfInitializingType,, with ancestor classes *note
+FunctionClosure: (Macaulay2Doc)FunctionClosure, < *note Function:
+(Macaulay2Doc)Function, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:233:0.
+
+File: Parsing.info, Node: charAnalyzer, Next: nonspaceAnalyzer, Up: Analyzer
+
+charAnalyzer -- a lexical analyzer that provides characters from a string one at a time
+***************************************************************************************
+
+Description
+===========
+
++---------------------------------------------+
+|i1 : a = charAnalyzer "abc"                  |
+|                                             |
+|o1 = a                                       |
+|                                             |
+|o1 : FunctionClosure                         |
++---------------------------------------------+
+|i2 : peek a()                                |
+|                                             |
+|o2 = (0, "a")                                |
++---------------------------------------------+
+|i3 : peek a()                                |
+|                                             |
+|o3 = (1, "b")                                |
++---------------------------------------------+
+|i4 : peek a()                                |
+|                                             |
+|o4 = (2, "c")                                |
++---------------------------------------------+
+|i5 : peek a()                                |
+|                                             |
+|o5 = null                                    |
++---------------------------------------------+
+|i6 : (constParser "abc" : charAnalyzer) "abc"|
+|                                             |
+|o6 = abc                                     |
++---------------------------------------------+
+
+See also
+========
+
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note charAnalyzer: charAnalyzer, is a *note lexical analyzer:
+Analyzer,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:246:0.
+
+File: Parsing.info, Node: nonspaceAnalyzer, Prev: charAnalyzer, Up: Analyzer
+
+nonspaceAnalyzer -- a lexical analyzer that provides non-white-space characters from a string one at a time
+***********************************************************************************************************
+
+Description
+===========
+
++-----------------------------------------------------+
+|i1 : a = nonspaceAnalyzer " a b c "                  |
+|                                                     |
+|o1 = a                                               |
+|                                                     |
+|o1 : FunctionClosure                                 |
++-----------------------------------------------------+
+|i2 : peek a()                                        |
+|                                                     |
+|o2 = (1, "a")                                        |
++-----------------------------------------------------+
+|i3 : peek a()                                        |
+|                                                     |
+|o3 = (3, "b")                                        |
++-----------------------------------------------------+
+|i4 : peek a()                                        |
+|                                                     |
+|o4 = (5, "c")                                        |
++-----------------------------------------------------+
+|i5 : peek a()                                        |
+|                                                     |
+|o5 = null                                            |
++-----------------------------------------------------+
+|i6 : (constParser "abc" : nonspaceAnalyzer) " a b c "|
+|                                                     |
+|o6 = abc                                             |
++-----------------------------------------------------+
+
+See also
+========
+
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note nonspaceAnalyzer: nonspaceAnalyzer, is a *note lexical
+analyzer: Analyzer,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:273:0.
+
+File: Parsing.info, Node: Parser, Next: Parser _co Analyzer, Prev: Analyzer, Up: Top
+
+Parser -- the class of all parsers
+**********************************
+
+Description
+===========
+
+A parser is a type of function that parses a sequence of tokens.  Tokens can be
+anything except *note null: (Macaulay2Doc)null,. A parser p is called
+repeatedly, like this: p t, one token at a time.  The return value that
+indicates acceptance of the input token is a new parser, which replaces the
+old, and is ready to accept the next token; the original parser p should not
+change its internal state.  The return value that indicates rejection of the
+input token is *note null: (Macaulay2Doc)null,.  Rejection may be interpreted
+as a syntax error.
+
+When the input stream is exhausted, we call p one more time like this: p null.
+The return value is *note null: (Macaulay2Doc)null, if the parser is not in a
+terminal state.  Otherwise the return value is the parsed (and possibly
+evaluated) result.
+
+* Menu:
+
+
+simple parsers
+* deadParser::                  a parser which accepts no tokens and is not in a terminal state
+* terminalParser::              produce a parser in a terminal state
+* nullParser::                  a terminal parser that returns the value nil
+* futureParser::                forward reference to a parser not defined yet
+* letterParser::                a parser that accepts a single letter and returns it
+* constParser::                 produce a parser that accepts a fixed string, one character at a time
+* optionalSignParser::          a parser that accepts an optional plus sign or minus sign
+* NNParser::                    a parser that accepts (and returns) a natural number, one character at a time
+* ZZParser::                    a parser that accepts (and returns) an integer, one character at a time
+* QQParser::                    a parser that accepts (and returns) a rational number, one character at a time
+
+making new parsers from old ones
+* optP::                        making a parser optional
+* orP::                         parsing alternatives
+* andP::                        parser conjunction
+* * Parser: _st Parser.         repetition of a parser
+* + Parser::                    repetition of a parser at least once
+* Function % Parser::           transform the value returned by a parser
+
+Methods that use a parser:
+==========================
+
+  * *note * Parser: _st Parser, -- repetition of a parser
+  * *note + Parser: + Parser, -- repetition of a parser at least once
+  * "Parser @ Parser" -- see *note andP: andP, -- parser conjunction
+  * "Parser @ String" -- see *note andP: andP, -- parser conjunction
+  * "String @ Parser" -- see *note andP: andP, -- parser conjunction
+  * *note Function % Parser: Function % Parser, -- transform the value returned
+    by a parser
+  * "Parser | Parser" -- see *note orP: orP, -- parsing alternatives
+  * "Parser | String" -- see *note orP: orP, -- parsing alternatives
+  * "String | Parser" -- see *note orP: orP, -- parsing alternatives
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+Protected objects of class Parser:
+==================================
+
+  * *note deadParser: deadParser, -- a parser which accepts no tokens and is
+    not in a terminal state
+  * *note letterParser: letterParser, -- a parser that accepts a single letter
+    and returns it
+  * *note NNParser: NNParser, -- a parser that accepts (and returns) a natural
+    number, one character at a time
+  * *note nullParser: nullParser, -- a terminal parser that returns the value
+    nil
+  * *note optionalSignParser: optionalSignParser, -- a parser that accepts an
+    optional plus sign or minus sign
+  * *note QQParser: QQParser, -- a parser that accepts (and returns) a rational
+    number, one character at a time
+  * *note ZZParser: ZZParser, -- a parser that accepts (and returns) an
+    integer, one character at a time
+
+For the programmer
+==================
+
+The object *note Parser: Parser, is a *note self initializing type:
+(Macaulay2Doc)SelfInitializingType,, with ancestor classes *note
+FunctionClosure: (Macaulay2Doc)FunctionClosure, < *note Function:
+(Macaulay2Doc)Function, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:218:0.
+
+File: Parsing.info, Node: deadParser, Next: terminalParser, Up: Parser
+
+deadParser -- a parser which accepts no tokens and is not in a terminal state
+*****************************************************************************
+
+Description
+===========
+
++-------------------------+
+|i1 : peek deadParser "a" |
+|                         |
+|o1 = null                |
++-------------------------+
+|i2 : peek deadParser null|
+|                         |
+|o2 = null                |
++-------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:57:21-57:30: --source code:
+deadParser = Parser (c -> null)
+
+For the programmer
+==================
+
+The object *note deadParser: deadParser, is a *note parser: Parser,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:287:0.
+
+File: Parsing.info, Node: terminalParser, Next: nullParser, Prev: deadParser, Up: Parser
+
+terminalParser -- produce a parser in a terminal state
+******************************************************
+
+  * Usage: 
+        terminalParser v
+  * Inputs:
+      * v
+  * Outputs:
+      * a parser in a terminal state with parsed value v
+
+Description
+===========
+
++-------------------------+
+|i1 : p = terminalParser x|
+|                         |
+|o1 = p                   |
+|                         |
+|o1 : Parser              |
++-------------------------+
+|i2 : p "a"               |
++-------------------------+
+|i3 : p null              |
+|                         |
+|o3 = x                   |
+|                         |
+|o3 : Symbol              |
++-------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:59:17-59:69: --source code:
+terminalParser = val -> new Parser from (c -> if c === null then val)
+
+For the programmer
+==================
+
+The object *note terminalParser: terminalParser, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:300:0.
+
+File: Parsing.info, Node: nullParser, Next: futureParser, Prev: terminalParser, Up: Parser
+
+nullParser -- a terminal parser that returns the value nil
+**********************************************************
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:59:41-59:68: --source code:
+terminalParser = val -> new Parser from (c -> if c === null then val)
+| symbol  class   value  location of symbol
+| ------  -----   -----  ------------------                                    
+| val     Symbol  nil    ../../../../../Macaulay2/packages/Parsing.m2:59:17-59:
+-------------------------------------------------------------------------------
+  
+20
+
+See also
+========
+
+  * *note nil: nil, -- a symbol a parser may return to indicate acceptance of
+    the empty string of tokens
+
+For the programmer
+==================
+
+The object *note nullParser: nullParser, is a *note parser: Parser,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:306:0.
+
+File: Parsing.info, Node: futureParser, Next: letterParser, Prev: nullParser, Up: Parser
+
+futureParser -- forward reference to a parser not defined yet
+*************************************************************
+
+  * Usage: 
+        futureParser p
+  * Inputs:
+      * p, a *note symbol: (Macaulay2Doc)Symbol,
+  * Outputs:
+      * a *note parser: Parser,, a parser that will pass its input to the value
+        of the symbol p at that time
+
+Description
+===========
+
+This function makes recursive parsers possible.
+
++--------------------------+
+|i1 : p = futureParser q   |
+|                          |
+|o1 = p                    |
+|                          |
+|o1 : Parser               |
++--------------------------+
+|i2 : m = p : charAnalyzer |
+|                          |
+|o2 = m                    |
+|                          |
+|o2 : FunctionClosure      |
++--------------------------+
+|i3 : q = constParser "abc"|
+|                          |
+|o3 = q                    |
+|                          |
+|o3 : Parser               |
++--------------------------+
+|i4 : m "abc"              |
+|                          |
+|o4 = abc                  |
++--------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:65:15-65:76: --source code:
+futureParser = parserSymbol -> new Parser from (c -> (value parserSymbol) c)
+
+For the programmer
+==================
+
+The object *note futureParser: futureParser, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:331:0.
+
+File: Parsing.info, Node: letterParser, Next: constParser, Prev: futureParser, Up: Parser
+
+letterParser -- a parser that accepts a single letter and returns it
+********************************************************************
+
+Description
+===========
+
++-------------------------+
+|i1 : p = letterParser "a"|
+|                         |
+|o1 = p                   |
+|                         |
+|o1 : Parser              |
++-------------------------+
+|i2 : p "b"               |
++-------------------------+
+|i3 : p null              |
+|                         |
+|o3 = a                   |
++-------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:63:23-63:88: --source code:
+letterParser = Parser (c -> if alpha#?c then new Parser from (b -> if b ===
+-------------------------------------------------------------------------------
+null then c))
+
+For the programmer
+==================
+
+The object *note letterParser: letterParser, is a *note parser: Parser,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:316:0.
+
+File: Parsing.info, Node: constParser, Next: optionalSignParser, Prev: letterParser, Up: Parser
+
+constParser -- produce a parser that accepts a fixed string, one character at a time
+************************************************************************************
+
+  * Usage: 
+        constParser s
+  * Inputs:
+      * s, a *note string: (Macaulay2Doc)String,
+  * Outputs:
+      * a *note parser: Parser,, a parser that accepts (and returns) the string
+        s, one character at a time
+
+Description
+===========
+
++------------------------------------------------------------------------+
+|i1 : constParser "abc"                                                  |
+|                                                                        |
+|o1 = Parser[../../../../../Macaulay2/packages/Parsing.m2:148:48-148:149]|
+|                                                                        |
+|o1 : Parser                                                             |
++------------------------------------------------------------------------+
+|i2 : oo "a"                                                             |
+|                                                                        |
+|o2 = Parser[../../../../../Macaulay2/packages/Parsing.m2:148:48-148:149]|
+|                                                                        |
+|o2 : Parser                                                             |
++------------------------------------------------------------------------+
+|i3 : oo "a"                                                             |
++------------------------------------------------------------------------+
+|i4 : ooo "b"                                                            |
+|                                                                        |
+|o4 = Parser[../../../../../Macaulay2/packages/Parsing.m2:148:48-148:149]|
+|                                                                        |
+|o4 : Parser                                                             |
++------------------------------------------------------------------------+
+|i5 : oo "c"                                                             |
+|                                                                        |
+|o5 = Parser[../../../../../Macaulay2/packages/Parsing.m2:148:48-148:149]|
+|                                                                        |
+|o5 : Parser                                                             |
++------------------------------------------------------------------------+
+|i6 : oo null                                                            |
+|                                                                        |
+|o6 = abc                                                                |
++------------------------------------------------------------------------+
+|i7 : (constParser "abc" : charAnalyzer) "abc"                           |
+|                                                                        |
+|o7 = abc                                                                |
++------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note constParser: constParser, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:437:0.
+
+File: Parsing.info, Node: optionalSignParser, Next: NNParser, Prev: constParser, Up: Parser
+
+optionalSignParser -- a parser that accepts an optional plus sign or minus sign
+*******************************************************************************
+
+Description
+===========
+
+The return value is either 1 or -1, depending on the indicated sign.
+
++-------------------------------------------------------------------+
+|i1 : (optionalSignParser @ constParser "abc" : charAnalyzer) "abc" |
+|                                                                   |
+|o1 = (1, abc)                                                      |
+|                                                                   |
+|o1 : Sequence                                                      |
++-------------------------------------------------------------------+
+|i2 : (optionalSignParser @ constParser "abc" : charAnalyzer) "+abc"|
+|                                                                   |
+|o2 = (1, abc)                                                      |
+|                                                                   |
+|o2 : Sequence                                                      |
++-------------------------------------------------------------------+
+|i3 : (optionalSignParser @ constParser "abc" : charAnalyzer) "-abc"|
+|                                                                   |
+|o3 = (-1, abc)                                                     |
+|                                                                   |
+|o3 : Sequence                                                      |
++-------------------------------------------------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:157:28-157:135: --source code:
+optionalSignParser = Parser(c -> if c === null then 1 else if c === "-" then
+-------------------------------------------------------------------------------
+terminalParser(-1) else if c === "+" then terminalParser 1)
+
+See also
+========
+
+  * *note Parser @ Parser: andP, -- parser conjunction
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note optionalSignParser: optionalSignParser, is a *note parser:
+Parser,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:451:0.
+
+File: Parsing.info, Node: NNParser, Next: ZZParser, Prev: optionalSignParser, Up: Parser
+
+NNParser -- a parser that accepts (and returns) a natural number, one character at a time
+*****************************************************************************************
+
+Description
+===========
+
++------------------------------------------------------------------------+
+|i1 : NNParser "1"                                                       |
+|                                                                        |
+|o1 = Parser[../../../../../Macaulay2/packages/Parsing.m2:152:37-152:103]|
+|                                                                        |
+|o1 : Parser                                                             |
++------------------------------------------------------------------------+
+|i2 : oo null                                                            |
+|                                                                        |
+|o2 = 1                                                                  |
++------------------------------------------------------------------------+
+|i3 : ooo "2"                                                            |
+|                                                                        |
+|o3 = Parser[../../../../../Macaulay2/packages/Parsing.m2:152:37-152:103]|
+|                                                                        |
+|o3 : Parser                                                             |
++------------------------------------------------------------------------+
+|i4 : oo null                                                            |
+|                                                                        |
+|o4 = 12                                                                 |
++------------------------------------------------------------------------+
+|i5 : ooo "3"                                                            |
+|                                                                        |
+|o5 = Parser[../../../../../Macaulay2/packages/Parsing.m2:152:37-152:103]|
+|                                                                        |
+|o5 : Parser                                                             |
++------------------------------------------------------------------------+
+|i6 : oo null                                                            |
+|                                                                        |
+|o6 = 123                                                                |
++------------------------------------------------------------------------+
+|i7 : (NNParser : charAnalyzer) "123456789123456789123456789"            |
+|                                                                        |
+|o7 = 123456789123456789123456789                                        |
++------------------------------------------------------------------------+
+|i8 : class oo                                                           |
+|                                                                        |
+|o8 = ZZ                                                                 |
+|                                                                        |
+|o8 : Ring                                                               |
++------------------------------------------------------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:153:27-153:58: --source code:
+          new Parser from (c -> if digit#?c then f digit#c)
+| symbol  class            value                                             
+| ------  -----            -----                                             
+| f       FunctionClosure  FunctionClosure[../../../../../Macaulay2/packages/
+-------------------------------------------------------------------------------
+       location of symbol
+       ------------------                                        
+Pars.  ../../../../../Macaulay2/packages/Parsing.m2:152:10-152:11
+
+See also
+========
+
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note NNParser: NNParser, is a *note parser: Parser,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:467:0.
+
+File: Parsing.info, Node: ZZParser, Next: QQParser, Prev: NNParser, Up: Parser
+
+ZZParser -- a parser that accepts (and returns) an integer, one character at a time
+***********************************************************************************
+
+Description
+===========
+
++-------------------------------------------+
+|i1 : (ZZParser : charAnalyzer) "123456789" |
+|                                           |
+|o1 = 123456789                             |
++-------------------------------------------+
+|i2 : (ZZParser : charAnalyzer) "-123456789"|
+|                                           |
+|o2 = -123456789                            |
++-------------------------------------------+
+|i3 : class oo                              |
+|                                           |
+|o3 = ZZ                                    |
+|                                           |
+|o3 : Ring                                  |
++-------------------------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:94:50-94:123: --source code:
+Function % Parser := (fun,p) -> new Parser from ( c -> if (p' := p c) =!= null 
+| symbol  class             value                                              
+| ------  -----             -----                                              
+| p       Parser            Parser[../../../../../Macaulay2/packages/Parsing.m2
+| fun     CompiledFunction  times                                              
+-------------------------------------------------------------------------------
+then if c === null then fun p' else fun % p' )
+      location of symbol
+      ------------------                                      
+:12.  ../../../../../Macaulay2/packages/Parsing.m2:94:26-94:27
+      ../../../../../Macaulay2/packages/Parsing.m2:94:22-94:25
+
+See also
+========
+
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note ZZParser: ZZParser, is a *note parser: Parser,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:478:0.
+
+File: Parsing.info, Node: QQParser, Next: optP, Prev: ZZParser, Up: Parser
+
+QQParser -- a parser that accepts (and returns) a rational number, one character at a time
+******************************************************************************************
+
+Description
+===========
+
+The denominator must be present.
+
++-------------------------------------------------+
+|i1 : (QQParser : charAnalyzer) "-123456789/54321"|
+|                                                 |
+|       41152263                                  |
+|o1 = - --------                                  |
+|         18107                                   |
+|                                                 |
+|o1 : QQ                                          |
++-------------------------------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:94:50-94:123: --source 
+Function % Parser := (fun,p) -> new Parser from ( c -> if (p' := p c
+| symbol  class            value                                    
+| ------  -----            -----                                    
+| p       Parser           Parser[../../../../../Macaulay2/packages/
+| fun     FunctionClosure  FunctionClosure[../../../../../Macaulay2/
+-------------------------------------------------------------------------------
+code:
+) =!= null then if c === null then fun p' else fun % p' )
+                location of symbol
+                ------------------                                      
+Parsing.m2:10.  ../../../../../Macaulay2/packages/Parsing.m2:94:26-94:27
+packages/Pars.  ../../../../../Macaulay2/packages/Parsing.m2:94:22-94:25
+
+See also
+========
+
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note QQParser: QQParser, is a *note parser: Parser,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:488:0.
+
+File: Parsing.info, Node: optP, Next: orP, Prev: QQParser, Up: Parser
+
+optP -- making a parser optional
+********************************
+
+  * Usage: 
+        optP p
+  * Inputs:
+      * p, a *note parser: Parser,
+  * Outputs:
+      * a *note parser: Parser,, a parser that accepts tokens accepted by p and
+        returns the value returned by p, or accepts the empty sequence of
+        tokens and returns the symbol nil.  It prefers to do the former.
+
+Description
+===========
+
+After the first token, the parser is no slower than p would have been.
+
++--------------------------------------------------+
+|i1 : (optP constParser "abc" : charAnalyzer) "abc"|
+|                                                  |
+|o1 = abc                                          |
++--------------------------------------------------+
+|i2 : (optP constParser "abc" : charAnalyzer) ""   |
+|                                                  |
+|o2 = nil                                          |
+|                                                  |
+|o2 : Symbol                                       |
++--------------------------------------------------+
+
+See also
+========
+
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note optP: optP, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:502:0.
+
+File: Parsing.info, Node: orP, Next: andP, Prev: optP, Up: Parser
+
+orP -- parsing alternatives
+***************************
+
+  * Usage: 
+        r = orP(p,q,...)
+  * Inputs:
+      * (p,q,...), a sequence of parsers (of type *note Parser: Parser,)
+  * Outputs:
+      * r, a *note parser: Parser,, a parser that accepts any sequence of
+        tokens acceptable to one of the parsers p,q,...
+
+Description
+===========
+
+An abbreviation for orP(p,q) is p|q.
+
+In case of ambiguity, the value returned by the left-most accepting parser is
+provided.
+
+If one of the arguments is a *note string: (Macaulay2Doc)String, then *note
+constParser: constParser, is used to convert it into a parser.
+
+In an efficient grammar, the first token presented to r will be acceptable to
+at most one of the input parsers, and then the parser returned by r will be the
+parser returned by the single accepting input parser.
+
++-----------------------------------------------------------------+
+|i1 : (constParser "abc" | constParser "def" : charAnalyzer) "abc"|
+|                                                                 |
+|o1 = abc                                                         |
++-----------------------------------------------------------------+
+|i2 : (constParser "abc" | constParser "def" : charAnalyzer) "def"|
+|                                                                 |
+|o2 = def                                                         |
++-----------------------------------------------------------------+
+|i3 : (constParser "abc" | "def" : charAnalyzer) "def"            |
+|                                                                 |
+|o3 = def                                                         |
++-----------------------------------------------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:84:19-89:49: --source code:
+Parser | Parser := (p,q) -> new Parser from ( c -> (
+          p' := p c;
+          q' := q c;
+          if p' === null then q'
+          else if q' === null then p'
+          else if c === null then p' else p'|q'))
+
+See also
+========
+
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note orP: orP, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:358:0.
+
+File: Parsing.info, Node: andP, Next: _st Parser, Prev: orP, Up: Parser
+
+andP -- parser conjunction
+**************************
+
+  * Usage: 
+        r = andP(p,q,...)
+  * Inputs:
+      * (p,q,...), a sequence of parsers (of type *note Parser: Parser,)
+  * Outputs:
+      * r, a *note parser: Parser,, a parser that accepts as many tokens as p
+        will accept, then as many as q will accept, and so on.  The return
+        value is the sequence of values returned by each of the input parsers.
+
+Description
+===========
+
+An abbreviation for andP(p,q) is p@q.
+
+If one of the arguments is a *note string: (Macaulay2Doc)String, then *note
+constParser: constParser, is used to convert it into a parser.
+
++--------------------------------------------------------------------+
+|i1 : (constParser "abc" @ constParser "def" : charAnalyzer) "abcdef"|
+|                                                                    |
+|o1 = (abc, def)                                                     |
+|                                                                    |
+|o1 : Sequence                                                       |
++--------------------------------------------------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:120:19-128:12: --source code:
+Parser @ Parser := (p,q) -> new Parser from (
+     c -> (
+          if c =!= null then (
+               if (p' := p c) =!= null 
+               then p' @ q 
+               else if (val1 := p null) =!= null then if (q' := q c) =!= null
+               )
+          else if (val1 = p null) =!= null and (val2 := q null) =!= null then
+          ))
+-------------------------------------------------------------------------------
+then (val2 -> (val1,val2)) % q'
+
+(val1,val2)
+
+See also
+========
+
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+For the programmer
+==================
+
+The object *note andP: andP, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:377:0.
+
+File: Parsing.info, Node: _st Parser, Next: + Parser, Prev: andP, Up: Parser
+
+* Parser -- repetition of a parser
+**********************************
+
+  * Operator: *note *: (Macaulay2Doc)_st,
+  * Usage: 
+        *p
+  * Inputs:
+      * p, a *note parser: Parser,
+  * Outputs:
+      * a *note parser: Parser,, a parser that will feed its tokens through p,
+        and then when further tokens are not accepted, it will start over with
+        a fresh copy of p.  The value returned is the sequence of values
+        returned by each instance of p.
+
+Description
+===========
+
++-----------------------------------------------------+
+|i1 : (* constParser "abc" : charAnalyzer) "abcabcabc"|
+|                                                     |
+|o1 = (abc, abc, abc)                                 |
+|                                                     |
+|o1 : Sequence                                        |
++-----------------------------------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:130:11-142:12
+*Parser := p -> (
+     f := (vals,current) -> new Parser from (c -> (
+               if c === null then (
+                    if current === null then vals
+                    else if (val := current null) =!= null
+                    )
+               else (
+                    if current === null then (f(vals,p)) c
+                    else (
+                         q := current c;
+                         if q =!= null then return f(vals,
+                         if (val = current null) =!= null 
+     ) ((),)
+-------------------------------------------------------------------------------
+: --source code:
+
+
+
+
+ then append(vals,val)
+
+
+
+
+
+q);
+then (f(append(vals,val),)) c))))
+
+See also
+========
+
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+Ways to use this method:
+========================
+
+  * *note * Parser: _st Parser, -- repetition of a parser
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:406:0.
+
+File: Parsing.info, Node: + Parser, Next: Function % Parser, Prev: _st Parser, Up: Parser
+
++ Parser -- repetition of a parser at least once
+************************************************
+
+  * Operator: *note +: (Macaulay2Doc)+,
+  * Usage: 
+        +p
+  * Inputs:
+      * p, a *note parser: Parser,
+  * Outputs:
+      * a *note parser: Parser,, a parser that will feed its tokens through p,
+        and then when further tokens are not accepted, it will start over with
+        a fresh copy of p.  The value returned is the sequence of values
+        returned by each instance of p.
+
+Description
+===========
+
++-----------------------------------------------------+
+|i1 : (+ constParser "abc" : charAnalyzer) "abcabcabc"|
+|                                                     |
+|o1 = (abc, abc, abc)                                 |
+|                                                     |
+|o1 : Sequence                                        |
++-----------------------------------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:144:11-144:32: --source code:
++Parser := p -> prepend % p @ *p
+
+See also
+========
+
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+Ways to use this method:
+========================
+
+  * *note + Parser: + Parser, -- repetition of a parser at least once
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:420:0.
+
+File: Parsing.info, Node: Function % Parser, Prev: + Parser, Up: Parser
+
+Function % Parser -- transform the value returned by a parser
+*************************************************************
+
+  * Operator: *note %: (Macaulay2Doc)%,
+  * Usage: 
+        f % p
+  * Inputs:
+      * f, a *note function: (Macaulay2Doc)Function,
+      * p, a *note parser: Parser,
+  * Outputs:
+      * a *note parser: Parser,, a parser that feeds its tokens to p and
+        filters the value returned by p through f
+
+Description
+===========
+
++-----------------------------------------------------------------------------+
+|i1 : (* constParser "abc" : charAnalyzer) "abcabcabc"                        |
+|                                                                             |
+|o1 = (abc, abc, abc)                                                         |
+|                                                                             |
+|o1 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+|i2 : (concatenate % * constParser "abc" : charAnalyzer) "abcabcabc"          |
+|                                                                             |
+|o2 = abcabcabc                                                               |
++-----------------------------------------------------------------------------+
+|i3 : (constParser "abc" : charAnalyzer) "abc"                                |
+|                                                                             |
+|o3 = abc                                                                     |
++-----------------------------------------------------------------------------+
+|i4 : ((s -> concatenate("[",s,"]")) % constParser "abc" : charAnalyzer) "abc"|
+|                                                                             |
+|o4 = [abc]                                                                   |
++-----------------------------------------------------------------------------+
+
+Code
+====
+
+../../../../../Macaulay2/packages/Parsing.m2:94:21-94:125: --source code:
+Function % Parser := (fun,p) -> new Parser from ( c -> if (p' := p c) =!= null
+-------------------------------------------------------------------------------
+then if c === null then fun p' else fun % p' )
+
+See also
+========
+
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+Ways to use this method:
+========================
+
+  * *note Function % Parser: Function % Parser, -- transform the value returned
+    by a parser
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:392:0.
+
+File: Parsing.info, Node: Parser _co Analyzer, Prev: Parser, Up: Top
+
+Parser : Analyzer -- combine a parser with a lexical analyzer to make a complete system
+***************************************************************************************
+
+  * Operator: *note _colon_: (Macaulay2Doc)_co,
+  * Usage: 
+        m = p : a
+  * Inputs:
+      * p, a *note parser: Parser,
+      * a, a *note lexical analyzer: Analyzer,
+  * Outputs:
+      * m, a *note function: (Macaulay2Doc)Function,, a function that will
+        provide its argument to a for lexical analysis and will send the
+        resulting stream of tokens through p for parsing.  Appropriate error
+        messages are printed as necessary.
+
+Description
+===========
+
++---------------------------------------------+
+|i1 : (ZZParser : charAnalyzer) "123456789"   |
+|                                             |
+|o1 = 123456789                               |
++---------------------------------------------+
+|i2 : (constParser "abc" : charAnalyzer) "abc"|
+|                                             |
+|o2 = abc                                     |
++---------------------------------------------+
+
+See also
+========
+
+  * *note ZZParser: ZZParser, -- a parser that accepts (and returns) an
+    integer, one character at a time
+  * *note constParser: constParser, -- produce a parser that accepts a fixed
+    string, one character at a time
+  * *note charAnalyzer: charAnalyzer, -- a lexical analyzer that provides
+    characters from a string one at a time
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+
+Ways to use this method:
+========================
+
+  * *note Parser _colon_ Analyzer: Parser _co Analyzer, -- combine a parser
+    with a lexical analyzer to make a complete system
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:260:0.
+
+File: Parsing.info, Node: nil, Prev: Top, Up: Top
+
+nil -- a symbol a parser may return to indicate acceptance of the empty string of tokens
+****************************************************************************************
+
+See also
+========
+
+  * *note nullParser: nullParser, -- a terminal parser that returns the value
+    nil
+
+For the programmer
+==================
+
+The object *note nil: nil, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Parsing.m2:278:0.
+
+Tag Table:
+Node: Top253
+Node: Analyzer5526
+Node: charAnalyzer7565
+Node: nonspaceAnalyzer9665
+Node: Parser12029
+Node: deadParser16425
+Node: terminalParser17293
+Node: nullParser18510
+Node: futureParser19539
+Node: letterParser21166
+Node: constParser22289
+Node: optionalSignParser25861
+Node: NNParser28541
+Node: ZZParser33039
+Node: QQParser35338
+Node: optP37456
+Node: orP39235
+Node: andP41959
+Node: _st Parser44241
+Node: + Parser46584
+Node: Function % Parser48343
+Node: Parser _co Analyzer51344
+Node: nil53308
+
+End Tag Table

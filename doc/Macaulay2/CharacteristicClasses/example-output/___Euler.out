@@ -1,0 +1,182 @@
+-- -*- M2-comint -*- hash: 8467477095572592350
+
+i1 : kk=ZZ/32749;
+
+i2 : R=kk[x_0..x_4]
+
+o2 = R
+
+o2 : PolynomialRing
+
+i3 : I=ideal(random(1,R),random(2,R))
+
+                                                              2             
+o3 = ideal (107x  + 4376x  - 6316x  + 3187x  + 3783x , - 6053x  + 8570x x  +
+                0        1        2        3        4         0        0 1  
+     ------------------------------------------------------------------------
+           2                               2                                 
+     10359x  - 16090x x  - 8210x x  + 5071x  + 8444x x  - 8997x x  - 6949x x 
+           1         0 2        1 2        2        0 3        1 3        2 3
+     ------------------------------------------------------------------------
+             2                                                        2
+     - 14254x  - 11226x x  + 2653x x  + 12365x x  - 10226x x  - 12696x )
+             3         0 4        1 4         2 4         3 4         4
+
+o3 : Ideal of R
+
+i4 : time Euler(I,InputIsSmooth=>true)
+ -- used 0.0514818s (cpu); 0.0513392s (thread); 0s (gc)
+
+o4 = 4
+
+i5 : time Euler I
+ -- used 0.228128s (cpu); 0.181187s (thread); 0s (gc)
+
+o5 = 4
+
+i6 : EulerIHash=Euler(I,Output=>HashForm);
+
+i7 : A=ring EulerIHash#"CSM"
+
+o7 = A
+
+o7 : QuotientRing
+
+i8 : EulerIHash#{0,1}==CSM(A,ideal(I_0*I_1))
+
+o8 = true
+
+i9 : J=I+ideal(x_0*x_2-x_3*x_0)
+
+                                                              2             
+o9 = ideal (107x  + 4376x  - 6316x  + 3187x  + 3783x , - 6053x  + 8570x x  +
+                0        1        2        3        4         0        0 1  
+     ------------------------------------------------------------------------
+           2                               2                                 
+     10359x  - 16090x x  - 8210x x  + 5071x  + 8444x x  - 8997x x  - 6949x x 
+           1         0 2        1 2        2        0 3        1 3        2 3
+     ------------------------------------------------------------------------
+             2                                                        2
+     - 14254x  - 11226x x  + 2653x x  + 12365x x  - 10226x x  - 12696x , x x 
+             3         0 4        1 4         2 4         3 4         4   0 2
+     ------------------------------------------------------------------------
+     - x x )
+        0 3
+
+o9 : Ideal of R
+
+i10 : time Euler(J,Method=>DirectCompleteInt)
+ -- used 0.0981438s (cpu); 0.0967532s (thread); 0s (gc)
+
+o10 = 2
+
+i11 : time Euler(J,Method=>DirectCompleteInt,IndsOfSmooth=>{0,1})
+ -- used 0.0776602s (cpu); 0.0772545s (thread); 0s (gc)
+
+o11 = 2
+
+i12 : R=MultiProjCoordRing({2,2})
+
+o12 = R
+
+o12 : PolynomialRing
+
+i13 : r=gens R
+
+o13 = {x , x , x , x , x , x }
+        0   1   2   3   4   5
+
+o13 : List
+
+i14 : K=ideal(r_0^2*r_3-r_4*r_1*r_2,r_2^2*r_5)
+
+              2              2
+o14 = ideal (x x  - x x x , x x )
+              0 3    1 2 4   2 5
+
+o14 : Ideal of R
+
+i15 : EulerK=Euler(K)
+
+o15 = 7
+
+i16 : csmK= CSM(K)
+
+        2 2     2         2    2            2
+o16 = 7h h  + 5h h  + 4h h  + h  + 3h h  + h
+        1 2     1 2     1 2    1     1 2    2
+
+      ZZ[h ..h ]
+          1   2
+o16 : ----------
+         3   3
+       (h , h )
+         1   2
+
+i17 : EulerK==Euler(csmK)
+
+o17 = true
+
+i18 : needsPackage "NormalToricVarieties"
+
+o18 = NormalToricVarieties
+
+o18 : Package
+
+i19 : Rho = {{1,0,0},{0,1,0},{0,0,1},{-1,-1,0},{0,0,-1}}
+
+o19 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, -1, 0}, {0, 0, -1}}
+
+o19 : List
+
+i20 : Sigma = {{0,1,2},{1,2,3},{0,2,3},{0,1,4},{1,3,4},{0,3,4}}
+
+o20 = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 3, 4}}
+
+o20 : List
+
+i21 : X = normalToricVariety(Rho,Sigma,CoefficientRing =>ZZ/32749)
+
+o21 = X
+
+o21 : NormalToricVariety
+
+i22 : CheckToricVarietyValid(X)
+
+o22 = true
+
+i23 : R=ring(X)
+
+o23 = R
+
+o23 : PolynomialRing
+
+i24 : I=ideal(R_0^4*R_1,R_0*R_3*R_4*R_2-R_2^2*R_0^2)
+
+              4       2 2
+o24 = ideal (x x , - x x  + x x x x )
+              0 1     0 2    0 2 3 4
+
+o24 : Ideal of R
+
+i25 : csmI=CSM(X,I)
+
+        2       2
+o25 = 5x x  + 3x  + 4x x  + x
+        3 4     3     3 4    3
+
+                      ZZ[x ..x ]
+                          0   4
+o25 : -----------------------------------------
+      (x x , x x x , x  - x , x  - x , x  - x )
+        2 4   0 1 3   0    3   1    3   2    4
+
+i26 : EulerI=Euler(X,I)
+
+o26 = 5
+
+i27 : Euler(csmI)==EulerI
+
+o27 = true
+
+i28 : 

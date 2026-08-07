@@ -1,0 +1,339 @@
+ -*- coding: utf-8 -*- This is StatePolytope.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* StatePolytope: (StatePolytope).  the state polytope of an ideal
+END-INFO-DIR-ENTRY
+
+
+File: StatePolytope.info, Node: Top, Next: initialIdeals, Up: (dir)
+
+StatePolytope -- computes state polytopes of ideals
+***************************************************
+
+Description
+===========
+
+StatePolytope computes state polytopes of ideals using the programs gfan, M2,
+                                                                             
+and polymake.  Specifically, it computes State (I) or State(I) as defined in
+                                              m
+Sturmfels's book Groebner bases and convex polytopes, page 14.  There is also a
+function for testing GIT stability of an ideal in a polynomial ring with
+respect to action of the maximal torus scaling the variables.
+
+
+We assume that the user has gfan version 0.3 or higher on his or her system.
+The default assumption is that the command to run gfan is gfan, but this can be
+changed in the package configuration if necessary.  The user also needs
+polymake version 2.3-1 or higher installed on his or her system, and it must be
+run by this command.   Finally, the user is responsible for making sure the
+ideal of study is supported by gfan.  In version 0.3 this means the ideal must
+be in a polynomial ring over QQ or ZZ/p with p < 32749, and no variable's name
+should be a substring of another's.
+
+Author
+======
+
+  * Dave Swinarski <swinarsk@math.columbia.edu>
+
+Version
+=======
+
+This documentation describes version 1.2 of StatePolytope, released October 6,
+2008.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{StatePolytopeSource,                                                  |
+|  title = {{StatePolytope: the state polytope of an ideal. Version~1.2}},   |
+|  author = {Dave Swinarski},                                                |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note initialIdeals: initialIdeals, -- calls gfan and returns the list
+        of initial ideals
+      * *note isStable: isStable, -- determines whether the mth Hilbert point
+        of I is GIT stable
+      * *note polymakeStatePolytope: polymakeStatePolytope, -- computes state
+        polytopes of ideals
+  * Methods
+      * "initialIdeals(Ideal)" -- see *note initialIdeals: initialIdeals, --
+        calls gfan and returns the list of initial ideals
+      * "isStable(ZZ,Ideal)" -- see *note isStable: isStable, -- determines
+        whether the mth Hilbert point of I is GIT stable
+      * *note polymakeStatePolytope(Ideal): polymakeStatePolytope_lpIdeal_rp,
+        -- computes the state polytope of an ideal
+      * *note polymakeStatePolytope(ZZ,Ideal):
+        polymakeStatePolytope_lpZZ_cmIdeal_rp, -- computes the mth state
+        polytope of an ideal
+
+For the programmer
+==================
+
+The object *note StatePolytope: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in StatePolytope.m2, with auxiliary files in
+StatePolytope/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in StatePolytope.m2:117:0.
+
+File: StatePolytope.info, Node: initialIdeals, Next: isStable, Prev: Top, Up: Top
+
+initialIdeals -- calls gfan and returns the list of initial ideals
+******************************************************************
+
+  * Usage: 
+        initialIdeals(I)
+  * Inputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, the ideal
+  * Outputs:
+      * the list of initial ideals of I.  Note that each initial ideal is given
+        as a list of monomial generators in ring(I), not as a monomial ideal.
+
+Description
+===========
+
+Given an ideal I in M2, this function calls gfan and returns the list of
+initial ideals of I.
++-----------------------------------+
+|i1 : R = QQ[a,b];                  |
++-----------------------------------+
+|i2 : I = ideal(a^2+b^2,a*b);       |
+|                                   |
+|o2 : Ideal of R                    |
++-----------------------------------+
+|i3 : initialIdeals(I)              |
+|                                   |
+|             2   3          2   3  |
+|o3 = {{a*b, a , b }, {a*b, b , a }}|
+|                                   |
+|o3 : List                          |
++-----------------------------------+
+
+Ways to use initialIdeals:
+==========================
+
+  * "initialIdeals(Ideal)"
+
+For the programmer
+==================
+
+The object *note initialIdeals: initialIdeals, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in StatePolytope.m2:140:0.
+
+File: StatePolytope.info, Node: isStable, Next: polymakeStatePolytope, Prev: initialIdeals, Up: Top
+
+isStable -- determines whether the mth Hilbert point of I is GIT stable
+***********************************************************************
+
+  * Usage: 
+        isStable(3,I)
+  * Inputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, specifies which Hilbert point to
+        test
+      * an *note ideal: (Macaulay2Doc)Ideal,, the ideal
+
+Description
+===========
+
+Bayer and Morrison showed that GIT stability of the mth Hilbert point of I with
+                                                                               
+respect to the maximal torus acting on a polynomial ring by scaling the
+                                                                       
+variables can be tested by whether State (I) contains a certain point.
+                                        m
++----------------------------------------+
+|i1 : R = QQ[a..d];                      |
++----------------------------------------+
+|i2 : I = ideal(a*c-b^2,a*d-b*c,b*d-c^2);|
+|                                        |
+|o2 : Ideal of R                         |
++----------------------------------------+
+|i3 : isStable(3,I)                      |
+|                                        |
+|o3 = true                               |
++----------------------------------------+
+|i4 : I = ideal(a^2,b^2,b*c);            |
+|                                        |
+|o4 : Ideal of R                         |
++----------------------------------------+
+|i5 : isStable(3,I)                      |
+|                                        |
+|o5 = false                              |
++----------------------------------------+
+
+Ways to use isStable:
+=====================
+
+  * "isStable(ZZ,Ideal)"
+
+For the programmer
+==================
+
+The object *note isStable: isStable, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in StatePolytope.m2:240:0.
+
+File: StatePolytope.info, Node: polymakeStatePolytope, Next: polymakeStatePolytope_lpIdeal_rp, Prev: isStable, Up: Top
+
+polymakeStatePolytope -- computes state polytopes of ideals
+***********************************************************
+
+Description
+===========
+
+Computes State (I) or State(I), as defined in Sturmfels's book Groebner bases
+              m
+and convex polytopes, page 14.
+
+Ways to use polymakeStatePolytope:
+==================================
+
+  * *note polymakeStatePolytope(Ideal): polymakeStatePolytope_lpIdeal_rp, --
+    computes the state polytope of an ideal
+  * *note polymakeStatePolytope(ZZ,Ideal):
+    polymakeStatePolytope_lpZZ_cmIdeal_rp, -- computes the mth state polytope
+    of an ideal
+
+For the programmer
+==================
+
+The object *note polymakeStatePolytope: polymakeStatePolytope, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in StatePolytope.m2:155:0.
+
+File: StatePolytope.info, Node: polymakeStatePolytope_lpIdeal_rp, Next: polymakeStatePolytope_lpZZ_cmIdeal_rp, Prev: polymakeStatePolytope, Up: Top
+
+polymakeStatePolytope(Ideal) -- computes the state polytope of an ideal
+***********************************************************************
+
+  * Function: *note polymakeStatePolytope: polymakeStatePolytope,
+  * Usage: 
+        statePolytope(I)
+  * Inputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, the ideal
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, the list of vertices of the state
+        polytope
+
+Description
+===========
+
+See Sturmfels's book Groebner bases and convex polytopes, page 14 for the
+                                                                         
+definition of State(I).  (The difference between this and State (I) is that for
+                                                               m               
+all sufficiently large m, State (I) does not distinguish between initial ideals
+                               m
+which have the same saturation with regard to the irrelevant ideal, whereas in
+State(I), these are separated.)
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[a..d];                                                           |
++-----------------------------------------------------------------------------+
+|i2 : I = ideal(a*c-b^2,a*d-b*c,b*d-c^2);                                     |
+|                                                                             |
+|o2 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i3 : polymakeStatePolytope(I)                                                |
+|                                                                             |
+|o3 = {{11, 7, 7, 11}, {7, 15, 3, 11}, {4, 18, 6, 8}, {3, 18, 9, 6}, {11, 3,  |
+|     ------------------------------------------------------------------------|
+|     15, 7}, {8, 6, 18, 4}, {6, 9, 18, 3}, {3, 15, 15, 3}}                   |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note polymakeStatePolytope(Ideal): polymakeStatePolytope_lpIdeal_rp, --
+    computes the state polytope of an ideal
+-------------------------------------------------------------------------------
+
+The source of this document is in StatePolytope.m2:180:0.
+
+File: StatePolytope.info, Node: polymakeStatePolytope_lpZZ_cmIdeal_rp, Prev: polymakeStatePolytope_lpIdeal_rp, Up: Top
+
+polymakeStatePolytope(ZZ,Ideal) -- computes the mth state polytope of an ideal
+******************************************************************************
+
+  * Function: *note polymakeStatePolytope: polymakeStatePolytope,
+  * Usage: 
+        statePolytope(m,I)
+  * Inputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, specifies to compute the mth state
+        polytope
+      * an *note ideal: (Macaulay2Doc)Ideal,, the ideal
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, the list of vertices of the state
+        polytope
+
+Description
+===========
+
+See Sturmfels's book Groebner bases and convex polytopes, page 14 for the
+                                                                         
+definition of State (I).  (The difference between this and State(I) is that for
+                   m                                                           
+all sufficiently large m, State (I) does not distinguish between initial ideals
+                               m
+which have the same saturation with regard to the irrelevant ideal, whereas in
+State(I), these are separated.)
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[a..d];                                                           |
++-----------------------------------------------------------------------------+
+|i2 : I = ideal(a*c-b^2,a*d-b*c,b*d-c^2);                                     |
+|                                                                             |
+|o2 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i3 : polymakeStatePolytope(3,I)                                              |
+|                                                                             |
+|o3 = {{9, 6, 6, 9}, {6, 12, 3, 9}, {4, 14, 5, 7}, {3, 14, 8, 5}, {9, 3, 12,  |
+|     ------------------------------------------------------------------------|
+|     6}, {7, 5, 14, 4}, {5, 8, 14, 3}, {3, 12, 12, 3}}                       |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note polymakeStatePolytope(ZZ,Ideal):
+    polymakeStatePolytope_lpZZ_cmIdeal_rp, -- computes the mth state polytope
+    of an ideal
+-------------------------------------------------------------------------------
+
+The source of this document is in StatePolytope.m2:206:0.
+
+Tag Table:
+Node: Top242
+Node: initialIdeals3743
+Node: isStable5260
+Node: polymakeStatePolytope7308
+Node: polymakeStatePolytope_lpIdeal_rp8333
+Node: polymakeStatePolytope_lpZZ_cmIdeal_rp10977
+
+End Tag Table

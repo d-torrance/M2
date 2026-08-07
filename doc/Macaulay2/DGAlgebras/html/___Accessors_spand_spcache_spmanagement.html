@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Accessors and cache management -- Reading state out of a DG algebra or DG module and maintaining its caches</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Data type for DG algebras" href="index.html">DGAlgebras</a> » <a title="Reading state out of a DG algebra or DG module and maintaining its caches" href="___Accessors_spand_spcache_spmanagement.html">Accessors and cache management</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___D__G_spmodule_spprimitives_spand_spchain-complex_spexport.html">next</a> | <a href="___Low-level_spdifferential_spcomputations_spand_spvalidity_spchecks.html">previous</a> | <a href="_underlying__Ring.html">forward</a> | <a href="_get__Boundary__Preimage_lp__D__G__Module_cm__List_rp.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Accessors and cache management -- Reading state out of a DG algebra or DG module and maintaining its caches</h1>
+      <div>
+        <div>
+          <p>A <a title="The class of all DGAlgebras" href="___D__G__Algebra.html">DGAlgebra</a> or <a title="The class of DG modules over a DG algebra" href="___D__G__Module.html">DGModule</a> stores its defining data in a small collection of keys -- the base ring, the graded-commutative algebra, the generator degrees, and the list of generator differentials -- together with a cache of derived information (per-degree differential matrices, homology, the homology algebra, a <a title="the class of all chain complexes" href="../../Complexes/html/___Complex.html">Complex</a> presentation).  This page collects the two groups of utilities that manage that state.</p>
+          <p>The first group -- <a title="The commutative base ring of a DG algebra or DG module" href="_underlying__Ring.html">underlyingRing</a>, <a title="The graded-commutative algebra carrying the DG structure" href="_underlying__Algebra.html">underlyingAlgebra</a>, <a title="The list of generator differentials stored in a DG algebra or DG module" href="_differential.html">differential</a>, and <a title="The hom-degrees (and optional internal degrees) of the DG generators" href="_generator__Degrees.html">generatorDegrees</a> -- returns the four defining ingredients.  Because both DG algebras and DG modules carry the same names, code can remain agnostic about which one it is handling.</p>
+          <p>The second group -- <a title="Guarantee that the standard cache sub-tables are present" href="_ensure__D__G__Algebra__Caches.html">ensureDGAlgebraCaches</a> and <a title="Discard cached derived data so that it is recomputed from scratch" href="_invalidate__D__G__Algebra__Cache.html">invalidateDGAlgebraCache</a> -- maintains the cache sub-tables.  <span class="tt">ensureDGAlgebraCaches</span> is idempotent and guarantees that the standard cache keys are present with the expected types; <a title="Discard cached derived data so that it is recomputed from scratch" href="_invalidate__D__G__Algebra__Cache.html">invalidateDGAlgebraCache</a> wipes every cached computed value so that the next call recomputes from scratch.  Routines such as <a title="Install or replace the differential on a DG algebra" href="_set__Diff.html">setDiff</a> that mutate the differential call <a title="Discard cached derived data so that it is recomputed from scratch" href="_invalidate__D__G__Algebra__Cache.html">invalidateDGAlgebraCache</a> internally so that stale homology and stale differential matrices are never served.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Outlines some basic operations on DG Algebras" href="___Basic_spoperations_spon_sp__D__G_sp__Algebras.html">Basic operations on DG Algebras</a> -- Outlines some basic operations on DG Algebras</span></li>
+          <li><span><a title="The DGModule / DGSubmodule / DGQuotientModule hierarchy and its constructors" href="___Building_sp__D__G_spmodules_cm_spsubmodules_cm_spand_spquotients.html">Building DG modules, submodules, and quotients</a> -- The DGModule / DGSubmodule / DGQuotientModule hierarchy and its constructors</span></li>
+          <li><span><a title="Primitives behind DG algebra and DG module differentials" href="___Low-level_spdifferential_spcomputations_spand_spvalidity_spchecks.html">Low-level differential computations and validity checks</a> -- Primitives behind DG algebra and DG module differentials</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="The commutative base ring of a DG algebra or DG module" href="_underlying__Ring.html">underlyingRing</a> -- The commutative base ring of a DG algebra or DG module</span></li>
+          <li><span><a title="The graded-commutative algebra carrying the DG structure" href="_underlying__Algebra.html">underlyingAlgebra</a> -- The graded-commutative algebra carrying the DG structure</span></li>
+          <li><span><a title="The list of generator differentials stored in a DG algebra or DG module" href="_differential.html">differential</a> -- The list of generator differentials stored in a DG algebra or DG module</span></li>
+          <li><span><a title="The hom-degrees (and optional internal degrees) of the DG generators" href="_generator__Degrees.html">generatorDegrees</a> -- The hom-degrees (and optional internal degrees) of the DG generators</span></li>
+          <li><span><a title="Guarantee that the standard cache sub-tables are present" href="_ensure__D__G__Algebra__Caches.html">ensureDGAlgebraCaches</a> -- Guarantee that the standard cache sub-tables are present</span></li>
+          <li><span><a title="Discard cached derived data so that it is recomputed from scratch" href="_invalidate__D__G__Algebra__Cache.html">invalidateDGAlgebraCache</a> -- Discard cached derived data so that it is recomputed from scratch</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">DGAlgebras/doc.m2:7253:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

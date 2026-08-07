@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>combine -- combine hash tables</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="index.html">Documentation </a> <br><a href="_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> » <a href="___The_sp__Macaulay2_splanguage.html">The Macaulay2 language</a> » <a href="_hash_sptables.html">hash tables</a> » <a title="combine hash tables" href="_combine.html">combine</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_override.html">next</a> | <a href="_merge.html">previous</a> | <a href="_override.html">forward</a> | <a href="_merge.html">backward</a> | <a href="_hash_sptables.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>combine -- combine hash tables</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">z = combine(x,y,f,g,h) or z=combine(x,y,f,t,g,h)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">x</span>, a hash table</span></li>
+            <li><span><span class="tt">y</span>, a hash table of the same class as <span class="tt">x</span></span></li>
+            <li><span><span class="tt">f</span>, a function of two variables to be used for combining a key of <span class="tt">x</span> with a key of <span class="tt">y</span> to make a new key for <span class="tt">z</span>.</span></li>
+            <li><span><span class="tt">t</span>, a function combining two keys and returning a value, twisting the value returned by <span class="tt">g</span> based on which keys were used. This argument may be omitted, in which case the <span class="tt">t(p,q)</span> term in the output below is omitted.</span></li>
+            <li><span><span class="tt">g</span>, a function of two variables to be used for combining a value of <span class="tt">x</span> with a value of <span class="tt">y</span> to make a new value for <span class="tt">z</span>.</span></li>
+            <li><span><span class="tt">h</span>, a function of two variables to be used for combining two values returned by <span class="tt">g</span> when the corresponding keys returned by <span class="tt">f</span> turn out to be equal.  Its first argument will be the value accumulated so far, and its second argument will be a value just provided by <span class="tt">g</span>.</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span class="tt">z</span>, a new hash table, of the same class as <span class="tt">x</span> and <span class="tt">y</span>, containing the pair <span class="tt">f(p,q) => g(t(p,q),g(b,c))</span> whenever <span class="tt">x</span> contains the pair <span class="tt">p => b</span> and <span class="tt">y</span> contains the pair <span class="tt">q => c</span>, except that <span class="tt">h</span> is used to combine values when two keys coincide.  If <span class="tt">f</span> or <span class="tt">g</span> evaluates <a title="continue with the next iteration of a loop" href="_continue.html">continue</a>, then nothing is contributed to the resulting hash table.  If <span class="tt">h</span> evaluates <a title="continue with the next iteration of a loop" href="_continue.html">continue</a>, then, at that point, the entry stored under the key <span class="tt">f(p,q)</span> in the hash table under construction is removed.</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+The function <span class="tt">f</span> is applied to every pair <span class="tt">(p,q)</span> where <span class="tt">p</span> is a key of <span class="tt">x</span> and <span class="tt">q</span> is a key of <span class="tt">y</span>.  The number of times <span class="tt">f</span> is evaluated is thus the product of the number of keys in <span class="tt">x</span> and the number of keys in <span class="tt">y</span>.        <p></p>
+The function <span class="tt">h</span> should be an associative function, for otherwise the result may depend on internal details about the implementation of hash tables that affect the order in which entries are encountered.  If <span class="tt">f</span>, <span class="tt">t</span> (if present), <span class="tt">g</span>, and <span class="tt">h</span> are commutative functions as well, then the result <span class="tt">z</span> is a commutative function of <span class="tt">x</span> and <span class="tt">y</span>.        <p></p>
+The result is mutable if and only if <span class="tt">x</span> or <span class="tt">y</span> is.        <p></p>
+This function can be used for multiplying polynomials, where it can be used in code something like this:        <pre>     combine(x, y, monomialTimes, coeffTimes, coeffPlus)</pre>
+We illustrate that with a simple-minded implementation of the free ring on the English alphabet, representing words as string and polynomials as hash tables that associate coefficients to words.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : Poly = new Type of HashTable
+
+o1 = Poly
+
+o1 : Type</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : p = new Poly from { &quot;&quot; => 1, &quot;x&quot; => 2, &quot;y&quot; => 3, &quot;cat&quot; => 5 }
+
+o2 = Poly{&quot;&quot; => 1   }
+          &quot;cat&quot; => 5
+          &quot;x&quot; => 2
+          &quot;y&quot; => 3
+
+o2 : Poly</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : Poly * Poly := (p,q) -> combine(p,q,concatenate,times,plus);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : p*p
+
+o4 = Poly{&quot;&quot; => 1       }
+          &quot;cat&quot; => 10
+          &quot;catcat&quot; => 25
+          &quot;catx&quot; => 10
+          &quot;caty&quot; => 15
+          &quot;x&quot; => 4
+          &quot;xcat&quot; => 10
+          &quot;xx&quot; => 4
+          &quot;xy&quot; => 6
+          &quot;y&quot; => 6
+          &quot;ycat&quot; => 15
+          &quot;yx&quot; => 6
+          &quot;yy&quot; => 9
+
+o4 : Poly</code></pre>
+            </td>
+          </tr>
+        </table>
+One may also use this function for multiplying divided powers in a similar manner:        <pre>     combine(x, y, monomialTimes, divPowCoeff, coeffTimes, coeffPlus)</pre>
+For example:        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : DivPowPoly = new Type of HashTable
+
+o5 = DivPowPoly
+
+o5 : Type</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : divPowCoeff = (i,j) -> binomial(i+j,i)
+
+o6 = divPowCoeff
+
+o6 : FunctionClosure</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : p = new DivPowPoly from { 0 => 1, 1 => 1 }
+
+o7 = DivPowPoly{0 => 1}
+                1 => 1
+
+o7 : DivPowPoly</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : DivPowPoly * DivPowPoly := (p,q) -> combine(p,q,plus,divPowCoeff,times,plus);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : p*p
+
+o9 = DivPowPoly{0 => 1}
+                1 => 2
+                2 => 2
+
+o9 : DivPowPoly</code></pre>
+            </td>
+          </tr>
+        </table>
+        <p></p>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="merge two hash tables" href="_merge.html">merge</a> -- merge two hash tables</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="combine hash tables" href="_combine.html">combine</a> is <span>a <a title="the class of all compiled functions" href="___Compiled__Function.html">compiled function</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Macaulay2Doc/functions/combine-doc.m2:75:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

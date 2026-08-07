@@ -1,0 +1,776 @@
+ -*- coding: utf-8 -*- This is PushForward.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* PushForward: (PushForward).   push forwards of finite ring maps
+END-INFO-DIR-ENTRY
+
+
+File: PushForward.info, Node: Top, Next: isModuleFinite_lpRingMap_rp, Up: (dir)
+
+PushForward -- methods to compute the pushforward of a module along a ring map
+******************************************************************************
+
+Description
+===========
+
+Given a ring map $f \colon A \to B$, and a $B$-module $M$, $M$ has the
+structure of an $A$-module, and if this module is finitely generated over $A$,
+the routine *note pushFwd: pushFwd, in this package will compute such an
+$A$-module.  This is also functorial, in that if a map of $B$-modules (both of
+which are finitely generated over $A$), then *note pushFwd(RingMap,Matrix):
+pushFwd_lpRingMap_cmMatrix_rp, will return the induced map on $A$-modules.
+
+In an algebraic sense, this is really a pull back, but thinking geometrically,
+the functions here implement the push forward of a module (or sheaf).
+
+This package was originally implemented by Claudiu Raicu, some changes were
+introduced by Karl Schwede, and later by David Eisenbud and Mike Stillman.
+
+* Menu:
+
+* pushFwd(RingMap): pushFwd_lpRingMap_rp.  push forward of a finite ring map
+* pushFwd(RingMap,Module): pushFwd_lpRingMap_cmModule_rp.  push forward of a module via a finite ring map
+* pushFwd(RingMap,Matrix): pushFwd_lpRingMap_cmMatrix_rp.  push forward of a module map via a finite ring map
+
+Authors
+=======
+
+  * Claudiu Raicu (see http://www3.nd.edu/~craicu ) <craicu@nd.edu>
+  * David Eisenbud (see http://www.msri.org/~de ) <de@msri.org>
+  * Mike Stillman (see http://pi.math.cornell.edu/~mike )
+    <mike@math.cornell.edu>
+
+Version
+=======
+
+This documentation describes version 0.6 of PushForward, released May 14, 2021.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{PushForwardSource,                                                    |
+|  title = {{PushForward: push forwards of finite ring maps. Version~0.6}},  |
+|  author = {Claudiu Raicu and David Eisenbud and Mike Stillman},            |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * "isModuleFinite" -- see *note isModuleFinite(RingMap):
+        isModuleFinite_lpRingMap_rp, -- whether the target of a ring map is
+        finitely generated over source
+      * *note pushFwd: pushFwd, -- push forward
+  * Methods
+      * "isModuleFinite(Ring)" -- see *note isModuleFinite(RingMap):
+        isModuleFinite_lpRingMap_rp, -- whether the target of a ring map is
+        finitely generated over source
+      * *note isModuleFinite(RingMap): isModuleFinite_lpRingMap_rp, -- whether
+        the target of a ring map is finitely generated over source
+      * "pushFwd(Ring)" -- see *note pushFwd(RingMap): pushFwd_lpRingMap_rp, --
+        push forward of a finite ring map
+      * *note pushFwd(RingMap): pushFwd_lpRingMap_rp, -- push forward of a
+        finite ring map
+      * "pushFwd(Matrix)" -- see *note pushFwd(RingMap,Matrix):
+        pushFwd_lpRingMap_cmMatrix_rp, -- push forward of a module map via a
+        finite ring map
+      * *note pushFwd(RingMap,Matrix): pushFwd_lpRingMap_cmMatrix_rp, -- push
+        forward of a module map via a finite ring map
+      * "pushFwd(Module)" -- see *note pushFwd(RingMap,Module):
+        pushFwd_lpRingMap_cmModule_rp, -- push forward of a module via a finite
+        ring map
+      * *note pushFwd(RingMap,Module): pushFwd_lpRingMap_cmModule_rp, -- push
+        forward of a module via a finite ring map
+  * Symbols
+      * *note NoPrune: NoPrune, -- NoPrune option for pushFwd
+
+For the programmer
+==================
+
+The object *note PushForward: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in PushForward.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PushForward.m2:304:0.
+
+File: PushForward.info, Node: pushFwd_lpRingMap_rp, Next: pushFwd_lpRingMap_cmModule_rp, Up: Top
+
+pushFwd(RingMap) -- push forward of a finite ring map
+*****************************************************
+
+  * Function: *note pushFwd: pushFwd,
+  * Usage: 
+        pushFwd f
+        pushFwd B
+  * Inputs:
+      * f, a *note ring map: (Macaulay2Doc)RingMap,, or a ring B, and the map
+        is taken to be the natural map from coefficientRing B
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note NoPrune: NoPrune, => ..., default value false, NoPrune option for
+        pushFwd
+  * Outputs:
+      * a *note sequence: (Macaulay2Doc)Sequence,, 
+
+Description
+===========
+
+If $f: A \to B$ is a ring map, and $B$ is finitely generated as an $A$-module,
+then the function returns a sequence $(M, g, pf)$ containing (1) $M \cong B^1$
+as $A$-modules, (2) a 1-row matrix $g$ of elements of B whose entries generate
+B as A-module, (3) a function $pf$ that assigns to each element $b \in B$, a
+matrix $A^1 \to M$, where the image of 1 is the element $b \in M$.
+
++-------------------------------------------------------+
+|i1 : kk = QQ;                                          |
++-------------------------------------------------------+
+|i2 : S = kk[a..d];                                     |
++-------------------------------------------------------+
+|i3 : I = monomialCurveIdeal(S, {1,3,4})                |
+|                                                       |
+|                        3      2     2    2    3    2  |
+|o3 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)|
+|                                                       |
+|o3 : Ideal of S                                        |
++-------------------------------------------------------+
+|i4 : B = S/I                                           |
+|                                                       |
+|o4 = B                                                 |
+|                                                       |
+|o4 : QuotientRing                                      |
++-------------------------------------------------------+
+|i5 : A = kk[a,d];                                      |
++-------------------------------------------------------+
+|i6 : f = map(B,A)                                      |
+|                                                       |
+|o6 = map (B, A, {a, d})                                |
+|                                                       |
+|o6 : RingMap B <-- A                                   |
++-------------------------------------------------------+
+|i7 : (M,g,pf) = pushFwd f;                             |
++-------------------------------------------------------+
+|i8 : M                                                 |
+|                                                       |
+|o8 = cokernel {0} | 0  |                               |
+|              {1} | 0  |                               |
+|              {2} | -d |                               |
+|              {1} | 0  |                               |
+|              {2} | a  |                               |
+|                                                       |
+|                            5                          |
+|o8 : A-module, quotient of A                           |
++-------------------------------------------------------+
+|i9 : g                                                 |
+|                                                       |
+|o9 = | 1 b b2 c c2 |                                   |
+|                                                       |
+|             1      5                                  |
+|o9 : Matrix B  <-- B                                   |
++-------------------------------------------------------+
+|i10 : use B                                            |
+|                                                       |
+|o10 = B                                                |
+|                                                       |
+|o10 : QuotientRing                                     |
++-------------------------------------------------------+
+|i11 : pf(a*b - c^2)                                    |
+|                                                       |
+|o11 = {0} | 0  |                                       |
+|      {1} | a  |                                       |
+|      {2} | 0  |                                       |
+|      {1} | 0  |                                       |
+|      {2} | -1 |                                       |
+|                                                       |
+|                    1                                  |
+|o11 : Matrix M <-- A                                   |
++-------------------------------------------------------+
+
+Caveat
+======
+
+This function is meant to be internally used.
+
+See also
+========
+
+  * *note pushFwd(RingMap,Module): pushFwd_lpRingMap_cmModule_rp, -- push
+    forward of a module via a finite ring map
+  * *note pushFwd(RingMap,Matrix): pushFwd_lpRingMap_cmMatrix_rp, -- push
+    forward of a module map via a finite ring map
+
+Ways to use this method:
+========================
+
+  * "pushFwd(Ring)"
+  * *note pushFwd(RingMap): pushFwd_lpRingMap_rp, -- push forward of a finite
+    ring map
+-------------------------------------------------------------------------------
+
+The source of this document is in PushForward.m2:346:0.
+
+File: PushForward.info, Node: pushFwd_lpRingMap_cmModule_rp, Next: pushFwd_lpRingMap_cmMatrix_rp, Prev: pushFwd_lpRingMap_rp, Up: Top
+
+pushFwd(RingMap,Module) -- push forward of a module via a finite ring map
+*************************************************************************
+
+  * Function: *note pushFwd: pushFwd,
+  * Usage: 
+        N = pushFwd(f, M)
+        N = pushFwd M
+  * Inputs:
+      * f, a *note ring map: (Macaulay2Doc)RingMap,, from a ring $A$ to a ring
+        $B$ or the natural map from coefficientRing B if f not specified
+      * M, a *note module: (Macaulay2Doc)Module,, a $B$-module, which via $f$
+        is a finite $A$-module
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note NoPrune: NoPrune, => ..., default value false, NoPrune option for
+        pushFwd
+  * Outputs:
+      * N, a *note module: (Macaulay2Doc)Module,, 
+
+Description
+===========
+
+Given a (not necessarily finite) ring map $f : A \to B$, the $B$-module $M$ can
+be considered as a module over $A$. If $M$ is finite, this method returns the
+corresponding $A$-module.
+
++--------------------------------+
+|i1 : kk = QQ;                   |
++--------------------------------+
+|i2 : A = kk[t];                 |
++--------------------------------+
+|i3 : B = kk[x,y]/(x*y);         |
++--------------------------------+
+|i4 : use B;                     |
++--------------------------------+
+|i5 : i = ideal(x)               |
+|                                |
+|o5 = ideal x                    |
+|                                |
+|o5 : Ideal of B                 |
++--------------------------------+
+|i6 : f = map(B,A,{x})           |
+|                                |
+|o6 = map (B, A, {x})            |
+|                                |
+|o6 : RingMap B <-- A            |
++--------------------------------+
+|i7 : pushFwd(f,module i)        |
+|                                |
+|      1                         |
+|o7 = A                          |
+|                                |
+|o7 : A-module, free, degrees {1}|
++--------------------------------+
+
+See also
+========
+
+  * *note pushFwd(Matrix): pushFwd_lpRingMap_cmMatrix_rp, -- push forward of a
+    module map via a finite ring map
+
+Ways to use this method:
+========================
+
+  * "pushFwd(Module)"
+  * *note pushFwd(RingMap,Module): pushFwd_lpRingMap_cmModule_rp, -- push
+    forward of a module via a finite ring map
+-------------------------------------------------------------------------------
+
+The source of this document is in PushForward.m2:381:0.
+
+File: PushForward.info, Node: pushFwd_lpRingMap_cmMatrix_rp, Prev: pushFwd_lpRingMap_cmModule_rp, Up: Top
+
+pushFwd(RingMap,Matrix) -- push forward of a module map via a finite ring map
+*****************************************************************************
+
+  * Function: *note pushFwd: pushFwd,
+  * Usage: 
+        gA = pushFwd(f, g)
+        gA = pushFwd g
+  * Inputs:
+      * f, a *note ring map: (Macaulay2Doc)RingMap,, from a ring $A$ to a ring
+        $B$ or (if not specified) the natural map from A = coefficientRing ring
+        g
+      * g, a *note matrix: (Macaulay2Doc)Matrix,, (a matrix), $g : M_1 \to M_2$
+        of modules over $B$
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note NoPrune: NoPrune, => ..., default value false, NoPrune option for
+        pushFwd
+  * Outputs:
+      * gA, a *note matrix: (Macaulay2Doc)Matrix,, 
+
+Description
+===========
+
+If $M_1$ and $M_2$ are both finite generated as $A$-modules, via $f$, this
+returns the induced map on $A$-modules.
+
++-----------------------------------------------------------------------------+
+|i1 : kk = QQ                                                                 |
+|                                                                             |
+|o1 = QQ                                                                      |
+|                                                                             |
+|o1 : Ring                                                                    |
++-----------------------------------------------------------------------------+
+|i2 : A = kk[a,b]                                                             |
+|                                                                             |
+|o2 = A                                                                       |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i3 : B = kk[z,t]                                                             |
+|                                                                             |
+|o3 = B                                                                       |
+|                                                                             |
+|o3 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i4 : f = map(B,A,{z^2,t^2})                                                  |
+|                                                                             |
+|                  2   2                                                      |
+|o4 = map (B, A, {z , t })                                                    |
+|                                                                             |
+|o4 : RingMap B <-- A                                                         |
++-----------------------------------------------------------------------------+
+|i5 : M = B^1/ideal(z^3,t^3)                                                  |
+|                                                                             |
+|o5 = cokernel | z3 t3 |                                                      |
+|                                                                             |
+|                            1                                                |
+|o5 : B-module, quotient of B                                                 |
++-----------------------------------------------------------------------------+
+|i6 : g = map(M,M,matrix{{z*t}})                                              |
+|                                                                             |
+|o6 = | zt |                                                                  |
+|                                                                             |
+|o6 : Matrix M <-- M                                                          |
++-----------------------------------------------------------------------------+
+|i7 : p = pushFwd(f,g)                                                        |
+|                                                                             |
+|o7 = | 0 0 ab 0 |                                                            |
+|     | 0 0 0  b |                                                            |
+|     | 1 0 0  0 |                                                            |
+|     | 0 a 0  0 |                                                            |
+|                                                                             |
+|o7 : Matrix                                                                  |
++-----------------------------------------------------------------------------+
+|i8 : source p == pushFwd(f, source g)                                        |
+|                                                                             |
+|o8 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : target p == pushFwd(f, target g)                                        |
+|                                                                             |
+|o9 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : kerg = pushFwd(f,ker g)                                                |
+|                                                                             |
+|o10 = cokernel | b a  0 0 0 0 0 |                                            |
+|               | 0 -b a 0 0 0 0 |                                            |
+|               | 0 0  0 b a 0 0 |                                            |
+|               | 0 0  0 0 0 b a |                                            |
+|                                                                             |
+|                             4                                               |
+|o10 : A-module, quotient of A                                                |
++-----------------------------------------------------------------------------+
+|i11 : kerp = prune ker p                                                     |
+|                                                                             |
+|o11 = cokernel {1} | b a  0 0 0 0 0 |                                        |
+|               {1} | 0 -b a 0 0 0 0 |                                        |
+|               {1} | 0 0  0 b a 0 0 |                                        |
+|               {1} | 0 0  0 0 0 b a |                                        |
+|                                                                             |
+|                             4                                               |
+|o11 : A-module, quotient of A                                                |
++-----------------------------------------------------------------------------+
+|i12 : k = ZZ/32003                                                           |
+|                                                                             |
+|o12 = k                                                                      |
+|                                                                             |
+|o12 : QuotientRing                                                           |
++-----------------------------------------------------------------------------+
+|i13 : A = k[x,y]/(y^4-2*x^3*y^2-4*x^5*y+x^6-y^7)                             |
+|                                                                             |
+|o13 = A                                                                      |
+|                                                                             |
+|o13 : QuotientRing                                                           |
++-----------------------------------------------------------------------------+
+|i14 : A = k[x,y]/(y^3-x^7)                                                   |
+|                                                                             |
+|o14 = A                                                                      |
+|                                                                             |
+|o14 : QuotientRing                                                           |
++-----------------------------------------------------------------------------+
+|i15 : B = integralClosure(A, Keep =>{})                                      |
+|                                                                             |
+|o15 = B                                                                      |
+|                                                                             |
+|o15 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i16 : describe B                                                             |
+|                                                                             |
+|o16 = k[w   , Degrees => {3}, Heft => {1}, MonomialOrder =>                  |
+|         3,0                                                                 |
+|                                                                             |
+|                                                                             |
+|-----------------------------------------------------------------------------|
+|{MonomialSize => 32}]                                                        |
+|{GRevLex => {3}    }                                                         |
+|{4:(GRevLex => {}) }                                                         |
+|{Position => Up    }                                                         |
++-----------------------------------------------------------------------------+
+|i17 : f = map(B^1, B^1, matrix{{w_(3,0)}})                                   |
+|                                                                             |
+|o17 = | w_(3,0) |                                                            |
+|                                                                             |
+|              1      1                                                       |
+|o17 : Matrix B  <-- B                                                        |
++-----------------------------------------------------------------------------+
+|i18 : g = pushFwd(icMap A, f)                                                |
+|                                                                             |
+|o18 = | 0 0 x |                                                              |
+|      | 1 0 0 |                                                              |
+|      | 0 1 0 |                                                              |
+|                                                                             |
+|o18 : Matrix                                                                 |
++-----------------------------------------------------------------------------+
+|i19 : pushFwd(icMap A, f^2) == g*g                                           |
+|                                                                             |
+|o19 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i20 : A = kk[x]                                                              |
+|                                                                             |
+|o20 = A                                                                      |
+|                                                                             |
+|o20 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i21 : B = A[y, Join => false]/(y^3-x^7)                                      |
+|                                                                             |
+|o21 = B                                                                      |
+|                                                                             |
+|o21 : QuotientRing                                                           |
++-----------------------------------------------------------------------------+
+|i22 : pushFwd B^1                                                            |
+|                                                                             |
+|       3                                                                     |
+|o22 = A                                                                      |
+|                                                                             |
+|o22 : A-module, free                                                         |
++-----------------------------------------------------------------------------+
+|i23 : pushFwd matrix{{y}}                                                    |
+|                                                                             |
+|o23 = | 0 0 x7 |                                                             |
+|      | 1 0 0  |                                                             |
+|      | 0 1 0  |                                                             |
+|                                                                             |
+|              3      3                                                       |
+|o23 : Matrix A  <-- A                                                        |
++-----------------------------------------------------------------------------+
+
+Pushforward is linear and respects composition:
+
++----------------------------------------------------------+
+|i24 : B = A[y,z,Join => false]/(y^3 - x*z, z^3-y^7);      |
++----------------------------------------------------------+
+|i25 : pushFwd B^1                                         |
+|                                                          |
+|       9                                                  |
+|o25 = A                                                   |
+|                                                          |
+|o25 : A-module, free                                      |
++----------------------------------------------------------+
+|i26 : fy = pushFwd matrix{{y}}                            |
+|                                                          |
+|o26 = | 0 0 0 0 0 0 0 0 0  |                              |
+|      | 1 0 0 0 0 0 0 0 0  |                              |
+|      | 0 1 0 0 0 0 0 0 0  |                              |
+|      | 0 0 0 0 1 0 0 0 0  |                              |
+|      | 0 0 0 0 0 1 0 0 0  |                              |
+|      | 0 0 x 0 0 0 0 0 0  |                              |
+|      | 0 0 0 x 0 0 0 0 0  |                              |
+|      | 0 0 0 0 0 0 1 0 x3 |                              |
+|      | 0 0 0 0 0 0 0 1 0  |                              |
+|                                                          |
+|              9      9                                    |
+|o26 : Matrix A  <-- A                                     |
++----------------------------------------------------------+
+|i27 : fz = pushFwd matrix{{z}};                           |
+|                                                          |
+|              9      9                                    |
+|o27 : Matrix A  <-- A                                     |
++----------------------------------------------------------+
+|i28 : fx = pushFwd matrix{{x_B}};                         |
+|                                                          |
+|              9      9                                    |
+|o28 : Matrix A  <-- A                                     |
++----------------------------------------------------------+
+|i29 : g =  pushFwd matrix{{y*z -x_B*z^2}}                 |
+|                                                          |
+|o29 = | 0  0  0  0      0     0     0      0      0      ||
+|      | 0  0  0  0      0     0     0      0      0      ||
+|      | 0  0  0  0      0     0     0      0      0      ||
+|      | 0  1  0  0      0     0     0      0      0      ||
+|      | 1  0  0  0      0     0     0      0      0      ||
+|      | 0  0  0  0      0     0     0      0      0      ||
+|      | -x 0  x  0      0     0     0      0      0      ||
+|      | 0  -x 0  -x6+x3 0     -x3+1 0      -x8+x5 0      ||
+|      | 0  0  -x 0      -x3+1 0     -x5+x2 0      -x8+x5 ||
+|                                                          |
+|              9      9                                    |
+|o29 : Matrix A  <-- A                                     |
++----------------------------------------------------------+
+|i30 : g == fy*fz-fx*fz^2                                  |
+|                                                          |
+|o30 = true                                                |
++----------------------------------------------------------+
+|i31 : fz^3-fy^7 == 0                                      |
+|                                                          |
+|o31 = true                                                |
++----------------------------------------------------------+
+
+See also
+========
+
+  * *note pushFwd(Module): pushFwd_lpRingMap_cmModule_rp, -- push forward of a
+    module via a finite ring map
+
+Ways to use this method:
+========================
+
+  * "pushFwd(Matrix)"
+  * *note pushFwd(RingMap,Matrix): pushFwd_lpRingMap_cmMatrix_rp, -- push
+    forward of a module map via a finite ring map
+-------------------------------------------------------------------------------
+
+The source of this document is in PushForward.m2:443:0.
+
+File: PushForward.info, Node: isModuleFinite_lpRingMap_rp, Next: NoPrune, Prev: Top, Up: Top
+
+isModuleFinite(RingMap) -- whether the target of a ring map is finitely generated over source
+*********************************************************************************************
+
+  * Function: *note isModuleFinite: isModuleFinite_lpRingMap_rp,
+  * Usage: 
+        isModuleFinite f
+        isModuleFinite R
+  * Inputs:
+      * f, a *note ring map: (Macaulay2Doc)RingMap,, or $R$ a *note ring:
+        (Macaulay2Doc)Ring,
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, 
+
+Description
+===========
+
+A ring map $f \colon A \to B$ makes $B$ into a module over $A$. This method
+returns true if and only if this module is a finitely generated $A$-module.
+
++------------------------------+
+|i1 : kk = QQ;                 |
++------------------------------+
+|i2 : A = kk[t];               |
++------------------------------+
+|i3 : C = kk[x,y];             |
++------------------------------+
+|i4 : B = C/(y^2-x^3);         |
++------------------------------+
+|i5 : f = map(A, B, {t^2, t^3})|
+|                              |
+|                  2   3       |
+|o5 = map (A, B, {t , t })     |
+|                              |
+|o5 : RingMap A <-- B          |
++------------------------------+
+|i6 : isWellDefined f          |
+|                              |
+|o6 = true                     |
++------------------------------+
+|i7 : isModuleFinite f         |
+|                              |
+|o7 = true                     |
++------------------------------+
++--------------------------------+
+|i8 : f = map(kk[x,y], A, {x+y}) |
+|                                |
+|o8 = map (QQ[x..y], A, {x + y}) |
+|                                |
+|o8 : RingMap QQ[x..y] <-- A     |
++--------------------------------+
+|i9 : assert not isModuleFinite f|
++--------------------------------+
+
+If a ring $R$ is given, this method returns true if and only if $R$ is a
+finitely generated module over its coefficient ring.
+
++--------------------------+
+|i10 : A = kk[x]           |
+|                          |
+|o10 = A                   |
+|                          |
+|o10 : PolynomialRing      |
++--------------------------+
+|i11 : B = A[y]/(y^3+x*y+3)|
+|                          |
+|o11 = B                   |
+|                          |
+|o11 : QuotientRing        |
++--------------------------+
+|i12 : isModuleFinite B    |
+|                          |
+|o12 = true                |
++--------------------------+
+
+See also
+========
+
+  * *note pushFwd: pushFwd, -- push forward
+
+Ways to use this method:
+========================
+
+  * "isModuleFinite(Ring)"
+  * *note isModuleFinite(RingMap): isModuleFinite_lpRingMap_rp, -- whether the
+    target of a ring map is finitely generated over source
+-------------------------------------------------------------------------------
+
+The source of this document is in PushForward.m2:557:0.
+
+File: PushForward.info, Node: NoPrune, Next: pushFwd, Prev: isModuleFinite_lpRingMap_rp, Up: Top
+
+NoPrune -- NoPrune option for pushFwd
+*************************************
+
+Description
+===========
+
+This is an optional argument for the *note pushFwd: pushFwd, function. Its
+default value is false, which means that the presentation of a pushed forward
+module is pruned by default. If NoPrune is set to true, then the prune calls in
+pushFwd are turned off.
+
++-----------------------------------------------------------------------------+
+|i1 : R5=QQ[a..e]                                                             |
+|                                                                             |
+|o1 = R5                                                                      |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : R6=QQ[a..f]                                                             |
+|                                                                             |
+|o2 = R6                                                                      |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i3 : M=coker genericMatrix(R6,a,2,3)                                         |
+|                                                                             |
+|o3 = cokernel | a c e |                                                      |
+|              | b d f |                                                      |
+|                                                                             |
+|                              2                                              |
+|o3 : R6-module, quotient of R6                                               |
++-----------------------------------------------------------------------------+
+|i4 : G=map(R6,R5,{a+b+c+d+e+f,b,c,d,e})                                      |
+|                                                                             |
+|o4 = map (R6, R5, {a + b + c + d + e + f, b, c, d, e})                       |
+|                                                                             |
+|o4 : RingMap R6 <-- R5                                                       |
++-----------------------------------------------------------------------------+
+|i5 : notpruned = pushFwd(G,M,NoPrune => true)                                |
+|                                                                             |
+|o5 = cokernel {0} | e c 0 a-b-d 0  0          0                              |
+|              {0} | 0 d 0 b+d   de be         bc-ad+bd+cd+d2                 |
+|              {1} | 0 0 c -1    0  -e         0                              |
+|              {1} | 1 0 d 1     -c -a+b+c+d+e c+d                            |
+|                                                                             |
+|                              4                                              |
+|o5 : R5-module, quotient of R5                                               |
+|-----------------------------------------------------------------------------|
+|0                 |                                                          |
+|0                 |                                                          |
+|-de               |                                                          |
+|bc-ad+bd+cd+d2+de |                                                          |
++-----------------------------------------------------------------------------+
+|i6 : pruned = pushFwd(G,M)                                                   |
+|                                                                             |
+|o6 = cokernel | c -de               |                                        |
+|              | d bc-ad+bd+cd+d2+de |                                        |
+|                                                                             |
+|                              2                                              |
+|o6 : R5-module, quotient of R5                                               |
++-----------------------------------------------------------------------------+
+
+Functions with optional argument named NoPrune:
+===============================================
+
+  * "pushFwd(...,NoPrune=>...)"
+
+For the programmer
+==================
+
+The object *note NoPrune: NoPrune, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PushForward.m2:577:0.
+
+File: PushForward.info, Node: pushFwd, Prev: NoPrune, Up: Top
+
+pushFwd -- push forward
+***********************
+
+Description
+===========
+
+The push forward functor
+  * *note pushFwd(RingMap): pushFwd_lpRingMap_rp, - for a finite ring map
+  * *note pushFwd(RingMap,Module): pushFwd_lpRingMap_cmModule_rp, - for a
+    module
+  * *note pushFwd(RingMap,Matrix): pushFwd_lpRingMap_cmMatrix_rp, - for a map
+    of modules
+
+Ways to use pushFwd:
+====================
+
+  * "pushFwd(Ring)" -- see *note pushFwd(RingMap): pushFwd_lpRingMap_rp, --
+    push forward of a finite ring map
+  * *note pushFwd(RingMap): pushFwd_lpRingMap_rp, -- push forward of a finite
+    ring map
+  * "pushFwd(Matrix)" -- see *note pushFwd(RingMap,Matrix):
+    pushFwd_lpRingMap_cmMatrix_rp, -- push forward of a module map via a finite
+    ring map
+  * *note pushFwd(RingMap,Matrix): pushFwd_lpRingMap_cmMatrix_rp, -- push
+    forward of a module map via a finite ring map
+  * "pushFwd(Module)" -- see *note pushFwd(RingMap,Module):
+    pushFwd_lpRingMap_cmModule_rp, -- push forward of a module via a finite
+    ring map
+  * *note pushFwd(RingMap,Module): pushFwd_lpRingMap_cmModule_rp, -- push
+    forward of a module via a finite ring map
+
+For the programmer
+==================
+
+The object *note pushFwd: pushFwd, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PushForward.m2:454:0.
+
+Tag Table:
+Node: Top240
+Node: pushFwd_lpRingMap_rp4484
+Node: pushFwd_lpRingMap_cmModule_rp9860
+Node: pushFwd_lpRingMap_cmMatrix_rp12415
+Node: isModuleFinite_lpRingMap_rp30228
+Node: NoPrune33148
+Node: pushFwd37993
+
+End Tag Table

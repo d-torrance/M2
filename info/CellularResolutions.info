@@ -1,0 +1,3896 @@
+ -*- coding: utf-8 -*- This is CellularResolutions.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* CellularResolutions: (CellularResolutions).  cellular resolutions of monomial ideals
+END-INFO-DIR-ENTRY
+
+
+File: CellularResolutions.info, Node: Top, Next: boundary, Up: (dir)
+
+CellularResolutions -- A package for cellular resolutions of monomial ideals
+****************************************************************************
+
+Description
+===========
+
+This package aims to make working with cellular resolutions of monomial ideals
+possible. Although the focus is on those constructs needed to work with
+cellular resolutions, the package additionally provides basic functions to work
+with cell complexes. For some direct ways to construct common cellular
+resolutions for monomial ideals, see *note taylorComplex: taylorComplex, and
+*note hullComplex: hullComplex,. Introductions to cellular resolutions can be
+found in:
+
+  * Ezra Miller (see https://services.math.duke.edu/~ezra/ ) and Bernd
+    Sturmfels (see https://math.berkeley.edu/~bernd/ ), Combinatorial
+    commutative algebra (see https://www.springer.com/gp/book/9780387223568 ),
+    Graduate Texts in Mathematics 227, Springer-Verlag, New York, 2005. ISBN:
+    0-387-22356-8
+  * Dave Bayer (see https://en.wikipedia.org/wiki/Dave_Bayer ), Ireena Peeva
+    (see https://pi.math.cornell.edu/~irena/ ) and Bernd Sturmfels (see
+    https://math.berkeley.edu/~bernd/ ), Monomial Resolutions (see
+    https://dx.doi.org/10.4310/MRL.1998.v5.n1.a3 ), Mathematical Research
+    Letters 5, pp. 31-46 (1998)
+  * Dave Bayer (see https://en.wikipedia.org/wiki/Dave_Bayer ) and Bernd
+    Sturmfels (see https://math.berkeley.edu/~bernd/ ), Cellular resolutions of
+    monomial modules (see https://doi.org/10.1515/crll.1998.083 ), Journal für
+    die reine und angewandte Mathematik, vol. 1998, no. 502, 1998, pp. 123-140.
+
+More generally, cell complexes can be constructed by creating cells using *note
+newCell: newCell, or *note newSimplexCell: newSimplexCell,, and then the
+maximal cells can be provided to *note cellComplex: cellComplex, to construct a
+cell complex.
+
+The example below follows Example 1.6 in Cellular resolutions of monomial
+modules (see https://doi.org/10.1515/crll.1998.083 ), where two simplicial
+complexes X and Y are constructed on the same monomial ideal. However, only X
+supports a resolution.
+
++-----------------------------------------------------------------------------+
+|i1 : S = QQ[a,b,c, Degrees=>{{1,0,0},{0,1,0},{0,0,1}}];                      |
++-----------------------------------------------------------------------------+
+|i2 : v101 = newCell({},a*c)                                                  |
+|                                                                             |
+|o2 = Cell of dimension 0 with label a*c                                      |
+|                                                                             |
+|o2 : Cell                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : v012 = newCell({},b*c^2); v020 = newCell({},b^2); v210 =                |
+|-----------------------------------------------------------------------------|
+|newCell({},a^2*b);                                                           |
++-----------------------------------------------------------------------------+
+|i6 : e112 = newCell({v101,v012})                                             |
+|                                                                             |
+|                                         2                                   |
+|o6 = Cell of dimension 1 with label a*b*c                                    |
+|                                                                             |
+|o6 : Cell                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : e022 = newCell({v012,v020}); e220 = newCell({v020,v210}); e211 =        |
+|-----------------------------------------------------------------------------|
+|newCell({v210,v101});                                                        |
++-----------------------------------------------------------------------------+
+|i10 : e121 = newCell({v101,v020});                                           |
++-----------------------------------------------------------------------------+
+|i11 : f122 = newCell({e112,e022,e121})                                       |
+|                                                                             |
+|                                        2 2                                  |
+|o11 = Cell of dimension 2 with label a*b c                                   |
+|                                                                             |
+|o11 : Cell                                                                   |
++-----------------------------------------------------------------------------+
+|i12 : f221 = newCell({e220,e211,e121});                                      |
++-----------------------------------------------------------------------------+
+|i13 : X = cellComplex(S,{f122,f221})                                         |
+|                                                                             |
+|o13 = X                                                                      |
+|                                                                             |
+|o13 : CellComplex                                                            |
++-----------------------------------------------------------------------------+
+|i14 : e212 = newCell({v210,v012}); f212 = newCell({e112,e211,e212}); f222 =  |
+|-----------------------------------------------------------------------------|
+|newCell({e022,e220,e212});                                                   |
++-----------------------------------------------------------------------------+
+|i17 : Y = cellComplex(S,{f212,f222})                                         |
+|                                                                             |
+|o17 = Y                                                                      |
+|                                                                             |
+|o17 : CellComplex                                                            |
++-----------------------------------------------------------------------------+
+|i18 : prune HH X                                                             |
+|                                                                             |
+|o18 = cokernel | ac b2 bc2 a2b |                                             |
+|                                                                             |
+|      -1                                                                     |
+|                                                                             |
+|o18 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i19 : prune HH Y                                                             |
+|                                                                             |
+|o19 = cokernel | ac b2 bc2 a2b | <-- cokernel {1, 2, 1} | c a |              |
+|                                                                             |
+|      -1                             0                                       |
+|                                                                             |
+|o19 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i20 : Y121 = subcomplex(Y,a*b^2*c)                                           |
+|                                                                             |
+|o20 = Y121                                                                   |
+|                                                                             |
+|o20 : CellComplex                                                            |
++-----------------------------------------------------------------------------+
+|i21 : prune HH Y121                                                          |
+|                                                                             |
+|        1                                                                    |
+|o21 = QQ                                                                     |
+|                                                                             |
+|      0                                                                      |
+|                                                                             |
+|o21 : Complex                                                                |
++-----------------------------------------------------------------------------+
+
+Authors
+=======
+
+  * Jay Yang <jay.k.yang@vanderbilt.edu>
+  * Aleksandra Sobieska <sobieskasnyd@marshall.edu>
+
+Version
+=======
+
+This documentation describes version 1.1 of CellularResolutions, released
+December 23, 2025.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{CellularResolutionsSource,                                             |
+|  title = {{CellularResolutions: cellular resolutions of monomial ideals.    |
+|  author = {Jay Yang and Aleksandra Sobieska},                               |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages   |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Version~1.1}},                                                               |
+|                                                                             |
+|                                                                             |
+|}}                                                                           |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note Cell: Cell, -- the class of all cells in cell complexes
+      * *note CellComplex: CellComplex, -- the class of all cell complexes
+  * Functions and commands
+      * *note boundary: boundary, -- returns the boundary cells along with
+        relative orientations
+      * *note boundaryCells: boundaryCells, -- returns the boundary cells of
+        the given cell
+      * *note cellComplex: cellComplex, -- create a cell complex
+      * *note cellComplexRPn: cellComplexRPn, -- gives a $RP^n$ as a cell
+        complex
+      * *note cellComplexSphere: cellComplexSphere, -- gives a sphere as a cell
+        complex
+      * *note cellComplexTorus: cellComplexTorus, -- gives a torus as a cell
+        complex
+      * *note cellLabel: cellLabel, -- return the label of a cell
+      * *note cells: cells, -- return the cells of a cell complex as a
+        hashtable whose keys are cell dimensions
+      * *note hullComplex: hullComplex, -- gives the hull complex of a monomial
+        ideal
+      * *note isCycle: isCycle, -- checks if a list of cells with orientation
+        make a cycle
+      * *note isMinimal: isMinimal, -- check if a labeled cell complex supports
+        a minimal resolution
+      * *note isSimplex: isSimplex, -- check if a cell is a simplex
+      * *note maxCells: maxCells, -- gives the maximal cells of a cell complex
+      * *note newCell: newCell, -- creates a new cell
+      * *note newSimplexCell: newSimplexCell, -- create a new cell
+      * *note relabelCellComplex: relabelCellComplex, -- relabels a cell
+        complex
+      * *note scarfComplex: scarfComplex, -- gives the hull complex of a
+        monomial ideal
+      * *note subcomplex: subcomplex, -- the subcomplex induced by a degree or
+        monomial
+      * *note taylorComplex: taylorComplex, -- gives the Taylor complex of a
+        monomial ideal
+  * Methods
+      * "boundary(Cell)" -- see *note boundary: boundary, -- returns the
+        boundary cells along with relative orientations
+      * "boundaryCells(Cell)" -- see *note boundaryCells: boundaryCells, --
+        returns the boundary cells of the given cell
+      * *note boundaryMap(ZZ,CellComplex): boundaryMap_lpZZ_cmCellComplex_rp,
+        -- compute the boundary map of a cell complex from r-faces to
+        (r-1)-faces
+      * "cellComplex(Ring,List)" -- see *note cellComplex: cellComplex, --
+        create a cell complex
+      * *note cellComplex(Ring,PolyhedralComplex):
+        cellComplex_lpRing_cmPolyhedralComplex_rp, -- creates cell complex from
+        given polyhedral complex
+      * *note cellComplex(Ring,Polyhedron): cellComplex_lpRing_cmPolyhedron_rp,
+        -- creates cell complex from given polyhedron
+      * *note cellComplex(Ring,SimplicialComplex):
+        cellComplex_lpRing_cmSimplicialComplex_rp, -- Creates a cell complex
+        from a given simplicial complex
+      * "cellComplexRPn(Ring,ZZ)" -- see *note cellComplexRPn: cellComplexRPn,
+        -- gives a $RP^n$ as a cell complex
+      * "cellComplexSphere(Ring,ZZ)" -- see *note cellComplexSphere:
+        cellComplexSphere, -- gives a sphere as a cell complex
+      * "cellComplexTorus(Ring,ZZ)" -- see *note cellComplexTorus:
+        cellComplexTorus, -- gives a torus as a cell complex
+      * "cellLabel(Cell)" -- see *note cellLabel: cellLabel, -- return the
+        label of a cell
+      * "cells(CellComplex)" -- see *note cells: cells, -- return the cells of
+        a cell complex as a hashtable whose keys are cell dimensions
+      * *note cells(ZZ,CellComplex): cells_lpZZ_cmCellComplex_rp, -- return the
+        cells of a cell complex
+      * *note complex(CellComplex): complex_lpCellComplex_rp, -- compute the
+        cellular chain complex for a cell complex
+      * *note describe(CellComplex): describe_lpCellComplex_rp, -- Describes a
+        cell complex or cell
+      * *note dim(Cell): dim_lpCell_rp, -- compute the dimension of a cell
+      * *note dim(CellComplex): dim_lpCellComplex_rp, -- compute the dimension
+        of a cell complex
+      * *note facePoset(CellComplex): facePoset_lpCellComplex_rp, -- generates
+        the face poset of a cell complex
+      * *note HH CellComplex: HH CellComplex, -- compute the homology modules
+        of a cell complex
+      * *note HH^ZZ CellComplex: HH^ZZ CellComplex, -- cohomology of a cell
+        complex
+      * *note HH_ZZ CellComplex: HH_usZZ CellComplex, -- compute the homology
+        modules of a cell complex
+      * "hullComplex(MonomialIdeal)" -- see *note hullComplex: hullComplex, --
+        gives the hull complex of a monomial ideal
+      * "hullComplex(QQ,MonomialIdeal)" -- see *note hullComplex: hullComplex,
+        -- gives the hull complex of a monomial ideal
+      * "hullComplex(ZZ,MonomialIdeal)" -- see *note hullComplex: hullComplex,
+        -- gives the hull complex of a monomial ideal
+      * "isCycle(List)" -- see *note isCycle: isCycle, -- checks if a list of
+        cells with orientation make a cycle
+      * *note isFree(CellComplex): isFree_lpCellComplex_rp, -- checks if the
+        labels of a cell complex are free modules
+      * "isMinimal(CellComplex)" -- see *note isMinimal: isMinimal, -- check if
+        a labeled cell complex supports a minimal resolution
+      * "isSimplex(Cell)" -- see *note isSimplex: isSimplex, -- check if a cell
+        is a simplex
+      * *note isWellDefined(Cell): isWellDefined_lpCell_rp, -- checks if a cell
+        is well defined
+      * *note isWellDefined(CellComplex): isWellDefined_lpCellComplex_rp, --
+        checks if a cell complex is well defined
+      * "maxCells(CellComplex)" -- see *note maxCells: maxCells, -- gives the
+        maximal cells of a cell complex
+      * "net(Cell)" -- see *note net(CellComplex): net_lpCellComplex_rp, --
+        Describes a cell complex or cell
+      * *note net(CellComplex): net_lpCellComplex_rp, -- Describes a cell
+        complex or cell
+      * "newCell(List)" -- see *note newCell: newCell, -- creates a new cell
+      * "newCell(List,Ideal)" -- see *note newCell: newCell, -- creates a new
+        cell
+      * "newCell(List,Module)" -- see *note newCell: newCell, -- creates a new
+        cell
+      * "newCell(List,Number)" -- see *note newCell: newCell, -- creates a new
+        cell
+      * "newCell(List,RingElement)" -- see *note newCell: newCell, -- creates a
+        new cell
+      * "newSimplexCell(List)" -- see *note newSimplexCell: newSimplexCell, --
+        create a new cell
+      * "newSimplexCell(List,Ideal)" -- see *note newSimplexCell:
+        newSimplexCell, -- create a new cell
+      * "newSimplexCell(List,Module)" -- see *note newSimplexCell:
+        newSimplexCell, -- create a new cell
+      * "newSimplexCell(List,Number)" -- see *note newSimplexCell:
+        newSimplexCell, -- create a new cell
+      * "newSimplexCell(List,RingElement)" -- see *note newSimplexCell:
+        newSimplexCell, -- create a new cell
+      * "relabelCellComplex(CellComplex,HashTable)" -- see *note
+        relabelCellComplex: relabelCellComplex, -- relabels a cell complex
+      * *note ring(CellComplex): ring_lpCellComplex_rp, -- return the base ring
+        of a cell complex
+      * *note RingMap ** CellComplex: RingMap _st_st CellComplex, -- tensors
+        labels via a ring map
+      * "scarfComplex(MonomialIdeal)" -- see *note scarfComplex: scarfComplex,
+        -- gives the hull complex of a monomial ideal
+      * *note skeleton(ZZ,CellComplex): skeleton_lpZZ_cmCellComplex_rp, --
+        computes the $r$-skeleton of a cell complex
+      * "CellComplex _ List" -- see *note subcomplex: subcomplex, -- the
+        subcomplex induced by a degree or monomial
+      * "CellComplex _ RingElement" -- see *note subcomplex: subcomplex, -- the
+        subcomplex induced by a degree or monomial
+      * "CellComplex _ ZZ" -- see *note subcomplex: subcomplex, -- the
+        subcomplex induced by a degree or monomial
+      * "subcomplex(CellComplex,List)" -- see *note subcomplex: subcomplex, --
+        the subcomplex induced by a degree or monomial
+      * "subcomplex(CellComplex,RingElement)" -- see *note subcomplex:
+        subcomplex, -- the subcomplex induced by a degree or monomial
+      * "subcomplex(CellComplex,ZZ)" -- see *note subcomplex: subcomplex, --
+        the subcomplex induced by a degree or monomial
+      * "taylorComplex(MonomialIdeal)" -- see *note taylorComplex:
+        taylorComplex, -- gives the Taylor complex of a monomial ideal
+      * "texMath(Cell)" -- see *note texMath(CellComplex):
+        texMath_lpCellComplex_rp, -- Describes a cell complex or cell using TeX
+      * *note texMath(CellComplex): texMath_lpCellComplex_rp, -- Describes a
+        cell complex or cell using TeX
+  * Symbols
+      * "Reduced" -- see *note complex(CellComplex): complex_lpCellComplex_rp,
+        -- compute the cellular chain complex for a cell complex
+      * "CellDimension" -- see *note newCell: newCell, -- creates a new cell
+      * "InferLabels" -- see *note relabelCellComplex: relabelCellComplex, --
+        relabels a cell complex
+      * "LabelRing" -- see *note subcomplex: subcomplex, -- the subcomplex
+        induced by a degree or monomial
+
+For the programmer
+==================
+
+The object *note CellularResolutions: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in CellularResolutions.m2, with auxiliary files
+in CellularResolutions/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:82:0.
+
+File: CellularResolutions.info, Node: boundary, Next: boundaryCells, Prev: Top, Up: Top
+
+boundary -- returns the boundary cells along with relative orientations
+***********************************************************************
+
+  * Usage: 
+        boundary(C)
+  * Inputs:
+      * C, a *note cell: Cell,, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of two-element sequences where the
+        first element is the boundary cell and the second element is an integer
+        representing the orientation of the boundary cell relative to C
+
+Description
+===========
+
+Given a cell C, this command returns a list whose elements are two-element
+sequences. The first element of each tuple is a boundary cell of C and the
+second element is the attaching degree of that boundary cell relative to C.
+This differs from *note boundaryCells: boundaryCells, in that it returns the
+boundary cells and their corresponding attaching degree, whereas boundaryCells
+returns only the boundary cells.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y,z];                                                          |
++-----------------------------------------------------------------------------+
+|i2 : vx = newSimplexCell({},x);                                              |
++-----------------------------------------------------------------------------+
+|i3 : vy = newSimplexCell({},y);                                              |
++-----------------------------------------------------------------------------+
+|i4 : vz = newSimplexCell({},z);                                              |
++-----------------------------------------------------------------------------+
+|i5 : exy = newSimplexCell {vx,vy};                                           |
++-----------------------------------------------------------------------------+
+|i6 : C = cellComplex(R,{exy,vz});                                            |
++-----------------------------------------------------------------------------+
+|i7 : boundary(exy)                                                           |
+|                                                                             |
+|o7 = {(Cell of dimension 0 with label x, 1), (Cell of dimension 0 with label |
+|     ------------------------------------------------------------------------|
+|     y, -1)}                                                                 |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : boundary(vz)                                                            |
+|                                                                             |
+|o8 = {}                                                                      |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+|i9 : R = QQ;                                                                 |
++-----------------------------------------------------------------------------+
+|i10 : P = convexHull matrix {{1,1,-1,-1},{1,-1,1,-1}};                       |
++-----------------------------------------------------------------------------+
+|i11 : C = cellComplex(R,P);                                                  |
++-----------------------------------------------------------------------------+
+|i12 : f = (cells(2,C))#0;                                                    |
++-----------------------------------------------------------------------------+
+|i13 : boundary(f)                                                            |
+|                                                                             |
+|o13 = {(Cell of dimension 1 with label 1, 1), (Cell of dimension 1 with label|
+|      -----------------------------------------------------------------------|
+|      1, 1), (Cell of dimension 1 with label 1, -1), (Cell of dimension 1    |
+|      -----------------------------------------------------------------------|
+|      with label 1, -1)}                                                     |
+|                                                                             |
+|o13 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note boundaryCells(Cell): boundaryCells, -- returns the boundary cells of
+    the given cell
+
+Ways to use boundary:
+=====================
+
+  * "boundary(Cell)"
+
+For the programmer
+==================
+
+The object *note boundary: boundary, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:527:0.
+
+File: CellularResolutions.info, Node: boundaryCells, Next: boundaryMap_lpZZ_cmCellComplex_rp, Prev: boundary, Up: Top
+
+boundaryCells -- returns the boundary cells of the given cell
+*************************************************************
+
+  * Usage: 
+        boundaryCells(C)
+  * Inputs:
+      * C, a *note cell: Cell,, whose boundary is to be returned
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of the cells in the boundary of C
+
+Description
+===========
+
+Given a cell C, this command returns a list whose elements are the boundary
+cells of C. This differs from *note boundary: boundary, in that it returns only
+the boundary cells of C, whereas boundaryCells returns a list of two-element
+sequences of the boundary cells and their corresponding orientation.
+
++-------------------------------------------------------------------------+
+|i1 : R = QQ[x,y,z];                                                      |
++-------------------------------------------------------------------------+
+|i2 : vx = newSimplexCell({},x);                                          |
++-------------------------------------------------------------------------+
+|i3 : vy = newSimplexCell({},y);                                          |
++-------------------------------------------------------------------------+
+|i4 : vz = newSimplexCell({},z);                                          |
++-------------------------------------------------------------------------+
+|i5 : exy = newSimplexCell {vx,vy};                                       |
++-------------------------------------------------------------------------+
+|i6 : C = cellComplex(R,{exy,vz});                                        |
++-------------------------------------------------------------------------+
+|i7 : boundaryCells(exy)                                                  |
+|                                                                         |
+|o7 = {Cell of dimension 0 with label x, Cell of dimension 0 with label y}|
+|                                                                         |
+|o7 : List                                                                |
++-------------------------------------------------------------------------+
+|i8 : boundaryCells(vz)                                                   |
+|                                                                         |
+|o8 = {}                                                                  |
+|                                                                         |
+|o8 : List                                                                |
++-------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+|i9 : R = QQ;                                                                 |
++-----------------------------------------------------------------------------+
+|i10 : P = convexHull matrix {{1,1,-1,-1},{1,-1,1,-1}};                       |
++-----------------------------------------------------------------------------+
+|i11 : C = cellComplex(R,P);                                                  |
++-----------------------------------------------------------------------------+
+|i12 : f = (cells(2,C))#0;                                                    |
++-----------------------------------------------------------------------------+
+|i13 : boundaryCells(f)                                                       |
+|                                                                             |
+|o13 = {Cell of dimension 1 with label 1, Cell of dimension 1 with label 1,   |
+|      -----------------------------------------------------------------------|
+|      Cell of dimension 1 with label 1, Cell of dimension 1 with label 1}    |
+|                                                                             |
+|o13 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note boundaryMap(ZZ,CellComplex): boundaryMap_lpZZ_cmCellComplex_rp, --
+    compute the boundary map of a cell complex from r-faces to (r-1)-faces
+
+Ways to use boundaryCells:
+==========================
+
+  * "boundaryCells(Cell)"
+
+For the programmer
+==================
+
+The object *note boundaryCells: boundaryCells, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:566:0.
+
+File: CellularResolutions.info, Node: boundaryMap_lpZZ_cmCellComplex_rp, Next: Cell, Prev: boundaryCells, Up: Top
+
+boundaryMap(ZZ,CellComplex) -- compute the boundary map of a cell complex from r-faces to (r-1)-faces
+*****************************************************************************************************
+
+  * Function: *note boundaryMap:
+    (SimplicialComplexes)boundaryMap_lpZZ_cmSimplicialComplex_rp,
+  * Usage: 
+        boundaryMap(ZZ,CellComplex)
+  * Inputs:
+      * r, an *note integer: (Macaulay2Doc)ZZ,, the source cell-dimension
+      * C, a *note cell complex: CellComplex,, the CellComplex
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Labels: (SimplicialComplexes)boundaryMap_lpZZ_cmSimplicialComplex
+        _rp, => a *note list: (Macaulay2Doc)List,, default value {}, which is
+        ignored by this particular function
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, the boundary map from r-faces to
+        (r-1)-faces of C
+
+Description
+===========
+
+This function returns the map in the chain complex from the r-th homological
+degree to the (r-1)-th homological degree.
+
+For example, below we construct the Taylor complex for the monomial ideal
+$\langle x,y,z\rangle$
+
++--------------------------------------+
+|i1 : R = QQ[x,y,z];                   |
++--------------------------------------+
+|i2 : vx = newSimplexCell({},x);       |
++--------------------------------------+
+|i3 : vy = newSimplexCell({},y);       |
++--------------------------------------+
+|i4 : vz = newSimplexCell({},z);       |
++--------------------------------------+
+|i5 : exy = newSimplexCell {vx,vy};    |
++--------------------------------------+
+|i6 : exz = newSimplexCell {vx,vz};    |
++--------------------------------------+
+|i7 : eyz = newSimplexCell {vy,vz};    |
++--------------------------------------+
+|i8 : f = newSimplexCell {exy,exz,eyz};|
++--------------------------------------+
+|i9 : C = cellComplex(R,{f});          |
++--------------------------------------+
+|i10 : d1 = boundaryMap_1 C            |
+|                                      |
+|o10 = {1} | -x 0  -y |                |
+|      {1} | z  y  0  |                |
+|      {1} | 0  -x z  |                |
+|                                      |
+|o10 : Matrix                          |
++--------------------------------------+
+|i11 : d2 = boundaryMap_2 C            |
+|                                      |
+|o11 = {2} | -y |                      |
+|      {2} | z  |                      |
+|      {2} | x  |                      |
+|                                      |
+|o11 : Matrix                          |
++--------------------------------------+
+|i12 : assert(d1*d2==0)                |
++--------------------------------------+
+
+See also
+========
+
+  * *note complex(CellComplex): complex_lpCellComplex_rp, -- compute the
+    cellular chain complex for a cell complex
+  * *note complex(SimplicialComplex):
+    (SimplicialComplexes)complex_lpSimplicialComplex_rp, -- create the chain
+    complex associated to a simplicial complex.
+
+Ways to use this method:
+========================
+
+  * *note boundaryMap(ZZ,CellComplex): boundaryMap_lpZZ_cmCellComplex_rp, --
+    compute the boundary map of a cell complex from r-faces to (r-1)-faces
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:608:0.
+
+File: CellularResolutions.info, Node: Cell, Next: CellComplex, Prev: boundaryMap_lpZZ_cmCellComplex_rp, Up: Top
+
+Cell -- the class of all cells in cell complexes
+************************************************
+
+Description
+===========
+
+This class represents a single cell in a cell complex. A cell has a boundary, a
+dimension, and a label. In most cases, the label should be a monomial. But the
+cells in this package may be anything. However for functions such as *note
+complex: (Complexes)complex_lpList_rp, to work, the labels should be either
+monomials, ideals, or modules. In the monomial case, we can view the label as a
+module by taking the submodule generated by the monomial in the ring. There
+should be canonical inclusions maps from the label on any cell to the labels of
+the cells in its boundary.
+
+See also
+========
+
+  * *note CellComplex: CellComplex, -- the class of all cell complexes
+
+Functions and methods returning a cell:
+=======================================
+
+  * *note newCell: newCell, -- creates a new cell
+  * "newCell(List)" -- see *note newCell: newCell, -- creates a new cell
+  * "newCell(List,Ideal)" -- see *note newCell: newCell, -- creates a new cell
+  * "newCell(List,Module)" -- see *note newCell: newCell, -- creates a new cell
+  * "newCell(List,Number)" -- see *note newCell: newCell, -- creates a new cell
+  * "newCell(List,RingElement)" -- see *note newCell: newCell, -- creates a new
+    cell
+  * *note newSimplexCell: newSimplexCell, -- create a new cell
+  * "newSimplexCell(List)" -- see *note newSimplexCell: newSimplexCell, --
+    create a new cell
+  * "newSimplexCell(List,Ideal)" -- see *note newSimplexCell: newSimplexCell,
+    -- create a new cell
+  * "newSimplexCell(List,Module)" -- see *note newSimplexCell: newSimplexCell,
+    -- create a new cell
+  * "newSimplexCell(List,Number)" -- see *note newSimplexCell: newSimplexCell,
+    -- create a new cell
+  * "newSimplexCell(List,RingElement)" -- see *note newSimplexCell:
+    newSimplexCell, -- create a new cell
+
+Methods that use a cell:
+========================
+
+  * "boundary(Cell)" -- see *note boundary: boundary, -- returns the boundary
+    cells along with relative orientations
+  * "boundaryCells(Cell)" -- see *note boundaryCells: boundaryCells, -- returns
+    the boundary cells of the given cell
+  * "cellLabel(Cell)" -- see *note cellLabel: cellLabel, -- return the label of
+    a cell
+  * *note dim(Cell): dim_lpCell_rp, -- compute the dimension of a cell
+  * "isSimplex(Cell)" -- see *note isSimplex: isSimplex, -- check if a cell is
+    a simplex
+  * *note isWellDefined(Cell): isWellDefined_lpCell_rp, -- checks if a cell is
+    well defined
+  * "net(Cell)" -- see *note net(CellComplex): net_lpCellComplex_rp, --
+    Describes a cell complex or cell
+  * "texMath(Cell)" -- see *note texMath(CellComplex):
+    texMath_lpCellComplex_rp, -- Describes a cell complex or cell using TeX
+
+For the programmer
+==================
+
+The object *note Cell: Cell, is a *note type: (Macaulay2Doc)Type,, with
+ancestor classes *note MutableHashTable: (Macaulay2Doc)MutableHashTable, <
+*note HashTable: (Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:121:0.
+
+File: CellularResolutions.info, Node: CellComplex, Next: cellComplex, Prev: Cell, Up: Top
+
+CellComplex -- the class of all cell complexes
+**********************************************
+
+Description
+===========
+
+A cell complex in this context is the combinatorial data of a CW-complex, i.e.
+a collection of cells in various dimensions along with their boundary expressed
+as a sequence of cells along with an orientation such that the boundary is a
+cycle.
+
+Caveat
+======
+
+Not every object represented by a CellComplex object corresponds to a
+topological cell complex. In general there is no way to check that such a
+topological realization exists.
+
+See also
+========
+
+  * *note Cell: Cell, -- the class of all cells in cell complexes
+
+Functions and methods returning a cell complex:
+===============================================
+
+  * *note cellComplex: cellComplex, -- create a cell complex
+  * "cellComplex(Ring,List)" -- see *note cellComplex: cellComplex, -- create a
+    cell complex
+  * *note cellComplex(Ring,PolyhedralComplex):
+    cellComplex_lpRing_cmPolyhedralComplex_rp, -- creates cell complex from
+    given polyhedral complex
+  * *note cellComplex(Ring,Polyhedron): cellComplex_lpRing_cmPolyhedron_rp, --
+    creates cell complex from given polyhedron
+  * *note cellComplex(Ring,SimplicialComplex):
+    cellComplex_lpRing_cmSimplicialComplex_rp, -- Creates a cell complex from a
+    given simplicial complex
+  * *note cellComplexRPn: cellComplexRPn, -- gives a $RP^n$ as a cell complex
+  * "cellComplexRPn(Ring,ZZ)" -- see *note cellComplexRPn: cellComplexRPn, --
+    gives a $RP^n$ as a cell complex
+  * *note cellComplexSphere: cellComplexSphere, -- gives a sphere as a cell
+    complex
+  * "cellComplexSphere(Ring,ZZ)" -- see *note cellComplexSphere:
+    cellComplexSphere, -- gives a sphere as a cell complex
+  * *note cellComplexTorus: cellComplexTorus, -- gives a torus as a cell
+    complex
+  * "cellComplexTorus(Ring,ZZ)" -- see *note cellComplexTorus:
+    cellComplexTorus, -- gives a torus as a cell complex
+  * *note hullComplex: hullComplex, -- gives the hull complex of a monomial
+    ideal
+  * "hullComplex(MonomialIdeal)" -- see *note hullComplex: hullComplex, --
+    gives the hull complex of a monomial ideal
+  * "hullComplex(QQ,MonomialIdeal)" -- see *note hullComplex: hullComplex, --
+    gives the hull complex of a monomial ideal
+  * "hullComplex(ZZ,MonomialIdeal)" -- see *note hullComplex: hullComplex, --
+    gives the hull complex of a monomial ideal
+  * *note relabelCellComplex: relabelCellComplex, -- relabels a cell complex
+  * "relabelCellComplex(CellComplex,HashTable)" -- see *note
+    relabelCellComplex: relabelCellComplex, -- relabels a cell complex
+  * *note RingMap ** CellComplex: RingMap _st_st CellComplex, -- tensors labels
+    via a ring map
+  * *note scarfComplex: scarfComplex, -- gives the hull complex of a monomial
+    ideal
+  * "scarfComplex(MonomialIdeal)" -- see *note scarfComplex: scarfComplex, --
+    gives the hull complex of a monomial ideal
+  * *note skeleton(ZZ,CellComplex): skeleton_lpZZ_cmCellComplex_rp, -- computes
+    the $r$-skeleton of a cell complex
+  * "CellComplex _ List" -- see *note subcomplex: subcomplex, -- the subcomplex
+    induced by a degree or monomial
+  * "CellComplex _ RingElement" -- see *note subcomplex: subcomplex, -- the
+    subcomplex induced by a degree or monomial
+  * "CellComplex _ ZZ" -- see *note subcomplex: subcomplex, -- the subcomplex
+    induced by a degree or monomial
+  * *note subcomplex: subcomplex, -- the subcomplex induced by a degree or
+    monomial
+  * "subcomplex(CellComplex,List)" -- see *note subcomplex: subcomplex, -- the
+    subcomplex induced by a degree or monomial
+  * "subcomplex(CellComplex,RingElement)" -- see *note subcomplex: subcomplex,
+    -- the subcomplex induced by a degree or monomial
+  * "subcomplex(CellComplex,ZZ)" -- see *note subcomplex: subcomplex, -- the
+    subcomplex induced by a degree or monomial
+  * *note taylorComplex: taylorComplex, -- gives the Taylor complex of a
+    monomial ideal
+  * "taylorComplex(MonomialIdeal)" -- see *note taylorComplex: taylorComplex,
+    -- gives the Taylor complex of a monomial ideal
+
+Methods that use a cell complex:
+================================
+
+  * *note boundaryMap(ZZ,CellComplex): boundaryMap_lpZZ_cmCellComplex_rp, --
+    compute the boundary map of a cell complex from r-faces to (r-1)-faces
+  * "cells(CellComplex)" -- see *note cells: cells, -- return the cells of a
+    cell complex as a hashtable whose keys are cell dimensions
+  * *note cells(ZZ,CellComplex): cells_lpZZ_cmCellComplex_rp, -- return the
+    cells of a cell complex
+  * *note complex(CellComplex): complex_lpCellComplex_rp, -- compute the
+    cellular chain complex for a cell complex
+  * *note describe(CellComplex): describe_lpCellComplex_rp, -- Describes a cell
+    complex or cell
+  * *note dim(CellComplex): dim_lpCellComplex_rp, -- compute the dimension of a
+    cell complex
+  * *note facePoset(CellComplex): facePoset_lpCellComplex_rp, -- generates the
+    face poset of a cell complex
+  * *note HH CellComplex: HH CellComplex, -- compute the homology modules of a
+    cell complex
+  * *note HH^ZZ CellComplex: HH^ZZ CellComplex, -- cohomology of a cell complex
+  * *note HH_ZZ CellComplex: HH_usZZ CellComplex, -- compute the homology
+    modules of a cell complex
+  * *note isFree(CellComplex): isFree_lpCellComplex_rp, -- checks if the labels
+    of a cell complex are free modules
+  * "isMinimal(CellComplex)" -- see *note isMinimal: isMinimal, -- check if a
+    labeled cell complex supports a minimal resolution
+  * *note isWellDefined(CellComplex): isWellDefined_lpCellComplex_rp, -- checks
+    if a cell complex is well defined
+  * "maxCells(CellComplex)" -- see *note maxCells: maxCells, -- gives the
+    maximal cells of a cell complex
+  * *note net(CellComplex): net_lpCellComplex_rp, -- Describes a cell complex
+    or cell
+  * *note ring(CellComplex): ring_lpCellComplex_rp, -- return the base ring of
+    a cell complex
+  * *note texMath(CellComplex): texMath_lpCellComplex_rp, -- Describes a cell
+    complex or cell using TeX
+
+For the programmer
+==================
+
+The object *note CellComplex: CellComplex, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note HashTable:
+(Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:101:0.
+
+File: CellularResolutions.info, Node: cellComplex, Next: cellComplex_lpRing_cmPolyhedralComplex_rp, Prev: CellComplex, Up: Top
+
+cellComplex -- create a cell complex
+************************************
+
+  * Usage: 
+        cellComplex(R,maxCells)
+  * Inputs:
+      * R, a *note ring: (Macaulay2Doc)Ring,, that specifies the base ring for
+        interpreting the labels
+      * maxCells, a *note list: (Macaulay2Doc)List,, that specifies the maximal
+        cells for the complex
+  * Outputs:
+      * a *note cell complex: CellComplex,, 
+
+Description
+===========
+
+The method cellComplex takes a ring R and a list of maximal cells and
+constructs the corresponding cell complex. While the intent is for the supplied
+cells to be maximal, including non-maximal cells is not forbidden and will
+generate valid cell complexes.
+
+The ring R is the ring over which the labels are interpreted. This function
+does not directly check that the labels are in the correct ring.
+
++-------------------------------------+
+|i1 : c = newCell {}                  |
+|                                     |
+|o1 = Cell of dimension 0 with label 1|
+|                                     |
+|o1 : Cell                            |
++-------------------------------------+
+|i2 : C = cellComplex(QQ,{c});        |
++-------------------------------------+
+|i3 : R = QQ[x,y];                    |
++-------------------------------------+
+|i4 : C = cellComplex(R,{c});         |
++-------------------------------------+
+
+See also
+========
+
+  * *note newCell: newCell, -- creates a new cell
+  * *note newSimplexCell: newSimplexCell, -- create a new cell
+  * *note isWellDefined: (Macaulay2Doc)isWellDefined, -- whether a map is well
+    defined
+
+Ways to use cellComplex:
+========================
+
+  * "cellComplex(Ring,List)"
+  * *note cellComplex(Ring,PolyhedralComplex):
+    cellComplex_lpRing_cmPolyhedralComplex_rp, -- creates cell complex from
+    given polyhedral complex
+  * *note cellComplex(Ring,Polyhedron): cellComplex_lpRing_cmPolyhedron_rp, --
+    creates cell complex from given polyhedron
+  * *note cellComplex(Ring,SimplicialComplex):
+    cellComplex_lpRing_cmSimplicialComplex_rp, -- Creates a cell complex from a
+    given simplicial complex
+
+For the programmer
+==================
+
+The object *note cellComplex: cellComplex, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:155:0.
+
+File: CellularResolutions.info, Node: cellComplex_lpRing_cmPolyhedralComplex_rp, Next: cellComplex_lpRing_cmPolyhedron_rp, Prev: cellComplex, Up: Top
+
+cellComplex(Ring,PolyhedralComplex) -- creates cell complex from given polyhedral complex
+*****************************************************************************************
+
+  * Function: *note cellComplex: cellComplex,
+  * Usage: 
+        cellComplex(Ring,PolyhedralComplex)
+  * Inputs:
+      * R, a *note ring: (Macaulay2Doc)Ring,, that specifies the base ring
+      * P, an instance of the type *note PolyhedralComplex:
+        (Polyhedra)PolyhedralComplex,,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Labels => a *note hash table: (Macaulay2Doc)HashTable,, default value
+        null, that maps vertices in the polyhedron to labels
+  * Outputs:
+      * a *note cell complex: CellComplex,, whose cells are the faces of the
+        given polyhedral complex
+
+Description
+===========
+
+Given a polyhedral complex, this command returns the cell complex whose cells
+correspond to the faces of the polyhedral complex. The faces have the default
+label 1.
+
++-----------------------------------------------------------+
+|i1 : R = QQ[x];                                            |
++-----------------------------------------------------------+
+|i2 : P1 = convexHull matrix {{2,2,0},{1,-1,0}};            |
++-----------------------------------------------------------+
+|i3 : P2 = convexHull matrix {{2,-2,0},{1,1,0}};            |
++-----------------------------------------------------------+
+|i4 : P3 = convexHull matrix {{-2,-2,0},{1,-1,0}};          |
++-----------------------------------------------------------+
+|i5 : P4 = convexHull matrix {{-2,2,0},{-1,-1,0}};          |
++-----------------------------------------------------------+
+|i6 : F = polyhedralComplex {P1,P2,P3,P4};                  |
++-----------------------------------------------------------+
+|i7 : C = cellComplex(R,F);                                 |
++-----------------------------------------------------------+
+|i8 : facePoset C                                           |
+|                                                           |
+|o8 = Relation Matrix: | 1 0 0 0 0 0 1 0 0 1 0 0 1 1 0 1 0 ||
+|                      | 0 1 0 0 0 1 0 0 1 0 1 0 0 0 1 0 1 ||
+|                      | 0 0 1 0 0 0 1 0 1 0 0 1 0 0 0 1 1 ||
+|                      | 0 0 0 1 0 0 0 1 0 1 1 1 0 1 1 1 1 ||
+|                      | 0 0 0 0 1 1 0 1 0 0 0 0 1 1 1 0 0 ||
+|                      | 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 ||
+|                      | 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 ||
+|                      | 0 0 0 0 0 0 0 1 0 0 0 0 0 1 1 0 0 ||
+|                      | 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 ||
+|                      | 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 ||
+|                      | 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 ||
+|                      | 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 1 ||
+|                      | 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 ||
+|                      | 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 ||
+|                      | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 ||
+|                      | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 ||
+|                      | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 ||
+|                                                           |
+|o8 : Poset                                                 |
++-----------------------------------------------------------+
+
+The labels on the vertices can be controlled via the optional parameter Labels
+This parameter expects a hash table whose keys are vectors corresponding to the
+vertices of the polyhedron with desired labels as corresponding values.
+
+See also
+========
+
+  * *note cellComplex(Ring,Polyhedron): cellComplex_lpRing_cmPolyhedron_rp, --
+    creates cell complex from given polyhedron
+
+Ways to use this method:
+========================
+
+  * *note cellComplex(Ring,PolyhedralComplex):
+    cellComplex_lpRing_cmPolyhedralComplex_rp, -- creates cell complex from
+    given polyhedral complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1096:0.
+
+File: CellularResolutions.info, Node: cellComplex_lpRing_cmPolyhedron_rp, Next: cellComplex_lpRing_cmSimplicialComplex_rp, Prev: cellComplex_lpRing_cmPolyhedralComplex_rp, Up: Top
+
+cellComplex(Ring,Polyhedron) -- creates cell complex from given polyhedron
+**************************************************************************
+
+  * Function: *note cellComplex: cellComplex,
+  * Usage: 
+        cellComplex(Ring,Polyhedron)
+  * Inputs:
+      * R, a *note ring: (Macaulay2Doc)Ring,, that specifies the base ring
+      * P, a *note convex polyhedron: (Polyhedra)Polyhedron,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Labels => a *note hash table: (Macaulay2Doc)HashTable,, default value
+        null, that maps vertices in the polyhedron to labels
+  * Outputs:
+      * a *note cell complex: CellComplex,, whose cells are the faces of the
+        given polyhedron P
+
+Description
+===========
+
+Given a polyhedron, this command returns the cell complex whose cells
+correspond to the faces of the polyhedron. The faces have the default label 1.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ;                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : P = convexHull matrix {{1,1,-1,-1},{1,-1,1,-1}};                        |
++-----------------------------------------------------------------------------+
+|i3 : faces P                                                                 |
+|                                                                             |
+|o3 = HashTable{0 => {({0, 1, 2, 3}, {})}                                    }|
+|               1 => {({0, 2}, {}), ({1, 3}, {}), ({0, 1}, {}), ({2, 3}, {})} |
+|               2 => {({0}, {}), ({2}, {}), ({1}, {}), ({3}, {})}             |
+|               3 => {}                                                       |
+|                                                                             |
+|o3 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i4 : C = cellComplex(R,P);                                                   |
++-----------------------------------------------------------------------------+
+|i5 : cells C                                                                 |
+|                                                                             |
+|o5 = HashTable{0 => {Cell of dimension 0 with label 1, Cell of dimension 0   |
+|               1 => {Cell of dimension 1 with label 1, Cell of dimension 1   |
+|               2 => {Cell of dimension 2 with label 1}                       |
+|                                                                             |
+|o5 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|with label 1, Cell of dimension 0 with label 1, Cell of dimension 0 with     |
+|with label 1, Cell of dimension 1 with label 1, Cell of dimension 1 with     |
+|-----------------------------------------------------------------------------|
+|label 1}}                                                                    |
+|label 1}                                                                     |
++-----------------------------------------------------------------------------+
+
+The labels on the vertices can be controlled via the optional parameter Labels
+This parameter expects a hash table whose keys are vectors corresponding to the
+vertices of the polyhedron with desired labels as corresponding values.
+
++---------------------------------------------------------------------+
+|i6 : S = QQ[x,y,z,w];                                                |
++---------------------------------------------------------------------+
+|i7 : v = vertices P;                                                 |
+|                                                                     |
+|              2       4                                              |
+|o7 : Matrix QQ  <-- QQ                                               |
++---------------------------------------------------------------------+
+|i8 : H = hashTable {v_0 => x*y, v_1 => y*z, v_2 => x*w, v_3 => y*z}; |
++---------------------------------------------------------------------+
+|i9 : labeledC = cellComplex(S, P, Labels => H);                      |
++---------------------------------------------------------------------+
+|i10 : for i to dim labeledC list cells(i,labeledC)/cellLabel         |
+|                                                                     |
+|o10 = {{y*z, x*w, x*y, y*z}, {x*y*z*w, x*y*w, y*z, x*y*z}, {x*y*z*w}}|
+|                                                                     |
+|o10 : List                                                           |
++---------------------------------------------------------------------+
+
+See also
+========
+
+  * *note cellComplex(Ring,PolyhedralComplex):
+    cellComplex_lpRing_cmPolyhedralComplex_rp, -- creates cell complex from
+    given polyhedral complex
+
+Ways to use this method:
+========================
+
+  * *note cellComplex(Ring,Polyhedron): cellComplex_lpRing_cmPolyhedron_rp, --
+    creates cell complex from given polyhedron
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1058:0.
+
+File: CellularResolutions.info, Node: cellComplex_lpRing_cmSimplicialComplex_rp, Next: cellComplexRPn, Prev: cellComplex_lpRing_cmPolyhedron_rp, Up: Top
+
+cellComplex(Ring,SimplicialComplex) -- Creates a cell complex from a given simplicial complex
+*********************************************************************************************
+
+  * Function: *note cellComplex: cellComplex,
+  * Usage: 
+        cellComplex(S,D)
+  * Inputs:
+      * S, a *note ring: (Macaulay2Doc)Ring,, 
+      * D, an *note abstract simplicial complex:
+        (SimplicialComplexes)SimplicialComplex,, from which the cell complex is
+        created
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Labels => a *note hash table: (Macaulay2Doc)HashTable,, default value
+        null, that maps simplices represented by monomials to labels
+  * Outputs:
+      * a *note cell complex: CellComplex,, that matches those of the given
+        simplicial complex
+
+Description
+===========
+
+This returns a cellular complex whose faces are those of the given simplicial
+complex.
+
++--------------------------------------+
+|i1 : R = QQ[a..f];                    |
++--------------------------------------+
+|i2 : I = monomialIdeal(a*f, b*d, c*e);|
+|                                      |
+|o2 : MonomialIdeal of R               |
++--------------------------------------+
+|i3 : Delta = simplicialComplex I;     |
++--------------------------------------+
+|i4 : C = cellComplex(QQ,Delta)        |
+|                                      |
+|o4 = C                                |
+|                                      |
+|o4 : CellComplex                      |
++--------------------------------------+
+
+The optional parameter Label can be used to provide labels to the resulting
+cell complex. By default all cells get a label of 1.
+
++-----------------------------------------------------------------------------+
+|i5 : S = QQ[x,y];                                                            |
++-----------------------------------------------------------------------------+
+|i6 : H = hashTable {a => x^5, b => y*x^4, c=>y^2*x^3, d => y^3*x^2, e =>     |
+|-----------------------------------------------------------------------------|
+|y^4*x, f => x^5};                                                            |
++-----------------------------------------------------------------------------+
+|i7 : C = cellComplex(S,Delta,Labels=>H)                                      |
+|                                                                             |
+|o7 = C                                                                       |
+|                                                                             |
+|o7 : CellComplex                                                             |
++-----------------------------------------------------------------------------+
+|i8 : applyValues(cells C, l -> apply(l,cellLabel))                           |
+|                                                                             |
+|                      5   5   4    3 2   2 3     4                           |
+|o8 = HashTable{0 => {x , x , x y, x y , x y , x*y }                          |
+|                      5    5 2   5 3   5 4   4 2   4 4   5    3 3   5 2      |
+|               1 => {x y, x y , x y , x y , x y , x y , x y, x y , x y ,     |
+|                      5 2   5 4   5 3   5 4   5 2   5 4   5 3   5 4          |
+|               2 => {x y , x y , x y , x y , x y , x y , x y , x y }         |
+|                                                                             |
+|o8 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|                 }                                                           |
+| 2 4   5 3   5 4                                                             |
+|x y , x y , x y }                                                            |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note cellComplex: cellComplex, -- create a cell complex
+
+Ways to use this method:
+========================
+
+  * *note cellComplex(Ring,SimplicialComplex):
+    cellComplex_lpRing_cmSimplicialComplex_rp, -- Creates a cell complex from a
+    given simplicial complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:294:0.
+
+File: CellularResolutions.info, Node: cellComplexRPn, Next: cellComplexSphere, Prev: cellComplex_lpRing_cmSimplicialComplex_rp, Up: Top
+
+cellComplexRPn -- gives a $RP^n$ as a cell complex
+**************************************************
+
+  * Usage: 
+        cellComplexRPn(R,n)
+  * Inputs:
+      * R, a *note ring: (Macaulay2Doc)Ring,, that specifies the base ring
+      * n, an *note integer: (Macaulay2Doc)ZZ,, that specifies the dimension of
+        the projective space
+  * Outputs:
+      * a *note cell complex: CellComplex,, representing n-dimensional
+        projective space
+
+Description
+===========
+
+This function constructs n-dimensional projective space as a cell complex with
+the typical CW-structure: a single cell of each dimension, where each r-cell is
+attached as a 2-sheeted covering to the (r-1)-cell.
+
++---------------------------------------------------------------------+
+|i1 : QP5 = cellComplexRPn(QQ,5)                                      |
+|                                                                     |
+|o1 = QP5                                                             |
+|                                                                     |
+|o1 : CellComplex                                                     |
++---------------------------------------------------------------------+
+|i2 : prune homology QP5                                              |
+|                                                                     |
+|       1                                                             |
+|o2 = QQ                                                              |
+|                                                                     |
+|     5                                                               |
+|                                                                     |
+|o2 : Complex                                                         |
++---------------------------------------------------------------------+
+|i3 : ZP6 = cellComplexRPn(ZZ,6)                                      |
+|                                                                     |
+|o3 = ZP6                                                             |
+|                                                                     |
+|o3 : CellComplex                                                     |
++---------------------------------------------------------------------+
+|i4 : prune homology ZP6                                              |
+|                                                                     |
+|o4 = cokernel | 2 | <-- 0 <-- cokernel | 2 | <-- 0 <-- cokernel | 2 ||
+|                                                                     |
+|     1                  2     3                  4     5             |
+|                                                                     |
+|o4 : Complex                                                         |
++---------------------------------------------------------------------+
+
+See also
+========
+
+  * *note cellComplexSphere: cellComplexSphere, -- gives a sphere as a cell
+    complex
+  * *note cellComplexTorus: cellComplexTorus, -- gives a torus as a cell
+    complex
+
+Ways to use cellComplexRPn:
+===========================
+
+  * "cellComplexRPn(Ring,ZZ)"
+
+For the programmer
+==================
+
+The object *note cellComplexRPn: cellComplexRPn, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1236:0.
+
+File: CellularResolutions.info, Node: cellComplexSphere, Next: cellComplexTorus, Prev: cellComplexRPn, Up: Top
+
+cellComplexSphere -- gives a sphere as a cell complex
+*****************************************************
+
+  * Usage: 
+        cellComplexSphere(R,n)
+  * Inputs:
+      * R, a *note ring: (Macaulay2Doc)Ring,, that specifies the base ring
+      * n, an *note integer: (Macaulay2Doc)ZZ,, that specifies the dimension of
+        the sphere
+  * Outputs:
+      * a *note cell complex: CellComplex,, an n-dimensional sphere
+
+Description
+===========
+
+This function constructs an n-dimensional sphere in the typical way for a
+CW-complex: a single n-dimensional cell attached to a single 0-dimensional
+cell.
+
++-------------------------------------------------------+
+|i1 : S = cellComplexSphere(QQ,3)                       |
+|                                                       |
+|o1 = S                                                 |
+|                                                       |
+|o1 : CellComplex                                       |
++-------------------------------------------------------+
+|i2 : cells(S)                                          |
+|                                                       |
+|o2 = HashTable{0 => {Cell of dimension 0 with label 1}}|
+|               3 => {Cell of dimension 3 with label 1} |
+|                                                       |
+|o2 : HashTable                                         |
++-------------------------------------------------------+
+|i3 : complex S                                         |
+|                                                       |
+|       1       1                   1                   |
+|o3 = QQ  <-- QQ  <-- 0 <-- 0 <-- QQ                    |
+|                                                       |
+|     -1      0       1     2     3                     |
+|                                                       |
+|o3 : Complex                                           |
++-------------------------------------------------------+
+|i4 : prune homology S                                  |
+|                                                       |
+|       1                                               |
+|o4 = QQ                                                |
+|                                                       |
+|     3                                                 |
+|                                                       |
+|o4 : Complex                                           |
++-------------------------------------------------------+
+
+See also
+========
+
+  * *note cellComplexRPn: cellComplexRPn, -- gives a $RP^n$ as a cell complex
+  * *note cellComplexTorus: cellComplexTorus, -- gives a torus as a cell
+    complex
+
+Ways to use cellComplexSphere:
+==============================
+
+  * "cellComplexSphere(Ring,ZZ)"
+
+For the programmer
+==================
+
+The object *note cellComplexSphere: cellComplexSphere, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1205:0.
+
+File: CellularResolutions.info, Node: cellComplexTorus, Next: cellLabel, Prev: cellComplexSphere, Up: Top
+
+cellComplexTorus -- gives a torus as a cell complex
+***************************************************
+
+  * Usage: 
+        cellComplexTorus(R,n)
+  * Inputs:
+      * R, a *note ring: (Macaulay2Doc)Ring,, that specifies the base ring
+      * n, an *note integer: (Macaulay2Doc)ZZ,, that specifies the dimension of
+        the torus
+  * Outputs:
+      * a *note cell complex: CellComplex,, the n-dimensional torus
+
+Description
+===========
+
+This function returns the n-dimensional torus as a cell complex in the usual
+way: the product of n copies of $S^1$.
+
++-----------------------------------------------------------------------------+
+|i1 : T3 = cellComplexTorus(QQ,3)                                             |
+|                                                                             |
+|o1 = T3                                                                      |
+|                                                                             |
+|o1 : CellComplex                                                             |
++-----------------------------------------------------------------------------+
+|i2 : cells(T3)                                                               |
+|                                                                             |
+|o2 = HashTable{0 => {Cell of dimension 0 with label 1}                       |
+|               1 => {Cell of dimension 1 with label 1, Cell of dimension 1   |
+|               2 => {Cell of dimension 2 with label 1, Cell of dimension 2   |
+|               3 => {Cell of dimension 3 with label 1}                       |
+|                                                                             |
+|o2 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|                                               }                             |
+|with label 1, Cell of dimension 1 with label 1}                              |
+|with label 1, Cell of dimension 2 with label 1}                              |
++-----------------------------------------------------------------------------+
+|i3 : prune homology T3                                                       |
+|                                                                             |
+|       3       3       1                                                     |
+|o3 = QQ  <-- QQ  <-- QQ                                                      |
+|                                                                             |
+|     1       2       3                                                       |
+|                                                                             |
+|o3 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note cellComplexSphere: cellComplexSphere, -- gives a sphere as a cell
+    complex
+  * *note cellComplexRPn: cellComplexRPn, -- gives a $RP^n$ as a cell complex
+
+Ways to use cellComplexTorus:
+=============================
+
+  * "cellComplexTorus(Ring,ZZ)"
+
+For the programmer
+==================
+
+The object *note cellComplexTorus: cellComplexTorus, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1265:0.
+
+File: CellularResolutions.info, Node: cellLabel, Next: cells, Prev: cellComplexTorus, Up: Top
+
+cellLabel -- return the label of a cell
+***************************************
+
+  * Usage: 
+        cellLabel C
+  * Inputs:
+      * C, a *note cell: Cell,, 
+  * Outputs:
+      * a *note thing: (Macaulay2Doc)Thing,, the label of the cell
+
+Description
+===========
+
+The label is provided at the creation of the cell and cannot be modified,
+neither this function nor any of the cell creation functions attempt to
+interpret the label and while the labels generally should be monomials, this
+package makes no attempt to enforce such a requirement.
+
++-----------------------------------+
+|i1 : R = QQ[x,y];                  |
++-----------------------------------+
+|i2 : v1 = newSimplexCell({},x^2);  |
++-----------------------------------+
+|i3 : v2 = newSimplexCell({},x*y^2);|
++-----------------------------------+
+|i4 : v3 = newSimplexCell {};       |
++-----------------------------------+
+|i5 : e = newSimplexCell {v1,v2};   |
++-----------------------------------+
+|i6 : C = cellComplex(R,{e,v3});    |
++-----------------------------------+
+|i7 : cellLabel v1                  |
+|                                   |
+|      2                            |
+|o7 = x                             |
+|                                   |
+|o7 : R                             |
++-----------------------------------+
+|i8 : cellLabel e                   |
+|                                   |
+|      2 2                          |
+|o8 = x y                           |
+|                                   |
+|o8 : R                             |
++-----------------------------------+
+|i9 : cellLabel v3                  |
+|                                   |
+|o9 = 1                             |
++-----------------------------------+
+
+See also
+========
+
+  * *note Cell: Cell, -- the class of all cells in cell complexes
+  * *note newSimplexCell: newSimplexCell, -- create a new cell
+  * *note newCell: newCell, -- creates a new cell
+
+Ways to use cellLabel:
+======================
+
+  * "cellLabel(Cell)"
+
+For the programmer
+==================
+
+The object *note cellLabel: cellLabel, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:355:0.
+
+File: CellularResolutions.info, Node: cells, Next: cells_lpZZ_cmCellComplex_rp, Prev: cellLabel, Up: Top
+
+cells -- return the cells of a cell complex as a hashtable whose keys are cell dimensions
+*****************************************************************************************
+
+  * Usage: 
+        cells(C)
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, the CellComplex whose cells are
+        to be returned
+  * Outputs:
+      * a *note hash table: (Macaulay2Doc)HashTable,, the cells of C
+
+Description
+===========
+
+Given a cell complex, this function will return all the cells in that cell
+complex, index by dimension. The order of the cells in each dimension is
+arbitrary.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y,z];                                                          |
++-----------------------------------------------------------------------------+
+|i2 : vx = newSimplexCell({},x);                                              |
++-----------------------------------------------------------------------------+
+|i3 : vy = newSimplexCell({},y);                                              |
++-----------------------------------------------------------------------------+
+|i4 : vz = newSimplexCell({},z);                                              |
++-----------------------------------------------------------------------------+
+|i5 : exy = newSimplexCell {vx,vy};                                           |
++-----------------------------------------------------------------------------+
+|i6 : C = cellComplex(R,{exy,vz});                                            |
++-----------------------------------------------------------------------------+
+|i7 : cells(C)                                                                |
+|                                                                             |
+|o7 = HashTable{0 => {Cell of dimension 0 with label z, Cell of dimension 0   |
+|               1 => {Cell of dimension 1 with label x*y}                     |
+|                                                                             |
+|o7 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|with label x, Cell of dimension 0 with label y}}                             |
++-----------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+|i8 : R = QQ;                                                                 |
++-----------------------------------------------------------------------------+
+|i9 : P = convexHull matrix {{1,1,-1,-1},{1,-1,1,-1}};                        |
++-----------------------------------------------------------------------------+
+|i10 : C = cellComplex(R,P);                                                  |
++-----------------------------------------------------------------------------+
+|i11 : cells C                                                                |
+|                                                                             |
+|o11 = HashTable{0 => {Cell of dimension 0 with label 1, Cell of dimension 0  |
+|                1 => {Cell of dimension 1 with label 1, Cell of dimension 1  |
+|                2 => {Cell of dimension 2 with label 1}                      |
+|                                                                             |
+|o11 : HashTable                                                              |
+|-----------------------------------------------------------------------------|
+|with label 1, Cell of dimension 0 with label 1, Cell of dimension 0 with     |
+|with label 1, Cell of dimension 1 with label 1, Cell of dimension 1 with     |
+|-----------------------------------------------------------------------------|
+|label 1}}                                                                    |
+|label 1}                                                                     |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note cells(ZZ,CellComplex): cells_lpZZ_cmCellComplex_rp, -- return the
+    cells of a cell complex
+
+Ways to use cells:
+==================
+
+  * "cells(CellComplex)"
+  * *note cells(ZZ,CellComplex): cells_lpZZ_cmCellComplex_rp, -- return the
+    cells of a cell complex
+
+For the programmer
+==================
+
+The object *note cells: cells, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:453:0.
+
+File: CellularResolutions.info, Node: cells_lpZZ_cmCellComplex_rp, Next: complex_lpCellComplex_rp, Prev: cells, Up: Top
+
+cells(ZZ,CellComplex) -- return the cells of a cell complex
+***********************************************************
+
+  * Function: *note cells: cells,
+  * Usage: 
+        cells(ZZ,C)
+  * Inputs:
+      * r, an *note integer: (Macaulay2Doc)ZZ,, the dimension of the cells to
+        be returned
+      * C, a *note cell complex: CellComplex,, whose r-cells are to be returned
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, the r-cells of C
+
+Description
+===========
+
+Given a dimension r and a cell complex C, cells returns a list of all the cells
+of dimension r in C. The order of the returned cells is arbitrary.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y,z];                                                          |
++-----------------------------------------------------------------------------+
+|i2 : vx = newSimplexCell({},x);                                              |
++-----------------------------------------------------------------------------+
+|i3 : vy = newSimplexCell({},y);                                              |
++-----------------------------------------------------------------------------+
+|i4 : vz = newSimplexCell({},z);                                              |
++-----------------------------------------------------------------------------+
+|i5 : exy = newSimplexCell {vx,vy};                                           |
++-----------------------------------------------------------------------------+
+|i6 : C = cellComplex(R,{exy,vz});                                            |
++-----------------------------------------------------------------------------+
+|i7 : cells(0,C)                                                              |
+|                                                                             |
+|o7 = {Cell of dimension 0 with label z, Cell of dimension 0 with label x,    |
+|     ------------------------------------------------------------------------|
+|     Cell of dimension 0 with label y}                                       |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : cells(1,C)                                                              |
+|                                                                             |
+|o8 = {Cell of dimension 1 with label x*y}                                    |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : cells(2,C)                                                              |
+|                                                                             |
+|o9 = {}                                                                      |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note cells(CellComplex): cells, -- return the cells of a cell complex as a
+    hashtable whose keys are cell dimensions
+
+Ways to use this method:
+========================
+
+  * *note cells(ZZ,CellComplex): cells_lpZZ_cmCellComplex_rp, -- return the
+    cells of a cell complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:486:0.
+
+File: CellularResolutions.info, Node: complex_lpCellComplex_rp, Next: describe_lpCellComplex_rp, Prev: cells_lpZZ_cmCellComplex_rp, Up: Top
+
+complex(CellComplex) -- compute the cellular chain complex for a cell complex
+*****************************************************************************
+
+  * Function: *note complex: (Complexes)complex_lpList_rp,
+  * Usage: 
+        complex C
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, the cell complex for which to
+        compute the chain complex
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Reduced => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        true, that controls whether the augmented chain complexes is used
+      * Prune => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        true, that controls whether the modules in the chain complex are pruned
+  * Outputs:
+      * a *note complex: (Complexes)Complex,, the dimension of the complex
+
+Description
+===========
+
+This constructs the cellular chain complex for a cell complex, taking into
+account the labels on the cells. The resulting cell complex will be a complex
+of modules over the ring associated to the cell complex. By default, the option
+"Reduced" is set to true, so the resulting Complex has a rank 1 free module in
+homological degree -1.
+
++--------------------------------+
+|i1 : R = QQ[x]                  |
+|                                |
+|o1 = R                          |
+|                                |
+|o1 : PolynomialRing             |
++--------------------------------+
+|i2 : a = newSimplexCell({},x);  |
++--------------------------------+
+|i3 : b1 = newCell {a,a};        |
++--------------------------------+
+|i4 : b2 = newCell {a,a};        |
++--------------------------------+
+|i5 : C = cellComplex(R,{b1,b2});|
++--------------------------------+
+|i6 : complex C                  |
+|                                |
+|      1      1      2           |
+|o6 = R  <-- R  <-- R            |
+|                                |
+|     -1     0      1            |
+|                                |
+|o6 : Complex                    |
++--------------------------------+
+|i7 : complex(C,Reduced=>false)  |
+|                                |
+|      1      2                  |
+|o7 = R  <-- R                   |
+|                                |
+|     0      1                   |
+|                                |
+|o7 : Complex                    |
++--------------------------------+
+
+For details see Combinatorial Commutative Algebra Section 4.1. If we restrict
+to the case of monomial labels, then, subject to some acyclicity conditions,
+the resulting complex will be (up to a shift by 1 in homological degree) a
+resolution of $S/I$ where $I$ is the ideal generated by the labels of the
+vertices. With the "Reduced" option set to false, the resulting complex will be
+a resolution of the ideal $I$ as a module.
+
++--------------------------------------------------+
+|i8 : R = QQ[x,y,z];                               |
++--------------------------------------------------+
+|i9 : I = ideal(x,y,z);                            |
+|                                                  |
+|o9 : Ideal of R                                   |
++--------------------------------------------------+
+|i10 : vx = newSimplexCell({},x);                  |
++--------------------------------------------------+
+|i11 : vy = newSimplexCell({},y);                  |
++--------------------------------------------------+
+|i12 : vz = newSimplexCell({},z);                  |
++--------------------------------------------------+
+|i13 : exy = newSimplexCell({vx,vy});              |
++--------------------------------------------------+
+|i14 : exz = newSimplexCell({vx,vz});              |
++--------------------------------------------------+
+|i15 : eyz = newSimplexCell({vy,vz});              |
++--------------------------------------------------+
+|i16 : f = newSimplexCell({exy,exz,eyz});          |
++--------------------------------------------------+
+|i17 : C = cellComplex(R,{f});                     |
++--------------------------------------------------+
+|i18 : betti complex(C)[-1]                        |
+|                                                  |
+|             0 1 2 3                              |
+|o18 = total: 1 3 3 1                              |
+|          0: 1 3 3 1                              |
+|                                                  |
+|o18 : BettiTally                                  |
++--------------------------------------------------+
+|i19 : assert(betti complex(C)[-1] == betti res I);|
++--------------------------------------------------+
+
+The option "Prune," also defaulted to true, controls whether the modules in the
+complex are pruned before being returned. With the "Prune" option set to the
+default of true, the resulting complex is visually nicer. However, unless the
+labeling ring is fine graded, some of the structure will be lost.
+
++-------------------------------------------+
+|i20 : R = QQ[x,y]                          |
+|                                           |
+|o20 = R                                    |
+|                                           |
+|o20 : PolynomialRing                       |
++-------------------------------------------+
+|i21 : a = newSimplexCell({},x);            |
++-------------------------------------------+
+|i22 : b = newSimplexCell({},y);            |
++-------------------------------------------+
+|i23 : e = newCell {a,b};                   |
++-------------------------------------------+
+|i24 : C = cellComplex(R,{e});              |
++-------------------------------------------+
+|i25 : complex C                            |
+|                                           |
+|       1      2      1                     |
+|o25 = R  <-- R  <-- R                      |
+|                                           |
+|      -1     0      1                      |
+|                                           |
+|o25 : Complex                              |
++-------------------------------------------+
+|i26 : complex(C,Prune=>false)              |
+|                                           |
+|       1                                   |
+|o26 = R  <-- image | x 0 | <-- image | xy ||
+|                   | 0 y |                 |
+|      -1                       1           |
+|             0                             |
+|                                           |
+|o26 : Complex                              |
++-------------------------------------------+
+
+See also
+========
+
+  * *note boundaryMap(ZZ,CellComplex): boundaryMap_lpZZ_cmCellComplex_rp, --
+    compute the boundary map of a cell complex from r-faces to (r-1)-faces
+  * *note complex(SimplicialComplex):
+    (SimplicialComplexes)complex_lpSimplicialComplex_rp, -- create the chain
+    complex associated to a simplicial complex.
+  * *note HH CellComplex: HH CellComplex, -- compute the homology modules of a
+    cell complex
+  * *note HH_ZZ CellComplex: HH_usZZ CellComplex, -- compute the homology
+    modules of a cell complex
+  * *note HH^ZZ CellComplex: HH^ZZ CellComplex, -- cohomology of a cell complex
+
+Ways to use this method:
+========================
+
+  * *note complex(CellComplex): complex_lpCellComplex_rp, -- compute the
+    cellular chain complex for a cell complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:686:0.
+
+File: CellularResolutions.info, Node: describe_lpCellComplex_rp, Next: dim_lpCell_rp, Prev: complex_lpCellComplex_rp, Up: Top
+
+describe(CellComplex) -- Describes a cell complex or cell
+*********************************************************
+
+  * Function: *note describe: (Macaulay2Doc)describe,
+  * Usage: 
+        describe C
+  * Inputs:
+      * C, a *note cell complex: CellComplex, or a *note cell: Cell,, 
+  * Outputs:
+      * an *note expression: (Macaulay2Doc)Expression,, 
+
+Description
+===========
+
+Unlike *note net(CellComplex): net_lpCellComplex_rp, this version ignores the
+name from *note GlobalAssignHook: (Macaulay2Doc)GlobalAssignHook,.
+Consequently, this method returns a short description of the cell complex
+regardless of if it has been assigned to a global variable.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                                            |
++-----------------------------------------------------------------------------+
+|i2 : v1 = newSimplexCell({},x);                                              |
++-----------------------------------------------------------------------------+
+|i3 : v2 = newSimplexCell({},y);                                              |
++-----------------------------------------------------------------------------+
+|i4 : e1 = newSimplexCell({v1,v2},x);                                         |
++-----------------------------------------------------------------------------+
+|i5 : e2 = newSimplexCell({v1,v2},y);                                         |
++-----------------------------------------------------------------------------+
+|i6 : f = newCell({(e1,1),(e2,-1)},x*y);                                      |
++-----------------------------------------------------------------------------+
+|i7 : describe cellComplex(R,{f})                                             |
+|                                                                             |
+|o7 = Cell complex over (QQ[x..y, Degrees => {2:1}, Heft => {1}]) of dimension|
+|-----------------------------------------------------------------------------|
+|2 with 5 total cells                                                         |
++-----------------------------------------------------------------------------+
+|i8 : X = cellComplex(R,{f});                                                 |
++-----------------------------------------------------------------------------+
+|i9 : describe X                                                              |
+|                                                                             |
+|o9 = Cell complex over (QQ[x..y, Degrees => {2:1}, Heft => {1}]) of dimension|
+|-----------------------------------------------------------------------------|
+|2 with 5 total cells                                                         |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note describe: (Macaulay2Doc)describe, -- real description
+  * *note net(CellComplex): net_lpCellComplex_rp, -- Describes a cell complex
+    or cell
+
+Ways to use this method:
+========================
+
+  * *note describe(CellComplex): describe_lpCellComplex_rp, -- Describes a cell
+    complex or cell
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1599:0.
+
+File: CellularResolutions.info, Node: dim_lpCell_rp, Next: dim_lpCellComplex_rp, Prev: describe_lpCellComplex_rp, Up: Top
+
+dim(Cell) -- compute the dimension of a cell
+********************************************
+
+  * Function: *note dim: (Macaulay2Doc)dim,
+  * Usage: 
+        dim C
+  * Inputs:
+      * C, a *note cell: Cell,, the cell to compute the dimension of
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, the dimension of the cell
+
+Description
+===========
+
+Given a cell C, dim returns its dimension. In general the dimension of the cell
+is inferred from the dimension of its boundary. However, this can be overridden
+if the cell is created using *note newCell: newCell, with the *note
+CellDimension: newCell, option.
+
++----------------------------------+
+|i1 : R = QQ[x,y,z];               |
++----------------------------------+
+|i2 : vx = newSimplexCell({},x);   |
++----------------------------------+
+|i3 : vy = newSimplexCell({},y);   |
++----------------------------------+
+|i4 : vz = newSimplexCell({},z);   |
++----------------------------------+
+|i5 : exy = newSimplexCell {vx,vy};|
++----------------------------------+
+|i6 : C = cellComplex(R,{exy,vz}); |
++----------------------------------+
+|i7 : dim(vz)                      |
+|                                  |
+|o7 = 0                            |
++----------------------------------+
+|i8 : dim(exy)                     |
+|                                  |
+|o8 = 1                            |
++----------------------------------+
+
+See also
+========
+
+  * *note dim(CellComplex): dim_lpCellComplex_rp, -- compute the dimension of a
+    cell complex
+
+Ways to use this method:
+========================
+
+  * *note dim(Cell): dim_lpCell_rp, -- compute the dimension of a cell
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:417:0.
+
+File: CellularResolutions.info, Node: dim_lpCellComplex_rp, Next: facePoset_lpCellComplex_rp, Prev: dim_lpCell_rp, Up: Top
+
+dim(CellComplex) -- compute the dimension of a cell complex
+***********************************************************
+
+  * Function: *note dim: (Macaulay2Doc)dim,
+  * Usage: 
+        dim C
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, the complex to compute the
+        dimension of
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, the dimension of the complex
+
+Description
+===========
+
+Given a cell complex C, dim returns its dimension. The dimension is equal to
+the largest dimension of a cell in C.
+
++----------------------------------+
+|i1 : R = QQ[x,y,z];               |
++----------------------------------+
+|i2 : vx = newSimplexCell({},x);   |
++----------------------------------+
+|i3 : vy = newSimplexCell({},y);   |
++----------------------------------+
+|i4 : vz = newSimplexCell({},z);   |
++----------------------------------+
+|i5 : exy = newSimplexCell {vx,vy};|
++----------------------------------+
+|i6 : C = cellComplex(R,{exy,vz}); |
++----------------------------------+
+|i7 : dim C                        |
+|                                  |
+|o7 = 1                            |
++----------------------------------+
+
+See also
+========
+
+  * *note dim(Cell): dim_lpCell_rp, -- compute the dimension of a cell
+
+Ways to use this method:
+========================
+
+  * *note dim(CellComplex): dim_lpCellComplex_rp, -- compute the dimension of a
+    cell complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:384:0.
+
+File: CellularResolutions.info, Node: facePoset_lpCellComplex_rp, Next: HH CellComplex, Prev: dim_lpCellComplex_rp, Up: Top
+
+facePoset(CellComplex) -- generates the face poset of a cell complex
+********************************************************************
+
+  * Function: *note facePoset: (Posets)facePoset,
+  * Usage: 
+        facePoset C
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, 
+  * Outputs:
+      * an instance of the type *note Poset: (Posets)Poset,, the face poset of
+        C
+
+Description
+===========
+
+The face poset of a cell complex is the poset of cells with partial ordering
+given by inclusion. The example below constructs the square as a cellular
+complex and returns the face poset.
+
++--------------------------------------------+
+|i1 : R = QQ;                                |
++--------------------------------------------+
+|i2 : v1 = newCell {};                       |
++--------------------------------------------+
+|i3 : v2 = newCell {};                       |
++--------------------------------------------+
+|i4 : v3 = newCell {};                       |
++--------------------------------------------+
+|i5 : v4 = newCell {};                       |
++--------------------------------------------+
+|i6 : e12 = newCell({v1,v2});                |
++--------------------------------------------+
+|i7 : e23 = newCell({v2,v3});                |
++--------------------------------------------+
+|i8 : e34 = newCell({v3,v4});                |
++--------------------------------------------+
+|i9 : e41 = newCell({v4,v1});                |
++--------------------------------------------+
+|i10 : f = newCell({e12,e23,e34,e41});       |
++--------------------------------------------+
+|i11 : C = cellComplex(R,{f});               |
++--------------------------------------------+
+|i12 : facePoset C                           |
+|                                            |
+|o12 = Relation Matrix: | 1 0 0 0 1 0 1 0 1 ||
+|                       | 0 1 0 0 0 0 1 1 1 ||
+|                       | 0 0 1 0 0 1 0 1 1 ||
+|                       | 0 0 0 1 1 1 0 0 1 ||
+|                       | 0 0 0 0 1 0 0 0 1 ||
+|                       | 0 0 0 0 0 1 0 0 1 ||
+|                       | 0 0 0 0 0 0 1 0 1 ||
+|                       | 0 0 0 0 0 0 0 1 1 ||
+|                       | 0 0 0 0 0 0 0 0 1 ||
+|                                            |
+|o12 : Poset                                 |
++--------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note facePoset(CellComplex): facePoset_lpCellComplex_rp, -- generates the
+    face poset of a cell complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:954:0.
+
+File: CellularResolutions.info, Node: HH CellComplex, Next: HH^ZZ CellComplex, Prev: facePoset_lpCellComplex_rp, Up: Top
+
+HH CellComplex -- compute the homology modules of a cell complex
+****************************************************************
+
+  * Function: *note homology: (Macaulay2Doc)homology,
+  * Usage: 
+        homology(C)
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, with labels in ring(C)
+  * Outputs:
+      * a *note complex: (Complexes)Complex,, the graded module, the homology
+        of C with coefficients in ring(C)
+
+Description
+===========
+
+This computes the reduced homology of the cellular complex arising from the
+labeled cell complex C.
+
+If the labels are all 1, then this will be the standard homology of the cell
+complex over the label ring, as in the following example.
+
++---------------------------------------+
+|i1 : R = QQ[x]                         |
+|                                       |
+|o1 = R                                 |
+|                                       |
+|o1 : PolynomialRing                    |
++---------------------------------------+
+|i2 : a = newSimplexCell({},1);         |
++---------------------------------------+
+|i3 : b1 = newCell {a,a};               |
++---------------------------------------+
+|i4 : b2 = newCell {a,a};               |
++---------------------------------------+
+|i5 : C = cellComplex(R,{b1,b2});       |
++---------------------------------------+
+|i6 : HH C                              |
+|                                       |
+|                                      2|
+|o6 = cokernel | -1 | <-- image 0 <-- R |
+|                                       |
+|     -1                  0           1 |
+|                                       |
+|o6 : Complex                           |
++---------------------------------------+
+|i7 : prune oo                          |
+|                                       |
+|      2                                |
+|o7 = R                                 |
+|                                       |
+|     1                                 |
+|                                       |
+|o7 : Complex                           |
++---------------------------------------+
+
+However if the cells instead labeled with monomials (or monomial ideals) from
+the ring the homology of the corresponding complex of R modules is given.
+
++----------------------------------------+
+|i8 : R = QQ[x]                          |
+|                                        |
+|o8 = R                                  |
+|                                        |
+|o8 : PolynomialRing                     |
++----------------------------------------+
+|i9 : a = newSimplexCell({},x);          |
++----------------------------------------+
+|i10 : b1 = newCell {a,a};               |
++----------------------------------------+
+|i11 : b2 = newCell {a,a};               |
++----------------------------------------+
+|i12 : C = cellComplex(R,{b1,b2});       |
++----------------------------------------+
+|i13 : HH C                              |
+|                                        |
+|                                       2|
+|o13 = cokernel | -x | <-- image 0 <-- R |
+|                                        |
+|      -1                  0           1 |
+|                                        |
+|o13 : Complex                           |
++----------------------------------------+
+|i14 : prune oo                          |
+|                                        |
+|                                2       |
+|o14 = cokernel | x | <-- 0 <-- R        |
+|                                        |
+|      -1                 0     1        |
+|                                        |
+|o14 : Complex                           |
++----------------------------------------+
+
+See also
+========
+
+  * *note HH_ZZ CellComplex: HH_usZZ CellComplex, -- compute the homology
+    modules of a cell complex
+  * *note complex(CellComplex): complex_lpCellComplex_rp, -- compute the
+    cellular chain complex for a cell complex
+
+Ways to use this method:
+========================
+
+  * *note HH CellComplex: HH CellComplex, -- compute the homology modules of a
+    cell complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:729:0.
+
+File: CellularResolutions.info, Node: HH^ZZ CellComplex, Next: HH_usZZ CellComplex, Prev: HH CellComplex, Up: Top
+
+HH^ZZ CellComplex -- cohomology of a cell complex
+*************************************************
+
+  * Function: *note cohomology: (Macaulay2Doc)cohomology,
+  * Usage: 
+        cohomology(r,C)
+  * Inputs:
+      * r, an *note integer: (Macaulay2Doc)ZZ,, a non-negative integer
+      * C, a *note cell complex: CellComplex,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Degree: (Macaulay2Doc)cohomology, => an *note integer:
+        (Macaulay2Doc)ZZ,, default value 0, which is ignored by this particular
+        function
+  * Outputs:
+      * a *note module: (Macaulay2Doc)Module,, the r-th cohomology module of C
+
+Description
+===========
+
+This computes the reduced cohomology in degree r of the labeled cell complex.
+In particular, it constructs the co-chain complex by dualizing by the label
+ring, and takes the homology of that chain complex. As an example we can
+compute the cohomology of the wedge of two circles.
+
++-----------------------------------+
+|i1 : R = QQ[x]                     |
+|                                   |
+|o1 = R                             |
+|                                   |
+|o1 : PolynomialRing                |
++-----------------------------------+
+|i2 : a = newSimplexCell({},x);     |
++-----------------------------------+
+|i3 : b1 = newCell {a,a};           |
++-----------------------------------+
+|i4 : b2 = newCell {a,a};           |
++-----------------------------------+
+|i5 : C = cellComplex(R,{b1,b2});   |
++-----------------------------------+
+|i6 : cohomology(-1,C)              |
+|                                   |
+|o6 = image 0                       |
+|                                   |
+|                             1     |
+|o6 : R-module, submodule of R      |
++-----------------------------------+
+|i7 : cohomology(0,C)               |
+|                                   |
+|o7 = cokernel {-1} | -x |          |
+|                                   |
+|                            1      |
+|o7 : R-module, quotient of R       |
++-----------------------------------+
+|i8 : cohomology(1,C)               |
+|                                   |
+|      2                            |
+|o8 = R                             |
+|                                   |
+|o8 : R-module, free, degrees {2:-1}|
++-----------------------------------+
+
+Or in a more interesting case, we have the cohomology over the integers of
+$\mathbb{RP}^3$.
+
++---------------------------------+
+|i9 : C = cellComplexRPn(ZZ,3);   |
++---------------------------------+
+|i10 : cohomology(0,C)            |
+|                                 |
+|o10 = cokernel | -1 |            |
+|                                 |
+|                               1 |
+|o10 : ZZ-module, quotient of ZZ  |
++---------------------------------+
+|i11 : cohomology(1,C)            |
+|                                 |
+|o11 = image 0                    |
+|                                 |
+|                                1|
+|o11 : ZZ-module, submodule of ZZ |
++---------------------------------+
+|i12 : cohomology(2,C)            |
+|                                 |
+|o12 = cokernel | -2 |            |
+|                                 |
+|                               1 |
+|o12 : ZZ-module, quotient of ZZ  |
++---------------------------------+
+|i13 : cohomology(3,C)            |
+|                                 |
+|        1                        |
+|o13 = ZZ                         |
+|                                 |
+|o13 : ZZ-module, free            |
++---------------------------------+
+
+See also
+========
+
+  * *note HH CellComplex: HH CellComplex, -- compute the homology modules of a
+    cell complex
+  * *note HH_ZZ CellComplex: HH_usZZ CellComplex, -- compute the homology
+    modules of a cell complex
+  * *note complex(CellComplex): complex_lpCellComplex_rp, -- compute the
+    cellular chain complex for a cell complex
+
+Ways to use this method:
+========================
+
+  * *note HH^ZZ CellComplex: HH^ZZ CellComplex, -- cohomology of a cell complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:824:0.
+
+File: CellularResolutions.info, Node: HH_usZZ CellComplex, Next: hullComplex, Prev: HH^ZZ CellComplex, Up: Top
+
+HH_ZZ CellComplex -- compute the homology modules of a cell complex
+*******************************************************************
+
+  * Function: *note homology: (Macaulay2Doc)homology,
+  * Usage: 
+        homology(r,C)
+  * Inputs:
+      * r, an *note integer: (Macaulay2Doc)ZZ,, an integer
+      * C, a *note cell complex: CellComplex,, with labels in ring(C)
+  * Outputs:
+      * a *note module: (Macaulay2Doc)Module,, the r-th homology module of C
+        with coefficients in ring(C)
+
+Description
+===========
+
+This computes the reduced homology in degree r of the cellular complex arising
+from the cell complex C. For more details on the labels, see *note HH
+CellComplex: HH CellComplex,. As an example, we can compute the 0-th and 1st
+homology of a wedge of two circles.
+
++--------------------------------+
+|i1 : R = QQ                     |
+|                                |
+|o1 = QQ                         |
+|                                |
+|o1 : Ring                       |
++--------------------------------+
+|i2 : a = newSimplexCell({},1);  |
++--------------------------------+
+|i3 : b1 = newCell {a,a};        |
++--------------------------------+
+|i4 : b2 = newCell {a,a};        |
++--------------------------------+
+|i5 : C = cellComplex(R,{b1,b2});|
++--------------------------------+
+|i6 : homology(0,C)              |
+|                                |
+|o6 = image 0                    |
+|                                |
+|                               1|
+|o6 : QQ-module, submodule of QQ |
++--------------------------------+
+|i7 : homology(1,C)              |
+|                                |
+|       2                        |
+|o7 = QQ                         |
+|                                |
+|o7 : QQ-module, free            |
++--------------------------------+
+|i8 : prune oo                   |
+|                                |
+|       2                        |
+|o8 = QQ                         |
+|                                |
+|o8 : QQ-module, free            |
++--------------------------------+
+
+We can make this example slightly more interesting by changing the label ring
+and adding a non-unit label. Note in particular that this has a non-zero 0-th
+homology.
+
++-----------------------------------+
+|i9 : R = QQ[x]                     |
+|                                   |
+|o9 = R                             |
+|                                   |
+|o9 : PolynomialRing                |
++-----------------------------------+
+|i10 : a = newSimplexCell({},x);    |
++-----------------------------------+
+|i11 : b1 = newCell {a,a};          |
++-----------------------------------+
+|i12 : b2 = newCell {a,a};          |
++-----------------------------------+
+|i13 : C = cellComplex(R,{b1,b2});  |
++-----------------------------------+
+|i14 : homology(0,C)                |
+|                                   |
+|o14 = image 0                      |
+|                                   |
+|                              1    |
+|o14 : R-module, submodule of R     |
++-----------------------------------+
+|i15 : prune oo                     |
+|                                   |
+|o15 = 0                            |
+|                                   |
+|o15 : R-module                     |
++-----------------------------------+
+|i16 : homology(1,C)                |
+|                                   |
+|       2                           |
+|o16 = R                            |
+|                                   |
+|o16 : R-module, free, degrees {2:1}|
++-----------------------------------+
+|i17 : prune oo                     |
+|                                   |
+|       2                           |
+|o17 = R                            |
+|                                   |
+|o17 : R-module, free, degrees {2:1}|
++-----------------------------------+
+
+See also
+========
+
+  * *note HH CellComplex: HH CellComplex, -- compute the homology modules of a
+    cell complex
+  * *note HH^ZZ CellComplex: HH^ZZ CellComplex, -- cohomology of a cell complex
+  * *note complex(CellComplex): complex_lpCellComplex_rp, -- compute the
+    cellular chain complex for a cell complex
+
+Ways to use this method:
+========================
+
+  * *note HH_ZZ CellComplex: HH_usZZ CellComplex, -- compute the homology
+    modules of a cell complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:777:0.
+
+File: CellularResolutions.info, Node: hullComplex, Next: isCycle, Prev: HH_usZZ CellComplex, Up: Top
+
+hullComplex -- gives the hull complex of a monomial ideal
+*********************************************************
+
+  * Usage: 
+        hullComplex I
+        hullComplex(t,I)
+  * Inputs:
+      * t, a *note rational number: (Macaulay2Doc)QQ, or an *note integer:
+        (Macaulay2Doc)ZZ,,
+      * I, a *note monomial ideal: (Macaulay2Doc)MonomialIdeal,, 
+  * Outputs:
+      * a *note cell complex: CellComplex,, the hull complex of $I$ as
+        described in Bayer-Sturmfels' ``Cellular Resolutions of Monomial
+        Modules''
+
+Description
+===========
+
+Given a monomial ideal $I$, this function returns the hull complex of that
+ideal. If an rational number $t$ is provided, this will set the base used in
+the exponents used to construct the polytope as described in ``Combinatorial
+Commutative Algebra.'' The resulting complex is only a resolution for $t\gg 0$.
+In particular $t > (n+1)!$ is sufficient where $n$ is the number of variables
+in the ring. If t is not provided, $(n+1)!+1$ will be used.
+
+The example given below can be found as Example 4.23 in Miller-Sturmfels'
+``Combinatorial Commutative Algebra.'' In this example, the resolution
+supported on the hull complex is minimal, but this is not always the case. We
+also see that for $t=3/2$ the resulting complex is no longer a resolution.
+
++------------------------------------------------------------------------+
+|i1 : S = QQ[x,y,z];                                                     |
++------------------------------------------------------------------------+
+|i2 : I = monomialIdeal (x^2*z, x*y*z, y^2*z, x^3*y^5, x^4*y^4, x^5*y^3);|
+|                                                                        |
+|o2 : MonomialIdeal of S                                                 |
++------------------------------------------------------------------------+
+|i3 : H = hullComplex I                                                  |
+|                                                                        |
+|o3 = H                                                                  |
+|                                                                        |
+|o3 : CellComplex                                                        |
++------------------------------------------------------------------------+
+|i4 : complex H                                                          |
+|                                                                        |
+|      1      6      7      2                                            |
+|o4 = S  <-- S  <-- S  <-- S                                             |
+|                                                                        |
+|     -1     0      1      2                                             |
+|                                                                        |
+|o4 : Complex                                                            |
++------------------------------------------------------------------------+
+|i5 : cells(1,H)/cellLabel                                               |
+|                                                                        |
+|       4 4    5 3    5 4   3 5    4 5   2        2                      |
+|o5 = {x y z, x y z, x y , x y z, x y , x y*z, x*y z}                    |
+|                                                                        |
+|o5 : List                                                               |
++------------------------------------------------------------------------+
+|i6 : cells(2,H)/cellLabel                                               |
+|                                                                        |
+|       5 4    4 5                                                       |
+|o6 = {x y z, x y z}                                                     |
+|                                                                        |
+|o6 : List                                                               |
++------------------------------------------------------------------------+
+|i7 : isMinimal H                                                        |
+|                                                                        |
+|o7 = true                                                               |
++------------------------------------------------------------------------+
+|i8 : H2 = hullComplex (3/2,I)                                           |
+|                                                                        |
+|o8 = H2                                                                 |
+|                                                                        |
+|o8 : CellComplex                                                        |
++------------------------------------------------------------------------+
+|i9 : prune HH complex H2                                                |
+|                                                                        |
+|o9 = cokernel | y2z xyz x2z x3y5 x4y4 x5y3 | <-- cokernel {4} | x 0 0 | |
+|                                                          {9} | 0 z x | |
+|     -1                                                                 |
+|                                                 0                      |
+|                                                                        |
+|o9 : Complex                                                            |
++------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note taylorComplex(MonomialIdeal): taylorComplex, -- gives the Taylor
+    complex of a monomial ideal
+
+Ways to use hullComplex:
+========================
+
+  * "hullComplex(MonomialIdeal)"
+  * "hullComplex(QQ,MonomialIdeal)"
+  * "hullComplex(ZZ,MonomialIdeal)"
+
+For the programmer
+==================
+
+The object *note hullComplex: hullComplex, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1312:0.
+
+File: CellularResolutions.info, Node: isCycle, Next: isFree_lpCellComplex_rp, Prev: hullComplex, Up: Top
+
+isCycle -- checks if a list of cells with orientation make a cycle
+******************************************************************
+
+  * Usage: 
+        isCycle L
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, whose entries are pairs, whose
+        first entry is a cell and whose second entry is a degree
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, true if the given
+        cell-degree pairs form a cycle false otherwise
+
+Description
+===========
+
+This determines whether the given pairs, whose first entry is a cell and whose
+second entry is its multiplicity, form a cycle in the homological sense.
+
++---------------------------------------------------------+
+|i1 : R = QQ[x,y,z];                                      |
++---------------------------------------------------------+
+|i2 : vx = newSimplexCell({},x);                          |
++---------------------------------------------------------+
+|i3 : vy = newSimplexCell({},y);                          |
++---------------------------------------------------------+
+|i4 : vz = newSimplexCell({},z);                          |
++---------------------------------------------------------+
+|i5 : lxy = newSimplexCell({vx,vy});                      |
++---------------------------------------------------------+
+|i6 : lyz = newSimplexCell({vy,vz});                      |
++---------------------------------------------------------+
+|i7 : lxz = newSimplexCell({vx,vz});                      |
++---------------------------------------------------------+
+|i8 : assert(isCycle {(lxy,1)} == false);                 |
++---------------------------------------------------------+
+|i9 : assert(isCycle {{lxy,1},{lyz,1},{lxz,-1}} == true); |
++---------------------------------------------------------+
+|i10 : assert(isCycle {{lxy,1},{lyz,1},{lxz,1}} == false);|
++---------------------------------------------------------+
+
+Ways to use isCycle:
+====================
+
+  * "isCycle(List)"
+
+For the programmer
+==================
+
+The object *note isCycle: isCycle, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:923:0.
+
+File: CellularResolutions.info, Node: isFree_lpCellComplex_rp, Next: isMinimal, Prev: isCycle, Up: Top
+
+isFree(CellComplex) -- checks if the labels of a cell complex are free modules
+******************************************************************************
+
+  * Function: *note isFree: (Complexes)isFree_lpComplex_rp,
+  * Usage: 
+        isFree(CellComplex)
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, 
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, true if all modules
+        associated to the cell labels are free
+
+Description
+===========
+
+This command checks if the modules associated to the labels in the cell complex
+are all free, which is necessary for the complex to give a free resolution.
+
+A monomial label always gives a free module, since the module for a monomial
+label is the free module generated by that monomial.
+
+Additionally, this function does not simply apply *note isFreeModule(Module):
+(Macaulay2Doc)isFreeModule, to every label, as in general, the labels are given
+as submodules, and so *note isFreeModule(Module): (Macaulay2Doc)isFreeModule,
+would return false in nearly all cases. Instead the labels are first pruned
+prior to calling *note isFreeModule(Module): (Macaulay2Doc)isFreeModule,.
+
++---------------------------------+
+|i1 : R = QQ[x,y,z];              |
++---------------------------------+
+|i2 : v1 = newCell({},ideal(x,y));|
++---------------------------------+
+|i3 : C1 = cellComplex(R,{v1});   |
++---------------------------------+
+|i4 : isFree C1                   |
+|                                 |
+|o4 = false                       |
++---------------------------------+
+|i5 : v2 = newCell({},x*y);       |
++---------------------------------+
+|i6 : C2 = cellComplex(R,{v2});   |
++---------------------------------+
+|i7 : isFree C2                   |
+|                                 |
+|o7 = true                        |
++---------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note isFree(CellComplex): isFree_lpCellComplex_rp, -- checks if the labels
+    of a cell complex are free modules
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1017:0.
+
+File: CellularResolutions.info, Node: isMinimal, Next: isSimplex, Prev: isFree_lpCellComplex_rp, Up: Top
+
+isMinimal -- check if a labeled cell complex supports a minimal resolution
+**************************************************************************
+
+  * Usage: 
+        isMinimal C
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, 
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, true if the cellular
+        resolution supported on C is minimal false otherwise
+
+Description
+===========
+
+This determines whether the cell complex C supports a minimal free resolution
+of the monomialIdeal I generated by the labels of the vertices of C. Note: we
+assume the cell complex is free.
+
++-----------------------------------+
+|i1 : R = QQ[x,y,z];                |
++-----------------------------------+
+|i2 : v1 = newCell({},x^2*y);       |
++-----------------------------------+
+|i3 : v2 = newCell({},y*z);         |
++-----------------------------------+
+|i4 : v3 = newCell({},z^3);         |
++-----------------------------------+
+|i5 : e12 = newCell({v1,v2});       |
++-----------------------------------+
+|i6 : e13 = newCell({v1,v3});       |
++-----------------------------------+
+|i7 : e23 = newCell({v2,v3});       |
++-----------------------------------+
+|i8 : f123 = newCell({e12,e13,e23});|
++-----------------------------------+
+|i9 : C = cellComplex(R,{e12,e23}); |
++-----------------------------------+
+|i10 : isMinimal C                  |
+|                                   |
+|o10 = true                         |
++-----------------------------------+
+|i11 : D = cellComplex(R,{f123});   |
++-----------------------------------+
+|i12 : isMinimal D                  |
+|                                   |
+|o12 = false                        |
++-----------------------------------+
+
+Caveat
+======
+
+This function makes no attempt to check that the cell complex gives a
+resolution or that the complex is a complex of free modules.
+
+See also
+========
+
+  * *note isFree(CellComplex): isFree_lpCellComplex_rp, -- checks if the labels
+    of a cell complex are free modules
+
+Ways to use isMinimal:
+======================
+
+  * "isMinimal(CellComplex)"
+
+For the programmer
+==================
+
+The object *note isMinimal: isMinimal, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:862:0.
+
+File: CellularResolutions.info, Node: isSimplex, Next: isWellDefined_lpCell_rp, Prev: isMinimal, Up: Top
+
+isSimplex -- check if a cell is a simplex
+*****************************************
+
+  * Usage: 
+        isSimplex C
+  * Inputs:
+      * C, a *note cell: Cell,, a cell
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, true if the cell C is a
+        simplex false otherwise
+
+Description
+===========
+
+This determines whether a cell C is a simplex. A simplex in this context is a
+cell of dimension $d$ with a boundary containing exactly $d+1$ dimension $d-1$
+cells
+
++--------------------------+
+|i1 : v1 = newCell {};     |
++--------------------------+
+|i2 : v2 = newCell {};     |
++--------------------------+
+|i3 : e1 = newCell {v1,v2};|
++--------------------------+
+|i4 : isSimplex e1         |
+|                          |
+|o4 = true                 |
++--------------------------+
+|i5 : e2 = newCell {v1,v1};|
++--------------------------+
+|i6 : isSimplex e2         |
+|                          |
+|o6 = false                |
++--------------------------+
+
+Ways to use isSimplex:
+======================
+
+  * "isSimplex(Cell)"
+
+For the programmer
+==================
+
+The object *note isSimplex: isSimplex, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:891:0.
+
+File: CellularResolutions.info, Node: isWellDefined_lpCell_rp, Next: isWellDefined_lpCellComplex_rp, Prev: isSimplex, Up: Top
+
+isWellDefined(Cell) -- checks if a cell is well defined
+*******************************************************
+
+  * Function: *note isWellDefined: (Macaulay2Doc)isWellDefined,
+  * Usage: 
+        isWellDefined C
+  * Inputs:
+      * C, a *note cell: Cell,, 
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, 
+
+Description
+===========
+
+This function checks if a cell is well defined in the following sense. First,
+the boundary must form a cycle in homology. Second, the labels on the boundary
+cells when interpreted as modules must be submodules of the label of the input
+cell, again interpreted as a module. Finally the label itself must be a
+submodule (not necessarily proper).
+
+Ring element labels are interpreted as the module of the principal ideal
+generated by the element in the ring. Importantly, if all labels are ring
+elements then the condition is simply that the labels on the boundary should
+divide the labels on the current cell.
+
+In the following example, the cell is not well defined because the labels of
+the cells in the boundary of e do not all divide the label on e. Each of the
+vertices v1 and v2 are well defined.
+
++-----------------------------------+
+|i1 : R = QQ[x,y];                  |
++-----------------------------------+
+|i2 : v1 = newSimplexCell({},x);    |
++-----------------------------------+
+|i3 : v2 = newSimplexCell({},y);    |
++-----------------------------------+
+|i4 : e = newSimplexCell({v1,v2},x);|
++-----------------------------------+
+|i5 : isWellDefined v1              |
+|                                   |
+|o5 = true                          |
++-----------------------------------+
+|i6 : isWellDefined v2              |
+|                                   |
+|o6 = true                          |
++-----------------------------------+
+|i7 : isWellDefined e               |
+|                                   |
+|o7 = false                         |
++-----------------------------------+
+
+Note however that extending this example, this function does not check if the
+cells in the boundary are themselves well defined.
+
++----------------------------------------+
+|i8 : R = QQ[x,y];                       |
++----------------------------------------+
+|i9 : v1 = newSimplexCell({},x);         |
++----------------------------------------+
+|i10 : v2 = newSimplexCell({},y);        |
++----------------------------------------+
+|i11 : e1 = newSimplexCell({v1,v2},x);   |
++----------------------------------------+
+|i12 : e2 = newSimplexCell({v1,v2},y);   |
++----------------------------------------+
+|i13 : f = newCell({(e1,1),(e2,-1)},x*y);|
++----------------------------------------+
+|i14 : isWellDefined e1                  |
+|                                        |
+|o14 = false                             |
++----------------------------------------+
+|i15 : isWellDefined e2                  |
+|                                        |
+|o15 = false                             |
++----------------------------------------+
+|i16 : isWellDefined f                   |
+|                                        |
+|o16 = true                              |
++----------------------------------------+
+
+Caveat
+======
+
+Text This function does not check that the cells contained in the boundary are
+themselves well defined. For checking if a whole cell complex is well defined,
+see *note isWellDefined(CellComplex): isWellDefined_lpCellComplex_rp,.
+
+See also
+========
+
+  * *note isWellDefined(CellComplex): isWellDefined_lpCellComplex_rp, -- checks
+    if a cell complex is well defined
+
+Ways to use this method:
+========================
+
+  * *note isWellDefined(Cell): isWellDefined_lpCell_rp, -- checks if a cell is
+    well defined
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1461:0.
+
+File: CellularResolutions.info, Node: isWellDefined_lpCellComplex_rp, Next: maxCells, Prev: isWellDefined_lpCell_rp, Up: Top
+
+isWellDefined(CellComplex) -- checks if a cell complex is well defined
+**********************************************************************
+
+  * Function: *note isWellDefined: (Macaulay2Doc)isWellDefined,
+  * Usage: 
+        isWellDefined C
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, 
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, 
+
+Description
+===========
+
+This function checks two conditions. First, it checks that all cells in the
+cell complex are well defined in the sense of *note isWellDefined(Cell):
+isWellDefined_lpCell_rp,. Second, it checks that all of the labels in the cell
+complex are in a common ambient module.
+
+The following example demonstrates that unlike *note isWellDefined(Cell):
+isWellDefined_lpCell_rp,, cells at all dimensions are checked, and not just the
+cells in the boundary. The cell complex in the example is not well defined
+since the edges have labels that aren't divisible by the vertices in their
+boundary.
+
++---------------------------------------+
+|i1 : R = QQ[x,y];                      |
++---------------------------------------+
+|i2 : v1 = newSimplexCell({},x);        |
++---------------------------------------+
+|i3 : v2 = newSimplexCell({},y);        |
++---------------------------------------+
+|i4 : e1 = newSimplexCell({v1,v2},x);   |
++---------------------------------------+
+|i5 : e2 = newSimplexCell({v1,v2},y);   |
++---------------------------------------+
+|i6 : f = newCell({(e1,1),(e2,-1)},x*y);|
++---------------------------------------+
+|i7 : isWellDefined f                   |
+|                                       |
+|o7 = true                              |
++---------------------------------------+
+|i8 : isWellDefined cellComplex(R,{f})  |
+|                                       |
+|o8 = false                             |
++---------------------------------------+
+
+Another important way that cell complexes can fail to be well defined is if
+they have labels from different rings
+
++------------------------------------------+
+|i9 : R = QQ[x,y];                         |
++------------------------------------------+
+|i10 : S = ZZ[a,b];                        |
++------------------------------------------+
+|i11 : v1 = newSimplexCell({},x);          |
++------------------------------------------+
+|i12 : v2 = newSimplexCell({},a);          |
++------------------------------------------+
+|i13 : isWellDefined cellComplex(R,{v1,v2})|
+|                                          |
+|o13 = false                               |
++------------------------------------------+
+
+Caveat
+======
+
+This function does not check that the cell complex corresponds to a
+topologically realizable cell complex.
+
+See also
+========
+
+  * *note isWellDefined(Cell): isWellDefined_lpCell_rp, -- checks if a cell is
+    well defined
+
+Ways to use this method:
+========================
+
+  * *note isWellDefined(CellComplex): isWellDefined_lpCellComplex_rp, -- checks
+    if a cell complex is well defined
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1508:0.
+
+File: CellularResolutions.info, Node: maxCells, Next: net_lpCellComplex_rp, Prev: isWellDefined_lpCellComplex_rp, Up: Top
+
+maxCells -- gives the maximal cells of a cell complex
+*****************************************************
+
+  * Usage: 
+        maxCells C
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, 
+  * Outputs:
+      * a *note hash table: (Macaulay2Doc)HashTable,, whose keys are the
+        dimensions of the maximal cells of C and whose respective values are a
+        list of the maximal cells of that dimension
+
+Description
+===========
+
+Given a cell complex C, this function returns a hash table containing the
+maximal cells with respect to containment, sorted by dimension
+
++---------------------------------------------------------+
+|i1 : S = QQ[x,y,z];                                      |
++---------------------------------------------------------+
+|i2 : v1 = newCell({},x);                                 |
++---------------------------------------------------------+
+|i3 : v2 = newCell({},y);                                 |
++---------------------------------------------------------+
+|i4 : v3 = newCell({},z);                                 |
++---------------------------------------------------------+
+|i5 : e = newCell({v1,v2});                               |
++---------------------------------------------------------+
+|i6 : C = cellComplex(S,{e,v3});                          |
++---------------------------------------------------------+
+|i7 : maxCells C                                          |
+|                                                         |
+|o7 = HashTable{0 => {Cell of dimension 0 with label z}  }|
+|               1 => {Cell of dimension 1 with label x*y} |
+|                                                         |
+|o7 : HashTable                                           |
++---------------------------------------------------------+
+
+See also
+========
+
+  * *note cells(CellComplex): cells, -- return the cells of a cell complex as a
+    hashtable whose keys are cell dimensions
+
+Ways to use maxCells:
+=====================
+
+  * "maxCells(CellComplex)"
+
+For the programmer
+==================
+
+The object *note maxCells: maxCells, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1404:0.
+
+File: CellularResolutions.info, Node: net_lpCellComplex_rp, Next: newCell, Prev: maxCells, Up: Top
+
+net(CellComplex) -- Describes a cell complex or cell
+****************************************************
+
+  * Function: *note net: (Macaulay2Doc)net,
+  * Usage: 
+        net C
+  * Inputs:
+      * C, a *note cell complex: CellComplex, or a *note cell: Cell,, 
+  * Outputs:
+      * a *note net: (Macaulay2Doc)Net,, 
+
+Description
+===========
+
+For cell complexes, this method uses *note GlobalAssignHook:
+(Macaulay2Doc)GlobalAssignHook, to use the name of the cell complex if the cell
+complex is assigned to a global variable. Otherwise the method returns a short
+description of the cell complex.
+
+For individual cells, the description contains only the dimension and the
+label, the data of the boundary of the cell is not given in the description.
+
++----------------------------------------------------------+
+|i1 : R = QQ[x,y];                                         |
++----------------------------------------------------------+
+|i2 : v1 = newSimplexCell({},x);                           |
++----------------------------------------------------------+
+|i3 : v2 = newSimplexCell({},y);                           |
++----------------------------------------------------------+
+|i4 : e1 = newSimplexCell({v1,v2},x);                      |
++----------------------------------------------------------+
+|i5 : e2 = newSimplexCell({v1,v2},y);                      |
++----------------------------------------------------------+
+|i6 : f = newCell({(e1,1),(e2,-1)},x*y);                   |
++----------------------------------------------------------+
+|i7 : net cellComplex(R,{f})                               |
+|                                                          |
+|o7 = Cell complex over R of dimension 2 with 5 total cells|
++----------------------------------------------------------+
+|i8 : net f                                                |
+|                                                          |
+|o8 = Cell of dimension 2 with label x*y                   |
++----------------------------------------------------------+
+|i9 : X = cellComplex(R,{f});                              |
++----------------------------------------------------------+
+|i10 : net X                                               |
+|                                                          |
+|o10 = X                                                   |
++----------------------------------------------------------+
+
+See also
+========
+
+  * *note texMath(CellComplex): texMath_lpCellComplex_rp, -- Describes a cell
+    complex or cell using TeX
+  * *note texMath(Cell): texMath_lpCellComplex_rp, -- Describes a cell complex
+    or cell using TeX
+
+Ways to use this method:
+========================
+
+  * "net(Cell)"
+  * *note net(CellComplex): net_lpCellComplex_rp, -- Describes a cell complex
+    or cell
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1635:0.
+
+File: CellularResolutions.info, Node: newCell, Next: newSimplexCell, Prev: net_lpCellComplex_rp, Up: Top
+
+newCell -- creates a new cell
+*****************************
+
+  * Usage: 
+        newCell(boundary,label)
+        newCell(boundary)
+  * Inputs:
+      * boundary, a *note list: (Macaulay2Doc)List,, that gives the boundary of
+        the new cell either as a list of pairs of cells and their orientation,
+        or a list of cells.
+      * label, a *note number: (Macaulay2Doc)Number,, a *note ring element:
+        (Macaulay2Doc)RingElement,, a *note module: (Macaulay2Doc)Module,, or
+        an *note ideal: (Macaulay2Doc)Ideal,, that gives a label to associate
+        to the cell, otherwise attempt to infer it based on the labels on the
+        boundary
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * CellDimension => an *note integer: (Macaulay2Doc)ZZ,, default value
+        null, that gives an explicit dimension to the cell
+  * Outputs:
+      * a *note cell: Cell,, that was created
+
+Description
+===========
+
+This function creates a new cell, to be added to a cell complex, if given a
+list of cells without any orientation information, it attempts to infer the
+orientation.
+
+If given an empty list for the boundary, the function creates a 0-cell (a
+vertex).
+
+If not given a label, and the labels on the boundary are monomials or monomial
+ideals from the same ring, then the label is the lcm of the labels of the
+boundary.
+
+If the dimension cannot be directly inferred from the boundary, CellDimension
+can be used to specify the true dimension
+
++-----------------------------------+
+|i1 : R = QQ[x,y]                   |
+|                                   |
+|o1 = R                             |
+|                                   |
+|o1 : PolynomialRing                |
++-----------------------------------+
+|i2 : a = newCell({},x);            |
++-----------------------------------+
+|i3 : b = newCell({},y);            |
++-----------------------------------+
+|i4 : c1 = newCell {(a,1),(a,-1)};  |
++-----------------------------------+
+|i5 : c2 = newCell {a,a};           |
++-----------------------------------+
+|i6 : c3 = newCell {a,b};           |
++-----------------------------------+
+|i7 : C = cellComplex(R,{c1,c2,c3});|
++-----------------------------------+
+
+Caveat
+======
+
+This function does not check that there is a valid map from the boundary of an
+n-cell to the given boundary. It only checks that the boundary forms a cycle in
+homology.
+
+See also
+========
+
+  * *note cellComplex: cellComplex, -- create a cell complex
+  * *note newSimplexCell: newSimplexCell, -- create a new cell
+
+Ways to use newCell:
+====================
+
+  * "newCell(List)"
+  * "newCell(List,Ideal)"
+  * "newCell(List,Module)"
+  * "newCell(List,Number)"
+  * "newCell(List,RingElement)"
+
+For the programmer
+==================
+
+The object *note newCell: newCell, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:214:0.
+
+File: CellularResolutions.info, Node: newSimplexCell, Next: relabelCellComplex, Prev: newCell, Up: Top
+
+newSimplexCell -- create a new cell
+***********************************
+
+  * Usage: 
+        newSimplexCell(boundary,label)
+        newSimplexCell(boundary)
+  * Inputs:
+      * boundary, a *note list: (Macaulay2Doc)List,, that gives the boundary of
+        the new cell either as a list of pairs of cells and their orientation,
+        or a list of cells.
+      * label, a *note number: (Macaulay2Doc)Number,, a *note ring element:
+        (Macaulay2Doc)RingElement,, a *note module: (Macaulay2Doc)Module,, or
+        an *note ideal: (Macaulay2Doc)Ideal,, that gives a label to associate
+        to the cell, otherwise attempt to infer it based on the labels on the
+        boundary
+  * Outputs:
+      * a *note cell: Cell,, that was created
+
+Description
+===========
+
+This function will only create simplices, and it will verify that the new cell
+is a simplex, as such does not have the caveat of *note newCell: newCell,.
+Otherwise it has the same behavior. This is particularly useful in constructing
+$\Delta$-complexes.
+
++------------------------------------------+
+|i1 : v1 = newSimplexCell {};              |
++------------------------------------------+
+|i2 : v2 = newSimplexCell {};              |
++------------------------------------------+
+|i3 : e1 = newSimplexCell {v1,v2};         |
++------------------------------------------+
+|i4 : e2 = newSimplexCell {(v1,1),(v2,-1)};|
++------------------------------------------+
+|i5 : C = cellComplex(ZZ, {e1,e2});        |
++------------------------------------------+
+
+One cannot use this command to create cells that are not simplices.
+
+See also
+========
+
+  * *note cellComplex: cellComplex, -- create a cell complex
+  * *note newCell: newCell, -- creates a new cell
+  * *note isSimplex: isSimplex, -- check if a cell is a simplex
+
+Ways to use newSimplexCell:
+===========================
+
+  * "newSimplexCell(List)"
+  * "newSimplexCell(List,Ideal)"
+  * "newSimplexCell(List,Module)"
+  * "newSimplexCell(List,Number)"
+  * "newSimplexCell(List,RingElement)"
+
+For the programmer
+==================
+
+The object *note newSimplexCell: newSimplexCell, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:257:0.
+
+File: CellularResolutions.info, Node: relabelCellComplex, Next: ring_lpCellComplex_rp, Prev: newSimplexCell, Up: Top
+
+relabelCellComplex -- relabels a cell complex
+*********************************************
+
+  * Usage: 
+        relabelCellComplex(C,H)
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, 
+      * H, a *note hash table: (Macaulay2Doc)HashTable,, whose keys are cells
+        of C and whose corresponding value is the cell's new label
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * InferLabels => a *note Boolean value: (Macaulay2Doc)Boolean,, default
+        value true
+  * Outputs:
+      * a *note cell complex: CellComplex,, whose cells are relabeled by the
+        values in the hashtable H
+
+Description
+===========
+
+Given a cell complex C and a hashtable, whose key-value pairs are a cell from C
+and a new label for that cell, this command relabels C accordingly. Labels for
+cells not provided in the hashtable are inferred to be the least common
+multiple of the labels of their boundary cells, unless the option InferLabels
+is set to false.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[a,b,c];                                                          |
++-----------------------------------------------------------------------------+
+|i2 : P1 = convexHull matrix {{0,1,0},{0,0,1}};                               |
++-----------------------------------------------------------------------------+
+|i3 : P2 = convexHull matrix {{1,0,1},{0,1,1}};                               |
++-----------------------------------------------------------------------------+
+|i4 : P = polyhedralComplex {P1,P2};                                          |
++-----------------------------------------------------------------------------+
+|i5 : C = cellComplex(R,P);                                                   |
++-----------------------------------------------------------------------------+
+|i6 : verts = cells(0,C);                                                     |
++-----------------------------------------------------------------------------+
+|i7 : v0 = verts#0;                                                           |
++-----------------------------------------------------------------------------+
+|i8 : v1 = verts#1;                                                           |
++-----------------------------------------------------------------------------+
+|i9 : v2 = verts#2;                                                           |
++-----------------------------------------------------------------------------+
+|i10 : v3 = verts#3;                                                          |
++-----------------------------------------------------------------------------+
+|i11 : T = new HashTable from {v0 => a^2*b, v1 => b*c^2, v2 => b^2, v3 =>     |
+|-----------------------------------------------------------------------------|
+|a*c};                                                                        |
++-----------------------------------------------------------------------------+
+|i12 : relabeledC = relabelCellComplex(C,T);                                  |
++-----------------------------------------------------------------------------+
+|i13 : for c in cells(0,relabeledC) list cellLabel(c)                         |
+|                                                                             |
+|        2      2   2                                                         |
+|o13 = {a b, b*c , b , a*c}                                                   |
+|                                                                             |
+|o13 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i14 : for c in cells(1,relabeledC) list cellLabel(c)                         |
+|                                                                             |
+|        2 2       2   2 2   2   2     2                                      |
+|o14 = {a b , a*b*c , b c , a b*c , a*b c}                                    |
+|                                                                             |
+|o14 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note cellLabel: cellLabel, -- return the label of a cell
+  * *note RingMap ** CellComplex: RingMap _st_st CellComplex, -- tensors labels
+    via a ring map
+
+Ways to use relabelCellComplex:
+===============================
+
+  * "relabelCellComplex(CellComplex,HashTable)"
+
+For the programmer
+==================
+
+The object *note relabelCellComplex: relabelCellComplex, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1141:0.
+
+File: CellularResolutions.info, Node: ring_lpCellComplex_rp, Next: RingMap _st_st CellComplex, Prev: relabelCellComplex, Up: Top
+
+ring(CellComplex) -- return the base ring of a cell complex
+***********************************************************
+
+  * Function: *note ring: (Macaulay2Doc)ring,
+  * Usage: 
+        ring C
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, 
+  * Outputs:
+      * a *note ring: (Macaulay2Doc)Ring,, the base ring of the cell complex C
+
+Description
+===========
+
+This returns the base ring associated to a cell complex C, which is used to
+interpret labels.
+
++---------------------------------+
+|i1 : R = QQ[x,y];                |
++---------------------------------+
+|i2 : vx = newSimplexCell({},x);  |
++---------------------------------+
+|i3 : vy = newSimplexCell({},y^2);|
++---------------------------------+
+|i4 : e = newSimplexCell {vx,vy}; |
++---------------------------------+
+|i5 : C = cellComplex(R,{e});     |
++---------------------------------+
+|i6 : ring(C)                     |
+|                                 |
+|o6 = R                           |
+|                                 |
+|o6 : PolynomialRing              |
++---------------------------------+
+
+See also
+========
+
+  * *note cellComplex: cellComplex, -- create a cell complex
+
+Ways to use this method:
+========================
+
+  * *note ring(CellComplex): ring_lpCellComplex_rp, -- return the base ring of
+    a cell complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:320:0.
+
+File: CellularResolutions.info, Node: RingMap _st_st CellComplex, Next: scarfComplex, Prev: ring_lpCellComplex_rp, Up: Top
+
+RingMap ** CellComplex -- tensors labels via a ring map
+*******************************************************
+
+  * Operator: *note **: (Macaulay2Doc)_st_st,
+  * Usage: 
+        f ** C
+  * Inputs:
+      * f, a *note ring map: (Macaulay2Doc)RingMap,, 
+      * C, a *note cell complex: CellComplex,, 
+  * Outputs:
+      * a *note cell complex: CellComplex,, whose cells labels are given by
+        taking the tensor product by the ring map f
+
+Description
+===========
+
+Given a ring map f and a cell complex C, then for each label, viewed as a
+module M, this function constructs a cell complex whose new labels are f ** M
+
++------------------------------------+
+|i1 : S = QQ[x,y,z];                 |
++------------------------------------+
+|i2 : R = QQ[a,b,c];                 |
++------------------------------------+
+|i3 : f = map(R,S,matrix{{a,b,c^2}});|
+|                                    |
+|o3 : RingMap R <-- S                |
++------------------------------------+
+|i4 : v1 = newCell({},x);            |
++------------------------------------+
+|i5 : v2 = newCell({},y);            |
++------------------------------------+
+|i6 : v3 = newCell({},z);            |
++------------------------------------+
+|i7 : e12 = newCell({v1,v2});        |
++------------------------------------+
+|i8 : e23 = newCell({v2,v3});        |
++------------------------------------+
+|i9 : C = cellComplex(S,{e12,e23});  |
++------------------------------------+
+|i10 : cells(1,C)/cellLabel          |
+|                                    |
+|o10 = {y*z, x*y}                    |
+|                                    |
+|o10 : List                          |
++------------------------------------+
+|i11 : D = f ** C;                   |
++------------------------------------+
+|i12 : cells(1,D)/cellLabel          |
+|                                    |
+|               2                    |
+|o12 = {a*b, b*c }                   |
+|                                    |
+|o12 : List                          |
++------------------------------------+
+
+See also
+========
+
+  * *note relabelCellComplex: relabelCellComplex, -- relabels a cell complex
+
+Ways to use this method:
+========================
+
+  * *note RingMap ** CellComplex: RingMap _st_st CellComplex, -- tensors labels
+    via a ring map
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1175:0.
+
+File: CellularResolutions.info, Node: scarfComplex, Next: skeleton_lpZZ_cmCellComplex_rp, Prev: RingMap _st_st CellComplex, Up: Top
+
+scarfComplex -- gives the hull complex of a monomial ideal
+**********************************************************
+
+  * Usage: 
+        scarfComplex I
+  * Inputs:
+      * I, a *note monomial ideal: (Macaulay2Doc)MonomialIdeal,, 
+  * Outputs:
+      * a *note cell complex: CellComplex,, the scarf complex of $I$
+
+Description
+===========
+
+Given a monomial ideal $I$, this function returns the Scarf complex of that
+ideal. This complex, which is a subcomplex of the Taylor complex, if it is a
+resolution is always minimal, but it need not be a resolution in general.
+
++------------------------------------------------------------------------+
+|i1 : S = QQ[x,y,z];                                                     |
++------------------------------------------------------------------------+
+|i2 : I = monomialIdeal (x^2*z, x*y*z, y^2*z, x^3*y^5, x^4*y^4, x^5*y^3);|
+|                                                                        |
+|o2 : MonomialIdeal of S                                                 |
++------------------------------------------------------------------------+
+|i3 : C = scarfComplex I                                                 |
+|                                                                        |
+|o3 = C                                                                  |
+|                                                                        |
+|o3 : CellComplex                                                        |
++------------------------------------------------------------------------+
+|i4 : complex C                                                          |
+|                                                                        |
+|      1      6      4                                                   |
+|o4 = S  <-- S  <-- S                                                    |
+|                                                                        |
+|     -1     0      1                                                    |
+|                                                                        |
+|o4 : Complex                                                            |
++------------------------------------------------------------------------+
+|i5 : cells(1,C)/cellLabel                                               |
+|                                                                        |
+|       4 5     2    5 4   2                                             |
+|o5 = {x y , x*y z, x y , x y*z}                                         |
+|                                                                        |
+|o5 : List                                                               |
++------------------------------------------------------------------------+
+|i6 : cells(2,C)/cellLabel                                               |
+|                                                                        |
+|o6 = {}                                                                 |
+|                                                                        |
+|o6 : List                                                               |
++------------------------------------------------------------------------+
+|i7 : isMinimal C                                                        |
+|                                                                        |
+|o7 = true                                                               |
++------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note taylorComplex(MonomialIdeal): taylorComplex, -- gives the Taylor
+    complex of a monomial ideal
+  * *note hullComplex(MonomialIdeal): hullComplex, -- gives the hull complex of
+    a monomial ideal
+
+Ways to use scarfComplex:
+=========================
+
+  * "scarfComplex(MonomialIdeal)"
+
+For the programmer
+==================
+
+The object *note scarfComplex: scarfComplex, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1373:0.
+
+File: CellularResolutions.info, Node: skeleton_lpZZ_cmCellComplex_rp, Next: subcomplex, Prev: scarfComplex, Up: Top
+
+skeleton(ZZ,CellComplex) -- computes the $r$-skeleton of a cell complex
+***********************************************************************
+
+  * Function: *note skeleton: (Polyhedra)skeleton,
+  * Usage: 
+        skeleton(ZZ,CellComplex)
+  * Inputs:
+      * r, an *note integer: (Macaulay2Doc)ZZ,, the dimension of the skeleton
+      * C, a *note cell complex: CellComplex,, which to take the skeleton of
+  * Outputs:
+      * a *note cell complex: CellComplex,, the $r$-skeleton of the cell
+        complex $C$
+
+Description
+===========
+
+The $r$-skeleton of a cell complex is the union of its cells whose dimension is
+at most $r$.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x];                                                              |
++-----------------------------------------------------------------------------+
+|i2 : P = hypercube 3;                                                        |
++-----------------------------------------------------------------------------+
+|i3 : C = cellComplex(R,P);                                                   |
++-----------------------------------------------------------------------------+
+|i4 : dim C                                                                   |
+|                                                                             |
+|o4 = 3                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : cells C                                                                 |
+|                                                                             |
+|o5 = HashTable{0 => {Cell of dimension 0 with label 1, Cell of dimension 0   |
+|               1 => {Cell of dimension 1 with label 1, Cell of dimension 1   |
+|               2 => {Cell of dimension 2 with label 1, Cell of dimension 2   |
+|               3 => {Cell of dimension 3 with label 1}                       |
+|                                                                             |
+|o5 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|with label 1, Cell of dimension 0 with label 1, Cell of dimension 0 with     |
+|with label 1, Cell of dimension 1 with label 1, Cell of dimension 1 with     |
+|with label 1, Cell of dimension 2 with label 1, Cell of dimension 2 with     |
+|-----------------------------------------------------------------------------|
+|label 1, Cell of dimension 0 with label 1, Cell of dimension 0 with label 1, |
+|label 1, Cell of dimension 1 with label 1, Cell of dimension 1 with label 1, |
+|label 1, Cell of dimension 2 with label 1, Cell of dimension 2 with label 1} |
+|-----------------------------------------------------------------------------|
+|Cell of dimension 0 with label 1, Cell of dimension 0 with label 1}          |
+|Cell of dimension 1 with label 1, Cell of dimension 1 with label 1, Cell of  |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|dimension 1 with label 1, Cell of dimension 1 with label 1, Cell of dimension|
+|-----------------------------------------------------------------------------|
+|                                                 }                           |
+|1 with label 1, Cell of dimension 1 with label 1}                            |
++-----------------------------------------------------------------------------+
+|i6 : S = skeleton(2,C);                                                      |
++-----------------------------------------------------------------------------+
+|i7 : dim S                                                                   |
+|                                                                             |
+|o7 = 2                                                                       |
++-----------------------------------------------------------------------------+
+|i8 : cells S                                                                 |
+|                                                                             |
+|o8 = HashTable{0 => {Cell of dimension 0 with label 1, Cell of dimension 0   |
+|               1 => {Cell of dimension 1 with label 1, Cell of dimension 1   |
+|               2 => {Cell of dimension 2 with label 1, Cell of dimension 2   |
+|                                                                             |
+|o8 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|with label 1, Cell of dimension 0 with label 1, Cell of dimension 0 with     |
+|with label 1, Cell of dimension 1 with label 1, Cell of dimension 1 with     |
+|with label 1, Cell of dimension 2 with label 1, Cell of dimension 2 with     |
+|-----------------------------------------------------------------------------|
+|label 1, Cell of dimension 0 with label 1, Cell of dimension 0 with label 1, |
+|label 1, Cell of dimension 1 with label 1, Cell of dimension 1 with label 1, |
+|label 1, Cell of dimension 2 with label 1, Cell of dimension 2 with label 1} |
+|-----------------------------------------------------------------------------|
+|Cell of dimension 0 with label 1, Cell of dimension 0 with label 1}          |
+|Cell of dimension 1 with label 1, Cell of dimension 1 with label 1, Cell of  |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|dimension 1 with label 1, Cell of dimension 1 with label 1, Cell of dimension|
+|-----------------------------------------------------------------------------|
+|                                                 }                           |
+|1 with label 1, Cell of dimension 1 with label 1}                            |
++-----------------------------------------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note skeleton(ZZ,CellComplex): skeleton_lpZZ_cmCellComplex_rp, -- computes
+    the $r$-skeleton of a cell complex
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:983:0.
+
+File: CellularResolutions.info, Node: subcomplex, Next: taylorComplex, Prev: skeleton_lpZZ_cmCellComplex_rp, Up: Top
+
+subcomplex -- the subcomplex induced by a degree or monomial
+************************************************************
+
+  * Usage: 
+        subcomplex(C,m)
+        subcomplex(C,d)
+        C_m
+        C_d
+  * Inputs:
+      * C, a *note cell complex: CellComplex,, 
+      * m, a *note ring element: (Macaulay2Doc)RingElement,, a monomial
+      * d, an *note integer: (Macaulay2Doc)ZZ, or a *note list:
+        (Macaulay2Doc)List,, a degree
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * LabelRing => a *note ring: (Macaulay2Doc)Ring,, default value null, for
+        the labels on the output
+  * Outputs:
+      * a *note cell complex: CellComplex,, 
+
+Description
+===========
+
+This function computes the subcomplex of the input cell complex induced by a
+monomial or a degree. The returned cell complex will be labeled over the
+coefficient ring of the label ring of the original cell complex, or the ring
+given by the LabelRing optional parameter if provided.
+
+When given a monomial, the function expects all labels to be monomials, ideals,
+or submodules of the ring associated to the cell complex. In that case, the
+returned cell complex will be the subcomplex of the original complex containing
+the cells whose labels either divide or contain the provided monomial. The
+labels on the cells in the returned cell complexes will be 1.
+
++-----------------------------------------------------------+
+|i1 : R = QQ[x,y,z];                                        |
++-----------------------------------------------------------+
+|i2 : C = taylorComplex monomialIdeal {x,y,z}               |
+|                                                           |
+|o2 = C                                                     |
+|                                                           |
+|o2 : CellComplex                                           |
++-----------------------------------------------------------+
+|i3 : subcomplex(C,x*y)                                     |
+|                                                           |
+|o3 = Cell complex over QQ of dimension 1 with 3 total cells|
+|                                                           |
+|o3 : CellComplex                                           |
++-----------------------------------------------------------+
+|i4 : subcomplex(C,x*y,LabelRing=>R)                        |
+|                                                           |
+|o4 = Cell complex over R of dimension 1 with 3 total cells |
+|                                                           |
+|o4 : CellComplex                                           |
++-----------------------------------------------------------+
+
+When given a degree, the function will use basis to find the appropriate free
+module over the new label ring representing the elements of that degree in the
+module associated to the label
+
++----------------------------------------------------------+
+|i5 : subcomplex(C,1)                                      |
+|                                                          |
+|o5 = Cell complex over R of dimension 0 with 3 total cells|
+|                                                          |
+|o5 : CellComplex                                          |
++----------------------------------------------------------+
+
+In general, the degree version is intended to be used with fine-graded
+polynomial rings
+
++----------------------------------------------------------+
+|i6 : S = QQ[a,b,c,DegreeRank=>3];                         |
++----------------------------------------------------------+
+|i7 : D = taylorComplex monomialIdeal {a,b,c}              |
+|                                                          |
+|o7 = D                                                    |
+|                                                          |
+|o7 : CellComplex                                          |
++----------------------------------------------------------+
+|i8 : subcomplex(D,{1,1,0})                                |
+|                                                          |
+|o8 = Cell complex over S of dimension 1 with 3 total cells|
+|                                                          |
+|o8 : CellComplex                                          |
++----------------------------------------------------------+
+
+Ways to use subcomplex:
+=======================
+
+  * "subcomplex(CellComplex,List)"
+  * "subcomplex(CellComplex,RingElement)"
+  * "subcomplex(CellComplex,ZZ)"
+
+For the programmer
+==================
+
+The object *note subcomplex: subcomplex, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1568:0.
+
+File: CellularResolutions.info, Node: taylorComplex, Next: texMath_lpCellComplex_rp, Prev: subcomplex, Up: Top
+
+taylorComplex -- gives the Taylor complex of a monomial ideal
+*************************************************************
+
+  * Usage: 
+        taylorComplex I
+  * Inputs:
+      * I, a *note monomial ideal: (Macaulay2Doc)MonomialIdeal,, 
+  * Outputs:
+      * a *note cell complex: CellComplex,, the Taylor complex of $I$
+
+Description
+===========
+
+Given a monomial ideal I, this function returns the Taylor complex of that
+ideal. Recall that the Taylor complex is a simplex with vertices labeled by the
+generators of the ideal.
+
++-------------------------------------------+
+|i1 : S = QQ[x,y,z];                        |
++-------------------------------------------+
+|i2 : I = monomialIdeal (x^2, y^2, z^2);    |
+|                                           |
+|o2 : MonomialIdeal of S                    |
++-------------------------------------------+
+|i3 : T = taylorComplex I                   |
+|                                           |
+|o3 = T                                     |
+|                                           |
+|o3 : CellComplex                           |
++-------------------------------------------+
+|i4 : C = complex T                         |
+|                                           |
+|      1      3      3      1               |
+|o4 = S  <-- S  <-- S  <-- S                |
+|                                           |
+|     -1     0      1      2                |
+|                                           |
+|o4 : Complex                               |
++-------------------------------------------+
+|i5 : C.dd                                  |
+|                                           |
+|           1                       3       |
+|o5 = -1 : S  <------------------- S  : 0   |
+|                | -x2 -y2 -z2 |            |
+|                                           |
+|          3                           3    |
+|     0 : S  <----------------------- S  : 1|
+|               {2} | -y2 0   -z2 |         |
+|               {2} | x2  -z2 0   |         |
+|               {2} | 0   y2  x2  |         |
+|                                           |
+|          3                   1            |
+|     1 : S  <--------------- S  : 2        |
+|               {4} | -z2 |                 |
+|               {4} | -x2 |                 |
+|               {4} | y2  |                 |
+|                                           |
+|o5 : ComplexMap                            |
++-------------------------------------------+
+
+See also
+========
+
+  * *note hullComplex(MonomialIdeal): hullComplex, -- gives the hull complex of
+    a monomial ideal
+
+Ways to use taylorComplex:
+==========================
+
+  * "taylorComplex(MonomialIdeal)"
+
+For the programmer
+==================
+
+The object *note taylorComplex: taylorComplex, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1341:0.
+
+File: CellularResolutions.info, Node: texMath_lpCellComplex_rp, Prev: taylorComplex, Up: Top
+
+texMath(CellComplex) -- Describes a cell complex or cell using TeX
+******************************************************************
+
+  * Function: *note texMath: (Macaulay2Doc)texMath,
+  * Usage: 
+        texMath C
+  * Inputs:
+      * C, a *note cell complex: CellComplex, or a *note cell: Cell,, 
+  * Outputs:
+      * a *note string: (Macaulay2Doc)String,, 
+
+Description
+===========
+
+This method functions mostly as *note net(CellComplex): net_lpCellComplex_rp,
+and *note net(Cell): net_lpCellComplex_rp, does. The primary difference in the
+output is that the output is formatted for TeX.
+
++----------------------------------------------------------------------+
+|i1 : R = QQ[x,y];                                                     |
++----------------------------------------------------------------------+
+|i2 : v1 = newSimplexCell({},x);                                       |
++----------------------------------------------------------------------+
+|i3 : v2 = newSimplexCell({},y);                                       |
++----------------------------------------------------------------------+
+|i4 : e1 = newSimplexCell({v1,v2},x);                                  |
++----------------------------------------------------------------------+
+|i5 : e2 = newSimplexCell({v1,v2},y);                                  |
++----------------------------------------------------------------------+
+|i6 : f = newCell({(e1,1),(e2,-1)},x*y);                               |
++----------------------------------------------------------------------+
+|i7 : texMath cellComplex(R,{f})                                       |
+|                                                                      |
+|o7 = \textrm{Cell complex over }R\textrm{ of dimension }2\textrm{ with|
+|     }5\textrm{ total cells }                                         |
++----------------------------------------------------------------------+
+|i8 : texMath f                                                        |
+|                                                                      |
+|o8 = \textrm{Cell of dimension }2\textrm{ with label }x\,y            |
++----------------------------------------------------------------------+
+|i9 : X = cellComplex(R,{f});                                          |
++----------------------------------------------------------------------+
+|i10 : texMath X                                                       |
+|                                                                      |
+|o10 = X                                                               |
++----------------------------------------------------------------------+
+
+See also
+========
+
+  * *note net(CellComplex): net_lpCellComplex_rp, -- Describes a cell complex
+    or cell
+  * *note net(Cell): net_lpCellComplex_rp, -- Describes a cell complex or cell
+
+Ways to use this method:
+========================
+
+  * "texMath(Cell)"
+  * *note texMath(CellComplex): texMath_lpCellComplex_rp, -- Describes a cell
+    complex or cell using TeX
+-------------------------------------------------------------------------------
+
+The source of this document is in CellularResolutions/doc.m2:1667:0.
+
+Tag Table:
+Node: Top269
+Node: boundary19899
+Node: boundaryCells25048
+Node: boundaryMap_lpZZ_cmCellComplex_rp29637
+Node: Cell33072
+Node: CellComplex36389
+Node: cellComplex42887
+Node: cellComplex_lpRing_cmPolyhedralComplex_rp45427
+Node: cellComplex_lpRing_cmPolyhedron_rp49609
+Node: cellComplex_lpRing_cmSimplicialComplex_rp55129
+Node: cellComplexRPn59642
+Node: cellComplexSphere63207
+Node: cellComplexTorus66363
+Node: cellLabel69931
+Node: cells72307
+Node: cells_lpZZ_cmCellComplex_rp77020
+Node: complex_lpCellComplex_rp80857
+Node: describe_lpCellComplex_rp88346
+Node: dim_lpCell_rp91772
+Node: dim_lpCellComplex_rp93676
+Node: facePoset_lpCellComplex_rp95347
+Node: HH CellComplex98123
+Node: HH^ZZ CellComplex102441
+Node: HH_usZZ CellComplex106726
+Node: hullComplex111266
+Node: isCycle117376
+Node: isFree_lpCellComplex_rp119731
+Node: isMinimal121997
+Node: isSimplex124467
+Node: isWellDefined_lpCell_rp125908
+Node: isWellDefined_lpCellComplex_rp129876
+Node: maxCells133128
+Node: net_lpCellComplex_rp135540
+Node: newCell138573
+Node: newSimplexCell141708
+Node: relabelCellComplex144119
+Node: ring_lpCellComplex_rp149141
+Node: RingMap _st_st CellComplex150732
+Node: scarfComplex153280
+Node: skeleton_lpZZ_cmCellComplex_rp157519
+Node: subcomplex164032
+Node: taylorComplex168926
+Node: texMath_lpCellComplex_rp172010
+
+End Tag Table

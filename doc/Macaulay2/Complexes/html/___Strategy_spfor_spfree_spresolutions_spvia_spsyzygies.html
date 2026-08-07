@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Strategy for free resolutions via syzygies -- algorithm for computing free resolutions step by step using syzygies</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="beta testing new version of chain complexes" href="index.html">Complexes</a> :: <a title="algorithm for computing free resolutions step by step using syzygies" href="___Strategy_spfor_spfree_spresolutions_spvia_spsyzygies.html">Strategy for free resolutions via syzygies</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Strategy_spfor_spnonminimal_spfree_spresolutions.html">next</a> | <a href="___Strategy_spfor_spfree_spresolutions_spvia_sp__Schreyer-__Lascala.html">previous</a> | <a href="___Strategy_spfor_spnonminimal_spfree_spresolutions.html">forward</a> | <a href="___Strategy_spfor_spfree_spresolutions_spvia_sp__Schreyer-__Lascala.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Strategy for free resolutions via syzygies -- algorithm for computing free resolutions step by step using syzygies</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">freeResolution(M, Strategy => Syzygies)</code></dd>
+            <dd><code class="language-macaulay2">freeResolution(I, Strategy => Syzygies)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">M</span>, <span>a <a title="the class of all modules" href="../../Macaulay2Doc/html/___Module.html">module</a></span>, a module over a ring $R$</span></li>
+            <li><span><span class="tt">I</span>, <span>an <a title="the class of all ideals" href="../../Macaulay2Doc/html/___Ideal.html">ideal</a></span>, an ideal in $R$</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span>a <a title="the class of all chain complexes" href="___Complex.html">complex</a></span>, a free resolution of $M$ or $R^1/I$</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <div>
+          <h2>Description</h2>
+        </div>
+        <div>
+          <p>This is one of the algorithms written at top level of <i>Macaulay2</i> for computing free resolutions, although it uses engine code to compute syzygies. This variant works over most rings in <i>Macaulay2</i>, including Weyl algebras and exterior algebras.</p>
+        </div>
+        <div>
+          <p>This first example computes part of the free resolution of the ground field over a inhomogeneous $E_8$ singularity.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : kk = ZZ/32003;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : R = kk[a,b,c]/(a^2+b^3+c^5);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : I = ideal(a,b,c)
+
+o3 = ideal (a, b, c)
+
+o3 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : M = R^1/I
+
+o4 = cokernel | a b c |
+
+                            1
+o4 : R-module, quotient of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : F = freeResolution(M, Strategy => Syzygies, LengthLimit => 5)
+
+      1      3      4      4      4      4
+o5 = R  &lt;-- R  &lt;-- R  &lt;-- R  &lt;-- R  &lt;-- R
+                                         
+     0      1      2      3      4      5
+
+o5 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : dd^F
+
+          1                 3
+o6 = 0 : R  &lt;------------- R  : 1
+               | a b c |
+
+          3                           4
+     1 : R  &lt;----------------------- R  : 2
+               {1} | b  0  c  a  |
+               {1} | -a c  0  b2 |
+               {1} | 0  -b -a c4 |
+
+          4                            4
+     2 : R  &lt;------------------------ R  : 3
+               {2} | c  0   -a b2 |
+               {2} | a  -b2 c4 0  |
+               {2} | -b -a  0  c4 |
+               {5} | 0  c   b  a  |
+
+          4                            4
+     3 : R  &lt;------------------------ R  : 4
+               {3} | a  -b2 c4 0  |
+               {6} | -b -a  0  c4 |
+               {6} | c  0   -a b2 |
+               {6} | 0  c   b  a  |
+
+          4                             4
+     4 : R  &lt;------------------------- R  : 5
+               {7}  | a  -b2 c4 0  |
+               {7}  | -b -a  0  c4 |
+               {7}  | c  0   -a b2 |
+               {10} | 0  c   b  a  |
+
+o6 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : assert isWellDefined F</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : assert isQuasiIsomorphism(augmentationMap F, Concentration => (0,4))</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>When the input is an ideal $I$, the free resolution of $R^1/I$ is returned.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : F1 = freeResolution(I, Strategy => Syzygies, LengthLimit => 3)
+
+      1      3      4      4
+o9 = R  &lt;-- R  &lt;-- R  &lt;-- R
+                           
+     0      1      2      3
+
+o9 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : assert(F1 == naiveTruncation(F,0,3))</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : F2 = freeResolution(module I, Strategy => Syzygies, LengthLimit => 3)
+
+       3      4      4      4
+o11 = R  &lt;-- R  &lt;-- R  &lt;-- R
+                            
+      0      1      2      3
+
+o11 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : dd^F1
+
+           1                 3
+o12 = 0 : R  &lt;------------- R  : 1
+                | a b c |
+
+           3                           4
+      1 : R  &lt;----------------------- R  : 2
+                {1} | b  0  c  a  |
+                {1} | -a c  0  b2 |
+                {1} | 0  -b -a c4 |
+
+           4                            4
+      2 : R  &lt;------------------------ R  : 3
+                {2} | c  0   -a b2 |
+                {2} | a  -b2 c4 0  |
+                {2} | -b -a  0  c4 |
+                {5} | 0  c   b  a  |
+
+o12 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : dd^F2
+
+           3                           4
+o13 = 0 : R  &lt;----------------------- R  : 1
+                {1} | b  0  c  a  |
+                {1} | -a c  0  b2 |
+                {1} | 0  -b -a c4 |
+
+           4                            4
+      1 : R  &lt;------------------------ R  : 2
+                {2} | c  0   -a b2 |
+                {2} | a  -b2 c4 0  |
+                {2} | -b -a  0  c4 |
+                {5} | 0  c   b  a  |
+
+           4                            4
+      2 : R  &lt;------------------------ R  : 3
+                {3} | a  -b2 c4 0  |
+                {6} | -b -a  0  c4 |
+                {6} | c  0   -a b2 |
+                {6} | 0  c   b  a  |
+
+o13 : ComplexMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>For completeness, we present an example over an exterior algebra.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : E = kk[a..d, SkewCommutative => true]
+
+o14 = E
+
+o14 : PolynomialRing, 4 skew commutative variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : I = ideal(a*b-c*d, a*b*c*d)
+
+o15 = ideal (a*b - c*d, a*b*c*d)
+
+o15 : Ideal of E</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : M = E^1/I
+
+o16 = cokernel | ab-cd abcd |
+
+                             1
+o16 : E-module, quotient of E</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : F = freeResolution(M, Strategy => Syzygies, LengthLimit => 4)
+
+       1      2      6      16      35
+o17 = E  &lt;-- E  &lt;-- E  &lt;-- E   &lt;-- E
+                                    
+      0      1      2      3       4
+
+o17 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : dd^F
+
+           1                      2
+o18 = 0 : E  &lt;------------------ E  : 1
+                | ab-cd abcd |
+
+           2                                     6
+      1 : E  &lt;--------------------------------- E  : 2
+                {2} | bd ad bc ac ab+cd -cd |
+                {4} | 0  0  0  0  0     1   |
+
+           6                                                 16
+      2 : E  &lt;--------------------------------------------- E   : 3
+                {4} | d b 0 a 0 c 0 0 0 0 0 0 -a 0  c 0 |
+                {4} | 0 0 d b a 0 0 0 c 0 0 0 0  0  0 c |
+                {4} | 0 0 0 0 0 d c b 0 0 a 0 0  -a 0 0 |
+                {4} | 0 0 0 0 0 0 0 0 d c b a 0  0  0 0 |
+                {4} | 0 0 0 0 0 0 0 0 0 0 0 0 d  c  b a |
+                {4} | 0 0 0 0 0 0 0 0 0 0 0 0 0  0  0 0 |
+
+           16                                                                                          35
+      3 : E   &lt;-------------------------------------------------------------------------------------- E   : 4
+                 {5} | d b 0 0 a 0 0 0 0 c 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -a 0  0  c  0  0 0 0 0 0 |
+                 {5} | 0 d b 0 0 a 0 0 0 0 0 0 c 0 0 0 0 0 0 0 0 0 0 0 0 0  0  0  -a 0  c 0 0 0 0 |
+                 {5} | 0 0 0 d b 0 a 0 0 0 0 0 0 0 0 c 0 0 0 0 0 0 0 0 0 0  0  0  0  0  0 c 0 0 0 |
+                 {5} | 0 0 0 0 d b 0 a 0 0 0 0 0 0 0 0 0 0 c 0 0 0 0 0 0 0  0  0  0  0  0 0 0 c 0 |
+                 {5} | 0 0 0 0 0 0 d b a 0 0 0 0 0 0 0 0 0 0 0 0 c 0 0 0 0  0  0  0  0  0 0 0 0 c |
+                 {5} | 0 0 0 0 0 0 0 0 0 d c 0 b 0 0 0 0 0 a 0 0 0 0 0 0 0  -a 0  0  0  0 0 0 0 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 d c 0 b 0 0 0 0 0 a 0 0 0 0 0 0  0  -a 0  0  0 0 0 0 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 0 0 d c b 0 0 0 0 0 a 0 0 0 0 0  0  0  0  -a 0 0 0 0 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 d c 0 b 0 0 a 0 0 0 0  0  0  0  0  0 0 0 0 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 d c 0 b 0 0 a 0 0 0  0  0  0  0  0 0 0 0 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 d c b 0 0 a 0 0  0  0  0  0  0 0 0 0 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 d c b a 0  0  0  0  0  0 0 0 0 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 d  c  0  b  0  0 a 0 0 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  d  c  0  b  0 0 a 0 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  0  0  d  c  b 0 0 a 0 |
+                 {5} | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  0  0  0  0  0 d c b a |
+
+o18 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : assert isWellDefined F</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : assert isQuasiIsomorphism(augmentationMap F, Concentration => (0,3))</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>This strategy works one homological degree at a time. It first computes the syzygies of the presentation matrix, and then computes the second syzygies, and so on.  This strategy uses Schreyer orders on the free modules in the resolution which often improves efficiency.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="overview of the different algorithms for computing free resolutions" href="___Strategies_spfor_spfree_spresolutions.html">Strategies for free resolutions</a> -- overview of the different algorithms for computing free resolutions</span></li>
+          <li><span><a title="compute a free resolution of a module or ideal" href="_free__Resolution.html">freeResolution(Module)</a> -- compute a free resolution of a module or ideal</span></li>
+          <li><span><a title="map from a free resolution to a module regarded as a complex" href="_augmentation__Map.html">augmentationMap(Complex)</a> -- map from a free resolution to a module regarded as a complex</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Complexes/ChainComplexDoc.m2:1741:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

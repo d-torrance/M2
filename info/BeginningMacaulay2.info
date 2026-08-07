@@ -1,0 +1,1758 @@
+ -*- coding: utf-8 -*- This is BeginningMacaulay2.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* BeginningMacaulay2: (BeginningMacaulay2).  Mathematicians' Introduction to Macaulay2
+END-INFO-DIR-ENTRY
+
+
+File: BeginningMacaulay2.info, Node: Top, Up: (dir)
+
+BeginningMacaulay2 -- Mathematicians' Introduction to  Macaulay2
+****************************************************************
+
+Description
+===========
+
+We assume you've installed Macaulay2 and can type
+
++--+
+|M2|
++--+
+
+on a command line to bring up the program. You should see something like:
+
++----------------------------------+
+|Macaulay2, version 1.26.05        |
+|Type `help` to see useful commands|
++----------------------------------+
+
+We suggest you do that now, so that you can experiment while you read this
+tutorial!
+
+
+
+
+
+Arithmetic with integers, rings and ideals
+==========================================
+
+You can immediately do arithmetic with integers:
+
++--------------------------------+
+|i1 : 2+2                        |
+|                                |
+|o1 = 4                          |
++--------------------------------+
+|i2 : 107*431                    |
+|                                |
+|o2 = 46117                      |
++--------------------------------+
+|i3 : 25!                        |
+|                                |
+|o3 = 15511210043330985984000000 |
++--------------------------------+
+|i4 : binomial(5,4)              |
+|                                |
+|o4 = 5                          |
++--------------------------------+
+|i5 : factor 32004               |
+|                                |
+|      2 2                       |
+|o5 = 2 3 7*127                  |
+|                                |
+|o5 : Expression of class Product|
++--------------------------------+
+
+
+
+Most Macaulay2 applications involve polynomial rings over fields and their
+quotient rings. Fields can be made in various ways:
+
++--------------------------------+
+|i6 : ZZ/101                     |
+|                                |
+|      ZZ                        |
+|o6 = ---                        |
+|     101                        |
+|                                |
+|o6 : QuotientRing               |
++--------------------------------+
+|i7 : QQ                         |
+|                                |
+|o7 = QQ                         |
+|                                |
+|o7 : Ring                       |
++--------------------------------+
+|i8 : GF 2^5                     |
+|                                |
+|o8 = GF 32                      |
+|                                |
+|o8 : GaloisField                |
++--------------------------------+
+|i9 : k = toField (QQ[i]/(i^2+1))|
+|                                |
+|o9 = k                          |
+|                                |
+|o9 : PolynomialRing             |
++--------------------------------+
+
+After making k we can compute in it:
+
++---------+
+|i10 : 1/i|
+|         |
+|o10 = -i |
+|         |
+|o10 : k  |
++---------+
+
+
+
+Computation is often fastest and needs least memory when performed over finite
+prime fields of the form $\ZZ/p$. Fortunately, when the characteristic $p$ is
+not too small, qualitative questions often have similar answers over $\ZZ/p$
+and over $\QQ$, so we mostly use the former. In Macaulay2 the prime $p$ can
+range up to 32749.
+
+We make a polynomial ring in 5 variables over $\ZZ/101$:
+
++--------------------+
+|i11 : kk=ZZ/101     |
+|                    |
+|o11 = kk            |
+|                    |
+|o11 : QuotientRing  |
++--------------------+
+|i12 : S=kk[x_1..x_5]|
+|                    |
+|o12 = S             |
+|                    |
+|o12 : PolynomialRing|
++--------------------+
+
+Here is another way:
+
++---------------------+
+|i13 : S=kk[a,b,c,d,e]|
+|                     |
+|o13 = S              |
+|                     |
+|o13 : PolynomialRing |
++---------------------+
+
+One can do arithmetic on polynomials:
+
++-----------------------------------------+
+|i14 : (3*a^2+1)^5                        |
+|                                         |
+|         10    8      6      4      2    |
+|o14 = 41a   + a  - 33a  - 11a  + 15a  + 1|
+|                                         |
+|o14 : S                                  |
++-----------------------------------------+
+
+
+
+We make an ideal in $S$:
+
++----------------------------------------+
+|i15 : I=ideal(a^3-b^3, a+b+c+d+e)       |
+|                                        |
+|              3    3                    |
+|o15 = ideal (a  - b , a + b + c + d + e)|
+|                                        |
+|o15 : Ideal of S                        |
++----------------------------------------+
+
+Using this ideal, we can make a factor ring:
+
++------------------+
+|i16 : R=S/I       |
+|                  |
+|o16 = R           |
+|                  |
+|o16 : QuotientRing|
++------------------+
+
+Another way to make an ideal, with more compact notation (familiar to anyone
+who used the classic Macaulay) is:
+
++-------------------------------------------+
+|i17 : use S                                |
+|                                           |
+|o17 = S                                    |
+|                                           |
+|o17 : PolynomialRing                       |
++-------------------------------------------+
+|i18 : I=ideal"3(a+b)3, 4c5"                |
+|                                           |
+|               3     2        2     3    5 |
+|o18 = ideal (3a  + 9a b + 9a*b  + 3b , 4c )|
+|                                           |
+|o18 : Ideal of S                           |
++-------------------------------------------+
+
+Note the command ``use S'', which specifies that we want to work with the
+generators of the polynomial ring S again; otherwise the variables a, b, and c
+would still have had values in $R$ instead of in $S$.
+
+Algebraic operations on ideals are available:
+
++-----------------------------------------------------------------------------+
+|i19 : I^2                                                                    |
+|                                                                             |
+|               6      5       4 2      3 3      2 4        5     6     3 5   |
+|o19 = ideal (9a  - 47a b + 34a b  - 22a b  + 34a b  - 47a*b  + 9b , 12a c  + |
+|      -----------------------------------------------------------------------|
+|         2   5        2 5      3 5     10                                    |
+|      36a b*c  + 36a*b c  + 12b c , 16c  )                                   |
+|                                                                             |
+|o19 : Ideal of S                                                             |
++-----------------------------------------------------------------------------+
+|i20 : I*I                                                                    |
+|                                                                             |
+|               6      5       4 2      3 3      2 4        5     6     3 5   |
+|o20 = ideal (9a  - 47a b + 34a b  - 22a b  + 34a b  - 47a*b  + 9b , 12a c  + |
+|      -----------------------------------------------------------------------|
+|         2   5        2 5      3 5     3 5      2   5        2 5      3 5    |
+|      36a b*c  + 36a*b c  + 12b c , 12a c  + 36a b*c  + 36a*b c  + 12b c ,   |
+|      -----------------------------------------------------------------------|
+|         10                                                                  |
+|      16c  )                                                                 |
+|                                                                             |
+|o20 : Ideal of S                                                             |
++-----------------------------------------------------------------------------+
+|i21 : I+ideal"a2"                                                            |
+|                                                                             |
+|               3     2        2     3    5   2                               |
+|o21 = ideal (3a  + 9a b + 9a*b  + 3b , 4c , a )                              |
+|                                                                             |
+|o21 : Ideal of S                                                             |
++-----------------------------------------------------------------------------+
+
+
+
+In case you forget any of these things, *note help: (Macaulay2Doc)help, is
+available! The most useful way to get it is often to type something like:
+
++--------------+
+|viewHelp ideal|
++--------------+
+
+Then a browser window will pop up that contains documentation about the
+function *note ideal: (Macaulay2Doc)ideal, that we've been using; links on that
+page allow one to explore all of the Macaulay2 documentation.
+
+On the other hand, we might have wanted information about the *note class:
+(Macaulay2Doc)class, of all ideals. Not too surprisingly, this class is called
+*note Ideal: (Macaulay2Doc)Ideal,. We could get information about what
+functions create or use ideals by typing:
+
++--------------+
+|viewHelp Ideal|
++--------------+
+
+To see the names of classes, you can begin by looking at the output of
+commands; the second line output (the one introduced by a colon) often contains
+the name of the class of the result.
+
+Here are some basic operations on matrices:
+
++----------------------------------------+
+|i22 : M= matrix{{a,b,c},{b,c,d},{c,d,e}}|
+|                                        |
+|o22 = | a b c |                         |
+|      | b c d |                         |
+|      | c d e |                         |
+|                                        |
+|              3      3                  |
+|o22 : Matrix S  <-- S                   |
++----------------------------------------+
+|i23 : M^2                               |
+|                                        |
+|o23 = | a2+b2+c2 ab+bc+cd ac+bd+ce |    |
+|      | ab+bc+cd b2+c2+d2 bc+cd+de |    |
+|      | ac+bd+ce bc+cd+de c2+d2+e2 |    |
+|                                        |
+|              3      3                  |
+|o23 : Matrix S  <-- S                   |
++----------------------------------------+
+|i24 : determinant M                     |
+|                                        |
+|         3               2    2         |
+|o24 = - c  + 2b*c*d - a*d  - b e + a*c*e|
+|                                        |
+|o24 : S                                 |
++----------------------------------------+
+|i25 : trace M                           |
+|                                        |
+|o25 = a + c + e                         |
+|                                        |
+|o25 : S                                 |
++----------------------------------------+
+|i26 : M-transpose M                     |
+|                                        |
+|o26 = 0                                 |
+|                                        |
+|              3      3                  |
+|o26 : Matrix S  <-- S                   |
++----------------------------------------+
+
+The function *note entries: (Macaulay2Doc)entries, gives the entries of a
+matrix:
+
++---------------------------------------+
+|i27 : entries M                        |
+|                                       |
+|o27 = {{a, b, c}, {b, c, d}, {c, d, e}}|
+|                                       |
+|o27 : List                             |
++---------------------------------------+
+
+The result is a list of lists, one for each row of the matrix $M$. The function
+*note flatten: (Macaulay2Doc)flatten, can be used to merge the lists into a
+single list:
+
++---------------------------------+
+|i28 : flatten entries M          |
+|                                 |
+|o28 = {a, b, c, b, c, d, c, d, e}|
+|                                 |
+|o28 : List                       |
++---------------------------------+
+
+If you want a particular entry, say the one in the upper left corner, you can
+use the underscore operator *note _: (Macaulay2Doc)Matrix _us Sequence,:
+
++-------------+
+|i29 : M_(0,0)|
+|             |
+|o29 = a      |
+|             |
+|o29 : S      |
++-------------+
+
+Here, as everywhere in Macaulay2, all indexing starts with 0. For example:
+
++------------------------------+
+|i30 : I_0                     |
+|                              |
+|        3     2        2     3|
+|o30 = 3a  + 9a b + 9a*b  + 3b |
+|                              |
+|o30 : S                       |
++------------------------------+
+
+is the first generator of I. You can list all the generators with:
+
++-------------------------------------+
+|i31 : I_*                            |
+|                                     |
+|         3     2        2     3    5 |
+|o31 = {3a  + 9a b + 9a*b  + 3b , 4c }|
+|                                     |
+|o31 : List                           |
++-------------------------------------+
+
+
+
+A module can be defined as a cokernel, kernel, image, or even as a subquotient:
+
++--------------------------------------+
+|i32 : coker M                         |
+|                                      |
+|o32 = cokernel | a b c |              |
+|               | b c d |              |
+|               | c d e |              |
+|                                      |
+|                             3        |
+|o32 : S-module, quotient of S         |
++--------------------------------------+
+|i33 : image M                         |
+|                                      |
+|o33 = image | a b c |                 |
+|            | b c d |                 |
+|            | c d e |                 |
+|                                      |
+|                              3       |
+|o33 : S-module, submodule of S        |
++--------------------------------------+
+|i34 : kernel matrix"a,b,0;0,a,b"      |
+|                                      |
+|o34 = image {1} | b2  |               |
+|            {1} | -ab |               |
+|            {1} | a2  |               |
+|                                      |
+|                              3       |
+|o34 : S-module, submodule of S        |
++--------------------------------------+
+|i35 : N = matrix{{a,b},{b,c},{c,d}}   |
+|                                      |
+|o35 = | a b |                         |
+|      | b c |                         |
+|      | c d |                         |
+|                                      |
+|              3      2                |
+|o35 : Matrix S  <-- S                 |
++--------------------------------------+
+|i36 : (image M)/(image N)             |
+|                                      |
+|o36 = subquotient (| a b c |, | a b |)|
+|                   | b c d |  | b c | |
+|                   | c d e |  | c d | |
+|                                      |
+|                                3     |
+|o36 : S-module, subquotient of S      |
++--------------------------------------+
+|i37 : subquotient(M,N)                |
+|                                      |
+|o37 = subquotient (| a b c |, | a b |)|
+|                   | b c d |  | b c | |
+|                   | c d e |  | c d | |
+|                                      |
+|                                3     |
+|o37 : S-module, subquotient of S      |
++--------------------------------------+
+
+Note that the matrix $N$ above was defined with an alternate syntax, parallel
+to the alternate syntax for *note ideal: (Macaulay2Doc)ideal,.
+
+Before going on, the reader might want to explore a bit. A good place to start
+is the top of the documentation tree, which can be reached, for example, by
+typing:
+
++---------------------+
+|viewHelp Macaulay2Doc|
++---------------------+
+
+
+
+
+
+
+
+Properties of ideals and modules
+================================
+
+To compute the Gröbner basis of an ideal $(x^2y,xy^2+x^3)$ in the polynomial
+ring in four variables we proceed as follows. First we make our favorite field:
+
++-------------------+
+|i38 : kk = ZZ/32003|
+|                   |
+|o38 = kk           |
+|                   |
+|o38 : QuotientRing |
++-------------------+
+
+Then the polynomial ring:
+
++---------------------+
+|i39 : R = kk[x,y,z,w]|
+|                     |
+|o39 = R              |
+|                     |
+|o39 : PolynomialRing |
++---------------------+
+
+And then the ideal:
+
++--------------------------------+
+|i40 : I = ideal(x^2*y,x*y^2+x^3)|
+|                                |
+|              2    3      2     |
+|o40 = ideal (x y, x  + x*y )    |
+|                                |
+|o40 : Ideal of R                |
++--------------------------------+
+
+Now the punch line.  We compute the Gröbner basis with the *note groebnerBasis:
+(Macaulay2Doc)groebnerBasis, function:
+
++-------------------------+
+|i41 : J = groebnerBasis I|
+|                         |
+|o41 = | x2y x3+xy2 xy3 | |
+|                         |
+|              1      3   |
+|o41 : Matrix R  <-- R    |
++-------------------------+
+
+
+
+Gr\"obner bases are always computed with respect to a particular monomial order
+on the ring. In fact, the ring we defined above has a default monomial order,
+the graded reverse lex order. For many other possibilities, see *note
+MonomialOrder: (Macaulay2Doc)MonomialOrder,, or type:
+
++----------------------+
+|viewHelp MonomialOrder|
++----------------------+
+
+
+
+The analogue of factorization in the theory of ideals is primary decomposition.
+For example, we can begin by intersecting three ideals:
+
++-----------------------------------------------------------------+
+|i42 : I= intersect (ideal"x2,y3", ideal"y2,z3", (ideal"x,y,z")^4)|
+|                                                                 |
+|              3    4     3   2 2   2 3                           |
+|o42 = ideal (y z, y , x*y , x y , x z )                          |
+|                                                                 |
+|o42 : Ideal of R                                                 |
++-----------------------------------------------------------------+
+
+We can almost undo this operation by computing a primary decomposition:
+
++--------------------------------------------------------+
+|i43 : primaryDecomposition I                            |
+|                                                        |
+|               2   3           2   3                 4  |
+|o43 = {ideal (x , y ), ideal (y , z ), ideal (z, x, y )}|
+|                                                        |
+|o43 : List                                              |
++--------------------------------------------------------+
+
+Inspecting the output, we see that the first two ideals are the same as the
+first two ideals we intersected, but the third one differs from the
+corresponding input ideal. This is because only the primary components
+corresponding to minimal primes (here, the first two) are unique. All three of
+the input ideals are primary, so they constitute a primary decomposition of $I$
+different from the one provided by Macaulay2 on the output line.
+
+For larger examples, primary decomposition is computationally challenging!
+Sometimes it is easier to compute just the minimal primes. To do this we can
+use *note decompose: (Macaulay2Doc)decompose,:
+
++----------------------------------+
+|i44 : decompose I                 |
+|                                  |
+|o44 = {ideal (y, x), ideal (z, y)}|
+|                                  |
+|o44 : List                        |
++----------------------------------+
+
+
+
+Using Gröbner bases we can compute codimensions, dimensions, degrees, Hilbert
+functions, and Hilbert polynomials. This will be more fun if we work with a
+meaningful example.  We will use the ideal defining the smooth rational quartic
+curve in $\PP^3$ given parametrically (in an affine representation) by $$t
+\mapsto{} (t,t^3,t^4).$$ (The reader more interested in algebra than geometry
+may simply treat the ideal given below as a gift from the gods.) First we make
+the polynomial ring in 4 variables, to serve as the homogeneous coordinate ring
+of $\PP^3$:
+
++--------------------+
+|i45 : R = kk[a..d]  |
+|                    |
+|o45 = R             |
+|                    |
+|o45 : PolynomialRing|
++--------------------+
+
+We introduce the ring map $\phi: R \to kk[s,t]$ defined by $(a,b,c,d) \mapsto{}
+(s^4, s^3 t, s t^3, t^4)$:
+
++---------------------------------------------------+
+|i46 : phi = map(kk[s,t],R,{s^4, s^3*t, s*t^3, t^4})|
+|                                                   |
+|                          4   3      3   4         |
+|o46 = map (kk[s..t], R, {s , s t, s*t , t })       |
+|                                                   |
+|o46 : RingMap kk[s..t] <-- R                       |
++---------------------------------------------------+
+
+Here the syntax of the function *note map:
+(Macaulay2Doc)map_lpRing_cmRing_cmList_rp, has the target ring first and the
+source ring second: maps in Macaulay2 generally go from right to left! The last
+input to the command is a list of the elements to which to send the variables
+of the source ring. The ideal we want is the kernel of this map:
+
++--------------------------------------------------------+
+|i47 : I = ker phi                                       |
+|                                                        |
+|                         3      2     2    2    3    2  |
+|o47 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)|
+|                                                        |
+|o47 : Ideal of R                                        |
++--------------------------------------------------------+
+
+Shortcut notation for this construction is provided by the function *note
+monomialCurveIdeal: (Macaulay2Doc)monomialCurveIdeal,:
+
++--------------------------------------------------------+
+|i48 : I = monomialCurveIdeal(R,{1,3,4})                 |
+|                                                        |
+|                         3      2     2    2    3    2  |
+|o48 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)|
+|                                                        |
+|o48 : Ideal of R                                        |
++--------------------------------------------------------+
+
+We can compute the *note dimension: (Macaulay2Doc)dim_lpIdeal_rp,, *note
+codimension: (Macaulay2Doc)codim_lpIdeal_rp, (also called the height) and *note
+degree: (Macaulay2Doc)degree_lpIdeal_rp, of this ideal:
+
++--------------+
+|i49 : dim I   |
+|              |
+|o49 = 2       |
++--------------+
+|i50 : codim I |
+|              |
+|o50 = 2       |
++--------------+
+|i51 : degree I|
+|              |
+|o51 = 4       |
++--------------+
+
+The Hilbert polynomial is obtained with the function *note hilbertPolynomial:
+(Macaulay2Doc)hilbertPolynomial,:
+
++---------------------------------+
+|i52 : hilbertPolynomial(R/I)     |
+|                                 |
+|o52 = - 3*P  + 4*P               |
+|           0      1              |
+|                                 |
+|o52 : ProjectiveHilbertPolynomial|
++---------------------------------+
+
+The output above may not be what the user expected: the term ${\mathbf P}_m$
+represents the Hilbert polynomial of projective $m$-space.  Thus the output
+tells us that the Hilbert polynomial of $M$ is $i \mapsto{} -3*1+4*(i+1) = 4i +
+1$.  Thus the degree is four, the dimension of the projective variety that is
+the support of $M$ is 1 (and so the affine dimension is 2), and the
+(arithmetic) genus is 0 (obtained as 1 minus the constant term of the
+polynomial.)
+
+The more usual expression for the Hilbert polynomial can be obtained as
+follows:
+
++-------------------------------------------------+
+|i53 : hilbertPolynomial(R/I, Projective => false)|
+|                                                 |
+|o53 = 4i + 1                                     |
+|                                                 |
+|o53 : QQ[i]                                      |
++-------------------------------------------------+
+
+The construction Projective => false is our first example of an option to a
+function: we specified that the option Projective was to have the value false.
+The form we used first could also have been written this way:
+
++------------------------------------------------+
+|i54 : hilbertPolynomial(R/I, Projective => true)|
+|                                                |
+|o54 = - 3*P  + 4*P                              |
+|           0      1                             |
+|                                                |
+|o54 : ProjectiveHilbertPolynomial               |
++------------------------------------------------+
+
+The Hilbert series of $M$ (the generating function for the dimensions of the
+graded pieces of $M$) is obtained with:
+
++--------------------------------+
+|i55 : hilbertSeries (R/I)       |
+|                                |
+|           2     3     4    5   |
+|      1 - T  - 3T  + 4T  - T    |
+|o55 = -----------------------   |
+|                     4          |
+|              (1 - T)           |
+|                                |
+|o55 : Expression of class Divide|
++--------------------------------+
+
+This generating function is expressed as a rational function with denominator
+equal to (1-T)^n, where n is the number of variables in R. Since R/I has
+dimension 2, it can also be written with denominator (1-t)^2. To see it in this
+form, use *note reduceHilbert: (Macaulay2Doc)reduceHilbert,:
+
++---------------------------------------+
+|i56 : reduceHilbert hilbertSeries (R/I)|
+|                                       |
+|                 2    3                |
+|      1 + 2T + 2T  - T                 |
+|o56 = -----------------                |
+|                  2                    |
+|           (1 - T)                     |
+|                                       |
+|o56 : Expression of class Divide       |
++---------------------------------------+
+
+It is possible to manipulate the numerator and denominator of this expression.
+To learn how to do so, see *note hilbertSeries: (Macaulay2Doc)hilbertSeries, or
+type:
+
++----------------------+
+|viewHelp hilbertSeries|
++----------------------+
+
+
+
+A great deal of subtle information about a module is visible using free
+resolutions. For an example, we begin by turning $R/I$ into a module. Here the
+code R^1 produces the free module of rank 1 over $R$, and res (missing
+documentation) computes a free resolution:
+
++----------------------------------------------+
+|i57 : M=R^1/I                                 |
+|                                              |
+|o57 = cokernel | bc-ad c3-bd2 ac2-b2d b3-a2c ||
+|                                              |
+|                             1                |
+|o57 : R-module, quotient of R                 |
++----------------------------------------------+
+|i58 : Mres = res M                            |
+|                                              |
+|       1      4      4      1                 |
+|o58 = R  <-- R  <-- R  <-- R                  |
+|                                              |
+|      0      1      2      3                  |
+|                                              |
+|o58 : Complex                                 |
++----------------------------------------------+
+
+To get more precise information about Mres, we could compute its Betti table
+with *note betti: (Macaulay2Doc)betti,:
+
++--------------------+
+|i59 : betti Mres    |
+|                    |
+|             0 1 2 3|
+|o59 = total: 1 4 4 1|
+|          0: 1 . . .|
+|          1: . 1 . .|
+|          2: . 3 4 1|
+|                    |
+|o59 : BettiTally    |
++--------------------+
+
+The display is chosen for compactness. Each column of the table corresponds to
+a free module in the resolution. The column's heading specifies the homological
+degree (the position of the free module in the resolution). The entry just
+below the homological degree is the rank of the free module, also called the
+total betti number. The remaining entries in the column tell us how many
+generators of each degree this free module has: the number in the column
+labelled $j$ and in the row labelled $d$ tells how many generators of degree
+$j+d$ the $j$-th free module has. Thus, in our case, the single generator of
+the third (and last) free module in the resolution has degree $3+2=5$.
+
+Commonly computed homological invariants such as *note projective dimension:
+(Macaulay2Doc)pdim, and *note regularity: (Macaulay2Doc)regularity, are (also)
+available directly:
+
++------------------+
+|i60 : pdim M      |
+|                  |
+|o60 = 3           |
++------------------+
+|i61 : regularity M|
+|                  |
+|o61 = 2           |
++------------------+
+
+
+
+
+
+
+
+Division With Remainder
+=======================
+
+A major application of Gröbner bases is to give the normal form for an element
+modulo an ideal, allowing one, for example, to decide whether the element is in
+the ideal. For example, we can decide which power of the trace of a generic 3x3
+matrix is expressible in terms of the entries of the cube of the matrix with
+the following code:
+
++-----------------------------------------------------------------------------+
+|i62 : R = kk[a..i]                                                           |
+|                                                                             |
+|o62 = R                                                                      |
+|                                                                             |
+|o62 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i63 : M = genericMatrix(R,a,3,3)                                             |
+|                                                                             |
+|o63 = | a d g |                                                              |
+|      | b e h |                                                              |
+|      | c f i |                                                              |
+|                                                                             |
+|              3      3                                                       |
+|o63 : Matrix R  <-- R                                                        |
++-----------------------------------------------------------------------------+
+|i64 : I = ideal M^3                                                          |
+|                                                                             |
+|              3                                                     2     2  |
+|o64 = ideal (a  + 2a*b*d + b*d*e + 2a*c*g + b*f*g + c*d*h + c*g*i, a b + b d |
+|      -----------------------------------------------------------------------|
+|                   2                                           2             |
+|      + a*b*e + b*e  + b*c*g + a*c*h + c*e*h + b*f*h + c*h*i, a c + b*c*d +  |
+|      -----------------------------------------------------------------------|
+|                       2                               2   2       2         |
+|      a*b*f + b*e*f + c g + c*f*h + a*c*i + b*f*i + c*i , a d + b*d  + a*d*e |
+|      -----------------------------------------------------------------------|
+|           2                                                            3    |
+|      + d*e  + c*d*g + a*f*g + e*f*g + d*f*h + f*g*i, a*b*d + 2b*d*e + e  +  |
+|      -----------------------------------------------------------------------|
+|                                                               2             |
+|      b*f*g + c*d*h + 2e*f*h + f*h*i, a*c*d + c*d*e + b*d*f + e f + c*f*g +  |
+|      -----------------------------------------------------------------------|
+|       2                       2   2               2                         |
+|      f h + c*d*i + e*f*i + f*i , a g + b*d*g + c*g  + a*d*h + d*e*h + f*g*h |
+|      -----------------------------------------------------------------------|
+|                           2                           2               2     |
+|      + a*g*i + d*h*i + g*i , a*b*g + b*e*g + b*d*h + e h + c*g*h + f*h  +   |
+|      -----------------------------------------------------------------------|
+|                         2                                                   |
+|      b*g*i + e*h*i + h*i , a*c*g + b*f*g + c*d*h + e*f*h + 2c*g*i + 2f*h*i +|
+|      -----------------------------------------------------------------------|
+|       3                                                                     |
+|      i )                                                                    |
+|                                                                             |
+|o64 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+
+This gives the ideal of entries of the matrix. In the expression ``M =
+genericMatrix(R,a,3,3)'' the arguments ``R,a,3,3'' specify the ring, the first
+variable to use, and the numbers of rows and columns desired.
+
++-----------------------------------------------------------------------------+
+|i65 : Tr = trace M                                                           |
+|                                                                             |
+|o65 = a + e + i                                                              |
+|                                                                             |
+|o65 : R                                                                      |
++-----------------------------------------------------------------------------+
+|i66 : for p from 1 to 10 do print (Tr^p % I)                                 |
+|a + e + i                                                                    |
+| 2           2                  2                                            |
+|a  + 2a*e + e  + 2a*i + 2e*i + i                                             |
+|  2                 2     3                                2               2 |
+|3a e + 3b*d*e + 3a*e  + 3e  + 3b*f*g + 3c*d*h + 6e*f*h + 3a i + 6a*e*i + 3e  |
+|  2 2         2       3     4                                                |
+|6a e  + 6b*d*e  + 6a*e  + 6e  + 6b*e*f*g + 6c*d*e*h - 6b*d*f*h + 6a*e*f*h +  |
+|   2 2           2         3       4         2         2                     |
+|30a e i + 30b*d*e i + 30a*e i + 30e i + 30c*e g*i + 30a f*h*i + 30b*d*f*h*i  |
+|   2 2 2          2 2        3 2      4 2        2   2      2     2          |
+|90a e i  + 90b*d*e i  + 90a*e i  + 90e i  + 90c*e g*i  + 90a f*h*i  + 90b*d* |
+|0                                                                            |
+|0                                                                            |
+|0                                                                            |
+|0                                                                            |
+|-----------------------------------------------------------------------------|
+|                          2       2     3                                    |
+|i + 3c*g*i + 6f*h*i + 3a*i  + 3e*i  + 3i                                     |
+|   2                   2 2      2                       2       3            |
+|12e f*h - 6c*f*g*h - 6f h  + 12a e*i + 12b*d*e*i + 12a*e i + 12e i + 12c*e*g |
+|                   2                         2 2       2   2            2    |
+|+ 60a*e*f*h*i + 90e f*h*i + 30c*f*g*h*i + 30f h i + 30a e*i  + 30b*d*e*i  +  |
+|     2               2       2     2              2      2 2 2      2   3    |
+|f*h*i  + 180a*e*f*h*i  + 270e f*h*i  + 90c*f*g*h*i  + 90f h i  + 90a e*i  +  |
+|-----------------------------------------------------------------------------|
+|                                                    2 2                      |
+|*i + 6b*f*g*i + 6c*d*h*i + 6a*f*h*i + 36e*f*h*i + 6a i  +                    |
+|     2 2      3 2            2            2             2                    |
+|30a*e i  + 30e i  + 30c*e*g*i  + 60a*f*h*i  + 120e*f*h*i                     |
+|         3        2 3      3 3            3             3                    |
+|90b*d*e*i  + 90a*e i  + 90e i  + 90c*e*g*i  + 180a*f*h*i                     |
+|-----------------------------------------------------------------------------|
+|       2     2 2         2          2       3        3     4                 |
+|12a*e*i  + 6e i  + 6c*g*i  + 12f*h*i  + 6a*i  + 12e*i  + 6i                  |
+|     2 3          3          3      2 3          3          3        4       |
+|+ 30a i  + 30b*d*i  + 30a*e*i  + 30e i  + 30c*g*i  + 90f*h*i  + 30a*i  + 30e*|
+|            3      2 4          4          4      2 4          4           4 |
+|+ 360e*f*h*i  + 90a i  + 90b*d*i  + 90a*e*i  + 90e i  + 90c*g*i  + 270f*h*i  |
+|-----------------------------------------------------------------------------|
+| 4      5                                                                    |
+|i  + 30i                                                                     |
+|       5        5      6                                                     |
+|+ 90a*i  + 90e*i  + 90i                                                      |
++-----------------------------------------------------------------------------+
+
+The expression ``Tr^p % I'' computes the normal form for the p-th power of the
+trace Tr with respect to the Gröbner basis of I. The expression ``for p from 1
+to 10 do'' specifies a for loop that executes the following expression, ``print
+(Tr^p % I)'', with 10 consecutive values of p. For more information on such
+loops see *note for: (Macaulay2Doc)for, or type:
+
++--------------+
+|viewHelp "for"|
++--------------+
+
+Here we have put quotes around ``for'' because ``for'' is a keyword in the
+Macaulay2 language.  (In general, it's always safe to use quotes with
+viewHelp.)
+
+We see from the output of these commands that the 6-th power of the trace is
+NOT in the ideal of entries of the cube of M, but the 7-th power is. We can
+compute the coefficients in the expression for it using the division algorithm,
+denoted in this setting by *note //:
+(Macaulay2Doc)quotient_lpMatrix_cmMatrix_rp,:
+
++-----------------------------------------------------------------------------+
+|i67 : Tr^7//(gens I)                                                         |
+|                                                                             |
+|o67 = {3} | a4+7a3e+3abde+21a2e2+21bde2+37ae3+49e4+6aefh+36e2fh-6f2h2+7a3i+42|
+|      {3} | 288defh+576dfhi+288di3                                           |
+|      {3} | 0                                                                |
+|      {3} | -63abe2-81be3-297ce2h+636befh+312cfh2-189abei-315be2i-276cehi+132|
+|      {3} | -2a4-14a3e-6abde+21a2e2+30bde2+7ae3+e4+939befg+45cdeh-6a2fh-288bd|
+|      {3} | -288b2dg+612abeg+81be2g+3a3h+18a2eh+288bdeh+279ae2h+300e3h+333ceg|
+|      {3} | 288abcd+288bcde-252ace2+288b2df+282abef-378be2f+288c2dh-264acfh-3|
+|      {3} | 3a3f-264a2ef-924bdef+453ae2f-891e3f-288c2dg+45cefg-834cdfh+300af2|
+|      {3} | -2a4-288a2bd-14a3e-906abde+210a2e2-420bde2-74ae3-98e4+252ce2g-939|
+|      -----------------------------------------------------------------------|
+|      a2ei+21bdei+105ae2i+154e3i+6afhi+75efhi+21a2i2+105aei2+210e2i2+30fhi2+3|
+|                                                                             |
+|                                                                             |
+|      3bfhi-252abi2-504bei2+969chi2-288bi3                                   |
+|      fh-672aefh+687e2fh+258cfgh+564f2h2-14a3i+105a2ei+147bdei+42ae2i+7e3i+14|
+|      h+30bfgh-300afh2+684efh2+324abgi+1410begi+15a2hi-405bdhi+159aehi+510e2h|
+|      78cefh-552bf2h+288bcdi-168acei-504ce2i+540abfi+18befi-1347cfhi-48aci2-3|
+|      h-1776ef2h-147cdei-525a2fi-1782bdfi+426aefi-1122e2fi+90cfgi-2169f2hi-11|
+|      befg-288acdh-333cdeh+258a2fh+810bdfh+612aefh-255e2fh+264cfgh-36f2h2-11a|
+|      -----------------------------------------------------------------------|
+|      7ai3+154ei3+46i4                                                       |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|      7cegi+954bfgi+153cdhi-1365afhi+1581efhi+210a2i2+252bdi2+105aei2+21e2i2+|
+|      i+729cghi+1677fh2i+912bgi2-1188ahi2+360ehi2+1074hi3                    |
+|      36cei2+618bfi2-96ci3                                                   |
+|      04cdi2-633afi2-336efi2-567fi3                                          |
+|      3i-324abdi+105a2ei-510bdei+105ae2i-197e3i+168cegi-954bfgi-441cdhi+1593a|
+|      -----------------------------------------------------------------------|
+|                                                                    |        |
+|                                                                    |        |
+|                                                                    |        |
+|                                                                    |        |
+|      240cgi2+1503fhi2+214ai3+133ei3+232i4                          |        |
+|                                                                    |        |
+|                                                                    |        |
+|                                                                    |        |
+|      fhi-1143efhi+21a2i2+42aei2+21e2i2+48cgi2-741fhi2+7ai3+7ei3+i4 |        |
+|                                                                             |
+|              9      1                                                       |
+|o67 : Matrix R  <-- R                                                        |
++-----------------------------------------------------------------------------+
+
+
+
+
+
+
+
+Elimination Theory
+==================
+
+Consider the problem of projecting the ``twisted cubic'', a curve in $\PP^3$
+defined by the three $2 \times{} 2$ minors of a certain $2 \times{} 3$ matrix.
+We already have the simplest tools for solving such a problem. We first clear
+the earlier meaning of x to allow it to be used as a subscripted variable:
+
++------------------+
+|i68 : x = symbol x|
+|                  |
+|o68 = x           |
+|                  |
+|o68 : Symbol      |
++------------------+
+
+Since we are going to deal with a curve in $\PP^3$, we begin with a polynomial
+ring in four variables:
+
++----------------------+
+|i69 : R = kk[x_0..x_3]|
+|                      |
+|o69 = R               |
+|                      |
+|o69 : PolynomialRing  |
++----------------------+
+
+The ideal of the twisted cubic curve is generated by the $2 \times{} 2$ minors
+of a ``catalecticant" or ``Hankel" matrix, conveniently defined as follows:
+
++-----------------------------------------------------+
+|i70 : M = map(R^2, 3, (i,j)->x_(i+j))                |
+|                                                     |
+|o70 = | x_0 x_1 x_2 |                                |
+|      | x_1 x_2 x_3 |                                |
+|                                                     |
+|              2      3                               |
+|o70 : Matrix R  <-- R                                |
++-----------------------------------------------------+
+|i71 : I = minors(2,M)                                |
+|                                                     |
+|                2                           2        |
+|o71 = ideal (- x  + x x , - x x  + x x , - x  + x x )|
+|                1    0 2     1 2    0 3     2    1 3 |
+|                                                     |
+|o71 : Ideal of R                                     |
++-----------------------------------------------------+
+
+As projection center we take the point with homogeneous coordinates
+$(1,0,0,-1)$, which is defined by the ideal:
+
++---------------------------------------+
+|i72 : pideal = ideal(x_0+x_3, x_1, x_2)|
+|                                       |
+|o72 = ideal (x  + x , x , x )          |
+|              0    3   1   2           |
+|                                       |
+|o72 : Ideal of R                       |
++---------------------------------------+
+
+The ideal J of the image of the curve under the projection from this point is
+the kernel of the ring map $S=kk[u,v,w] \to R/I$ sending the variables of S to
+the generators of pIdeal, regarded as elements of $R/I$.  This is the same as
+the more usual formulation: $$J = I \cap{} kk[x_0+x_3, x_1, x_x]$$ To compute
+this we first substitute pIdeal into $R/I$, and then form the necessary ring
+map:
+
++-----------------------------------------+
+|i73 : Rbar = R/I                         |
+|                                         |
+|o73 = Rbar                               |
+|                                         |
+|o73 : QuotientRing                       |
++-----------------------------------------+
+|i74 : pideal = substitute(pideal, Rbar)  |
+|                                         |
+|o74 = ideal (x  + x , x , x )            |
+|              0    3   1   2             |
+|                                         |
+|o74 : Ideal of Rbar                      |
++-----------------------------------------+
+|i75 : S = kk[u,v,w]                      |
+|                                         |
+|o75 = S                                  |
+|                                         |
+|o75 : PolynomialRing                     |
++-----------------------------------------+
+|i76 : J=kernel map (Rbar, S, gens pideal)|
+|                                         |
+|             3            3              |
+|o76 = ideal(v  - u*v*w + w )             |
+|                                         |
+|o76 : Ideal of S                         |
++-----------------------------------------+
+
+The ideal J defines a curve with one singular point. We can compute the ideal
+of the singular locus with:
+
++-----------------------------------------------------------+
+|i77 : K = ideal singularLocus(J)                           |
+|                                                           |
+|              3            3          2                  2 |
+|o77 = ideal (v  - u*v*w + w , -v*w, 3v  - u*w, - u*v + 3w )|
+|                                                           |
+|o77 : Ideal of S                                           |
++-----------------------------------------------------------+
+
+This doesn't look like the ideal of a reduced point! But that's because it
+isn't yet saturated:
+
++------------------+
+|i78 : saturate K  |
+|                  |
+|o78 = ideal (w, v)|
+|                  |
+|o78 : Ideal of S  |
++------------------+
+
+We have just seen the *note saturate: (Saturation)saturate, function in its
+most common use: to saturate with respect to the maximal ideal. but we can also
+find the saturation of any ideal with respect to another:
+
++----------------------------------------+
+|i79 : saturate (ideal"u3w,uv", ideal"u")|
+|                                        |
+|o79 = ideal (w, v)                      |
+|                                        |
+|o79 : Ideal of S                        |
++----------------------------------------+
+
+We can also take the ``ideal quotient'' I:J of an ideal I with respect to
+another, J defined as the set of elements f such that f*J is contained in I:
+
++----------------------------+
+|i80 : ideal"u3w,uv":ideal"u"|
+|                            |
+|                 2          |
+|o80 = ideal (v, u w)        |
+|                            |
+|o80 : Ideal of S            |
++----------------------------+
+
+
+
+
+
+
+
+Defining functions and loading packages
+=======================================
+
+It is easy to define your own functions in Macaulay2, and this can save a lot
+of typing. Functions are defined with the symbol ->. For example, the famous
+Collatz Conjecture (also called the ``hailstone problem'') asks about the
+following procedure: given an integer $n$, divide it by 2 if possible, or else
+multiply by 3 and add 1. If we repeat this over and over, does the process
+always reach 1?  Here is a function that performs the Hailstone procedure again
+and again, producing a list of the intermediate results.
+
++----------------------------------------------------------------+
+|i81 : Collatz = n ->                                            |
+|          while n != 1 list if n%2 == 0 then n=n//2 else n=3*n+1|
+|                                                                |
+|o81 = Collatz                                                   |
+|                                                                |
+|o81 : FunctionClosure                                           |
++----------------------------------------------------------------+
+
+For example:
+
++-----------------------------------------------------------------------------+
+|i82 : Collatz 27                                                             |
+|                                                                             |
+|o82 = {82, 41, 124, 62, 31, 94, 47, 142, 71, 214, 107, 322, 161, 484, 242,   |
+|      -----------------------------------------------------------------------|
+|      121, 364, 182, 91, 274, 137, 412, 206, 103, 310, 155, 466, 233, 700,   |
+|      -----------------------------------------------------------------------|
+|      350, 175, 526, 263, 790, 395, 1186, 593, 1780, 890, 445, 1336, 668,    |
+|      -----------------------------------------------------------------------|
+|      334, 167, 502, 251, 754, 377, 1132, 566, 283, 850, 425, 1276, 638, 319,|
+|      -----------------------------------------------------------------------|
+|      958, 479, 1438, 719, 2158, 1079, 3238, 1619, 4858, 2429, 7288, 3644,   |
+|      -----------------------------------------------------------------------|
+|      1822, 911, 2734, 1367, 4102, 2051, 6154, 3077, 9232, 4616, 2308, 1154, |
+|      -----------------------------------------------------------------------|
+|      577, 1732, 866, 433, 1300, 650, 325, 976, 488, 244, 122, 61, 184, 92,  |
+|      -----------------------------------------------------------------------|
+|      46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1}       |
+|                                                                             |
+|o82 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+If you don't understand this code easily, see *note Function:
+(Macaulay2Doc)Function, and *note while: (Macaulay2Doc)while,, or try:
+
++-----------------+
+|viewHelp Function|
++-----------------+
+|viewHelp "while" |
++-----------------+
+
+In order to understand a process it is often useful to tabulate the results of
+applying it many times. One feature of the Collatz process is how many steps it
+takes to get to 1. We can tabulate this statistic for the first 25 values of n
+with the function *note tally: (Macaulay2Doc)tally,, as follows:
+
++----------------------------------------------------+
+|i83 : tally for n from 1 to 30 list length Collatz n|
+|                                                    |
+|o83 = Tally{0 => 1  }                               |
+|            1 => 1                                  |
+|            2 => 1                                  |
+|            3 => 1                                  |
+|            4 => 1                                  |
+|            5 => 1                                  |
+|            6 => 1                                  |
+|            7 => 3                                  |
+|            8 => 1                                  |
+|            9 => 2                                  |
+|            10 => 2                                 |
+|            12 => 1                                 |
+|            14 => 1                                 |
+|            15 => 2                                 |
+|            16 => 1                                 |
+|            17 => 2                                 |
+|            18 => 3                                 |
+|            19 => 1                                 |
+|            20 => 2                                 |
+|            23 => 1                                 |
+|            111 => 1                                |
+|                                                    |
+|o83 : Tally                                         |
++----------------------------------------------------+
+
+A line of the form
+
++-------------------+
+|            18 => 3|
++-------------------+
+
+in the result means that a Collatz sequence of length 18 was seen 3 times. To
+see the successive ``record-breakers'', that is, the numbers with longer
+Collatz sequences than any number before them, we might try:
+
++-----------------------------------------------------------------------------+
+|i84 : record = length Collatz 1                                              |
+|                                                                             |
+|o84 = 0                                                                      |
++-----------------------------------------------------------------------------+
+|i85 : L = for n from 2 to 1000 list (                                        |
+|              l := length Collatz n;                                         |
+|              if l > record                                                  |
+|                then (record = l; (n,l))                                     |
+|                else continue)                                               |
+|                                                                             |
+|o85 = {(2, 1), (3, 7), (6, 8), (7, 16), (9, 19), (18, 20), (25, 23), (27,    |
+|      -----------------------------------------------------------------------|
+|      111), (54, 112), (73, 115), (97, 118), (129, 121), (171, 124), (231,   |
+|      -----------------------------------------------------------------------|
+|      127), (313, 130), (327, 143), (649, 144), (703, 170), (871, 178)}      |
+|                                                                             |
+|o85 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+If you want to see a list of just the successive records, you can apply the
+function *note last: (Macaulay2Doc)last, to each element of the list $L$. A
+convenient way to do this is with this syntax:
+
++-----------------------------------------------------------------------------+
+|i86 : L/last                                                                 |
+|                                                                             |
+|o86 = {1, 7, 8, 16, 19, 20, 23, 111, 112, 115, 118, 121, 124, 127, 130, 143, |
+|      -----------------------------------------------------------------------|
+|      144, 170, 178}                                                         |
+|                                                                             |
+|o86 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+
+
+Note that in writing functions of more than one expression (usually there's one
+expression per line), the expressions must be separated by semicolons. For
+example in the ``for'' loop above, the first expression was ``l = length
+Collatz n''. After the last expression of an input line or of a function body,
+a semicolon suppresses output, useful when the output would be large.
+
+There are many packages of ready-made functions available for your use, many
+written by other users (perhaps you'll contribute one someday!) A list of
+``installed'' packages can be found with:
+
++--------+
+|viewHelp|
++--------+
+
+For example, there is a package called *note EdgeIdeals: (EdgeIdeals)Top,. To
+load the package, use:
+
++------------------------------+
+|i87 : loadPackage "EdgeIdeals"|
+|                              |
+|o87 = EdgeIdeals              |
+|                              |
+|o87 : Package                 |
++------------------------------+
+
+After loading it, you can view its documentation with
+
++-------------------+
+|viewHelp EdgeIdeals|
++-------------------+
+
+or you can call its functions, such as *note randomGraph:
+(EdgeIdeals)randomGraph, and *note edgeIdeal: (EdgeIdeals)edgeIdeal,:
+
++-----------------------------------------------------------------------------+
+|i88 : R = kk[vars(0..10)]                                                    |
+|                                                                             |
+|o88 = R                                                                      |
+|                                                                             |
+|o88 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i89 : G=randomGraph (R,20)                                                   |
+|                                                                             |
+|o89 = Graph{"edges" => {{d, h}, {f, g}, {a, f}, {c, h}, {a, c}, {c, e}, {a,  |
+|            "ring" => R                                                      |
+|            "vertices" => {a, b, c, d, e, f, g, h, i, j, k}                  |
+|                                                                             |
+|o89 : Graph                                                                  |
+|-----------------------------------------------------------------------------|
+|g}, {f, h}, {b, c}, {d, i}, {e, h}, {b, f}, {g, j}, {g, h}, {a, j}, {f, i},  |
+|-----------------------------------------------------------------------------|
+|{d, k}, {e, k}, {a, e}, {c, g}}}                                             |
++-----------------------------------------------------------------------------+
+|i90 : K=edgeIdeal G                                                          |
+|                                                                             |
+|o90 = monomialIdeal (a*c, b*c, a*e, c*e, a*f, b*f, a*g, c*g, f*g, c*h, d*h,  |
+|      -----------------------------------------------------------------------|
+|      e*h, f*h, g*h, d*i, f*i, a*j, g*j, d*k, e*k)                           |
+|                                                                             |
+|o90 : MonomialIdeal of R                                                     |
++-----------------------------------------------------------------------------+
+|i91 : hilbertSeries K                                                        |
+|                                                                             |
+|             2      3      4      5       6       7      8      9     10     |
+|      1 - 20T  + 56T  - 40T  - 68T  + 170T  - 160T  + 79T  - 20T  + 2T       |
+|o91 = ------------------------------------------------------------------     |
+|                                          11                                 |
+|                                   (1 - T)                                   |
+|                                                                             |
+|o91 : Expression of class Divide                                             |
++-----------------------------------------------------------------------------+
+|i92 : betti res K                                                            |
+|                                                                             |
+|             0  1  2   3   4   5  6  7 8                                     |
+|o92 = total: 1 20 79 164 210 167 79 20 2                                     |
+|          0: 1  .  .   .   .   .  .  . .                                     |
+|          1: . 20 56  63  33   7  .  . .                                     |
+|          2: .  . 23 101 177 160 79 20 2                                     |
+|                                                                             |
+|o92 : BettiTally                                                             |
++-----------------------------------------------------------------------------+
+
+
+
+When testing a conjecture  one sometimes wants to run a large number of
+randomly chosen examples. Here's some typical code that one might use to study
+a random graph ideal.  First we use ``for ... list ...'' to construct a list L
+and suppress its printing by ending the line that creates it with a ``;''.
+Each entry of L is a triple consisting of the codimension, degree, and Betti
+table of a random graph ideal on 10 vertices having only 4 edges.
+
++--------------------------------------------+
+|i93 : R = ZZ/2[vars(0..10)]                 |
+|                                            |
+|o93 = R                                     |
+|                                            |
+|o93 : PolynomialRing                        |
++--------------------------------------------+
+|i94 : L=for j from 1 to 100 list(           |
+|          I = edgeIdeal randomGraph (R,5);  |
+|          (codim I, degree I, betti res I));|
++--------------------------------------------+
+
+We can use *note tally: (Macaulay2Doc)tally, to find out how many examples were
+found with each combination of codimension and degree and Betti table.
+
++-----------------------------------------------+
+|i95 : tally L                                  |
+|                                               |
+|                           0 1  2  3 4 5       |
+|o95 = Tally{(5, 32, total: 1 5 10 10 5 1) => 1}|
+|                        0: 1 .  .  . . .       |
+|                        1: . 5  .  . . .       |
+|                        2: . . 10  . . .       |
+|                        3: . .  . 10 . .       |
+|                        4: . .  .  . 5 .       |
+|                        5: . .  .  . . 1       |
+|                           0 1 2 3 4           |
+|            (4, 12, total: 1 5 9 7 2) => 13    |
+|                        0: 1 . . . .           |
+|                        1: . 5 2 . .           |
+|                        2: . . 7 4 .           |
+|                        3: . . . 3 2           |
+|                          0 1  2  3 4 5        |
+|            (2, 1, total: 1 5 10 10 5 1) => 6  |
+|                       0: 1 .  .  . . .        |
+|                       1: . 5  4  1 . .        |
+|                       2: . .  6  9 5 1        |
+|                          0 1  2  3 4 5        |
+|            (2, 2, total: 1 5 10 10 5 1) => 1  |
+|                       0: 1 .  .  . . .        |
+|                       1: . 5  6  4 1 .        |
+|                       2: . .  4  6 4 1        |
+|                          0 1  2  3 4 5        |
+|            (3, 2, total: 1 5 10 10 5 1) => 11 |
+|                       0: 1 .  .  . . .        |
+|                       1: . 5  2  . . .        |
+|                       2: . .  8  6 1 .        |
+|                       3: . .  .  4 4 1        |
+|                          0 1  2  3 4 5        |
+|            (3, 4, total: 1 5 10 10 5 1) => 2  |
+|                       0: 1 .  .  . . .        |
+|                       1: . 5  3  1 . .        |
+|                       2: . .  7  6 2 .        |
+|                       3: . .  .  3 3 1        |
+|                          0 1  2  3 4 5        |
+|            (4, 8, total: 1 5 10 10 5 1) => 5  |
+|                       0: 1 .  .  . . .        |
+|                       1: . 5  1  . . .        |
+|                       2: . .  9  3 . .        |
+|                       3: . .  .  7 3 .        |
+|                       4: . .  .  . 2 1        |
+|                          0 1 2 3              |
+|            (2, 1, total: 1 5 6 2) => 3        |
+|                       0: 1 . . .              |
+|                       1: . 5 6 2              |
+|                          0 1 2 3              |
+|            (3, 5, total: 1 5 5 1) => 1        |
+|                       0: 1 . . .              |
+|                       1: . 5 5 .              |
+|                       2: . . . 1              |
+|                          0 1 2 3              |
+|            (3, 5, total: 1 5 6 2) => 5        |
+|                       0: 1 . . .              |
+|                       1: . 5 5 1              |
+|                       2: . . 1 1              |
+|                          0 1 2 3 4            |
+|            (2, 1, total: 1 5 7 4 1) => 6      |
+|                       0: 1 . . . .            |
+|                       1: . 5 5 1 .            |
+|                       2: . . 2 3 1            |
+|                          0 1 2 3 4            |
+|            (2, 2, total: 1 5 7 4 1) => 2      |
+|                       0: 1 . . . .            |
+|                       1: . 5 7 4 1            |
+|                          0 1 2 3 4            |
+|            (3, 2, total: 1 5 8 5 1) => 12     |
+|                       0: 1 . . . .            |
+|                       1: . 5 3 . .            |
+|                       2: . . 5 4 .            |
+|                       3: . . . 1 1            |
+|                          0 1 2 3 4            |
+|            (3, 3, total: 1 5 9 7 2) => 11     |
+|                       0: 1 . . . .            |
+|                       1: . 5 3 . .            |
+|                       2: . . 6 7 2            |
+|                          0 1 2 3 4            |
+|            (3, 4, total: 1 5 7 4 1) => 5      |
+|                       0: 1 . . . .            |
+|                       1: . 5 4 . .            |
+|                       2: . . 3 4 1            |
+|                          0 1 2 3 4            |
+|            (3, 4, total: 1 5 8 5 1) => 16     |
+|                       0: 1 . . . .            |
+|                       1: . 5 4 1 .            |
+|                       2: . . 4 4 1            |
+|                                               |
+|o95 : Tally                                    |
++-----------------------------------------------+
+
+We can determine how many distinct patterns were found:
+
++--------------+
+|i96 : #tally L|
+|              |
+|o96 = 16      |
++--------------+
+
+
+
+
+
+
+
+Ext, Tor, and cohomology
+========================
+
+Macaulay2 can compute the homology of complexes; for example, let's compute the
+homology of a Koszul complex that is not a resolution: $$ {\mathbf K}(x^2, x
+y^2):\ \  0 \rightarrow{} S(-5) \rightarrow{} S(-2)\oplus S(-3) \rightarrow{} S
+\rightarrow 0 $$ The free module $S(-2) \oplus{} S(-3)$ can be defined with
+this syntax:
+
++------------------------------------+
+|i97 : S^{-2,-3}                     |
+|                                    |
+|       2                            |
+|o97 = S                             |
+|                                    |
+|o97 : S-module, free, degrees {2..3}|
++------------------------------------+
+
+Here is how we can define the maps in the Koszul complex:
+
++-----------------------------------------------------+
+|i98 : S = kk[x,y]                                    |
+|                                                     |
+|o98 = S                                              |
+|                                                     |
+|o98 : PolynomialRing                                 |
++-----------------------------------------------------+
+|i99 : phi1 = map(S^1, S^{-2,-3}, matrix"x2,xy2")     |
+|                                                     |
+|o99 = | x2 xy2 |                                     |
+|                                                     |
+|              1      2                               |
+|o99 : Matrix S  <-- S                                |
++-----------------------------------------------------+
+|i100 : phi2 = map(S^{-2,-3}, S^{-5}, matrix"xy2;-x2")|
+|                                                     |
+|o100 = {2} | xy2 |                                   |
+|       {3} | -x2 |                                   |
+|                                                     |
+|               2      1                              |
+|o100 : Matrix S  <-- S                               |
++-----------------------------------------------------+
+
+Let's check that this is will really make a complex:
+
++-----------------------+
+|i101 : phi1*phi2       |
+|                       |
+|o101 = 0               |
+|                       |
+|               1      1|
+|o101 : Matrix S  <-- S |
++-----------------------+
+
+To get the homology we can, for example compute:
+
++--------------------------------------------+
+|i102 : (ker phi1)/(image phi2)              |
+|                                            |
+|o102 = subquotient ({2} | y2 |, {2} | xy2 |)|
+|                    {3} | -x |  {3} | -x2 | |
+|                                            |
+|                                 2          |
+|o102 : S-module, subquotient of S           |
++--------------------------------------------+
+
+We could also use the data type *note Complex: (Complexes)Complex, and use a
+built-in facility to take homology (in our case $H_1$):
+
++-----------------------------------------------------------------------------+
+|i103 : FF = complex{phi1,phi2}                                               |
+|                                                                             |
+|        1      2      1                                                      |
+|o103 = S  <-- S  <-- S                                                       |
+|                                                                             |
+|       0      1      2                                                       |
+|                                                                             |
+|o103 : Complex                                                               |
++-----------------------------------------------------------------------------+
+|i104 : FF.dd                                                                 |
+|                                                                             |
+|            1                  2                                             |
+|o104 = 0 : S  <-------------- S  : 1                                         |
+|                 | x2 xy2 |                                                  |
+|                                                                             |
+|            2                   1                                            |
+|       1 : S  <--------------- S  : 2                                        |
+|                 {2} | xy2 |                                                 |
+|                 {3} | -x2 |                                                 |
+|                                                                             |
+|o104 : ComplexMap                                                            |
++-----------------------------------------------------------------------------+
+|i105 : homology FF                                                           |
+|                                                                             |
+|o105 = cokernel | x2 xy2 | <-- subquotient ({2} | y2 |, {2} | xy2 |) <--     |
+|                                            {3} | -x |  {3} | -x2 |          |
+|       0                                                                     |
+|                               1                                             |
+|                                                                             |
+|o105 : Complex                                                               |
+|-----------------------------------------------------------------------------|
+|image 0                                                                      |
+|                                                                             |
+|2                                                                            |
++-----------------------------------------------------------------------------+
+|i106 : presentation (homology FF)_1                                          |
+|                                                                             |
+|o106 = {4} | x |                                                             |
+|                                                                             |
+|               1      1                                                      |
+|o106 : Matrix S  <-- S                                                       |
++-----------------------------------------------------------------------------+
+
+Either way, the first homology is $((x^2):(xy^2)) / (x^2) \cong{} S/(x)$, in
+accord with general theory.
+
+There are other ways to construct Koszul complexes.  One way is as the tensor
+product of chain complexes of length 1:
+
++--------------------------------------------------------------+
+|i107 : FF = complex matrix {{x^2}} ** complex matrix {{x*y^2}}|
+|                                                              |
+|        1      2      1                                       |
+|o107 = S  <-- S  <-- S                                        |
+|                                                              |
+|       0      1      2                                        |
+|                                                              |
+|o107 : Complex                                                |
++--------------------------------------------------------------+
+|i108 : FF.dd                                                  |
+|                                                              |
+|            1                  2                              |
+|o108 = 0 : S  <-------------- S  : 1                          |
+|                 | xy2 x2 |                                   |
+|                                                              |
+|            2                    1                            |
+|       1 : S  <---------------- S  : 2                        |
+|                 {3} | x2   |                                 |
+|                 {2} | -xy2 |                                 |
+|                                                              |
+|o108 : ComplexMap                                             |
++--------------------------------------------------------------+
+
+Another way is by using the function *note koszul: (Macaulay2Doc)koszul,,
+designed for that purpose:
+
++-----------------------------------------------+
+|i109 : FF = koszulComplex matrix {{x^2, x*y^2}}|
+|                                               |
+|        1      2      1                        |
+|o109 = S  <-- S  <-- S                         |
+|                                               |
+|       0      1      2                         |
+|                                               |
+|o109 : Complex                                 |
++-----------------------------------------------+
+|i110 : FF.dd                                   |
+|                                               |
+|            1                  2               |
+|o110 = 0 : S  <-------------- S  : 1           |
+|                 | x2 xy2 |                    |
+|                                               |
+|            2                    1             |
+|       1 : S  <---------------- S  : 2         |
+|                 {2} | -xy2 |                  |
+|                 {3} | x2   |                  |
+|                                               |
+|o110 : ComplexMap                              |
++-----------------------------------------------+
+
+
+
+Since Macaulay2 can compute resolutions and homology, it can compute things
+such as $Ext$, $Tor$ and sheaf cohomology, as in the following examples. The
+first uses Serre's formula to compute the multiplicity with which a 2-plane
+meets the union of two 2-planes in 4-space (this is the first case in which the
+length of the intersection scheme is NOT the right answer.) The notation
+``M**N'' denotes the tensor product of the modules $M$ and $N$. We use the
+syntactical forms ``for j from 0 to 4 list ...'' to list some results and
+``sum(0..4, j -> ...)'' to sum some results.
+
++-----------------------------------------------------------+
+|i111 : S=kk[a,b,c,d]                                       |
+|                                                           |
+|o111 = S                                                   |
+|                                                           |
+|o111 : PolynomialRing                                      |
++-----------------------------------------------------------+
+|i112 : IX = intersect(ideal(a,b), ideal(c,d))              |
+|                                                           |
+|o112 = ideal (b*d, a*d, b*c, a*c)                          |
+|                                                           |
+|o112 : Ideal of S                                          |
++-----------------------------------------------------------+
+|i113 : IY = ideal(a-c, b-d)                                |
+|                                                           |
+|o113 = ideal (a - c, b - d)                                |
+|                                                           |
+|o113 : Ideal of S                                          |
++-----------------------------------------------------------+
+|i114 : degree ((S^1/IX) ** (S^1/IY))                       |
+|                                                           |
+|o114 = 3                                                   |
++-----------------------------------------------------------+
+|i115 : for j from 0 to 4 list degree Tor_j(S^1/IX, S^1/IY) |
+|                                                           |
+|o115 = {3, 1, 0, 0, 0}                                     |
+|                                                           |
+|o115 : List                                                |
++-----------------------------------------------------------+
+|i116 : sum(0..4, j-> (-1)^j * degree Tor_j(S^1/IX, S^1/IY))|
+|                                                           |
+|o116 = 2                                                   |
++-----------------------------------------------------------+
+
+Similarly, we can compute Hom and Ext:
+
++-----------------------------------------------------------------------------+
+|i117 : Hom(IX, S^1/IX)                                                       |
+|                                                                             |
+|o117 = subquotient ({-2} | b d 0 0 |, {-2} | bd ad bc ac 0  0  0  0  0  0  0 |
+|                    {-2} | a 0 d 0 |  {-2} | 0  0  0  0  bd ad bc ac 0  0  0 |
+|                    {-2} | 0 c 0 b |  {-2} | 0  0  0  0  0  0  0  0  bd ad bc|
+|                    {-2} | 0 0 c a |  {-2} | 0  0  0  0  0  0  0  0  0  0  0 |
+|                                                                             |
+|                                 4                                           |
+|o117 : S-module, subquotient of S                                            |
+|-----------------------------------------------------------------------------|
+|0  0  0  0  0  |)                                                            |
+|0  0  0  0  0  |                                                             |
+|ac 0  0  0  0  |                                                             |
+|0  bd ad bc ac |                                                             |
++-----------------------------------------------------------------------------+
+|i118 : Ext^1(IX, S^1/IX)                                                     |
+|                                                                             |
+|o118 = subquotient ({-3} | b a d 0 0 0 0 0 0 0 |, {-3} | a -b 0  0  bd ad bc |
+|                    {-3} | 0 0 c b a 0 0 0 0 0 |  {-3} | 0 0  a  -b 0  0  0  |
+|                    {-3} | 0 0 0 0 0 d c 0 0 b |  {-3} | c 0  -d 0  0  0  0  |
+|                    {-3} | 0 0 0 0 0 0 0 d c a |  {-3} | 0 c  0  -d 0  0  0  |
+|                                                                             |
+|                                 4                                           |
+|o118 : S-module, subquotient of S                                            |
+|-----------------------------------------------------------------------------|
+|ac 0  0  0  0  0  0  0  0  0  0  0  0  |)                                    |
+|0  bd ad bc ac 0  0  0  0  0  0  0  0  |                                     |
+|0  0  0  0  0  bd ad bc ac 0  0  0  0  |                                     |
+|0  0  0  0  0  0  0  0  0  bd ad bc ac |                                     |
++-----------------------------------------------------------------------------+
+
+or the cohomology of the sheaf associated to a module.
+
+Here is how to compute the first cohomology of the structure sheaf twisted by
+$-2$ of the curve $Proj(S/IX)$, which in this case is the disjoint union of two
+lines in $\PP^3$:
+
++--------------------------------------+
+|i119 : HH^1 (sheaf (S^{-2}**(S^1/IX)))|
+|                                      |
+|         2                            |
+|o119 = kk                             |
+|                                      |
+|o119 : kk-module, free                |
++--------------------------------------+
+
+Authors
+=======
+
+  * David Eisenbud (see http://www.msri.org/~de ) <de@msri.org>
+  * Mike Stillman (see http://www.math.cornell.edu/~mike )
+    <mike@math.cornell.edu>
+
+Version
+=======
+
+This documentation describes version 1.0 of BeginningMacaulay2, released
+November 3, 2009.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{BeginningMacaulay2Source,                                              |
+|  title = {{BeginningMacaulay2: Mathematicians' Introduction to \            |
+|  author = {David Eisenbud and Mike Stillman},                               |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2            |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|emph{Macaulay2}. Version~1.0}},                                              |
+|                                                                             |
+|                                                                             |
+|/packages}}                                                                  |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note BeginningMacaulay2: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in BeginningMacaulay2.m2, with auxiliary files
+in BeginningMacaulay2/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in BeginningMacaulay2.m2:14:0.
+
+Tag Table:
+Node: Top268
+
+End Tag Table

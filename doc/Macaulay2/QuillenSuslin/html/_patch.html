@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>patch -- patch together local solutions to eliminate a variable</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="the Quillen-Suslin algorithm for bases of projective modules" href="index.html">QuillenSuslin</a> :: <a title="patch together local solutions to eliminate a variable" href="_patch.html">patch</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_qs__Algorithm.html">next</a> | <a href="_max__Minors.html">previous</a> | <a href="_qs__Algorithm.html">forward</a> | <a href="_max__Minors.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>patch -- patch together local solutions to eliminate a variable</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">patch(L,var)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">L</span>, <span>a <a title="the class of all lists -- {...}" href="../../Macaulay2Doc/html/___List.html">list</a></span>,  a list of local solutions to the unimodular row problem for some unimodular row <span class="tt">f</span></span></li>
+            <li><span><span class="tt">var</span>, <span>a <a title="the class of all ring elements handled by the engine" href="../../Macaulay2Doc/html/___Ring__Element.html">ring element</a></span>,  the current variable to eliminate</span></li>
+          </ul>
+        </li>
+        <li><a href="../../Macaulay2Doc/html/_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:          <ul>
+            <li><span><span class="tt">Verbose</span> (missing documentation)<!--tag: [patch, Verbose]-->
+<span class="tt"> => </span><span>an <a title="the class of all integers" href="../../Macaulay2Doc/html/___Z__Z.html">integer</a></span>, <span>default value 0</span>,  which controls the level of output of the method (0, 1, 2, 3, or 4)</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span>a <a title="the class of all matrices" href="../../Macaulay2Doc/html/___Matrix.html">matrix</a></span>,  a unimodular matrix <span class="tt">U</span> so that <span class="tt">f*U</span> is the same as evaluating <span class="tt">f</span> when <span class="tt">var</span> = 0</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <p></p>
+Given a unimodular row <span class="tt">f</span> over a polynomial ring  R[x_1,\ldots,x_n] (where  R  is either <span class="tt">QQ</span>, <span class="tt">ZZ</span>, or <span class="tt">ZZ/p</span>) one can compute a collection of matrices  \{U_i\}^r_{i=1} and maximal ideals  m_1,\ldots,m_r so that:        <p></p>
+1. Each  U_i  is unimodular over  (R[x_1,\ldots,x_{n-1}]_{m_i})[x_n] ,        <p></p>
+2. Each  U_i solves the unimodular row problem for <span class="tt">f in </span> (R[x_1,\ldots,x_{n-1}]_{m_i})[x_n], and        <p></p>
+3. Letting  d_i  denote the common denominator of the entries of U_i  in  R[x_1,\ldots,x_{n-1}] , we have  (d_1,\ldots,d_r) = R[x_1,\ldots,x_{n-1}].        <p></p>
+One can accomplish this, for example, by repeatedly using <a title="computes a maximal ideal containing a given ideal in a polynomial ring" href="_get__Max__Ideal.html">getMaxIdeal</a> and <a title="computes a local solution to the unimodular row problem over a localization at a maximal ideal" href="_horrocks.html">horrocks</a> as in the following example.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ[x,y]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : f = matrix{{y^3+2*x*y^2,3*y+1,x^3}}
+
+o2 = | 2xy2+y3 3y+1 x3 |
+
+             1      3
+o2 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : isUnimodular f
+
+o3 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : m1 = getMaxIdeal(ideal(0_R),{x})
+
+o4 = ideal (2, x)
+
+o4 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : L1 = horrocks(f,y,m1)
+
+o5 = | 27/(6x-1)                  (-27y-9)/(6x-1)   
+     | (-18xy-9y2+6x+3y-1)/(6x-1) (18xy2+9y3)/(6x-1)
+     | 0                          0                 
+     ------------------------------------------------------------------------
+     -27x3/(6x-1)                     |
+     (18x4y+9x3y2-6x4-3x3y+x3)/(6x-1) |
+     1                                |
+
+                    3             3
+o5 : Matrix (frac R)  &lt;-- (frac R)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : m2 = getMaxIdeal(sub(ideal(6*x-1),R),{x})
+
+o6 = ideal (x - 1, 5)
+
+o6 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : L2 = horrocks(f,y,m2)
+
+o7 = | 0    0          1             |
+     | 0    1          0             |
+     | 1/x3 (-3y-1)/x3 (-2xy2-y3)/x3 |
+
+                    3             3
+o7 : Matrix (frac R)  &lt;-- (frac R)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : sub(ideal(6*x-1,x^3),R) == ideal(1_R)
+
+o8 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : L = {L1,L2}
+
+o9 = {| 27/(6x-1)                  (-27y-9)/(6x-1)   
+      | (-18xy-9y2+6x+3y-1)/(6x-1) (18xy2+9y3)/(6x-1)
+      | 0                          0                 
+     ------------------------------------------------------------------------
+     -27x3/(6x-1)                     |, | 0    0          1             |}
+     (18x4y+9x3y2-6x4-3x3y+x3)/(6x-1) |  | 0    1          0             |
+     1                                |  | 1/x3 (-3y-1)/x3 (-2xy2-y3)/x3 |
+
+o9 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <p></p>
+Once we have constructed a list <span class="tt">L</span> of local solutions of the unimodular row problem for <span class="tt">f</span>, we can use patch to create a matrix <span class="tt">U</span> so that the product <span class="tt">fU</span> is the same as <span class="tt">f</span> evaluated at <span class="tt">y</span>=0.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : U = patch(L,y)
+
+o10 = | 45349632x8y3+7558272x7y3+1259712x6y3+419904x6y2-1944x3y2-648x3y
+      | -30233088x9y4-15116544x8y5+10077696x9y3-2519424x7y5-419904x6y5-
+      | -10077696x6y3-93312x4y2                                        
+      -----------------------------------------------------------------------
+      +3y+1                                        
+      279936x7y3+93312x7y2+1296x4y3+648x3y4-2xy2-y3
+                                                   
+      -----------------------------------------------------------------------
+      2916x2y+486xy+81y                             0 |
+      -1944x3y2-972x2y3+648x3y-162xy3-27y3+9y2-3y+1 0 |
+      -648y                                         1 |
+
+              3      3
+o10 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : isUnimodular U
+
+o11 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : f*U
+
+o12 = | 0 1 x3 |
+
+              1      3
+o12 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : sub(f,{y => 0})
+
+o13 = | 0 1 x3 |
+
+              1      3
+o13 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="computes a maximal ideal containing a given ideal in a polynomial ring" href="_get__Max__Ideal.html">getMaxIdeal</a> -- computes a maximal ideal containing a given ideal in a polynomial ring</span></li>
+          <li><span><a title="computes a local solution to the unimodular row problem over a localization at a maximal ideal" href="_horrocks.html">horrocks</a> -- computes a local solution to the unimodular row problem over a localization at a maximal ideal</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">patch</span>:</h2>
+          <ul>
+            <li><kbd>patch(List,RingElement)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="patch together local solutions to eliminate a variable" href="_patch.html">patch</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function__With__Options.html">method function with options</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">QuillenSuslin.m2:2394:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

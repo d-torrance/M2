@@ -1,0 +1,3711 @@
+ -*- coding: utf-8 -*- This is Chordal.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* Chordal: (Chordal).           routines that exploit chordal structure
+END-INFO-DIR-ENTRY
+
+
+File: Chordal.info, Node: Top, Next: adjacentMinorsIdeal, Up: (dir)
+
+Chordal -- exploiting chordal structure in polynomial ideals
+************************************************************
+
+Description
+===========
+
+This package provides several specialized routines for structured polynomial
+ideals. The sparsity structure of a polynomial set can be described with a
+graph. By exploiting some suitable "chordal completion" of this graph, it is
+possible to develop more efficient algorithms for several problems in
+computational algebraic geometry.
+
+See *note installation and configuration: installation and configuration, for
+instructions on how to install this package.
+
+The examples below illustrate how to use this package to get the following
+properties of a structured ideal: compute elimination ideals, count the number
+of zeros, determine the dimension, decompose the variety.
+
+graphical structure of an ideal
+
+We can abstract the sparsity structure of a polynomial system in a graph. By
+exploiting the chordal completions of this graph more efficient algorithms can
+be developed.
++-------------------------------------------------------------+
+|i1 : R = QQ[a,b,c,d];                                        |
++-------------------------------------------------------------+
+|i2 : I = ideal {a^2-1, a^2+a*b+1, a^3+c^2, b*d + d, c^3+c*d};|
+|                                                             |
+|o2 : Ideal of R                                              |
++-------------------------------------------------------------+
+|i3 : G = constraintGraph I                                   |
+|                                                             |
+|o3 = Graph{a => {b, c}}                                      |
+|           b => {a, d}                                       |
+|           c => {a, d}                                       |
+|           d => {b, c}                                       |
+|                                                             |
+|o3 : Graph                                                   |
++-------------------------------------------------------------+
+|i4 : Gc = chordalGraph G                                     |
+|                                                             |
+|o4 = ChordalGraph{a => {b, c} }                              |
+|                  b => {c, d}                                |
+|                  c => {d}                                   |
+|                  d => {}                                    |
+|                                                             |
+|o4 : ChordalGraph                                            |
++-------------------------------------------------------------+
+
+chordal elimination
+
+Consider the *note 3-chromatic ideal: chromaticIdeal, of the cycle graph. Its
+elimination ideals have have a simple generating set.
++--------------------------------------------------------------+
+|i5 : I = chromaticIdeal(QQ, cycleGraph 10, 3);                |
+|                                                              |
+|o5 : Ideal of QQ[a..j]                                        |
++--------------------------------------------------------------+
+|i6 : N = chordalNet I;                                        |
++--------------------------------------------------------------+
+|i7 : chordalElim N;                                           |
++--------------------------------------------------------------+
+|i8 : N                                                        |
+|                                                              |
+|                                     2    2   2          2    |
+|o8 = ChordalNet{ a => {{a*b - a*j + b  - j , a  + a*j + j }} }|
+|                        2          2                          |
+|                 b => {b  + b*c + c }                         |
+|                        2          2                          |
+|                 c => {c  + c*d + d }                         |
+|                        2          2                          |
+|                 d => {d  + d*e + e }                         |
+|                        2          2                          |
+|                 e => {e  + e*f + f }                         |
+|                        2          2                          |
+|                 f => {f  + f*g + g }                         |
+|                        2          2                          |
+|                 g => {g  + g*h + h }                         |
+|                        2                2                    |
+|                 h => {h  + h*i - i*j - j }                   |
+|                        2          2                          |
+|                 i => {i  + i*j + j }                         |
+|                        3                                     |
+|                 j => {j  - 1}                                |
+|                                                              |
+|o8 : ChordalNet                                               |
++--------------------------------------------------------------+
+On the other hand, its Groebner basis is complicated. 
++----------------------------------------+
+|i9 : sum for f in gbList I list #terms f|
+|                                        |
+|o9 = 253                                |
++----------------------------------------+
+
+chordal networks
+
+Consider the *note ideal of adjacent minors: adjacentMinorsIdeal, of a 2xn
+                                                                          
+matrix. This ideal decomposes into F  components, where F  is the Fibonacci
+                                    n                    n
+number. These (exponentially many) components can be represented compactly with
+a chordal network.
++-----------------------------------------------------------+
+|i10 : I = adjacentMinorsIdeal(QQ,2,10);                    |
+|                                                           |
+|o10 : Ideal of QQ[a..t]                                    |
++-----------------------------------------------------------+
+|i11 : N = chordalNet I;                                    |
++-----------------------------------------------------------+
+|i12 : chordalTria N;                                       |
++-----------------------------------------------------------+
+|i13 : N                                                    |
+|                                                           |
+|o13 = ChordalNet{ a => { , a*d - b*c}                     }|
+|                  b => { , b,  }                           |
+|                  c => {c,  ,  , c*f - d*e}                |
+|                  d => {d, d,  ,  }                        |
+|                  e => { ,  , e*h - f*g, e,  , e*h - f*g}  |
+|                  f => { , f,  , f,  ,  }                  |
+|                  g => {g,  ,  , g*j - h*i,  , g*j - h*i}  |
+|                  h => {h, h,  ,  ,  ,  }                  |
+|                  i => { ,  , i*l - j*k, i,  , i*l - j*k}  |
+|                  j => { , j,  , j,  ,  }                  |
+|                  k => {k,  ,  , k*n - l*m,  , k*n - l*m}  |
+|                  l => {l, l,  ,  ,  ,  }                  |
+|                  m => { ,  , m*p - n*o, m,  , m*p - n*o}  |
+|                  n => { , n,  , n,  ,  }                  |
+|                  o => {o,  ,  , o*r - p*q,  , o*r - p*q}  |
+|                  p => {p, p,  ,  ,  ,  }                  |
+|                  q => { ,  , q*t - r*s, q,  , q*t - r*s}  |
+|                  r => { , r,  , r,  ,  }                  |
+|                  s => {s,  ,  ,  }                        |
+|                  t => {t,  ,  }                           |
+|                                                           |
+|o13 : ChordalNet                                           |
++-----------------------------------------------------------+
+Several properties of an ideal can be computed efficiently given a chordal
+representation; for instance, its dimension.
++-----------+
+|i14 : dim N|
+|           |
+|o14 = 11   |
++-----------+
+We can also extract the top dimensional part, and count the number of
+components.
++---------------------+
+|i15 : topComponents N|
++---------------------+
+|i16 : codimCount N   |
+|                     |
+|         9           |
+|o16 = 55t            |
+|                     |
+|o16 : ZZ[t]          |
++---------------------+
+
+For further example see
+  * *note chordal networks examples: chordal networks examples, -- a new
+    representation of polynomial ideals
+
+Overview of methods
+===================
+
+Graphical structure of a polynomial ideal:
+  * *note constraintGraph: constraintGraph, -- constraint graph of a polynomial
+    set
+  * *note chordalGraph: chordalGraph, -- chordal completion of a graph
+  * *note chordalNet: chordalNet, -- constructs a chordal network from a
+    polynomial set
+Elimination routines:
+  * *note chordalElim: chordalElim, -- performs elimination on the chordal
+    network
+  * *note chordalTria: chordalTria, -- makes a chordal network triangular
+Methods for triangular chordal networks:
+  * *note rootCount: rootCount, -- counts the number of roots of a chordal
+    network
+  * *note dim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+    network
+  * *note codim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+    network
+  * *note codimCount: codimCount, -- codimension counts of the chains of a
+    chordal network
+  * *note topComponents(ChordalNet): topComponents_lpChordalNet_rp, -- top
+    dimension of a chordal network
+  * *note RingElement % ChordalNet: RingElement % ChordalNet, -- ideal
+    membership test
+  * *note nextChain: nextChain, -- iterates over the chains of a chordal
+    network
+  * *note components(ChordalNet): components_lpChordalNet_cmZZ_rp, --
+    components of a chordal network
+
+References
+==========
+
+  * D. Cifuentes, P.A. Parrilo (2016), "Exploiting chordal structure in
+    polynomial ideals: a Groebner basis approach", in "SIAM J. Discrete Math",
+    30(3):1534-–1570
+  * D. Cifuentes, P.A. Parrilo (2017), "Chordal networks of polynomial ideals",
+    in "SIAM J. Appl. Algebra Geometry", 1(1):73-–170
+
+Authors
+=======
+
+  * Diego Cifuentes (see http://www.mit.edu/~diegcif ) <diegcif@mit.edu>
+  * Pablo A. Parrilo (see http://www.mit.edu/~parrilo/ ) <parrilo@mit.edu>
+
+Version
+=======
+
+This documentation describes version 0.2 of Chordal, released May 15, 2021.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{ChordalSource,                                                        |
+|  title = {{Chordal: routines that exploit chordal structure. Version~0.2}},|
+|  author = {Diego Cifuentes and Pablo A. Parrilo},                          |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note ChordalGraph: ChordalGraph, -- a chordal graph
+      * *note ChordalNet: ChordalNet, -- a chordal network
+      * *note ChordalNetChain: ChordalNetChain, -- a chain of a chordal network
+      * *note ChordalNetNode: ChordalNetNode, -- a node of a chordal network
+      * *note ChordalNetRank: ChordalNetRank, -- a rank of a chordal network
+      * *note ElimTree: ElimTree, -- the elimination tree of a chordal graph
+  * Functions and commands
+      * *note adjacentMinorsIdeal: adjacentMinorsIdeal, -- ideal of adjacent
+        minors
+      * *note chordalElim: chordalElim, -- performs elimination on the chordal
+        network
+      * *note chordalGraph: chordalGraph, -- chordal completion of a graph
+      * "structure" -- see *note ChordalNet: ChordalNet, -- a chordal network
+      * *note chordalNet: chordalNet, -- constructs a chordal network from a
+        polynomial set
+      * *note chordalTria: chordalTria, -- makes a chordal network triangular
+      * *note chromaticIdeal: chromaticIdeal, -- chromatic ideal of a graph
+      * *note codimCount: codimCount, -- codimension counts of the chains of a
+        chordal network
+      * *note constraintGraph: constraintGraph, -- constraint graph of a
+        polynomial set
+      * *note displayNet: displayNet, -- displays a chordal network using
+        Graphivz
+      * *note elimTree: elimTree, -- elimination tree of a chordal graph
+      * *note isTriangular: isTriangular, -- whether a chordal network is
+        triangular
+      * label (missing documentation)
+      * *note nextChain: nextChain, -- iterates over the chains of a chordal
+        network
+      * *note nextOrderedPartition: nextOrderedPartition, -- iterates over
+        ordered partitions of a number
+      * *note nodes: nodes, -- list of nodes of a chordal network
+      * *note reduceDimension: reduceDimension, -- removes arcs of a chordal
+        network of small dimension
+      * *note reduceNet: reduceNet, -- reduces a chordal network
+      * *note rootCount: rootCount, -- counts the number of roots of a chordal
+        network
+      * *note setDefaultConfiguration: setDefaultConfiguration, -- default
+        configuration of a package
+      * *note subsetsProductsIdeal: subsetsProductsIdeal, -- ideal of subset
+        products
+      * *note suggestVariableOrder: suggestVariableOrder, -- suggests a good
+        variable ordering
+      * *note toLex: toLex, -- change monomial order to lexicographic
+      * *note treewidth: treewidth, -- treewidth of a graph
+  * Methods
+      * "chordalElim(ChordalNet)" -- see *note chordalElim: chordalElim, --
+        performs elimination on the chordal network
+      * "chromaticNumber(ChordalGraph)" -- see *note ChordalGraph:
+        ChordalGraph, -- a chordal graph
+      * "cliqueNumber(ChordalGraph)" -- see *note ChordalGraph: ChordalGraph,
+        -- a chordal graph
+      * "inducedSubgraph(ChordalGraph)" -- see *note ChordalGraph:
+        ChordalGraph, -- a chordal graph
+      * "isChordal(ChordalGraph)" -- see *note ChordalGraph: ChordalGraph, -- a
+        chordal graph
+      * "isPerfect(ChordalGraph)" -- see *note ChordalGraph: ChordalGraph, -- a
+        chordal graph
+      * "net(ChordalGraph)" -- see *note ChordalGraph: ChordalGraph, -- a
+        chordal graph
+      * "chordalGraph(Digraph)" -- see *note chordalGraph: chordalGraph, --
+        chordal completion of a graph
+      * "chordalGraph(Graph)" -- see *note chordalGraph: chordalGraph, --
+        chordal completion of a graph
+      * "chordalGraph(Graph,List)" -- see *note chordalGraph: chordalGraph, --
+        chordal completion of a graph
+      * "net(ChordalNet)" -- see *note ChordalNet: ChordalNet, -- a chordal
+        network
+      * "ring(ChordalNet)" -- see *note ChordalNet: ChordalNet, -- a chordal
+        network
+      * "chordalNet(Ideal)" -- see *note chordalNet: chordalNet, -- constructs
+        a chordal network from a polynomial set
+      * "chordalNet(Ideal,List)" -- see *note chordalNet: chordalNet, --
+        constructs a chordal network from a polynomial set
+      * "chordalNet(Ideal,String)" -- see *note chordalNet: chordalNet, --
+        constructs a chordal network from a polynomial set
+      * *note chordalNet(HashTable,HashTable,ElimTree,Digraph):
+        chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp, --
+        construct chordal network from a digraph
+      * "codim(ChordalNetChain)" -- see *note ChordalNetChain: ChordalNetChain,
+        -- a chain of a chordal network
+      * "dim(ChordalNetChain)" -- see *note ChordalNetChain: ChordalNetChain,
+        -- a chain of a chordal network
+      * "triaSystem(ChordalNet,ChordalNetChain)" -- see *note ChordalNetChain:
+        ChordalNetChain, -- a chain of a chordal network
+      * "children(ChordalNetNode)" -- see *note ChordalNetNode: ChordalNetNode,
+        -- a node of a chordal network
+      * "generators(ChordalNetNode)" -- see *note ChordalNetNode:
+        ChordalNetNode, -- a node of a chordal network
+      * "ineqs(ChordalNetNode)" -- see *note ChordalNetNode: ChordalNetNode, --
+        a node of a chordal network
+      * "label(ChordalNetNode)" -- see *note ChordalNetNode: ChordalNetNode, --
+        a node of a chordal network
+      * "net(ChordalNetNode)" -- see *note ChordalNetNode: ChordalNetNode, -- a
+        node of a chordal network
+      * "parents(ChordalNetNode)" -- see *note ChordalNetNode: ChordalNetNode,
+        -- a node of a chordal network
+      * "rank(ChordalNetNode)" -- see *note ChordalNetNode: ChordalNetNode, --
+        a node of a chordal network
+      * "net(ChordalNetRank)" -- see *note ChordalNetRank: ChordalNetRank, -- a
+        rank of a chordal network
+      * "chordalTria(ChordalNet)" -- see *note chordalTria: chordalTria, --
+        makes a chordal network triangular
+      * "codimCount(ChordalNet)" -- see *note codimCount: codimCount, --
+        codimension counts of the chains of a chordal network
+      * "components(ChordalNet)" -- see *note components(ChordalNet,ZZ):
+        components_lpChordalNet_cmZZ_rp, -- components of a chordal network
+      * *note components(ChordalNet,ZZ): components_lpChordalNet_cmZZ_rp, --
+        components of a chordal network
+      * "constraintGraph(Ideal)" -- see *note constraintGraph: constraintGraph,
+        -- constraint graph of a polynomial set
+      * "constraintGraph(Ring,List)" -- see *note constraintGraph:
+        constraintGraph, -- constraint graph of a polynomial set
+      * *note digraph(ChordalNet): digraph_lpChordalNet_rp, -- digraph
+        associated to a chordal network
+      * "codim(ChordalNet)" -- see *note dim(ChordalNet): dim_lpChordalNet_rp,
+        -- dimension of a chordal network
+      * *note dim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+        network
+      * "displayGraph(ElimTree)" -- see *note
+        displayGraph(String,String,ElimTree):
+        displayGraph_lpString_cmString_cmElimTree_rp, -- displays an
+        elimination tree using Graphviz
+      * *note displayGraph(String,String,ElimTree):
+        displayGraph_lpString_cmString_cmElimTree_rp, -- displays an
+        elimination tree using Graphviz
+      * "displayNet(ChordalNet)" -- see *note displayNet: displayNet, --
+        displays a chordal network using Graphivz
+      * "displayNet(Function,ChordalNet)" -- see *note displayNet: displayNet,
+        -- displays a chordal network using Graphivz
+      * "displayNet(String,String,Function,ChordalNet)" -- see *note
+        displayNet: displayNet, -- displays a chordal network using Graphivz
+      * "chordalGraph(ElimTree)" -- see *note ElimTree: ElimTree, -- the
+        elimination tree of a chordal graph
+      * "elimTree(ChordalNet)" -- see *note ElimTree: ElimTree, -- the
+        elimination tree of a chordal graph
+      * "net(ElimTree)" -- see *note ElimTree: ElimTree, -- the elimination
+        tree of a chordal graph
+      * "elimTree(ChordalGraph)" -- see *note elimTree: elimTree, --
+        elimination tree of a chordal graph
+      * elimTree(List,HashTable,HashTable) (missing documentation)
+      * *note isPrimeSimple(ChordalNet): isPrimeSimple_lpChordalNet_rp, --
+        simple primality test of a chordal network
+      * "isTriangular(ChordalNet)" -- see *note isTriangular: isTriangular, --
+        whether a chordal network is triangular
+      * *note leaves(ElimTree): leaves_lpElimTree_rp, -- leaves of an
+        elimination tree
+      * "nextChain(ChordalNet)" -- see *note nextChain: nextChain, -- iterates
+        over the chains of a chordal network
+      * "nextChain(ChordalNetChain,ChordalNet)" -- see *note nextChain:
+        nextChain, -- iterates over the chains of a chordal network
+      * "nextChain(ChordalNetChain,Sequence,ZZ,ChordalNet)" -- see *note
+        nextChain: nextChain, -- iterates over the chains of a chordal network
+      * "nextChain(ZZ,ChordalNet)" -- see *note nextChain: nextChain, --
+        iterates over the chains of a chordal network
+      * "nextOrderedPartition(List,ZZ,List)" -- see *note nextOrderedPartition:
+        nextOrderedPartition, -- iterates over ordered partitions of a number
+      * "nextOrderedPartition(ZZ,List)" -- see *note nextOrderedPartition:
+        nextOrderedPartition, -- iterates over ordered partitions of a number
+      * "nodes(ChordalNet)" -- see *note nodes: nodes, -- list of nodes of a
+        chordal network
+      * "nodes(ChordalNet,RingElement)" -- see *note nodes: nodes, -- list of
+        nodes of a chordal network
+      * "reduceNet(ChordalNet)" -- see *note reduceNet: reduceNet, -- reduces a
+        chordal network
+      * "pseudoRemainder(RingElement,ChordalNet)" -- see *note RingElement %
+        ChordalNet: RingElement % ChordalNet, -- ideal membership test
+      * *note RingElement % ChordalNet: RingElement % ChordalNet, -- ideal
+        membership test
+      * *note RingMap ChordalNet: RingMap ChordalNet, -- apply ring map to a
+        chordal network
+      * "RingMap ElimTree" -- see *note RingMap ChordalNet: RingMap ChordalNet,
+        -- apply ring map to a chordal network
+      * "rootCount(ChordalNet)" -- see *note rootCount: rootCount, -- counts
+        the number of roots of a chordal network
+      * "setDefaultConfiguration(Package,String,String)" -- see *note
+        setDefaultConfiguration: setDefaultConfiguration, -- default
+        configuration of a package
+      * "setDefaultConfiguration(String,String,String)" -- see *note
+        setDefaultConfiguration: setDefaultConfiguration, -- default
+        configuration of a package
+      * *note size(ChordalNet): size_lpChordalNet_rp, -- size of a chordal
+        network
+      * "suggestVariableOrder(Ideal)" -- see *note suggestVariableOrder:
+        suggestVariableOrder, -- suggests a good variable ordering
+      * "treewidth(ChordalGraph)" -- see *note treewidth: treewidth, --
+        treewidth of a graph
+      * "treewidth(ElimTree)" -- see *note treewidth: treewidth, -- treewidth
+        of a graph
+      * "writeDotFile(String,ElimTree)" -- see *note
+        writeDotFile(String,Function,ChordalNet):
+        writeDotFile_lpString_cmFunction_cmChordalNet_rp, -- writes a chordal
+        network to a dot file
+      * *note writeDotFile(String,Function,ChordalNet):
+        writeDotFile_lpString_cmFunction_cmChordalNet_rp, -- writes a chordal
+        network to a dot file
+  * Symbols
+      * "cliques" -- see *note ElimTree: ElimTree, -- the elimination tree of a
+        chordal graph
+      * *note GetTable: GetTable, -- get dynamic programming table
+
+For the programmer
+==================
+
+The object *note Chordal: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in Chordal.m2, with auxiliary files in Chordal/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:121:0.
+
+File: Chordal.info, Node: adjacentMinorsIdeal, Next: chordal networks examples, Prev: Top, Up: Top
+
+adjacentMinorsIdeal -- ideal of adjacent minors
+***********************************************
+
+  * Usage: 
+        adjacentMinorsIdeal(kk,m,n)
+  * Inputs:
+      * kk, a *note ring: (Macaulay2Doc)Ring,, 
+      * m, an *note integer: (Macaulay2Doc)ZZ,, 
+      * n, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, 
+
+Description
+===========
+
+Returns the ideal of maximal adjacent minors of a $m\times n$ matrix.
+
++------------------------------------------------------------------+
+|i1 : I = adjacentMinorsIdeal(QQ,2,6)                              |
+|                                                                  |
+|o1 = ideal (a*d - b*c, c*f - d*e, e*h - f*g, g*j - h*i, i*l - j*k)|
+|                                                                  |
+|o1 : Ideal of QQ[a..l]                                            |
++------------------------------------------------------------------+
+
+
+For the programmer
+==================
+
+The object *note adjacentMinorsIdeal: adjacentMinorsIdeal, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1421:0.
+
+File: Chordal.info, Node: chordal networks examples, Next: chordalElim, Prev: adjacentMinorsIdeal, Up: Top
+
+chordal networks examples -- a new representation of polynomial ideals
+**********************************************************************
+
+A *note chordal network: ChordalNet, is a data structure that represents
+polynomial ideals in terms of the paths of a certain directed graph.
+Remarkably, several polynomial ideals with exponentially many components admit
+compact chordal network representations. Moreover, chordal networks can be
+efficiently post-processed to compute several properties of the underlying
+variety, such as cardinality, dimension, components, elimination ideals, and
+radical ideal membership.
+
+We now present some examples.
+
+
+
+Ideal of adjacent minors:  Consider the *note ideal of adjacent minors:
+adjacentMinorsIdeal, of a $2\times n$ matrix . This ideal decomposes into $F_n$
+components, where $F_n$ is the Fibonacci number. These (exponentially many)
+components can be represented compactly with a chordal network.
+
++-------------------------------------------------------+
+|i1 : I = adjacentMinorsIdeal(QQ,2,10);                 |
+|                                                       |
+|o1 : Ideal of QQ[a..t]                                 |
++-------------------------------------------------------+
+|i2 : N = chordalNet I;                                 |
++-------------------------------------------------------+
+|i3 : chordalTria N;                                    |
++-------------------------------------------------------+
+|i4 : topComponents N;                                  |
++-------------------------------------------------------+
+|i5 : N                                                 |
+|                                                       |
+|o5 = ChordalNet{ a => { , a*d - b*c}                  }|
+|                 b => { ,  }                           |
+|                 c => {c,  , c*f - d*e}                |
+|                 d => {d,  ,  }                        |
+|                 e => { , e*h - f*g, e,  , e*h - f*g}  |
+|                 f => { ,  , f,  ,  }                  |
+|                 g => {g,  , g*j - h*i,  , g*j - h*i}  |
+|                 h => {h,  ,  ,  ,  }                  |
+|                 i => { , i*l - j*k, i,  , i*l - j*k}  |
+|                 j => { ,  , j,  ,  }                  |
+|                 k => {k,  , k*n - l*m,  , k*n - l*m}  |
+|                 l => {l,  ,  ,  ,  }                  |
+|                 m => { , m*p - n*o, m,  , m*p - n*o}  |
+|                 n => { ,  , n,  ,  }                  |
+|                 o => {o,  , o*r - p*q,  , o*r - p*q}  |
+|                 p => {p,  ,  ,  ,  }                  |
+|                 q => {q*t - r*s, q, q*t - r*s}        |
+|                 r => { , r,  }                        |
+|                 s => { ,  }                           |
+|                 t => { ,  }                           |
+|                                                       |
+|o5 : ChordalNet                                        |
++-------------------------------------------------------+
+
+Once we have the chordal network, one may verify that the variety has
+codimension 9, and that it has $F_{10}=55$ components.
+
++-----------------+
+|i6 : codimCount N|
+|                 |
+|        9        |
+|o6 = 55t         |
+|                 |
+|o6 : ZZ[t]       |
++-----------------+
+
+Edge ideals:  The *note edge ideal: (Graphs)edgeIdeal, of a graph $G=(V,E)$ is
+generated by the monomials $x_ix_j$ for $ij\in E$. Edge ideals have a very nice
+combinatorial structure, but they often have an exponential number of
+components. Chordal networks might be used to efficiently describe these large
+decompositions. The following code computes a chordal network representation
+for edge ideal of the product graph $C_3\times P_n$.
+
++-----------------------------------------------------+
+|i7 : G = cartesianProduct(cycleGraph 3, pathGraph 5);|
++-----------------------------------------------------+
+|i8 : I = edgeIdeal G;                                |
+|                                                     |
+|o8 : MonomialIdeal of QQ[x ..x  ]                    |
+|                          1   15                     |
++-----------------------------------------------------+
+|i9 : N = chordalNet(I,"SuggestOrder");               |
++-----------------------------------------------------+
+|i10 : chordalTria N;                                 |
++-----------------------------------------------------+
+|i11 : topComponents N;                               |
++-----------------------------------------------------+
+|i12 : N                                              |
+|                                                     |
+|o12 = ChordalNet{ x  => {x ,  }                }     |
+|                   1      1                          |
+|                  x  => {x , x ,  }                  |
+|                   2      2   2                      |
+|                  x  => {x ,  , x , x }              |
+|                   6      6      6   6               |
+|                  x  => {x , x ,  }                  |
+|                   3      3   3                      |
+|                  x  => {x , x ,  }                  |
+|                   5      5   5                      |
+|                  x  => {x ,  , x , x }              |
+|                   9      9      9   9               |
+|                  x  => {x , x ,  }                  |
+|                   4      4   4                      |
+|                  x  => {x , x ,  }                  |
+|                   8      8   8                      |
+|                  x   => {x  ,  , x  , x  }          |
+|                   10      10      10   10           |
+|                  x  => {x , x ,  }                  |
+|                   7      7   7                      |
+|                  x   => {x  , x  ,  }               |
+|                   12      12   12                   |
+|                  x   => {x  , x  ,  , x  ,  }       |
+|                   11      11   11      11           |
+|                  x   => {x  ,  ,  , x  , x  }       |
+|                   13      13         13   13        |
+|                  x   => {x  ,  , x  }               |
+|                   14      14      14                |
+|                  x   => { , x  }                    |
+|                   15         15                     |
+|                                                     |
+|o12 : ChordalNet                                     |
++-----------------------------------------------------+
+
+This variety has codimension 10, and has $48=3\times 2^{5-1}$ components.
+
++------------------+
+|i13 : codimCount N|
+|                  |
+|         10       |
+|o13 = 48t         |
+|                  |
+|o13 : ZZ[t]       |
++------------------+
+
+Chromatic ideal of a cycle:  Coloring graphs is a classical NP-hard problem,
+but it is tractable for certain families of graphs. In particular, coloring the
+cycle graph $C_n$ is trivial. However, solving the problem algebraically (see
+*note chromaticIdeal: chromaticIdeal,) can be quite challenging using Gr\"obner
+bases. On the other hand, this chromatic ideal has a chordal network
+representation with less than $3n$ nodes [CP2017]. This network can be found
+with the command chordalTria(N), but the calculation requires Maple (see *note
+TriangularDecompAlgorithm: (TriangularSets)TriangularDecompAlgorithm,).
+
+See also
+========
+
+  * *note ChordalNet: ChordalNet, -- a chordal network
+  * *note displayNet: displayNet, -- displays a chordal network using Graphivz
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:280:0.
+
+File: Chordal.info, Node: chordalElim, Next: ChordalGraph, Prev: chordal networks examples, Up: Top
+
+chordalElim -- performs elimination on the chordal network
+**********************************************************
+
+  * Usage: 
+        chordalElim N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Algorithm (missing documentation) => ..., default value Inhomogeneous, 
+      * DegreeLimit (missing documentation) => ..., default value {}, 
+  * Outputs:
+      * guaranteed, a *note Boolean value: (Macaulay2Doc)Boolean,, whether the
+        output is guaranteed to be the elimination ideals
+  * Consequences:
+      * the input chordal network is modified
+
+Description
+===========
+
+This method performs successive elimination on a given chordal network. Under
+suitable conditions this procedure computes the elimination ideals.
+
+Let $I\subseteq k[x_0,\dots,x_{n-1}]$ be the input ideal. The "approximate"
+$j$-th elimination ideal $I_j$ consists of the polynomials in the output
+network with main variable at most $x_j$. The containment $I_j \subseteq I\cap
+k[x_{j},\dots,x_{n-1}]$ always holds. If guaranteed=true, then $I_j$ provably
+agrees with $I\cap k[x_j,\dots,x_{n-1}]$ (up to radical).
+
+Example 3.1 of [CP'16]
+
+(chordalElim succeeds in computing the elimination ideals)
+
++----------------------------------------------------------+
+|i1 : R = QQ[x_0..x_3, MonomialOrder=>Lex];                |
++----------------------------------------------------------+
+|i2 : I = ideal {x_0^4-1, x_0^2+x_2, x_1^2+x_2, x_2^2+x_3};|
+|                                                          |
+|o2 : Ideal of R                                           |
++----------------------------------------------------------+
+|i3 : N = chordalNet I;                                    |
++----------------------------------------------------------+
+|i4 : chordalElim N                                        |
+|                                                          |
+|o4 = true                                                 |
++----------------------------------------------------------+
+|i5 : N                                                    |
+|                                                          |
+|                         2                                |
+|o5 = ChordalNet{ x  => {x  + x } }                        |
+|                  0      0    2                           |
+|                         2                                |
+|                 x  => {x  + x }                          |
+|                  1      1    2                           |
+|                         2                                |
+|                 x  => {x  - 1}                           |
+|                  2      2                                |
+|                 x  => {x  + 1}                           |
+|                  3      3                                |
+|                                                          |
+|o5 : ChordalNet                                           |
++----------------------------------------------------------+
+|i6 : gbList I                                             |
+|                                                          |
+|               2       2        2                         |
+|o6 = {x  + 1, x  - 1, x  + x , x  + x }                   |
+|       3       2       1    2   0    2                    |
+|                                                          |
+|o6 : List                                                 |
++----------------------------------------------------------+
+
+Example 3.2 of [CP'16]
+
+(chordalElim does not compute the elimination ideals)
+
++---------------------------------------------+
+|i7 : R = QQ[x_0..x_2, MonomialOrder=>Lex];   |
++---------------------------------------------+
+|i8 : I = ideal {x_0*x_1+1, x_1+x_2, x_1*x_2};|
+|                                             |
+|o8 : Ideal of R                              |
++---------------------------------------------+
+|i9 : N = chordalNet I;                       |
++---------------------------------------------+
+|i10 : chordalElim N                          |
+|                                             |
+|o10 = false                                  |
++---------------------------------------------+
+|i11 : N                                      |
+|                                             |
+|o11 = ChordalNet{ x  => {x x  + 1} }         |
+|                   0      0 1                |
+|                  x  => {x  + x }            |
+|                   1      1    2             |
+|                          2                  |
+|                  x  => {x }                 |
+|                   2      2                  |
+|                                             |
+|o11 : ChordalNet                             |
++---------------------------------------------+
+|i12 : gbList I                               |
+|                                             |
+|o12 = {1}                                    |
+|                                             |
+|o12 : List                                   |
++---------------------------------------------+
+
+Example:  3-chromatic ideal of the cycle graph
+
+(chordalElim succeeds)
+
++---------------------------------------------------------------+
+|i13 : I = chromaticIdeal(QQ, cycleGraph 10, 3);                |
+|                                                               |
+|o13 : Ideal of QQ[a..j]                                        |
++---------------------------------------------------------------+
+|i14 : N = chordalNet I;                                        |
++---------------------------------------------------------------+
+|i15 : chordalElim N                                            |
+|                                                               |
+|o15 = true                                                     |
++---------------------------------------------------------------+
+|i16 : N                                                        |
+|                                                               |
+|                                      2    2   2          2    |
+|o16 = ChordalNet{ a => {{a*b - a*j + b  - j , a  + a*j + j }} }|
+|                         2          2                          |
+|                  b => {b  + b*c + c }                         |
+|                         2          2                          |
+|                  c => {c  + c*d + d }                         |
+|                         2          2                          |
+|                  d => {d  + d*e + e }                         |
+|                         2          2                          |
+|                  e => {e  + e*f + f }                         |
+|                         2          2                          |
+|                  f => {f  + f*g + g }                         |
+|                         2          2                          |
+|                  g => {g  + g*h + h }                         |
+|                         2                2                    |
+|                  h => {h  + h*i - i*j - j }                   |
+|                         2          2                          |
+|                  i => {i  + i*j + j }                         |
+|                         3                                     |
+|                  j => {j  - 1}                                |
+|                                                               |
+|o16 : ChordalNet                                               |
++---------------------------------------------------------------+
+
+
+Ways to use chordalElim:
+========================
+
+  * "chordalElim(ChordalNet)"
+
+For the programmer
+==================
+
+The object *note chordalElim: chordalElim, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:950:0.
+
+File: Chordal.info, Node: ChordalGraph, Next: chordalGraph, Prev: chordalElim, Up: Top
+
+ChordalGraph -- a chordal graph
+*******************************
+
+Description
+===========
+
+This type represents a chordal graph G, together with a perfect elimination
+ordering.
+
+An ordering of the vertices is a perfect elimination ordering if for each
+vertex $v$ the vertices $N(v)$ form a clique, where $N(v)$ consists of the
+adjacent nodes that occur after $v$ in the ordering. A graph is chordal if and
+only if it has a perfect elimination ordering. For notational convenience,
+ChordalGraph orients the edges of the graph according to such ordering.
+
+The constructor of this type is *note chordalGraph: chordalGraph,. Chordal
+graphs can be visualized with *note displayGraph: (Graphs)displayGraph,.
+
+Several combinatorial problems can be solved efficiently on chordal graphs. In
+particular, *note chromaticNumber: (Graphs)chromaticNumber,, *note
+cliqueNumber: (Graphs)cliqueNumber,.
+
+
+
+Functions and methods returning an object of class ChordalGraph:
+================================================================
+
+  * "chordalGraph(Digraph)" -- see *note chordalGraph: chordalGraph, -- chordal
+    completion of a graph
+  * "chordalGraph(Graph)" -- see *note chordalGraph: chordalGraph, -- chordal
+    completion of a graph
+  * "chordalGraph(Graph,List)" -- see *note chordalGraph: chordalGraph, --
+    chordal completion of a graph
+  * "chordalGraph(ElimTree)" -- see *note ElimTree: ElimTree, -- the
+    elimination tree of a chordal graph
+
+Methods that use an object of class ChordalGraph:
+=================================================
+
+  * "chromaticNumber(ChordalGraph)"
+  * "cliqueNumber(ChordalGraph)"
+  * "inducedSubgraph(ChordalGraph)"
+  * "isChordal(ChordalGraph)"
+  * "isPerfect(ChordalGraph)"
+  * "net(ChordalGraph)"
+  * "elimTree(ChordalGraph)" -- see *note elimTree: elimTree, -- elimination
+    tree of a chordal graph
+  * "treewidth(ChordalGraph)" -- see *note treewidth: treewidth, -- treewidth
+    of a graph
+
+For the programmer
+==================
+
+The object *note ChordalGraph: ChordalGraph, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note Digraph: (Graphs)Digraph, <
+*note HashTable: (Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:149:0.
+
+File: Chordal.info, Node: chordalGraph, Next: ChordalNet, Prev: ChordalGraph, Up: Top
+
+chordalGraph -- chordal completion of a graph
+*********************************************
+
+  * Usage: 
+        chordalGraph(G)
+        chordalGraph(G,ordering)
+  * Inputs:
+      * G, a *note graph: (Graphs)Graph,, 
+      * ordering, a *note list: (Macaulay2Doc)List,, (optional)
+  * Outputs:
+      * an instance of the type *note ChordalGraph: ChordalGraph,, chordal
+        graph that contains G as a subgraph
+
+Description
+===========
+
+This method finds a simple chordal completion of a given graph G. A chordal
+completion is a supergraph of G that is chordal. If a vertex ordering is given,
+it completes the graph using this ordering; otherwise it finds one using a
+minimum degree ordering heuristic.
+
++----------------------------------+
+|i1 : G = wheelGraph(6)            |
+|                                  |
+|o1 = Graph{0 => {1, 2, 3, 4, 5}}  |
+|           1 => {0, 2, 5}         |
+|           2 => {0, 1, 3}         |
+|           3 => {0, 2, 4}         |
+|           4 => {0, 3, 5}         |
+|           5 => {0, 1, 4}         |
+|                                  |
+|o1 : Graph                        |
++----------------------------------+
+|i2 : chordalGraph G               |
+|                                  |
+|o2 = ChordalGraph{1 => {2, 0, 5} }|
+|                  2 => {0, 3, 5}  |
+|                  0 => {3, 4, 5}  |
+|                  3 => {4, 5}     |
+|                  4 => {5}        |
+|                  5 => {}         |
+|                                  |
+|o2 : ChordalGraph                 |
++----------------------------------+
++--------------------------------------------------------+
+|i3 : G = graph(toList(0..9),{                           |
+|         {0,{6,7}},{1,{4,9}},{2,{3,5}},{3,{7,8}},       |
+|         {4,{5,8}},{5,{8}},{6,{8,9}},{7,{8}},{8,{9}} });|
++--------------------------------------------------------+
+|i4 : chordalGraph G                                     |
+|                                                        |
+|o4 = ChordalGraph{0 => {6, 7}    }                      |
+|                  1 => {4, 9}                           |
+|                  2 => {3, 5}                           |
+|                  3 => {5, 7, 8}                        |
+|                  4 => {5, 8, 9}                        |
+|                  5 => {7, 8, 9}                        |
+|                  6 => {7, 8, 9}                        |
+|                  7 => {8, 9}                           |
+|                  8 => {9}                              |
+|                  9 => {}                               |
+|                                                        |
+|o4 : ChordalGraph                                       |
++--------------------------------------------------------+
+
+
+Caveat
+======
+
+If the input is a digraph, it must be topologically ordered; no check is made.
+
+See also
+========
+
+  * *note ChordalGraph: ChordalGraph, -- a chordal graph
+
+Ways to use chordalGraph:
+=========================
+
+  * "chordalGraph(Digraph)"
+  * "chordalGraph(Graph)"
+  * "chordalGraph(Graph,List)"
+  * "chordalGraph(ElimTree)" -- see *note ElimTree: ElimTree, -- the
+    elimination tree of a chordal graph
+
+For the programmer
+==================
+
+The object *note chordalGraph: chordalGraph, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:402:0.
+
+File: Chordal.info, Node: ChordalNet, Next: chordalNet, Prev: chordalGraph, Up: Top
+
+ChordalNet -- a chordal network
+*******************************
+
+Description
+===========
+
+This type describes a chordal network representation of a polynomial ideal. The
+constructor of this type is *note chordalNet: chordalNet,
+
+Examples
+--------
+
+  * *note chordal networks examples: chordal networks examples, -- a new
+    representation of polynomial ideals
+
+Overview of chordal networks methods
+------------------------------------
+
+Methods to visualize a chordal network:
+  * *note displayNet: displayNet, -- displays a chordal network using Graphivz
+  * *note net: ChordalNet, -- print a chordal network
+  * *note digraph(ChordalNet): digraph_lpChordalNet_rp, -- digraph associated
+    to a chordal network
+Methods to access properties of a chordal network:
+  * *note nodes: nodes, -- list of nodes of a chordal network
+  * *note elimTree: ElimTree, -- get the underlying elimination tree
+  * *note ring: ChordalNet, -- get the underlying ring
+  * *note isTriangular: isTriangular, -- whether a chordal network is
+    triangular
+  * *note structure: ChordalNet, -- either "Monomial", "Binomial" or "None" 
+Elimination routines using chordal structure:
+  * *note chordalElim: chordalElim, -- performs elimination on the chordal
+    network
+  * *note chordalTria: chordalTria, -- makes a chordal network triangular
+Methods for triangular chordal networks:
+  * *note rootCount: rootCount, -- counts the number of roots of a chordal
+    network
+  * *note dim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+    network
+  * *note codim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+    network
+  * *note codimCount: codimCount, -- codimension counts of the chains of a
+    chordal network
+  * *note topComponents(ChordalNet): topComponents_lpChordalNet_rp, -- top
+    dimension of a chordal network
+  * *note RingElement % ChordalNet: RingElement % ChordalNet, -- ideal
+    membership test
+  * *note nextChain: nextChain, -- iterates over the chains of a chordal
+    network
+  * *note components(ChordalNet): components_lpChordalNet_cmZZ_rp, --
+    components of a chordal network
+
+Functions and methods returning an object of class ChordalNet:
+==============================================================
+
+  * "chordalNet(Ideal)" -- see *note chordalNet: chordalNet, -- constructs a
+    chordal network from a polynomial set
+  * "chordalNet(Ideal,List)" -- see *note chordalNet: chordalNet, -- constructs
+    a chordal network from a polynomial set
+  * "chordalNet(Ideal,String)" -- see *note chordalNet: chordalNet, --
+    constructs a chordal network from a polynomial set
+  * *note chordalNet(HashTable,HashTable,ElimTree,Digraph):
+    chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp, -- construct
+    chordal network from a digraph
+  * *note RingMap ChordalNet: RingMap ChordalNet, -- apply ring map to a
+    chordal network
+
+Methods that use an object of class ChordalNet:
+===============================================
+
+  * "chordalElim(ChordalNet)" -- see *note chordalElim: chordalElim, --
+    performs elimination on the chordal network
+  * "net(ChordalNet)"
+  * "ring(ChordalNet)"
+  * "triaSystem(ChordalNet,ChordalNetChain)" -- see *note ChordalNetChain:
+    ChordalNetChain, -- a chain of a chordal network
+  * "chordalTria(ChordalNet)" -- see *note chordalTria: chordalTria, -- makes a
+    chordal network triangular
+  * "codimCount(ChordalNet)" -- see *note codimCount: codimCount, --
+    codimension counts of the chains of a chordal network
+  * "components(ChordalNet)" -- see *note components(ChordalNet,ZZ):
+    components_lpChordalNet_cmZZ_rp, -- components of a chordal network
+  * *note components(ChordalNet,ZZ): components_lpChordalNet_cmZZ_rp, --
+    components of a chordal network
+  * *note digraph(ChordalNet): digraph_lpChordalNet_rp, -- digraph associated
+    to a chordal network
+  * "codim(ChordalNet)" -- see *note dim(ChordalNet): dim_lpChordalNet_rp, --
+    dimension of a chordal network
+  * *note dim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+    network
+  * "displayNet(ChordalNet)" -- see *note displayNet: displayNet, -- displays a
+    chordal network using Graphivz
+  * "displayNet(Function,ChordalNet)" -- see *note displayNet: displayNet, --
+    displays a chordal network using Graphivz
+  * "displayNet(String,String,Function,ChordalNet)" -- see *note displayNet:
+    displayNet, -- displays a chordal network using Graphivz
+  * "elimTree(ChordalNet)" -- see *note ElimTree: ElimTree, -- the elimination
+    tree of a chordal graph
+  * *note isPrimeSimple(ChordalNet): isPrimeSimple_lpChordalNet_rp, -- simple
+    primality test of a chordal network
+  * "isTriangular(ChordalNet)" -- see *note isTriangular: isTriangular, --
+    whether a chordal network is triangular
+  * "nextChain(ChordalNet)" -- see *note nextChain: nextChain, -- iterates over
+    the chains of a chordal network
+  * "nextChain(ChordalNetChain,ChordalNet)" -- see *note nextChain: nextChain,
+    -- iterates over the chains of a chordal network
+  * "nextChain(ChordalNetChain,Sequence,ZZ,ChordalNet)" -- see *note nextChain:
+    nextChain, -- iterates over the chains of a chordal network
+  * "nextChain(ZZ,ChordalNet)" -- see *note nextChain: nextChain, -- iterates
+    over the chains of a chordal network
+  * "nodes(ChordalNet)" -- see *note nodes: nodes, -- list of nodes of a
+    chordal network
+  * "nodes(ChordalNet,RingElement)" -- see *note nodes: nodes, -- list of nodes
+    of a chordal network
+  * "reduceNet(ChordalNet)" -- see *note reduceNet: reduceNet, -- reduces a
+    chordal network
+  * "pseudoRemainder(RingElement,ChordalNet)" -- see *note RingElement %
+    ChordalNet: RingElement % ChordalNet, -- ideal membership test
+  * *note RingElement % ChordalNet: RingElement % ChordalNet, -- ideal
+    membership test
+  * "rootCount(ChordalNet)" -- see *note rootCount: rootCount, -- counts the
+    number of roots of a chordal network
+  * *note size(ChordalNet): size_lpChordalNet_rp, -- size of a chordal network
+  * *note writeDotFile(String,Function,ChordalNet):
+    writeDotFile_lpString_cmFunction_cmChordalNet_rp, -- writes a chordal
+    network to a dot file
+
+For the programmer
+==================
+
+The object *note ChordalNet: ChordalNet, is a *note type: (Macaulay2Doc)Type,,
+with ancestor classes *note MutableHashTable: (Macaulay2Doc)MutableHashTable, <
+*note HashTable: (Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:221:0.
+
+File: Chordal.info, Node: chordalNet, Next: chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp, Prev: ChordalNet, Up: Top
+
+chordalNet -- constructs a chordal network from a polynomial set
+****************************************************************
+
+  * Usage: 
+        chordalNet I
+        chordalNet (I, X)
+        chordalNet (I, "SuggestOrder")
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+      * X, a *note list: (Macaulay2Doc)List,, of variables (optional)
+      * str, a *note string: (Macaulay2Doc)String,, (optional)
+  * Outputs:
+      * an instance of the type *note ChordalNet: ChordalNet,, chordal network
+        constructed from I
+
+Description
+===========
+
+This method constructs a chordal network from a given polynomial set F. This
+chordal network is a directed graph, whose nodes define a partition of F. The
+arcs of the directed graph are given by the *note elimination tree: elimTree,
+of the associated *note constraint graph: constraintGraph,.
+
+
+
++---------------------------------------------------------------------------+
+|i1 : R = QQ[x_0..x_3, MonomialOrder=>Lex];                                 |
++---------------------------------------------------------------------------+
+|i2 : I = ideal {x_0^3-x_0, x_0*x_2-x_2, x_1-x_2, x_2^2-x_2, x_2*x_3^2-x_3};|
+|                                                                           |
+|o2 : Ideal of R                                                            |
++---------------------------------------------------------------------------+
+|i3 : N = chordalNet I                                                      |
+|                                                                           |
+|                          3                   2                            |
+|o3 = ChordalNet{ x  => {{x  - x , x x  - x , x  - x }} }                   |
+|                  0       0    0   0 2    2   2    2                       |
+|                                   2                                       |
+|                 x  => {{x  - x , x  - x }}                                |
+|                  1       1    2   2    2                                  |
+|                           2                                               |
+|                 x  => {x x  - x }                                         |
+|                  2      2 3    3                                          |
+|                 x  => { }                                                 |
+|                  3                                                        |
+|                                                                           |
+|o3 : ChordalNet                                                            |
++---------------------------------------------------------------------------+
+
+Selecting a good variable ordering is very important for the complexity of
+chordal networks methods. The variable ordering can be specified in the input.
+Alternatively, the string "SuggestOrder" can be used.
+
++-----------------------------------------------------------------------------+
+|i4 : G = cartesianProduct(cycleGraph 3, pathGraph 3);                        |
++-----------------------------------------------------------------------------+
+|i5 : I = edgeIdeal G                                                         |
+|                                                                             |
+|o5 = monomialIdeal (x x , x x , x x , x x , x x , x x , x x , x x , x x ,    |
+|                     1 2   1 3   1 4   3 4   2 5   2 6   3 6   2 7   4 7     |
+|     ------------------------------------------------------------------------|
+|     x x , x x , x x , x x , x x , x x )                                     |
+|      6 7   5 8   6 8   5 9   7 9   8 9                                      |
+|                                                                             |
+|o5 : MonomialIdeal of QQ[x ..x ]                                             |
+|                          1   9                                              |
++-----------------------------------------------------------------------------+
+|i6 : N = chordalNet(I,"SuggestOrder")                                        |
+|                                                                             |
+|o6 = ChordalNet{ x  => {{x x , x x , x x , x x }} }                          |
+|                  1       1 2   1 3   1 4   3 4                              |
+|                 x  => {{x x , x x }}                                        |
+|                  3       2 6   3 6                                          |
+|                 x  => {{x x , x x , x x }}                                  |
+|                  4       2 7   4 7   6 7                                    |
+|                 x  => {x x }                                                |
+|                  2      2 5                                                 |
+|                 x  => {{x x , x x }}                                        |
+|                  6       5 8   6 8                                          |
+|                 x  => {{x x , x x , x x }}                                  |
+|                  5       5 9   7 9   8 9                                    |
+|                 x  => { }                                                   |
+|                  7                                                          |
+|                 x  => { }                                                   |
+|                  8                                                          |
+|                 x  => { }                                                   |
+|                  9                                                          |
+|                                                                             |
+|o6 : ChordalNet                                                              |
++-----------------------------------------------------------------------------+
+
+
+See also
+========
+
+  * *note ChordalNet: ChordalNet, -- a chordal network
+  * *note suggestVariableOrder: suggestVariableOrder, -- suggests a good
+    variable ordering
+
+Ways to use chordalNet:
+=======================
+
+  * "chordalNet(Ideal)"
+  * "chordalNet(Ideal,List)"
+  * "chordalNet(Ideal,String)"
+  * *note chordalNet(HashTable,HashTable,ElimTree,Digraph):
+    chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp, -- construct
+    chordal network from a digraph
+
+For the programmer
+==================
+
+The object *note chordalNet: chordalNet, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:646:0.
+
+File: Chordal.info, Node: chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp, Next: ChordalNetChain, Prev: chordalNet, Up: Top
+
+chordalNet(HashTable,HashTable,ElimTree,Digraph) -- construct chordal network from a digraph
+********************************************************************************************
+
+  * Function: *note chordalNet: chordalNet,
+  * Usage: 
+        chordalNet(eqs,ranks,tree,DG)
+  * Inputs:
+      * eqs, a *note hash table: (Macaulay2Doc)HashTable,, indicating the
+        equations/inequations of each node
+      * ranks, a *note hash table: (Macaulay2Doc)HashTable,, indicating the
+        rank of each node
+      * tree, an instance of the type *note ElimTree: ElimTree,, 
+      * DG, a *note digraph: (Graphs)Digraph,, whose vertices are labels
+        (strings) of the nodes
+  * Outputs:
+      * an instance of the type *note ChordalNet: ChordalNet,, 
+
+Description
+===========
+
+This method constructs a chordal network from the digraph of its nodes.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[a,b,c,d,MonomialOrder=>Lex];                                     |
++-----------------------------------------------------------------------------+
+|i2 : DG = digraph {{"a0","b0"}, {"a0","b1"}, {"a1","b2"}, {"b0","c1"},       |
+|                                                                             |
+|o2 = Digraph{a0 => {b0, b1}}                                                 |
+|             a1 => {b2}                                                      |
+|             b0 => {c1}                                                      |
+|             b1 => {c0}                                                      |
+|             b2 => {c0}                                                      |
+|             c0 => {d0}                                                      |
+|             c1 => {d1}                                                      |
+|             d0 => {}                                                        |
+|             d1 => {}                                                        |
+|                                                                             |
+|o2 : Digraph                                                                 |
+|-----------------------------------------------------------------------------|
+|{"b1","c0"}, {"b2","c0"}, {"c0","d0"}, {"c1","d1"}}                          |
++-----------------------------------------------------------------------------+
+|i3 : G = chordalGraph digraph hashTable{a=>{b,c},b=>{c},c=>{d},d=>{}};       |
++-----------------------------------------------------------------------------+
+|i4 : tree = elimTree G                                                       |
+|                                                                             |
+|o4 = ElimTree{a => c}                                                        |
+|              b => c                                                         |
+|              c => d                                                         |
+|              d => b                                                         |
+|                                                                             |
+|o4 : ElimTree                                                                |
++-----------------------------------------------------------------------------+
+|i5 : rnk = hashTable{"a0"=>a, "a1"=>a, "b0"=>b, "b1"=>b, "b2"=>b,            |
+|                     "c0"=>c, "d0"=>d, "c1"=>c, "d1"=>d};                    |
++-----------------------------------------------------------------------------+
+|i6 : eqs = hashTable{"a0" => ({a},{}), "a1" => ({},{}),                      |
+|                     "b0" => ({b},{}), "b1" => ({},{}), "b2" => ({b},{}),    |
+|                     "c0" => ({c},{}), "c1" => ({},{}),                      |
+|                     "d0" => ({},{}), "d1" => ({d},{}) };                    |
++-----------------------------------------------------------------------------+
+|i7 : chordalNet(eqs,rnk,tree,DG)                                             |
+|                                                                             |
+|o7 = ChordalNet{ a => {a,  }    }                                            |
+|                 c => { , c}                                                 |
+|                 d => { , d}                                                 |
+|                 b => {b,  , b}                                              |
+|                                                                             |
+|o7 : ChordalNet                                                              |
++-----------------------------------------------------------------------------+
+
+
+See also
+========
+
+  * *note displayNet: displayNet, -- displays a chordal network using Graphivz
+  * *note digraph(ChordalNet): digraph_lpChordalNet_rp, -- digraph associated
+    to a chordal network
+
+Ways to use this method:
+========================
+
+  * *note chordalNet(HashTable,HashTable,ElimTree,Digraph):
+    chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp, -- construct
+    chordal network from a digraph
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:764:0.
+
+File: Chordal.info, Node: ChordalNetChain, Next: ChordalNetNode, Prev: chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp, Up: Top
+
+ChordalNetChain -- a chain of a chordal network
+***********************************************
+
+Description
+===========
+
+This type represents a chain of a chordal network.
+
+Let $N$ be a chordal network in variables $x_1,\dots,x_n$. A chain is a tuple
+$C = (N_1,...,N_n)$ of nodes of the network such that $rank N_i = x_i$, and the
+nodes are connected in the network.
+
+The constructor of this type is *note nextChain: nextChain,.
+
+Any chain has an associated triangular system, given by the union of the
+equations and inequations in each of the nodes. Such triangular system can be
+obtained with triaSystem(N,C). The command dim C computes the dimension of this
+system.
+
+See also
+========
+
+  * *note nextChain: nextChain, -- iterates over the chains of a chordal
+    network
+  * *note codimCount: codimCount, -- codimension counts of the chains of a
+    chordal network
+  * *note TriaSystem: (TriangularSets)TriaSystem, -- a triangular system
+
+Functions and methods returning an object of class ChordalNetChain:
+===================================================================
+
+  * "nextChain(ChordalNet)" -- see *note nextChain: nextChain, -- iterates over
+    the chains of a chordal network
+  * "nextChain(ChordalNetChain,ChordalNet)" -- see *note nextChain: nextChain,
+    -- iterates over the chains of a chordal network
+  * "nextChain(ChordalNetChain,Sequence,ZZ,ChordalNet)" -- see *note nextChain:
+    nextChain, -- iterates over the chains of a chordal network
+  * "nextChain(ZZ,ChordalNet)" -- see *note nextChain: nextChain, -- iterates
+    over the chains of a chordal network
+
+Methods that use an object of class ChordalNetChain:
+====================================================
+
+  * "codim(ChordalNetChain)"
+  * "dim(ChordalNetChain)"
+  * "triaSystem(ChordalNet,ChordalNetChain)"
+
+For the programmer
+==================
+
+The object *note ChordalNetChain: ChordalNetChain, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note HashTable:
+(Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:306:0.
+
+File: Chordal.info, Node: ChordalNetNode, Next: ChordalNetRank, Prev: ChordalNetChain, Up: Top
+
+ChordalNetNode -- a node of a chordal network
+*********************************************
+
+Description
+===========
+
+This type represents a node of a chordal network.
+
+Each node of the network has the following properties:
+  * equations: a set of polynomials F
+  * inequations: a set of polynomials H
+  * rank: a variable of the polynomial ring
+  * label: a string that uniquely identifies the node (only needed for
+    visualization)
+These properties can be accessed with the functions: *note gens:
+ChordalNetNode,, *note ineqs: ChordalNetNode,, *note rank: ChordalNetNode,,
+*note label: ChordalNetNode,
+
+The incoming/outgoing arcs of a node can be obtained as 
+  * *note parents: ChordalNetNode, -- get the outgoing arcs
+  * *note children: ChordalNetNode, -- get the incoming arcs
+
+See also
+========
+
+  * *note nodes: nodes, -- list of nodes of a chordal network
+  * *note ChordalNet: ChordalNet, -- a chordal network
+
+Methods that use an object of class ChordalNetNode:
+===================================================
+
+  * "children(ChordalNetNode)"
+  * "generators(ChordalNetNode)"
+  * "ineqs(ChordalNetNode)"
+  * "label(ChordalNetNode)"
+  * "net(ChordalNetNode)"
+  * "parents(ChordalNetNode)"
+  * "rank(ChordalNetNode)"
+
+For the programmer
+==================
+
+The object *note ChordalNetNode: ChordalNetNode, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:343:0.
+
+File: Chordal.info, Node: ChordalNetRank, Next: chordalTria, Prev: ChordalNetNode, Up: Top
+
+ChordalNetRank -- a rank of a chordal network
+*********************************************
+
+Description
+===========
+
+This type represents the set of nodes of a fixed rank in a chordal network.
+
+See also
+========
+
+  * *note ChordalNet: ChordalNet, -- a chordal network
+  * *note ChordalNetNode: ChordalNetNode, -- a node of a chordal network
+  * *note nodes(ChordalNet,RingElement): nodes, -- list of nodes of a chordal
+    network
+
+Methods that use an object of class ChordalNetRank:
+===================================================
+
+  * "net(ChordalNetRank)"
+
+For the programmer
+==================
+
+The object *note ChordalNetRank: ChordalNetRank, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:358:0.
+
+File: Chordal.info, Node: chordalTria, Next: chromaticIdeal, Prev: ChordalNetRank, Up: Top
+
+chordalTria -- makes a chordal network triangular
+*************************************************
+
+  * Usage: 
+        chordalTria N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * TriangularDecompAlgorithm (missing documentation) => ..., default value
+        null,
+  * Outputs:
+      * no output
+  * Consequences:
+      * the input chordal network is modified
+
+Description
+===========
+
+This method puts a chordal network into triangular form. A triangular chordal
+network can be effectively used to compute several properties of the underlying
+variety.
+
+Example 3.1 of [CP'17]
+
++---------------------------------------------------------------------------+
+|i1 : R = QQ[x_0..x_3, MonomialOrder=>Lex];                                 |
++---------------------------------------------------------------------------+
+|i2 : I = ideal {x_0^3-x_0, x_0*x_2-x_2, x_1-x_2, x_2^2-x_2, x_2*x_3^2-x_3};|
+|                                                                           |
+|o2 : Ideal of R                                                            |
++---------------------------------------------------------------------------+
+|i3 : N = chordalNet I;                                                     |
++---------------------------------------------------------------------------+
+|i4 : chordalTria N;                                                        |
++---------------------------------------------------------------------------+
+|i5 : N                                                                     |
+|                                                                           |
+|                         2                                                 |
+|o5 = ChordalNet{ x  => {x  - 1, x , x  - 1} }                              |
+|                  0      0       0   0                                     |
+|                 x  => {x , x  - 1}                                        |
+|                  1      1   1                                             |
+|                 x  => {x , x  - 1}                                        |
+|                  2      2   2                                             |
+|                 x  => {x , x  - 1}                                        |
+|                  3      3   3                                             |
+|                                                                           |
+|o5 : ChordalNet                                                            |
++---------------------------------------------------------------------------+
+
+Example 1.3 of [CP'17]: ideal of adjacent minors of a 2xn matrix
+
++----------------------------------------------------------+
+|i6 : I = adjacentMinorsIdeal(QQ,2,10);                    |
+|                                                          |
+|o6 : Ideal of QQ[a..t]                                    |
++----------------------------------------------------------+
+|i7 : N = chordalNet I;                                    |
++----------------------------------------------------------+
+|i8 : chordalTria N;                                       |
++----------------------------------------------------------+
+|i9 : N                                                    |
+|                                                          |
+|o9 = ChordalNet{ a => { , a*d - b*c}                     }|
+|                 b => { , b,  }                           |
+|                 c => {c,  ,  , c*f - d*e}                |
+|                 d => {d, d,  ,  }                        |
+|                 e => { ,  , e*h - f*g, e,  , e*h - f*g}  |
+|                 f => { , f,  , f,  ,  }                  |
+|                 g => {g,  ,  , g*j - h*i,  , g*j - h*i}  |
+|                 h => {h, h,  ,  ,  ,  }                  |
+|                 i => { ,  , i*l - j*k, i,  , i*l - j*k}  |
+|                 j => { , j,  , j,  ,  }                  |
+|                 k => {k,  ,  , k*n - l*m,  , k*n - l*m}  |
+|                 l => {l, l,  ,  ,  ,  }                  |
+|                 m => { ,  , m*p - n*o, m,  , m*p - n*o}  |
+|                 n => { , n,  , n,  ,  }                  |
+|                 o => {o,  ,  , o*r - p*q,  , o*r - p*q}  |
+|                 p => {p, p,  ,  ,  ,  }                  |
+|                 q => { ,  , q*t - r*s, q,  , q*t - r*s}  |
+|                 r => { , r,  , r,  ,  }                  |
+|                 s => {s,  ,  ,  }                        |
+|                 t => {t,  ,  }                           |
+|                                                          |
+|o9 : ChordalNet                                           |
++----------------------------------------------------------+
+
+
+Caveat
+======
+
+This function calls *note triangularize: (TriangularSets)triangularize,, which
+is only implemented in Macaulay2 for binomial ideals. For arbitrary ideals we
+need to interface to Maple.
+
+See also
+========
+
+  * *note triangularize: (TriangularSets)triangularize, -- triangular
+    decomposition of polynomial systems
+
+Ways to use chordalTria:
+========================
+
+  * "chordalTria(ChordalNet)"
+
+For the programmer
+==================
+
+The object *note chordalTria: chordalTria, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:995:0.
+
+File: Chordal.info, Node: chromaticIdeal, Next: codimCount, Prev: chordalTria, Up: Top
+
+chromaticIdeal -- chromatic ideal of a graph
+********************************************
+
+  * Usage: 
+        chromaticIdeal(kk,G,q)
+  * Inputs:
+      * kk, a *note ring: (Macaulay2Doc)Ring,, 
+      * G, a *note graph: (Graphs)Graph,, 
+      * q, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, 
+
+Description
+===========
+
+Returns the ideal of proper $q$-colorings of a graph $G=(V,E)$, given by the
+equations $x_i^q -1, i \in V$ and $(x_i^q-x_j^q)/(x_i-x_j), ij\in E$.
+
++-----------------------------------------------------------------------------+
+|i1 : G = cycleGraph 4;                                                       |
++-----------------------------------------------------------------------------+
+|i2 : I = chromaticIdeal(QQ, G, 3)                                            |
+|                                                                             |
+|             2          2   2          2   2          2   2          2   3   |
+|o2 = ideal (a  + a*b + b , a  + a*d + d , b  + b*c + c , c  + c*d + d , a  - |
+|     ------------------------------------------------------------------------|
+|         3       3       3                                                   |
+|     1, b  - 1, c  - 1, d  - 1)                                              |
+|                                                                             |
+|o2 : Ideal of QQ[a..d]                                                       |
++-----------------------------------------------------------------------------+
+
+
+For the programmer
+==================
+
+The object *note chromaticIdeal: chromaticIdeal, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1449:0.
+
+File: Chordal.info, Node: codimCount, Next: components_lpChordalNet_cmZZ_rp, Prev: chromaticIdeal, Up: Top
+
+codimCount -- codimension counts of the chains of a chordal network
+*******************************************************************
+
+  * Usage: 
+        codimCount N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note GetTable: GetTable, => ..., default value false, get dynamic
+        programming table
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, generating function
+        of the codimensions of the chains
+
+Description
+===========
+
+This method classifies the number of *note chains: ChordalNetChain, of the
+network according to its codimension. The output is the generating function of
+such counts. For instance, if there are ten chains of codimension 4 and one
+chain of codimension 6 the output is $t^6+10t^4$.
+
++-------------------------------------+
+|i1 : I = adjacentMinorsIdeal(QQ,2,5);|
+|                                     |
+|o1 : Ideal of QQ[a..j]               |
++-------------------------------------+
+|i2 : N = chordalNet I;               |
++-------------------------------------+
+|i3 : chordalTria N;                  |
++-------------------------------------+
+|i4 : codimCount N                    |
+|                                     |
+|       6      5     4                |
+|o4 = 5t  + 11t  + 5t                 |
+|                                     |
+|o4 : ZZ[t]                           |
++-------------------------------------+
+
+
+Caveat
+======
+
+See also
+========
+
+  * *note ChordalNetChain: ChordalNetChain, -- a chain of a chordal network
+  * *note nextChain: nextChain, -- iterates over the chains of a chordal
+    network
+  * *note codim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+    network
+  * *note rootCount: rootCount, -- counts the number of roots of a chordal
+    network
+
+Ways to use codimCount:
+=======================
+
+  * "codimCount(ChordalNet)"
+
+For the programmer
+==================
+
+The object *note codimCount: codimCount, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1151:0.
+
+File: Chordal.info, Node: components_lpChordalNet_cmZZ_rp, Next: constraintGraph, Prev: codimCount, Up: Top
+
+components(ChordalNet,ZZ) -- components of a chordal network
+************************************************************
+
+  * Function: *note components: (Macaulay2Doc)components,
+  * Usage: 
+        components(N)
+        components(N,k)
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+      * k, an *note integer: (Macaulay2Doc)ZZ,, (optional)
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of components of the network
+
+Description
+===========
+
+Enumerates the (maximal) components of a chordal network. If the optional
+argument $k$ is given, then only the components in the top $k$ dimensions are
+computed.
+
++-----------------------------------------------------------------------------+
+|i1 : I = toLex edgeIdeal cycleGraph 8                                        |
+|                                                                             |
+|o1 = ideal (x x , x x , x x , x x , x x , x x , x x , x x )                  |
+|             1 2   2 3   3 4   4 5   5 6   6 7   1 8   7 8                   |
+|                                                                             |
+|o1 : Ideal of QQ[x ..x ]                                                     |
+|                  1   8                                                      |
++-----------------------------------------------------------------------------+
+|i2 : N = chordalNet I;                                                       |
++-----------------------------------------------------------------------------+
+|i3 : chordalTria N;                                                          |
++-----------------------------------------------------------------------------+
+|i4 : codimCount N                                                            |
+|                                                                             |
+|      7     6      5     4                                                   |
+|o4 = t  + 8t  + 13t  + 2t                                                    |
+|                                                                             |
+|o4 : ZZ[t]                                                                   |
++-----------------------------------------------------------------------------+
+|i5 : components(N,1)                                                         |
+|                                                                             |
+|o5 = HashTable{4 => {ideal (x , x , x , x ), ideal (x , x , x , x )}}        |
+|                             1   3   5   7           2   4   6   8           |
+|                                                                             |
+|o5 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i6 : components(N)                                                           |
+|                                                                             |
+|o6 = HashTable{4 => {ideal (x , x , x , x ), ideal (x , x , x , x )}         |
+|                             1   3   5   7           2   4   6   8           |
+|               5 => {ideal (x , x , x , x , x ), ideal (x , x , x , x , x ), |
+|                             1   3   4   6   7           1   2   4   6   7   |
+|               6 => {}                                                       |
+|               7 => {}                                                       |
+|                                                                             |
+|o6 : HashTable                                                               |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|ideal (x , x , x , x , x ), ideal (x , x , x , x , x ), ideal (x , x , x ,   |
+|        1   2   4   5   7           2   4   5   7   8           2   3   5    |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|x , x ), ideal (x , x , x , x , x ), ideal (x , x , x , x , x ), ideal (x ,  |
+| 7   8           2   3   5   6   8           1   3   5   6   8           1   |
+|-----------------------------------------------------------------------------|
+|                }                                                            |
+|                                                                             |
+|x , x , x , x )}                                                             |
+| 3   4   6   8                                                               |
++-----------------------------------------------------------------------------+
+
+
+Caveat
+======
+
+It is assumed that the *note chains: ChordalNetChain, of the network define
+prime ideals.
+
+See also
+========
+
+  * *note codimCount: codimCount, -- codimension counts of the chains of a
+    chordal network
+  * *note nextChain: nextChain, -- iterates over the chains of a chordal
+    network
+  * *note isPrimeSimple(ChordalNet): isPrimeSimple_lpChordalNet_rp, -- simple
+    primality test of a chordal network
+
+Ways to use this method:
+========================
+
+  * "components(ChordalNet)"
+  * *note components(ChordalNet,ZZ): components_lpChordalNet_cmZZ_rp, --
+    components of a chordal network
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1325:0.
+
+File: Chordal.info, Node: constraintGraph, Next: digraph_lpChordalNet_rp, Prev: components_lpChordalNet_cmZZ_rp, Up: Top
+
+constraintGraph -- constraint graph of a polynomial set
+*******************************************************
+
+  * Usage: 
+        constraintGraph I
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+  * Outputs:
+      * a *note graph: (Graphs)Graph,, constraint graph of the generators of I
+
+Description
+===========
+
+This method constructs the constraint graph associated to a polynomial set $F =
+\{f_1,\dots,f_m\}$. The vertices of this graph are the variables, and there is
+an edge connecting two variables iff there is a polynomial that uses both of
+them.
+
++------------------------------------------------------------------------+
+|i1 : R = QQ[x_0..x_3];                                                  |
++------------------------------------------------------------------------+
+|i2 : I = ideal {x_0^2*x_1*x_2 +2*x_1 +1, x_1^2 +x_2, x_1 +x_2, x_2*x_3};|
+|                                                                        |
+|o2 : Ideal of R                                                         |
++------------------------------------------------------------------------+
+|i3 : constraintGraph I                                                  |
+|                                                                        |
+|o3 = Graph{x  => {x , x }    }                                          |
+|            0      1   2                                                |
+|           x  => {x , x }                                               |
+|            1      0   2                                                |
+|           x  => {x , x , x }                                           |
+|            2      0   1   3                                            |
+|           x  => {x }                                                   |
+|            3      2                                                    |
+|                                                                        |
+|o3 : Graph                                                              |
++------------------------------------------------------------------------+
+
+
+Ways to use constraintGraph:
+============================
+
+  * "constraintGraph(Ideal)"
+  * "constraintGraph(Ring,List)"
+
+For the programmer
+==================
+
+The object *note constraintGraph: constraintGraph, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:570:0.
+
+File: Chordal.info, Node: digraph_lpChordalNet_rp, Next: dim_lpChordalNet_rp, Prev: constraintGraph, Up: Top
+
+digraph(ChordalNet) -- digraph associated to a chordal network
+**************************************************************
+
+  * Function: *note digraph: (Graphs)digraph,
+  * Usage: 
+        digraph N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * EntryMode (missing documentation) => ..., default value "auto", 
+      * Singletons (missing documentation) => ..., default value null, 
+  * Outputs:
+      * a *note digraph: (Graphs)Digraph,, 
+
+Description
+===========
+
+Returns the digraph associated to a chordal network. The vertices of this
+digraph are given by the *note labels: ChordalNetNode, of the nodes.
+
++--------------------------------------------------+
+|i1 : R = QQ[a,b,c,d,MonomialOrder=>Lex];          |
++--------------------------------------------------+
+|i2 : I = ideal {a*b, a*c, b*c, c*d};              |
+|                                                  |
+|o2 : Ideal of R                                   |
++--------------------------------------------------+
+|i3 : N = chordalNet I;                            |
++--------------------------------------------------+
+|i4 : chordalTria N;                               |
++--------------------------------------------------+
+|i5 : reduceNet N;                                 |
++--------------------------------------------------+
+|i6 : N                                            |
+|                                                  |
+|o6 = ChordalNet{ a => {a,  }    }                 |
+|                 b => {b,  , b}                   |
+|                 c => {c,  }                      |
+|                 d => { , d}                      |
+|                                                  |
+|o6 : ChordalNet                                   |
++--------------------------------------------------+
+|i7 : nodes N / (Ni -> label Ni)                   |
+|                                                  |
+|o7 = {a_0, a_1, b_0, b_1, b_2, c_0, c_1, d_0, d_1}|
+|                                                  |
+|o7 : List                                         |
++--------------------------------------------------+
+|i8 : digraph N                                    |
+|                                                  |
+|o8 = Digraph{a_0 => {b_0, b_1}}                   |
+|             a_1 => {b_2}                         |
+|             b_0 => {c_1}                         |
+|             b_1 => {c_0}                         |
+|             b_2 => {c_0}                         |
+|             c_0 => {d_0}                         |
+|             c_1 => {d_1}                         |
+|             d_0 => {}                            |
+|             d_1 => {}                            |
+|                                                  |
+|o8 : Digraph                                      |
++--------------------------------------------------+
+
+
+See also
+========
+
+  * *note displayNet: displayNet, -- displays a chordal network using Graphivz
+  * *note chordalNet(HashTable,HashTable,ElimTree,Digraph):
+    chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp, -- construct
+    chordal network from a digraph
+  * *note digraph: (Graphs)digraph, -- Constructs a digraph
+
+Ways to use this method:
+========================
+
+  * *note digraph(ChordalNet): digraph_lpChordalNet_rp, -- digraph associated
+    to a chordal network
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:724:0.
+
+File: Chordal.info, Node: dim_lpChordalNet_rp, Next: displayGraph_lpString_cmString_cmElimTree_rp, Prev: digraph_lpChordalNet_rp, Up: Top
+
+dim(ChordalNet) -- dimension of a chordal network
+*************************************************
+
+  * Function: *note dim: (Macaulay2Doc)dim,
+  * Usage: 
+        dim N
+        codim N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, dimension of the associated
+        variety
+
+Description
+===========
+
+This method computes the dimension of the variety associated to a chordal
+network.
+
++--------------------------------------+
+|i1 : I = adjacentMinorsIdeal(QQ,2,10);|
+|                                      |
+|o1 : Ideal of QQ[a..t]                |
++--------------------------------------+
+|i2 : N = chordalNet I;                |
++--------------------------------------+
+|i3 : chordalTria N;                   |
++--------------------------------------+
+|i4 : dim N                            |
+|                                      |
+|o4 = 11                               |
++--------------------------------------+
+
+
+See also
+========
+
+  * *note codimCount: codimCount, -- codimension counts of the chains of a
+    chordal network
+
+Ways to use this method:
+========================
+
+  * *note dim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+    network
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1117:0.
+
+File: Chordal.info, Node: displayGraph_lpString_cmString_cmElimTree_rp, Next: displayNet, Prev: dim_lpChordalNet_rp, Up: Top
+
+displayGraph(String,String,ElimTree) -- displays an elimination tree using Graphviz
+***********************************************************************************
+
+  * Function: *note displayGraph: (Graphs)displayGraph,
+  * Usage: 
+        displayGraph (dotFileName, jpgFileName, tree)
+        displayGraph tree
+  * Inputs:
+      * dotFileName, a *note string: (Macaulay2Doc)String,, (optional)
+      * jpgFileName, a *note string: (Macaulay2Doc)String,, (optional)
+      * tree, an instance of the type *note ElimTree: ElimTree,, 
+
+Description
+===========
+
+Displays an elimination tree using Graphviz.
+
+
+
+Caveat
+======
+
+If the function does not work, it might be the case that Graphviz is not
+installed, or that the package Graphs is not configured. See *note installation
+and configuration: installation and configuration,.
+
+See also
+========
+
+  * *note displayGraph: (Graphs)displayGraph, -- displays a digraph or graph
+    using Graphviz
+  * *note displayNet: displayNet, -- displays a chordal network using Graphivz
+
+Ways to use this method:
+========================
+
+  * "displayGraph(ElimTree)"
+  * *note displayGraph(String,String,ElimTree):
+    displayGraph_lpString_cmString_cmElimTree_rp, -- displays an elimination
+    tree using Graphviz
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:488:0.
+
+File: Chordal.info, Node: displayNet, Next: ElimTree, Prev: displayGraph_lpString_cmString_cmElimTree_rp, Up: Top
+
+displayNet -- displays a chordal network using Graphivz
+*******************************************************
+
+  * Usage: 
+        displayNet N
+        displayNet (label, N)
+        displayNet (dotFileName, jpgFileName, label, N)
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,
+      * label, a *note function: (Macaulay2Doc)Function, (optional)
+      * dotFileName, a *note string: (Macaulay2Doc)String, (optional)
+      * jpgFileName, a *note string: (Macaulay2Doc)String, (optional)
+
+Description
+===========
+
+Displays a chordal network using Graphviz.
+
+The text displayed in each of the nodes can be provided by the optional input
+label. The default is label:= net.
+
+
+Example
+-------
+
+Consider the following chordal network. 
++-----------------------------------------+
+|i1 : R = QQ[a..e,MonomialOrder=>Lex];    |
++-----------------------------------------+
+|i2 : I = ideal {a*b, b*c, c*d, a*e, d*e};|
+|                                         |
+|o2 : Ideal of R                          |
++-----------------------------------------+
+|i3 : N = chordalNet I;                   |
++-----------------------------------------+
+|i4 : chordalTria N;                      |
++-----------------------------------------+
+|i5 : topComponents N;                    |
++-----------------------------------------+
+|i6 : N                                   |
+|                                         |
+|o6 = ChordalNet{ a => {a,  }       }     |
+|                 b => {b,  , b}          |
+|                 c => { , c, c,  }       |
+|                 d => {d,  , d}          |
+|                 e => { , e}             |
+|                                         |
+|o6 : ChordalNet                          |
++-----------------------------------------+
+The command displayNet N  outputs the following figure. 
+
+chordal network
+
+Caveat
+======
+
+If the function does not work, it might be the case that Graphviz is not
+installed, or that the package Graphs is not configured. See *note installation
+and configuration: installation and configuration,
+
+See also
+========
+
+  * *note digraph(ChordalNet): digraph_lpChordalNet_rp, -- digraph associated
+    to a chordal network
+  * *note displayGraph: (Graphs)displayGraph, -- displays a digraph or graph
+    using Graphviz
+  * *note displayGraph(ElimTree): displayGraph_lpString_cmString_cmElimTree_rp,
+    -- displays an elimination tree using Graphviz
+
+Ways to use displayNet:
+=======================
+
+  * "displayNet(ChordalNet)"
+  * "displayNet(Function,ChordalNet)"
+  * "displayNet(String,String,Function,ChordalNet)"
+
+For the programmer
+==================
+
+The object *note displayNet: displayNet, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:691:0.
+
+File: Chordal.info, Node: ElimTree, Next: elimTree, Prev: displayNet, Up: Top
+
+ElimTree -- the elimination tree of a chordal graph
+***************************************************
+
+Description
+===========
+
+This type represents the elimination tree of a *note chordal graph:
+ChordalGraph,.
+
+The arcs of a chordal graph can be directed according to a perfect elimination
+ordering. The elimination tree of the graph is the transitive closure of such
+directed acyclic graph.
+
+The constructor of this type is *note elimTree: elimTree,. An elimination tree
+can be visualized with *note displayGraph(ElimTree):
+displayGraph_lpString_cmString_cmElimTree_rp,.
+
+Functions and methods returning an object of class ElimTree:
+============================================================
+
+  * "elimTree(ChordalNet)"
+  * "elimTree(ChordalGraph)" -- see *note elimTree: elimTree, -- elimination
+    tree of a chordal graph
+  * elimTree(List,HashTable,HashTable) (missing documentation)
+  * "RingMap ElimTree" -- see *note RingMap ChordalNet: RingMap ChordalNet, --
+    apply ring map to a chordal network
+
+Methods that use an object of class ElimTree:
+=============================================
+
+  * *note chordalNet(HashTable,HashTable,ElimTree,Digraph):
+    chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp, -- construct
+    chordal network from a digraph
+  * "displayGraph(ElimTree)" -- see *note displayGraph(String,String,ElimTree):
+    displayGraph_lpString_cmString_cmElimTree_rp, -- displays an elimination
+    tree using Graphviz
+  * *note displayGraph(String,String,ElimTree):
+    displayGraph_lpString_cmString_cmElimTree_rp, -- displays an elimination
+    tree using Graphviz
+  * "chordalGraph(ElimTree)"
+  * "net(ElimTree)"
+  * *note leaves(ElimTree): leaves_lpElimTree_rp, -- leaves of an elimination
+    tree
+  * "treewidth(ElimTree)" -- see *note treewidth: treewidth, -- treewidth of a
+    graph
+  * "writeDotFile(String,ElimTree)" -- see *note
+    writeDotFile(String,Function,ChordalNet):
+    writeDotFile_lpString_cmFunction_cmChordalNet_rp, -- writes a chordal
+    network to a dot file
+
+For the programmer
+==================
+
+The object *note ElimTree: ElimTree, is a *note type: (Macaulay2Doc)Type,, with
+ancestor classes *note HashTable: (Macaulay2Doc)HashTable, < *note Thing:
+(Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:170:0.
+
+File: Chordal.info, Node: elimTree, Next: GetTable, Prev: ElimTree, Up: Top
+
+elimTree -- elimination tree of a chordal graph
+***********************************************
+
+  * Usage: 
+        elimTree G
+  * Inputs:
+      * G, an instance of the type *note ChordalGraph: ChordalGraph,, 
+  * Outputs:
+      * an instance of the type *note ElimTree: ElimTree,, the elimination tree
+        of G
+
+Description
+===========
+
+This method computes the elimination tree of some given chordal graph.
+
++--------------------------------------------------------+
+|i1 : G = graph(toList(0..9),{                           |
+|         {0,{6,7}},{1,{4,9}},{2,{3,5}},{3,{7,8}},       |
+|         {4,{5,8}},{5,{8}},{6,{8,9}},{7,{8}},{8,{9}} });|
++--------------------------------------------------------+
+|i2 : Gc = chordalGraph G                                |
+|                                                        |
+|o2 = ChordalGraph{0 => {6, 7}    }                      |
+|                  1 => {4, 9}                           |
+|                  2 => {3, 5}                           |
+|                  3 => {5, 7, 8}                        |
+|                  4 => {5, 8, 9}                        |
+|                  5 => {7, 8, 9}                        |
+|                  6 => {7, 8, 9}                        |
+|                  7 => {8, 9}                           |
+|                  8 => {9}                              |
+|                  9 => {}                               |
+|                                                        |
+|o2 : ChordalGraph                                       |
++--------------------------------------------------------+
+|i3 : elimTree Gc                                        |
+|                                                        |
+|o3 = ElimTree{0 => 6   }                                |
+|              1 => 4                                    |
+|              2 => 3                                    |
+|              3 => 5                                    |
+|              4 => 5                                    |
+|              5 => 7                                    |
+|              6 => 7                                    |
+|              7 => 8                                    |
+|              8 => 9                                    |
+|              9 => null                                 |
+|                                                        |
+|o3 : ElimTree                                           |
++--------------------------------------------------------+
+
+
+Ways to use elimTree:
+=====================
+
+  * "elimTree(ChordalNet)" -- see *note ElimTree: ElimTree, -- the elimination
+    tree of a chordal graph
+  * "elimTree(ChordalGraph)"
+  * elimTree(List,HashTable,HashTable) (missing documentation)
+
+For the programmer
+==================
+
+The object *note elimTree: elimTree, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:430:0.
+
+File: Chordal.info, Node: GetTable, Next: installation and configuration, Prev: elimTree, Up: Top
+
+GetTable -- get dynamic programming table
+*****************************************
+
+Description
+===========
+
+An option that can be used to obtain the full dynamic programming table.
+
+Functions with optional argument named GetTable:
+================================================
+
+  * "codimCount(...,GetTable=>...)"
+
+For the programmer
+==================
+
+The object *note GetTable: GetTable, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1614:0.
+
+File: Chordal.info, Node: installation and configuration, Next: isPrimeSimple_lpChordalNet_rp, Prev: GetTable, Up: Top
+
+installation and configuration -- of the Chordal package
+********************************************************
+
+Installation
+============
+
+To install *note Chordal: Top, run the following commands in a Macaulay2
+terminal:
+  * installPackage "Graphs" 
+  * installPackage "MapleInterface" 
+  * installPackage "TriangularSets" 
+  * installPackage "Chordal" 
+To verify that the installation was correct, restart and execute the command
+check "Chordal".
+
+External Software
+=================
+
+The basic functionality of *note Chordal: Top, should work without any
+additional programs. However, some of the functions do require external
+software.
+
+Graphviz (optional): The visualization of chordal networks depends on Graphviz,
+which can be (freely) download from http://www.graphviz.org/Download..php
+
+Maple (optional): The command *note chordalTria: chordalTria, requires Maple
+when the ideal is not binomial.
+
+Configuration
+=============
+
+Many of the functions of *note Chordal: Top, will work without any
+configuration. But some functions depend on the configuration of the
+dependencies *note Graphs: (Graphs)Top, and *note MapleInterface:
+(MapleInterface)Top,.
+
+Graphs: Visualizing chordal networks requires configuring the Graphviz
+executable. The default Graphviz executable "dot" should work, but it if not it
+can be changed with:
+setDefaultConfiguration("Graphs","DotBinary","myexecutable")
+
+MapleInterface: The default executable "maple" should work, but if not it can
+be changed with:
+setDefaultConfiguration("MapleInterface","MapleCommand","mymaplecommand")
+
+See also
+========
+
+  * *note setDefaultConfiguration: setDefaultConfiguration, -- default
+    configuration of a package
+  * *note Graphs: (Graphs)Top, -- graphs and directed graphs (digraphs)
+  * *note MapleInterface: (MapleInterface)Top, -- interface to Maple
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1598:0.
+
+File: Chordal.info, Node: isPrimeSimple_lpChordalNet_rp, Next: isTriangular, Prev: installation and configuration, Up: Top
+
+isPrimeSimple(ChordalNet) -- simple primality test of a chordal network
+***********************************************************************
+
+  * Function: *note isPrimeSimple: (TriangularSets)isPrimeSimple,
+  * Usage: 
+        isPrimeSimple N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, if the test is positive
+        then each chain of N is prime; otherwise, they may or may not be prime
+
+Description
+===========
+
+Performs a *note simple test: (TriangularSets)isPrimeSimple, to determine
+whether each of the *note chains: ChordalNetChain, of the network defines a
+prime ideal.
+
++-------------------------------------------------------+
+|i1 : I = adjacentMinorsIdeal(QQ,2,5)                   |
+|                                                       |
+|o1 = ideal (a*d - b*c, c*f - d*e, e*h - f*g, g*j - h*i)|
+|                                                       |
+|o1 : Ideal of QQ[a..j]                                 |
++-------------------------------------------------------+
+|i2 : N = chordalNet I;                                 |
++-------------------------------------------------------+
+|i3 : chordalTria N;                                    |
++-------------------------------------------------------+
+|i4 : topComponents N;                                  |
++-------------------------------------------------------+
+|i5 : N                                                 |
+|                                                       |
+|o5 = ChordalNet{ a => { , a*d - b*c}                  }|
+|                 b => { ,  }                           |
+|                 c => {c,  , c*f - d*e}                |
+|                 d => {d,  ,  }                        |
+|                 e => { , e*h - f*g, e,  , e*h - f*g}  |
+|                 f => { ,  , f,  ,  }                  |
+|                 g => {g, g*j - h*i, g*j - h*i}        |
+|                 h => {h,  ,  }                        |
+|                 i => { ,  }                           |
+|                 j => { ,  }                           |
+|                                                       |
+|o5 : ChordalNet                                        |
++-------------------------------------------------------+
+|i6 : isPrimeSimple N                                   |
+|                                                       |
+|o6 = true                                              |
++-------------------------------------------------------+
+|i7 : C = nextChain N                                   |
+|                                                       |
+|o7 = ChordalNetChain{a => a*d - b*c}                   |
+|                     b =>                              |
+|                     c => c*f - d*e                    |
+|                     d =>                              |
+|                     e =>                              |
+|                     f =>                              |
+|                     g => g                            |
+|                     h => h                            |
+|                     i =>                              |
+|                     j =>                              |
+|                                                       |
+|o7 : ChordalNetChain                                   |
++-------------------------------------------------------+
+|i8 : isPrimeSimple triaSystem(N,C)                     |
+|                                                       |
+|o8 = true                                              |
++-------------------------------------------------------+
+
+
+See also
+========
+
+  * *note isPrimeSimple: (TriangularSets)isPrimeSimple, -- simple primality
+    test of triangular systems
+
+Ways to use this method:
+========================
+
+  * *note isPrimeSimple(ChordalNet): isPrimeSimple_lpChordalNet_rp, -- simple
+    primality test of a chordal network
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1397:0.
+
+File: Chordal.info, Node: isTriangular, Next: label, Prev: isPrimeSimple_lpChordalNet_rp, Up: Top
+
+isTriangular -- whether a chordal network is triangular
+*******************************************************
+
+  * Usage: 
+        isTriangular N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, true if N is triangular,
+        and false otherwise
+
+Description
+===========
+
++-----------------------------------------+
+|i1 : R = QQ[a..e,MonomialOrder=>Lex];    |
++-----------------------------------------+
+|i2 : I = ideal {a*b, b*c, c*d, a*e, d*e};|
+|                                         |
+|o2 : Ideal of R                          |
++-----------------------------------------+
+|i3 : N = chordalNet I;                   |
++-----------------------------------------+
+|i4 : isTriangular N                      |
+|                                         |
+|o4 = false                               |
++-----------------------------------------+
+|i5 : chordalTria N;                      |
++-----------------------------------------+
+|i6 : isTriangular N                      |
+|                                         |
+|o6 = true                                |
++-----------------------------------------+
+
+
+See also
+========
+
+  * *note ChordalNet: ChordalNet, -- a chordal network
+  * *note nodes: nodes, -- list of nodes of a chordal network
+
+Ways to use isTriangular:
+=========================
+
+  * "isTriangular(ChordalNet)"
+
+For the programmer
+==================
+
+The object *note isTriangular: isTriangular, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:858:0.
+
+File: Chordal.info, Node: label, Next: leaves_lpElimTree_rp, Prev: isTriangular, Up: Top
+
+label
+*****
+
+Ways to use label:
+==================
+
+  * "label(ChordalNetNode)" -- see *note ChordalNetNode: ChordalNetNode, -- a
+    node of a chordal network
+
+For the programmer
+==================
+
+The object label (missing documentation) is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:373.
+
+File: Chordal.info, Node: leaves_lpElimTree_rp, Next: nextChain, Prev: label, Up: Top
+
+leaves(ElimTree) -- leaves of an elimination tree
+*************************************************
+
+  * Function: *note leaves: (Graphs)leaves,
+  * Usage: 
+        leaves tree
+  * Inputs:
+      * tree, an instance of the type *note ElimTree: ElimTree,, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of leaves of the tree
+
+Description
+===========
+
++--------------------------------------------------------+
+|i1 : G = graph(toList(0..9),{                           |
+|         {0,{6,7}},{1,{4,9}},{2,{3,5}},{3,{7,8}},       |
+|         {4,{5,8}},{5,{8}},{6,{8,9}},{7,{8}},{8,{9}} });|
++--------------------------------------------------------+
+|i2 : Gc = chordalGraph G                                |
+|                                                        |
+|o2 = ChordalGraph{0 => {6, 7}    }                      |
+|                  1 => {4, 9}                           |
+|                  2 => {3, 5}                           |
+|                  3 => {5, 7, 8}                        |
+|                  4 => {5, 8, 9}                        |
+|                  5 => {7, 8, 9}                        |
+|                  6 => {7, 8, 9}                        |
+|                  7 => {8, 9}                           |
+|                  8 => {9}                              |
+|                  9 => {}                               |
+|                                                        |
+|o2 : ChordalGraph                                       |
++--------------------------------------------------------+
+|i3 : tree = elimTree Gc                                 |
+|                                                        |
+|o3 = ElimTree{0 => 6   }                                |
+|              1 => 4                                    |
+|              2 => 3                                    |
+|              3 => 5                                    |
+|              4 => 5                                    |
+|              5 => 7                                    |
+|              6 => 7                                    |
+|              7 => 8                                    |
+|              8 => 9                                    |
+|              9 => null                                 |
+|                                                        |
+|o3 : ElimTree                                           |
++--------------------------------------------------------+
+|i4 : leaves tree                                        |
+|                                                        |
+|o4 = {0, 1, 2}                                          |
+|                                                        |
+|o4 : List                                               |
++--------------------------------------------------------+
+
+
+See also
+========
+
+  * *note ElimTree: ElimTree, -- the elimination tree of a chordal graph
+  * *note leaves: (Graphs)leaves, -- lists the leaves of a tree graph
+
+Ways to use this method:
+========================
+
+  * *note leaves(ElimTree): leaves_lpElimTree_rp, -- leaves of an elimination
+    tree
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:458:0.
+
+File: Chordal.info, Node: nextChain, Next: nextOrderedPartition, Prev: leaves_lpElimTree_rp, Up: Top
+
+nextChain -- iterates over the chains of a chordal network
+**********************************************************
+
+  * Usage: 
+        C = nextChain(N)
+        C' = nextChain(C,N)
+        (C,data) = nextChain(cdim,N)
+        C' = nextChain(C,data,cdim,N)
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+      * C, an instance of the type *note ChordalNetChain: ChordalNetChain,, an
+        initial chain (optional)
+      * cdim, an *note integer: (Macaulay2Doc)ZZ,, codimension of the chain
+        (optional)
+      * data, a *note sequence: (Macaulay2Doc)Sequence,, cached data from
+        previous computations (if codimension is specified)
+  * Outputs:
+      * C', an instance of the type *note ChordalNetChain: ChordalNetChain,,
+        the next chain of the chordal network, if any
+      * data, a *note sequence: (Macaulay2Doc)Sequence,, cached data for future
+        computations (if codimension is specified)
+
+Description
+===========
+
+This method produces the *note chains: ChordalNetChain, of a chordal network
+one at a time. It can also iterate only over chains of a specified codimension.
+
+Returns "null" if none.
+
++---------------------------------------------------+
+|i1 : I = toLex edgeIdeal cycleGraph 9;             |
+|                                                   |
+|o1 : Ideal of QQ[x ..x ]                           |
+|                  1   9                            |
++---------------------------------------------------+
+|i2 : N = chordalNet I;                             |
++---------------------------------------------------+
+|i3 : chordalTria N;                                |
++---------------------------------------------------+
+|i4 : codimCount N                                  |
+|                                                   |
+|      8     7      6     5                         |
+|o4 = t  + 9t  + 20t  + 9t                          |
+|                                                   |
+|o4 : ZZ[t]                                         |
++---------------------------------------------------+
+|i5 : nC = 0;                                       |
++---------------------------------------------------+
+|i6 : C = nextChain N;                              |
++---------------------------------------------------+
+|i7 : while C=!=null do (C=nextChain(C,N); nC=nC+1;)|
++---------------------------------------------------+
+|i8 : nC                                            |
+|                                                   |
+|o8 = 39                                            |
++---------------------------------------------------+
+
+We can specify the codimension of the chains.
+
++-----------------------------------------------------------+
+|i9 : nC = 0;                                               |
++-----------------------------------------------------------+
+|i10 : (C,data) = nextChain(5,N);                           |
++-----------------------------------------------------------+
+|i11 : while C=!=null do (C=nextChain(C,data,5,N); nC=nC+1;)|
++-----------------------------------------------------------+
+|i12 : nC                                                   |
+|                                                           |
+|o12 = 9                                                    |
++-----------------------------------------------------------+
+
+
+See also
+========
+
+  * *note ChordalNetChain: ChordalNetChain, -- a chain of a chordal network
+  * *note codimCount: codimCount, -- codimension counts of the chains of a
+    chordal network
+
+Ways to use nextChain:
+======================
+
+  * "nextChain(ChordalNet)"
+  * "nextChain(ChordalNetChain,ChordalNet)"
+  * "nextChain(ChordalNetChain,Sequence,ZZ,ChordalNet)"
+  * "nextChain(ZZ,ChordalNet)"
+
+For the programmer
+==================
+
+The object *note nextChain: nextChain, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1052:0.
+
+File: Chordal.info, Node: nextOrderedPartition, Next: nodes, Prev: nextChain, Up: Top
+
+nextOrderedPartition -- iterates over ordered partitions of a number
+********************************************************************
+
+  * Usage: 
+        P = nextOrderedPartition(n,Lists)
+        P' = nextOrderedPartition(P,n,Lists)
+  * Inputs:
+      * n, an *note integer: (Macaulay2Doc)ZZ,, 
+      * Lists, a *note list: (Macaulay2Doc)List,, 
+      * P, a *note list: (Macaulay2Doc)List,, an initial partition (optional)
+  * Outputs:
+      * P', a *note list: (Macaulay2Doc)List,, the next ordered partition, if
+        any
+
+Description
+===========
+
+Given an integer $n$ and lists $L_1,\ldots,L_k$ of distinct nonnegative
+integers, this method iterates over all tuples $(l_1,\ldots,l_k)$ such that
+$\sum_i l_i = n$ and $l_i\in L_i$. The tuples are produced one at a time.
+
+Returns "null" if none.
+
++--------------------------------------------------+
+|i1 : L = {{0,1},{0,1,2},{2,3}};                   |
++--------------------------------------------------+
+|i2 : P = nextOrderedPartition (5,L)               |
+|                                                  |
+|o2 = {0, 2, 3}                                    |
+|                                                  |
+|o2 : List                                         |
++--------------------------------------------------+
+|i3 : P = nextOrderedPartition (P,5,L)             |
+|                                                  |
+|o3 = {1, 1, 3}                                    |
+|                                                  |
+|o3 : List                                         |
++--------------------------------------------------+
+|i4 : P = nextOrderedPartition (P,5,L)             |
+|                                                  |
+|o4 = {1, 2, 2}                                    |
+|                                                  |
+|o4 : List                                         |
++--------------------------------------------------+
+|i5 : assert(nextOrderedPartition (P,5,L) === null)|
++--------------------------------------------------+
+
+
+Ways to use nextOrderedPartition:
+=================================
+
+  * "nextOrderedPartition(List,ZZ,List)"
+  * "nextOrderedPartition(ZZ,List)"
+
+For the programmer
+==================
+
+The object *note nextOrderedPartition: nextOrderedPartition, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1088:0.
+
+File: Chordal.info, Node: nodes, Next: reduceDimension, Prev: nextOrderedPartition, Up: Top
+
+nodes -- list of nodes of a chordal network
+*******************************************
+
+  * Usage: 
+        nodes N
+        nodes(N,i)
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+      * i, a *note ring element: (Macaulay2Doc)RingElement,, a variable
+        (optional)
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Reverse (missing documentation) => ..., default value false, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, consisting of *note chordal network
+        nodes: ChordalNetNode,
+
+Description
+===========
+
+This method returns the list of nodes of the chordal network. If the optional
+argument i is given, then only the nodes of rank i are returned.
+
++---------------------------------------------------------------------------+
+|i1 : R = QQ[x_0..x_3, MonomialOrder=>Lex];                                 |
++---------------------------------------------------------------------------+
+|i2 : I = ideal {x_0^3-x_0, x_0*x_2-x_2, x_1-x_2, x_2^2-x_2, x_2*x_3^2-x_3};|
+|                                                                           |
+|o2 : Ideal of R                                                            |
++---------------------------------------------------------------------------+
+|i3 : N = chordalNet I;                                                     |
++---------------------------------------------------------------------------+
+|i4 : chordalTria N;                                                        |
++---------------------------------------------------------------------------+
+|i5 : N                                                                     |
+|                                                                           |
+|                         2                                                 |
+|o5 = ChordalNet{ x  => {x  - 1, x , x  - 1} }                              |
+|                  0      0       0   0                                     |
+|                 x  => {x , x  - 1}                                        |
+|                  1      1   1                                             |
+|                 x  => {x , x  - 1}                                        |
+|                  2      2   2                                             |
+|                 x  => {x , x  - 1}                                        |
+|                  3      3   3                                             |
+|                                                                           |
+|o5 : ChordalNet                                                            |
++---------------------------------------------------------------------------+
+|i6 : nodes N                                                               |
+|                                                                           |
+|       2                                                                   |
+|o6 = {x  - 1, x , x  - 1, x , x  - 1, x , x  - 1, x , x  - 1}              |
+|       0       0   0       1   1       2   2       3   3                   |
+|                                                                           |
+|o6 : List                                                                  |
++---------------------------------------------------------------------------+
+|i7 : nodes(N,x_0)                                                          |
+|                                                                           |
+|       2                                                                   |
+|o7 = {x  - 1, x , x  - 1}                                                  |
+|       0       0   0                                                       |
+|                                                                           |
+|o7 : List                                                                  |
++---------------------------------------------------------------------------+
+
+
+See also
+========
+
+  * *note ChordalNet: ChordalNet, -- a chordal network
+  * *note size(ChordalNet): size_lpChordalNet_rp, -- size of a chordal network
+
+Ways to use nodes:
+==================
+
+  * "nodes(ChordalNet)"
+  * "nodes(ChordalNet,RingElement)"
+
+For the programmer
+==================
+
+The object *note nodes: nodes, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:829:0.
+
+File: Chordal.info, Node: reduceDimension, Next: reduceNet, Prev: nodes, Up: Top
+
+reduceDimension -- removes arcs of a chordal network of small dimension
+***********************************************************************
+
+  * Usage: 
+        reduceDimension N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+      * k, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * no output
+  * Consequences:
+      * the input chordal network is modified
+
+Description
+===========
+
+Reduces a chordal network, by prunning the arcs that do not belong to the top
+$k$ dimensional parts of the variety.
+
++-----------------------------------------------------------------------+
+|i1 : R = QQ[a..j,MonomialOrder=>Lex];                                  |
++-----------------------------------------------------------------------+
+|i2 : I = ideal {a*d - b*c, c*f - d*e, e*h - f*g, g*j - h*i, a*j - b*i};|
+|                                                                       |
+|o2 : Ideal of R                                                        |
++-----------------------------------------------------------------------+
+|i3 : N = chordalNet I;                                                 |
++-----------------------------------------------------------------------+
+|i4 : chordalTria N;                                                    |
++-----------------------------------------------------------------------+
+|i5 : codimCount N                                                      |
+|                                                                       |
+|       7      6      5    4                                            |
+|o5 = 2t  + 17t  + 14t  + t                                             |
+|                                                                       |
+|o5 : ZZ[t]                                                             |
++-----------------------------------------------------------------------+
+|i6 : reduceDimension(N,2);                                             |
++-----------------------------------------------------------------------+
+|i7 : codimCount N                                                      |
+|                                                                       |
+|        5    4                                                         |
+|o7 = 14t  + t                                                          |
+|                                                                       |
+|o7 : ZZ[t]                                                             |
++-----------------------------------------------------------------------+
+|i8 : reduceDimension(N,1);                                             |
++-----------------------------------------------------------------------+
+|i9 : codimCount N                                                      |
+|                                                                       |
+|      4                                                                |
+|o9 = t                                                                 |
+|                                                                       |
+|o9 : ZZ[t]                                                             |
++-----------------------------------------------------------------------+
+
+The method *note topComponents(ChordalNet): topComponents_lpChordalNet_rp, is
+equivalent to reduceDimension(N,1).
+
+
+
+Caveat
+======
+
+An arc is removed only if all the *note chains: ChordalNetChain, through it
+have small dimension. If an arc belongs to a chain of large dimension and a
+chain of small dimension, then the arc will not be removed.
+
+See also
+========
+
+  * *note codimCount: codimCount, -- codimension counts of the chains of a
+    chordal network
+  * *note topComponents: (PrimaryDecomposition)topComponents, -- compute top
+    dimensional component of an ideal or module
+
+For the programmer
+==================
+
+The object *note reduceDimension: reduceDimension, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1287:0.
+
+File: Chordal.info, Node: reduceNet, Next: RingElement % ChordalNet, Prev: reduceDimension, Up: Top
+
+reduceNet -- reduces a chordal network
+**************************************
+
+  * Usage: 
+        reduceNet N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * Outputs:
+      * no output
+  * Consequences:
+      * the input chordal network is modified
+
+Description
+===========
+
+Simplifies a chordal network by applying a sequence of reduction rules (while
+preserving the underlying variety).
+
++-------------------------------------+
+|i1 : I = adjacentMinorsIdeal(QQ,2,4);|
+|                                     |
+|o1 : Ideal of QQ[a..h]               |
++-------------------------------------+
+|i2 : N = chordalNet I;               |
++-------------------------------------+
+|i3 : chordalTria N;                  |
++-------------------------------------+
+|i4 : codimCount N                    |
+|                                     |
+|       5     4     3                 |
+|o4 = 2t  + 6t  + 3t                  |
+|                                     |
+|o4 : ZZ[t]                           |
++-------------------------------------+
+|i5 : reduceNet N                     |
++-------------------------------------+
+|i6 : codimCount N                    |
+|                                     |
+|       4     3                       |
+|o6 = 5t  + 3t                        |
+|                                     |
+|o6 : ZZ[t]                           |
++-------------------------------------+
+
+
+See also
+========
+
+  * *note reduceDimension: reduceDimension, -- removes arcs of a chordal
+    network of small dimension
+
+Ways to use reduceNet:
+======================
+
+  * "reduceNet(ChordalNet)"
+
+For the programmer
+==================
+
+The object *note reduceNet: reduceNet, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1214:0.
+
+File: Chordal.info, Node: RingElement % ChordalNet, Next: RingMap ChordalNet, Prev: reduceNet, Up: Top
+
+RingElement % ChordalNet -- ideal membership test
+*************************************************
+
+  * Operator: *note %: (Macaulay2Doc)%,
+  * Usage: 
+        f % N
+        pseudoRemainder(f,N)
+  * Inputs:
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, 
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, random linear
+        combination of the pseudo-remainder of f by the chains of N
+
+Description
+===========
+
+This method gives a randomized algorithm for ideal membership. If $f$ lies in
+the *note saturated ideal: (TriangularSets)saturate_lpTriaSystem_rp, of each of
+the *note chains: ChordalNetChain, of the network, then the output is always
+zero. Otherwise, it returns a nonzero element with high probability.
+
+As an example, consider the ideal of cyclically adjacent minors.
+
++-----------------------------------------+
+|i1 : I = adjacentMinorsIdeal(QQ,2,6);    |
+|                                         |
+|o1 : Ideal of QQ[a..l]                   |
++-----------------------------------------+
+|i2 : X = gens ring I;                    |
++-----------------------------------------+
+|i3 : J = I + (X_0 * X_(-1) - X_1*X_(-2));|
+|                                         |
+|o3 : Ideal of QQ[a..l]                   |
++-----------------------------------------+
+|i4 : f = sum gbList J;                   |
++-----------------------------------------+
+|i5 : N = chordalNet J;                   |
++-----------------------------------------+
+|i6 : chordalTria N;                      |
++-----------------------------------------+
+|i7 : f % N == 0                          |
+|                                         |
+|o7 = true                                |
++-----------------------------------------+
+
+
+Caveat
+======
+
+It is assumed that the base field has sufficiently many elements. For small
+finite fields one must work over a suitable field extension.
+
+See also
+========
+
+  * pseudoRemainder(RingElement,RingElement,RingElement) (missing
+    documentation)
+  * *note pseudoRemainder(RingElement,TriaSystem): (TriangularSets)RingElement
+    % TriaSystem, -- pseudo-remainder by a triangular set
+  * *note saturate(TriaSystem): (TriangularSets)saturate_lpTriaSystem_rp, --
+    saturated ideal of a triangular system
+
+Ways to use this method:
+========================
+
+  * *note RingElement % ChordalNet: RingElement % ChordalNet, -- ideal
+    membership test
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1367:0.
+
+File: Chordal.info, Node: RingMap ChordalNet, Next: rootCount, Prev: RingElement % ChordalNet, Up: Top
+
+RingMap ChordalNet -- apply ring map to a chordal network
+*********************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        f N
+        f tree
+  * Inputs:
+      * f, a *note ring map: (Macaulay2Doc)RingMap,, 
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * Outputs:
+      * an instance of the type *note ChordalNet: ChordalNet,, image of N under
+        the ring map f
+
+Description
+===========
+
++---------------------------------------------------------------------------+
+|i1 : R = QQ[x_0..x_3, MonomialOrder=>Lex];                                 |
++---------------------------------------------------------------------------+
+|i2 : I = ideal {x_0^3-x_0, x_0*x_2-x_2, x_1-x_2, x_2^2-x_2, x_2*x_3^2-x_3};|
+|                                                                           |
+|o2 : Ideal of R                                                            |
++---------------------------------------------------------------------------+
+|i3 : N = chordalNet I                                                      |
+|                                                                           |
+|                          3                   2                            |
+|o3 = ChordalNet{ x  => {{x  - x , x x  - x , x  - x }} }                   |
+|                  0       0    0   0 2    2   2    2                       |
+|                                   2                                       |
+|                 x  => {{x  - x , x  - x }}                                |
+|                  1       1    2   2    2                                  |
+|                           2                                               |
+|                 x  => {x x  - x }                                         |
+|                  2      2 3    3                                          |
+|                 x  => { }                                                 |
+|                  3                                                        |
+|                                                                           |
+|o3 : ChordalNet                                                            |
++---------------------------------------------------------------------------+
+|i4 : S = QQ[y_0..y_3, MonomialOrder=>Lex];                                 |
++---------------------------------------------------------------------------+
+|i5 : f = map(S,R,gens S)                                                   |
+|                                                                           |
+|o5 = map (S, R, {y , y , y , y })                                          |
+|                  0   1   2   3                                            |
+|                                                                           |
+|o5 : RingMap S <-- R                                                       |
++---------------------------------------------------------------------------+
+|i6 : f N                                                                   |
+|                                                                           |
+|                          3                   2                            |
+|o6 = ChordalNet{ y  => {{y  - y , y y  - y , y  - y }} }                   |
+|                  0       0    0   0 2    2   2    2                       |
+|                                   2                                       |
+|                 y  => {{y  - y , y  - y }}                                |
+|                  1       1    2   2    2                                  |
+|                           2                                               |
+|                 y  => {y y  - y }                                         |
+|                  2      2 3    3                                          |
+|                 y  => { }                                                 |
+|                  3                                                        |
+|                                                                           |
+|o6 : ChordalNet                                                            |
++---------------------------------------------------------------------------+
+
+
+See also
+========
+
+  * *note ChordalNet: ChordalNet, -- a chordal network
+  * *note RingMap RingElement: (Macaulay2Doc)RingMap RingElement, -- apply a
+    ring map
+
+Ways to use this method:
+========================
+
+  * *note RingMap ChordalNet: RingMap ChordalNet, -- apply ring map to a
+    chordal network
+  * "RingMap ElimTree"
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:889:0.
+
+File: Chordal.info, Node: rootCount, Next: setDefaultConfiguration, Prev: RingMap ChordalNet, Up: Top
+
+rootCount -- counts the number of roots of a chordal network
+************************************************************
+
+  * Usage: 
+        rootCount N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, an upper bound on the number of
+        isolated roots
+
+Description
+===========
+
+This method counts the number of points (including multiplicities) in the
+variety of a chordal network, in case such variety is finite. If the variety is
+positive dimensional, then the method returns an upper bound on the number of
+isolated points.
+
++----------------------------------------------+
+|i1 : I = chromaticIdeal(QQ, cycleGraph 10, 2);|
+|                                              |
+|o1 : Ideal of QQ[a..j]                        |
++----------------------------------------------+
+|i2 : N = chordalNet I;                        |
++----------------------------------------------+
+|i3 : chordalTria N;                           |
++----------------------------------------------+
+|i4 : rootCount N                              |
+|                                              |
+|o4 = 2                                        |
++----------------------------------------------+
+
+
+See also
+========
+
+  * *note dim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+    network
+  * *note codimCount: codimCount, -- codimension counts of the chains of a
+    chordal network
+
+Ways to use rootCount:
+======================
+
+  * "rootCount(ChordalNet)"
+
+For the programmer
+==================
+
+The object *note rootCount: rootCount, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1181:0.
+
+File: Chordal.info, Node: setDefaultConfiguration, Next: size_lpChordalNet_rp, Prev: rootCount, Up: Top
+
+setDefaultConfiguration -- default configuration of a package
+*************************************************************
+
+  * Usage: 
+        setDefaultConfiguration(packge,key,val)
+  * Inputs:
+      * packge, a *note package: (Macaulay2Doc)Package,, 
+      * key, a *note string: (Macaulay2Doc)String,, 
+      * val, a *note string: (Macaulay2Doc)String,, 
+
+Description
+===========
+
+This function modifies the init file of a package by setting the default value
+of key.
+
+The package *note Chordal: Top, does not have any configuration options, but
+its dependencies *note Graphs: (Graphs)Top, and *note MapleInterface:
+(MapleInterface)Top, do. For instance, the command
+
+setDefaultConfiguration("Graphs","DotBinary","circo")
+
+sets the Graphviz binary used for visualizing graphs and chordal networks.
+
+
+
+Caveat
+======
+
+This method assumes that the package was installed in the *note
+applicationDirectory: (Macaulay2Doc)applicationDirectory,.
+
+See also
+========
+
+  * *note installation and configuration: installation and configuration, -- of
+    the Chordal package
+
+Ways to use setDefaultConfiguration:
+====================================
+
+  * "setDefaultConfiguration(Package,String,String)"
+  * "setDefaultConfiguration(String,String,String)"
+
+For the programmer
+==================
+
+The object *note setDefaultConfiguration: setDefaultConfiguration, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1529:0.
+
+File: Chordal.info, Node: size_lpChordalNet_rp, Next: subsetsProductsIdeal, Prev: setDefaultConfiguration, Up: Top
+
+size(ChordalNet) -- size of a chordal network
+*********************************************
+
+  * Function: *note size: (Macaulay2Doc)size,
+  * Usage: 
+        size N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, with the number of nodes in each
+        rank
+
+Description
+===========
+
++---------------------------------------------------------------------------+
+|i1 : R = QQ[x_0..x_3, MonomialOrder=>Lex];                                 |
++---------------------------------------------------------------------------+
+|i2 : I = ideal {x_0^3-x_0, x_0*x_2-x_2, x_1-x_2, x_2^2-x_2, x_2*x_3^2-x_3};|
+|                                                                           |
+|o2 : Ideal of R                                                            |
++---------------------------------------------------------------------------+
+|i3 : N = chordalNet I;                                                     |
++---------------------------------------------------------------------------+
+|i4 : chordalTria N;                                                        |
++---------------------------------------------------------------------------+
+|i5 : size N                                                                |
+|                                                                           |
+|o5 = {3, 2, 2, 2}                                                          |
+|                                                                           |
+|o5 : List                                                                  |
++---------------------------------------------------------------------------+
+|i6 : N                                                                     |
+|                                                                           |
+|                         2                                                 |
+|o6 = ChordalNet{ x  => {x  - 1, x , x  - 1} }                              |
+|                  0      0       0   0                                     |
+|                 x  => {x , x  - 1}                                        |
+|                  1      1   1                                             |
+|                 x  => {x , x  - 1}                                        |
+|                  2      2   2                                             |
+|                 x  => {x , x  - 1}                                        |
+|                  3      3   3                                             |
+|                                                                           |
+|o6 : ChordalNet                                                            |
++---------------------------------------------------------------------------+
+
+
+See also
+========
+
+  * *note ChordalNet: ChordalNet, -- a chordal network
+  * *note nodes: nodes, -- list of nodes of a chordal network
+
+Ways to use this method:
+========================
+
+  * *note size(ChordalNet): size_lpChordalNet_rp, -- size of a chordal network
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:792:0.
+
+File: Chordal.info, Node: subsetsProductsIdeal, Next: suggestVariableOrder, Prev: size_lpChordalNet_rp, Up: Top
+
+subsetsProductsIdeal -- ideal of subset products
+************************************************
+
+  * Usage: 
+        subsetsProductsIdeal(kk,n,k)
+  * Inputs:
+      * kk, a *note ring: (Macaulay2Doc)Ring,, 
+      * n, an *note integer: (Macaulay2Doc)ZZ,, 
+      * k, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, 
+
+Description
+===========
+
+Returns the monomial ideal generated by the products of $k$ distinct variables.
+
++-----------------------------------------------------------------------------+
+|i1 : I = subsetsProductsIdeal(QQ, 5, 3)                                      |
+|                                                                             |
+|o1 = ideal (a*b*c, a*b*d, a*c*d, b*c*d, a*b*e, a*c*e, b*c*e, a*d*e, b*d*e,   |
+|     ------------------------------------------------------------------------|
+|     c*d*e)                                                                  |
+|                                                                             |
+|o1 : Ideal of QQ[a..e]                                                       |
++-----------------------------------------------------------------------------+
+
+
+For the programmer
+==================
+
+The object *note subsetsProductsIdeal: subsetsProductsIdeal, is a *note
+function closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1473:0.
+
+File: Chordal.info, Node: suggestVariableOrder, Next: toLex, Prev: subsetsProductsIdeal, Up: Top
+
+suggestVariableOrder -- suggests a good variable ordering
+*********************************************************
+
+  * Usage: 
+        suggestVariableOrder I
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, variable ordering
+
+Description
+===========
+
+This method suggests a good variable ordering. The ordering is chosen by
+finding a good chordal completion of its *note constraint graph:
+constraintGraph,.
+
++-----------------------------------------------------------------------------+
+|i1 : G = cartesianProduct(cycleGraph 3, pathGraph 3);                        |
++-----------------------------------------------------------------------------+
+|i2 : I = edgeIdeal G                                                         |
+|                                                                             |
+|o2 = monomialIdeal (x x , x x , x x , x x , x x , x x , x x , x x , x x ,    |
+|                     1 2   1 3   1 4   3 4   2 5   2 6   3 6   2 7   4 7     |
+|     ------------------------------------------------------------------------|
+|     x x , x x , x x , x x , x x , x x )                                     |
+|      6 7   5 8   6 8   5 9   7 9   8 9                                      |
+|                                                                             |
+|o2 : MonomialIdeal of QQ[x ..x ]                                             |
+|                          1   9                                              |
++-----------------------------------------------------------------------------+
+|i3 : X = suggestVariableOrder I                                              |
+|                                                                             |
+|o3 = {x , x , x , x , x , x , x , x , x }                                    |
+|       1   3   4   2   6   5   7   8   9                                     |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+
+See also
+========
+
+  * *note constraintGraph: constraintGraph, -- constraint graph of a polynomial
+    set
+  * *note chordalGraph: chordalGraph, -- chordal completion of a graph
+
+Ways to use suggestVariableOrder:
+=================================
+
+  * "suggestVariableOrder(Ideal)"
+
+For the programmer
+==================
+
+The object *note suggestVariableOrder: suggestVariableOrder, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:599:0.
+
+File: Chordal.info, Node: toLex, Next: topComponents_lpChordalNet_rp, Prev: suggestVariableOrder, Up: Top
+
+toLex -- change monomial order to lexicographic
+***********************************************
+
+  * Usage: 
+        toLex I
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, 
+
+Description
+===========
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y,z,MonomialOrder=>GRevLex];                                   |
++-----------------------------------------------------------------------------+
+|i2 : I = ideal (x,y);                                                        |
+|                                                                             |
+|o2 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i3 : J = toLex I                                                             |
+|                                                                             |
+|o3 = ideal (x, y)                                                            |
+|                                                                             |
+|o3 : Ideal of QQ[x..z]                                                       |
++-----------------------------------------------------------------------------+
+|i4 : describe ring J                                                         |
+|                                                                             |
+|o4 = QQ[x..z, Degrees => {3:1}, Heft => {1}, MonomialOrder =>                |
+|                                                                             |
+|                                                                             |
+|-----------------------------------------------------------------------------|
+|{MonomialSize => 32}]                                                        |
+|{Lex => 3          }                                                         |
+|{Position => Up    }                                                         |
++-----------------------------------------------------------------------------+
+
+
+For the programmer
+==================
+
+The object *note toLex: toLex, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1496:0.
+
+File: Chordal.info, Node: topComponents_lpChordalNet_rp, Next: treewidth, Prev: toLex, Up: Top
+
+topComponents(ChordalNet) -- top dimension of a chordal network
+***************************************************************
+
+  * Function: *note topComponents: (PrimaryDecomposition)topComponents,
+  * Usage: 
+        topComponents N
+  * Inputs:
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+  * Outputs:
+      * no output
+  * Consequences:
+      * the input chordal network is modified
+
+Description
+===========
+
+Computes the top dimensional part of a chordal network.
+
++-----------------------------------------------------------------+
+|i1 : I = toLex edgeIdeal cycleGraph 9                            |
+|                                                                 |
+|o1 = ideal (x x , x x , x x , x x , x x , x x , x x , x x , x x )|
+|             1 2   2 3   3 4   4 5   5 6   6 7   7 8   1 9   8 9 |
+|                                                                 |
+|o1 : Ideal of QQ[x ..x ]                                         |
+|                  1   9                                          |
++-----------------------------------------------------------------+
+|i2 : N = chordalNet I;                                           |
++-----------------------------------------------------------------+
+|i3 : chordalTria N;                                              |
++-----------------------------------------------------------------+
+|i4 : codimCount N                                                |
+|                                                                 |
+|      8     7      6     5                                       |
+|o4 = t  + 9t  + 20t  + 9t                                        |
+|                                                                 |
+|o4 : ZZ[t]                                                       |
++-----------------------------------------------------------------+
+|i5 : topComponents N                                             |
++-----------------------------------------------------------------+
+|i6 : codimCount N                                                |
+|                                                                 |
+|       5                                                         |
+|o6 = 9t                                                          |
+|                                                                 |
+|o6 : ZZ[t]                                                       |
++-----------------------------------------------------------------+
+
+
+See also
+========
+
+  * *note dim(ChordalNet): dim_lpChordalNet_rp, -- dimension of a chordal
+    network
+  * *note codimCount: codimCount, -- codimension counts of the chains of a
+    chordal network
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:1246:0.
+
+File: Chordal.info, Node: treewidth, Next: writeDotFile_lpString_cmFunction_cmChordalNet_rp, Prev: topComponents_lpChordalNet_rp, Up: Top
+
+treewidth -- treewidth of a graph
+*********************************
+
+  * Usage: 
+        treewidth G
+  * Inputs:
+      * G, an instance of the type *note ChordalGraph: ChordalGraph,, 
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, treewidth of G
+
+Description
+===========
+
+This method computes the treewidth of a chordal graph.
+
++--------------------------------------------------------+
+|i1 : G = graph(toList(0..9),{                           |
+|         {0,{6,7}},{1,{4,9}},{2,{3,5}},{3,{7,8}},       |
+|         {4,{5,8}},{5,{8}},{6,{8,9}},{7,{8}},{8,{9}} });|
++--------------------------------------------------------+
+|i2 : Gc = chordalGraph G                                |
+|                                                        |
+|o2 = ChordalGraph{0 => {6, 7}    }                      |
+|                  1 => {4, 9}                           |
+|                  2 => {3, 5}                           |
+|                  3 => {5, 7, 8}                        |
+|                  4 => {5, 8, 9}                        |
+|                  5 => {7, 8, 9}                        |
+|                  6 => {7, 8, 9}                        |
+|                  7 => {8, 9}                           |
+|                  8 => {9}                              |
+|                  9 => {}                               |
+|                                                        |
+|o2 : ChordalGraph                                       |
++--------------------------------------------------------+
+|i3 : treewidth Gc                                       |
+|                                                        |
+|o3 = 3                                                  |
++--------------------------------------------------------+
+
+
+Ways to use treewidth:
+======================
+
+  * "treewidth(ChordalGraph)"
+  * "treewidth(ElimTree)"
+
+For the programmer
+==================
+
+The object *note treewidth: treewidth, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:541:0.
+
+File: Chordal.info, Node: writeDotFile_lpString_cmFunction_cmChordalNet_rp, Prev: treewidth, Up: Top
+
+writeDotFile(String,Function,ChordalNet) -- writes a chordal network to a dot file
+**********************************************************************************
+
+  * Function: *note writeDotFile: (Graphs)writeDotFile,
+  * Usage: 
+        writeDotFile(fileName,label,N)
+        writeDotFile(fileName,tree)
+  * Inputs:
+      * fileName, a *note string: (Macaulay2Doc)String,, 
+      * label, a *note function: (Macaulay2Doc)Function,, 
+      * N, an instance of the type *note ChordalNet: ChordalNet,, 
+
+Description
+===========
+
+Writes the code for an inputted chordal network (or elimination tree) to be
+constructed in Graphviz with specified file name
+
+
+
+See also
+========
+
+  * *note writeDotFile: (Graphs)writeDotFile, -- Writes a graph to a dot file
+    with a specified filename
+  * *note displayNet: displayNet, -- displays a chordal network using Graphivz
+  * *note displayGraph(ElimTree): displayGraph_lpString_cmString_cmElimTree_rp,
+    -- displays an elimination tree using Graphviz
+
+Ways to use this method:
+========================
+
+  * "writeDotFile(String,ElimTree)"
+  * *note writeDotFile(String,Function,ChordalNet):
+    writeDotFile_lpString_cmFunction_cmChordalNet_rp, -- writes a chordal
+    network to a dot file
+-------------------------------------------------------------------------------
+
+The source of this document is in Chordal/ChordalDoc.m2:513:0.
+
+Tag Table:
+Node: Top242
+Node: adjacentMinorsIdeal23327
+Node: chordal networks examples24679
+Node: chordalElim32447
+Node: ChordalGraph40517
+Node: chordalGraph42946
+Node: ChordalNet46482
+Node: chordalNet53149
+Node: chordalNet_lpHashTable_cmHashTable_cmElimTree_cmDigraph_rp59873
+Node: ChordalNetChain65200
+Node: ChordalNetNode67518
+Node: ChordalNetRank69278
+Node: chordalTria70367
+Node: chromaticIdeal75978
+Node: codimCount77925
+Node: components_lpChordalNet_cmZZ_rp80306
+Node: constraintGraph86068
+Node: digraph_lpChordalNet_rp88684
+Node: dim_lpChordalNet_rp92387
+Node: displayGraph_lpString_cmString_cmElimTree_rp93938
+Node: displayNet95466
+Node: ElimTree98453
+Node: elimTree100924
+Node: GetTable104010
+Node: installation and configuration104695
+Node: isPrimeSimple_lpChordalNet_rp106791
+Node: isTriangular111005
+Node: label112828
+Node: leaves_lpElimTree_rp113357
+Node: nextChain116671
+Node: nextOrderedPartition120809
+Node: nodes123376
+Node: reduceDimension127972
+Node: reduceNet132152
+Node: RingElement % ChordalNet134166
+Node: RingMap ChordalNet136887
+Node: rootCount141694
+Node: setDefaultConfiguration143621
+Node: size_lpChordalNet_rp145290
+Node: subsetsProductsIdeal148612
+Node: suggestVariableOrder150229
+Node: toLex153077
+Node: topComponents_lpChordalNet_rp155578
+Node: treewidth158489
+Node: writeDotFile_lpString_cmFunction_cmChordalNet_rp160773
+
+End Tag Table

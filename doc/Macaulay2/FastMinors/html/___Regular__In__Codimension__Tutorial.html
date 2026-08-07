@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>RegularInCodimensionTutorial -- A tutorial for how to use the advanced options of the regularInCodimension function</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="faster linear algebra operations" href="index.html">FastMinors</a> :: <a title="A tutorial for how to use the advanced options of the regularInCodimension function" href="___Regular__In__Codimension__Tutorial.html">RegularInCodimensionTutorial</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_reorder__Polynomial__Ring.html">next</a> | <a href="_regular__In__Codimension.html">previous</a> | <a href="_reorder__Polynomial__Ring.html">forward</a> | <a href="_regular__In__Codimension.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>RegularInCodimensionTutorial -- A tutorial for how to use the advanced options of the regularInCodimension function</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>In this tutorial we explore the different options of <span class="tt">RegularInCodimension</span> (and related functions) on some cone singularities.  For the most part we will not talk about the <span class="tt">Strategy</span> option, we have a separate tutorial for that <a title="How to use and construct strategies for selecting submatrices in various functions" href="___Fast__Minors__Strategy__Tutorial.html">FastMinorsStrategyTutorial</a>.</p>
+        </div>
+        <div>
+          <p>We begin with the following ideal.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : S = ZZ/103[x_1..x_9];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : J = ideal(x_6*x_8-x_5*x_9,x_3*x_8-x_2*x_9,x_6*x_7-x_4*x_9,x_5*x_7-x_4*x_8,x_3*x_7-x_1*x_9,x_2*x_7-x_1*x_8,x_3*x_5-x_2*x_6,x_3*x_4-x_1*x_6,x_2*x_4-x_1*x_5,x_3^3-x_6^3-x_9^3,x_2*x_3^2-x_5*x_6^2-x_8*x_9^2,x_1*x_3^2-x_4*x_6^2-x_7*x_9^2,x_2^2*x_3-x_5^2*x_6-x_8^2*x_9,x_1*x_2*x_3-x_4*x_5*x_6-x_7*x_8*x_9,x_1^2*x_3-x_4^2*x_6-x_7^2*x_9,x_2^3-x_5^3-x_8^3,x_1*x_2^2-x_4*x_5^2-x_7*x_8^2,x_1^2*x_2-x_4^2*x_5-x_7^2*x_8,x_1^3-x_4^3-x_7^3);
+
+o2 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : dim (S/J)
+
+o3 = 4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>It is the cone over $P^2 \times E$ where $E$ is an elliptic curve.  We have embedded it with a Segre embedding inside $P^8$.  In particular, this example is even regular in codimension 3.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : time regularInCodimension(1, S/J)
+ -- used 3.32147s (cpu); 2.41247s (thread); 0s (gc)
+
+o4 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : time regularInCodimension(2, S/J)
+ -- used 14.2008s (cpu); 10.4336s (thread); 0s (gc)
+
+o5 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We try to verify that $S/J$ is regular in codimension 1 or 2 by computing the ideal made up of a small number of minors of the Jacobian matrix. In this example, instead of computing all relevant 1465128 minors to compute the singular locus, and then trying to compute the dimension of the ideal they generate, we instead compute a few of them.  <span class="tt">regularInCodimension</span> returns <span class="tt">true</span> if it verified that the ring is regular in codim 1 or 2 (respectively) and <span class="tt">null</span> if not.  Because of the randomness that exists in terms of selecting minors, the execution time can actually vary quite a bit.   Let's take a look at what is occurring by using the <span class="tt">Verbose</span> option.  We go through the output and explain what each line is telling us.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : time regularInCodimension(1, S/J, Verbose=>true)
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- used 3.75446s (cpu); 2.69883s (thread); 0s (gc)
+regularInCodimension: ring dimension =4, there are 1465128 possible 5 by 5 minors, we will compute up to 452.908 of them.
+regularInCodimension: About to enter loop
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 7, and computed = 6
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 11, and computed = 9
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 15, and computed = 11
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 21, and computed = 15
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 28, and computed = 21
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 37, and computed = 29
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 49, and computed = 38
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 64, and computed = 48
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 84, and computed = 58
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 110, and computed = 73
+regularInCodimension:  singularLocus dimension verified by isCodimAtLeast
+regularInCodimension:  partial singular locus dimension computed, = 2
+regularInCodimension:  Loop completed, submatrices considered = 110, and computed = 73.  singular locus dimension appears to be = 2
+
+o6 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p><b>MaxMinors.</b>  The first output says that we will compute up to 452.9 minors before giving up.  We can control that by setting the option <span class="tt">MaxMinors</span>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : time regularInCodimension(1, S/J, MaxMinors=>10, Verbose=>true)
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- used 0.26744s (cpu); 0.189344s (thread); 0s (gc)
+regularInCodimension: ring dimension =4, there are 1465128 possible 5 by 5 minors, we will compute up to 10 of them.
+regularInCodimension: About to enter loop
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 7, and computed = 7
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 10, and computed = 10
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop completed, submatrices considered = 10, and computed = 10.  singular locus dimension appears to be = 3</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>There are other finer ways to control the MaxMinors option, but they will not be discussed in this tutorial.  See <a title="attempts to show that the ring is regular in codimension n" href="_regular__In__Codimension.html">regularInCodimension</a>.</p>
+        </div>
+        <div>
+          <p><b>Selecting submatrices of the Jacobian.</b>  We also see output like: ``Choosing LexSmallest'' or ``Choosing Random''.  This is saying how we are selecting a given submatrix.  For instance, we can run:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : time regularInCodimension(1, S/J, MaxMinors=>10, Strategy=>StrategyRandom, Verbose=>true)
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- used 0.271588s (cpu); 0.191858s (thread); 0s (gc)
+regularInCodimension: ring dimension =4, there are 1465128 possible 5 by 5 minors, we will compute up to 10 of them.
+regularInCodimension: About to enter loop
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 7, and computed = 7
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 10, and computed = 10
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop completed, submatrices considered = 10, and computed = 10.  singular locus dimension appears to be = 3</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>and only random submatrices are chosen.  We discuss strategies for choosing submatrices much more generally in the <a title="How to use and construct strategies for selecting submatrices in various functions" href="___Fast__Minors__Strategy__Tutorial.html">FastMinorsStrategyTutorial</a>. Regardless, after a certain number of minors have been looked at, we see output lines like:  ``Loop step, about to compute dimension.  Submatrices considered: 7, and computed = 7''.  We only compute minors we haven't considered before.  So as we compute more minors, there can be a distinction between considered and computed.</p>
+        </div>
+        <div>
+          <p><b>Computing minors vs considering the dimension of what has been computed.</b>  Periodically we compute the codimension of the partial ideal of minors we have computed so far.  There are two options to control this.  First, we can tell the function when to first compute the dimension of the working partial ideal of minors.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : time regularInCodimension(1, S/J, MaxMinors=>10, MinMinorsFunction => t->3, Verbose=>true)
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing Random
+ -- used 0.437133s (cpu); 0.325087s (thread); 0s (gc)
+regularInCodimension: ring dimension =4, there are 1465128 possible 5 by 5 minors, we will compute up to 10 of them.
+regularInCodimension: About to enter loop
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 3, and computed = 3
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 6, and computed = 6
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 8, and computed = 8
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 10, and computed = 10
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop completed, submatrices considered = 10, and computed = 10.  singular locus dimension appears to be = 3</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p><b>MinMinorsFunction.</b> We pass <span class="tt">MinMinorsFunction</span> a function which sends the minimum number of minors needed to verify that something is regular in codimension $n$ (which is always $n+1$) to the number of minors to compute before computing the dimension of the partial ideal of minors for the first time.   You can see that three minors were computed in the above example before we attempt to compute codimension.</p>
+        </div>
+        <div>
+          <p><b>CodimCheckFunction.</b> The option <span class="tt">CodimCheckFunction</span> controls how frequently the dimension of the partial ideal of minors is computed.  For instance, setting <span class="tt">CodimCheckFunction => t -> t/5</span> will say it should compute dimension after every 5 minors are examined.  In general, after the output of the CodimCheckFunction increases by an integer we compute the codimension again.  The default function has the space between computations grow exponentially.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : time regularInCodimension(1, S/J, MaxMinors=>25, CodimCheckFunction => t->t/5, MinMinorsFunction => t->2, Verbose=>true)
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallest
+ -- used 1.37988s (cpu); 1.01045s (thread); 0s (gc)
+regularInCodimension: ring dimension =4, there are 1465128 possible 5 by 5 minors, we will compute up to 25 of them.
+regularInCodimension: About to enter loop
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 2, and computed = 2
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 4
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 5, and computed = 5
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 10, and computed = 10
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 15, and computed = 15
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 20, and computed = 20
+regularInCodimension:  isCodimAtLeast failed, computing codim.
+regularInCodimension:  partial singular locus dimension computed, = 3
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 25, and computed = 24
+regularInCodimension:  singularLocus dimension verified by isCodimAtLeast
+regularInCodimension:  partial singular locus dimension computed, = 2
+regularInCodimension:  Loop completed, submatrices considered = 25, and computed = 24.  singular locus dimension appears to be = 2
+
+o10 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p><b>isCodimAtLeast and dim</b>.  We see the lines about the ``isCodimAtLeast failed''.  This means that <span class="tt">isCodimAtLeast</span> was not enough on its own to verify that our ring is regular in codimension 1.  After this, ``partial singular locus dimension computed'' indicates we did a complete dimension computation of the partial ideal defining the singular locus.  How <span class="tt">isCodimAtLeast</span> is called can be controlled via the options <span class="tt">SPairsFunction</span> and <span class="tt">PairLimit</span>, which are simply passed to <a title="returns true if we can quickly see whether the codim is at least a given number" href="_is__Codim__At__Least.html">isCodimAtLeast</a>.  You can force the function to only use <span class="tt">isCodimAtLeast</span> and not call dimension by setting <span class="tt">UseOnlyFastCodim => true</span>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : time regularInCodimension(1, S/J, MaxMinors=>25, UseOnlyFastCodim => true, Verbose=>true)
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing Random
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- internalChooseMinor: Choosing LexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing LexSmallest
+ -- internalChooseMinor: Choosing GRevLexSmallestTerm
+ -- internalChooseMinor: Choosing GRevLexSmallest
+ -- internalChooseMinor: Choosing RandomNonZero
+ -- used 1.04194s (cpu); 0.764197s (thread); 0s (gc)
+regularInCodimension: ring dimension =4, there are 1465128 possible 5 by 5 minors, we will compute up to 25 of them.
+regularInCodimension: About to enter loop
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 7, and computed = 7
+regularInCodimension:  partial singular locus dimension computed, = 4
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 11, and computed = 11
+regularInCodimension:  partial singular locus dimension computed, = 4
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 15, and computed = 14
+regularInCodimension:  partial singular locus dimension computed, = 4
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 21, and computed = 19
+regularInCodimension:  partial singular locus dimension computed, = 4
+regularInCodimension:  Loop step, about to compute dimension.  Submatrices considered: 25, and computed = 23
+regularInCodimension:  partial singular locus dimension computed, = 4
+regularInCodimension:  Loop completed, submatrices considered = 25, and computed = 23.  singular locus dimension appears to be = 4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>This can be useful if the function is hanging when trying to compute the dimension, but you may wish increase <span class="tt">PairLimit</span>.</p>
+        </div>
+        <div>
+          <p><b>Summary.</b>  If you expect that finding a submatrix or computing a minor is relatively costly from a time perspective, then it makes sense to compute the codimension more frequently.  If computing the codimension is relatively costly we recommend computing the codimension less frequently, or using the <span class="tt">UseOnlyFastCodim => true</span> with a high <span class="tt">PairLimit</span>.  For example, if using <span class="tt">StrategyPoints</span>, then choosing a submatrix can be quite slow, however each submatrix is very ``valuable'', in that adding it to the ideal of minors so far is quite likely to reduce the dimension of the singular locus.</p>
+          <p>One may also change how minors (determinants of the Jacobian submatrix) are computed by using the <a title="DetStrategy is a strategy for allowing the user to choose how determinants (or rank), is computed" href="___Det__Strategy.html">DetStrategy</a> option.</p>
+        </div>
+        <div>
+          <p><b>Proving a singularity is not regular.</b></p>
+        </div>
+        <div>
+          <p>Sometimes you think that a variety is not regular in codimension n.  In that case, you can use the option <span class="tt">VerifyNonRegular=>true</span>.  Below we have an example of a nodal elliptic curve cross P^1 expressed as a Segre prodcut, it is not even regular in codimension 1.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : B = ZZ/103[a,b,c,d,e,f]/ideal(d*e-c*f,b*e-a*f,b*c-a*d,b^3-b^2*f-d^2*f,a*b^2-a*b*f-c*d*f,a^2*b-a^2*f-c^2*f,a^3-a^2*e-c^2*e)
+
+o12 = B
+
+o12 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : regularInCodimension(1, B, VerifyNonRegular=>true)
+
+o13 = false</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="attempts to show that the ring is regular in codimension n" href="_regular__In__Codimension.html">regularInCodimension</a> -- attempts to show that the ring is regular in codimension n</span></li>
+          <li><span><a title="How to use and construct strategies for selecting submatrices in various functions" href="___Fast__Minors__Strategy__Tutorial.html">FastMinorsStrategyTutorial</a> -- How to use and construct strategies for selecting submatrices in various functions</span></li>
+          <li><span><a title="DetStrategy is a strategy for allowing the user to choose how determinants (or rank), is computed" href="___Det__Strategy.html">DetStrategy</a> -- DetStrategy is a strategy for allowing the user to choose how determinants (or rank), is computed</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="A tutorial for how to use the advanced options of the regularInCodimension function" href="___Regular__In__Codimension__Tutorial.html">RegularInCodimensionTutorial</a> is <span>a <a title="the class of all symbols" href="../../Macaulay2Doc/html/___Symbol.html">symbol</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">FastMinors.m2:1626:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

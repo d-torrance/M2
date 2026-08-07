@@ -1,0 +1,492 @@
+ -*- coding: utf-8 -*- This is NumericalLinearAlgebra.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* NumericalLinearAlgebra: (NumericalLinearAlgebra).  numerically compute local dual space and Hilbert functions
+END-INFO-DIR-ENTRY
+
+
+File: NumericalLinearAlgebra.info, Node: Top, Next: colReduce, Up: (dir)
+
+NumericalLinearAlgebra -- numerical linear algebra
+**************************************************
+
+Description
+===========
+
+This package collects implementations of numerical linear algebra algorithms.
+
+  * *note numericalRank: numericalRank,
+  * *note numericalKernel: numericalKernel,
+  * *note numericalImage: numericalImage,
+  * *note colReduce: colReduce,
+
+Authors
+=======
+
+  * Robert Krone <krone@math.gatech.edu>
+  * Marc Harkonen <harkonen@gatech.edu>
+  * Anton Leykin <anton.leykin@gmail.com>
+
+Version
+=======
+
+This documentation describes version 1.16 of NumericalLinearAlgebra, released
+Dec 2020.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{NumericalLinearAlgebraSource,                                          |
+|  title = {{NumericalLinearAlgebra: numerically compute local dual space and |
+|  author = {Robert Krone and Marc Harkonen and Anton Leykin},                |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Hilbert functions. Version~1.16}},                                           |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note colReduce: colReduce, -- column reduce a matrix
+      * *note numericalImage: numericalImage, -- Image of a matrix
+      * *note numericalKernel: numericalKernel, -- approximate kernel of a
+        matrix
+      * "isFullNumericalRank" -- see *note numericalRank: numericalRank, --
+        numerical rank of a matrix
+      * *note numericalRank: numericalRank, -- numerical rank of a matrix
+  * Methods
+      * "colReduce(Matrix)" -- see *note colReduce: colReduce, -- column reduce
+        a matrix
+      * "numericalImage(Matrix)" -- see *note numericalImage: numericalImage,
+        -- Image of a matrix
+      * "numericalImage(Matrix,Number)" -- see *note numericalImage:
+        numericalImage, -- Image of a matrix
+      * "numericalKernel(Matrix)" -- see *note numericalKernel:
+        numericalKernel, -- approximate kernel of a matrix
+      * "isFullNumericalRank(Matrix)" -- see *note numericalRank:
+        numericalRank, -- numerical rank of a matrix
+      * "numericalRank(Matrix)" -- see *note numericalRank: numericalRank, --
+        numerical rank of a matrix
+  * Symbols
+      * "Normalize" -- see *note colReduce: colReduce, -- column reduce a
+        matrix
+      * *note Tolerance: Tolerance, -- the tolerance of a numerical computation
+
+For the programmer
+==================
+
+The object *note NumericalLinearAlgebra: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in NumericalLinearAlgebra.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in NumericalLinearAlgebra.m2:204:0.
+
+File: NumericalLinearAlgebra.info, Node: colReduce, Next: numericalImage, Prev: Top, Up: Top
+
+colReduce -- column reduce a matrix
+***********************************
+
+  * Usage: 
+        N = colReduce M
+  * Inputs:
+      * M, a *note matrix: (Macaulay2Doc)Matrix,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Normalize => ..., default value true
+      * Reverse => ..., default value false
+      * *note Tolerance: Tolerance_lpNumericalLinearAlgebra_rp, => ..., default
+        value null, the tolerance of a numerical computation
+  * Outputs:
+      * N, a *note matrix: (Macaulay2Doc)Matrix,, in reduced column echelon
+        form
+
+Description
+===========
+
+Performs Gaussian column reduction on a matrix M, retaining only the linearly
+independent columns.
+
++----------------------------------------------------+
+|i1 : M = matrix {{1., 2, 3}, {2, 4, 0}, {-1, -2, 3}}|
+|                                                    |
+|o1 = | 1  2  3 |                                    |
+|     | 2  4  0 |                                    |
+|     | -1 -2 3 |                                    |
+|                                                    |
+|                3         3                         |
+|o1 : Matrix RR    <-- RR                            |
+|              53        53                          |
++----------------------------------------------------+
+|i2 : colReduce(M, Tolerance=>0.01)                  |
+|                                                    |
+|o2 = | 1 1 |                                        |
+|     | 0 1 |                                        |
+|     | 1 0 |                                        |
+|                                                    |
+|                3         2                         |
+|o2 : Matrix RR    <-- RR                            |
+|              53        53                          |
++----------------------------------------------------+
+
+Entries with absolute value below the tolerance are treated as zero and not
+used as pivots.
+
++---------------------------------------------------------+
+|i3 : N = matrix {{0.001, 0, 0}, {1, 1, 3}, {2, 2, 5.999}}|
+|                                                         |
+|o3 = | .001 0 0     |                                    |
+|     | 1    1 3     |                                    |
+|     | 2    2 5.999 |                                    |
+|                                                         |
+|                3         3                              |
+|o3 : Matrix RR    <-- RR                                 |
+|              53        53                               |
++---------------------------------------------------------+
+|i4 : colReduce(N, Tolerance=>0.01)                       |
+|                                                         |
+|o4 = | 0       |                                         |
+|     | .500083 |                                         |
+|     | 1       |                                         |
+|                                                         |
+|                3         1                              |
+|o4 : Matrix RR    <-- RR                                 |
+|              53        53                               |
++---------------------------------------------------------+
+
+The lower rows are treated as the lead terms unless the optional argument
+Reverse is set to true.
+
++--------------------------------+
+|i5 : colReduce(M, Reverse=>true)|
+|                                |
+|o5 = | 1 0  |                   |
+|     | 0 1  |                   |
+|     | 1 -1 |                   |
+|                                |
+|                3         2     |
+|o5 : Matrix RR    <-- RR        |
+|              53        53      |
++--------------------------------+
+
+If the optional argument Normalize is set to true (default) each vector is
+normalized so that the lead entry is 1.  Otherwise this step is skipped.
+
++-----------------------------------+
+|i6 : colReduce(M, Normalize=>false)|
+|                                   |
+|o6 = | 3 4 |                       |
+|     | 0 4 |                       |
+|     | 3 0 |                       |
+|                                   |
+|                3         2        |
+|o6 : Matrix RR    <-- RR           |
+|              53        53         |
++-----------------------------------+
+
+Ways to use colReduce:
+======================
+
+  * "colReduce(Matrix)"
+
+For the programmer
+==================
+
+The object *note colReduce: colReduce, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in NumericalLinearAlgebra.m2:327:0.
+
+File: NumericalLinearAlgebra.info, Node: numericalImage, Next: numericalKernel, Prev: colReduce, Up: Top
+
+numericalImage -- Image of a matrix
+***********************************
+
+  * Usage: 
+        V = numericalImage(M, tol)
+  * Inputs:
+      * M, a *note matrix: (Macaulay2Doc)Matrix,, 
+      * tol, a *note number: (Macaulay2Doc)Number,, a positive number, the
+        numerical tolerance
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Tolerance: Tolerance_lpNumericalLinearAlgebra_rp, => ..., default
+        value null, the tolerance of a numerical computation
+  * Outputs:
+      * V, a *note matrix: (Macaulay2Doc)Matrix,, 
+
+Description
+===========
+
+Computes the image of a matrix M numerically using singular value
+decomposition.
+
++--------------------------------------------------+
+|i1 : M = matrix {{1., 0, 1}, {0, 1, 1}, {1, 0, 1}}|
+|                                                  |
+|o1 = | 1 0 1 |                                    |
+|     | 0 1 1 |                                    |
+|     | 1 0 1 |                                    |
+|                                                  |
+|                3         3                       |
+|o1 : Matrix RR    <-- RR                          |
+|              53        53                        |
++--------------------------------------------------+
+|i2 : numericalImage(M, 0.01)                      |
+|                                                  |
+|o2 = | -.627963 -.325058 |                        |
+|     | -.459701 .888074  |                        |
+|     | -.627963 -.325058 |                        |
+|                                                  |
+|                3         2                       |
+|o2 : Matrix RR    <-- RR                          |
+|              53        53                        |
++--------------------------------------------------+
+
+Singular values less than the tolerance are treated as zero.
+
++------------------------------------+
+|i3 : M = matrix {{0.999, 2}, {1, 2}}|
+|                                    |
+|o3 = | .999 2 |                     |
+|     | 1    2 |                     |
+|                                    |
+|                2         2         |
+|o3 : Matrix RR    <-- RR            |
+|              53        53          |
++------------------------------------+
+|i4 : numericalImage(M, 0.01)        |
+|                                    |
+|o4 = | -.707036 |                   |
+|     | -.707177 |                   |
+|                                    |
+|                2         1         |
+|o4 : Matrix RR    <-- RR            |
+|              53        53          |
++------------------------------------+
+
+Ways to use numericalImage:
+===========================
+
+  * "numericalImage(Matrix)"
+  * "numericalImage(Matrix,Number)"
+
+For the programmer
+==================
+
+The object *note numericalImage: numericalImage, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in NumericalLinearAlgebra.m2:355:0.
+
+File: NumericalLinearAlgebra.info, Node: numericalKernel, Next: numericalRank, Prev: numericalImage, Up: Top
+
+numericalKernel -- approximate kernel of a matrix
+*************************************************
+
+  * Usage: 
+        V = numericalKernel(M)
+  * Inputs:
+      * M, a *note matrix: (Macaulay2Doc)Matrix,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Tolerance: Tolerance_lpNumericalLinearAlgebra_rp, => ..., default
+        value null, the tolerance of a numerical computation
+  * Outputs:
+      * V, a *note matrix: (Macaulay2Doc)Matrix,, 
+
+Description
+===========
+
+Computes the kernel of a matrix M numerically using singular value
+decomposition.
+
++----------------------------------------+
+|i1 : M = matrix {{1., 1, 1}}            |
+|                                        |
+|o1 = | 1 1 1 |                          |
+|                                        |
+|                1         3             |
+|o1 : Matrix RR    <-- RR                |
+|              53        53              |
++----------------------------------------+
+|i2 : numericalKernel(M, Tolerance=>0.01)|
+|                                        |
+|o2 = | -.57735  -.57735  |              |
+|     | .788675  -.211325 |              |
+|     | -.211325 .788675  |              |
+|                                        |
+|                3         2             |
+|o2 : Matrix RR    <-- RR                |
+|              53        53              |
++----------------------------------------+
+
+Singular values less than the tolerance are treated as zero.
+
++----------------------------------------+
+|i3 : M = matrix {{1., 1}, {1.001, 1}}   |
+|                                        |
+|o3 = | 1     1 |                        |
+|     | 1.001 1 |                        |
+|                                        |
+|                2         2             |
+|o3 : Matrix RR    <-- RR                |
+|              53        53              |
++----------------------------------------+
+|i4 : numericalKernel(M, Tolerance=>0.01)|
+|                                        |
+|o4 = | .70693   |                       |
+|     | -.707284 |                       |
+|                                        |
+|                2         1             |
+|o4 : Matrix RR    <-- RR                |
+|              53        53              |
++----------------------------------------+
+
+Ways to use numericalKernel:
+============================
+
+  * "numericalKernel(Matrix)"
+
+For the programmer
+==================
+
+The object *note numericalKernel: numericalKernel, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in NumericalLinearAlgebra.m2:249:0.
+
+File: NumericalLinearAlgebra.info, Node: numericalRank, Next: Tolerance, Prev: numericalKernel, Up: Top
+
+numericalRank -- numerical rank of a matrix
+*******************************************
+
+  * Usage: 
+        r = numericalRank M
+        B = isFullNumericalRank M
+  * Inputs:
+      * M, a *note matrix: (Macaulay2Doc)Matrix,, a matrix with real or complex
+        entries
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Threshold => ..., default value .0001
+  * Outputs:
+      * r, an *note integer: (Macaulay2Doc)ZZ,
+      * B, a *note Boolean value: (Macaulay2Doc)Boolean,
+
+Description
+===========
+
+*note numericalRank: numericalRank, finds an approximate rank of the matrix M.
+
+*note isFullNumericalRank: numericalRank, = M is _not_ rank-deficient.
+
+Let \sigma_1,...,\sigma_n be the singular values of M. 
+
+If *note Threshold: (LLLBases)Threshold, is >1, then to establish numerical
+rank we look for the first large gap between two consecutive singular values.
+The gap between \sigma_i and \sigma_{i+1} is large if \sigma_i/\sigma_{i+1} >
+*note Threshold: (LLLBases)Threshold,.
+
+If *note Threshold: (LLLBases)Threshold, is <=1, then the rank equals the
+number of singular values larger then *note Threshold: (LLLBases)Threshold,.
+
++--------------------------------------------+
+|i1 : options numericalRank                  |
+|                                            |
+|o1 = OptionTable{Threshold => .0001}        |
+|                                            |
+|o1 : OptionTable                            |
++--------------------------------------------+
+|i2 : numericalRank matrix {{2,1},{0,0.001}} |
+|                                            |
+|o2 = 2                                      |
++--------------------------------------------+
+|i3 : numericalRank matrix {{2,1},{0,0.0001}}|
+|                                            |
+|o3 = 1                                      |
++--------------------------------------------+
+
+Caveat
+======
+
+We assume \sigma_0=1 above.
+
+See also
+========
+
+  * *note SVD: (Macaulay2Doc)SVD, -- singular value decomposition of a matrix
+
+Ways to use numericalRank:
+==========================
+
+  * "numericalRank(Matrix)"
+
+For the programmer
+==================
+
+The object *note numericalRank: numericalRank, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in NumericalLinearAlgebra.m2:290:0.
+
+File: NumericalLinearAlgebra.info, Node: Tolerance, Next: Tolerance_lpNumericalLinearAlgebra_rp, Prev: numericalRank, Up: Top
+
+Tolerance -- the tolerance of a numerical computation
+*****************************************************
+
+Functions with optional argument named Tolerance:
+=================================================
+
+  * "colReduce(...,Tolerance=>...)" -- see *note
+    Tolerance(NumericalLinearAlgebra): Tolerance_lpNumericalLinearAlgebra_rp,
+    -- the tolerance of a numerical computation
+  * "numericalImage(...,Tolerance=>...)" -- see *note
+    Tolerance(NumericalLinearAlgebra): Tolerance_lpNumericalLinearAlgebra_rp,
+    -- the tolerance of a numerical computation
+  * "numericalKernel(...,Tolerance=>...)" -- see *note
+    Tolerance(NumericalLinearAlgebra): Tolerance_lpNumericalLinearAlgebra_rp,
+    -- the tolerance of a numerical computation
+
+For the programmer
+==================
+
+The object *note Tolerance: Tolerance, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in NumericalLinearAlgebra.m2:212:0.
+
+File: NumericalLinearAlgebra.info, Node: Tolerance_lpNumericalLinearAlgebra_rp, Prev: Tolerance, Up: Top
+
+Tolerance(NumericalLinearAlgebra) -- the tolerance of a numerical computation
+*****************************************************************************
+
+The default value null sets tolerance to 1e-6.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in NumericalLinearAlgebra.m2:224:0.
+
+Tag Table:
+Node: Top297
+Node: colReduce3513
+Node: numericalImage8264
+Node: numericalKernel11412
+Node: numericalRank14235
+Node: Tolerance16765
+Node: Tolerance_lpNumericalLinearAlgebra_rp17910
+
+End Tag Table

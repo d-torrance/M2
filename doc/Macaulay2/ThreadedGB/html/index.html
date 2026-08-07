@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ThreadedGB -- a package for distributed computation of Gröbner bases</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Compute a Groebner basis using the classical Buchberger with multiple threads" href="index.html">ThreadedGB</a> :: <a title="Compute a Groebner basis using the classical Buchberger with multiple threads" href="index.html">ThreadedGB</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Lineage__Table.html">next</a> | previous | <a href="___Lineage__Table.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>ThreadedGB -- a package for distributed computation of Gröbner bases</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>The complexity of Gröbner computations has inspired many improvements to Buchberger's algorithm over the years. While this package does not propose an improvement to the way the algorithm operates mathematically, it offers a way to distribute the algorithm among threads that run in parallel. It is our hope that such a distributed version of the algorithm should be written in the core of the program; however, there are still important insights one can obtain from the current implementation.</p>
+          <p>To us, the most interesting is the insight into <i>lineages</i> (see below) of non-zero remainders that are added to the basis during a run of Buchberger. How are these affected by the structure of the input system? What do they say about the complexity of the computation itself (and not only the complexity of the basis)? These are questions at the heart of what we are aiming to discover, and the output of the threaded Gröbner bases method <a title="threaded Gröbner bases" href="_tgb.html">tgb</a> returns this information in form of a <b>lineage table</b>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : QQ[x_1,x_0,x_3,x_5,x_4,x_2,MonomialOrder=>Lex]
+
+o1 = QQ[x , x , x , x , x , x ]
+         1   0   3   5   4   2
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : rnc = minors(2, matrix{{x_0..x_4},{x_1..x_5}})
+
+               2                                2                       
+o2 = ideal (- x  + x x , - x x  + x x , x x  - x , - x x  + x x , x x  -
+               1    0 2     1 2    0 3   1 3    2     1 3    0 4   1 4  
+     ------------------------------------------------------------------------
+              2                                                            2
+     x x , - x  + x x , - x x  + x x , x x  - x x , - x x  + x x , x x  - x )
+      3 2     3    4 2     1 4    0 5   1 5    4 2     3 4    5 2   3 5    4
+
+o2 : Ideal of QQ[x , x , x , x , x , x ]
+                  1   0   3   5   4   2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : allowableThreads  =  4
+
+o3 = 4</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : g = tgb(rnc)
+
+                                  2
+o4 = LineageTable{((2, 3), 6) => x x  - x x x }
+                                  0 5    0 3 2
+                                        3
+                  (1, 2) => - x x x  + x
+                               0 4 2    2
+                                          2
+                  (1, 4) => - x x x  + x x
+                               0 5 2    3 2
+                                 2      2
+                  (1, 7) => - x x  + x x
+                               0 4    4 2
+                                    2
+                  (2, 3) => x x  - x
+                             0 4    2
+                  (4, 6) => x x  - x x
+                             0 5    3 2
+                               2      3
+                  (8, 9) => - x x  + x
+                               5 2    4
+                          2
+                  0 => - x  + x x
+                          1    0 2
+                  1 => - x x  + x x
+                          1 2    0 3
+                               2
+                  2 => x x  - x
+                        1 3    2
+                  3 => - x x  + x x
+                          1 3    0 4
+                  4 => x x  - x x
+                        1 4    3 2
+                          2
+                  5 => - x  + x x
+                          3    4 2
+                  6 => - x x  + x x
+                          1 4    0 5
+                  7 => x x  - x x
+                        1 5    4 2
+                  8 => - x x  + x x
+                          3 4    5 2
+                               2
+                  9 => x x  - x
+                        3 5    4
+
+o4 : LineageTable</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The lineage table is a hash table, whose values are Gröbner basis elements, and whose keys are the <i>lineages</i>.</p>
+          <p><b>Definition.</b> A lineage of a polynomial is a natural number, or an ordered pair of lineages, tracing its history in the given Gröbner basis computation.</p>
+          <p>Lineages that are natural numbers are assigned to the original input polynomials. In the example above, the 10 minors have lineages $0,\dots,9$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : g#1
+
+o5 = - x x  + x x
+        1 2    0 3
+
+o5 : QQ[x , x , x , x , x , x ]
+         1   0   3   5   4   2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : g#2
+
+             2
+o6 = x x  - x
+      1 3    2
+
+o6 : QQ[x , x , x , x , x , x ]
+         1   0   3   5   4   2</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>If the S-polynomial of g#&quot;i&quot; and g#&quot;j&quot; produces a non-zero remainder in Buchberger's algorithm, that remainder is added to the hashtable g with key (i-j), as in the following example.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : g#(1,2)
+
+                 3
+o7 = - x x x  + x
+        0 4 2    2
+
+o7 : QQ[x , x , x , x , x , x ]
+         1   0   3   5   4   2</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>As the algorithm continues, keys are concatenated, so that for example the remainder of S(0,S(1,2)) will have lineage (0,(1,2)), and so on.   For more complicated lineage examples, see <a title="threaded Gröbner bases" href="_tgb.html">tgb</a>.</p>
+          <p>Naturally, one can obtain a minimal basis or the reduced one as follows. In the output below, elements that are reduced are replaced by null, but their lineage keys are retained for informative purposes.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : minimize g
+
+o8 = LineageTable{((2, 3), 6) => null  }
+                  (1, 2) => null
+                  (1, 4) => null
+                  (1, 7) => null
+                                    2
+                  (2, 3) => x x  - x
+                             0 4    2
+                  (4, 6) => x x  - x x
+                             0 5    3 2
+                             2      3
+                  (8, 9) => x x  - x
+                             5 2    4
+                        2
+                  0 => x  - x x
+                        1    0 2
+                  1 => x x  - x x
+                        1 2    0 3
+                  2 => null
+                  3 => x x  - x x
+                        1 3    0 4
+                  4 => null
+                        2
+                  5 => x  - x x
+                        3    4 2
+                  6 => x x  - x x
+                        1 4    0 5
+                  7 => x x  - x x
+                        1 5    4 2
+                  8 => x x  - x x
+                        3 4    5 2
+                               2
+                  9 => x x  - x
+                        3 5    4
+
+o8 : LineageTable</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : gRed = reduce g
+
+o9 = LineageTable{((2, 3), 6) => null  }
+                  (1, 2) => null
+                  (1, 4) => null
+                  (1, 7) => null
+                                    2
+                  (2, 3) => x x  - x
+                             0 4    2
+                  (4, 6) => x x  - x x
+                             0 5    3 2
+                             2      3
+                  (8, 9) => x x  - x
+                             5 2    4
+                        2
+                  0 => x  - x x
+                        1    0 2
+                  1 => x x  - x x
+                        1 2    0 3
+                  2 => null
+                               2
+                  3 => x x  - x
+                        1 3    2
+                  4 => null
+                        2
+                  5 => x  - x x
+                        3    4 2
+                  6 => x x  - x x
+                        1 4    3 2
+                  7 => x x  - x x
+                        1 5    4 2
+                  8 => x x  - x x
+                        3 4    5 2
+                               2
+                  9 => x x  - x
+                        3 5    4
+
+o9 : LineageTable</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>To get the Gröbner basis in standard M2 matrix format, simply call the following:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : matrix gRed
+
+o10 = | x_1^2-x_0x_2 x_1x_2-x_0x_3 x_1x_3-x_2^2 x_0x_5-x_3x_2 x_3^2-x_4x_2
+      -----------------------------------------------------------------------
+      x_1x_4-x_3x_2 x_1x_5-x_4x_2 x_3x_4-x_5x_2 x_3x_5-x_4^2 x_5^2x_2-x_4^3
+      -----------------------------------------------------------------------
+      x_0x_4-x_2^2 |
+
+                                         1                                 11
+o10 : Matrix (QQ[x , x , x , x , x , x ])  &lt;-- (QQ[x , x , x , x , x , x ])
+                  1   0   3   5   4   2             1   0   3   5   4   2</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p><b>Nuts and Bolts</b></p>
+          <p>The main function,  <a title="threaded Gröbner bases" href="_tgb.html">tgb</a>, uses  <a title="the class of all tasks" href="../../Macaulay2Doc/html/___Task.html">Task</a>s to distribute the reduction of S-polynomials using a a current version of the Gröbner basis. It can reduce and minimize upon request or print out  task scheduling information as it creates new tasks. The interesting part of the output may be the lineages of the basis polynomials, in addition to the Gröbner basis itself. Here is an example where the Gröbner basis is trivial.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : QQ[a..d]
+
+o11 = QQ[a..d]
+
+o11 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : I=ideal( -c^3+a^2+b*d, a*b*c-1,a*b*c)
+
+                3    2
+o12 = ideal (- c  + a  + b*d, a*b*c - 1, a*b*c)
+
+o12 : Ideal of QQ[a..d]</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : allowableThreads =  2;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : T = tgb(I,Verbose=>true)
+Scheduling a task for lineage (0,1)
+Scheduling task for lineage ((0,1),0)
+Scheduling task for lineage ((0,1),1)
+Scheduling task for lineage ((0,1),2)
+Adding the following remainder to GB: -a^3*b-a*b^2*d+c^2 from lineage (0,1)
+Scheduling task for lineage (((0,1),2),0)
+Scheduling task for lineage (((0,1),2),1)
+Scheduling task for lineage (((0,1),2),(0,1))
+Scheduling task for lineage (((0,1),2),2)
+Adding the following remainder to GB: -a^2 from lineage ((0,1),2)
+Scheduling task for lineage ((((0,1),2),1),0)
+Scheduling task for lineage ((((0,1),2),1),1)
+Scheduling task for lineage ((((0,1),2),1),(0,1))
+Scheduling task for lineage ((((0,1),2),1),2)
+Scheduling task for lineage ((((0,1),2),1),((0,1),2))
+Adding the following remainder to GB: a from lineage (((0,1),2),1)
+Scheduling a task for lineage (0,2)
+Scheduling a task for lineage (1,2)
+Scheduling task for lineage ((((0,1),2),(0,1)),0)
+Scheduling task for lineage ((((0,1),2),(0,1)),1)
+Scheduling task for lineage ((((0,1),2),(0,1)),(0,1))
+Scheduling task for lineage ((((0,1),2),(0,1)),2)
+Scheduling task for lineage ((((0,1),2),(0,1)),((0,1),2))
+Scheduling task for lineage ((((0,1),2),(0,1)),(((0,1),2),1))
+Adding the following remainder to GB: c^2 from lineage (((0,1),2),(0,1))
+Adding the following remainder to GB: 1 from lineage ((((0,1),2),1),1)
+Found a unit in the Groebner basis; reducing now.
+
+o14 = LineageTable{((((0, 1), 2), 1), 1) => 1   }
+                   (((0, 1), 2), (0, 1)) => null
+                   (((0, 1), 2), 1) => null
+                   ((0, 1), 2) => null
+                   (0, 1) => null
+                   0 => null
+                   1 => null
+                   2 => null
+
+o14 : LineageTable</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : allowableThreads = 1;</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In particular, the lineages of null values tell us what S-polynomials didn't reduce to zero until $1$ was found as a remainder.</p>
+        </div>
+      </div>
+      <div>
+        <h2>Contributors</h2>
+        <div>
+          <p><a href="https://www.linkedin.com/in/tannerzielinski/">Tanner Zielinski</a> &lt;<a href="mailto:tzielin1%40hawk.iit.edu">tzielin1@hawk.iit.edu</a>></p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="threaded Gröbner bases" href="_tgb.html">tgb</a> -- threaded Gröbner bases</span></li>
+        </ul>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Authors</h2>
+            <ul>
+              <li><a href="http://math.iit.edu/~spetrov1/">Sonja Petrovic</a><span> &lt;<a href="mailto:sonja.petrovic%40iit.edu">sonja.petrovic@iit.edu</a>></span></li>
+              <li><a href="https://www.sjzelenberg.com/">Sara Jamshidi Zelenberg</a><span> &lt;<a href="mailto:szelenberg%40mx.lakeforest.edu">szelenberg@mx.lakeforest.edu</a>></span></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Certification               <img src="../../../../Macaulay2/Style/GoldStar.png" alt="a gold star">
+</h2>
+            <p>Version <b>1.1</b> of this package was accepted for publication in <a href="https://msp.org/jsag/2021/11-1/">volume 11</a> of <a href="https://msp.org/jsag/">The Journal of Software for Algebra and Geometry</a> on 8 October 2021, in the article <a href="https://msp.org/jsag/2021/11-1/p12.xhtml">Threaded Gröbner bases: a Macaulay2 package</a> (DOI: <a href="https://doi.org/10.2140/jsag.2021.11.123">10.2140/jsag.2021.11.123</a>). That version can be obtained from <a href="https://msp.org/jsag/2021/11-1/jsag-v11-n1-x12-ThreadedGB.m2">the journal</a>.</p>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>1.1</b> of ThreadedGB, released <b>November 12, 2020</b>.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{ThreadedGBSource,
+  title = {{ThreadedGB: A \emph{Macaulay2} package. Version~1.1}},
+  author = {Sonja Petrovic and Sara Jamshidi Zelenberg},
+  howpublished = {A \emph{Macaulay2} package available at
+    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}
+}
+
+@article{ThreadedGBArticle,
+  title = {{Threaded Gröbner bases: a \emph{Macaulay2} package}},
+  author = {Sonja Petrovic and Sara Jamshidi Zelenberg},
+  journal = {The Journal of Software for Algebra and Geometry},
+  volume = {11},
+  year = {2021},
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Types                  <ul>
+                    <li><span><a title="a hash table of Gröbner basis polynomials and their lineages" href="___Lineage__Table.html">LineageTable</a> -- a hash table of Gröbner basis polynomials and their lineages</span></li>
+                  </ul>
+                </li>
+                <li>Functions and commands                  <ul>
+                    <li><span><a title="produce a reduced Gröbner basis from one computed by threaded Gröbner bases" href="_reduce.html">reduce</a> -- produce a reduced Gröbner basis from one computed by threaded Gröbner bases</span></li>
+                    <li><span><a title="threaded Gröbner bases" href="_tgb.html">tgb</a> -- threaded Gröbner bases</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><a title="extract a matrix of polynomials from values of a LineageTable after deleting null values" href="_matrix_lp__Lineage__Table_rp.html">matrix(LineageTable)</a> -- extract a matrix of polynomials from values of a LineageTable after deleting null values</span></li>
+                    <li><span><a title="turn a Gröbner basis computed using threaded Gröbner bases into a minimal one" href="_minimize_lp__Lineage__Table_rp.html">minimize(LineageTable)</a> -- turn a Gröbner basis computed using threaded Gröbner bases into a minimal one</span></li>
+                    <li><span><kbd>reduce(LineageTable)</kbd> -- see <span><a title="produce a reduced Gröbner basis from one computed by threaded Gröbner bases" href="_reduce.html">reduce</a> -- produce a reduced Gröbner basis from one computed by threaded Gröbner bases</span></span></li>
+                    <li><span><kbd>tgb(Ideal)</kbd> -- see <span><a title="threaded Gröbner bases" href="_tgb.html">tgb</a> -- threaded Gröbner bases</span></span></li>
+                    <li><span><kbd>tgb(List)</kbd> -- see <span><a title="threaded Gröbner bases" href="_tgb.html">tgb</a> -- threaded Gröbner bases</span></span></li>
+                  </ul>
+                </li>
+                <li>Symbols                  <ul>
+                    <li><span><a title="Option to specify whether the end Gröbner basis should be a minimal Gröbner basis" href="___Minimal.html">Minimal</a> -- Option to specify whether the end Gröbner basis should be a minimal Gröbner basis</span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="Compute a Groebner basis using the classical Buchberger with multiple threads" href="index.html">ThreadedGB</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">ThreadedGB.m2</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">ThreadedGB.m2:397:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>filtered complexes and spectral sequences from simplicial complexes</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="spectral sequences" href="index.html">SpectralSequences</a> :: <a href="_filtered_spcomplexes_spand_spspectral_spsequences_spfrom_spsimplicial_spcomplexes.html">filtered complexes and spectral sequences from simplicial complexes</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Filtered__Complex.html">next</a> | <a href="___Filtered_spcomplexes_spand_spsimplicial_spcomplexes.html">previous</a> | <a href="___Filtered__Complex.html">forward</a> | <a href="___Filtered_spcomplexes_spand_spsimplicial_spcomplexes.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>filtered complexes and spectral sequences from simplicial complexes</h1>
+      <div>
+        <div>
+          <p>To make a filtered complex from a list of simplicial complexes we first need to make some simplicial complexes.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[x,y,z,w];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : a = simplicialComplex {x*y*z, x*y, y*z, w*z}
+
+o2 = simplicialComplex | zw xyz |
+
+o2 : SimplicialComplex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : b = simplicialComplex {x*y, w}
+
+o3 = simplicialComplex | w xy |
+
+o3 : SimplicialComplex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : c = simplicialComplex {x,w}
+
+o4 = simplicialComplex | w x |
+
+o4 : SimplicialComplex</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Note that $b$ is a simplicial subcomplex of $a$ and that $c$ is a simplicial subcomplex of $b$. Let's now create a filtered complex.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : K = filteredComplex{a,b,c}
+
+o5 = -1 : image 0 &lt;-- image 0 &lt;-- image 0 &lt;-- image 0
+                                               
+          -1          0           1           2
+
+     0 : image | 1 | &lt;-- image | 1 0 | &lt;-- image 0 &lt;-- image 0
+                               | 0 0 |                  
+         -1                    | 0 0 |     1           2
+                               | 0 1 |
+                          
+                         0
+
+     1 : image | 1 | &lt;-- image | 1 0 0 | &lt;-- image | 1 | &lt;-- image 0
+                               | 0 1 0 |           | 0 |      
+         -1                    | 0 0 0 |           | 0 |     2
+                               | 0 0 1 |           | 0 |
+                                              
+                         0                   1
+
+           1       4       4       1
+     2 : QQ  &lt;-- QQ  &lt;-- QQ  &lt;-- QQ
+                                  
+         -1      0       1       2
+
+o5 : FilteredComplex</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The associated spectral sequence takes the form:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : E = spectralSequence K
+
+o6 = E
+
+o6 : SpectralSequence</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Let's view some pages and maps of these pages.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : E^0
+
+     +-----------------------------+----------------------------------------+---------------------+
+     |                             |                                        |  1                  |
+o7 = |image | 1 0 0 0 0 0 0 0 0 0 ||image | 1 |                             |QQ                   |
+     |      | 0 0 0 0 0 0 0 0 0 0 ||      | 0 |                             |                     |
+     |      | 0 0 0 0 0 0 0 0 0 0 ||      | 0 |                             |{2, 0}               |
+     |      | 0 1 0 0 0 0 0 0 0 0 ||      | 0 |                             |                     |
+     |                             |                                        |                     |
+     |{0, 0}                       |{1, 0}                                  |                     |
+     +-----------------------------+----------------------------------------+---------------------+
+     |image | 1 0 0 0 0 0 |        |subquotient (| 1 0 0 1 0 |, | 1 0 |)    |cokernel | 1 |       |
+     |                             |             | 0 1 0 0 0 |  | 0 0 |     |         | 0 |       |
+     |{0, -1}                      |             | 0 0 0 0 0 |  | 0 0 |     |         | 0 |       |
+     |                             |             | 0 0 1 0 1 |  | 0 1 |     |         | 0 |       |
+     |                             |                                        |                     |
+     |                             |{1, -1}                                 |{2, -1}              |
+     +-----------------------------+----------------------------------------+---------------------+
+     |0                            |subquotient (| 1 -1 -1 1 |, | -1 -1 1 |)|cokernel | 1  1 0 0 ||
+     |                             |                                        |         | -1 0 1 0 ||
+     |{0, -2}                      |{1, -2}                                 |         | 0  0 0 0 ||
+     |                             |                                        |         | 0  0 0 1 ||
+     |                             |                                        |                     |
+     |                             |                                        |{2, -2}              |
+     +-----------------------------+----------------------------------------+---------------------+
+
+o7 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : F0 = minimalPresentation(E^0)
+
+     +-------+-------+-------+
+     |  2    |  1    |  1    |
+o8 = |QQ     |QQ     |QQ     |
+     |       |       |       |
+     |{0, 0} |{1, 0} |{2, 0} |
+     +-------+-------+-------+
+     |  1    |  1    |  3    |
+     |QQ     |QQ     |QQ     |
+     |       |       |       |
+     |{0, -1}|{1, -1}|{2, -1}|
+     +-------+-------+-------+
+     |       |       |  1    |
+     |0      |0      |QQ     |
+     |       |       |       |
+     |{0, -2}|{1, -2}|{2, -2}|
+     +-------+-------+-------+
+
+o8 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : E^0 .dd
+
+o9 = {-1, 0} : image 0 &lt;----- image 0 : {-1, 1}
+                          0
+
+     {-1, 1} : image 0 &lt;----- image 0 : {-1, 2}
+                          0
+
+     {-1, 2} : image 0 &lt;----- image 0 : {-1, 3}
+                          0
+
+     {2, -4} : 0 &lt;----- cokernel | -1 -1 -1 1 | : {2, -3}
+                    0
+
+     {2, -3} : cokernel | -1 -1 -1 1 | &lt;----- cokernel | 1  1 0 0 | : {2, -2}
+                                          0            | -1 0 1 0 |
+                                                       | 0  0 0 0 |
+                                                       | 0  0 0 1 |
+
+     {2, -2} : cokernel | 1  1 0 0 | &lt;----------------- cokernel | 1 | : {2, -1}
+                        | -1 0 1 0 |    | 0 0  0  0 |            | 0 |
+                        | 0  0 0 0 |    | 0 0  0  0 |            | 0 |
+                        | 0  0 0 1 |    | 0 -1 -1 1 |            | 0 |
+                                        | 0 0  0  0 |
+
+                                            1
+     {2, -1} : cokernel | 1 | &lt;---------- QQ  : {2, 0}
+                        | 0 |    | 0  |
+                        | 0 |    | 1  |
+                        | 0 |    | -1 |
+                                 | 0  |
+
+     {1, -3} : 0 &lt;----- subquotient (| 1 -1 -1 1 |, | -1 -1 1 |) : {1, -2}
+                    0
+
+     {1, -2} : subquotient (| 1 -1 -1 1 |, | -1 -1 1 |) &lt;----- subquotient (| 1 0 0 1 0 |, | 1 0 |) : {1, -1}
+                                                           0                | 0 1 0 0 0 |  | 0 0 |
+                                                                            | 0 0 0 0 0 |  | 0 0 |
+                                                                            | 0 0 1 0 1 |  | 0 1 |
+
+     {1, -1} : subquotient (| 1 0 0 1 0 |, | 1 0 |) &lt;---------- image | 1 | : {1, 0}
+                            | 0 1 0 0 0 |  | 0 0 |     | 0  |         | 0 |
+                            | 0 0 0 0 0 |  | 0 0 |     | -1 |         | 0 |
+                            | 0 0 1 0 1 |  | 0 1 |     | 0  |         | 0 |
+                                                       | 0  |
+                                                       | 0  |
+
+     {1, 0} : image | 1 | &lt;----- image 0 : {1, 1}
+                    | 0 |    0
+                    | 0 |
+                    | 0 |
+
+     {0, -2} : 0 &lt;----- image | 1 0 0 0 0 0 | : {0, -1}
+                    0
+
+     {0, -1} : image | 1 0 0 0 0 0 | &lt;----------------------------- image | 1 0 0 0 0 0 0 0 0 0 | : {0, 0}
+                                        | -1 -1 0 0 0 0 0 0 0 0 |         | 0 0 0 0 0 0 0 0 0 0 |
+                                        | 0  0  0 0 0 0 0 0 0 0 |         | 0 0 0 0 0 0 0 0 0 0 |
+                                        | 0  0  0 0 0 0 0 0 0 0 |         | 0 1 0 0 0 0 0 0 0 0 |
+                                        | 0  0  0 0 0 0 0 0 0 0 |
+                                        | 0  0  0 0 0 0 0 0 0 0 |
+                                        | 0  0  0 0 0 0 0 0 0 0 |
+
+     {0, 0} : image | 1 0 0 0 0 0 0 0 0 0 | &lt;----- image 0 : {0, 1}
+                    | 0 0 0 0 0 0 0 0 0 0 |    0
+                    | 0 0 0 0 0 0 0 0 0 0 |
+                    | 0 1 0 0 0 0 0 0 0 0 |
+
+     {0, 1} : image 0 &lt;----- image 0 : {0, 2}
+                         0
+
+     {-1, -1} : 0 &lt;----- image 0 : {-1, 0}
+                     0
+
+o9 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : F0.dd
+
+o10 = {-1, 0} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-1, 1} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+      {2, -4} : 0 &lt;----- 0 : {2, -3}
+                     0
+
+                           1
+      {2, -3} : 0 &lt;----- QQ  : {2, -2}
+                     0
+
+                  1                    3
+      {2, -2} : QQ  &lt;--------------- QQ  : {2, -1}
+                       | -1 -1 1 |
+
+                  3               1
+      {2, -1} : QQ  &lt;---------- QQ  : {2, 0}
+                       | 1  |
+                       | -1 |
+                       | 0  |
+
+      {1, -3} : 0 &lt;----- 0 : {1, -2}
+                     0
+
+                           1
+      {1, -2} : 0 &lt;----- QQ  : {1, -1}
+                     0
+
+                  1               1
+      {1, -1} : QQ  &lt;---------- QQ  : {1, 0}
+                       | -1 |
+
+                 1
+      {1, 0} : QQ  &lt;----- 0 : {1, 1}
+                      0
+
+                           1
+      {0, -2} : 0 &lt;----- QQ  : {0, -1}
+                     0
+
+                  1                  2
+      {0, -1} : QQ  &lt;------------- QQ  : {0, 0}
+                       | -1 -1 |
+
+                 2
+      {0, 0} : QQ  &lt;----- 0 : {0, 1}
+                      0
+
+      {0, 1} : 0 &lt;----- 0 : {0, 2}
+                    0
+
+      {-1, -1} : 0 &lt;----- 0 : {-1, 0}
+                      0
+
+o10 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : E^1
+
+      +----------------------------------------+------------------------------------------+---------------------------------------+
+o11 = |image | -1 0 0 0 0 |                    |image 0                                   |image 0                                |
+      |      | 0  0 0 0 0 |                    |                                          |                                       |
+      |      | 0  0 0 0 0 |                    |{1, 0}                                    |{2, 0}                                 |
+      |      | 1  0 0 0 0 |                    |                                          |                                       |
+      |                                        |                                          |                                       |
+      |{0, 0}                                  |                                          |                                       |
+      +----------------------------------------+------------------------------------------+---------------------------------------+
+      |subquotient (| 1 -1 -1 0 |, | -1 -1 0 |)|subquotient (| 1 0 0 1  1 0 |, | 1  1 0 |)|subquotient (| 1 0  0 -1 1 |, | -1 1 |)|
+      |                                        |             | 0 1 0 -1 0 0 |  | -1 0 0 | |             | 0 -1 1 1  0 |  | 1  0 | |
+      |{0, -1}                                 |             | 0 0 0 0  0 0 |  | 0  0 0 | |             | 0 1  0 -1 0 |  | -1 0 | |
+      |                                        |             | 0 0 1 0  0 1 |  | 0  0 1 | |             | 0 0  1 0  0 |  | 0  0 | |
+      |                                        |                                          |                                       |
+      |                                        |{1, -1}                                   |{2, -1}                                |
+      +----------------------------------------+------------------------------------------+---------------------------------------+
+
+o11 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : F1 = minimalPresentation(E^1)
+
+      +-------+-------+-------+
+      |  1    |       |       |
+o12 = |QQ     |0      |0      |
+      |       |       |       |
+      |{0, 0} |{1, 0} |{2, 0} |
+      +-------+-------+-------+
+      |       |       |  1    |
+      |0      |0      |QQ     |
+      |       |       |       |
+      |{0, -1}|{1, -1}|{2, -1}|
+      +-------+-------+-------+
+
+o12 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : E^1 .dd
+
+o13 = {-2, 1} : image 0 &lt;----- image 0 : {-1, 1}
+                           0
+
+      {-2, 2} : image 0 &lt;----- image 0 : {-1, 2}
+                           0
+
+      {-2, 3} : image 0 &lt;----- image 0 : {-1, 3}
+                           0
+
+      {1, -3} : 0 &lt;----- cokernel | -1 -1 -1 -1 1 | : {2, -3}
+                     0
+
+      {1, -2} : subquotient (| 1 -1 -1 -1 1 |, | -1 -1 -1 1 |) &lt;----- cokernel | 1  1  0  0  1 0 0 | : {2, -2}
+                                                                  0            | -1 0  1  0  0 1 0 |
+                                                                               | 0  -1 -1 1  0 0 0 |
+                                                                               | 0  0  0  -1 0 0 1 |
+
+      {1, -1} : subquotient (| 1 0 0 1  1 0 |, | 1  1 0 |) &lt;----- subquotient (| 1 0  0 -1 1 |, | -1 1 |) : {2, -1}
+                             | 0 1 0 -1 0 0 |  | -1 0 0 |     0                | 0 -1 1 1  0 |  | 1  0 |
+                             | 0 0 0 0  0 0 |  | 0  0 0 |                      | 0 1  0 -1 0 |  | -1 0 |
+                             | 0 0 1 0  0 1 |  | 0  0 1 |                      | 0 0  1 0  0 |  | 0  0 |
+
+      {1, 0} : image 0 &lt;----- image 0 : {2, 0}
+                          0
+
+      {0, -2} : 0 &lt;----- subquotient (| 1 -1 -1 -1 1 |, | -1 -1 -1 1 |) : {1, -2}
+                     0
+
+      {0, -1} : subquotient (| 1 -1 -1 0 |, | -1 -1 0 |) &lt;----- subquotient (| 1 0 0 1  1 0 |, | 1  1 0 |) : {1, -1}
+                                                            0                | 0 1 0 -1 0 0 |  | -1 0 0 |
+                                                                             | 0 0 0 0  0 0 |  | 0  0 0 |
+                                                                             | 0 0 1 0  0 1 |  | 0  0 1 |
+
+      {0, 0} : image | -1 0 0 0 0 | &lt;----- image 0 : {1, 0}
+                     | 0  0 0 0 0 |    0
+                     | 0  0 0 0 0 |
+                     | 1  0 0 0 0 |
+
+      {0, 1} : image 0 &lt;----- image 0 : {1, 1}
+                          0
+
+      {-1, -1} : 0 &lt;----- subquotient (| 1 -1 -1 0 |, | -1 -1 0 |) : {0, -1}
+                      0
+
+      {-1, 0} : image 0 &lt;----- image | -1 0 0 0 0 | : {0, 0}
+                           0         | 0  0 0 0 0 |
+                                     | 0  0 0 0 0 |
+                                     | 1  0 0 0 0 |
+
+      {-1, 1} : image 0 &lt;----- image 0 : {0, 1}
+                           0
+
+      {-1, 2} : image 0 &lt;----- image 0 : {0, 2}
+                           0
+
+      {-2, 0} : 0 &lt;----- image 0 : {-1, 0}
+                     0
+
+o13 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : F1.dd
+
+o14 = {-2, 1} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-2, 2} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-2, 3} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+      {1, -3} : 0 &lt;----- 0 : {2, -3}
+                     0
+
+      {1, -2} : 0 &lt;----- 0 : {2, -2}
+                     0
+
+                           1
+      {1, -1} : 0 &lt;----- QQ  : {2, -1}
+                     0
+
+      {1, 0} : 0 &lt;----- 0 : {2, 0}
+                    0
+
+      {0, -2} : 0 &lt;----- 0 : {1, -2}
+                     0
+
+      {0, -1} : 0 &lt;----- 0 : {1, -1}
+                     0
+
+                 1
+      {0, 0} : QQ  &lt;----- 0 : {1, 0}
+                      0
+
+      {0, 1} : 0 &lt;----- 0 : {1, 1}
+                    0
+
+      {-1, -1} : 0 &lt;----- 0 : {0, -1}
+                      0
+
+                           1
+      {-1, 0} : 0 &lt;----- QQ  : {0, 0}
+                     0
+
+      {-1, 1} : 0 &lt;----- 0 : {0, 1}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {0, 2}
+                     0
+
+      {-2, 0} : 0 &lt;----- 0 : {-1, 0}
+                     0
+
+o14 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : E^2
+
+      +-----------------------------------------------+------------------------------------------------------------+-------------------------------------+
+o15 = |subquotient (| -1 1  0 0 0 0 |, | 1  0 0 0 0 |)|subquotient (| -1 |, | -1 |)                                |image 0                              |
+      |             | 0  -1 0 0 0 0 |  | -1 0 0 0 0 | |             | 1  |  | 1  |                                 |                                     |
+      |             | 0  0  0 0 0 0 |  | 0  0 0 0 0 | |             | -1 |  | -1 |                                 |{2, 0}                               |
+      |             | 1  0  0 0 0 0 |  | 0  0 0 0 0 | |             | 0  |  | 0  |                                 |                                     |
+      |                                               |                                                            |                                     |
+      |{0, 0}                                         |{1, 0}                                                      |                                     |
+      +-----------------------------------------------+------------------------------------------------------------+-------------------------------------+
+      |subquotient (| 1 -1 -1 -1 0 |, | -1 -1 -1 0 |) |subquotient (| -1 -1 1  1  0  0  1 0 |, | 1  1  0  0  1 0 |)|subquotient (| 1  0 -1 1 |, | -1 1 |)|
+      |                                               |             | 1  0  -1 0  1  0  0 0 |  | -1 0  1  0  0 0 | |             | -1 1 1  0 |  | 1  0 | |
+      |{0, -1}                                        |             | 0  0  0  -1 -1 1  0 0 |  | 0  -1 -1 1  0 0 | |             | 1  0 -1 0 |  | -1 0 | |
+      |                                               |             | 0  1  0  0  0  -1 0 1 |  | 0  0  0  -1 0 1 | |             | 0  1 0  0 |  | 0  0 | |
+      |                                               |                                                            |                                     |
+      |                                               |{1, -1}                                                     |{2, -1}                              |
+      +-----------------------------------------------+------------------------------------------------------------+-------------------------------------+
+
+o15 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : F2 = minimalPresentation(E^2)
+
+      +-------+-------+-------+
+      |  1    |       |       |
+o16 = |QQ     |0      |0      |
+      |       |       |       |
+      |{0, 0} |{1, 0} |{2, 0} |
+      +-------+-------+-------+
+      |       |       |  1    |
+      |0      |0      |QQ     |
+      |       |       |       |
+      |{0, -1}|{1, -1}|{2, -1}|
+      +-------+-------+-------+
+
+o16 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : E^2 .dd
+
+o17 = {-3, 2} : image 0 &lt;----- image 0 : {-1, 1}
+                           0
+
+      {-3, 3} : image 0 &lt;----- image 0 : {-1, 2}
+                           0
+
+      {-3, 4} : image 0 &lt;----- image 0 : {-1, 3}
+                           0
+
+      {0, -2} : 0 &lt;----- cokernel | -1 -1 -1 -1 1 | : {2, -3}
+                     0
+
+      {0, -1} : subquotient (| 1 -1 -1 -1 0 |, | -1 -1 -1 0 |) &lt;----- cokernel | 1  1  0  0  1 0 0 | : {2, -2}
+                                                                  0            | -1 0  1  0  0 1 0 |
+                                                                               | 0  -1 -1 1  0 0 0 |
+                                                                               | 0  0  0  -1 0 0 1 |
+
+      {0, 0} : subquotient (| -1 1  0 0 0 0 |, | 1  0 0 0 0 |) &lt;---------------- subquotient (| 1  0 -1 1 |, | -1 1 |) : {2, -1}
+                            | 0  -1 0 0 0 0 |  | -1 0 0 0 0 |     | 0 -1 0 0 |                | -1 1 1  0 |  | 1  0 |
+                            | 0  0  0 0 0 0 |  | 0  0 0 0 0 |     | 0 0  0 0 |                | 1  0 -1 0 |  | -1 0 |
+                            | 1  0  0 0 0 0 |  | 0  0 0 0 0 |     | 0 0  0 0 |                | 0  1 0  0 |  | 0  0 |
+                                                                  | 0 0  0 0 |
+                                                                  | 0 0  0 0 |
+                                                                  | 0 0  0 0 |
+
+      {0, 1} : image 0 &lt;----- image 0 : {2, 0}
+                          0
+
+      {-1, -1} : 0 &lt;----- subquotient (| 1 -1 -1 -1 -1 1 |, | -1 -1 -1 -1 1 |) : {1, -2}
+                      0
+
+      {-1, 0} : subquotient (| 0 -1 -1 0 |, | -1 -1 0 |) &lt;----- subquotient (| -1 -1 1  1  0  0  1 0 |, | 1  1  0  0  1 0 |) : {1, -1}
+                                                            0                | 1  0  -1 0  1  0  0 0 |  | -1 0  1  0  0 0 |
+                                                                             | 0  0  0  -1 -1 1  0 0 |  | 0  -1 -1 1  0 0 |
+                                                                             | 0  1  0  0  0  -1 0 1 |  | 0  0  0  -1 0 1 |
+
+      {-1, 1} : image 0 &lt;----- subquotient (| -1 |, | -1 |) : {1, 0}
+                           0                | 1  |  | 1  |
+                                            | -1 |  | -1 |
+                                            | 0  |  | 0  |
+
+      {-1, 2} : image 0 &lt;----- image 0 : {1, 1}
+                           0
+
+      {-2, 0} : 0 &lt;----- subquotient (| 1 -1 -1 -1 0 |, | -1 -1 -1 0 |) : {0, -1}
+                     0
+
+      {-2, 1} : image 0 &lt;----- subquotient (| -1 1  0 0 0 0 |, | 1  0 0 0 0 |) : {0, 0}
+                           0                | 0  -1 0 0 0 0 |  | -1 0 0 0 0 |
+                                            | 0  0  0 0 0 0 |  | 0  0 0 0 0 |
+                                            | 1  0  0 0 0 0 |  | 0  0 0 0 0 |
+
+      {-2, 2} : image 0 &lt;----- image 0 : {0, 1}
+                           0
+
+      {-2, 3} : image 0 &lt;----- image 0 : {0, 2}
+                           0
+
+      {-3, 1} : 0 &lt;----- subquotient (| 0 -1 -1 0 |, | -1 -1 0 |) : {-1, 0}
+                     0
+
+o17 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : F2.dd
+
+o18 = {-3, 2} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-3, 3} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-3, 4} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+      {0, -2} : 0 &lt;----- 0 : {2, -3}
+                     0
+
+      {0, -1} : 0 &lt;----- 0 : {2, -2}
+                     0
+
+                 1               1
+      {0, 0} : QQ  &lt;---------- QQ  : {2, -1}
+                      | -1 |
+
+      {0, 1} : 0 &lt;----- 0 : {2, 0}
+                    0
+
+      {-1, -1} : 0 &lt;----- 0 : {1, -2}
+                      0
+
+      {-1, 0} : 0 &lt;----- 0 : {1, -1}
+                     0
+
+      {-1, 1} : 0 &lt;----- 0 : {1, 0}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {1, 1}
+                     0
+
+      {-2, 0} : 0 &lt;----- 0 : {0, -1}
+                     0
+
+                           1
+      {-2, 1} : 0 &lt;----- QQ  : {0, 0}
+                     0
+
+      {-2, 2} : 0 &lt;----- 0 : {0, 1}
+                     0
+
+      {-2, 3} : 0 &lt;----- 0 : {0, 2}
+                     0
+
+      {-3, 1} : 0 &lt;----- 0 : {-1, 0}
+                     0
+
+o18 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : E^infinity
+
+o19 = ++
+      ++
+
+o19 : Page</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : (prune E) ^infinity
+
+o20 = ++
+      ++
+
+o20 : Page</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>If we want the resulting complexes to correspond to the non-reduced homology of the simplicial complexes we set the ReducedHomology option to false.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : J = filteredComplex({a,b,c}, ReducedHomology => false)
+
+o21 = -1 : image 0 &lt;-- image 0 &lt;-- image 0
+                                    
+           0           1           2
+
+      0 : image | 1 0 | &lt;-- image 0 &lt;-- image 0
+                | 0 0 |                  
+                | 0 0 |     1           2
+                | 0 1 |
+           
+          0
+
+      1 : image | 1 0 0 | &lt;-- image | 1 | &lt;-- image 0
+                | 0 1 0 |           | 0 |      
+                | 0 0 0 |           | 0 |     2
+                | 0 0 1 |           | 0 |
+                               
+          0                   1
+
+            4       4       1
+      2 : QQ  &lt;-- QQ  &lt;-- QQ
+                           
+          0       1       2
+
+o21 : FilteredComplex</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The resulting spectral sequence looks like</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : D = spectralSequence J
+
+o22 = D
+
+o22 : SpectralSequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : D^0
+
+      +-----------------------------+------------------------------------+---------------------+
+      |                             |                                    |  1                  |
+o23 = |image | 1 0 0 0 0 0 0 0 0 0 ||image | 1 |                         |QQ                   |
+      |      | 0 0 0 0 0 0 0 0 0 0 ||      | 0 |                         |                     |
+      |      | 0 0 0 0 0 0 0 0 0 0 ||      | 0 |                         |{2, 0}               |
+      |      | 0 1 0 0 0 0 0 0 0 0 ||      | 0 |                         |                     |
+      |                             |                                    |                     |
+      |{0, 0}                       |{1, 0}                              |                     |
+      +-----------------------------+------------------------------------+---------------------+
+      |0                            |subquotient (| 1 0 0 1 0 |, | 1 0 |)|cokernel | 1 |       |
+      |                             |             | 0 1 0 0 0 |  | 0 0 | |         | 0 |       |
+      |{0, -1}                      |             | 0 0 0 0 0 |  | 0 0 | |         | 0 |       |
+      |                             |             | 0 0 1 0 1 |  | 0 1 | |         | 0 |       |
+      |                             |                                    |                     |
+      |                             |{1, -1}                             |{2, -1}              |
+      +-----------------------------+------------------------------------+---------------------+
+      |0                            |0                                   |cokernel | 1  1 0 0 ||
+      |                             |                                    |         | -1 0 1 0 ||
+      |{0, -2}                      |{1, -2}                             |         | 0  0 0 0 ||
+      |                             |                                    |         | 0  0 0 1 ||
+      |                             |                                    |                     |
+      |                             |                                    |{2, -2}              |
+      +-----------------------------+------------------------------------+---------------------+
+
+o23 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : G0 = minimalPresentation(D^0)
+
+      +-------+-------+-------+
+      |  2    |  1    |  1    |
+o24 = |QQ     |QQ     |QQ     |
+      |       |       |       |
+      |{0, 0} |{1, 0} |{2, 0} |
+      +-------+-------+-------+
+      |       |  1    |  3    |
+      |0      |QQ     |QQ     |
+      |       |       |       |
+      |{0, -1}|{1, -1}|{2, -1}|
+      +-------+-------+-------+
+      |       |       |  1    |
+      |0      |0      |QQ     |
+      |       |       |       |
+      |{0, -2}|{1, -2}|{2, -2}|
+      +-------+-------+-------+
+
+o24 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : G0.dd
+
+o25 = {-1, 0} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-1, 1} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+                           1
+      {2, -3} : 0 &lt;----- QQ  : {2, -2}
+                     0
+
+                  1                    3
+      {2, -2} : QQ  &lt;--------------- QQ  : {2, -1}
+                       | -1 -1 1 |
+
+                  3               1
+      {2, -1} : QQ  &lt;---------- QQ  : {2, 0}
+                       | 1  |
+                       | -1 |
+                       | 0  |
+
+                           1
+      {1, -2} : 0 &lt;----- QQ  : {1, -1}
+                     0
+
+                  1               1
+      {1, -1} : QQ  &lt;---------- QQ  : {1, 0}
+                       | -1 |
+
+                 1
+      {1, 0} : QQ  &lt;----- 0 : {1, 1}
+                      0
+
+                           2
+      {0, -1} : 0 &lt;----- QQ  : {0, 0}
+                     0
+
+                 2
+      {0, 0} : QQ  &lt;----- 0 : {0, 1}
+                      0
+
+      {0, 1} : 0 &lt;----- 0 : {0, 2}
+                    0
+
+o25 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : D^1
+
+      +---------------------+------------------------------------------+---------------------------------------+
+o26 = |image | 1 0 0 0 0 0 ||image 0                                   |image 0                                |
+      |      | 0 0 0 0 0 0 ||                                          |                                       |
+      |      | 0 0 0 0 0 0 ||{1, 0}                                    |{2, 0}                                 |
+      |      | 0 1 0 0 0 0 ||                                          |                                       |
+      |                     |                                          |                                       |
+      |{0, 0}               |                                          |                                       |
+      +---------------------+------------------------------------------+---------------------------------------+
+      |0                    |subquotient (| 1 0 0 1  1 0 |, | 1  1 0 |)|subquotient (| 1 0  0 -1 1 |, | -1 1 |)|
+      |                     |             | 0 1 0 -1 0 0 |  | -1 0 0 | |             | 0 -1 1 1  0 |  | 1  0 | |
+      |{0, -1}              |             | 0 0 0 0  0 0 |  | 0  0 0 | |             | 0 1  0 -1 0 |  | -1 0 | |
+      |                     |             | 0 0 1 0  0 1 |  | 0  0 1 | |             | 0 0  1 0  0 |  | 0  0 | |
+      |                     |                                          |                                       |
+      |                     |{1, -1}                                   |{2, -1}                                |
+      +---------------------+------------------------------------------+---------------------------------------+
+
+o26 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : G1 = minimalPresentation(D^1)
+
+      +-------+-------+-------+
+      |  2    |       |       |
+o27 = |QQ     |0      |0      |
+      |       |       |       |
+      |{0, 0} |{1, 0} |{2, 0} |
+      +-------+-------+-------+
+      |       |       |  1    |
+      |0      |0      |QQ     |
+      |       |       |       |
+      |{0, -1}|{1, -1}|{2, -1}|
+      +-------+-------+-------+
+
+o27 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : G1.dd
+
+o28 = {-2, 1} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-2, 2} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-2, 3} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+      {1, -2} : 0 &lt;----- 0 : {2, -2}
+                     0
+
+                           1
+      {1, -1} : 0 &lt;----- QQ  : {2, -1}
+                     0
+
+      {1, 0} : 0 &lt;----- 0 : {2, 0}
+                    0
+
+      {0, -1} : 0 &lt;----- 0 : {1, -1}
+                     0
+
+                 2
+      {0, 0} : QQ  &lt;----- 0 : {1, 0}
+                      0
+
+      {0, 1} : 0 &lt;----- 0 : {1, 1}
+                    0
+
+                           2
+      {-1, 0} : 0 &lt;----- QQ  : {0, 0}
+                     0
+
+      {-1, 1} : 0 &lt;----- 0 : {0, 1}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {0, 2}
+                     0
+
+o28 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : D^2
+
+      +------------------------------------------------+------------------------------------------------------------+-------------------------------------+
+o29 = |subquotient (| 1 0 1  0 0 0 0 |, | 1  0 0 0 0 |)|subquotient (| -1 |, | -1 |)                                |image 0                              |
+      |             | 0 0 -1 0 0 0 0 |  | -1 0 0 0 0 | |             | 1  |  | 1  |                                 |                                     |
+      |             | 0 0 0  0 0 0 0 |  | 0  0 0 0 0 | |             | -1 |  | -1 |                                 |{2, 0}                               |
+      |             | 0 1 0  0 0 0 0 |  | 0  0 0 0 0 | |             | 0  |  | 0  |                                 |                                     |
+      |                                                |                                                            |                                     |
+      |{0, 0}                                          |{1, 0}                                                      |                                     |
+      +------------------------------------------------+------------------------------------------------------------+-------------------------------------+
+      |0                                               |subquotient (| 1 0 0 1  1  0  0  1 0 |, | 1  1  0  0  1 0 |)|subquotient (| 1  0 -1 1 |, | -1 1 |)|
+      |                                                |             | 0 1 0 -1 0  1  0  0 0 |  | -1 0  1  0  0 0 | |             | -1 1 1  0 |  | 1  0 | |
+      |{0, -1}                                         |             | 0 0 0 0  -1 -1 1  0 0 |  | 0  -1 -1 1  0 0 | |             | 1  0 -1 0 |  | -1 0 | |
+      |                                                |             | 0 0 1 0  0  0  -1 0 1 |  | 0  0  0  -1 0 1 | |             | 0  1 0  0 |  | 0  0 | |
+      |                                                |                                                            |                                     |
+      |                                                |{1, -1}                                                     |{2, -1}                              |
+      +------------------------------------------------+------------------------------------------------------------+-------------------------------------+
+
+o29 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i30 : G2 = minimalPresentation(D^2)
+
+      +-------+-------+-------+
+      |  2    |       |       |
+o30 = |QQ     |0      |0      |
+      |       |       |       |
+      |{0, 0} |{1, 0} |{2, 0} |
+      +-------+-------+-------+
+      |       |       |  1    |
+      |0      |0      |QQ     |
+      |       |       |       |
+      |{0, -1}|{1, -1}|{2, -1}|
+      +-------+-------+-------+
+
+o30 : SpectralSequencePage</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i31 : G2.dd
+
+o31 = {-3, 2} : 0 &lt;----- 0 : {-1, 1}
+                     0
+
+      {-3, 3} : 0 &lt;----- 0 : {-1, 2}
+                     0
+
+      {-3, 4} : 0 &lt;----- 0 : {-1, 3}
+                     0
+
+      {0, -1} : 0 &lt;----- 0 : {2, -2}
+                     0
+
+                 2               1
+      {0, 0} : QQ  &lt;---------- QQ  : {2, -1}
+                      | 1  |
+                      | -1 |
+
+      {0, 1} : 0 &lt;----- 0 : {2, 0}
+                    0
+
+      {-1, 0} : 0 &lt;----- 0 : {1, -1}
+                     0
+
+      {-1, 1} : 0 &lt;----- 0 : {1, 0}
+                     0
+
+      {-1, 2} : 0 &lt;----- 0 : {1, 1}
+                     0
+
+                           2
+      {-2, 1} : 0 &lt;----- QQ  : {0, 0}
+                     0
+
+      {-2, 2} : 0 &lt;----- 0 : {0, 1}
+                     0
+
+      {-2, 3} : 0 &lt;----- 0 : {0, 2}
+                     0
+
+o31 : SpectralSequencePageMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i32 : D^infinity
+
+      +------------------------------------------------------------------+
+o32 = |subquotient (| 1 0 1  1  0  0  0 0 0 0 |, | 1  1  0  0  0 0 0 0 |)|
+      |             | 0 0 -1 0  1  0  0 0 0 0 |  | -1 0  1  0  0 0 0 0 | |
+      |             | 0 0 0  -1 -1 1  0 0 0 0 |  | 0  -1 -1 1  0 0 0 0 | |
+      |             | 0 1 0  0  0  -1 0 0 0 0 |  | 0  0  0  -1 0 0 0 0 | |
+      |                                                                  |
+      |{0, 0}                                                            |
+      +------------------------------------------------------------------+
+
+o32 : Page</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SpectralSequences.m2:3764:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

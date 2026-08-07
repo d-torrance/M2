@@ -1,0 +1,161 @@
+-- -*- M2-comint -*- hash: 4720115785640844128
+
+i1 : R = QQ[x, y] / ideal(x^2, y^2)
+
+o1 = R
+
+o1 : QuotientRing
+
+i2 : A = koszulComplexDGA R
+
+o2 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,2
+      Differential => {x, y}
+
+o2 : DGAlgebra
+
+i3 : Mdg = minimalSemifreeResolution(A, R^1 / ideal(x, y), EndDegree => 3)
+
+o3 = {Base ring => R                                                                                    }
+      DG algebra => R[T   ..T   ]
+                       1,1   1,2
+                                       6
+      Natural module => (R[T   ..T   ])
+                            1,1   1,2
+      Generator degrees => {{0, 0}, {2, 2}, {2, 2}, {4, 4}, {4, 4}, {4, 4}}
+      Differentials on gens => {0, | xT_(1,1) |, | yT_(1,2) |, |     0    |, |     0    |, |     0    |}
+                                   |     0    |  |     0    |  | xT_(1,1) |  | yT_(1,2) |  |     0    |
+                                   |     0    |  |     0    |  |     0    |  | xT_(1,1) |  | yT_(1,2) |
+                                   |     0    |  |     0    |  |     0    |  |     0    |  |     0    |
+                                   |     0    |  |     0    |  |     0    |  |     0    |  |     0    |
+                                   |     0    |  |     0    |  |     0    |  |     0    |  |     0    |
+
+o3 : DGModule
+
+i4 : natGens = apply(rank Mdg.natural, i -> (Mdg.natural)_i)
+
+o4 = {| 1 |, | 0 |, | 0 |, | 0 |, | 0 |, | 0 |}
+      | 0 |  | 1 |  | 0 |  | 0 |  | 0 |  | 0 |
+      | 0 |  | 0 |  | 1 |  | 0 |  | 0 |  | 0 |
+      | 0 |  | 0 |  | 0 |  | 1 |  | 0 |  | 0 |
+      | 0 |  | 0 |  | 0 |  | 0 |  | 1 |  | 0 |
+      | 0 |  | 0 |  | 0 |  | 0 |  | 0 |  | 1 |
+
+o4 : List
+
+i5 : fy = dgModuleMap(Mdg, Mdg, apply(natGens, g -> y * g))
+
+                               6
+o5 = {Source => (R[T   ..T   ])        }
+                    1,1   1,2
+                               6
+      Target => (R[T   ..T   ])
+                    1,1   1,2
+      Natural => {0, 0} | y 0 0 0 0 0 |
+                 {2, 2} | 0 y 0 0 0 0 |
+                 {2, 2} | 0 0 y 0 0 0 |
+                 {4, 4} | 0 0 0 y 0 0 |
+                 {4, 4} | 0 0 0 0 y 0 |
+                 {4, 4} | 0 0 0 0 0 y |
+
+o5 : DGModuleMap
+
+i6 : isWellDefined fy
+
+o6 = true
+
+i7 : cmy = toComplexMap fy
+
+          1             1
+o7 = 0 : R  <--------- R  : 0
+               | y |
+
+          2                   2
+     1 : R  <--------------- R  : 1
+               {1} | y 0 |
+               {1} | 0 y |
+
+          3                     3
+     2 : R  <----------------- R  : 2
+               {2} | y 0 0 |
+               {2} | 0 y 0 |
+               {2} | 0 0 y |
+
+          4                       4
+     3 : R  <------------------- R  : 3
+               {3} | y 0 0 0 |
+               {3} | 0 y 0 0 |
+               {3} | 0 0 y 0 |
+               {3} | 0 0 0 y |
+
+          5                         5
+     4 : R  <--------------------- R  : 4
+               {4} | y 0 0 0 0 |
+               {4} | 0 y 0 0 0 |
+               {4} | 0 0 y 0 0 |
+               {4} | 0 0 0 y 0 |
+               {4} | 0 0 0 0 y |
+
+          6                           6
+     5 : R  <----------------------- R  : 5
+               {5} | y 0 0 0 0 0 |
+               {5} | 0 y 0 0 0 0 |
+               {5} | 0 0 y 0 0 0 |
+               {5} | 0 0 0 y 0 0 |
+               {5} | 0 0 0 0 y 0 |
+               {5} | 0 0 0 0 0 y |
+
+          3                     3
+     6 : R  <----------------- R  : 6
+               {6} | y 0 0 |
+               {6} | 0 y 0 |
+               {6} | 0 0 y |
+
+o7 : ComplexMap
+
+i8 : apply(0..3, n -> prune HH_n cmy)
+
+o8 = (0, 0, 0, 0)
+
+o8 : Sequence
+
+i9 : idmat = id_(Mdg.natural)
+
+o9 = {0, 0} | 1 0 0 0 0 0 |
+     {2, 2} | 0 1 0 0 0 0 |
+     {2, 2} | 0 0 1 0 0 0 |
+     {4, 4} | 0 0 0 1 0 0 |
+     {4, 4} | 0 0 0 0 1 0 |
+     {4, 4} | 0 0 0 0 0 1 |
+
+                           6                    6
+o9 : Matrix (R[T   ..T   ])  <-- (R[T   ..T   ])
+                1,1   1,2            1,1   1,2
+
+i10 : g = dgModuleMap(Mdg, Mdg, idmat)
+
+                                6
+o10 = {Source => (R[T   ..T   ])        }
+                     1,1   1,2
+                                6
+       Target => (R[T   ..T   ])
+                     1,1   1,2
+       Natural => {0, 0} | 1 0 0 0 0 0 |
+                  {2, 2} | 0 1 0 0 0 0 |
+                  {2, 2} | 0 0 1 0 0 0 |
+                  {4, 4} | 0 0 0 1 0 0 |
+                  {4, 4} | 0 0 0 0 1 0 |
+                  {4, 4} | 0 0 0 0 0 1 |
+
+o10 : DGModuleMap
+
+i11 : isWellDefined g
+
+o11 = true
+
+i12 : g == identityDGModuleMap Mdg
+
+o12 = true
+
+i13 : 

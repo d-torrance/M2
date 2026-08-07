@@ -1,0 +1,400 @@
+ -*- coding: utf-8 -*- This is AnalyzeSheafOnP1.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* AnalyzeSheafOnP1: (AnalyzeSheafOnP1).  decompose a Sheaf on P1
+END-INFO-DIR-ENTRY
+
+
+File: AnalyzeSheafOnP1.info, Node: Top, Next: analyze, Up: (dir)
+
+AnalyzeSheafOnP1 -- Describe a graded module over k[x,y] without 0-dimensional torsion
+**************************************************************************************
+
+Description
+===========
+
+Any sheaf on P1 is the direct sum of line bundles-- and cyclic skyscraper
+sheaves represented by modules of the form k[x,y]/(l^m) where l is an
+irreducible homogeneous polynomial and m is a non-negative integer. The routine
+"analyze" computes the twists and the annihilators l^m that appear in the
+decomposition, starting from a coherent sheaf on P1 or a graded module over a
+polynomial ring on 2 variables.
+
++-----------------------------------------------------------------------+
+|i1 : k = ZZ/5                                                          |
+|                                                                       |
+|o1 = k                                                                 |
+|                                                                       |
+|o1 : QuotientRing                                                      |
++-----------------------------------------------------------------------+
+|i2 : S = k[a,b]                                                        |
+|                                                                       |
+|o2 = S                                                                 |
+|                                                                       |
+|o2 : PolynomialRing                                                    |
++-----------------------------------------------------------------------+
+|i3 : M = S^1/ideal(a^3)++S^{-1}/(ideal b^2)++S^1/(ideal b^2)++ S^{-1,1}|
+|                                                                       |
+|o3 = cokernel {0}  | a3 0  0  |                                        |
+|              {1}  | 0  b2 0  |                                        |
+|              {0}  | 0  0  b2 |                                        |
+|              {1}  | 0  0  0  |                                        |
+|              {-1} | 0  0  0  |                                        |
+|                                                                       |
+|                            5                                          |
+|o3 : S-module, quotient of S                                           |
++-----------------------------------------------------------------------+
+|i4 : L = analyze M;                                                    |
++-----------------------------------------------------------------------+
+|i5 : twists = L_0                                                      |
+|                                                                       |
+|o5 = {1, -1}                                                           |
+|                                                                       |
+|o5 : List                                                              |
++-----------------------------------------------------------------------+
+|i6 : anns = L_1                                                        |
+|                                                                       |
+|          2     3 2                                                    |
+|o6 = {1, b , -2a b }                                                   |
+|                                                                       |
+|o6 : List                                                              |
++-----------------------------------------------------------------------+
+|i7 : analyze sheaf M                                                   |
+|                                                                       |
+|                    2   3 2                                            |
+|o7 = {{1, -1}, {1, b , a b }, {1}  | 0 0 0 1 0 |, | 1 0  0    |}       |
+|                              {-1} | 0 0 0 0 1 |  | 0 b2 0    |        |
+|                                                  | 0 0  a3b2 |        |
+|                                                                       |
+|o7 : List                                                              |
++-----------------------------------------------------------------------+
+
+Caveat
+======
+
+The script uses a linear nonzerodivisor, which would not exist over a finite
+field in the case where every point of P1 is the support of one of the
+skyscraper components.
+
+
+
+Author
+======
+
+  * David Eisenbud (see http://www.msri.org/~de ) <de@msri.org>
+
+Version
+=======
+
+This documentation describes version 0.1 of AnalyzeSheafOnP1, released June 3,
+2015.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{AnalyzeSheafOnP1Source,                                               |
+|  title = {{AnalyzeSheafOnP1: decompose a Sheaf on P1. Version~0.1}},       |
+|  author = {David Eisenbud},                                                |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note analyze: analyze, -- Compute the decomposition of a sheaf on P1
+      * *note doubleDualMap: doubleDualMap, -- map from a module to its double
+        dual
+      * *note isNZD: isNZD, -- tests whether a ring element is a non
+        zerodivisor on a module
+      * *note killH0: killH0, -- removes 0-dimensional torsion
+      * *note showSheafOnP1: showSheafOnP1, -- Prints the analysis of a sheaf
+        on P1
+  * Methods
+      * "analyze(Module)" -- see *note analyze: analyze, -- Compute the
+        decomposition of a sheaf on P1
+      * "doubleDualMap(Module)" -- see *note doubleDualMap: doubleDualMap, --
+        map from a module to its double dual
+      * "isNZD(RingElement,Module)" -- see *note isNZD: isNZD, -- tests whether
+        a ring element is a non zerodivisor on a module
+      * "killH0(Module)" -- see *note killH0: killH0, -- removes 0-dimensional
+        torsion
+      * "showSheafOnP1(Module)" -- see *note showSheafOnP1: showSheafOnP1, --
+        Prints the analysis of a sheaf on P1
+
+For the programmer
+==================
+
+The object *note AnalyzeSheafOnP1: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in AnalyzeSheafOnP1.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AnalyzeSheafOnP1.m2:129:0.
+
+File: AnalyzeSheafOnP1.info, Node: analyze, Next: doubleDualMap, Prev: Top, Up: Top
+
+analyze -- Compute the decomposition of a sheaf on P1
+*****************************************************
+
+  * Usage: 
+        L=analyze M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+      * M, a *note coherent sheaf: (Varieties)CoherentSheaf,, 
+  * Outputs:
+      * L, a *note list: (Macaulay2Doc)List,, a list {freegens, anns, e, D}
+        where freegens is the list of twists, anns is the list of annihilators,
+        e is the map from M (or its quotient by 0-dim torsion) to its double
+        dual, and D is the Smith normal form presentation of the torsion
+
+Description
+===========
+
+The routine decomposes the sheaf associated to M into a direct of twists of the
+structure sheaf and cycle torsion part modules. It returns a list L ={freegens,
+anns, e, D} where:
+
+freegens is the list of the twists;
+
+anns is the list of annihilators;
+
+e is the map from M' to its double dual, where M' = is the result of reducing M
+mod 0-dimensional torsion, if necessary;
+
+D is a presentation of the torsion part in the appropriate version of Smith
+normal form.
+
+To compute this Smith normal form, we dehomogenize with respect to a linear
+form that is a nonzerodivisor on M', use the routine smithNormalForm, and then
+rehomogenize. To find this nonzerodivisor we try first the first variable, then
+the second, then up to 100 random choices
+
+The routine returns an error if the base ring is not a polynomial ring in 2
+variables over a field or if after 100 tries it finds no linear form that is a
+nonzerodivisor on the module.
+
++--------------------------------------------------------------+
+|i1 : setRandomSeed 0                                          |
+| -- setting random seed to 0                                  |
+|                                                              |
+|o1 = 0                                                        |
++--------------------------------------------------------------+
+|i2 : S = ZZ/101[a,b]                                          |
+|                                                              |
+|o2 = S                                                        |
+|                                                              |
+|o2 : PolynomialRing                                           |
++--------------------------------------------------------------+
+|i3 : mm = ideal vars S                                        |
+|                                                              |
+|o3 = ideal (a, b)                                             |
+|                                                              |
+|o3 : Ideal of S                                               |
++--------------------------------------------------------------+
+|i4 : M0 = mm^3*S^{3} ++ S^{-1};                               |
++--------------------------------------------------------------+
+|i5 : M1 =S^1/ideal(a^3)++S^{-1}/(ideal b^2)++S^1/(ideal b^2) ;|
++--------------------------------------------------------------+
+|i6 : M = M0++M1;                                              |
++--------------------------------------------------------------+
+|i7 : L = analyze M0;                                          |
++--------------------------------------------------------------+
+|i8 : freegens = L_0                                           |
+|                                                              |
+|o8 = {1, -3}                                                  |
+|                                                              |
+|o8 : List                                                     |
++--------------------------------------------------------------+
+|i9 : anns = L_1                                               |
+|                                                              |
+|o9 = {}                                                       |
+|                                                              |
+|o9 : List                                                     |
++--------------------------------------------------------------+
+|i10 : e = L_2                                                 |
+|                                                              |
+|o10 = {1}  | 0  0   0   0  1 |                                |
+|      {-3} | a3 a2b ab2 b3 0 |                                |
+|                                                              |
+|              2                                               |
+|o10 : Matrix S  <-- M0                                        |
++--------------------------------------------------------------+
+|i11 : D = L_3                                                 |
+|                                                              |
+|o11 = 0                                                       |
+|                                                              |
+|o11 : Matrix 0 <-- 0                                          |
++--------------------------------------------------------------+
+
+See also
+========
+
+  * *note doubleDualMap: doubleDualMap, -- map from a module to its double dual
+  * *note showSheafOnP1: showSheafOnP1, -- Prints the analysis of a sheaf on P1
+
+Ways to use analyze:
+====================
+
+  * "analyze(Module)"
+
+For the programmer
+==================
+
+The object *note analyze: analyze, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AnalyzeSheafOnP1.m2:190:0.
+
+File: AnalyzeSheafOnP1.info, Node: doubleDualMap, Next: isNZD, Prev: analyze, Up: Top
+
+doubleDualMap -- map from a module to its double dual
+*****************************************************
+
+  * Usage: 
+        e = doubleDualMap M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * Outputs:
+      * e, a *note matrix: (Macaulay2Doc)Matrix,, map from M to double dual
+
+Description
+===========
+
+provide the natural map M --> Hom(Hom(M,S),S), where S = ring M.
+
+Ways to use doubleDualMap:
+==========================
+
+  * "doubleDualMap(Module)"
+
+For the programmer
+==================
+
+The object *note doubleDualMap: doubleDualMap, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AnalyzeSheafOnP1.m2:245:0.
+
+File: AnalyzeSheafOnP1.info, Node: isNZD, Next: killH0, Prev: doubleDualMap, Up: Top
+
+isNZD -- tests whether a ring element is a non zerodivisor on a module
+**********************************************************************
+
+  * Usage: 
+        t = isNZD(X,M)
+  * Inputs:
+      * X, a *note ring element: (Macaulay2Doc)RingElement,, 
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * Outputs:
+      * t, a *note Boolean value: (Macaulay2Doc)Boolean,, 
+
+Description
+===========
+
+returns true if "0 == ker (X*id_M)"
+
+Ways to use isNZD:
+==================
+
+  * "isNZD(RingElement,Module)"
+
+For the programmer
+==================
+
+The object *note isNZD: isNZD, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AnalyzeSheafOnP1.m2:263:0.
+
+File: AnalyzeSheafOnP1.info, Node: killH0, Next: showSheafOnP1, Prev: isNZD, Up: Top
+
+killH0 -- removes 0-dimensional torsion
+***************************************
+
+  * Usage: 
+        M' = killH0 M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+  * Outputs:
+      * M', a *note module: (Macaulay2Doc)Module,, 
+
+Description
+===========
+
+"M' = M/(saturate 0_M)"
+
+Ways to use killH0:
+===================
+
+  * "killH0(Module)"
+
+For the programmer
+==================
+
+The object *note killH0: killH0, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AnalyzeSheafOnP1.m2:207:0.
+
+File: AnalyzeSheafOnP1.info, Node: showSheafOnP1, Prev: killH0, Up: Top
+
+showSheafOnP1 -- Prints the analysis of a sheaf on P1
+*****************************************************
+
+  * Usage: 
+        showSheafOnP1 M
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+      * M, a *note coherent sheaf: (Varieties)CoherentSheaf,, 
+
+Description
+===========
+
+prints out the twists of the line bundle summands and the annihilators of the
+(cyclic) torsion components.
+
+See also
+========
+
+  * *note AnalyzeSheafOnP1: Top, -- decompose a Sheaf on P1
+
+Ways to use showSheafOnP1:
+==========================
+
+  * "showSheafOnP1(Module)"
+
+For the programmer
+==================
+
+The object *note showSheafOnP1: showSheafOnP1, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in AnalyzeSheafOnP1.m2:227:0.
+
+Tag Table:
+Node: Top244
+Node: analyze7022
+Node: doubleDualMap12552
+Node: isNZD13406
+Node: killH014276
+Node: showSheafOnP114995
+
+End Tag Table

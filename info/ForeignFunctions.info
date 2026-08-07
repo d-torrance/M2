@@ -1,0 +1,3740 @@
+ -*- coding: utf-8 -*- This is ForeignFunctions.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* ForeignFunctions: (ForeignFunctions).  foreign function interface
+END-INFO-DIR-ENTRY
+
+
+File: ForeignFunctions.info, Node: Top, Up: (dir)
+
+ForeignFunctions -- foreign function interface
+**********************************************
+
+Description
+===========
+
+This package provides the ability to load and call "foreign" functions from
+shared libraries and to convert back and forth between Macaulay2 things and the
+foreign objects used by these functions.  It is powered by libffi (see
+https://sourceware.org/libffi/ ).
+
+As a simple example, we call the cos function from the C standard library,
+which sends a double (a real number represented as a double-precision floating
+point number) to another double, the cosine of the input.
+
++---------------------------------------------------+
+|i1 : mycos = foreignFunction("cos", double, double)|
+|                                                   |
+|o1 = cos                                           |
+|                                                   |
+|o1 : ForeignFunction                               |
++---------------------------------------------------+
+|i2 : mycos pi                                      |
+|                                                   |
+|o2 = -1                                            |
+|                                                   |
+|o2 : ForeignObject of type double                  |
++---------------------------------------------------+
+|i3 : value oo                                      |
+|                                                   |
+|o3 = -1                                            |
+|                                                   |
+|o3 : RR (of precision 53)                          |
++---------------------------------------------------+
+
+In this example, we created a ForeignFunction object using the *note
+foreignFunction: foreignFunction, constructor method and specified that both
+its output and input were instances of the *note double: ForeignRealType, type,
+which is one of several *note ForeignType: ForeignType, objects that are
+available.
+
+See also the following additional examples:
+
+  * *note fast Fourier transform example: fast Fourier transform example, --
+    fast Fourier transforms using foreign function calls to the FFTW library
+  * *note general linear model example: general linear model example, --
+    constrained least squares using foreign function calls to the LAPACK
+    library
+  * *note just-in-time compilation example: just-in-time compilation example,
+    -- using foreign function calls for computing Fibonacci numbers using JIT
+* Menu:
+
+
+Examples
+* fast Fourier transform example::  fast Fourier transforms using foreign function calls to the FFTW library
+* general linear model example::  constrained least squares using foreign function calls to the LAPACK library
+* just-in-time compilation example::  using foreign function calls for computing Fibonacci numbers using JIT
+
+Types
+* ForeignFunction: foreignFunction.  construct a foreign function
+* SharedLibrary::               a shared library
+* ForeignType::                 abstract foreign type
+* ForeignObject::               foreign object
+* Pointer::                     pointer to memory address
+
+Author
+======
+
+  * Doug Torrance (see https://d-torrance.github.io ) <dtorrance9@gatech.edu>
+
+Certification a gold star
+=========================
+
+Version 0.4 of this package was accepted for publication in volume 15 (see
+https://msp.org/jsag/2025/15-1/ ) of Journal of Software for Algebra and
+Geometry (see https://msp.org/jsag/ ) on 2024-12-17, in the article
+ForeignFunctions package for Macaulay2 (see
+https://msp.org/jsag/2025/15-1/p01.xhtml ) (DOI: 10.2140/jsag.2025.15.1 (see
+https://doi.org/10.2140/jsag.2025.15.1 )). That version can be obtained from
+the journal (see https://msp.org/jsag/2025/15-1/jsag-v15-n1-x01-
+ForeignFunctions.m2 ).
+
+Version
+=======
+
+This documentation describes version 0.7 of ForeignFunctions, released February
+5, 2026.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{ForeignFunctionsSource,                                               |
+|  title = {{ForeignFunctions: foreign function interface. Version~0.7}},    |
+|  author = {Doug Torrance},                                                 |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
+|@article{ForeignFunctionsArticle,                                           |
+|  title = {{ForeignFunctions package for \emph{Macaulay2}}},                |
+|  author = {Doug Torrance},                                                 |
+|  journal = {Journal of Software for Algebra and Geometry},                 |
+|  volume = {15},                                                            |
+|  year = {2024},                                                            |
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note ForeignArrayType: ForeignArrayType, -- foreign array type
+      * "ForeignFunction" -- see *note foreignFunction: foreignFunction, --
+        construct a foreign function
+      * "char'" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * *note ForeignIntegerType: ForeignIntegerType, -- foreign integer type
+      * "int" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "int8" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "int16" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "int32" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "int64" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "long" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "short" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "uchar" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "uint" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "uint8" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "uint16" -- see *note ForeignIntegerType: ForeignIntegerType, --
+        foreign integer type
+      * "uint32" -- see *note ForeignIntegerType: ForeignIntegerType, --
+        foreign integer type
+      * "uint64" -- see *note ForeignIntegerType: ForeignIntegerType, --
+        foreign integer type
+      * "ulong" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+        integer type
+      * "ushort" -- see *note ForeignIntegerType: ForeignIntegerType, --
+        foreign integer type
+      * *note ForeignObject: ForeignObject, -- foreign object
+      * "charstarstar" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * *note ForeignPointerArrayType: ForeignPointerArrayType, -- foreign type
+        for NULL-terminated arrays of pointers
+      * "voidstarstar" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * *note ForeignPointerType: ForeignPointerType, -- foreign pointer type
+      * "voidstar" -- see *note ForeignPointerType: ForeignPointerType, --
+        foreign pointer type
+      * "double" -- see *note ForeignRealType: ForeignRealType, -- foreign real
+        type
+      * "float" -- see *note ForeignRealType: ForeignRealType, -- foreign real
+        type
+      * *note ForeignRealType: ForeignRealType, -- foreign real type
+      * "charstar" -- see *note ForeignStringType: ForeignStringType, --
+        foreign string type
+      * *note ForeignStringType: ForeignStringType, -- foreign string type
+      * *note ForeignStructType: ForeignStructType, -- foreign struct type
+      * *note ForeignType: ForeignType, -- abstract foreign type
+      * *note ForeignUnionType: ForeignUnionType, -- foreign union type
+      * *note ForeignVoidType: ForeignVoidType, -- foreign void type
+      * "void" -- see *note ForeignVoidType: ForeignVoidType, -- foreign void
+        type
+      * *note mpfrT: mpfrT, -- MPFR multiple-precision floating-point type
+      * *note mpzT: mpzT, -- GMP arbitrary-precision integer type
+      * *note Pointer: Pointer, -- pointer to memory address
+      * *note SharedLibrary: SharedLibrary, -- a shared library
+  * Functions and commands
+      * *note address: address, -- pointer to type or object
+      * *note foreignArrayType: foreignArrayType, -- construct a foreign array
+        type
+      * *note foreignFunction: foreignFunction, -- construct a foreign function
+      * *note foreignObject: foreignObject, -- construct a foreign object
+      * *note foreignPointerArrayType: foreignPointerArrayType, -- construct a
+        foreign pointer array type
+      * *note foreignStructType: foreignStructType, -- construct a foreign
+        struct type
+      * *note foreignSymbol: foreignSymbol, -- get a foreign symbol
+      * *note foreignUnionType: foreignUnionType, -- construct a foreign union
+        type
+      * *note getMemory: getMemory, -- allocate memory using the garbage
+        collector
+      * *note openSharedLibrary: openSharedLibrary, -- open a shared library
+  * Methods
+      * "* Pointer = Thing" -- see *note * voidstar = Thing: _st voidstar =
+        Thing, -- assign value to object at address
+      * *note * voidstar = Thing: _st voidstar = Thing, -- assign value to
+        object at address
+      * "address(ForeignObject)" -- see *note address: address, -- pointer to
+        type or object
+      * "address(ForeignType)" -- see *note address: address, -- pointer to
+        type or object
+      * address(Nothing) (missing documentation)
+      * expression(mpfrT) (missing documentation)
+      * "foreignArrayType(ForeignType,ZZ)" -- see *note foreignArrayType:
+        foreignArrayType, -- construct a foreign array type
+      * "foreignArrayType(String,ForeignType,ZZ)" -- see *note
+        foreignArrayType: foreignArrayType, -- construct a foreign array type
+      * "ForeignType * ZZ" -- see *note foreignArrayType: foreignArrayType, --
+        construct a foreign array type
+      * "ZZ * ForeignType" -- see *note foreignArrayType: foreignArrayType, --
+        construct a foreign array type
+      * *note ForeignArrayType VisibleList: ForeignArrayType VisibleList, --
+        cast a Macaulay2 list to a foreign array
+      * "foreignFunction(Pointer,String,ForeignType,VisibleList)" -- see *note
+        foreignFunction: foreignFunction, -- construct a foreign function
+      * "foreignFunction(SharedLibrary,String,ForeignType,ForeignType)" -- see
+        *note foreignFunction: foreignFunction, -- construct a foreign function
+      * "foreignFunction(SharedLibrary,String,ForeignType,VisibleList)" -- see
+        *note foreignFunction: foreignFunction, -- construct a foreign function
+      * "foreignFunction(String,ForeignType,ForeignType)" -- see *note
+        foreignFunction: foreignFunction, -- construct a foreign function
+      * "foreignFunction(String,ForeignType,VisibleList)" -- see *note
+        foreignFunction: foreignFunction, -- construct a foreign function
+      * *note ForeignIntegerType Number: ForeignIntegerType Number, -- cast a
+        Macaulay2 number to a foreign integer object
+      * "new int8 from ZZ" -- see *note ForeignIntegerType Number:
+        ForeignIntegerType Number, -- cast a Macaulay2 number to a foreign
+        integer object
+      * "new int16 from ZZ" -- see *note ForeignIntegerType Number:
+        ForeignIntegerType Number, -- cast a Macaulay2 number to a foreign
+        integer object
+      * "new int32 from ZZ" -- see *note ForeignIntegerType Number:
+        ForeignIntegerType Number, -- cast a Macaulay2 number to a foreign
+        integer object
+      * "new int64 from ZZ" -- see *note ForeignIntegerType Number:
+        ForeignIntegerType Number, -- cast a Macaulay2 number to a foreign
+        integer object
+      * "new uint8 from ZZ" -- see *note ForeignIntegerType Number:
+        ForeignIntegerType Number, -- cast a Macaulay2 number to a foreign
+        integer object
+      * "new uint16 from ZZ" -- see *note ForeignIntegerType Number:
+        ForeignIntegerType Number, -- cast a Macaulay2 number to a foreign
+        integer object
+      * "new uint32 from ZZ" -- see *note ForeignIntegerType Number:
+        ForeignIntegerType Number, -- cast a Macaulay2 number to a foreign
+        integer object
+      * "new uint64 from ZZ" -- see *note ForeignIntegerType Number:
+        ForeignIntegerType Number, -- cast a Macaulay2 number to a foreign
+        integer object
+      * "foreignObject(ForeignObject)" -- see *note foreignObject:
+        foreignObject, -- construct a foreign object
+      * "foreignObject(Number)" -- see *note foreignObject: foreignObject, --
+        construct a foreign object
+      * "foreignObject(Pointer)" -- see *note foreignObject: foreignObject, --
+        construct a foreign object
+      * "foreignObject(String)" -- see *note foreignObject: foreignObject, --
+        construct a foreign object
+      * "foreignObject(VisibleList)" -- see *note foreignObject: foreignObject,
+        -- construct a foreign object
+      * "foreignObject(ZZ)" -- see *note foreignObject: foreignObject, --
+        construct a foreign object
+      * "charstarstar _ ZZ" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * "charstarstar _ ZZ = Thing" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * "iterator(charstarstar)" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * "iterator(voidstarstar)" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * "length(charstarstar)" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * "length(voidstarstar)" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * "voidstarstar _ ZZ" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * "voidstarstar _ ZZ = Thing" -- see *note ForeignPointerArrayType:
+        ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+        pointers
+      * "foreignPointerArrayType(ForeignType)" -- see *note
+        foreignPointerArrayType: foreignPointerArrayType, -- construct a
+        foreign pointer array type
+      * "foreignPointerArrayType(String,ForeignType)" -- see *note
+        foreignPointerArrayType: foreignPointerArrayType, -- construct a
+        foreign pointer array type
+      * *note ForeignPointerArrayType VisibleList: ForeignPointerArrayType
+        VisibleList, -- cast a Macaulay2 list to a foreign pointer array
+      * "new charstarstar from VisibleList" -- see *note
+        ForeignPointerArrayType VisibleList: ForeignPointerArrayType
+        VisibleList, -- cast a Macaulay2 list to a foreign pointer array
+      * "new voidstarstar from VisibleList" -- see *note
+        ForeignPointerArrayType VisibleList: ForeignPointerArrayType
+        VisibleList, -- cast a Macaulay2 list to a foreign pointer array
+      * *note ForeignPointerType Pointer: ForeignPointerType Pointer, -- cast a
+        Macaulay2 pointer to a foreign pointer
+      * *note ForeignRealType Number: ForeignRealType Number, -- cast a
+        Macaulay2 number to a foreign real object
+      * "ForeignRealType RRi" -- see *note ForeignRealType Number:
+        ForeignRealType Number, -- cast a Macaulay2 number to a foreign real
+        object
+      * "new double from RR" -- see *note ForeignRealType Number:
+        ForeignRealType Number, -- cast a Macaulay2 number to a foreign real
+        object
+      * "new float from RR" -- see *note ForeignRealType Number:
+        ForeignRealType Number, -- cast a Macaulay2 number to a foreign real
+        object
+      * *note ForeignStringType String: ForeignStringType String, -- cast a
+        Macaulay2 string to a foreign string
+      * "foreignStructType(String,Option)" -- see *note foreignStructType:
+        foreignStructType, -- construct a foreign struct type
+      * "foreignStructType(String,VisibleList)" -- see *note foreignStructType:
+        foreignStructType, -- construct a foreign struct type
+      * "ForeignStructType HashTable" -- see *note ForeignStructType
+        VisibleList: ForeignStructType VisibleList, -- cast a hash table to a
+        foreign struct
+      * *note ForeignStructType VisibleList: ForeignStructType VisibleList, --
+        cast a hash table to a foreign struct
+      * "foreignSymbol(SharedLibrary,String,ForeignType)" -- see *note
+        foreignSymbol: foreignSymbol, -- get a foreign symbol
+      * "foreignSymbol(String,ForeignType)" -- see *note foreignSymbol:
+        foreignSymbol, -- get a foreign symbol
+      * "net(ForeignType)" -- see *note ForeignType: ForeignType, -- abstract
+        foreign type
+      * *note ForeignType * voidstar: ForeignType _st voidstar, -- dereference
+        a voidstar object
+      * "ForeignStructType ForeignObject" -- see *note ForeignType
+        ForeignObject: ForeignType ForeignObject, -- cast a foreign object to
+        the given foreign type
+      * *note ForeignType ForeignObject: ForeignType ForeignObject, -- cast a
+        foreign object to the given foreign type
+      * *note ForeignType Pointer: ForeignType Pointer, -- dereference a
+        pointer
+      * "foreignUnionType(String,Option)" -- see *note foreignUnionType:
+        foreignUnionType, -- construct a foreign union type
+      * "foreignUnionType(String,VisibleList)" -- see *note foreignUnionType:
+        foreignUnionType, -- construct a foreign union type
+      * *note ForeignUnionType Thing: ForeignUnionType Thing, -- cast a thing
+        to a foreign union
+      * "ForeignVoidType Nothing" -- see *note ForeignVoidType:
+        ForeignVoidType, -- foreign void type
+      * "getMemory(ForeignType)" -- see *note getMemory: getMemory, -- allocate
+        memory using the garbage collector
+      * "getMemory(ForeignVoidType)" -- see *note getMemory: getMemory, --
+        allocate memory using the garbage collector
+      * "getMemory(ZZ)" -- see *note getMemory: getMemory, -- allocate memory
+        using the garbage collector
+      * "new mpfrT from RR" -- see *note mpfrT: mpfrT, -- MPFR
+        multiple-precision floating-point type
+      * "value(mpfrT)" -- see *note mpfrT: mpfrT, -- MPFR multiple-precision
+        floating-point type
+      * "new mpzT from ZZ" -- see *note mpzT: mpzT, -- GMP arbitrary-precision
+        integer type
+      * "value(mpzT)" -- see *note mpzT: mpzT, -- GMP arbitrary-precision
+        integer type
+      * net(ForeignFunction) (missing documentation)
+      * new ForeignType (missing documentation)
+      * "openSharedLibrary(String)" -- see *note openSharedLibrary:
+        openSharedLibrary, -- open a shared library
+      * "Pointer + ZZ" -- see *note Pointer: Pointer, -- pointer to memory
+        address
+      * "Pointer - ZZ" -- see *note Pointer: Pointer, -- pointer to memory
+        address
+      * "ZZ + Pointer" -- see *note Pointer: Pointer, -- pointer to memory
+        address
+      * *note registerFinalizer(ForeignObject,Function):
+        registerFinalizer_lpForeignObject_cmFunction_rp, -- register a
+        finalizer for a foreign object
+      * "describe(SharedLibrary)" -- see *note SharedLibrary: SharedLibrary, --
+        a shared library
+      * "expression(SharedLibrary)" -- see *note SharedLibrary: SharedLibrary,
+        -- a shared library
+      * "net(SharedLibrary)" -- see *note SharedLibrary: SharedLibrary, -- a
+        shared library
+      * "texMath(SharedLibrary)" -- see *note SharedLibrary: SharedLibrary, --
+        a shared library
+      * "toExternalString(SharedLibrary)" -- see *note SharedLibrary:
+        SharedLibrary, -- a shared library
+      * "toString(SharedLibrary)" -- see *note SharedLibrary: SharedLibrary, --
+        a shared library
+      * *note size(ForeignType): size_lpForeignType_rp, -- size of a foreign
+        type
+      * "describe(ForeignObject)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "expression(double)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "expression(float)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "expression(ForeignObject)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "net(ForeignObject)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "texMath(ForeignObject)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "toExternalString(ForeignObject)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "toString(ForeignObject)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(charstar)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(charstarstar)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(double)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(float)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * *note value(ForeignObject): value_lpForeignObject_rp, -- get the value
+        of a foreign object as a Macaulay2 thing
+      * "value(int8)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(int16)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(int32)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(int64)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(uint8)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(uint16)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(uint32)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(uint64)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(voidstar)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+      * "value(voidstarstar)" -- see *note value(ForeignObject):
+        value_lpForeignObject_rp, -- get the value of a foreign object as a
+        Macaulay2 thing
+  * Symbols
+      * "Variadic" -- see *note foreignFunction: foreignFunction, -- construct
+        a foreign function
+      * "Atomic" -- see *note getMemory: getMemory, -- allocate memory using
+        the garbage collector
+  * Other things
+      * *note nullPointer: nullPointer, -- the null pointer
+
+For the programmer
+==================
+
+The object *note ForeignFunctions: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in ForeignFunctions.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:758:0.
+
+File: ForeignFunctions.info, Node: fast Fourier transform example, Next: general linear model example, Up: Top
+
+fast Fourier transform example -- fast Fourier transforms using foreign function calls to the FFTW library
+**********************************************************************************************************
+
+In this example, we make foreign function calls using the FFTW (see
+https://www.fftw.org/ ) library to compute fast Fourier transforms for
+polynomial multiplication.
+
+Once FFTW is installed, there should be a file named libfftw3.so or
+libfftw3.dylib available on the system in one of the standard shared library
+directories.  We can then open the library using *note openSharedLibrary:
+openSharedLibrary,.
+
++----------------------------------------+
+|i2 : libfftw = openSharedLibrary "fftw3"|
+|                                        |
+|o2 = fftw3                              |
+|                                        |
+|o2 : SharedLibrary                      |
++----------------------------------------+
+
+Next, we create our foreign functions using the constructor method *note
+foreignFunction: foreignFunction,.  We will need three: one to wrap
+fftw_plan_dft_1d, which creates the plan for a fast Fourier transform
+computation, one to wrap fftw_execute, which actually does the computation, and
+one to wrap fftw_destroy_plan, which deallocates the memory allocated by
+fftw_plan_dft_1d.
+
+Let's walk through each of these.
+
+According to the FFTW documentation, fftw_plan_dft_1d has the following
+signature: fftw_plan fftw_plan_dft_1d(int n0, fftw_complex *in, fftw_complex
+*out, int sign, unsigned flags). Our goal is to compute the discrete Fourier
+transform $\mathscr F\{\mathbf a\}$ of a vector $\mathbf a\in\CC^n$.  In this
+case, n0 will be $n$, in will be $\mathbf a$ represented as an array of $2n$
+*note double: ForeignRealType, objects (alternating between real and imaginary
+parts), out will be an array ultimately containing $\mathscr F\{\mathbf a\}$,
+sign will be 1 unless we want to compute the inverse discrete Fourier transform
+$\mathscr F^{-1}\{\mathbf a\}$, in which case it will be $-1$.  Finally, flags
+will contain planning flags for the computation.  When setting up our foreign
+function objects, we won't worry about the structures of the fftw_plan or
+fftw_complex types and will just use *note voidstar: ForeignPointerType, to
+indicate that they are pointers.
+
++---------------------------------------------------------------------------+
+|i3 : fftwPlanDft1d = foreignFunction(libfftw, "fftw_plan_dft_1d", voidstar,|
+|         {int, voidstar, voidstar, int, uint})                             |
+|                                                                           |
+|o3 = fftw3::fftw_plan_dft_1d                                               |
+|                                                                           |
+|o3 : ForeignFunction                                                       |
++---------------------------------------------------------------------------+
+
+Next, we define foreign functions for fftw_execute, which has signature void
+fftw_execute(const fftw_plan plan), and fftw_destroy_plan, which has signature
+void fftw_destroy_plan(fftw_plan plan).
+
++-----------------------------------------------------------------------------+
+|i4 : fftwExecute = foreignFunction(libfftw, "fftw_execute", void, voidstar)  |
+|                                                                             |
+|o4 = fftw3::fftw_execute                                                     |
+|                                                                             |
+|o4 : ForeignFunction                                                         |
++-----------------------------------------------------------------------------+
+|i5 : fftwDestroyPlan = foreignFunction(libfftw, "fftw_destroy_plan", void,   |
+|                                                                             |
+|o5 = fftw3::fftw_destroy_plan                                                |
+|                                                                             |
+|o5 : ForeignFunction                                                         |
+|-----------------------------------------------------------------------------|
+|voidstar)                                                                    |
++-----------------------------------------------------------------------------+
+
+Now we wrap these functions inside Macaulay2 functions.  Since computing
+$\mathscr F\{\mathbf a\}$ and $\mathscr F^{-1}\{\mathbf a\}$ using FFTW
+requires only changing the sign parameter of the call to fftw_plan_dft_1d, we
+create a helper function that will do most of the work.
+
+This helper function takes a list x representing the vector $\mathbf a$ as well
+as the value of sign, allocates the memory required for the in and out lists
+using *note getMemory: getMemory,, and then calls the foreign function
+fftwPlanDft1d.  Note that we pass 64 as the value of flags.  This specifies the
+FFTW_ESTIMATE planning flag, which uses a simple heuristic to quickly pick a
+plan for the computation.  We then call *note
+registerFinalizer(ForeignObject,Function):
+registerFinalizer_lpForeignObject_cmFunction_rp, to make sure that the
+fftw_plan object that was returned is properly deallocated during garbage
+collection.  Next, we set up the in array by finding the real and imaginary
+parts of the elements of x and assigning them using *note * voidstar = Thing:
+_st voidstar = Thing,. Finally, we call fftw_execute and convert the result
+back to a list of complex numbers.
+
++-----------------------------------------------------------------------------+
+|i6 : fftHelper = (x, sign) -> (                                              |
+|         n := #x;                                                            |
+|         inptr := getMemory(2 * n * size double);                            |
+|         outptr := getMemory(2 * n * size double);                           |
+|         p := fftwPlanDft1d(n, inptr, outptr, sign, 64);                     |
+|         registerFinalizer(p, fftwDestroyPlan);                              |
+|         dbls := splice apply(x, y -> (realPart numeric y, imaginaryPart     |
+|         apply(2 * n, i -> *(value inptr + i * size double) = double dbls    |
+|         fftwExecute p;                                                      |
+|         r := ((2 * n) * double) outptr;                                     |
+|         apply(n, i -> value r_(2 * i) + ii * value r_(2 * i + 1)));         |
+|-----------------------------------------------------------------------------|
+|numeric y));                                                                 |
+|#i);                                                                         |
++-----------------------------------------------------------------------------+
+|i7 : fastFourierTransform = method();                                        |
++-----------------------------------------------------------------------------+
+|i8 : fastFourierTransform List := x -> fftHelper(x, -1);                     |
++-----------------------------------------------------------------------------+
+|i9 : inverseFastFourierTransform = method();                                 |
++-----------------------------------------------------------------------------+
+|i10 : inverseFastFourierTransform List := x -> fftHelper(x, 1);              |
++-----------------------------------------------------------------------------+
+
+One application of fast Fourier transforms is log-linear time multiplication of
+polynomials.  Indeed, if $f,g\in\CC[x]$ have degrees $m$ and $n$, respectively,
+and if $\mathbf a,\mathbf b\in\CC^{m+n+1}$ are the vectors formed by taking
+$a_i$ to be the coefficient of $x^i$ in $f$ and $b_i$ the coefficient of $x_i$
+in $g$, then $\frac{1}{m+n+1}\mathscr F^{-1}\left\{\mathscr F\{\mathbf a\}\cdot
+\mathscr F\{\mathbf b\}\right\}$, where $\mathscr F\{\mathbf a\}\cdot \mathscr
+F\{\mathbf b\}$ is computed using component-wise multiplication, contains the
+coefficients of the product $fg$.  In some cases, this process can be faster
+than Macaulay2's native polynomial multiplication.
+
+Let's look at a particular example.
+
++--------------------------------------------------------------+
+|i11 : fftMultiply = (f, g) -> (                               |
+|          m := first degree f;                                |
+|          n := first degree g;                                |
+|          a := fastFourierTransform splice append(            |
+|              apply(m + 1, i -> coefficient(x^i, f)), n:0);   |
+|          b := fastFourierTransform splice append(            |
+|              apply(n + 1, i -> coefficient(x^i, g)), m:0);   |
+|          c := inverseFastFourierTransform apply(a, b, times);|
+|          sum(m + n + 1, i -> c#i * x^i)/(m + n + 1));        |
++--------------------------------------------------------------+
+|i12 : R = CC[x];                                              |
++--------------------------------------------------------------+
+|i13 : f = x - 1;                                              |
++--------------------------------------------------------------+
+|i14 : g = x^2 + x + 1;                                        |
++--------------------------------------------------------------+
+|i15 : fftMultiply(f, g)                                       |
+|                                                              |
+|       3                                                      |
+|o15 = x  - 1                                                  |
+|                                                              |
+|o15 : R                                                       |
++--------------------------------------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:2203:0.
+
+File: ForeignFunctions.info, Node: general linear model example, Next: just-in-time compilation example, Prev: fast Fourier transform example, Up: Top
+
+general linear model example -- constrained least squares using foreign function calls to the LAPACK library
+************************************************************************************************************
+
+In this example, we make foreign function calls to LAPACK (see
+https://www.netlib.org/lapack/ ) to solve constrained least squares problems.
+LAPACK is already used by Macaulay2 for a number of its linear algebra
+computations, but some functions aren't available.
+
+One of these is dggglm, which solves constrained least squares problems that
+have applications to general Gauss-Markov linear models in statistics.  In
+particular, suppose $A$ is an $n\times m$ real matrix, $B$ is an $n\times p$
+real matrix, and $\mathbf d$ is a vector in $\RR^n$.  We would like to find the
+vectors $\mathbf x\in\RR^m$ and $\mathbf y\in\RR^p$ that minimize $\|\mathbf
+y\|$ subject to the constraint $\mathbf d = A\mathbf x + B\mathbf y$.
+
+The dggglm function does exactly this.  Its signature is void dggglm_(int *n,
+int *m, int *p, double *A, int *ldA, double *B, int *ldB, double *d, double *x,
+double *y, double *work, int *lwork, int *info).  Note the trailing underscore
+that was added by the Fortran compiler.  Each of the 13 arguments are pointers,
+so we use *note voidstar: ForeignPointerType, to represent them in our call to
+*note foreignFunction: foreignFunction,.  Since Macaulay2 is already linked
+against LAPACK, we don't need to worry about calling *note openSharedLibrary:
+openSharedLibrary,.
+
++-------------------------------------------------------------------+
+|i1 : dggglm = foreignFunction("dggglm_", void, toList(13:voidstar))|
+|                                                                   |
+|o1 = dggglm_                                                       |
+|                                                                   |
+|o1 : ForeignFunction                                               |
++-------------------------------------------------------------------+
+
+The parameters n, m and p are exactly the numbers $n$, $m$, and $p$ above.  The
+parameters A, B, and d are arrays that will store the entries of $A$, $B$, and
+$\mathbf d$.  LAPACK expects these to be in column-major order, in contrast to
+the row-major order used by Macaulay2.  So we add helper methods to take care
+of this conversion.  The local variable T is a *note ForeignArrayType:
+ForeignArrayType, created by *note ZZ * ForeignType: foreignArrayType,.
+
++-------------------------------------------------+
+|i2 : toLAPACK = method();                        |
++-------------------------------------------------+
+|i3 : toLAPACK Matrix := A -> (                   |
+|        T := (numRows A * numColumns A) * double;|
+|        T flatten entries transpose A);          |
++-------------------------------------------------+
+|i4 : toLAPACK Vector := toLAPACK @@ matrix;      |
++-------------------------------------------------+
+
+The parameters ldA and ldB are the "leading dimensions" of the arrays A and B.
+We will use $n$ for both.  The arrays x and y will store the solutions.  The
+array work has dimension lwork (for which we will use $n + m + p$) that the
+procedure will use as a workspace.  Finally, info stores the return value (0 on
+success).
+
+The following method prepares matrices $A$ and $B$ and a vector $\mathbf d$ to
+be sent to the foreign function we created above, and then converts the
+solutions into a sequence two of Macaulay2 vectors.  Note that we use *note
+getMemory: getMemory, to allocate memory for x, y, and info (which we name i
+here to avoid conflicting with *note info: (Macaulay2Doc)info,) and *note
+address: address, to get pointers to the other integer arguments.  We also use
+*note ForeignType * voidstar: ForeignType _st voidstar, to dereference i and
+determine whether the call was successful.
+
++-----------------------------------------------------------------------------+
+|i5 : generalLinearModel= method();                                           |
++-----------------------------------------------------------------------------+
+|i6 : generalLinearModel(Matrix, Matrix, Vector) := (A, B, d) -> (            |
+|         if numRows A != numRows B                                           |
+|         then error "expected first two arguments to have the same number of |
+|         n := numRows A;                                                     |
+|         m := numColumns A;                                                  |
+|         p := numColumns B;                                                  |
+|         x := getMemory(m * size double);                                    |
+|         y := getMemory(p * size double);                                    |
+|         lwork := n + m + p;                                                 |
+|         work := getMemory(lwork * size double);                             |
+|         i := getMemory int;                                                 |
+|         dggglm(address int n, address int m, address int p, toLAPACK A,     |
+|             address int n, toLAPACK B, address int n, toLAPACK d, x, y, work|
+|             address int lwork, i);                                          |
+|         if value(int * i) != 0 then error("call to dggglm failed");         |
+|         (vector value (m * double) x, vector value (p * double) y));        |
+|-----------------------------------------------------------------------------|
+|rows";                                                                       |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|,                                                                            |
++-----------------------------------------------------------------------------+
+
+Finally, let's call this method and solve a constrained least squares problem.
+This example is from Kourouklis, S., & Paige, "A Constrained Least Squares
+Approach to the General Gauss-Markov Linear Model" (see
+https://doi.org/10.1080/01621459.1981.10477694 ).
+
++-----------------------------------------------------------------------------+
+|i7 : A = matrix {{1, 2, 3}, {4, 1, 2}, {5, 6, 7}, {3, 4, 6}};                |
+|                                                                             |
+|              4       3                                                      |
+|o7 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i8 : B = matrix {{1, 0, 0, 0}, {2, 3, 0, 0}, {4, 5, 1e-5, 0}, {7, 8, 9, 10}};|
+|                                                                             |
+|                4         4                                                  |
+|o8 : Matrix RR    <-- RR                                                     |
+|              53        53                                                   |
++-----------------------------------------------------------------------------+
+|i9 : d = vector {1, 2, 3, 4};                                                |
+|                                                                             |
+|       4                                                                     |
+|o9 : ZZ                                                                      |
++-----------------------------------------------------------------------------+
+|i10 : generalLinearModel(A, B, d)                                            |
+|                                                                             |
+|o10 = (|   .3141  |, | .0296627 |)                                           |
+|       | -.334417 |  | .0451036 |                                            |
+|       |  .441691 |  | .0585128 |                                            |
+|                     | .0650142 |                                            |
+|                                                                             |
+|o10 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:2322:0.
+
+File: ForeignFunctions.info, Node: just-in-time compilation example, Next: foreignFunction, Prev: general linear model example, Up: Top
+
+just-in-time compilation example -- using foreign function calls for computing Fibonacci numbers using JIT
+**********************************************************************************************************
+
+Macaulay2's language is interpreted, which means that in general programs will
+run more slowly than programs written in a compiled language like C. If the
+speed of a compiled language is desirable, then one option is just-in-time
+compilation (see https://en.wikipedia.org/wiki/just-in-time_compilation )
+(JIT), where we compile some code at runtime.
+
+As an example, let's suppose that we would like to compute Fibonacci numbers
+using the recursive definition, i.e., for all nonnegative $n\in\ZZ$, $F_n = n$
+if $n < 2$ and $F_n = F_{n-2} + F_{n-1}$ otherwise. As an algorithm, this is
+horribly inefficient and has exponential running time, but it will be useful to
+illustrate our point.
+
+We will write two functions.  One will be a straight Macaulay2 implementation:
+
++-----------------------------------------------------------------------------+
+|i2 : fibonacci1 = n -> if n < 2 then n else fibonacci1(n - 1) + fibonacci1(n |
+|-----------------------------------------------------------------------------|
+|- 2);                                                                        |
++-----------------------------------------------------------------------------+
+
+The next will be a function that creates a C source file, compiles it into a
+shared library using GCC (see https://gcc.gnu.org/ ), opens that library using
+*note openSharedLibrary: openSharedLibrary,, calls *note foreignFunction:
+foreignFunction, to create a foreign function, calls that foreign function, and
+then converts the output back into a Macaulay2 integer using *note
+value(ForeignObject): value_lpForeignObject_rp,.
+
++----------------------------------------------------------------------------+
+|i3 : fibonacci2 = n -> (                                                    |
+|         dir := temporaryFileName();                                        |
+|         makeDirectory dir;                                                 |
+|         dir | "/libfib.c" << ///int fibonacci2(int n)                      |
+|     {                                                                      |
+|         if (n < 2)                                                         |
+|             return n;                                                      |
+|         else                                                               |
+|             return fibonacci2(n - 1) + fibonacci2(n - 2);                  |
+|     }                                                                      |
+|     /// << close;                                                          |
+|         run("gcc -c -fPIC " | dir | "/libfib.c -o " | dir | "/libfib.o");  |
+|         run("gcc -shared " | dir | "/libfib.o -o " | dir | "/libfib.so");  |
+|         lib := openSharedLibrary("libfib", FileName => dir | "/libfib.so");|
+|         f = foreignFunction(lib, "fibonacci2", int, int);                  |
+|         value f n);                                                        |
++----------------------------------------------------------------------------+
+
+Now let's run both functions to compare the results.
+
++-------------------------------------+
+|i4 : peek elapsedTiming fibonacci1 35|
+|                                     |
+|o4 = Time{10.0202, 9227465}          |
++-------------------------------------+
+|i5 : peek elapsedTiming fibonacci2 35|
+|                                     |
+|o5 = Time{.0958821, 9227465}         |
++-------------------------------------+
+
+As we can see, despite the additional overhead of creating a shared library and
+making a foreign function call, the function that used JIT was significantly
+faster.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:2384:0.
+
+File: ForeignFunctions.info, Node: foreignFunction, Next: SharedLibrary, Prev: just-in-time compilation example, Up: Top
+
+foreignFunction -- construct a foreign function
+***********************************************
+
+  * Usage: 
+        foreignFunction(lib, symb, rtype, argtypes)
+        foreignFunction(symb, rtype, argtypes)
+  * Inputs:
+      * lib, a *note shared library: SharedLibrary,, containing the function; 
+      * symb, a *note string: (Macaulay2Doc)String,, the symbol of the
+        function;
+      * rtype, a *note foreign type: ForeignType,, the return type; 
+      * argtypes, a *note list: (Macaulay2Doc)List,, the types of the
+        arguments;
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Variadic => a *note Boolean value: (Macaulay2Doc)Boolean,, default
+        value false, whether the function is variadic;
+  * Outputs:
+      * a *note foreign function: foreignFunction,, 
+
+Description
+===========
+
+Load a function contained in a shared library using the C function dlsym and
+declare its signature. The library may be omitted if it is already loaded,
+e.g., for functions in the C standard library or libraries that Macaulay2 is
+already linked against.
+
++---------------------------------------------------+
+|i1 : mycos = foreignFunction("cos", double, double)|
+|                                                   |
+|o1 = cos                                           |
+|                                                   |
+|o1 : ForeignFunction                               |
++---------------------------------------------------+
+|i2 : mycos pi                                      |
+|                                                   |
+|o2 = -1                                            |
+|                                                   |
+|o2 : ForeignObject of type double                  |
++---------------------------------------------------+
+
+If a function takes multiple arguments, then provide these argument types using
+a list.
+
++-----------------------------------------------------------------+
+|i3 : myatan2 = foreignFunction("atan2", double, {double, double})|
+|                                                                 |
+|o3 = atan2                                                       |
+|                                                                 |
+|o3 : ForeignFunction                                             |
++-----------------------------------------------------------------+
+|i4 : myatan2(1, sqrt 3)                                          |
+|                                                                 |
+|o4 = .5235987755982989                                           |
+|                                                                 |
+|o4 : ForeignObject of type double                                |
++-----------------------------------------------------------------+
+
+For variadic functions, set the Variadic option to true.
+
++---------------------------------------------------------------------+
+|i5 : sprintf = foreignFunction("sprintf", void, {charstar, charstar},|
+|         Variadic => true)                                           |
+|                                                                     |
+|o5 = sprintf                                                         |
+|                                                                     |
+|o5 : ForeignFunction                                                 |
++---------------------------------------------------------------------+
+|i6 : buf = charstar "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  |
+|                                                                     |
+|o6 = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx                   |
+|                                                                     |
+|o6 : ForeignObject of type char*                                     |
++---------------------------------------------------------------------+
+|i7 : sprintf(buf, "%s %d", "foo", 3)                                 |
++---------------------------------------------------------------------+
+|i8 : buf                                                             |
+|                                                                     |
+|o8 = foo 3                                                           |
+|                                                                     |
+|o8 : ForeignObject of type char*                                     |
++---------------------------------------------------------------------+
+
+The variadic arguments are processed using *note foreignObject: foreignObject,,
+which may lead to unexpected behavior.  It may be useful to cast them to
+foreign objects to avoid ambiguity.
+
++----------------------------------------------+
+|i9 : sprintf(buf, "%s %.1f", "foo", 3)        |
++----------------------------------------------+
+|i10 : buf                                     |
+|                                              |
+|o10 = foo 0.0                                 |
+|                                              |
+|o10 : ForeignObject of type char*             |
++----------------------------------------------+
+|i11 : sprintf(buf, "%s %.1f", "foo", double 3)|
++----------------------------------------------+
+|i12 : buf                                     |
+|                                              |
+|o12 = foo 3.0                                 |
+|                                              |
+|o12 : ForeignObject of type char*             |
++----------------------------------------------+
+
+Note that variadic functions cannot be passed arguments that have a size of
+fewer than 4 bytes.
+
++----------------------------------------------+
+|i13 : stopIfError = false                     |
+|                                              |
+|o13 = false                                   |
++----------------------------------------------+
+|i14 : sprintf(buf, "%c", char' 77)            |
+|stdio:15:7:(3):[1]: error: libffi: bad argtype|
++----------------------------------------------+
+
+If the foreign function allocates any memory, then register a finalizer for its
+outputs to deallocate the memory during garbage collection using *note
+registerFinalizer(ForeignObject,Function):
+registerFinalizer_lpForeignObject_cmFunction_rp,.
+
++---------------------------------------------------------+
+|i15 : malloc = foreignFunction("malloc", voidstar, ulong)|
+|                                                         |
+|o15 = malloc                                             |
+|                                                         |
+|o15 : ForeignFunction                                    |
++---------------------------------------------------------+
+|i16 : free = foreignFunction("free", void, voidstar)     |
+|                                                         |
+|o16 = free                                               |
+|                                                         |
+|o16 : ForeignFunction                                    |
++---------------------------------------------------------+
+|i17 : x = malloc 8                                       |
+|                                                         |
+|o17 = 0x7f253806d790                                     |
+|                                                         |
+|o17 : ForeignObject of type void*                        |
++---------------------------------------------------------+
+|i18 : registerFinalizer(x, free)                         |
++---------------------------------------------------------+
+
+Ways to use foreignFunction:
+============================
+
+  * "foreignFunction(Pointer,String,ForeignType,VisibleList)"
+  * "foreignFunction(SharedLibrary,String,ForeignType,ForeignType)"
+  * "foreignFunction(SharedLibrary,String,ForeignType,VisibleList)"
+  * "foreignFunction(String,ForeignType,ForeignType)"
+  * "foreignFunction(String,ForeignType,VisibleList)"
+
+For the programmer
+==================
+
+The object *note foreignFunction: foreignFunction, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1937:0.
+
+File: ForeignFunctions.info, Node: SharedLibrary, Next: ForeignType, Prev: foreignFunction, Up: Top
+
+SharedLibrary -- a shared library
+*********************************
+
+Description
+===========
+
+A shared library that could be used to load foreign functions.  Each shared
+library object consists of a pointer to a handle for the library and a string
+that is used by *note describe: (Macaulay2Doc)describe,, *note expression:
+(Macaulay2Doc)expression,, *note net: (Macaulay2Doc)net,, *note texMath:
+(Macaulay2Doc)texMath,, *note toExternalString:
+(Macaulay2Doc)toExternalString,, and *note toString: (Macaulay2Doc)toString,.
+
++----------------------------------------+
+|i1 : mpfr = openSharedLibrary "mpfr"    |
+|                                        |
+|o1 = mpfr                               |
+|                                        |
+|o1 : SharedLibrary                      |
++----------------------------------------+
+|i2 : peek mpfr                          |
+|                                        |
+|o2 = SharedLibrary{0x7fb3e49c1550, mpfr}|
++----------------------------------------+
+* Menu:
+
+* openSharedLibrary::           open a shared library
+
+Functions and methods returning a shared library:
+=================================================
+
+  * *note openSharedLibrary: openSharedLibrary, -- open a shared library
+
+Methods that use a shared library:
+==================================
+
+  * "foreignFunction(SharedLibrary,String,ForeignType,ForeignType)" -- see
+    *note foreignFunction: foreignFunction, -- construct a foreign function
+  * "foreignFunction(SharedLibrary,String,ForeignType,VisibleList)" -- see
+    *note foreignFunction: foreignFunction, -- construct a foreign function
+  * "foreignSymbol(SharedLibrary,String,ForeignType)" -- see *note
+    foreignSymbol: foreignSymbol, -- get a foreign symbol
+  * "describe(SharedLibrary)"
+  * "expression(SharedLibrary)"
+  * "net(SharedLibrary)"
+  * "texMath(SharedLibrary)"
+  * "toExternalString(SharedLibrary)"
+  * "toString(SharedLibrary)"
+
+For the programmer
+==================
+
+The object *note SharedLibrary: SharedLibrary, is a *note self initializing
+type: (Macaulay2Doc)SelfInitializingType,, with ancestor classes *note
+BasicList: (Macaulay2Doc)BasicList, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1836:0.
+
+File: ForeignFunctions.info, Node: openSharedLibrary, Up: SharedLibrary
+
+openSharedLibrary -- open a shared library
+******************************************
+
+  * Usage: 
+        openSharedLibrary name
+  * Inputs:
+      * name, a *note string: (Macaulay2Doc)String,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * FileName => a *note string: (Macaulay2Doc)String,, default value null,
+        the filename of the library to open;
+  * Outputs:
+      * a *note shared library: SharedLibrary,, 
+
+Description
+===========
+
+Open a shared library with the given name.  In particular, this is a wrapper
+around the C dlopen function.  A library is searched for with the filename
+"lib" | name | ".so" (in Linux) or "lib" | name | ".dylib" (in macOS).
+Alternatively, a specific filename can be specified using the FileName option.
+A corresponding *note SharedLibrary: SharedLibrary, object, which can be later
+used by *note foreignFunction: foreignFunction,, is returned.
+
++-----------------------------+
+|i1 : openSharedLibrary "mpfr"|
+|                             |
+|o1 = mpfr                    |
+|                             |
+|o1 : SharedLibrary           |
++-----------------------------+
+
+Ways to use openSharedLibrary:
+==============================
+
+  * "openSharedLibrary(String)"
+
+For the programmer
+==================
+
+The object *note openSharedLibrary: openSharedLibrary, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1863:0.
+
+File: ForeignFunctions.info, Node: ForeignType, Next: ForeignObject, Prev: SharedLibrary, Up: Top
+
+ForeignType -- abstract foreign type
+************************************
+
+Description
+===========
+
+This is the abstract class from which all other foreign type classes should
+inherit.  All ForeignType objects should have, at minimum, two key-value pairs:
+
+  * Name, a *note string: (Macaulay2Doc)String,, a human-readable name of the
+    class for display purposes, used by net(ForeignType).
+  * Address, a *note pointer: Pointer,, a pointer to the corresponding ffi_type
+    object, used by *note address(ForeignType): address,.
+* Menu:
+
+* size(ForeignType): size_lpForeignType_rp.  size of a foreign type
+
+Subtypes
+* ForeignArrayType::            foreign array type
+* ForeignIntegerType::          foreign integer type
+* ForeignPointerType::          foreign pointer type
+* ForeignPointerArrayType::     foreign type for NULL-terminated arrays of pointers
+* ForeignRealType::             foreign real type
+* ForeignStringType::           foreign string type
+* ForeignStructType::           foreign struct type
+* ForeignUnionType::            foreign union type
+* ForeignVoidType::             foreign void type
+
+Types of foreign type:
+======================
+
+  * *note ForeignArrayType: ForeignArrayType, -- foreign array type
+  * *note ForeignIntegerType: ForeignIntegerType, -- foreign integer type
+  * *note ForeignPointerArrayType: ForeignPointerArrayType, -- foreign type for
+    NULL-terminated arrays of pointers
+  * *note ForeignPointerType: ForeignPointerType, -- foreign pointer type
+  * *note ForeignRealType: ForeignRealType, -- foreign real type
+  * *note ForeignStringType: ForeignStringType, -- foreign string type
+  * *note ForeignStructType: ForeignStructType, -- foreign struct type
+  * *note ForeignUnionType: ForeignUnionType, -- foreign union type
+  * *note ForeignVoidType: ForeignVoidType, -- foreign void type
+
+Methods that use a foreign type:
+================================
+
+  * "address(ForeignType)" -- see *note address: address, -- pointer to type or
+    object
+  * "foreignArrayType(ForeignType,ZZ)" -- see *note foreignArrayType:
+    foreignArrayType, -- construct a foreign array type
+  * "foreignArrayType(String,ForeignType,ZZ)" -- see *note foreignArrayType:
+    foreignArrayType, -- construct a foreign array type
+  * "ForeignType * ZZ" -- see *note foreignArrayType: foreignArrayType, --
+    construct a foreign array type
+  * "ZZ * ForeignType" -- see *note foreignArrayType: foreignArrayType, --
+    construct a foreign array type
+  * "foreignFunction(Pointer,String,ForeignType,VisibleList)" -- see *note
+    foreignFunction: foreignFunction, -- construct a foreign function
+  * "foreignFunction(SharedLibrary,String,ForeignType,ForeignType)" -- see
+    *note foreignFunction: foreignFunction, -- construct a foreign function
+  * "foreignFunction(SharedLibrary,String,ForeignType,VisibleList)" -- see
+    *note foreignFunction: foreignFunction, -- construct a foreign function
+  * "foreignFunction(String,ForeignType,ForeignType)" -- see *note
+    foreignFunction: foreignFunction, -- construct a foreign function
+  * "foreignFunction(String,ForeignType,VisibleList)" -- see *note
+    foreignFunction: foreignFunction, -- construct a foreign function
+  * "foreignPointerArrayType(ForeignType)" -- see *note
+    foreignPointerArrayType: foreignPointerArrayType, -- construct a foreign
+    pointer array type
+  * "foreignPointerArrayType(String,ForeignType)" -- see *note
+    foreignPointerArrayType: foreignPointerArrayType, -- construct a foreign
+    pointer array type
+  * "foreignSymbol(SharedLibrary,String,ForeignType)" -- see *note
+    foreignSymbol: foreignSymbol, -- get a foreign symbol
+  * "foreignSymbol(String,ForeignType)" -- see *note foreignSymbol:
+    foreignSymbol, -- get a foreign symbol
+  * "net(ForeignType)"
+  * *note ForeignType * voidstar: ForeignType _st voidstar, -- dereference a
+    voidstar object
+  * *note ForeignType ForeignObject: ForeignType ForeignObject, -- cast a
+    foreign object to the given foreign type
+  * *note ForeignType Pointer: ForeignType Pointer, -- dereference a pointer
+  * "getMemory(ForeignType)" -- see *note getMemory: getMemory, -- allocate
+    memory using the garbage collector
+  * new ForeignType (missing documentation)
+  * *note size(ForeignType): size_lpForeignType_rp, -- size of a foreign type
+
+For the programmer
+==================
+
+The object *note ForeignType: ForeignType, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note Type: (Macaulay2Doc)Type, <
+*note MutableHashTable: (Macaulay2Doc)MutableHashTable, < *note HashTable:
+(Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:834:0.
+
+File: ForeignFunctions.info, Node: size_lpForeignType_rp, Next: ForeignArrayType, Up: ForeignType
+
+size(ForeignType) -- size of a foreign type
+*******************************************
+
+  * Function: *note size: (Macaulay2Doc)size,
+  * Usage: 
+        size T
+  * Inputs:
+      * T, a *note foreign type: ForeignType,, 
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,, 
+
+Description
+===========
+
+Return the number of bytes needed by the given foreign type, just like the
+sizeof operator in C.
+
++------------------+
+|i1 : size char'   |
+|                  |
+|o1 = 1            |
++------------------+
+|i2 : size voidstar|
+|                  |
+|o2 = 8            |
++------------------+
+
+Ways to use this method:
+========================
+
+  * *note size(ForeignType): size_lpForeignType_rp, -- size of a foreign type
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:880:0.
+
+File: ForeignFunctions.info, Node: ForeignArrayType, Next: ForeignIntegerType, Prev: size_lpForeignType_rp, Up: ForeignType
+
+ForeignArrayType -- foreign array type
+**************************************
+
+Description
+===========
+
+This is the class for array types.  There are no built-in types.  They must be
+constructed using *note foreignArrayType: foreignArrayType,.
+
++-----------------------------------+
+|i1 : x = (3 * int) {3, 5, 7}       |
+|                                   |
+|o1 = {3, 5, 7}                     |
+|                                   |
+|o1 : ForeignObject of type int32[3]|
++-----------------------------------+
+
+Foreign arrays may be subscripted using *note _: (Macaulay2Doc)_us,.
+
++--------------------------------+
+|i2 : x_1                        |
+|                                |
+|o2 = 5                          |
+|                                |
+|o2 : ForeignObject of type int32|
++--------------------------------+
+|i3 : x_(-1)                     |
+|                                |
+|o3 = 7                          |
+|                                |
+|o3 : ForeignObject of type int32|
++--------------------------------+
+
+Their lengths may be found using *note length: (Macaulay2Doc)length,.
+
++-------------+
+|i4 : length x|
+|             |
+|o4 = 3       |
++-------------+
+
+They are also *note iterable: (Macaulay2Doc)iterator,.
+
++--------------------------------+
+|i5 : i = iterator x;            |
++--------------------------------+
+|i6 : next i                     |
+|                                |
+|o6 = 3                          |
+|                                |
+|o6 : ForeignObject of type int32|
++--------------------------------+
+|i7 : next i                     |
+|                                |
+|o7 = 5                          |
+|                                |
+|o7 : ForeignObject of type int32|
++--------------------------------+
+|i8 : for y in x list value y + 1|
+|                                |
+|o8 = {4, 6, 8}                  |
+|                                |
+|o8 : List                       |
++--------------------------------+
+
+They may also be modified using subscripted assignment.
+
++------------------------------------+
+|i9 : x_0 = 9                        |
+|                                    |
+|o9 = 9                              |
+|                                    |
+|o9 : ForeignObject of type int32    |
++------------------------------------+
+|i10 : x                             |
+|                                    |
+|o10 = {9, 5, 7}                     |
+|                                    |
+|o10 : ForeignObject of type int32[3]|
++------------------------------------+
+* Menu:
+
+* foreignArrayType::            construct a foreign array type
+* ForeignArrayType VisibleList::  cast a Macaulay2 list to a foreign array
+
+Functions and methods returning a foreign array type:
+=====================================================
+
+  * *note foreignArrayType: foreignArrayType, -- construct a foreign array type
+
+Methods that use a foreign array type:
+======================================
+
+  * *note ForeignArrayType VisibleList: ForeignArrayType VisibleList, -- cast a
+    Macaulay2 list to a foreign array
+
+For the programmer
+==================
+
+The object *note ForeignArrayType: ForeignArrayType, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note ForeignType: ForeignType, <
+*note Type: (Macaulay2Doc)Type, < *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1207:0.
+
+File: ForeignFunctions.info, Node: foreignArrayType, Next: ForeignArrayType VisibleList, Up: ForeignArrayType
+
+foreignArrayType -- construct a foreign array type
+**************************************************
+
+  * Usage: 
+        foreignArrayType(name, T, n)
+        foreignArrayType(T, n)
+        n * T
+  * Inputs:
+      * name, a *note string: (Macaulay2Doc)String,, 
+      * T, a *note foreign type: ForeignType,, 
+      * n, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * a *note foreign array type: ForeignArrayType,, 
+
+Description
+===========
+
+To construct a foreign array type, specify a name, the type of the elements of
+each array, and the number of elements in each array.
+
++--------------------------------------------+
+|i1 : foreignArrayType("myArrayType", int, 5)|
+|                                            |
+|o1 = myArrayType                            |
+|                                            |
+|o1 : ForeignArrayType                       |
++--------------------------------------------+
+
+If the name is omitted, then a default one is chosen by taking the name of the
+type of the elements and appending the number of elements enclosed in brackets.
+
++-----------------------------+
+|i2 : foreignArrayType(int, 5)|
+|                             |
+|o2 = int32[5]                |
+|                             |
+|o2 : ForeignArrayType        |
++-----------------------------+
+
+Alternatively, you may "multiply" the number of elements by the type to
+accomplish the same.
+
++---------------------+
+|i3 : 5 * int         |
+|                     |
+|o3 = int32[5]        |
+|                     |
+|o3 : ForeignArrayType|
++---------------------+
+
+Ways to use foreignArrayType:
+=============================
+
+  * "foreignArrayType(ForeignType,ZZ)"
+  * "foreignArrayType(String,ForeignType,ZZ)"
+
+For the programmer
+==================
+
+The object *note foreignArrayType: foreignArrayType, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1245:0.
+
+File: ForeignFunctions.info, Node: ForeignArrayType VisibleList, Prev: foreignArrayType, Up: ForeignArrayType
+
+ForeignArrayType VisibleList -- cast a Macaulay2 list to a foreign array
+************************************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T x
+  * Inputs:
+      * T, a *note foreign array type: ForeignArrayType,, 
+      * x, a *note visible list: (Macaulay2Doc)VisibleList,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, of type T; 
+
+Description
+===========
+
+To cast a Macaulay2 list to a foreign object with array type, give the type
+followed by the list.
+
++-----------------------------------+
+|i1 : intarray5 = 5 * int           |
+|                                   |
+|o1 = int32[5]                      |
+|                                   |
+|o1 : ForeignArrayType              |
++-----------------------------------+
+|i2 : x = intarray5 {2, 4, 6, 8, 10}|
+|                                   |
+|o2 = {2, 4, 6, 8, 10}              |
+|                                   |
+|o2 : ForeignObject of type int32[5]|
++-----------------------------------+
+
+Caveat
+======
+
+The number of elements of x must match the number of elements that were
+specified when T was constructed.
+
+Ways to use this method:
+========================
+
+  * *note ForeignArrayType VisibleList: ForeignArrayType VisibleList, -- cast a
+    Macaulay2 list to a foreign array
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1269:0.
+
+File: ForeignFunctions.info, Node: ForeignIntegerType, Next: ForeignPointerType, Prev: ForeignArrayType, Up: ForeignType
+
+ForeignIntegerType -- foreign integer type
+******************************************
+
+Description
+===========
+
+This is the class of the various C integer types.  There are built-in types for
+signed and unsigned integers of 8, 16, 32, and 64 bits.  Signed types begin
+with int and unsigned types with uint, and the number of bits is indicated by a
+numeric suffix.
+
++-----------------------+
+|i1 : int8              |
+|                       |
+|o1 = int8              |
+|                       |
+|o1 : ForeignIntegerType|
++-----------------------+
+|i2 : uint32            |
+|                       |
+|o2 = uint32            |
+|                       |
+|o2 : ForeignIntegerType|
++-----------------------+
+
+There are also a number of aliases to these types without the numeric suffixes.
+Note the single quote on char' to avoid conflicting with *note char:
+(Macaulay2Doc)char,.  Also note that the number of bits for long and ulong is
+system-dependent (32 on 32-bit systems and 64 on 64-bit systems).
+
++------------------------+
+|i3 : char'              |
+|                        |
+|o3 = int8               |
+|                        |
+|o3 : ForeignIntegerType |
++------------------------+
+|i4 : uchar              |
+|                        |
+|o4 = uint8              |
+|                        |
+|o4 : ForeignIntegerType |
++------------------------+
+|i5 : short              |
+|                        |
+|o5 = int16              |
+|                        |
+|o5 : ForeignIntegerType |
++------------------------+
+|i6 : ushort             |
+|                        |
+|o6 = uint16             |
+|                        |
+|o6 : ForeignIntegerType |
++------------------------+
+|i7 : int                |
+|                        |
+|o7 = int32              |
+|                        |
+|o7 : ForeignIntegerType |
++------------------------+
+|i8 : uint               |
+|                        |
+|o8 = uint32             |
+|                        |
+|o8 : ForeignIntegerType |
++------------------------+
+|i9 : long               |
+|                        |
+|o9 = int64              |
+|                        |
+|o9 : ForeignIntegerType |
++------------------------+
+|i10 : ulong             |
+|                        |
+|o10 = uint64            |
+|                        |
+|o10 : ForeignIntegerType|
++------------------------+
+
+See also
+========
+
+  * *note mpzT: mpzT, -- GMP arbitrary-precision integer type
+* Menu:
+
+* mpzT::                        GMP arbitrary-precision integer type
+* ForeignIntegerType Number::   cast a Macaulay2 number to a foreign integer object
+
+Methods that use a foreign integer type:
+========================================
+
+  * *note ForeignIntegerType Number: ForeignIntegerType Number, -- cast a
+    Macaulay2 number to a foreign integer object
+
+Protected objects of class ForeignIntegerType:
+==============================================
+
+  * "int8"
+  * "int16"
+  * "int32"
+  * "int64"
+  * "uint8"
+  * "uint16"
+  * "uint32"
+  * "uint64"
+  * *note mpzT: mpzT, -- GMP arbitrary-precision integer type
+
+For the programmer
+==================
+
+The object *note ForeignIntegerType: ForeignIntegerType, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note ForeignType: ForeignType, <
+*note Type: (Macaulay2Doc)Type, < *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:974:0.
+
+File: ForeignFunctions.info, Node: mpzT, Next: ForeignIntegerType Number, Up: ForeignIntegerType
+
+mpzT -- GMP arbitrary-precision integer type
+********************************************
+
+Description
+===========
+
+Macaulay2's native *note ZZ: (Macaulay2Doc)ZZ, integer type wraps around mpz_t
+from GMP (see https://gmplib.org/ ).  This type (which is an instance of *note
+ForeignIntegerType: ForeignIntegerType,) allows for conversion between
+Macaulay2 integers and GMP integers without loss of precision.
+
++---------------------------------------------------------------------+
+|i1 : mpzT 2^100                                                      |
+|                                                                     |
+|o1 = 1267650600228229401496703205376                                 |
+|                                                                     |
+|o1 : ForeignObject of type mpz_t                                     |
++---------------------------------------------------------------------+
+|i2 : value oo                                                        |
+|                                                                     |
+|o2 = 1267650600228229401496703205376                                 |
++---------------------------------------------------------------------+
+|i3 : mpzAdd = foreignFunction("__gmpz_add", void, {mpzT, mpzT, mpzT})|
+|                                                                     |
+|o3 = __gmpz_add                                                      |
+|                                                                     |
+|o3 : ForeignFunction                                                 |
++---------------------------------------------------------------------+
+|i4 : x = mpzT 0                                                      |
+|                                                                     |
+|o4 = 0                                                               |
+|                                                                     |
+|o4 : ForeignObject of type mpz_t                                     |
++---------------------------------------------------------------------+
+|i5 : mpzAdd(x, 2, 3)                                                 |
++---------------------------------------------------------------------+
+|i6 : x                                                               |
+|                                                                     |
+|o6 = 5                                                               |
+|                                                                     |
+|o6 : ForeignObject of type mpz_t                                     |
++---------------------------------------------------------------------+
+
+Methods that use an object of class mpzT:
+=========================================
+
+  * "new mpzT from ZZ"
+  * "value(mpzT)"
+
+For the programmer
+==================
+
+The object *note mpzT: mpzT, is a *note foreign integer type:
+ForeignIntegerType,, with ancestor classes *note ForeignObject: ForeignObject,
+< *note HashTable: (Macaulay2Doc)HashTable, < *note Thing:
+(Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1026:0.
+
+File: ForeignFunctions.info, Node: ForeignIntegerType Number, Prev: mpzT, Up: ForeignIntegerType
+
+ForeignIntegerType Number -- cast a Macaulay2 number to a foreign integer object
+********************************************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T n
+  * Inputs:
+      * T, a *note foreign integer type: ForeignIntegerType,, 
+      * n, a *note number: (Macaulay2Doc)Number,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, 
+
+Description
+===========
+
+To cast a Macaulay2 number to a foreign object with an integer type, give the
+type followed by the number.  Non-integers will be truncated.
+
++---------------------------------+
+|i1 : int 12                      |
+|                                 |
+|o1 = 12                          |
+|                                 |
+|o1 : ForeignObject of type int32 |
++---------------------------------+
+|i2 : ulong pi                    |
+|                                 |
+|o2 = 3                           |
+|                                 |
+|o2 : ForeignObject of type uint64|
++---------------------------------+
+|i3 : short(-2.71828)             |
+|                                 |
+|o3 = -2                          |
+|                                 |
+|o3 : ForeignObject of type int16 |
++---------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note ForeignIntegerType Number: ForeignIntegerType Number, -- cast a
+    Macaulay2 number to a foreign integer object
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1004:0.
+
+File: ForeignFunctions.info, Node: ForeignPointerType, Next: ForeignPointerArrayType, Prev: ForeignIntegerType, Up: ForeignType
+
+ForeignPointerType -- foreign pointer type
+******************************************
+
+Description
+===========
+
+This is the class for C pointer types.  There is one built-in type, voidstar.
+
++-----------------------+
+|i1 : voidstar          |
+|                       |
+|o1 = void*             |
+|                       |
+|o1 : ForeignPointerType|
++-----------------------+
+* Menu:
+
+* ForeignPointerType Pointer::  cast a Macaulay2 pointer to a foreign pointer
+* * voidstar = Thing: _st voidstar = Thing.  assign value to object at address
+* ForeignType * voidstar: ForeignType _st voidstar.  dereference a voidstar object
+* getMemory::                   allocate memory using the garbage collector
+
+Methods that use a foreign pointer type:
+========================================
+
+  * *note ForeignPointerType Pointer: ForeignPointerType Pointer, -- cast a
+    Macaulay2 pointer to a foreign pointer
+
+Protected objects of class ForeignPointerType:
+==============================================
+
+  * "voidstar"
+
+For the programmer
+==================
+
+The object *note ForeignPointerType: ForeignPointerType, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note ForeignType: ForeignType, <
+*note Type: (Macaulay2Doc)Type, < *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1113:0.
+
+File: ForeignFunctions.info, Node: ForeignPointerType Pointer, Next: _st voidstar = Thing, Up: ForeignPointerType
+
+ForeignPointerType Pointer -- cast a Macaulay2 pointer to a foreign pointer
+***************************************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T x
+  * Inputs:
+      * T, a *note foreign pointer type: ForeignPointerType,, 
+      * x, a *note pointer: Pointer,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, 
+
+Description
+===========
+
+To cast a Macaulay2 pointer to a foreign object with a pointer type, give the
+type followed by the pointer.
+
++--------------------------------+
+|i1 : ptr = address int 0        |
+|                                |
+|o1 = 0x7fb3b75b8770             |
+|                                |
+|o1 : Pointer                    |
++--------------------------------+
+|i2 : voidstar ptr               |
+|                                |
+|o2 = 0x7fb3b75b8770             |
+|                                |
+|o2 : ForeignObject of type void*|
++--------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note ForeignPointerType Pointer: ForeignPointerType Pointer, -- cast a
+    Macaulay2 pointer to a foreign pointer
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1134:0.
+
+File: ForeignFunctions.info, Node: _st voidstar = Thing, Next: ForeignType _st voidstar, Prev: ForeignPointerType Pointer, Up: ForeignPointerType
+
+* voidstar = Thing -- assign value to object at address
+*******************************************************
+
+  * Operator: *note *: (Macaulay2Doc)_st,
+  * Usage: 
+        *ptr = val
+  * Inputs:
+      * ptr, an instance of the type *note voidstar: ForeignPointerType, or a
+        *note pointer: Pointer,,
+      * val, a *note thing: (Macaulay2Doc)Thing,, 
+
+Description
+===========
+
+Assign the value val to an object at the address given by ptr.
+
++--------------------------------+
+|i1 : x = int 5                  |
+|                                |
+|o1 = 5                          |
+|                                |
+|o1 : ForeignObject of type int32|
++--------------------------------+
+|i2 : ptr = address x            |
+|                                |
+|o2 = 0x7fb3b7169210             |
+|                                |
+|o2 : Pointer                    |
++--------------------------------+
+|i3 : *ptr = int 6               |
+|                                |
+|o3 = 6                          |
+|                                |
+|o3 : ForeignObject of type int32|
++--------------------------------+
+|i4 : x                          |
+|                                |
+|o4 = 6                          |
+|                                |
+|o4 : ForeignObject of type int32|
++--------------------------------+
+
+If val is not a *note ForeignObject: ForeignObject,, then *note foreignObject:
+foreignObject, is called first.
+
++--------------------------------+
+|i5 : *ptr = 7                   |
+|                                |
+|o5 = 7                          |
+|                                |
+|o5 : ForeignObject of type int32|
++--------------------------------+
+|i6 : x                          |
+|                                |
+|o6 = 7                          |
+|                                |
+|o6 : ForeignObject of type int32|
++--------------------------------+
+
+Make sure that the memory at which ptr points is properly allocated.
+Otherwise, segmentation faults may occur!
+
+Ways to use this method:
+========================
+
+  * "* Pointer = Thing"
+  * *note * voidstar = Thing: _st voidstar = Thing, -- assign value to object
+    at address
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:2053:0.
+
+File: ForeignFunctions.info, Node: ForeignType _st voidstar, Next: getMemory, Prev: _st voidstar = Thing, Up: ForeignPointerType
+
+ForeignType * voidstar -- dereference a voidstar object
+*******************************************************
+
+  * Operator: *note *: (Macaulay2Doc)_st,
+  * Usage: 
+        T * ptr
+  * Inputs:
+      * T, a *note foreign type: ForeignType,, 
+      * ptr, an instance of the type *note voidstar: ForeignPointerType,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, of type T; 
+
+Description
+===========
+
+This is syntactic sugar for T value ptr (see *note ForeignType Pointer:
+ForeignType Pointer,) for dereferencing pointers.
+
++---------------------------------+
+|i1 : ptr = voidstar address int 5|
+|                                 |
+|o1 = 0x7fb3b7182fa0              |
+|                                 |
+|o1 : ForeignObject of type void* |
++---------------------------------+
+|i2 : int * ptr                   |
+|                                 |
+|o2 = 5                           |
+|                                 |
+|o2 : ForeignObject of type int32 |
++---------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note ForeignType * voidstar: ForeignType _st voidstar, -- dereference a
+    voidstar object
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:2022:0.
+
+File: ForeignFunctions.info, Node: getMemory, Prev: ForeignType _st voidstar, Up: ForeignPointerType
+
+getMemory -- allocate memory using the garbage collector
+********************************************************
+
+  * Usage: 
+        getMemory n
+        getMemory T
+  * Inputs:
+      * n, an *note integer: (Macaulay2Doc)ZZ,, must be positive; 
+      * T, a *note foreign type: ForeignType,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Atomic => ..., default value false
+  * Outputs:
+      * an instance of the type *note voidstar: ForeignPointerType,, 
+
+Description
+===========
+
+Allocate n bytes of memory using the *note GC garbage collector:
+(Macaulay2Doc)GC garbage collector,.
+
++--------------------------------+
+|i1 : ptr = getMemory 8          |
+|                                |
+|o1 = 0x7fb3b78bd6c0             |
+|                                |
+|o1 : ForeignObject of type void*|
++--------------------------------+
+
+If the memory will not contain any pointers, then set the Atomic option to
+*note true: (Macaulay2Doc)true,.
+
++---------------------------------------+
+|i2 : ptr = getMemory(8, Atomic => true)|
+|                                       |
+|o2 = 0x7fb3b7169900                    |
+|                                       |
+|o2 : ForeignObject of type void*       |
++---------------------------------------+
+
+Alternatively, a foreign object type T may be specified.  In this case, the
+number of bytes and whether the Atomic option should be set will be determined
+automatically.
+
++--------------------------------+
+|i3 : ptr = getMemory int        |
+|                                |
+|o3 = 0x7fb3b7169810             |
+|                                |
+|o3 : ForeignObject of type void*|
++--------------------------------+
+
+See also
+========
+
+  * *note registerFinalizer(ForeignObject,Function):
+    registerFinalizer_lpForeignObject_cmFunction_rp, -- register a finalizer
+    for a foreign object
+
+Ways to use getMemory:
+======================
+
+  * "getMemory(ForeignType)"
+  * "getMemory(ForeignVoidType)"
+  * "getMemory(ZZ)"
+
+For the programmer
+==================
+
+The object *note getMemory: getMemory, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:2001:0.
+
+File: ForeignFunctions.info, Node: ForeignPointerArrayType, Next: ForeignRealType, Prev: ForeignPointerType, Up: ForeignType
+
+ForeignPointerArrayType -- foreign type for NULL-terminated arrays of pointers
+******************************************************************************
+
+Description
+===========
+
+This is the class for a particular kind of array type, where the entries of
+each array are some sort of pointer type and the lengths are arbitrary. There
+are two built-in types, charstarstar (for arrays of strings) and voidstarstar
+(for arrays of pointers), but more types may be constructed using *note
+foreignPointerArrayType: foreignPointerArrayType,.
+
++--------------------------------------------------------------------------+
+|i1 : charstarstar {"foo", "bar", "baz"}                                   |
+|                                                                          |
+|o1 = {foo, bar, baz}                                                      |
+|                                                                          |
+|o1 : ForeignObject of type char**                                         |
++--------------------------------------------------------------------------+
+|i2 : charstarstar {"the", "quick", "brown", "fox", "jumps", "over", "the",|
+|         "lazy", "dog"}                                                   |
+|                                                                          |
+|o2 = {the, quick, brown, fox, jumps, over, the, lazy, dog}                |
+|                                                                          |
+|o2 : ForeignObject of type char**                                         |
++--------------------------------------------------------------------------+
+|i3 : voidstarstar {address int 0, address int 1, address int 2}           |
+|                                                                          |
+|o3 = {0x7fb3b719ad20, 0x7fb3b719ad10, 0x7fb3b719ad00}                     |
+|                                                                          |
+|o3 : ForeignObject of type void**                                         |
++--------------------------------------------------------------------------+
+
+Foreign pointer arrays may be subscripted using *note _: (Macaulay2Doc)_us,.
+
++-------------------------------------------+
+|i4 : x = charstarstar {"foo", "bar", "baz"}|
+|                                           |
+|o4 = {foo, bar, baz}                       |
+|                                           |
+|o4 : ForeignObject of type char**          |
++-------------------------------------------+
+|i5 : x_1                                   |
+|                                           |
+|o5 = bar                                   |
+|                                           |
+|o5 : ForeignObject of type char*           |
++-------------------------------------------+
+|i6 : x_(-1)                                |
+|                                           |
+|o6 = baz                                   |
+|                                           |
+|o6 : ForeignObject of type char*           |
++-------------------------------------------+
+
+Their lengths may be found using *note length: (Macaulay2Doc)length,.
+
++-------------+
+|i7 : length x|
+|             |
+|o7 = 3       |
++-------------+
+
+They are also *note iterable: (Macaulay2Doc)iterator,.
+
++---------------------------------+
+|i8 : i = iterator x;             |
++---------------------------------+
+|i9 : next i                      |
+|                                 |
+|o9 = foo                         |
+|                                 |
+|o9 : ForeignObject of type char* |
++---------------------------------+
+|i10 : next i                     |
+|                                 |
+|o10 = bar                        |
+|                                 |
+|o10 : ForeignObject of type char*|
++---------------------------------+
+|i11 : scan(x, print)             |
+|foo                              |
+|bar                              |
+|baz                              |
++---------------------------------+
+
+They may also be modified using subscripted assignment.
+
++----------------------------------+
+|i12 : x_0 = "qux"                 |
+|                                  |
+|o12 = qux                         |
+|                                  |
+|o12 : ForeignObject of type char* |
++----------------------------------+
+|i13 : x                           |
+|                                  |
+|o13 = {qux, bar, baz}             |
+|                                  |
+|o13 : ForeignObject of type char**|
++----------------------------------+
+* Menu:
+
+* foreignPointerArrayType::     construct a foreign pointer array type
+* ForeignPointerArrayType VisibleList::  cast a Macaulay2 list to a foreign pointer array
+
+Functions and methods returning a foreign array type:
+=====================================================
+
+  * *note foreignPointerArrayType: foreignPointerArrayType, -- construct a
+    foreign pointer array type
+
+Methods that use a foreign array type:
+======================================
+
+  * *note ForeignPointerArrayType VisibleList: ForeignPointerArrayType
+    VisibleList, -- cast a Macaulay2 list to a foreign pointer array
+
+Protected objects of class ForeignPointerArrayType:
+===================================================
+
+  * "charstarstar"
+  * "voidstarstar"
+
+For the programmer
+==================
+
+The object *note ForeignPointerArrayType: ForeignPointerArrayType, is a *note
+type: (Macaulay2Doc)Type,, with ancestor classes *note ForeignType:
+ForeignType, < *note Type: (Macaulay2Doc)Type, < *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1323:0.
+
+File: ForeignFunctions.info, Node: foreignPointerArrayType, Next: ForeignPointerArrayType VisibleList, Up: ForeignPointerArrayType
+
+foreignPointerArrayType -- construct a foreign pointer array type
+*****************************************************************
+
+  * Usage: 
+        foreignArrayType(name, T)
+        foreignArrayType T
+  * Inputs:
+      * name, a *note string: (Macaulay2Doc)String,, 
+      * T, a *note foreign type: ForeignType,, 
+  * Outputs:
+      * a *note foreign array type: ForeignPointerArrayType,, 
+
+Description
+===========
+
+To construct a foreign array pointer type, specify a name and the type of the
+elements of each array.  This type must necessarily be some kind of pointer
+type.
+
++-------------------------------------------------------+
+|i1 : foreignPointerArrayType("myPointerArray", 3 * int)|
+|                                                       |
+|o1 = myPointerArray                                    |
+|                                                       |
+|o1 : ForeignPointerArrayType                           |
++-------------------------------------------------------+
+
+If the name is omitted, then a default one is chosen by taking the name of the
+type of the elements and appending a star.
+
++-------------------------------------+
+|i2 : foreignPointerArrayType(3 * int)|
+|                                     |
+|o2 = int32[3]*                       |
+|                                     |
+|o2 : ForeignPointerArrayType         |
++-------------------------------------+
+
+Ways to use foreignPointerArrayType:
+====================================
+
+  * "foreignPointerArrayType(ForeignType)"
+  * "foreignPointerArrayType(String,ForeignType)"
+
+For the programmer
+==================
+
+The object *note foreignPointerArrayType: foreignPointerArrayType, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1352:0.
+
+File: ForeignFunctions.info, Node: ForeignPointerArrayType VisibleList, Prev: foreignPointerArrayType, Up: ForeignPointerArrayType
+
+ForeignPointerArrayType VisibleList -- cast a Macaulay2 list to a foreign pointer array
+***************************************************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T x
+  * Inputs:
+      * T, a *note foreign array type: ForeignPointerArrayType,, 
+      * x, a *note visible list: (Macaulay2Doc)VisibleList,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, of type T; 
+
+Description
+===========
+
+To cast a Macaulay2 list to a foreign pointer array type, give the type
+followed by the list.
+
++---------------------------------------------------------------+
+|i1 : charstarstar {"foo", "bar"}                               |
+|                                                               |
+|o1 = {foo, bar}                                                |
+|                                                               |
+|o1 : ForeignObject of type char**                              |
++---------------------------------------------------------------+
+|i2 : voidstarstar {address int 0, address int 1, address int 2}|
+|                                                               |
+|o2 = {0x7fb3b719aba0, 0x7fb3b719ab90, 0x7fb3b719ab80}          |
+|                                                               |
+|o2 : ForeignObject of type void**                              |
++---------------------------------------------------------------+
+|i3 : int2star = foreignPointerArrayType(2 * int)               |
+|                                                               |
+|o3 = int32[2]*                                                 |
+|                                                               |
+|o3 : ForeignPointerArrayType                                   |
++---------------------------------------------------------------+
+|i4 : int2star {{1, 2}, {3, 4}, {5, 6}, {7, 8}, {9, 10}}        |
+|                                                               |
+|o4 = {{1, 2}, {3, 4}, {5, 6}, {7, 8}, {9, 10}}                 |
+|                                                               |
+|o4 : ForeignObject of type int32[2]*                           |
++---------------------------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note ForeignPointerArrayType VisibleList: ForeignPointerArrayType
+    VisibleList, -- cast a Macaulay2 list to a foreign pointer array
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1377:0.
+
+File: ForeignFunctions.info, Node: ForeignRealType, Next: ForeignStringType, Prev: ForeignPointerArrayType, Up: ForeignType
+
+ForeignRealType -- foreign real type
+************************************
+
+Description
+===========
+
+This is the class for C real types.  There are two built-in types, float for
+reals using the single-precision floating-point format (see
+https://en.wikipedia.org/wiki/single-precision_floating-point_format ) and
+double for reals using the double-precision floating-point format (see
+https://en.wikipedia.org/wiki/double-precision_floating-point_format ).
+
++--------------------+
+|i1 : float          |
+|                    |
+|o1 = float          |
+|                    |
+|o1 : ForeignRealType|
++--------------------+
+|i2 : double         |
+|                    |
+|o2 = double         |
+|                    |
+|o2 : ForeignRealType|
++--------------------+
+* Menu:
+
+* mpfrT::                       MPFR multiple-precision floating-point type
+* ForeignRealType Number::      cast a Macaulay2 number to a foreign real object
+
+Methods that use a foreign real type:
+=====================================
+
+  * *note ForeignRealType Number: ForeignRealType Number, -- cast a Macaulay2
+    number to a foreign real object
+  * "ForeignRealType RRi" -- see *note ForeignRealType Number: ForeignRealType
+    Number, -- cast a Macaulay2 number to a foreign real object
+
+Protected objects of class ForeignRealType:
+===========================================
+
+  * "double"
+  * "float"
+  * *note mpfrT: mpfrT, -- MPFR multiple-precision floating-point type
+
+For the programmer
+==================
+
+The object *note ForeignRealType: ForeignRealType, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note ForeignType: ForeignType, <
+*note Type: (Macaulay2Doc)Type, < *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1047:0.
+
+File: ForeignFunctions.info, Node: mpfrT, Next: ForeignRealType Number, Up: ForeignRealType
+
+mpfrT -- MPFR multiple-precision floating-point type
+****************************************************
+
+Description
+===========
+
+Macaulay2's native *note RR: (Macaulay2Doc)RR, real number type wraps around
+mpfr_t from MPFR (see https://mpfr.org/ ).  This type (which is an instance of
+*note ForeignRealType: ForeignRealType,) allows for conversion between
+Macaulay2 reals and MPFR reals without loss of precision.
+
++-------------------------------------+
+|i1 : mpfrT numeric(100, pi)          |
+|                                     |
+|o1 = 3.141592653589793238462643383279|
+|                                     |
+|o1 : ForeignObject of type mpfr_t    |
++-------------------------------------+
+|i2 : value oo                        |
+|                                     |
+|o2 = 3.141592653589793238462643383279|
+|                                     |
+|o2 : RR (of precision 100)           |
++-------------------------------------+
+
+Methods that use an object of class mpfrT:
+==========================================
+
+  * expression(mpfrT) (missing documentation)
+  * "new mpfrT from RR"
+  * "value(mpfrT)"
+
+For the programmer
+==================
+
+The object *note mpfrT: mpfrT, is a *note foreign real type: ForeignRealType,,
+with ancestor classes *note ForeignObject: ForeignObject, < *note HashTable:
+(Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1066:0.
+
+File: ForeignFunctions.info, Node: ForeignRealType Number, Prev: mpfrT, Up: ForeignRealType
+
+ForeignRealType Number -- cast a Macaulay2 number to a foreign real object
+**************************************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T x
+  * Inputs:
+      * T, a *note foreign real type: ForeignRealType,, 
+      * x, a *note number: (Macaulay2Doc)Number,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, 
+
+Description
+===========
+
+To cast a Macaulay2 number to a foreign object with a real type, give the type
+followed by the number.
+
++---------------------------------+
+|i1 : float 3                     |
+|                                 |
+|o1 = 3                           |
+|                                 |
+|o1 : ForeignObject of type float |
++---------------------------------+
+|i2 : double pi                   |
+|                                 |
+|o2 = 3.141592653589793           |
+|                                 |
+|o2 : ForeignObject of type double|
++---------------------------------+
+
+The imaginary parts of complex numbers are discarded.
+
++---------------------------------+
+|i3 : double(2 + 3*ii)            |
+|                                 |
+|o3 = 2                           |
+|                                 |
+|o3 : ForeignObject of type double|
++---------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note ForeignRealType Number: ForeignRealType Number, -- cast a Macaulay2
+    number to a foreign real object
+  * "ForeignRealType RRi"
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1094:0.
+
+File: ForeignFunctions.info, Node: ForeignStringType, Next: ForeignStructType, Prev: ForeignRealType, Up: ForeignType
+
+ForeignStringType -- foreign string type
+****************************************
+
+Description
+===========
+
+This is the class for C strings types, i.e., null-terminated character arrays.
+There is one built-in type, charstar.
+
++----------------------+
+|i1 : charstar         |
+|                      |
+|o1 = char*            |
+|                      |
+|o1 : ForeignStringType|
++----------------------+
+* Menu:
+
+* ForeignStringType String::    cast a Macaulay2 string to a foreign string
+
+Methods that use a foreign string type:
+=======================================
+
+  * *note ForeignStringType String: ForeignStringType String, -- cast a
+    Macaulay2 string to a foreign string
+
+Protected objects of class ForeignStringType:
+=============================================
+
+  * "charstar"
+
+For the programmer
+==================
+
+The object *note ForeignStringType: ForeignStringType, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note ForeignType: ForeignType, <
+*note Type: (Macaulay2Doc)Type, < *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1150:0.
+
+File: ForeignFunctions.info, Node: ForeignStringType String, Up: ForeignStringType
+
+ForeignStringType String -- cast a Macaulay2 string to a foreign string
+***********************************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T x
+  * Inputs:
+      * T, a *note foreign string type: ForeignStringType,, 
+      * x, a *note string: (Macaulay2Doc)String,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, 
+
+Description
+===========
+
+To cast a Macaulay2 string to a foreign object with a string type, give the
+type followed by the string.
+
++--------------------------------+
+|i1 : charstar "Hello, world!"   |
+|                                |
+|o1 = Hello, world!              |
+|                                |
+|o1 : ForeignObject of type char*|
++--------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note ForeignStringType String: ForeignStringType String, -- cast a
+    Macaulay2 string to a foreign string
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1170:0.
+
+File: ForeignFunctions.info, Node: ForeignStructType, Next: ForeignUnionType, Prev: ForeignStringType, Up: ForeignType
+
+ForeignStructType -- foreign struct type
+****************************************
+
+Description
+===========
+
+This is the class for C struct (see
+https://en.wikipedia.org/wiki/Struct_(C_programming_language) ) types.  There
+are no built-in types.  They must be constructed using *note foreignStructType:
+foreignStructType,.
+
+* Menu:
+
+* foreignStructType::           construct a foreign struct type
+* ForeignStructType VisibleList::  cast a hash table to a foreign struct
+
+Functions and methods returning a foreign struct type:
+======================================================
+
+  * *note foreignStructType: foreignStructType, -- construct a foreign struct
+    type
+
+Methods that use a foreign struct type:
+=======================================
+
+  * "ForeignStructType HashTable" -- see *note ForeignStructType VisibleList:
+    ForeignStructType VisibleList, -- cast a hash table to a foreign struct
+  * *note ForeignStructType VisibleList: ForeignStructType VisibleList, -- cast
+    a hash table to a foreign struct
+  * "ForeignStructType ForeignObject" -- see *note ForeignType ForeignObject:
+    ForeignType ForeignObject, -- cast a foreign object to the given foreign
+    type
+
+For the programmer
+==================
+
+The object *note ForeignStructType: ForeignStructType, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note ForeignType: ForeignType, <
+*note Type: (Macaulay2Doc)Type, < *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1392:0.
+
+File: ForeignFunctions.info, Node: foreignStructType, Next: ForeignStructType VisibleList, Up: ForeignStructType
+
+foreignStructType -- construct a foreign struct type
+****************************************************
+
+  * Usage: 
+        foreignStructType(name, x)
+  * Inputs:
+      * name, a *note string: (Macaulay2Doc)String,, 
+      * x, a *note list: (Macaulay2Doc)List,, of options; 
+  * Outputs:
+      * a *note foreign struct type: ForeignStructType,, 
+
+Description
+===========
+
+To construct a foreign struct type, specify a name and a list of the members.
+Each member should be an *note Option: (Macaulay2Doc)Option, of the form
+memberName => memberType, where memberName is a *note String:
+(Macaulay2Doc)String, and memberType is a *note ForeignType: ForeignType,.
+
++-------------------------------------------------------------------+
+|i1 : foreignStructType("mystruct", {"foo" => int, "bar" => double})|
+|                                                                   |
+|o1 = mystruct                                                      |
+|                                                                   |
+|o1 : ForeignStructType                                             |
++-------------------------------------------------------------------+
+
+Ways to use foreignStructType:
+==============================
+
+  * "foreignStructType(String,Option)"
+  * "foreignStructType(String,VisibleList)"
+
+For the programmer
+==================
+
+The object *note foreignStructType: foreignStructType, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1416:0.
+
+File: ForeignFunctions.info, Node: ForeignStructType VisibleList, Prev: foreignStructType, Up: ForeignStructType
+
+ForeignStructType VisibleList -- cast a hash table to a foreign struct
+**********************************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T x
+  * Inputs:
+      * T, a *note foreign struct type: ForeignStructType,, 
+      * x, a *note hash table: (Macaulay2Doc)HashTable, or a *note visible
+        list: (Macaulay2Doc)VisibleList,,
+  * Outputs:
+      * a *note foreign object: ForeignObject,, 
+
+Description
+===========
+
+To cast a Macaulay2 hash table to a foreign object with a struct type, give the
+type followed by the hash table, or a list that could be passed to *note
+hashTable: (Macaulay2Doc)hashTable, to create one.  The keys should correspond
+to the keys of the hash table passed to *note foreignStructType:
+foreignStructType, when constructing T.
+
++-----------------------------------------------------------------------------+
+|i1 : mystruct = foreignStructType("mystruct", {"foo" => int, "bar" =>        |
+|                                                                             |
+|o1 = mystruct                                                                |
+|                                                                             |
+|o1 : ForeignStructType                                                       |
+|-----------------------------------------------------------------------------|
+|double})                                                                     |
++-----------------------------------------------------------------------------+
+|i2 : x = mystruct {"foo" => 5, "bar" => pi}                                  |
+|                                                                             |
+|o2 = HashTable{"bar" => 3.14159}                                             |
+|               "foo" => 5                                                    |
+|                                                                             |
+|o2 : ForeignObject of type mystruct                                          |
++-----------------------------------------------------------------------------+
+
+Use _ to return a single member of a foreign struct.
+
++---------------------------------+
+|i3 : x_"foo"                     |
+|                                 |
+|o3 = 5                           |
+|                                 |
+|o3 : ForeignObject of type int32 |
++---------------------------------+
+|i4 : x_"bar"                     |
+|                                 |
+|o4 = 3.141592653589793           |
+|                                 |
+|o4 : ForeignObject of type double|
++---------------------------------+
+
+They may also be modified using subscripted assignment.
+
++-----------------------------------+
+|i5 : x_"foo" = 6                   |
+|                                   |
+|o5 = 6                             |
+|                                   |
+|o5 : ForeignObject of type int32   |
++-----------------------------------+
+|i6 : x                             |
+|                                   |
+|o6 = HashTable{"bar" => 3.14159}   |
+|               "foo" => 6          |
+|                                   |
+|o6 : ForeignObject of type mystruct|
++-----------------------------------+
+
+Ways to use this method:
+========================
+
+  * "ForeignStructType HashTable"
+  * *note ForeignStructType VisibleList: ForeignStructType VisibleList, -- cast
+    a hash table to a foreign struct
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1451:0.
+
+File: ForeignFunctions.info, Node: ForeignUnionType, Next: ForeignVoidType, Prev: ForeignStructType, Up: ForeignType
+
+ForeignUnionType -- foreign union type
+**************************************
+
+Description
+===========
+
+This is the class for C union (see https://en.wikipedia.org/wiki/Union_type )
+types.  There are no built-in types.  They must be  constructed using *note
+foreignUnionType: foreignUnionType,.
+
+* Menu:
+
+* foreignUnionType::            construct a foreign union type
+* ForeignUnionType Thing::      cast a thing to a foreign union
+
+Functions and methods returning a foreign union type:
+=====================================================
+
+  * *note foreignUnionType: foreignUnionType, -- construct a foreign union type
+
+Methods that use a foreign union type:
+======================================
+
+  * *note ForeignUnionType Thing: ForeignUnionType Thing, -- cast a thing to a
+    foreign union
+
+For the programmer
+==================
+
+The object *note ForeignUnionType: ForeignUnionType, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note ForeignType: ForeignType, <
+*note Type: (Macaulay2Doc)Type, < *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1466:0.
+
+File: ForeignFunctions.info, Node: foreignUnionType, Next: ForeignUnionType Thing, Up: ForeignUnionType
+
+foreignUnionType -- construct a foreign union type
+**************************************************
+
+  * Usage: 
+        foreignUnionType(name, x)
+  * Inputs:
+      * name, a *note string: (Macaulay2Doc)String,, 
+      * x, a *note list: (Macaulay2Doc)List,, of options; 
+  * Outputs:
+      * a *note foreign union type: ForeignUnionType,, 
+
+Description
+===========
+
+To construct a foreign union type, specify a name and a list of the members.
+Each member should be an *note Option: (Macaulay2Doc)Option, of the form
+memberName => memberType, where memberName is a *note String:
+(Macaulay2Doc)String, and memberType is a *note ForeignType: ForeignType,.
+
++-------------------------------------------------+
+|i1 : myunion = foreignUnionType("myunion",       |
+|         {"foo" => 4 * char', "bar" => charstar})|
+|                                                 |
+|o1 = myunion                                     |
+|                                                 |
+|o1 : ForeignUnionType                            |
++-------------------------------------------------+
+
+Use _ to return a single member of a foreign union.
+
++---------------------------------------------------+
+|i2 : x = myunion (4 * char') append(ascii "hi!", 0)|
+|                                                   |
+|o2 = HashTable{"bar" => hi!              }         |
+|               "foo" => {104, 105, 33, 0}          |
+|                                                   |
+|o2 : ForeignObject of type myunion                 |
++---------------------------------------------------+
+|i3 : x_"foo"                                       |
+|                                                   |
+|o3 = {104, 105, 33, 0}                             |
+|                                                   |
+|o3 : ForeignObject of type int8[4]                 |
++---------------------------------------------------+
+|i4 : x_"bar"                                       |
+|                                                   |
+|o4 = hi!                                           |
+|                                                   |
+|o4 : ForeignObject of type char*                   |
++---------------------------------------------------+
+
+They may also be modified using subscripted assignment.
+
++------------------------------------------+
+|i5 : x_"bar" = "ho!"                      |
+|                                          |
+|o5 = ho!                                  |
+|                                          |
+|o5 : ForeignObject of type char*          |
++------------------------------------------+
+|i6 : x                                    |
+|                                          |
+|o6 = HashTable{"bar" => ho!              }|
+|               "foo" => {104, 111, 33, 0} |
+|                                          |
+|o6 : ForeignObject of type myunion        |
++------------------------------------------+
+
+Ways to use foreignUnionType:
+=============================
+
+  * "foreignUnionType(String,Option)"
+  * "foreignUnionType(String,VisibleList)"
+
+For the programmer
+==================
+
+The object *note foreignUnionType: foreignUnionType, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1502:0.
+
+File: ForeignFunctions.info, Node: ForeignUnionType Thing, Prev: foreignUnionType, Up: ForeignUnionType
+
+ForeignUnionType Thing -- cast a thing to a foreign union
+*********************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T x
+  * Inputs:
+      * T, a *note foreign union type: ForeignUnionType,, 
+      * x, a *note thing: (Macaulay2Doc)Thing,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, 
+
+Description
+===========
+
+To cast a Macaulay2 thing to a foreign object with a union type, give the type
+followed by the thing.  The appropriate member is determined automatically by
+*note foreignObject: foreignObject,.
+
++---------------------------------------------------------------------------+
+|i1 : myunion = foreignUnionType("myunion", {"foo" => int, "bar" => double})|
+|                                                                           |
+|o1 = myunion                                                               |
+|                                                                           |
+|o1 : ForeignUnionType                                                      |
++---------------------------------------------------------------------------+
+|i2 : myunion 27                                                            |
+|                                                                           |
+|o2 = HashTable{"bar" => 6.93702e-310}                                      |
+|               "foo" => 27                                                 |
+|                                                                           |
+|o2 : ForeignObject of type myunion                                         |
++---------------------------------------------------------------------------+
+|i3 : myunion pi                                                            |
+|                                                                           |
+|o3 = HashTable{"bar" => 3.14159   }                                        |
+|               "foo" => 1413754136                                         |
+|                                                                           |
+|o3 : ForeignObject of type myunion                                         |
++---------------------------------------------------------------------------+
+
+To avoid ambiguity, it may be helpful to first cast the thing to the
+appropriate foreign type.
+
++----------------------------------+
+|i4 : myunion double 5             |
+|                                  |
+|o4 = HashTable{"bar" => 5}        |
+|               "foo" => 0         |
+|                                  |
+|o4 : ForeignObject of type myunion|
++----------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note ForeignUnionType Thing: ForeignUnionType Thing, -- cast a thing to a
+    foreign union
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1530:0.
+
+File: ForeignFunctions.info, Node: ForeignVoidType, Prev: ForeignUnionType, Up: ForeignType
+
+ForeignVoidType -- foreign void type
+************************************
+
+Description
+===========
+
+The void type (see https://en.wikipedia.org/wiki/void_type ).  There is one
+built-in type of this class, void.
+
+Note that there are no foreign objects of this type.  It is, however, used as a
+return type for *note foreignFunction: foreignFunction,.  Such functions will
+return *note null: (Macaulay2Doc)null,.  It may also be used by itself as an
+argument type to indicate functions that take no arguments.
+
++--------------------+
+|i1 : void           |
+|                    |
+|o1 = void           |
+|                    |
+|o1 : ForeignVoidType|
++--------------------+
+
+Methods that use a foreign void type:
+=====================================
+
+  * "ForeignVoidType Nothing"
+  * "getMemory(ForeignVoidType)" -- see *note getMemory: getMemory, -- allocate
+    memory using the garbage collector
+
+Protected objects of class ForeignVoidType:
+===========================================
+
+  * "void"
+
+For the programmer
+==================
+
+The object *note ForeignVoidType: ForeignVoidType, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note ForeignType: ForeignType, <
+*note Type: (Macaulay2Doc)Type, < *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:922:0.
+
+File: ForeignFunctions.info, Node: ForeignObject, Next: Pointer, Prev: ForeignType, Up: Top
+
+ForeignObject -- foreign object
+*******************************
+
+Description
+===========
+
+A ForeignObject represents some C object.  It consists of a *note Pointer:
+Pointer, with its address in memory.
+
++-------------------------------------+
+|i1 : x = int 5                       |
+|                                     |
+|o1 = 5                               |
+|                                     |
+|o1 : ForeignObject of type int32     |
++-------------------------------------+
+|i2 : peek x                          |
+|                                     |
+|o2 = int32{Address => 0x7fb3b7169a80}|
++-------------------------------------+
+
+To get this, use *note address: address,.
+
++-------------------+
+|i3 : address x     |
+|                   |
+|o3 = 0x7fb3b7169a80|
+|                   |
+|o3 : Pointer       |
++-------------------+
+
+Use *note class: (Macaulay2Doc)class, to determine the type of the object.
+
++-----------------------+
+|i4 : class x           |
+|                       |
+|o4 = int32             |
+|                       |
+|o4 : ForeignIntegerType|
++-----------------------+
+* Menu:
+
+* foreignObject::               construct a foreign object
+* foreignSymbol::               get a foreign symbol
+* value(ForeignObject): value_lpForeignObject_rp.  get the value of a foreign object as a Macaulay2 thing
+* ForeignType ForeignObject::   cast a foreign object to the given foreign type
+* registerFinalizer(ForeignObject,Function): registerFinalizer_lpForeignObject_cmFunction_rp.  register a finalizer for a foreign object
+
+Types of foreign object:
+========================
+
+  * "int8" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+    integer type
+  * "int16" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+    integer type
+  * "int32" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+    integer type
+  * "int64" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+    integer type
+  * "uint8" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+    integer type
+  * "uint16" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+    integer type
+  * "uint32" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+    integer type
+  * "uint64" -- see *note ForeignIntegerType: ForeignIntegerType, -- foreign
+    integer type
+  * "charstarstar" -- see *note ForeignPointerArrayType:
+    ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+    pointers
+  * "voidstarstar" -- see *note ForeignPointerArrayType:
+    ForeignPointerArrayType, -- foreign type for NULL-terminated arrays of
+    pointers
+  * "voidstar" -- see *note ForeignPointerType: ForeignPointerType, -- foreign
+    pointer type
+  * "double" -- see *note ForeignRealType: ForeignRealType, -- foreign real
+    type
+  * "float" -- see *note ForeignRealType: ForeignRealType, -- foreign real type
+  * "charstar" -- see *note ForeignStringType: ForeignStringType, -- foreign
+    string type
+  * "void" -- see *note ForeignVoidType: ForeignVoidType, -- foreign void type
+  * *note mpfrT: mpfrT, -- MPFR multiple-precision floating-point type
+  * *note mpzT: mpzT, -- GMP arbitrary-precision integer type
+
+Functions and methods returning a foreign object:
+=================================================
+
+  * *note foreignObject: foreignObject, -- construct a foreign object
+  * *note foreignSymbol: foreignSymbol, -- get a foreign symbol
+
+Methods that use a foreign object:
+==================================
+
+  * "address(ForeignObject)" -- see *note address: address, -- pointer to type
+    or object
+  * "foreignObject(ForeignObject)" -- see *note foreignObject: foreignObject,
+    -- construct a foreign object
+  * "ForeignStructType ForeignObject" -- see *note ForeignType ForeignObject:
+    ForeignType ForeignObject, -- cast a foreign object to the given foreign
+    type
+  * *note ForeignType ForeignObject: ForeignType ForeignObject, -- cast a
+    foreign object to the given foreign type
+  * *note registerFinalizer(ForeignObject,Function):
+    registerFinalizer_lpForeignObject_cmFunction_rp, -- register a finalizer
+    for a foreign object
+  * "describe(ForeignObject)" -- see *note value(ForeignObject):
+    value_lpForeignObject_rp, -- get the value of a foreign object as a
+    Macaulay2 thing
+  * "expression(ForeignObject)" -- see *note value(ForeignObject):
+    value_lpForeignObject_rp, -- get the value of a foreign object as a
+    Macaulay2 thing
+  * "net(ForeignObject)" -- see *note value(ForeignObject):
+    value_lpForeignObject_rp, -- get the value of a foreign object as a
+    Macaulay2 thing
+  * "texMath(ForeignObject)" -- see *note value(ForeignObject):
+    value_lpForeignObject_rp, -- get the value of a foreign object as a
+    Macaulay2 thing
+  * "toExternalString(ForeignObject)" -- see *note value(ForeignObject):
+    value_lpForeignObject_rp, -- get the value of a foreign object as a
+    Macaulay2 thing
+  * "toString(ForeignObject)" -- see *note value(ForeignObject):
+    value_lpForeignObject_rp, -- get the value of a foreign object as a
+    Macaulay2 thing
+  * *note value(ForeignObject): value_lpForeignObject_rp, -- get the value of a
+    foreign object as a Macaulay2 thing
+
+For the programmer
+==================
+
+The object *note ForeignObject: ForeignObject, is a *note self initializing
+type: (Macaulay2Doc)SelfInitializingType,, with ancestor classes *note
+HashTable: (Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1640:0.
+
+File: ForeignFunctions.info, Node: foreignObject, Next: foreignSymbol, Up: ForeignObject
+
+foreignObject -- construct a foreign object
+*******************************************
+
+  * Usage: 
+        foreignObject x
+  * Inputs:
+      * x, a *note thing: (Macaulay2Doc)Thing,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, 
+
+Description
+===========
+
+This function constructs a *note ForeignObject: ForeignObject,.  The type is
+determined automatically based on type of the input. Integers are converted to
+*note int32: ForeignIntegerType, objects.
+
++--------------------------------+
+|i1 : foreignObject 5            |
+|                                |
+|o1 = 5                          |
+|                                |
+|o1 : ForeignObject of type int32|
++--------------------------------+
+
+Non-integers are converted to *note double: ForeignRealType, objects.
+
++---------------------------------+
+|i2 : foreignObject pi            |
+|                                 |
+|o2 = 3.141592653589793           |
+|                                 |
+|o2 : ForeignObject of type double|
++---------------------------------+
+
+Strings are converted to *note charstar: ForeignStringType, objects.
+
++----------------------------------+
+|i3 : foreignObject "Hello, world!"|
+|                                  |
+|o3 = Hello, world!                |
+|                                  |
+|o3 : ForeignObject of type char*  |
++----------------------------------+
+
+Pointers are converted to *note voidstar: ForeignPointerType, objects.
+
++--------------------------------+
+|i4 : foreignObject nullPointer  |
+|                                |
+|o4 = (nil)                      |
+|                                |
+|o4 : ForeignObject of type void*|
++--------------------------------+
+
+Lists are converted to foreign objects with the appropriate *note
+ForeignArrayType: ForeignArrayType,.
+
++-----------------------------------+
+|i5 : foreignObject {1, 3, 5, 7, 9} |
+|                                   |
+|o5 = {1, 3, 5, 7, 9}               |
+|                                   |
+|o5 : ForeignObject of type int32[5]|
++-----------------------------------+
+
+No conversion is done when the input is already a foreign object.
+
++-----------------------------------+
+|i6 : foreignObject oo              |
+|                                   |
+|o6 = {1, 3, 5, 7, 9}               |
+|                                   |
+|o6 : ForeignObject of type int32[5]|
++-----------------------------------+
+
+Ways to use foreignObject:
+==========================
+
+  * "foreignObject(ForeignObject)"
+  * "foreignObject(Number)"
+  * "foreignObject(Pointer)"
+  * "foreignObject(String)"
+  * "foreignObject(VisibleList)"
+  * "foreignObject(ZZ)"
+
+For the programmer
+==================
+
+The object *note foreignObject: foreignObject, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1760:0.
+
+File: ForeignFunctions.info, Node: foreignSymbol, Next: value_lpForeignObject_rp, Prev: foreignObject, Up: ForeignObject
+
+foreignSymbol -- get a foreign symbol
+*************************************
+
+  * Usage: 
+        foreignSymbol(lib, symb, T)
+        foreignSymbol(symb, T)
+  * Inputs:
+      * lib, a *note shared library: SharedLibrary,, 
+      * symb, a *note string: (Macaulay2Doc)String,, 
+      * T, a *note foreign type: ForeignType,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, 
+
+Description
+===========
+
+This function is a wrapper around the C function dlsym.  It loads a symbol from
+a shared library using the specified foreign type. If the shared library is
+already linked against Macaulay2, then it may be omitted.
+
++--------------------------------+
+|i1 : foreignSymbol("errno", int)|
+|                                |
+|o1 = 0                          |
+|                                |
+|o1 : ForeignObject of type int32|
++--------------------------------+
+
+Ways to use foreignSymbol:
+==========================
+
+  * "foreignSymbol(SharedLibrary,String,ForeignType)"
+  * "foreignSymbol(String,ForeignType)"
+
+For the programmer
+==================
+
+The object *note foreignSymbol: foreignSymbol, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1963:0.
+
+File: ForeignFunctions.info, Node: value_lpForeignObject_rp, Next: ForeignType ForeignObject, Prev: foreignSymbol, Up: ForeignObject
+
+value(ForeignObject) -- get the value of a foreign object as a Macaulay2 thing
+******************************************************************************
+
+  * Function: *note value: (Macaulay2Doc)value,
+  * Usage: 
+        value x
+  * Inputs:
+      * x, a *note foreign object: ForeignObject,, 
+  * Outputs:
+      * a *note thing: (Macaulay2Doc)Thing,, 
+
+Description
+===========
+
+Convert the given foreign object to the corresponding Macaulay2 thing. The type
+of the output is determined by the type of the foreign object. Foreign integer
+objects are converted to *note ZZ: (Macaulay2Doc)ZZ, objects.
+
++--------------------------------+
+|i1 : x = int 5                  |
+|                                |
+|o1 = 5                          |
+|                                |
+|o1 : ForeignObject of type int32|
++--------------------------------+
+|i2 : value x                    |
+|                                |
+|o2 = 5                          |
++--------------------------------+
+
+Foreign real objects are converted to *note RR: (Macaulay2Doc)RR, objects.
+
++---------------------------------+
+|i3 : x = double 5                |
+|                                 |
+|o3 = 5                           |
+|                                 |
+|o3 : ForeignObject of type double|
++---------------------------------+
+|i4 : value x                     |
+|                                 |
+|o4 = 5                           |
+|                                 |
+|o4 : RR (of precision 53)        |
++---------------------------------+
+
+Foreign pointer objects are converted to *note Pointer: Pointer, objects.
+
++--------------------------------+
+|i5 : x = voidstar address int 5 |
+|                                |
+|o5 = 0x7fb3b71827f0             |
+|                                |
+|o5 : ForeignObject of type void*|
++--------------------------------+
+|i6 : value x                    |
+|                                |
+|o6 = 0x7fb3b71827f0             |
+|                                |
+|o6 : Pointer                    |
++--------------------------------+
+
+Foreign string objects are converted to strings.
+
++---------------------------------+
+|i7 : x = charstar "Hello, world!"|
+|                                 |
+|o7 = Hello, world!               |
+|                                 |
+|o7 : ForeignObject of type char* |
++---------------------------------+
+|i8 : value x                     |
+|                                 |
+|o8 = Hello, world!               |
++---------------------------------+
+
+Foreign array objects are converted to lists.
+
++-----------------------------------+
+|i9 : x = (4 * int) {2, 4, 6, 8}    |
+|                                   |
+|o9 = {2, 4, 6, 8}                  |
+|                                   |
+|o9 : ForeignObject of type int32[4]|
++-----------------------------------+
+|i10 : value x                      |
+|                                   |
+|o10 = {2, 4, 6, 8}                 |
+|                                   |
+|o10 : List                         |
++-----------------------------------+
+
+Foreign struct and union objects are converted to hash tables.
+
++--------------------------------------------------------------------------+
+|i11 : mystruct = foreignStructType("mystruct", {"a" => int, "b" => float})|
+|                                                                          |
+|o11 = mystruct                                                            |
+|                                                                          |
+|o11 : ForeignStructType                                                   |
++--------------------------------------------------------------------------+
+|i12 : x = mystruct {"a" => 2, "b" => sqrt 2}                              |
+|                                                                          |
+|o12 = HashTable{"a" => 2      }                                           |
+|                "b" => 1.41421                                            |
+|                                                                          |
+|o12 : ForeignObject of type mystruct                                      |
++--------------------------------------------------------------------------+
+|i13 : value x                                                             |
+|                                                                          |
+|o13 = HashTable{"a" => 2      }                                           |
+|                "b" => 1.41421                                            |
+|                                                                          |
+|o13 : HashTable                                                           |
++--------------------------------------------------------------------------+
+
+Note that this function is also used by *note describe:
+(Macaulay2Doc)describe,, *note expression: (Macaulay2Doc)expression,, *note
+net: (Macaulay2Doc)net,, *note texMath: (Macaulay2Doc)texMath,, *note
+toExternalString: (Macaulay2Doc)toExternalString,, and *note toString:
+(Macaulay2Doc)toString, for representing foreign objects.
+
+Ways to use this method:
+========================
+
+  * "value(charstar)"
+  * "value(charstarstar)"
+  * "value(double)"
+  * "value(float)"
+  * *note value(ForeignObject): value_lpForeignObject_rp, -- get the value of a
+    foreign object as a Macaulay2 thing
+  * "value(int8)"
+  * "value(int16)"
+  * "value(int32)"
+  * "value(int64)"
+  * "value(uint8)"
+  * "value(uint16)"
+  * "value(uint32)"
+  * "value(uint64)"
+  * "value(voidstar)"
+  * "value(voidstarstar)"
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1713:0.
+
+File: ForeignFunctions.info, Node: ForeignType ForeignObject, Next: registerFinalizer_lpForeignObject_cmFunction_rp, Prev: value_lpForeignObject_rp, Up: ForeignObject
+
+ForeignType ForeignObject -- cast a foreign object to the given foreign type
+****************************************************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T x
+  * Inputs:
+      * T, a *note foreign type: ForeignType,, 
+      * x, a *note foreign object: ForeignObject,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, 
+
+Description
+===========
+
+Cast the given foreign object to the given foreign type.  Note that the
+addresses will remain the same.
+
++------------------------------------------+
+|i1 : chararray4 = 4 * char'               |
+|                                          |
+|o1 = int8[4]                              |
+|                                          |
+|o1 : ForeignArrayType                     |
++------------------------------------------+
+|i2 : x = chararray4 append(ascii "foo", 0)|
+|                                          |
+|o2 = {102, 111, 111, 0}                   |
+|                                          |
+|o2 : ForeignObject of type int8[4]        |
++------------------------------------------+
+|i3 : y = charstar x                       |
+|                                          |
+|o3 = foo                                  |
+|                                          |
+|o3 : ForeignObject of type char*          |
++------------------------------------------+
+|i4 : address x === address y              |
+|                                          |
+|o4 = true                                 |
++------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * "ForeignStructType ForeignObject"
+  * *note ForeignType ForeignObject: ForeignType ForeignObject, -- cast a
+    foreign object to the given foreign type
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1784:0.
+
+File: ForeignFunctions.info, Node: registerFinalizer_lpForeignObject_cmFunction_rp, Prev: ForeignType ForeignObject, Up: ForeignObject
+
+registerFinalizer(ForeignObject,Function) -- register a finalizer for a foreign object
+**************************************************************************************
+
+  * Function: *note registerFinalizer: (Macaulay2Doc)registerFinalizer,
+  * Usage: 
+        registerFinalizer(x, f)
+  * Inputs:
+      * x, a *note foreign object: ForeignObject,, 
+      * f, a *note function: (Macaulay2Doc)Function,, 
+
+Description
+===========
+
+If a foreign pointer object corresponds to memory that was not allocated by the
+*note GC garbage collector: (Macaulay2Doc)GC garbage collector,, then a
+function to properly deallocate this memory when the *note Pointer: Pointer,
+object that stores this pointer is garbage collected should be called.  The
+function should take a single argument, a foreign object, typically  of type
+*note voidstar: ForeignPointerType,, which corresponds to the memory to
+deallocate.
+
++-------------------------------------------------------------------+
+|i1 : malloc = foreignFunction("malloc", voidstar, ulong)           |
+|                                                                   |
+|o1 = malloc                                                        |
+|                                                                   |
+|o1 : ForeignFunction                                               |
++-------------------------------------------------------------------+
+|i2 : free = foreignFunction("free", void, voidstar)                |
+|                                                                   |
+|o2 = free                                                          |
+|                                                                   |
+|o2 : ForeignFunction                                               |
++-------------------------------------------------------------------+
+|i3 : finalizer = x -> (print("freeing memory at " | net x); free x)|
+|                                                                   |
+|o3 = finalizer                                                     |
+|                                                                   |
+|o3 : FunctionClosure                                               |
++-------------------------------------------------------------------+
+|i4 : for i to 9 do (x := malloc 8; registerFinalizer(x, finalizer))|
++-------------------------------------------------------------------+
+|i5 : collectGarbage()                                              |
+|freeing memory at 0x7fb3a8080d80                                   |
+|freeing memory at 0x7fb3a8080ce0                                   |
+|freeing memory at 0x7fb3a8080d20                                   |
+|freeing memory at 0x7fb3a8080d00                                   |
+|freeing memory at 0x7fb3a8080cc0                                   |
+|freeing memory at 0x7fb3a80806b0                                   |
+|freeing memory at 0x7fb3a80806d0                                   |
+|freeing memory at 0x7fb3a8080d60                                   |
+|freeing memory at 0x7fb3a8080d40                                   |
++-------------------------------------------------------------------+
+
+See also
+========
+
+  * *note getMemory: getMemory, -- allocate memory using the garbage collector
+
+Ways to use this method:
+========================
+
+  * *note registerFinalizer(ForeignObject,Function):
+    registerFinalizer_lpForeignObject_cmFunction_rp, -- register a finalizer
+    for a foreign object
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:1812:0.
+
+File: ForeignFunctions.info, Node: Pointer, Prev: ForeignObject, Up: Top
+
+Pointer -- pointer to memory address
+************************************
+
+Description
+===========
+
+Pointer objects are pointers to memory addresses.  These make up each *note
+ForeignObject: ForeignObject,.
+
++-------------------------------------+
+|i1 : x = int 20                      |
+|                                     |
+|o1 = 20                              |
+|                                     |
+|o1 : ForeignObject of type int32     |
++-------------------------------------+
+|i2 : peek x                          |
+|                                     |
+|o2 = int32{Address => 0x7fb3b7182f50}|
++-------------------------------------+
+
+These pointers can be accessed using *note address: address,.
+
++--------------------+
+|i3 : ptr = address x|
+|                    |
+|o3 = 0x7fb3b7182f50 |
+|                    |
+|o3 : Pointer        |
++--------------------+
+
+Simple arithmetic can be performed on pointers.
+
++-------------------+
+|i4 : ptr + 5       |
+|                   |
+|o4 = 0x7fb3b7182f55|
+|                   |
+|o4 : Pointer       |
++-------------------+
+|i5 : ptr - 3       |
+|                   |
+|o5 = 0x7fb3b7182f4d|
+|                   |
+|o5 : Pointer       |
++-------------------+
+* Menu:
+
+* nullPointer::                 the null pointer
+* address::                     pointer to type or object
+* ForeignType Pointer::         dereference a pointer
+
+Functions and methods returning a pointer:
+==========================================
+
+  * *note address: address, -- pointer to type or object
+
+Methods that use a pointer:
+===========================
+
+  * "* Pointer = Thing" -- see *note * voidstar = Thing: _st voidstar = Thing,
+    -- assign value to object at address
+  * "foreignFunction(Pointer,String,ForeignType,VisibleList)" -- see *note
+    foreignFunction: foreignFunction, -- construct a foreign function
+  * "foreignObject(Pointer)" -- see *note foreignObject: foreignObject, --
+    construct a foreign object
+  * *note ForeignPointerType Pointer: ForeignPointerType Pointer, -- cast a
+    Macaulay2 pointer to a foreign pointer
+  * *note ForeignType Pointer: ForeignType Pointer, -- dereference a pointer
+  * "Pointer + ZZ"
+  * "Pointer - ZZ"
+  * "ZZ + Pointer"
+
+For the programmer
+==================
+
+The object *note Pointer: Pointer, is a *note type: (Macaulay2Doc)Type,, with
+ancestor class *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:788:0.
+
+File: ForeignFunctions.info, Node: nullPointer, Next: address, Up: Pointer
+
+nullPointer -- the null pointer
+*******************************
+
+Description
+===========
+
+This *note Pointer: Pointer, object represents the null pointer (see
+https://en.wikipedia.org/wiki/null_pointer ), indicating that the pointer does
+not refer to a valid object.
+
++----------------+
+|i1 : nullPointer|
+|                |
+|o1 = (nil)      |
+|                |
+|o1 : Pointer    |
++----------------+
+
+For the programmer
+==================
+
+The object *note nullPointer: nullPointer, is a *note pointer: Pointer,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:801:0.
+
+File: ForeignFunctions.info, Node: address, Next: ForeignType Pointer, Prev: nullPointer, Up: Pointer
+
+address -- pointer to type or object
+************************************
+
+  * Usage: 
+        address x
+  * Inputs:
+      * x, a *note foreign type: ForeignType, or a *note foreign object:
+        ForeignObject,,
+  * Outputs:
+      * a *note pointer: Pointer,, 
+
+Description
+===========
+
+If x is a foreign type, then this returns the address to the ffi_type struct
+used by libffi to identify the type.
+
++-------------------+
+|i1 : address int   |
+|                   |
+|o1 = 0x55805a59bae0|
+|                   |
+|o1 : Pointer       |
++-------------------+
+
+If x is a foreign object, then this returns the address to the object.  It
+behaves like the & "address-of" operator in C.
+
++-------------------+
+|i2 : address int 5 |
+|                   |
+|o2 = 0x7fb3b7169340|
+|                   |
+|o2 : Pointer       |
++-------------------+
+
+Ways to use address:
+====================
+
+  * "address(ForeignObject)"
+  * "address(ForeignType)"
+  * address(Nothing) (missing documentation)
+
+For the programmer
+==================
+
+The object *note address: address, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:860:0.
+
+File: ForeignFunctions.info, Node: ForeignType Pointer, Prev: address, Up: Pointer
+
+ForeignType Pointer -- dereference a pointer
+********************************************
+
+  * Operator: *note SPACE: (Macaulay2Doc)SPACE,
+  * Usage: 
+        T ptr
+  * Inputs:
+      * T, a *note foreign type: ForeignType,, 
+      * ptr, a *note pointer: Pointer,, 
+  * Outputs:
+      * a *note foreign object: ForeignObject,, of type T; 
+
+Description
+===========
+
+Dereference the given pointer into the corresponding foreign object, much like
+the dereference operator (*) in C.
+
++--------------------------------+
+|i1 : x = int 5                  |
+|                                |
+|o1 = 5                          |
+|                                |
+|o1 : ForeignObject of type int32|
++--------------------------------+
+|i2 : ptr = address x            |
+|                                |
+|o2 = 0x7fb3b7169520             |
+|                                |
+|o2 : Pointer                    |
++--------------------------------+
+|i3 : int ptr                    |
+|                                |
+|o3 = 5                          |
+|                                |
+|o3 : ForeignObject of type int32|
++--------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note ForeignType Pointer: ForeignType Pointer, -- dereference a pointer
+-------------------------------------------------------------------------------
+
+The source of this document is in ForeignFunctions.m2:902:0.
+
+Tag Table:
+Node: Top247
+Node: fast Fourier transform example25624
+Node: general linear model example35569
+Node: just-in-time compilation example44600
+Node: foreignFunction48696
+Node: SharedLibrary56945
+Node: openSharedLibrary59369
+Node: ForeignType61018
+Node: size_lpForeignType_rp65880
+Node: ForeignArrayType66847
+Node: foreignArrayType70557
+Node: ForeignArrayType VisibleList72679
+Node: ForeignIntegerType74271
+Node: mpzT77928
+Node: ForeignIntegerType Number81202
+Node: ForeignPointerType82894
+Node: ForeignPointerType Pointer84543
+Node: _st voidstar = Thing85965
+Node: ForeignType _st voidstar88431
+Node: getMemory89863
+Node: ForeignPointerArrayType92273
+Node: foreignPointerArrayType98168
+Node: ForeignPointerArrayType VisibleList100174
+Node: ForeignRealType102876
+Node: mpfrT104945
+Node: ForeignRealType Number106557
+Node: ForeignStringType108298
+Node: ForeignStringType String109713
+Node: ForeignStructType110887
+Node: foreignStructType112698
+Node: ForeignStructType VisibleList114414
+Node: ForeignUnionType118100
+Node: foreignUnionType119521
+Node: ForeignUnionType Thing122962
+Node: ForeignVoidType125984
+Node: ForeignObject127575
+Node: foreignObject133289
+Node: foreignSymbol136299
+Node: value_lpForeignObject_rp137735
+Node: ForeignType ForeignObject143545
+Node: registerFinalizer_lpForeignObject_cmFunction_rp145634
+Node: Pointer149364
+Node: nullPointer151957
+Node: address152692
+Node: ForeignType Pointer154055
+
+End Tag Table

@@ -1,0 +1,302 @@
+-- -*- M2-comint -*- hash: 17350634965532264047
+
+i1 : kk=ZZ/101; d=4;
+
+i3 : needsPackage "Resultants";
+
+i4 : vd=veronese(1,d,kk);
+
+o4 : RingMap kk[t ..t ] <-- kk[x ..x ]
+                 0   1          0   4
+
+i5 : R=target vd; S=source vd;
+
+i7 : M=R^{1:-1}; I=ann M; J=ker vd;
+
+o8 : Ideal of R
+
+o9 : Ideal of S
+
+i10 : RM=directImageComplex(I,M,matrix vd);
+
+i11 : for i from min RM to max RM list (rank RM_i)
+
+o11 = {16, 48, 48, 16}
+
+o11 : List
+
+i12 : retTable=actionOnDirectImage(I,M,matrix vd);
+We take a finite projection from P^n to P^d as {x   , x   }
+                                                 0,0   0,4
+i13 : keys retTable
+
+o13 = {0}
+
+o13 : List
+
+i14 : isAction(J, apply(dim S, i->prune HH^0 retTable#0#i))
+
+o14 = true
+
+i15 : kk=ZZ/1009;
+
+i16 : (S,E)=productOfProjectiveSpaces({2,2},CoefficientField=>kk);
+
+i17 : f1=S_0^4+S_1^4+S_2^4; f2=S_3^4+S_4^4+S_5^4;
+
+i19 : IX=ideal (f1,f2);
+
+o19 : Ideal of S
+
+i20 : P=matrix{{1,192,0}}; Q=matrix{{192,1,0}};
+
+               1       3
+o20 : Matrix ZZ  <-- ZZ
+
+               1       3
+o21 : Matrix ZZ  <-- ZZ
+
+i22 : varX=matrix{{S_0,S_1,S_2}}; varY=matrix{{S_3,S_4,S_5}};
+
+              1      3
+o22 : Matrix S  <-- S
+
+              1      3
+o23 : Matrix S  <-- S
+
+i24 : PX=P||varX; QX=Q||varX;
+
+              2      3
+o24 : Matrix S  <-- S
+
+              2      3
+o25 : Matrix S  <-- S
+
+i26 : I1=ideal(f2, minors(2,PX)); -- ideal for P*C
+
+o26 : Ideal of S
+
+i27 : I2=ideal(f2, minors(2,QX)); -- ideal for Q*C
+
+o27 : Ideal of S
+
+i28 : I3=ideal(f1,f2, minors(2, varX||varY)); -- ideal for the diagonal D
+
+o28 : Ideal of S
+
+i29 : I=intersect(I1,I2,I3); -- ideal for P*C+Q*C+D
+
+o29 : Ideal of S
+
+i30 : SX=S/IX; Ldual=I/IX;
+
+i32 : betti (LX=Hom(Ldual, SX^1))
+
+              0  1
+o32 = total: 10 26
+          0:  1  .
+          1:  1  1
+          2:  .  1
+          3:  8 24
+
+o32 : BettiTally
+
+i33 : phi = map(SX,S,vars SX);
+
+o33 : RingMap SX <-- S
+
+i34 : betti (L=prune pushForward(phi,LX))
+
+              0  1
+o34 = total: 10 27
+          0:  1  .
+          1:  1  1
+          2:  .  1
+          3:  8 25
+
+o34 : BettiTally
+
+i35 : Ltr = (truncate ({2,2},L))**S^{{2,2}};
+
+i36 : betti freeResolution Ltr
+
+              0   1   2  3  4
+o36 = total: 60 176 184 80 12
+          0: 60 176 184 80 12
+
+o36 : BettiTally
+
+i37 : Q=symExt(presentation Ltr, E);
+
+              184      60
+o37 : Matrix E    <-- E
+
+i38 : T=((freeResolution (coker Q,LengthLimit=>12))**E^{{2,2}})[4];
+
+i39 : cohomologyMatrix (T, -{5,5},{3,3})
+
+o39 = | 0        0        0        0       0      0    0     96k 0   |
+      | 0        0        0        0       0      0    0     60k 88k |
+      | 60h      48h      36h      24h     12h    3h+3 12    0   0   |
+      | 36h2+20h 28h2+16h 20h2+12h 12h2+8h 4h2+4h 5h+1 12h+4 0   0   |
+      | 92h2     72h2     52h2     32h2    12h2   8h   28h   0   0   |
+      | 168h2    132h2    96h2     60h2    24h2   12h  48h   0   0   |
+      | 244h2    192h2    140h2    88h2    36h2   16h  68h   0   0   |
+      | 320h2    252h2    184h2    116h2   48h2   20h  88h   0   0   |
+      | 396h2    312h2    228h2    144h2   60h2   24h  108h  0   0   |
+
+                       9               9
+o39 : Matrix (ZZ[h, k])  <-- (ZZ[h, k])
+
+i40 : sT=strand(T,{0,0},{0});
+
+i41 : ma=6;
+
+i42 : sTFull=(dual freeResolution (coker transpose (sT[ma]).dd_0, LengthLimit=>2*ma))[-ma];
+
+i43 : (S',E')=productOfProjectiveSpaces({2},CoefficientField=>kk);
+
+i44 : projOnE=map(E', E, toList(3:0)|(gens E'));
+
+o44 : RingMap E' <-- E
+
+i45 : (mi, ma) = concentration sTFull;
+
+i46 : Wmodules = hashTable for i from mi to ma list
+          i =>  E'^(-apply(degrees sTFull_i, d -> d_{1}));
+
+i47 : Wmaps = hashTable for i from mi+1 to ma list
+          i => map(Wmodules#(i-1), Wmodules#i, projOnE sTFull.dd_i);
+
+i48 : W = if mi === ma then complex {Wmodules#mi} else complex Wmaps;
+
+i49 : betti W
+
+             -6 -5 -4 -3 -2 -1 0  1  2  3  4  5  6
+o49 = total: 24 20 16 12  9  8 9 12 16 20 24 28 32
+          0: 22 18 14 10  6  3 1  .  .  .  .  .  .
+          1:  2  2  2  2  3  5 8 12 16 20 24 28 32
+
+o49 : BettiTally
+
+i50 : R0fL = prune HH^0 beilinson W
+
+o50 = cokernel | x_(0,0)^4+x_(0,1)^4+x_(0,2)^4 |
+
+o50 : S'-module                1
+, quotient of S'
+
+i51 : R1fL = prune HH^1 beilinson W
+
+o51 = cokernel | -131x_(0,2) 0       0       0       x_(0,0)  x_(0,1)            0       0       -131x_(0,2) 0       131x_(0,2) 0       |
+               | x_(0,2)     x_(0,1) x_(0,0) 0       0        0                  0       0       0           0       0          0       |
+               | 0           0       0       x_(0,2) -x_(0,1) x_(0,0)+439x_(0,1) 0       0       0           0       0          0       |
+               | 0           0       0       0       0        0                  x_(0,2) x_(0,1) x_(0,0)     0       0          0       |
+               | 0           0       0       0       0        0                  0       0       0           x_(0,2) x_(0,1)    x_(0,0) |
+
+                               5
+o51 : S'-module, quotient of S'
+
+i52 : degree R0fL
+
+o52 = 4
+
+i53 : primaryDecomposition ann R0fL
+
+              4      4      4
+o53 = {ideal(x    + x    + x   )}
+              0,0    0,1    0,2
+
+o53 : List
+
+i54 : degree R1fL
+
+o54 = 2
+
+i55 : primaryDecomposition ann R1fL
+
+                                                                        
+o55 = {ideal (x   , x    + 247x   ), ideal (x   , x    + 192x   ), ideal
+               0,2   0,0       0,1           0,2   0,0       0,1        
+      -----------------------------------------------------------------------
+                    2
+      (x   , x   , x   )}
+        0,1   0,0   0,2
+
+o55 : List
+
+i56 : J=ideal (S'_0^4+S'_1^4+S'_2^4);
+
+o56 : Ideal of S'
+
+i57 : retTable=actionOnDirectImage(J,W);
+We take a finite projection from P^n to P^d as {x   , x   }
+                                                 0,1   0,2
+i58 : keys retTable
+
+o58 = {0, 1}
+
+o58 : List
+
+i59 : prunedActionList = i->apply(dim S',j->prune HH^i retTable#i#j);
+
+i60 : apply(keys retTable, i->isAction(J,prunedActionList(i)))
+
+o60 = {true, true}
+
+o60 : List
+
+i61 : M0=source (prunedActionList(0))_0
+
+o61 = cokernel {2} | 0        -x_(0,1) 0        |
+               {2} | x_(0,0)  0        0        |
+               {2} | -x_(0,1) x_(0,0)  0        |
+               {2} | 0        0        0        |
+               {2} | 0        0        x_(0,0)  |
+               {2} | 0        0        -x_(0,1) |
+               {3} | 0        0        0        |
+
+                                                         7
+o61 : kk[x   ..x   ]-module, quotient of (kk[x   ..x   ])
+          0,0   0,1                           0,0   0,1
+
+i62 : (rank M0, degree M0, betti freeResolution M0)
+
+                    0 1
+o62 = (4, 4, total: 7 3)
+                 2: 6 3
+                 3: 1 .
+
+o62 : Sequence
+
+i63 : isIsomorphicStrict(truncate(regularity M0, M0), truncate(regularity M0, dual dual M0))
+
+o63 = true
+
+i64 : dual dual M0
+
+                      4
+o64 = (kk[x   ..x   ])
+           0,0   0,1
+
+o64 : kk[x   ..x   ]-module, free, degrees {3, 2, 1, 0}
+          0,0   0,1
+
+i65 : M1=source (prunedActionList(1))_0
+
+o65 = cokernel {2} | x_(0,1) 0       |
+               {2} | 0       x_(0,1) |
+
+                                                         2
+o65 : kk[x   ..x   ]-module, quotient of (kk[x   ..x   ])
+          0,0   0,1                           0,0   0,1
+
+i66 : (rank M1, degree M1, betti freeResolution M1)
+
+                    0 1
+o66 = (0, 2, total: 2 2)
+                 2: 2 2
+
+o66 : Sequence
+
+i67 : 

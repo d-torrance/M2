@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Basic operations on DG Algebra Maps -- Outlines some basic operations on DGAlgebraMaps</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Data type for DG algebras" href="index.html">DGAlgebras</a> » <a title="Outlines some basic operations on DGAlgebraMaps" href="___Basic_spoperations_spon_sp__D__G_sp__Algebra_sp__Maps.html">Basic operations on DG Algebra Maps</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Basic_spoperations_spon_sp__D__G_sp__Module_sp__Maps.html">next</a> | <a href="___The_sp__Koszul_spcomplex_spas_spa_sp__D__G_sp__Algebra.html">previous</a> | <a href="___Basic_spoperations_spon_sp__D__G_sp__Module_sp__Maps.html">forward</a> | <a href="___The_sp__Koszul_spcomplex_spas_spa_sp__D__G_sp__Algebra.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Basic operations on DG Algebra Maps -- Outlines some basic operations on DGAlgebraMaps</h1>
+      <div>
+        <div>
+          <p>An algebra map between the underlying graded algebras that satisfies the Leibniz rule is a morphism of DG algebras.  Such objects are created using the DGAlgebraMap class.  As with DGAlgebras, one can define a DGAlgebraMap 'from scratch' using <a title="Define a DG algebra map between DG algebras." href="_dg__Algebra__Map.html">dgAlgebraMap</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ/101[a,b,c]/ideal{a^3+b^3+c^3,a*b*c}
+
+o1 = R
+
+o1 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : K1 = koszulComplexDGA(ideal vars R,Variable=>&quot;Y&quot;)
+
+o2 = {Ring => R                          }
+      Underlying algebra => R[Y   ..Y   ]
+                               1,1   1,3
+      Differential => {a, b, c}
+
+o2 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : K2 = koszulComplexDGA(ideal {b,c},Variable=>&quot;T&quot;)
+
+o3 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,2
+      Differential => {b, c}
+
+o3 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : f = dgAlgebraMap(K2,K1,matrix{{0,T_(1,1),T_(1,2)}})
+
+o4 = map (R[T   ..T   ], R[Y   ..Y   ], {0, T   , T   , a, b, c})
+             1,1   1,2      1,1   1,3        1,1   1,2
+
+o4 : DGAlgebraMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Once we define the DGAlgebraMap, it is a good idea to check to see if it indeed satisfies the Leibniz rule.  This can be checked by using isWellDefined.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : isWellDefined f
+
+o5 = false</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Oops!  Let's try that again.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : g = dgAlgebraMap(K1,K2,matrix{{Y_(1,2),Y_(1,3)}})
+
+o6 = map (R[Y   ..Y   ], R[T   ..T   ], {Y   , Y   , a, b, c})
+             1,1   1,3      1,1   1,2     1,2   1,3
+
+o6 : DGAlgebraMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : isWellDefined g
+
+o7 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>One can lift a ring homomorphism in degree zero to a map of DGAlgebras (up to a specified degree) using liftToDGMap.  This is helpful in some of the internal functions of the DGAlgebras package, such as computing the map induced on Tor algebras by a RingMap.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : R = ZZ/101[a,b,c]/ideal{a^3,b^3,c^3}
+
+o8 = R
+
+o8 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : S = R/ideal{a^2*b^2*c^2}
+
+o9 = S
+
+o9 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : f = map(S,R)
+
+o10 = map (S, R, {a, b, c})
+
+o10 : RingMap S &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : A = acyclicClosure(R,EndDegree=>3)
+
+o11 = {Ring => R                                        }
+       Underlying algebra => R[T   ..T   ]
+                                1,1   2,3
+                                  2       2       2
+       Differential => {a, b, c, a T   , b T   , c T   }
+                                    1,1     1,2     1,3
+
+o11 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : B = acyclicClosure(S,EndDegree=>3)
+
+o12 = {Ring => S                                                                                                                                                                    }
+       Underlying algebra => S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ]
+                                1,1   1,3   2,1   2,4   3,1   3,3   4,1   4,6
+                                  2       2       2         2 2       2 2        2 2        2 2       2 2            2 2           2 2            2           2           2
+       Differential => {a, b, c, a T   , b T   , c T   , a*b c T   , b c T   , -a b T   , -a c T   , b c T   T   , -a c T   T   , b c T   T   , -a T   T   , c T   T   , b T   T   }
+                                    1,1     1,2     1,3         1,1       2,1        2,3        2,2       1,3 2,1        1,3 2,2       1,2 2,1      1,1 2,4     1,3 2,4     1,2 2,4
+
+o12 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : phi = liftToDGMap(B,A,f)
+
+o13 = map (S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ], R[T   ..T   ], {T   , T   , T   , T   , T   , T   , a, b, c})
+              1,1   1,3   2,1   2,4   3,1   3,3   4,1   4,6      1,1   2,3     1,1   1,2   1,3   2,1   2,2   2,3
+
+o13 : DGAlgebraMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Once one has a DGAlgebraMap, one can also obtain the underlying map of complexes via toComplexMap.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : cmPhi = toComplexMap(phi,EndDegree=>3)
+
+                                          1
+o14 = 0 : cokernel | a2b2c2 | &lt;--------- R  : 0
+                                 | 1 |
+
+                                                                    3
+      1 : cokernel {1} | a2b2c2 0      0      | &lt;----------------- R  : 1
+                   {1} | 0      a2b2c2 0      |    {1} | 1 0 0 |
+                   {1} | 0      0      a2b2c2 |    {1} | 0 1 0 |
+                                                   {1} | 0 0 1 |
+
+                                                                                                      6
+      2 : cokernel {2} | a2b2c2 0      0      0      0      0      0      | &lt;----------------------- R  : 2
+                   {2} | 0      a2b2c2 0      0      0      0      0      |    {2} | 1 0 0 0 0 0 |
+                   {2} | 0      0      a2b2c2 0      0      0      0      |    {2} | 0 1 0 0 0 0 |
+                   {3} | 0      0      0      a2b2c2 0      0      0      |    {2} | 0 0 1 0 0 0 |
+                   {3} | 0      0      0      0      a2b2c2 0      0      |    {3} | 0 0 0 1 0 0 |
+                   {3} | 0      0      0      0      0      a2b2c2 0      |    {3} | 0 0 0 0 1 0 |
+                   {6} | 0      0      0      0      0      0      a2b2c2 |    {3} | 0 0 0 0 0 1 |
+                                                                               {6} | 0 0 0 0 0 0 |
+
+                                                                                                                                                                             10
+      3 : cokernel {3} | a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      | &lt;------------------------------- R   : 3
+                   {4} | 0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      0      0      |    {3} | 1 0 0 0 0 0 0 0 0 0 |
+                   {4} | 0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      0      |    {4} | 0 1 0 0 0 0 0 0 0 0 |
+                   {4} | 0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      0      |    {4} | 0 0 1 0 0 0 0 0 0 0 |
+                   {4} | 0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      0      |    {4} | 0 0 0 1 0 0 0 0 0 0 |
+                   {4} | 0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      0      |    {4} | 0 0 0 0 1 0 0 0 0 0 |
+                   {4} | 0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      0      |    {4} | 0 0 0 0 0 1 0 0 0 0 |
+                   {4} | 0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      0      |    {4} | 0 0 0 0 0 0 1 0 0 0 |
+                   {4} | 0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      0      |    {4} | 0 0 0 0 0 0 0 1 0 0 |
+                   {4} | 0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      0      |    {4} | 0 0 0 0 0 0 0 0 1 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      0      |    {4} | 0 0 0 0 0 0 0 0 0 1 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 0      |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                   {7} | 0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      a2b2c2 |    {7} | 0 0 0 0 0 0 0 0 0 0 |
+                                                                                                                                              {7} | 0 0 0 0 0 0 0 0 0 0 |
+
+o14 : ComplexMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>There are also some auxiliary commands associated with DGAlgebraMaps</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : source phi
+
+o15 = {Ring => R                                        }
+       Underlying algebra => R[T   ..T   ]
+                                1,1   2,3
+                                  2       2       2
+       Differential => {a, b, c, a T   , b T   , c T   }
+                                    1,1     1,2     1,3
+
+o15 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : target phi
+
+o16 = {Ring => S                                                                                                                                                                    }
+       Underlying algebra => S[T   ..T   , T   ..T   , T   ..T   , T   ..T   ]
+                                1,1   1,3   2,1   2,4   3,1   3,3   4,1   4,6
+                                  2       2       2         2 2       2 2        2 2        2 2       2 2            2 2           2 2            2           2           2
+       Differential => {a, b, c, a T   , b T   , c T   , a*b c T   , b c T   , -a b T   , -a c T   , b c T   T   , -a c T   T   , b c T   T   , -a T   T   , c T   T   , b T   T   }
+                                    1,1     1,2     1,3         1,1       2,1        2,3        2,2       1,3 2,1        1,3 2,2       1,2 2,1      1,1 2,4     1,3 2,4     1,2 2,4
+
+o16 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>One can also obtain the map on homology induced by a DGAlgebra map.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : HHg = HH g
+Finding easy relations           :  -- used 0.121731s (cpu); 0.0515s (thread); 0s (gc)
+
+                          ZZ
+                         ---[a..c]
+            ZZ           101
+o17 = map (---[X ..X ], ----------[X ], {X , 0, 0, 0})
+           101  1   2           3   1     1
+                        (c, b, a )
+
+                                ZZ
+                               ---[a..c]
+               ZZ              101
+o17 : RingMap ---[X ..X ] &lt;-- ----------[X ]
+              101  1   2              3   1
+                              (c, b, a )</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : matrix HHg
+
+o18 = | X_1 0 0 0 |
+
+               ZZ         1       ZZ         4
+o18 : Matrix (---[X ..X ])  &lt;-- (---[X ..X ])
+              101  1   2         101  1   2</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">DGAlgebras/doc.m2:210:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

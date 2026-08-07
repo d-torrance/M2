@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>PathSignatures -- a package for working with signatures of algebraic paths</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="working with algebraic path signatures" href="index.html">PathSignatures</a> :: <a title="working with algebraic path signatures" href="index.html">PathSignatures</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_adjoint__Word.html">next</a> | previous | <a href="_adjoint__Word.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>PathSignatures -- a package for working with signatures of algebraic paths</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p><em>PathSignatures</em> is a package for studying the signature of piecewise polynomial paths.</p>
+        </div>
+        <div>
+          <p>The package heavily simplifies the process of obtaining data related to signature varieties, e.g. as in <a href="#ref1">[1]</a>. See <a href="___Computing_sp__Path_sp__Varieties.html">Computing Path Varieties</a>.</p>
+        </div>
+        <div>
+          <p>A polynomial path is a path $X: [0,1] \to \mathbb R^d$ whose coordinate functions are given by polynomials. A piecewise polynomial path is a path $X: [0,1] \to \mathbb R^d$ which is polynomial on each interval in a partition of $[0,1]$.</p>
+        </div>
+        <div>
+          <p>Given such a path $X$, its signature is the linear form $\sigma: T((\mathbb{R}^d)^*)\rightarrow \mathbb{R}$ on the tensor algebra of the dual of $\mathbb{R}^d$, whose image on a decomposable tensor $\alpha_1\otimes \dots\otimes \alpha_k$ is the iterated integral $$ \alpha_1\otimes \dots\otimes \alpha_k\overset{\sigma}{\mapsto} \int_0^1\int_0^{t_k}\dots\int_0^{t_2}\partial(\alpha_1 X)\dots \partial (\alpha_k X) d t_1\dots dt_k. $$ This form is invariant under translation, reparametrization and tree-like equivalence of $X$ and characterizes $X$ uniquely up to these relations.</p>
+        </div>
+        <div>
+          <p>In this package, we identify $T((\mathbb{R}^d)^*)$ with the free associative algebra over the alphabet $\{\texttt{1},\dots,\texttt{d}\}$ via $\texttt{i} \mapsto e_i^*$ where $e_1^*, \dots, e_d^*$ is the dual of the canonical basis of $\mathbb{R}^d$. For example, the word $\texttt{12}$ corresponds to $e_1^* \otimes e_2^*$.</p>
+        </div>
+        <div>
+          <p>It is easy to create a polynomial path:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[t];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : X = polyPath({t + t^2, t^3})
+
+o2 = Path in 2-dimensional space with 1 polynomial segment:
+
+        2       3
+     {{t  + t, t }}
+
+o2 : Path</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>A piecewise polynomial path is obtained by concatenating polynomial paths:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : Y = X ** X
+
+o3 = Path in 2-dimensional space with 2 polynomial segments:
+
+        2       3     2       3
+     {{t  + t, t }, {t  + t, t }}
+
+o3 : Path</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Any <a title="Type of a noncommutative polynomial ring" href="../../NCAlgebra/html/___N__C__Polynomial__Ring.html">NCPolynomialRing</a> can serve as a tensor algebra. Use <a title="create a free algebra over a given alphabet" href="_word__Algebra.html">wordAlgebra</a> to quickly create one in variables $\texttt{Lt}_i$. The package introduces a convenient notation for words in this algebra.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : A2 = wordAlgebra(2)
+
+o4 = A2
+
+o4 : NCPolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : [1,2]_A2 -- the word 12.
+
+o5 = Lt Lt
+       1  2
+
+o5 : A2</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>To evaluate the signature of $\mathtt{X}$ at a tensor $\mathtt{w}$, use <a title="compute the signature of a piecewise polynomial path." href="_sig.html">sig</a>. The following computes the <i>signed volume</i> of the path; also see <a title="The signed volume tensor in a free associative algebra." href="_sgn__Vol__Tensor.html">sgnVolTensor</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : sig(X,[1,2]_A2-[2,1]_A2)
+
+      7
+o6 = --
+     10
+
+o6 : QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p><a title="compute the signature of a piecewise polynomial path." href="_sig.html">sig</a> can also be used to obtain the <i>$k$-th level signature tensor</i>. Use <a title="display a tensor in word notation" href="_word__Format.html">wordFormat</a> or <a title="k-th level component of a tensor." href="_tensor__Array.html">tensorArray</a> to display the tensor in a nicer way.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : T = sig(X,2)
+
+     1   2 13       27           2
+o7 = -Lt  +--Lt Lt +--Lt Lt +2Lt
+     2  2  20  2  1 20  1  2    1
+
+o7 : QQ{Lt , Lt }
+          1    2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : T // wordFormat
+
+     1          13          27
+o8 = - [2, 2] + -- [2, 1] + -- [1, 2] + 2 [1, 1]
+     2          20          20</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : T // tensorArray
+
+                   27    13  1
+o9 = {{0, 0}, {{2, --}, {--, -}}}
+                   20    20  2
+
+o9 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The package allows for the computation of signatures for parametrized families of paths.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : S = QQ[a,b,c]
+
+o10 = S
+
+o10 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : R = S[t]
+
+o11 = R
+
+o11 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : X = polyPath({a*t+b*t^2,c*t^3})
+
+o12 = Path in 2-dimensional space with 1 polynomial segment:
+
+           2           3
+      {{b*t  + a*t, c*t }}
+
+o12 : Path</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : Y = X ** X
+
+o13 = Path in 2-dimensional space with 2 polynomial segments:
+
+           2           3       2           3
+      {{b*t  + a*t, c*t }, {b*t  + a*t, c*t }}
+
+o13 : Path</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : sig(X, sgnVolTensor(A2))
+
+      1       1
+o14 = -a*c + --b*c
+      4      10
+
+o14 : S</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>References</h2>
+        <div>
+          <p><label id="ref1">[1]</label> Améndola, C., Friz, P., &amp; Sturmfels, B. (2019, January). Varieties of signature tensors. In Forum of Mathematics, Sigma (Vol. 7, p. e10). Cambridge University Press.</p>
+          <p></p>
+          <p></p>
+        </div>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Authors</h2>
+            <ul>
+              <li><a href="https://felixlotter.gitlab.io">Felix Lotter</a></li>
+              <li>Oriol Reig</li>
+              <li>Angelo El Saliby</li>
+              <li>Carlos Amendola</li>
+            </ul>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>1.0</b> of PathSignatures.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{PathSignaturesSource,
+  title = {{PathSignatures: working with algebraic path signatures. Version~1.0}},
+  author = {Felix Lotter and Oriol Reig and Angelo El Saliby and Carlos Amendola},
+  howpublished = {A \emph{Macaulay2} package available at
+    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Types                  <ul>
+                    <li><span><a title="Type of a noncommutative polynomial ring" href="../../NCAlgebra/html/___N__C__Polynomial__Ring.html">NCPolynomialRing</a> -- Type of a noncommutative polynomial ring</span></li>
+                    <li><span><a title="Type of an element in a noncommutative ring" href="../../NCAlgebra/html/___N__C__Ring__Element.html">NCRingElement</a> -- Type of an element in a noncommutative ring</span></li>
+                    <li><span><a href="___Path.html">Path</a></span></li>
+                  </ul>
+                </li>
+                <li>Functions and commands                  <ul>
+                    <li><span><a title="image of a word through the shuffle algebra homomorphism induced by a polynomial map" href="_adjoint__Word.html">adjointWord</a> -- image of a word through the shuffle algebra homomorphism induced by a polynomial map</span></li>
+                    <li><span><a title="the signature tensor of the canonical axis path at a given level" href="___C__Axis__Tensor.html">CAxisTensor</a> -- the signature tensor of the canonical axis path at a given level</span></li>
+                    <li><span><a title="the signature tensor of the canonical monomial path at a given level" href="___C__Mon__Tensor.html">CMonTensor</a> -- the signature tensor of the canonical monomial path at a given level</span></li>
+                    <li><span><a title="concatenation of paths" href="_concat__Path.html">concatPath</a> -- concatenation of paths</span></li>
+                    <li><span><a title="compute the half-shuffle of an ordered pair of words" href="_halfshuffle.html">halfshuffle</a> -- compute the half-shuffle of an ordered pair of words</span></li>
+                    <li><span><a title="compute the inner product of two tensors." href="_inner.html">inner</a> -- compute the inner product of two tensors.</span></li>
+                    <li><span><a title="lie bracket of two elements" href="_lie.html">lie</a> -- lie bracket of two elements</span></li>
+                    <li><span><a title="basis element corresponding to a Lyndon word in a Lie algebra" href="_lie__Basis.html">lieBasis</a> -- basis element corresponding to a Lyndon word in a Lie algebra</span></li>
+                    <li><span><a title="constructor of single piece polynomial path" href="_lin__Path.html">linPath</a> -- constructor of single piece polynomial path</span></li>
+                    <li><span><a title="compute the representation of a tensor as a shuffle polynomial in Lyndon words" href="_lyndon__Shuffle.html">lyndonShuffle</a> -- compute the representation of a tensor as a shuffle polynomial in Lyndon words</span></li>
+                    <li><span><a title="compute all Lyndon words of at most a given length on a given number of letters" href="_lyndon__Words.html">lyndonWords</a> -- compute all Lyndon words of at most a given length on a given number of letters</span></li>
+                    <li><span><a title="Diagonal matrix action on a tensor." href="_matrix__Action.html">matrixAction</a> -- Diagonal matrix action on a tensor.</span></li>
+                    <li><span><kbd>getCoefficientRing</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>getDimension</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>getNumberOfPieces</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>getPieces</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><a title="constructor of single piece polynomial path" href="_poly__Path.html">polyPath</a> -- constructor of single piece polynomial path</span></li>
+                    <li><span><a title="constructor of a piecewise linear path from a matrix" href="_pw__Lin__Path.html">pwLinPath</a> -- constructor of a piecewise linear path from a matrix</span></li>
+                    <li><span><a title="The signed volume tensor in a free associative algebra." href="_sgn__Vol__Tensor.html">sgnVolTensor</a> -- The signed volume tensor in a free associative algebra.</span></li>
+                    <li><span><a title="compute the signature of a piecewise polynomial path." href="_sig.html">sig</a> -- compute the signature of a piecewise polynomial path.</span></li>
+                    <li><span><a title="k-th level component of a tensor." href="_tensor__Array.html">tensorArray</a> -- k-th level component of a tensor.</span></li>
+                    <li><span><a title="Compute a component of the exponential of a tensor." href="_tensor__Exp.html">tensorExp</a> -- Compute a component of the exponential of a tensor.</span></li>
+                    <li><span><a title="Compute a component of the logarithm of a tensor." href="_tensor__Log.html">tensorLog</a> -- Compute a component of the logarithm of a tensor.</span></li>
+                    <li><span><a title="Constructs the morphism that maps a word to its coefficient in the given tensor." href="_tensor__Parametrization.html">tensorParametrization</a> -- Constructs the morphism that maps a word to its coefficient in the given tensor.</span></li>
+                    <li><span><a title="create a free algebra over a given alphabet" href="_word__Algebra.html">wordAlgebra</a> -- create a free algebra over a given alphabet</span></li>
+                    <li><span><a title="display a tensor in word notation" href="_word__Format.html">wordFormat</a> -- display a tensor in word notation</span></li>
+                    <li><span><a title="a string representing a word in wordFormat" href="_word__String.html">wordString</a> -- a string representing a word in wordFormat</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><kbd>adjointWord(NCRingElement,NCPolynomialRing,List)</kbd> -- see <span><a title="image of a word through the shuffle algebra homomorphism induced by a polynomial map" href="_adjoint__Word.html">adjointWord</a> -- image of a word through the shuffle algebra homomorphism induced by a polynomial map</span></span></li>
+                    <li><span><kbd>ambient(NCPolynomialRing)</kbd> -- see <span><a title="exported from the NCALgebra package." href="_ambient.html">ambient</a> -- exported from the NCALgebra package.</span></span></li>
+                    <li><span><a title="The antipode of a tensor" href="_antipode_lp__N__C__Ring__Element_rp.html">antipode(NCRingElement)</a> -- The antipode of a tensor</span></li>
+                    <li><span><a title="create a word from an array" href="___Array_sp_us_sp__N__C__Polynomial__Ring.html">Array _ NCPolynomialRing</a> -- create a word from an array</span></li>
+                    <li><span><kbd>CAxisTensor(ZZ,NCPolynomialRing)</kbd> -- see <span><a title="the signature tensor of the canonical axis path at a given level" href="___C__Axis__Tensor.html">CAxisTensor</a> -- the signature tensor of the canonical axis path at a given level</span></span></li>
+                    <li><span><kbd>CMonTensor(ZZ,NCPolynomialRing)</kbd> -- see <span><a title="the signature tensor of the canonical monomial path at a given level" href="___C__Mon__Tensor.html">CMonTensor</a> -- the signature tensor of the canonical monomial path at a given level</span></span></li>
+                    <li><span><kbd>concatPath(Path,Path)</kbd> -- see <span><a title="concatenation of paths" href="_concat__Path.html">concatPath</a> -- concatenation of paths</span></span></li>
+                    <li><span><kbd>Path ** Path</kbd> -- see <span><a title="concatenation of paths" href="_concat__Path.html">concatPath</a> -- concatenation of paths</span></span></li>
+                    <li><span><kbd>halfshuffle(NCRingElement,NCRingElement)</kbd> -- see <span><a title="compute the half-shuffle of an ordered pair of words" href="_halfshuffle.html">halfshuffle</a> -- compute the half-shuffle of an ordered pair of words</span></span></li>
+                    <li><span><kbd>NCRingElement >> NCRingElement</kbd> -- see <span><a title="compute the half-shuffle of an ordered pair of words" href="_halfshuffle.html">halfshuffle</a> -- compute the half-shuffle of an ordered pair of words</span></span></li>
+                    <li><span><kbd>inner(NCRingElement,NCRingElement)</kbd> -- see <span><a title="compute the inner product of two tensors." href="_inner.html">inner</a> -- compute the inner product of two tensors.</span></span></li>
+                    <li><span><kbd>NCRingElement @ NCRingElement</kbd> -- see <span><a title="compute the inner product of two tensors." href="_inner.html">inner</a> -- compute the inner product of two tensors.</span></span></li>
+                    <li><span><kbd>lieBasis(Array,NCPolynomialRing)</kbd> -- see <span><a title="basis element corresponding to a Lyndon word in a Lie algebra" href="_lie__Basis.html">lieBasis</a> -- basis element corresponding to a Lyndon word in a Lie algebra</span></span></li>
+                    <li><span><kbd>lieBasis(List,NCPolynomialRing)</kbd> -- see <span><a title="basis element corresponding to a Lyndon word in a Lie algebra" href="_lie__Basis.html">lieBasis</a> -- basis element corresponding to a Lyndon word in a Lie algebra</span></span></li>
+                    <li><span><kbd>linPath(List)</kbd> -- see <span><a title="constructor of single piece polynomial path" href="_lin__Path.html">linPath</a> -- constructor of single piece polynomial path</span></span></li>
+                    <li><span><kbd>lyndonShuffle(NCRingElement)</kbd> -- see <span><a title="compute the representation of a tensor as a shuffle polynomial in Lyndon words" href="_lyndon__Shuffle.html">lyndonShuffle</a> -- compute the representation of a tensor as a shuffle polynomial in Lyndon words</span></span></li>
+                    <li><span><kbd>lyndonWords(ZZ,ZZ)</kbd> -- see <span><a title="compute all Lyndon words of at most a given length on a given number of letters" href="_lyndon__Words.html">lyndonWords</a> -- compute all Lyndon words of at most a given length on a given number of letters</span></span></li>
+                    <li><span><kbd>Matrix * NCRingElement</kbd> -- see <span><a title="Diagonal matrix action on a tensor." href="_matrix__Action.html">matrixAction</a> -- Diagonal matrix action on a tensor.</span></span></li>
+                    <li><span><kbd>matrixAction(Matrix,NCRing,NCRing)</kbd> -- see <span><a title="Diagonal matrix action on a tensor." href="_matrix__Action.html">matrixAction</a> -- Diagonal matrix action on a tensor.</span></span></li>
+                    <li><span><kbd>matrixAction(Matrix,NCRingElement,NCRing)</kbd> -- see <span><a title="Diagonal matrix action on a tensor." href="_matrix__Action.html">matrixAction</a> -- Diagonal matrix action on a tensor.</span></span></li>
+                    <li><span><kbd>coefficientRing(Path)</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>dim(Path)</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>getCoefficientRing(Path)</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>getDimension(Path)</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>getNumberOfPieces(Path)</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>getPieces(Path)</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>net(Path)</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>Path ^ ZZ</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>Path _ List</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>Path _ Sequence</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>Path _ ZZ</kbd> -- see <span><a href="___Path.html">Path</a></span></span></li>
+                    <li><span><kbd>polyPath(List)</kbd> -- see <span><a title="constructor of single piece polynomial path" href="_poly__Path.html">polyPath</a> -- constructor of single piece polynomial path</span></span></li>
+                    <li><span><kbd>pwLinPath(Matrix)</kbd> -- see <span><a title="constructor of a piecewise linear path from a matrix" href="_pw__Lin__Path.html">pwLinPath</a> -- constructor of a piecewise linear path from a matrix</span></span></li>
+                    <li><span><kbd>sgnVolTensor(NCPolynomialRing)</kbd> -- see <span><a title="The signed volume tensor in a free associative algebra." href="_sgn__Vol__Tensor.html">sgnVolTensor</a> -- The signed volume tensor in a free associative algebra.</span></span></li>
+                    <li><span><kbd>NCRingElement ** NCRingElement</kbd> -- see <span><a title="shuffle product of two words" href="_shuffle_lp__N__C__Ring__Element_cm__N__C__Ring__Element_rp.html">shuffle(NCRingElement,NCRingElement)</a> -- shuffle product of two words</span></span></li>
+                    <li><span><kbd>NCRingElement ⧢ NCRingElement</kbd> -- see <span><a title="shuffle product of two words" href="_shuffle_lp__N__C__Ring__Element_cm__N__C__Ring__Element_rp.html">shuffle(NCRingElement,NCRingElement)</a> -- shuffle product of two words</span></span></li>
+                    <li><span><a title="shuffle product of two words" href="_shuffle_lp__N__C__Ring__Element_cm__N__C__Ring__Element_rp.html">shuffle(NCRingElement,NCRingElement)</a> -- shuffle product of two words</span></li>
+                    <li><span><kbd>sig(Path,List)</kbd> -- see <span><a title="compute the signature of a piecewise polynomial path." href="_sig.html">sig</a> -- compute the signature of a piecewise polynomial path.</span></span></li>
+                    <li><span><kbd>sig(Path,NCRingElement)</kbd> -- see <span><a title="compute the signature of a piecewise polynomial path." href="_sig.html">sig</a> -- compute the signature of a piecewise polynomial path.</span></span></li>
+                    <li><span><kbd>sig(Path,ZZ)</kbd> -- see <span><a title="compute the signature of a piecewise polynomial path." href="_sig.html">sig</a> -- compute the signature of a piecewise polynomial path.</span></span></li>
+                    <li><span><kbd>sig(Path,ZZ,NCRing)</kbd> -- see <span><a title="compute the signature of a piecewise polynomial path." href="_sig.html">sig</a> -- compute the signature of a piecewise polynomial path.</span></span></li>
+                    <li><span><a title="changes the coefficient ring of a path" href="_substitute_lp__Path_cm__Ring_rp.html">substitute(Path,Ring)</a> -- changes the coefficient ring of a path</span></li>
+                    <li><span><kbd>NCRingElement @ ZZ</kbd> -- see <span><a title="k-th level component of a tensor." href="_tensor__Array.html">tensorArray</a> -- k-th level component of a tensor.</span></span></li>
+                    <li><span><kbd>tensorArray(NCRingElement)</kbd> -- see <span><a title="k-th level component of a tensor." href="_tensor__Array.html">tensorArray</a> -- k-th level component of a tensor.</span></span></li>
+                    <li><span><kbd>tensorArray(NCRingElement,ZZ)</kbd> -- see <span><a title="k-th level component of a tensor." href="_tensor__Array.html">tensorArray</a> -- k-th level component of a tensor.</span></span></li>
+                    <li><span><kbd>tensorExp(NCRingElement,ZZ)</kbd> -- see <span><a title="Compute a component of the exponential of a tensor." href="_tensor__Exp.html">tensorExp</a> -- Compute a component of the exponential of a tensor.</span></span></li>
+                    <li><span><kbd>tensorLog(NCRingElement,ZZ)</kbd> -- see <span><a title="Compute a component of the logarithm of a tensor." href="_tensor__Log.html">tensorLog</a> -- Compute a component of the logarithm of a tensor.</span></span></li>
+                    <li><span><kbd>tensorParametrization(NCRingElement)</kbd> -- see <span><a title="Constructs the morphism that maps a word to its coefficient in the given tensor." href="_tensor__Parametrization.html">tensorParametrization</a> -- Constructs the morphism that maps a word to its coefficient in the given tensor.</span></span></li>
+                    <li><span><kbd>wordAlgebra(List)</kbd> -- see <span><a title="create a free algebra over a given alphabet" href="_word__Algebra.html">wordAlgebra</a> -- create a free algebra over a given alphabet</span></span></li>
+                    <li><span><kbd>wordAlgebra(ZZ)</kbd> -- see <span><a title="create a free algebra over a given alphabet" href="_word__Algebra.html">wordAlgebra</a> -- create a free algebra over a given alphabet</span></span></li>
+                    <li><span><kbd>wordFormat(NCRingElement)</kbd> -- see <span><a title="display a tensor in word notation" href="_word__Format.html">wordFormat</a> -- display a tensor in word notation</span></span></li>
+                    <li><span><kbd>wordString(NCRingElement)</kbd> -- see <span><a title="a string representing a word in wordFormat" href="_word__String.html">wordString</a> -- a string representing a word in wordFormat</span></span></li>
+                  </ul>
+                </li>
+                <li>Symbols                  <ul>
+                    <li><span><kbd>VarWordTable</kbd> -- see <span><a title="Constructs the morphism that maps a word to its coefficient in the given tensor." href="_tensor__Parametrization.html">tensorParametrization</a> -- Constructs the morphism that maps a word to its coefficient in the given tensor.</span></span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="working with algebraic path signatures" href="index.html">PathSignatures</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">PathSignatures.m2</span>, with auxiliary files in <span class="tt">PathSignatures/</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">PathSignatures.m2:336:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

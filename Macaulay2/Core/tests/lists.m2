@@ -1,0 +1,28 @@
+a = {1,2,3}
+b = {3,4,5}
+f = x -> x+1
+g = x -> x+2
+h = (x,y) -> x+y
+assert( sum(a,f) == 9 )
+assert( product(a,f) == 24 )
+assert( sum(3,g) == 9 )
+assert( product(3,g) == 24 )
+assert( sum(a,b,h) == 18 )
+assert( product(a,b,h) == 192 )
+assert( delete(2, a) == {1, 3})
+
+i = <| x,y,z |>
+assert (#i == 3)
+assert (toString i == "<|x, y, z|>")
+assert (net i == "<|x, y, z|>"^0)
+assert (toList i === {x,y,z})
+assert (class i === AngleBarList)
+assert (delete(y, i) == <| x, z |>)
+assert (i_{0,2} == <| x, z |>)
+
+assert isTable table(0, 0, identity)
+
+-- issue #4267
+assert try (1,2,3) == {1,2,3} then false else true
+assert try {1,2,3} == (1,2,3) then false else true
+assert try {1,2,3} == [1,2,3] then false else true

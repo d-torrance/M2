@@ -1,0 +1,753 @@
+ -*- coding: utf-8 -*- This is Depth.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* Depth: (Depth).               aids in computations related to depth
+END-INFO-DIR-ENTRY
+
+
+File: Depth.info, Node: Top, Next: depth_lpIdeal_cmRing_rp, Up: (dir)
+
+Depth -- Finds the depth of a module or ideal, and systems of parameters in an ideal
+************************************************************************************
+
+Description
+===========
+
+There are two major groups of routines: one for finding the depth of an ideal
+or module or ring,or the depth of an ideal on a module; and the other for
+finding relatively sparse systems of homogeneous parameters in an ideal (there
+is an inhomogeneous version too.)
+
+The depth of an ideal on a module is a fundamental invariant, a kind of
+arithmetic version of codimension. In many local or graded cases one is
+interested in the depth of the maximal ideal on the module, and then we speak
+just of the depth of the module (or, when the module is the ring itself, the
+depth of the ring.) Over a regular ring, depth is most efficiently computed
+using the Auslander-Buchsbaum formula depth M = dim R - pdim M, where pdim is
+the projective dimension. In general, depth(I,M) = min {i | Ext^i(R/I,M) != 0}.
+Both these methods are incorporated.
+
+Depth can be computed from regular sequences, which are systems of parameters.
+The other routines in this package try probabilistically to find relatively
+sparse systems of parameters; the maximum length of such a system is equal to
+the codimension of the ideal, so (inhomogeneousSystemOfParameters,Ideal) and
+(systemOfParameters, Ideal), without further arguments, look for regular
+sequences of length codim I.
+
+To find such sequences, one can simply take an appropriate number of random
+linear combinations of the generators of the ideal, and this is what's done by
+inhomogeneousSystemOfParameters. Since being a system of parameters is a matter
+of certain elements not being in certain prime ideals, this succeeds with very
+high probability over any field of reasonable size. But it produces
+inhomogeneous elements. When the ideal is homogeneous, one generally wants a
+homogeneous system of parameters; this is provided, again probabilistically, by
+the routine systemOfParameters.
+
+Here is an example computing depths of modules (that is, the depths of the
+maximal ideal on the module:
+
++-------------------------------------------------+
+|i1 : S = ZZ/101[a,b,c,d]                         |
+|                                                 |
+|o1 = S                                           |
+|                                                 |
+|o1 : PolynomialRing                              |
++-------------------------------------------------+
+|i2 : K = koszulComplex vars S                    |
+|                                                 |
+|      1      4      6      4      1              |
+|o2 = S  <-- S  <-- S  <-- S  <-- S               |
+|                                                 |
+|     0      1      2      3      4               |
+|                                                 |
+|o2 : Complex                                     |
++-------------------------------------------------+
+|i3 : apply(numgens S, i-> depth coker K.dd_(i+1))|
+|                                                 |
+|o3 = {0, 1, 2, 3}                                |
+|                                                 |
+|o3 : List                                        |
++-------------------------------------------------+
+
+and here is one computing systems of parameters. The "Density" (a number
+between 0 and 1) is a measure of the sparseness sought, and "Attempts" bounds
+the number of probabilistic attempts.
+
++----------------------------------------------------------------------------+
+|i4 : I = ideal"ab,bc,cd2,da"                                                |
+|                                                                            |
+|                         2                                                  |
+|o4 = ideal (a*b, b*c, c*d , a*d)                                            |
+|                                                                            |
+|o4 : Ideal of S                                                             |
++----------------------------------------------------------------------------+
+|i5 : codim I                                                                |
+|                                                                            |
+|o5 = 2                                                                      |
++----------------------------------------------------------------------------+
+|i6 : setRandomSeed 0                                                        |
+| -- setting random seed to 0                                                |
+|                                                                            |
+|o6 = 0                                                                      |
++----------------------------------------------------------------------------+
+|i7 : systemOfParameters(I, Density => .1, Attempts => 1000, Verbose => true)|
+|Attempts: 1000 Density: .1 Seed: null                                       |
+|                                                                            |
+|                    2                                                       |
+|o7 = ideal (a*b, c*d )                                                      |
+|                                                                            |
+|o7 : Ideal of S                                                             |
++----------------------------------------------------------------------------+
+|i8 : inhomogeneousSystemOfParameters I                                      |
+|                                                                            |
+|o8 = | cd2+bc bc+ad |                                                       |
+|                                                                            |
+|             1      2                                                       |
+|o8 : Matrix S  <-- S                                                        |
++----------------------------------------------------------------------------+
+
+Caveat
+======
+
+The systemOfParameters code could be improved by working one degree at a time,
+using a knowledge of the codim of the ideal generated by elements of degrees
+<=d for each d.
+
+See also
+========
+
+  * *note depth: (Macaulay2Doc)depth, -- depth of an object
+  * *note inhomogeneousSystemOfParameters: inhomogeneousSystemOfParameters, --
+    generates an inhomogeneous system of parameters
+  * *note systemOfParameters: systemOfParameters, -- finds a relatively sparse
+    homogeneous system of parameters of minimal degree in an ideal
+
+Authors
+=======
+
+  * Bart Snapp (see http://www.math.ohio-state.edu/~snapp/ )
+    <snapp@math.ohio-state.edu>
+  * David Eisenbud (see http://www.msri.org/~de ) <de@msri.org>
+  * Branden Stone (see http://math.adelphi.edu/~bstone/ ) <bstone@adelphi.edu>
+
+Version
+=======
+
+This documentation describes version 1.0 of Depth, released September 2010, rev
+May 2016.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{DepthSource,                                                          |
+|  title = {{Depth: aids in computations related to depth. Version~1.0}},    |
+|  author = {Bart Snapp and David Eisenbud and Branden Stone},               |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note inhomogeneousSystemOfParameters: inhomogeneousSystemOfParameters,
+        -- generates an inhomogeneous system of parameters
+      * *note isCM: isCM, -- whether a ring or module is Cohen-Macaulay
+      * *note isRegularSequence: isRegularSequence, -- whether a list is
+        regular over a ring or module
+      * *note regularSequenceCheck: regularSequenceCheck, -- how much of a list
+        is regular
+      * *note systemOfParameters: systemOfParameters, -- finds a relatively
+        sparse homogeneous system of parameters of minimal degree in an ideal
+  * Methods
+      * "depth(Ideal,Ideal)" -- see *note depth(Ideal,Ring):
+        depth_lpIdeal_cmRing_rp, -- computes the depth of a ring
+      * "depth(Ideal,Module)" -- see *note depth(Ideal,Ring):
+        depth_lpIdeal_cmRing_rp, -- computes the depth of a ring
+      * *note depth(Ideal,Ring): depth_lpIdeal_cmRing_rp, -- computes the depth
+        of a ring
+      * "depth(Module)" -- see *note depth(Ideal,Ring):
+        depth_lpIdeal_cmRing_rp, -- computes the depth of a ring
+      * "depth(Ring)" -- see *note depth(Ideal,Ring): depth_lpIdeal_cmRing_rp,
+        -- computes the depth of a ring
+      * "inhomogeneousSystemOfParameters(Ideal)" -- see *note
+        inhomogeneousSystemOfParameters: inhomogeneousSystemOfParameters, --
+        generates an inhomogeneous system of parameters
+      * "inhomogeneousSystemOfParameters(Ideal,Ring)" -- see *note
+        inhomogeneousSystemOfParameters: inhomogeneousSystemOfParameters, --
+        generates an inhomogeneous system of parameters
+      * "inhomogeneousSystemOfParameters(Ring)" -- see *note
+        inhomogeneousSystemOfParameters: inhomogeneousSystemOfParameters, --
+        generates an inhomogeneous system of parameters
+      * "isCM(Module)" -- see *note isCM: isCM, -- whether a ring or module is
+        Cohen-Macaulay
+      * "isCM(Ring)" -- see *note isCM: isCM, -- whether a ring or module is
+        Cohen-Macaulay
+      * "isRegularSequence(List)" -- see *note isRegularSequence:
+        isRegularSequence, -- whether a list is regular over a ring or module
+      * "isRegularSequence(List,Module)" -- see *note isRegularSequence:
+        isRegularSequence, -- whether a list is regular over a ring or module
+      * "isRegularSequence(List,Ring)" -- see *note isRegularSequence:
+        isRegularSequence, -- whether a list is regular over a ring or module
+      * "isRegularSequence(Matrix)" -- see *note isRegularSequence:
+        isRegularSequence, -- whether a list is regular over a ring or module
+      * "isRegularSequence(Matrix,Module)" -- see *note isRegularSequence:
+        isRegularSequence, -- whether a list is regular over a ring or module
+      * "isRegularSequence(Matrix,Ring)" -- see *note isRegularSequence:
+        isRegularSequence, -- whether a list is regular over a ring or module
+      * "regularSequenceCheck(List,Module)" -- see *note regularSequenceCheck:
+        regularSequenceCheck, -- how much of a list is regular
+      * "regularSequenceCheck(List,Ring)" -- see *note regularSequenceCheck:
+        regularSequenceCheck, -- how much of a list is regular
+      * "regularSequenceCheck(Matrix,Module)" -- see *note
+        regularSequenceCheck: regularSequenceCheck, -- how much of a list is
+        regular
+      * "regularSequenceCheck(Matrix,Ring)" -- see *note regularSequenceCheck:
+        regularSequenceCheck, -- how much of a list is regular
+      * "systemOfParameters(Ideal)" -- see *note systemOfParameters:
+        systemOfParameters, -- finds a relatively sparse homogeneous system of
+        parameters of minimal degree in an ideal
+      * "systemOfParameters(Ring)" -- see *note systemOfParameters:
+        systemOfParameters, -- finds a relatively sparse homogeneous system of
+        parameters of minimal degree in an ideal
+      * "systemOfParameters(ZZ,Ideal)" -- see *note systemOfParameters:
+        systemOfParameters, -- finds a relatively sparse homogeneous system of
+        parameters of minimal degree in an ideal
+  * Symbols
+      * "Attempts" -- see *note inhomogeneousSystemOfParameters:
+        inhomogeneousSystemOfParameters, -- generates an inhomogeneous system
+        of parameters
+      * "Bound" -- see *note inhomogeneousSystemOfParameters:
+        inhomogeneousSystemOfParameters, -- generates an inhomogeneous system
+        of parameters
+      * "Maximal" -- see *note inhomogeneousSystemOfParameters:
+        inhomogeneousSystemOfParameters, -- generates an inhomogeneous system
+        of parameters
+      * "Sparseness" -- see *note inhomogeneousSystemOfParameters:
+        inhomogeneousSystemOfParameters, -- generates an inhomogeneous system
+        of parameters
+      * "Seed" -- see *note systemOfParameters: systemOfParameters, -- finds a
+        relatively sparse homogeneous system of parameters of minimal degree in
+        an ideal
+
+For the programmer
+==================
+
+The object *note Depth: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in Depth.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Depth.m2:572:0.
+
+File: Depth.info, Node: depth_lpIdeal_cmRing_rp, Next: inhomogeneousSystemOfParameters, Prev: Top, Up: Top
+
+depth(Ideal,Ring) -- computes the depth of a ring
+*************************************************
+
+  * Function: *note depth: (Macaulay2Doc)depth,
+  * Usage: 
+        d = depth(I,M)
+        d = depth(M)
+        d = depth(I,I)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+      * M, a *note ring: (Macaulay2Doc)Ring,, or Module or Ideal
+  * Outputs:
+      * d, an *note integer: (Macaulay2Doc)ZZ,, the I-depth of a ring, module,
+        or ideal
+
+Description
+===========
+
+The function depth(I,M) computes the I-depth of a ring, module, or ideal. In
+the most general setting, it does this by computing Ext^i(A^1/I,M) for an
+A-Module M, and noting where it does not vanish. If the ring in question is a
+polynomial ring over a field, then it merely computes the codimension of I.
+
++-------------------------------------------+
+|i1 : A = QQ[x_1..x_3]/ideal(x_1^2, x_1*x_2)|
+|                                           |
+|o1 = A                                     |
+|                                           |
+|o1 : QuotientRing                          |
++-------------------------------------------+
+|i2 : depth A                               |
+|                                           |
+|o2 = 1                                     |
++-------------------------------------------+
+
+If I contains a unit, then depth(I,A) outputs infinity.
+
++------------------------+
+|i3 : depth(ideal(1_A),A)|
+|                        |
+|o3 = infinity           |
+|                        |
+|o3 : InfiniteNumber     |
++------------------------+
+
+This symbol is provided by the package Depth.m2
+
+Ways to use this method:
+========================
+
+  * "depth(Ideal,Ideal)"
+  * "depth(Ideal,Module)"
+  * *note depth(Ideal,Ring): depth_lpIdeal_cmRing_rp, -- computes the depth of
+    a ring
+  * "depth(Module)"
+  * "depth(Ring)"
+-------------------------------------------------------------------------------
+
+The source of this document is in Depth.m2:681:0.
+
+File: Depth.info, Node: inhomogeneousSystemOfParameters, Next: isCM, Prev: depth_lpIdeal_cmRing_rp, Up: Top
+
+inhomogeneousSystemOfParameters -- generates an inhomogeneous system of parameters
+**********************************************************************************
+
+  * Usage: 
+        inhomogeneousSystemOfParameters(I,A)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,
+      * A, a *note ring: (Macaulay2Doc)Ring,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Attempts => an *note integer: (Macaulay2Doc)ZZ,, default value 100,
+        number of attempts made to generate an inhomogeneous system of
+        parameters
+      * Bound => an *note integer: (Macaulay2Doc)ZZ,, default value 1, bound on
+        the value of the random coefficients
+      * Sparseness => a *note real number: (Macaulay2Doc)RR,, default value .5,
+        between 0 and 1 giving the frequency of the coefficients being equal to
+        zero
+      * Maximal => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        true, whether to insist on searching for a maximal inhomogeneous system
+        of parameters
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,
+
+Description
+===========
+
+Given a ring and an ideal, inhomogeneousSystemOfParameters attempts to generate
+an inhomogeneous system of parameters contained in I. The algorithm is based on
+one found in Chapter 5.5 of W. Vasconcelos' book: Computational Methods in
+Commutative Algebra and Algebraic Geometry.
++---------------------------------------------+
+|i1 : A = ZZ/5051[x, y, z];                   |
++---------------------------------------------+
+|i2 : I = ideal (x, x*y, y*z);                |
+|                                             |
+|o2 : Ideal of A                              |
++---------------------------------------------+
+|i3 : X = inhomogeneousSystemOfParameters(I,A)|
+|                                             |
+|o3 = | yz+x xy |                             |
+|                                             |
+|             1      2                        |
+|o3 : Matrix A  <-- A                         |
++---------------------------------------------+
+|i4 : isRegularSequence(X,A)                  |
+|                                             |
+|o4 = true                                    |
++---------------------------------------------+
+Here are examples with optional inputs:
++-----------------------------------------------------------------------------+
+|i5 : A = ZZ/5051[x, y, z];                                                   |
++-----------------------------------------------------------------------------+
+|i6 : I = ideal (x, x*y, y*z);                                                |
+|                                                                             |
+|o6 : Ideal of A                                                              |
++-----------------------------------------------------------------------------+
+|i7 : inhomogeneousSystemOfParameters(I,A,Attempts=>1,Bound=>100,Sparseness   |
+|--warning: no maximal regular sequence found                                 |
+|                                                                             |
+|o7 = 0                                                                       |
+|                                                                             |
+|             1                                                               |
+|o7 : Matrix A  <-- 0                                                         |
+|-----------------------------------------------------------------------------|
+|=>.9)                                                                        |
++-----------------------------------------------------------------------------+
+Here are examples with the optional input Maximal => false:
++-----------------------------------------------------------------------------+
+|i8 : x = symbol x; y = symbol y;                                             |
++-----------------------------------------------------------------------------+
+|i10 : n = 2;                                                                 |
++-----------------------------------------------------------------------------+
+|i11 : A = ZZ/101[x_(1,1)..x_(n,n),y_(1,1)..y_(n,n)];                         |
++-----------------------------------------------------------------------------+
+|i12 : X = transpose genericMatrix(A,n,n);                                    |
+|                                                                             |
+|              2      2                                                       |
+|o12 : Matrix A  <-- A                                                        |
++-----------------------------------------------------------------------------+
+|i13 : Y = transpose genericMatrix(A,y_(1,1),n,n);                            |
+|                                                                             |
+|              2      2                                                       |
+|o13 : Matrix A  <-- A                                                        |
++-----------------------------------------------------------------------------+
+|i14 : b = ideal(X*Y - Y*X);                                                  |
+|                                                                             |
+|o14 : Ideal of A                                                             |
++-----------------------------------------------------------------------------+
+|i15 : B = A/b;                                                               |
++-----------------------------------------------------------------------------+
+|i16 : inhomogeneousSystemOfParameters(B,Attempts=>1,Maximal=>false)          |
+|                                                                             |
+|o16 = | -x_(2,1)-y_(1,2)+y_(2,1) x_(1,2)-y_(2,2)                             |
+|      -----------------------------------------------------------------------|
+|      -x_(2,1)+x_(2,2)-y_(1,1)+y_(1,2) -x_(1,1)+x_(2,1)                      |
+|      -----------------------------------------------------------------------|
+|      x_(1,1)-x_(2,1)-y_(1,1) x_(1,1)+x_(1,2) |                              |
+|                                                                             |
+|              1      6                                                       |
+|o16 : Matrix B  <-- B                                                        |
++-----------------------------------------------------------------------------+
+
+This symbol is provided by the package *note Depth: Top,.
+
+Ways to use inhomogeneousSystemOfParameters:
+============================================
+
+  * "inhomogeneousSystemOfParameters(Ideal)"
+  * "inhomogeneousSystemOfParameters(Ideal,Ring)"
+  * "inhomogeneousSystemOfParameters(Ring)"
+
+For the programmer
+==================
+
+The object *note inhomogeneousSystemOfParameters:
+inhomogeneousSystemOfParameters, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Depth.m2:807:0.
+
+File: Depth.info, Node: isCM, Next: isRegularSequence, Prev: inhomogeneousSystemOfParameters, Up: Top
+
+isCM -- whether a ring or module is Cohen-Macaulay
+**************************************************
+
+  * Usage: 
+        isCM(A)
+  * Inputs:
+      * A, a *note Ring: (Macaulay2Doc)Ring, or *note Module:
+        (Macaulay2Doc)Module,
+  * Outputs:
+      * *note Boolean: (Macaulay2Doc)Boolean,
+
+Description
+===========
+
+This command merely checks if the depth of A equals the Krull dimension of A.
++---------------------------------------------------------------------+
+|i1 : A = ZZ/2[x,y,z];                                                |
++---------------------------------------------------------------------+
+|i2 : isCM(A)                                                         |
+|                                                                     |
+|o2 = true                                                            |
++---------------------------------------------------------------------+
+|i3 : A = ZZ/2[x,y]/(x^2,x*y);                                        |
++---------------------------------------------------------------------+
+|i4 : isCM(A)                                                         |
+|                                                                     |
+|o4 = false                                                           |
++---------------------------------------------------------------------+
+|i5 : A =  ZZ/101[a_1,a_2,b_1,b_2,c_1]/ideal(a_1*b_1,a_2*b_2,b_1*c_1);|
++---------------------------------------------------------------------+
+|i6 : isCM(A)                                                         |
+|                                                                     |
+|o6 = false                                                           |
++---------------------------------------------------------------------+
+
+This symbol is provided by the package *note Depth: Top,.
+
+Caveat
+======
+
+Typically when one thinks of a Cohen-Macaulay ring or module, one is in the
+local case. Since the local case is not yet implemented into Macaulay 2, we
+compute over the ideal generated by by *note generators(Ring):
+(Macaulay2Doc)generators_lpRing_rp,.
+
+Ways to use isCM:
+=================
+
+  * "isCM(Module)"
+  * "isCM(Ring)"
+
+For the programmer
+==================
+
+The object *note isCM: isCM, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Depth.m2:835:0.
+
+File: Depth.info, Node: isRegularSequence, Next: regularSequenceCheck, Prev: isCM, Up: Top
+
+isRegularSequence -- whether a list is regular over a ring or module
+********************************************************************
+
+  * Usage: 
+        isRegularSequence(X,A) or isRegularSequence(X) 
+  * Inputs:
+      * X, a *note List: (Macaulay2Doc)List, or *note Matrix:
+        (Macaulay2Doc)Matrix,
+      * A, a *note Ring: (Macaulay2Doc)Ring, or *note Module:
+        (Macaulay2Doc)Module,
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,
+
+Description
+===========
+
+Given a list X, the function isRegularSequence tells if X forms a regular
+sequence. If X consists of homogeneous elements, it does this by comparing the
+Hilbert series of A and the Hilbert series of A/XA. Otherwise it checks the
+injectivity of the maps defined by multiplication by the elements of X and also
+checks if XA = A.
++--------------------------------+
+|i1 : A = ZZ/2[x, y, z];         |
++--------------------------------+
+|i2 : X1 = {x, y*(x-1), z*(x-1)};|
++--------------------------------+
+|i3 : isRegularSequence X1       |
+|                                |
+|o3 = true                       |
++--------------------------------+
+|i4 : X2 = {z*(x-1), y*(x-1), x};|
++--------------------------------+
+|i5 : isRegularSequence X2       |
+|                                |
+|o5 = false                      |
++--------------------------------+
+|i6 : X3 = {1_A, x, y};          |
++--------------------------------+
+|i7 : isRegularSequence X3       |
+|                                |
+|o7 = false                      |
++--------------------------------+
+
+This symbol is provided by the package *note Depth: Top,.
+
+Ways to use isRegularSequence:
+==============================
+
+  * "isRegularSequence(List)"
+  * "isRegularSequence(List,Module)"
+  * "isRegularSequence(List,Ring)"
+  * "isRegularSequence(Matrix)"
+  * "isRegularSequence(Matrix,Module)"
+  * "isRegularSequence(Matrix,Ring)"
+
+For the programmer
+==================
+
+The object *note isRegularSequence: isRegularSequence, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Depth.m2:749:0.
+
+File: Depth.info, Node: regularSequenceCheck, Next: systemOfParameters, Prev: isRegularSequence, Up: Top
+
+regularSequenceCheck -- how much of a list is regular
+*****************************************************
+
+  * Usage: 
+        regularSequenceCheck(X,A)
+  * Inputs:
+      * X, a *note List: (Macaulay2Doc)List, or *note Matrix:
+        (Macaulay2Doc)Matrix,
+      * A, a *note Ring: (Macaulay2Doc)Ring, or *note Module:
+        (Macaulay2Doc)Module,
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,
+
+Description
+===========
+
+Given a list X, the function regularSequenceCheck gives an integer indicating
+how many initial elements of a List form a regular sequence.
++--------------------------------------------+
+|i1 : A = ZZ[x_1..x_4]/(x_4^2)               |
+|                                            |
+|o1 = A                                      |
+|                                            |
+|o1 : QuotientRing                           |
++--------------------------------------------+
+|i2 : regularSequenceCheck({x_1..x_4},A)     |
+|                                            |
+|o2 = 3                                      |
++--------------------------------------------+
+
+This symbol is provided by the package *note Depth: Top,.
+
+Caveat
+======
+
+regularSequenceCheck merely checks the injectivity of the maps in question. It
+does not check to see if XA = A.
+
+Ways to use regularSequenceCheck:
+=================================
+
+  * "regularSequenceCheck(List,Module)"
+  * "regularSequenceCheck(List,Ring)"
+  * "regularSequenceCheck(Matrix,Module)"
+  * "regularSequenceCheck(Matrix,Ring)"
+
+For the programmer
+==================
+
+The object *note regularSequenceCheck: regularSequenceCheck, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Depth.m2:710:0.
+
+File: Depth.info, Node: systemOfParameters, Prev: regularSequenceCheck, Up: Top
+
+systemOfParameters -- finds a relatively sparse homogeneous system of parameters of minimal degree in an ideal
+**************************************************************************************************************
+
+  * Usage: 
+        J = systemOfParameters I
+        J = systemOfParameters (i,I)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, generated by homogeneous
+        elements
+      * i, an *note integer: (Macaulay2Doc)ZZ,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Verbose => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        false
+      * Attempts => an *note integer: (Macaulay2Doc)ZZ,, default value 100
+      * Density => a *note real number: (Macaulay2Doc)RR,, default value 0, or
+        QQ or ZZ; will be converted to RR
+      * Seed => ..., default value null
+      * Seed => an *note ideal: (Macaulay2Doc)Ideal,, default value null
+  * Outputs:
+      * J, an *note ideal: (Macaulay2Doc)Ideal,, generated by a homogeneous
+        system of parameters of length i contained in I
+
+Description
+===========
+
+First sorts the generators of trim ideal gens gb I by ascending degree,
+ascending monomial order. Looks first for as much of a system of parameters
+among the generators as possible, then tries up to Attempts sparse random
+combinations of given Density. The default value of Density is (1+codim
+I)/(numgens trim I).
+
+If the option Seed is not null then it should be an ideal of ring I generated
+by a part of a sop in I, and it is used as the beginning of the system of
+parameters constructed.
+
+If no sop is found after Attempts tries, and the Density is < 1 then the
+Density is increased by .1, and 20 more attempts are made. If the Density is
+already == 1, then the program stops with an error.
+
++----------------------------------------------------------------------------+
+|i1 : S = ZZ/101[a,b,c,d]                                                    |
+|                                                                            |
+|o1 = S                                                                      |
+|                                                                            |
+|o1 : PolynomialRing                                                         |
++----------------------------------------------------------------------------+
+|i2 : I = ideal"ab,bc,cd,da"                                                 |
+|                                                                            |
+|o2 = ideal (a*b, b*c, c*d, a*d)                                             |
+|                                                                            |
+|o2 : Ideal of S                                                             |
++----------------------------------------------------------------------------+
+|i3 : codim I                                                                |
+|                                                                            |
+|o3 = 2                                                                      |
++----------------------------------------------------------------------------+
+|i4 : setRandomSeed 0                                                        |
+| -- setting random seed to 0                                                |
+|                                                                            |
+|o4 = 0                                                                      |
++----------------------------------------------------------------------------+
+|i5 : inhomogeneousSystemOfParameters I                                      |
+|                                                                            |
+|o5 = | bc+cd bc+ad |                                                        |
+|                                                                            |
+|             1      2                                                       |
+|o5 : Matrix S  <-- S                                                        |
++----------------------------------------------------------------------------+
+|i6 : systemOfParameters I                                                   |
+|                                                                            |
+|o6 = ideal (a*b, c*d)                                                       |
+|                                                                            |
+|o6 : Ideal of S                                                             |
++----------------------------------------------------------------------------+
+|i7 : systemOfParameters(I, Density => .1, Attempts => 1000, Verbose => true)|
+|Attempts: 1000 Density: .1 Seed: null                                       |
+|                                                                            |
+|o7 = ideal (a*b, c*d)                                                       |
+|                                                                            |
+|o7 : Ideal of S                                                             |
++----------------------------------------------------------------------------+
+
+Caveat
+======
+
+Could be rewritten to take into account the codimensions of the sub ideals
+generated by the elements of degree up to d for each d.
+
+The routine tries to find generators among linear combinations, with field
+coefficients, of generators of I; but over very small fields there may not be
+any! For example there is no linear form that is a parameter in the
+1-dimensional ring R = ZZ/2[x,y]/intersect(ideal"x", ideal"x+y", ideal"y")
+
+See also
+========
+
+  * *note regularSequenceCheck: regularSequenceCheck, -- how much of a list is
+    regular
+  * *note Depth: Top, -- aids in computations related to depth
+  * *note inhomogeneousSystemOfParameters: inhomogeneousSystemOfParameters, --
+    generates an inhomogeneous system of parameters
+
+Ways to use systemOfParameters:
+===============================
+
+  * "systemOfParameters(Ideal)"
+  * "systemOfParameters(Ring)"
+  * "systemOfParameters(ZZ,Ideal)"
+
+For the programmer
+==================
+
+The object *note systemOfParameters: systemOfParameters, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Depth.m2:641:0.
+
+Tag Table:
+Node: Top238
+Node: depth_lpIdeal_cmRing_rp13200
+Node: inhomogeneousSystemOfParameters15270
+Node: isCM22472
+Node: isRegularSequence25004
+Node: regularSequenceCheck27275
+Node: systemOfParameters29182
+
+End Tag Table

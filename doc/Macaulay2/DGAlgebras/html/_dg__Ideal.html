@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>dgIdeal -- Construct a DG ideal from a list, matrix, or ideal of generators</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Data type for DG algebras" href="index.html">DGAlgebras</a> » <a title="Sum, product, power, intersection, colon, and other ideal-algebra operations on DG ideals" href="___Operations_spon_sp__D__G_sp__Ideals.html">Operations on DG Ideals</a> » <a title="Construct a DG ideal from a list, matrix, or ideal of generators" href="_dg__Ideal.html">dgIdeal</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_is__D__G__Ideal.html">next</a> | <a href="___D__G__Ideal.html">previous</a> | <a href="_is__D__G__Ideal.html">forward</a> | <a href="___D__G__Ideal.html">backward</a> | <a href="___Operations_spon_sp__D__G_sp__Ideals.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>dgIdeal -- Construct a DG ideal from a list, matrix, or ideal of generators</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">I = dgIdeal(A, gs)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">A</span>, <span>an instance of the type <a title="The class of all DGAlgebras" href="___D__G__Algebra.html">DGAlgebra</a></span>, </span></li>
+            <li><span><span class="tt">gs</span>, A List of elements of <span class="tt">A.natural</span>, a Matrix of such, or an <a title="the class of all ideals" href="../../Macaulay2Doc/html/___Ideal.html">Ideal</a> of <span class="tt">A.natural</span>.</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span class="tt">I</span>, <span>an instance of the type <a title="The class of d-closed graded ideals of a DG algebra" href="___D__G__Ideal.html">DGIdeal</a></span>, The smallest d-closed ideal of <span class="tt">A.natural</span> containing the given generators.  Constructed by iteratively adjoining derivatives until the ideal stabilizes.</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>If the inputs are already cycles, no new generators are introduced and <span class="tt">I.natural</span> is the ordinary ideal they generate.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ/101[x, y]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : A = koszulComplexDGA R
+
+o2 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,2
+      Differential => {x, y}
+
+o2 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : Anat = A.natural
+
+o3 = Anat
+
+o3 : PolynomialRing, 2 skew commutative variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : xA = sub(x, Anat)
+
+o4 = x
+
+o4 : Anat</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : I = dgIdeal(A, {xA})
+
+o5 = DGIdeal of Anat
+     generators => | x |
+
+o5 : DGIdeal</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : numgens I.natural == 1
+
+o6 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : isDGIdeal(A, I.natural)
+
+o7 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>If a seed element is not a cycle, d-saturation may enlarge the ideal. For the Koszul complex on {x}, <span class="tt">d(T_1) = x</span>, so <span class="tt">dgIdeal(A, {T_1}) </span> ends up containing both <span class="tt">T_1</span> and <span class="tt">x</span>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : R' = ZZ/101[x]
+
+o8 = R'
+
+o8 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : A' = koszulComplexDGA R'
+
+o9 = {Ring => R'                    }
+      Underlying algebra => R'[T   ]
+                                1,1
+      Differential => {x}
+
+o9 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : T = (A'.natural)_0
+
+o10 = T
+       1,1
+
+o10 : R'[T   ]
+          1,1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : I' = dgIdeal(A', {T})
+
+o11 = DGIdeal of R'[T   ]
+                     1,1
+      generators => | x T_(1,1) |
+
+o11 : DGIdeal</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : numgens I'.natural
+
+o12 = 2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : isDGIdeal(A', I'.natural)
+
+o13 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>A more interesting multi-variable example: over the Koszul algebra of <span class="tt">QQ[x, y]</span>, the top-degree exterior product <span class="tt">T_1 T_2</span> has <span class="tt">d(T_1 T_2) = -y T_1 + x T_2</span>, and d-saturation records both the seed and its differential as minimal generators of the resulting d-closed ideal:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : R2 = QQ[x, y]
+
+o14 = R2
+
+o14 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : A2 = koszulComplexDGA R2
+warning: clearing value of symbol T to allow access to subscripted variables based on it
+       : debug with expression   debug 6944   or with command line option   --debug 6944
+
+o15 = {Ring => R2                          }
+       Underlying algebra => R2[T   ..T   ]
+                                 1,1   1,2
+       Differential => {x, y}
+
+o15 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : T1 = (A2.natural)_0
+
+o16 = T
+       1,1
+
+o16 : R2[T   ..T   ]
+          1,1   1,2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : T2 = (A2.natural)_1
+
+o17 = T
+       1,2
+
+o17 : R2[T   ..T   ]
+          1,1   1,2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : polyDifferential(A2, T1 * T2)
+
+o18 = - y*T    + x*T
+           1,1      1,2
+
+o18 : R2[T   ..T   ]
+          1,1   1,2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : J = dgIdeal(A2, {T1 * T2})
+
+o19 = DGIdeal of R2[T   ..T   ]
+                     1,1   1,2
+      generators => | yT_(1,1)-xT_(1,2) T_(1,1)T_(1,2) |
+
+o19 : DGIdeal</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : mingens J.natural
+
+o20 = | yT_(1,1)-xT_(1,2) T_(1,1)T_(1,2) |
+
+                             1                     2
+o20 : Matrix (R2[T   ..T   ])  &lt;-- (R2[T   ..T   ])
+                  1,1   1,2             1,1   1,2</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>An empty seed or a list of zero seeds yields the zero DG ideal.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : Z = dgIdeal(A, {})
+
+o21 = DGIdeal of Anat
+      generators => 0
+
+o21 : DGIdeal</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : isWellDefined Z
+
+o22 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : isZero Z
+
+o23 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : Z' = dgIdeal(A, {0_Anat, 0_Anat})
+
+o24 = DGIdeal of Anat
+      generators => 0
+
+o24 : DGIdeal</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : isZero Z'
+
+o25 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>A seed containing <span class="tt">1</span> gives the unit DG ideal.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : U = dgIdeal(A, {1_Anat, x_Anat})
+
+o26 = DGIdeal of Anat
+      generators => | 1 |
+
+o26 : DGIdeal</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : U.natural == ideal 1_Anat
+
+o27 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="The class of d-closed graded ideals of a DG algebra" href="___D__G__Ideal.html">DGIdeal</a> -- The class of d-closed graded ideals of a DG algebra</span></li>
+          <li><span><a title="Test whether an ideal of A.natural is closed under the differential of A" href="_is__D__G__Ideal.html">isDGIdeal</a> -- Test whether an ideal of A.natural is closed under the differential of A</span></li>
+          <li><span><a title="Sum, product, power, intersection, colon, and other ideal-algebra operations on DG ideals" href="___Operations_spon_sp__D__G_sp__Ideals.html">Operations on DG Ideals</a> -- Sum, product, power, intersection, colon, and other ideal-algebra operations on DG ideals</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">dgIdeal</span>:</h2>
+          <ul>
+            <li><kbd>dgIdeal(DGAlgebra,Ideal)</kbd></li>
+            <li><kbd>dgIdeal(DGAlgebra,List)</kbd></li>
+            <li><kbd>dgIdeal(DGAlgebra,Matrix)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="Construct a DG ideal from a list, matrix, or ideal of generators" href="_dg__Ideal.html">dgIdeal</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function.html">method function</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">DGAlgebras/doc.m2:2364:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

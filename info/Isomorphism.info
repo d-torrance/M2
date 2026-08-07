@@ -1,0 +1,1378 @@
+ -*- coding: utf-8 -*- This is Isomorphism.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* Isomorphism: (Isomorphism).   probabilistic test of isomorphism between modules
+END-INFO-DIR-ENTRY
+
+
+File: Isomorphism.info, Node: Top, Next: checkDegrees, Up: (dir)
+
+Isomorphism -- probabilistic test for isomorphism of modules
+************************************************************
+
+Description
+===========
+
+Two modules are isomorphic if there a homomorphism $f:M \to N$ which is both
+injective and surjective, or equivalently if there is a surjection in each
+direction. These routines produce random combinations of the generators of
+*note Hom: (Macaulay2Doc)Hom, and test for a homomorphism which is both
+injective and surjective.
+
+Note that it suffices to check surjectivity after tensoring with the residue
+field, so in a future version we may instead check for surjections in both
+directions.
+
+Contributors
+============
+
+Mike Stillman and Devlin Mallory contributed to this package.
+
+
+
+See also
+========
+
+  * *note isIsomorphic: isIsomorphic, -- probabilistic test for isomorphism of
+    modules
+  * *note isomorphism: isomorphism, -- retrieve an isomorphism of modules
+  * *note checkDegrees: checkDegrees, -- compares the degrees of generators of
+    two modules
+
+Authors
+=======
+
+  * David Eisenbud (see https://eisenbud.github.io ) <de@berkeley.edu>
+  * Mahrud Sayrafi (see https://mahrud.github.io ) <mahrud@umn.edu>
+
+Version
+=======
+
+This documentation describes version 2.0 of Isomorphism, released April 30,
+2025.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{IsomorphismSource,                                                     |
+|  title = {{Isomorphism: probabilistic test of isomorphism between modules.  |
+|  author = {David Eisenbud and Mahrud Sayrafi},                              |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Version~2.0}},                                                               |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note checkDegrees: checkDegrees, -- compares the degrees of generators
+        of two modules
+      * *note isIsomorphic: isIsomorphic, -- probabilistic test for isomorphism
+        of modules
+      * *note isomorphism: isomorphism, -- retrieve an isomorphism of modules
+  * Methods
+      * "checkDegrees(Matrix,Matrix)" -- see *note checkDegrees: checkDegrees,
+        -- compares the degrees of generators of two modules
+      * "checkDegrees(Module,Module)" -- see *note checkDegrees: checkDegrees,
+        -- compares the degrees of generators of two modules
+      * "isIsomorphic(Matrix,Matrix)" -- see *note isIsomorphic: isIsomorphic,
+        -- probabilistic test for isomorphism of modules
+      * "isIsomorphic(Module,Module)" -- see *note isIsomorphic: isIsomorphic,
+        -- probabilistic test for isomorphism of modules
+      * "isomorphism(Module,Module)" -- see *note isomorphism: isomorphism, --
+        retrieve an isomorphism of modules
+
+For the programmer
+==================
+
+The object *note Isomorphism: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in Isomorphism.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Isomorphism.m2:528:0.
+
+File: Isomorphism.info, Node: checkDegrees, Next: checkDegrees_lp_pd_pd_pd_cmStrict=>_pd_pd_pd_rp, Prev: Top, Up: Top
+
+checkDegrees -- compares the degrees of generators of two modules
+*****************************************************************
+
+  * Usage: 
+        d = checkDegrees(N,M)
+        d = checkDegrees(n,m)
+  * Inputs:
+      * N, a *note module: (Macaulay2Doc)Module,, 
+      * n, a *note matrix: (Macaulay2Doc)Matrix,, presentation of N; 
+      * M, a *note module: (Macaulay2Doc)Module,, 
+      * m, a *note matrix: (Macaulay2Doc)Matrix,, presentation of M; 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Strict: checkDegrees_lp_pd_pd_pd_cmStrict=>_pd_pd_pd_rp, => ...,
+        default value false, forces strict equality of degrees
+      * Verbose => ..., default value false
+  * Outputs:
+      * d, a *note sequence: (Macaulay2Doc)Sequence,, (Boolean, a degree in the
+        ring of M and N)
+
+Description
+===========
+
+This is to be used with *note isIsomorphic: isIsomorphic,.
+
+The routine compares the sorted lists of degrees of generators of the two
+modules; the degreeLength (can be anything). If the numbers of generators of
+M,N are different, the modules are not isomorphic, and the routine returns
+(false, null).
+
+If the numbers are the same, and all the corresponding degrees pairs differ by
+the same amount (so that the modules might become isomorphic after a shift,
+then if Strict => false (the default) the output (true, e) tells how to adjust
+the modules to make the degrees equal: either tensor N with (ring N)^{e} or
+tensor M with (ring M)^{-e}.
+
+If Strict => true, then the output is (false, null) unless the offset e is 0.
+
++-------------------------------------------------+
+|i1 : S = ZZ/101[a,b,Degrees => {{1,0},{0,1}}]    |
+|                                                 |
+|o1 = S                                           |
+|                                                 |
+|o1 : PolynomialRing                              |
++-------------------------------------------------+
+|i2 : A = S^{{2,1}}                               |
+|                                                 |
+|      1                                          |
+|o2 = S                                           |
+|                                                 |
+|o2 : S-module, free, degrees {{-2, -1}}          |
++-------------------------------------------------+
+|i3 : B = S^{{1,1}}                               |
+|                                                 |
+|      1                                          |
+|o3 = S                                           |
+|                                                 |
+|o3 : S-module, free, degrees {{-1, -1}}          |
++-------------------------------------------------+
+|i4 : B' = S^{{3,3}}**B                           |
+|                                                 |
+|      1                                          |
+|o4 = S                                           |
+|                                                 |
+|o4 : S-module, free, degrees {{-4, -4}}          |
++-------------------------------------------------+
+|i5 : C = S^{{1,1}, {2,3}}                        |
+|                                                 |
+|      2                                          |
+|o5 = S                                           |
+|                                                 |
+|o5 : S-module, free, degrees {{-1, -1}, {-2, -3}}|
++-------------------------------------------------+
+|i6 : checkDegrees(A,B)                           |
+|                                                 |
+|o6 = (true, {-1, 0})                             |
+|                                                 |
+|o6 : Sequence                                    |
++-------------------------------------------------+
+|i7 : checkDegrees(A,C)                           |
+|                                                 |
+|o7 = (false, )                                   |
+|                                                 |
+|o7 : Sequence                                    |
++-------------------------------------------------+
+|i8 : d = checkDegrees(B',B)                      |
+|                                                 |
+|o8 = (true, {-3, -3})                            |
+|                                                 |
+|o8 : Sequence                                    |
++-------------------------------------------------+
+|i9 : degrees (S^{d_1}**B') == degrees B          |
+|                                                 |
+|o9 = true                                        |
++-------------------------------------------------+
+|i10 : degrees (B') == degrees (S^{-d_1}**B)      |
+|                                                 |
+|o10 = true                                       |
++-------------------------------------------------+
+|i11 : checkDegrees(B',B,Strict=>true)            |
+|                                                 |
+|o11 = (false, )                                  |
+|                                                 |
+|o11 : Sequence                                   |
++-------------------------------------------------+
+
+See also
+========
+
+  * *note isIsomorphic: isIsomorphic, -- probabilistic test for isomorphism of
+    modules
+  * *note checkDegrees(...,Strict=>...):
+    checkDegrees_lp_pd_pd_pd_cmStrict=>_pd_pd_pd_rp, -- forces strict equality
+    of degrees
+
+Ways to use checkDegrees:
+=========================
+
+  * "checkDegrees(Matrix,Matrix)"
+  * "checkDegrees(Module,Module)"
+
+For the programmer
+==================
+
+The object *note checkDegrees: checkDegrees, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Isomorphism.m2:528:0.
+
+File: Isomorphism.info, Node: checkDegrees_lp_pd_pd_pd_cmStrict=>_pd_pd_pd_rp, Next: isIsomorphic, Prev: checkDegrees, Up: Top
+
+checkDegrees(...,Strict=>...) -- forces strict equality of degrees
+******************************************************************
+
+  * Usage: 
+        d = checkDegrees(N, M, Strict =>true)
+
+Description
+===========
+
+Used with Strict=>false, the default, checkDegrees(N,M) returns (true, deg) if
+degrees M and degrees N are equal up to a shift d. With Strict => true the
+degree lists must be equal.
+
++---------------------------------------------+
+|i1 : S = ZZ/101[a,b,Degrees => {{1,0},{0,1}}]|
+|                                             |
+|o1 = S                                       |
+|                                             |
+|o1 : PolynomialRing                          |
++---------------------------------------------+
+|i2 : B = S^{{1,1}}                           |
+|                                             |
+|      1                                      |
+|o2 = S                                       |
+|                                             |
+|o2 : S-module, free, degrees {{-1, -1}}      |
++---------------------------------------------+
+|i3 : B' = S^{{3,3}}**B                       |
+|                                             |
+|      1                                      |
+|o3 = S                                       |
+|                                             |
+|o3 : S-module, free, degrees {{-4, -4}}      |
++---------------------------------------------+
+|i4 : d = checkDegrees(B',B)                  |
+|                                             |
+|o4 = (true, {-3, -3})                        |
+|                                             |
+|o4 : Sequence                                |
++---------------------------------------------+
+|i5 : degrees (S^{d_1}**B') == degrees B      |
+|                                             |
+|o5 = true                                    |
++---------------------------------------------+
+|i6 : degrees (B') == degrees (S^{-d_1}**B)   |
+|                                             |
+|o6 = true                                    |
++---------------------------------------------+
+|i7 : checkDegrees(B',B,Strict=>true)         |
+|                                             |
+|o7 = (false, )                               |
+|                                             |
+|o7 : Sequence                                |
++---------------------------------------------+
+
+See also
+========
+
+  * *note checkDegrees: checkDegrees, -- compares the degrees of generators of
+    two modules
+
+Functions with optional argument named Strict:
+==============================================
+
+  * *note checkDegrees(...,Strict=>...):
+    checkDegrees_lp_pd_pd_pd_cmStrict=>_pd_pd_pd_rp, -- forces strict equality
+    of degrees
+  * "isIsomorphic(...,Strict=>...)" -- see *note isIsomorphic: isIsomorphic, --
+    probabilistic test for isomorphism of modules
+  * "isomorphism(...,Strict=>...)" -- see *note isomorphism: isomorphism, --
+    retrieve an isomorphism of modules
+
+Further information
+===================
+
+  * Default value: *note false: (Macaulay2Doc)false,
+  * Function: *note checkDegrees: checkDegrees, -- compares the degrees of
+    generators of two modules
+  * Option key: *note Strict: (Macaulay2Doc)Strict, -- an optional argument
+-------------------------------------------------------------------------------
+
+The source of this document is in Isomorphism.m2:528:0.
+
+File: Isomorphism.info, Node: isIsomorphic, Next: isomorphism, Prev: checkDegrees_lp_pd_pd_pd_cmStrict=>_pd_pd_pd_rp, Up: Top
+
+isIsomorphic -- probabilistic test for isomorphism of modules
+*************************************************************
+
+  * Usage: 
+        t = isIsomorphic(N, M)
+        t = isIsomorphic(n, m)
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+      * m, a *note matrix: (Macaulay2Doc)Matrix,, presentation of M; 
+      * N, a *note module: (Macaulay2Doc)Module,, 
+      * n, a *note matrix: (Macaulay2Doc)Matrix,, presentation of N; 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Homogeneous => a *note Boolean value: (Macaulay2Doc)Boolean,, default
+        value true
+      * Verbose => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        false
+      * Strategy => a *note thing: (Macaulay2Doc)Thing,, default value null
+      * Strict => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        false
+      * Tries => an *note integer: (Macaulay2Doc)ZZ,, default value null, the
+        number of attempts at generating random map;
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, whether the modules are
+        isomorphic;
+
+Description
+===========
+
+In case both modules are homogeneous the program first uses *note checkDegrees:
+checkDegrees, to see whether an isomorphism is possible. This may be an
+isomorphism up to shift if Strict => false (the default) or on the nose if
+Strict => true.
+
++------------------------------------------------------------+
+|i1 : S = ZZ/32003[x_0..x_3]                                 |
+|                                                            |
+|o1 = S                                                      |
+|                                                            |
+|o1 : PolynomialRing                                         |
++------------------------------------------------------------+
+|i2 : m = random(S^3, S^{4:-2});                             |
+|                                                            |
+|             3      4                                       |
+|o2 : Matrix S  <-- S                                        |
++------------------------------------------------------------+
+|i3 : M = coker m;                                           |
++------------------------------------------------------------+
+|i4 : assert isIsomorphic(S^{-3} ** M, M)                    |
++------------------------------------------------------------+
+|i5 : assert not isIsomorphic(S^{-3} ** M, M, Strict => true)|
++------------------------------------------------------------+
+
+If this test is passed, the program uses a variant of the *note Hom:
+(Macaulay2Doc)Hom, command to compute a random map of minimal possible degree
+from $M$ to $N$, and checks whether this is surjective and injective. If Tries
+=> n is provided, this is attempted $n$ times, otherwise a heuristic based on
+the characteristic of the field is used to determine the number of attempts to
+make (1 in characteristic zero, ~10 in characteristic 32003, and ~150 in
+characteristic 2).
+
++------------------------------------+
+|i6 : A = random(target m, target m);|
+|                                    |
+|             3      3               |
+|o6 : Matrix S  <-- S                |
++------------------------------------+
+|i7 : B = random(source m, source m);|
+|                                    |
+|             4      4               |
+|o7 : Matrix S  <-- S                |
++------------------------------------+
+|i8 : N = coker(A * m * B);          |
++------------------------------------+
+|i9 : isIsomorphic(N, M)             |
+|                                    |
+|o9 = true                           |
++------------------------------------+
+|i10 : isomorphism(N, M)             |
+|                                    |
+|o10 = | 1     140  14512 |          |
+|      | 2017  6517 3768  |          |
+|      | 13952 1685 6668  |          |
+|                                    |
+|o10 : Matrix N <-- M                |
++------------------------------------+
+
+The internal routine for generating a random map of minimal possible degree is
+essentially equivalent to the code below, but caching and various other
+optimizations make this routine more efficient.
+
++---------------------------------------------------------+
+|i11 : f = homomorphism random Hom(N, M, DegreeLimit => 0)|
+|                                                         |
+|o11 = | 1093 9784   -5815  |                             |
+|      | 9234 -14769 -2171  |                             |
+|      | 8559 -14316 -14077 |                             |
+|                                                         |
+|o11 : Matrix M <-- N                                     |
++---------------------------------------------------------+
+|i12 : isIsomorphism f                                    |
+|                                                         |
+|o12 = true                                               |
++---------------------------------------------------------+
+
+If the modules are inhomogeneous and Homogeneous => false is passed, the random
+map is a random linear combination of the generators of the module of
+homomorphisms.
+
+If the output is false, then the conclusion of non-isomorphism is only
+probabilistic. If the output is true, then as certificate an isomorphism $M \to
+N$ is cached in the *note youngest: (Macaulay2Doc)youngest, module and can be
+retried using the *note isomorphism: isomorphism, method.
+
+The following examples checks two well-known isomorphisms in homological
+algebra.
+
++-------------------------------------------------------------------+
+|i13 : S = ZZ/32003[x_0..x_3]                                       |
+|                                                                   |
+|o13 = S                                                            |
+|                                                                   |
+|o13 : PolynomialRing                                               |
++-------------------------------------------------------------------+
+|i14 : I = monomialCurveIdeal(S, {1,3,5})                           |
+|                                                                   |
+|              2          2      2     3    2                       |
+|o14 = ideal (x  - x x , x x  - x x , x  - x x )                    |
+|              2    1 3   1 2    0 3   1    0 2                     |
+|                                                                   |
+|o14 : Ideal of S                                                   |
++-------------------------------------------------------------------+
+|i15 : c = codim I                                                  |
+|                                                                   |
+|o15 = 2                                                            |
++-------------------------------------------------------------------+
+|i16 : W = Ext^c(S^1/I, S^1)                                        |
+|                                                                   |
+|o16 = cokernel {-4} | -x_0^2 -x_2 x_1 |                            |
+|               {-4} | -x_1^2 -x_3 x_2 |                            |
+|                                                                   |
+|                             2                                     |
+|o16 : S-module, quotient of S                                      |
++-------------------------------------------------------------------+
+|i17 : H = Hom(S^1/I, S^1/(I_0,I_1))                                |
+|                                                                   |
+|o17 = subquotient (| x_3 x_2 |, | x_2^2-x_1x_3 x_1^2x_2-x_0^2x_3 |)|
+|                                                                   |
+|                                1                                  |
+|o17 : S-module, subquotient of S                                   |
++-------------------------------------------------------------------+
+|i18 : isIsomorphic(W, H)                                           |
+|                                                                   |
+|o18 = true                                                         |
++-------------------------------------------------------------------+
+|i19 : isomorphism(W, H)                                            |
+|                                                                   |
+|o19 = {-4} | 1 0  |                                                |
+|      {-4} | 0 -1 |                                                |
+|                                                                   |
+|o19 : Matrix W <-- H                                               |
++-------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+|i20 : mm = ideal gens S                                                      |
+|                                                                             |
+|o20 = ideal (x , x , x , x )                                                 |
+|              0   1   2   3                                                  |
+|                                                                             |
+|o20 : Ideal of S                                                             |
++-----------------------------------------------------------------------------+
+|i21 : T1 = Tor_1(W, S^1/(mm^3))                                              |
+|                                                                             |
+|o21 = subquotient ({-3} | x_3^2 x_2x_3 x_1x_3 x_0x_3 x_2^2 x_1x_2 x_0x_2     |
+|                   {-3} | 0     0      0      0      0     0      0          |
+|                   {-2} | 0     0      0      0      0     0      0          |
+|                                                                             |
+|                                3                                            |
+|o21 : S-module, subquotient of S                                             |
+|-----------------------------------------------------------------------------|
+|x_1^2 x_0x_1 x_0^2 0     0      0      0      0     0      0      0          |
+|0     0      0     x_3^2 x_2x_3 x_1x_3 x_0x_3 x_2^2 x_1x_2 x_0x_2 x_1^2      |
+|0     0      0     0     0      0      0      0     0      0      0          |
+|-----------------------------------------------------------------------------|
+|0      0     0   0   0   0   |, {-3} | 0            x_0^3 x_0^2x_1 x_0^2x_2  |
+|x_0x_1 x_0^2 0   0   0   0   |  {-3} | 0            0     0        0         |
+|0      0     x_3 x_2 x_1 x_0 |  {-2} | x_2^2-x_1x_3 0     0        0         |
+|-----------------------------------------------------------------------------|
+|x_0^2x_3 x_0x_1^2 x_0x_1x_2 x_0x_1x_3 x_0x_2^2 x_0x_2x_3 x_0x_3^2 x_1^3      |
+|0        0        0         0         0        0         0        0          |
+|0        0        0         0         0        0         0        0          |
+|-----------------------------------------------------------------------------|
+|x_1^2x_2 x_1^2x_3 x_1x_2^2 x_1x_2x_3 x_1x_3^2 x_2^3 x_2^2x_3 x_2x_3^2 x_3^3  |
+|0        0        0        0         0        0     0        0        0      |
+|0        0        0        0         0        0     0        0        0      |
+|-----------------------------------------------------------------------------|
+|0     0        0        0        0        0         0         0              |
+|x_0^3 x_0^2x_1 x_0^2x_2 x_0^2x_3 x_0x_1^2 x_0x_1x_2 x_0x_1x_3 x_0x_2^2       |
+|0     0        0        0        0        0         0         0              |
+|-----------------------------------------------------------------------------|
+|0         0        0     0        0        0        0         0        0     |
+|x_0x_2x_3 x_0x_3^2 x_1^3 x_1^2x_2 x_1^2x_3 x_1x_2^2 x_1x_2x_3 x_1x_3^2 x_2^3 |
+|0         0        0     0        0        0        0         0        0     |
+|-----------------------------------------------------------------------------|
+|0        0        0     0     0        0        0        0        0          |
+|x_2^2x_3 x_2x_3^2 x_3^3 0     0        0        0        0        0          |
+|0        0        0     x_0^3 x_0^2x_1 x_0^2x_2 x_0^2x_3 x_0x_1^2 x_0x_1x_2  |
+|-----------------------------------------------------------------------------|
+|0         0        0         0        0     0        0        0              |
+|0         0        0         0        0     0        0        0              |
+|x_0x_1x_3 x_0x_2^2 x_0x_2x_3 x_0x_3^2 x_1^3 x_1^2x_2 x_1^2x_3 x_1x_2^2       |
+|-----------------------------------------------------------------------------|
+|0         0        0     0        0        0     |)                          |
+|0         0        0     0        0        0     |                           |
+|x_1x_2x_3 x_1x_3^2 x_2^3 x_2^2x_3 x_2x_3^2 x_3^3 |                           |
++-----------------------------------------------------------------------------+
+|i22 : T2 = Tor_1(S^1/(mm^3), W)                                              |
+|                                                                             |
+|o22 = subquotient ({-1} | 1 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 1 0  1 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 1 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 1 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 -1 0 0 1 0 0 0 0  1 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 1 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 1  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  1 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 1 0 0 0  0 0  1 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 1 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 1 0 -1 0 0  0 0  1 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 1 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 -1 0 0  0 1 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 1 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 1 0  0 0  0 -1 0 0 0  1 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 1 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 -1 0 1 0 0  1 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 1 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 1  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  1 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 1  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  1 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 1  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  1 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 1 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 1 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 1  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  1 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 -1 0 1|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 1 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 1 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 1  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  1 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 1|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                   {-1} | 0 0 0  0 0 0 0 0 0 0  0 0  0 0  0 0 0  0 0 0 0  0 0|
+|                                                                             |
+|                                40                                           |
+|o22 : S-module, subquotient of S                                             |
+|-----------------------------------------------------------------------------|
+|0 x_2 x_1 0   0   0   x_0 0    -x_3 0   0   0    0   0   0    -x_3 0   0     |
+|0 x_3 x_2 x_2 0   0   0   -x_1 0    x_3 0   0    0   x_3 0    0    0   0     |
+|0 0   0   x_0 x_2 x_1 0   0    0    0   0   -x_3 0   0   0    0    0   0     |
+|0 0   0   0   x_3 x_2 x_1 x_0  0    0   x_2 0    x_3 0   0    0    x_3 0     |
+|0 0   0   0   0   0   0   0    x_2  x_1 x_0 0    0   0   -x_3 0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   x_2  x_1 x_0 0    0    0   -x_3  |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   x_2  x_1  x_0 0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   x_2   |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|1 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|0 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|1 0   0   0   0   0   0   0    0    0   0   0    0   0   0    0    0   0     |
+|-----------------------------------------------------------------------------|
+|0    -x_3 0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|-x_3 0    0    0    -x_3 0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    -x_3 0    0    0    -x_3 0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    -x_3 0    0    0    0    0    0    -x_3 0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    -x_3 0    0    0    0    0    0    0    -x_3 0    -x_3 0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|x_1  x_0  0    0    0    -x_3 0    0    0    -x_3 0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    x_2  x_1  x_0  0    0    0    0    0    0    -x_3 0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    x_2  x_1  x_0  -x_3 0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    x_2  x_1  x_0  0    0    0    -x_3   |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    x_2  x_1  x_0  0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    x_2    |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|0    0    0    0    0    0    0    0    0    0    0    0    0    0    0      |
+|-----------------------------------------------------------------------------|
+|0    0    0    0    0    0    0    0    0    0    0    |, {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | x_2 -x_1 0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | x_0 0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   x_0  x_2|
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    x_0|
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    -x_3 0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    -x_3 0    -x_3 0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|-x_3 0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    -x_3 0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    -x_3 0    0    0    0    -x_3 0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|x_1  x_0  0    0    0    -x_3 0    0    0    -x_3 0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    x_2  x_1  x_0  0    0    0    0    0    -x_3 |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    x_2  x_1  x_0  -x_3 0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    x_2  x_1  x_0  |  {-1} | 0   0    0  |
+|0    0    0    0    0    0    0    0    0    0    0    |  {-1} | 0   0    0  |
+|-----------------------------------------------------------------------------|
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    x_3 -x_2 0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|-x_1 0   0    0   0    x_3  -x_2 0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|x_0  x_2 -x_1 0   0    0    0    0   0    x_3  -x_2 0   0    0    0    0     |
+|0    x_0 0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   x_0  0   0    0    0    0   0    0    0    0   0    x_3  -x_2 0     |
+|0    0   0    x_0 0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   x_0  -x_2 x_1  x_2 -x_1 0    0    0   0    0    0    x_3   |
+|0    0   0    0   0    0    0    x_0 0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   x_0  -x_2 x_1  x_2 -x_1 0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    x_0 0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   x_0  -x_2 x_1  0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    x_0   |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|0    0   0    0   0    0    0    0   0    0    0    0   0    0    0    0     |
+|-----------------------------------------------------------------------------|
+|0    0    0    0   0    0    0    0   0    0    0    -x_3 0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    -x_3 0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    -x_3 0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    -x_3 0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|-x_2 0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    x_3  -x_2 0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    x_3  -x_2 0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|x_0  -x_2 x_1  x_2 -x_1 0    0    x_3 -x_2 0    0    0    0    0    0    0   |
+|0    0    0    x_0 0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   x_0  -x_2 x_1  0   0    x_3  -x_2 0    0    0    0    0   |
+|0    0    0    0   0    0    0    x_0 0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   x_0  -x_2 x_1  0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    x_0  0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    x_0  -x_2 x_1  x_2 |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    x_0 |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0   0    0    0    0    0    0    0    0   |
+|-----------------------------------------------------------------------------|
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    -x_3 0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    -x_3 0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    -x_3 0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    -x_3 0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    -x_3 0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    -x_3 0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    -x_3 0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    -x_3 0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|-x_1 0    0    0   0    0    0    -x_3 x_2  x_3 -x_2 0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|x_0  -x_2 x_1  x_2 -x_1 0    0    0    0    0   0    -x_3 x_2  x_3  -x_2 0   |
+|0    0    0    x_0 0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   x_0  -x_2 x_1  0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    x_0 0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   x_0  0    0    -x_2 x_1  x_2 |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    x_0 |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|0    0    0    0   0    0    0    0    0    0   0    0    0    0    0    0   |
+|-----------------------------------------------------------------------------|
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    -x_3 0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    -x_3 0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    -x_3 0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    -x_3 0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    -x_3 0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    -x_3 0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    -x_3 0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    -x_3    |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    -x_3 x_2  x_3  -x_2 0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|-x_1 0    0    0    0    -x_3 x_2  x_3 -x_2 0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|x_0  0    0    -x_2 x_1  0    0    0   0    -x_3 x_2  x_3  -x_2 0    0       |
+|0    0    0    0    0    0    0    x_0 0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   x_0  0    0    -x_2 x_1  -x_3 x_2     |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|0    0    0    0    0    0    0    0   0    0    0    0    0    0    0       |
+|-----------------------------------------------------------------------------|
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|-x_3 0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    -x_3 0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    -x_3 0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    -x_3 0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    -x_3 0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    -x_3 0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    -x_3 0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    -x_3 0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    -x_3 0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    -x_3 0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|x_0  0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    x_0  -x_2 x_1  x_2 -x_1 0    0    -x_3 x_2  x_3 -x_2 0    0    0    0   |
+|0    0    0    0    x_0 0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   x_0  -x_2 x_1  0    0    0   0    -x_3 x_2  x_3  -x_2|
+|0    0    0    0    0   0    0    0    0    0    x_0 0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   x_0  0    0    -x_2 x_1 |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|0    0    0    0    0   0    0    0    0    0    0   0    0    0    0    0   |
+|-----------------------------------------------------------------------------|
+|0    0    0    0    0    0    0    0    -x_0^2 -x_2 x_1 0      0    0        |
+|0    0    0    0    0    0    0    0    -x_1^2 -x_3 x_2 0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   -x_0^2 -x_2 x_1      |
+|0    0    0    0    0    0    0    0    0      0    0   -x_1^2 -x_3 x_2      |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|-x_3 0    0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    -x_3 0    0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    -x_3 0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    -x_3 0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    -x_3 0    0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    -x_3 0    0    0      0    0   0      0    0        |
+|0    0    0    0    0    0    -x_3 0    0      0    0   0      0    0        |
+|-x_3 x_2  0    0    0    0    0    -x_3 0      0    0   0      0    0        |
+|0    0    x_0  0    0    0    0    0    0      0    0   0      0    0        |
+|0    0    0    x_0  -x_2 x_1  -x_3 x_2  0      0    0   0      0    0        |
+|-----------------------------------------------------------------------------|
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|-x_0^2 -x_2 x_1 0      0    0   0      0    0   0      0    0   0      0     |
+|-x_1^2 -x_3 x_2 0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   -x_0^2 -x_2 x_1 0      0    0   0      0    0   0      0     |
+|0      0    0   -x_1^2 -x_3 x_2 0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   -x_0^2 -x_2 x_1 0      0    0   0      0     |
+|0      0    0   0      0    0   -x_1^2 -x_3 x_2 0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   -x_0^2 -x_2 x_1 0      0     |
+|0      0    0   0      0    0   0      0    0   -x_1^2 -x_3 x_2 0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   -x_0^2 -x_2  |
+|0      0    0   0      0    0   0      0    0   0      0    0   -x_1^2 -x_3  |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|0      0    0   0      0    0   0      0    0   0      0    0   0      0     |
+|-----------------------------------------------------------------------------|
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|x_1 0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|x_2 0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   -x_0^2 -x_2 x_1 0      0    0   0      0    0   0      0    0   0        |
+|0   -x_1^2 -x_3 x_2 0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   -x_0^2 -x_2 x_1 0      0    0   0      0    0   0        |
+|0   0      0    0   -x_1^2 -x_3 x_2 0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   -x_0^2 -x_2 x_1 0      0    0   0        |
+|0   0      0    0   0      0    0   -x_1^2 -x_3 x_2 0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   -x_0^2 -x_2 x_1 0        |
+|0   0      0    0   0      0    0   0      0    0   -x_1^2 -x_3 x_2 0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   -x_0^2   |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   -x_1^2   |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|0   0      0    0   0      0    0   0      0    0   0      0    0   0        |
+|-----------------------------------------------------------------------------|
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|-x_2 x_1 0      0    0   0      0    0   0      0    0   0      0    0       |
+|-x_3 x_2 0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   -x_0^2 -x_2 x_1 0      0    0   0      0    0   0      0    0       |
+|0    0   -x_1^2 -x_3 x_2 0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   -x_0^2 -x_2 x_1 0      0    0   0      0    0       |
+|0    0   0      0    0   -x_1^2 -x_3 x_2 0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   -x_0^2 -x_2 x_1 0      0    0       |
+|0    0   0      0    0   0      0    0   -x_1^2 -x_3 x_2 0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   -x_0^2 -x_2 x_1     |
+|0    0   0      0    0   0      0    0   0      0    0   -x_1^2 -x_3 x_2     |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|0    0   0      0    0   0      0    0   0      0    0   0      0    0       |
+|-----------------------------------------------------------------------------|
+|0      0    0   0      0    0   0      0    0   0      0    0   |)           |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   0      0    0   |            |
+|-x_0^2 -x_2 x_1 0      0    0   0      0    0   0      0    0   |            |
+|-x_1^2 -x_3 x_2 0      0    0   0      0    0   0      0    0   |            |
+|0      0    0   -x_0^2 -x_2 x_1 0      0    0   0      0    0   |            |
+|0      0    0   -x_1^2 -x_3 x_2 0      0    0   0      0    0   |            |
+|0      0    0   0      0    0   -x_0^2 -x_2 x_1 0      0    0   |            |
+|0      0    0   0      0    0   -x_1^2 -x_3 x_2 0      0    0   |            |
+|0      0    0   0      0    0   0      0    0   -x_0^2 -x_2 x_1 |            |
+|0      0    0   0      0    0   0      0    0   -x_1^2 -x_3 x_2 |            |
++-----------------------------------------------------------------------------+
+|i23 : elapsedTime isIsomorphic(T1, T2)                                       |
+| -- 1.95804s elapsed                                                         |
+|                                                                             |
+|o23 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i24 : elapsedTime isomorphism(T1, T2)                                        |
+| -- .00002644s elapsed                                                       |
+|                                                                             |
+|o24 = {-1} | 1      -3976  -13490 13495  -2886  2577   14757  -881   7677    |
+|      {-1} | -2527  -13566 2778   -6934  -14806 4619   -13099 6022   -10907  |
+|      {-1} | -15420 5642   1489   1354   4591   11881  -5253  7296   -1098   |
+|      {-1} | 7909   -12428 -2260  -8465  12113  -6893  8411   4186   -9393   |
+|      {-1} | -9615  2934   10440  5015   8145   -5585  1360   3295   12851   |
+|      {-1} | -4881  -7984  12700  -10391 -10009 -14538 13207  262    -6500   |
+|      {-1} | -11807 -9742  -1522  -7079  9115   8111   -4535  -9862  -8598   |
+|      {-1} | 1622   15897  13496  8610   3523   -15175 -1378  13625  -8157   |
+|      {-1} | 1605   -3914  -9771  3286   -13647 -9975  5030   -3778  7483    |
+|      {-1} | 3413   -8536  -2477  -14194 -3535  4490   15882  -4198  -13581  |
+|      {-1} | 7714   10139  3990   8809   -13687 -4679  -8874  401    -7046   |
+|      {-1} | 3919   -4397  11868  -6952  -5678  -14150 -14747 11774  13423   |
+|      {-1} | -13193 6849   -640   -10622 4101   594    -8593  -13525 -10971  |
+|      {-1} | -2982  14611  -14958 -10702 -1647  -9178  -3988  2403   -5779   |
+|      {-1} | -823   5516   -4933  -11174 -11636 2711   -1805  -10796 -13696  |
+|      {-1} | -4319  12065  -5230  -8551  -10383 4736   14358  5762   3318    |
+|      {-1} | 6545   -8920  -6035  6000   -14441 -14342 -13953 3366   12406   |
+|      {-1} | 4571   -4655  -714   -1917  -4145  -15436 5034   1876   -6334   |
+|      {-1} | -7429  4894   -6146  10651  1497   -2657  9969   -3129  13819   |
+|      {-1} | 11980  -15408 -438   -9022  -1076  -9845  149    -3983  -7274   |
+|      {-1} | 0      0      0      0      0      0      0      0      0       |
+|      {-1} | 0      0      -8253  0      0      0      0      0      0       |
+|      {-1} | 0      -8253  0      0      0      0      0      0      0       |
+|      {-1} | -8253  0      0      0      0      0      0      0      0       |
+|      -----------------------------------------------------------------------|
+|      -2862  -641   -3249  -15028 -9227  -15894 -13331 -12524 -9822  -14128  |
+|      1729   9173   9277   -14846 1158   -3781  13203  12679  -12410 11907   |
+|      9588   4764   -9478  -2982  2071   14322  -9411  3605   14048  -5888   |
+|      1399   2122   -12437 -2779  2652   11718  -14665 9341   -11925 2926    |
+|      12912  -15464 -3513  -11770 12040  2380   -10361 -13243 13248  12550   |
+|      -14009 -14179 11030  12342  -7837  10691  -12187 3899   12834  15540   |
+|      11998  3271   13309  -11969 -7644  6072   -3798  -6357  1119   3837    |
+|      -11398 -14781 13164  -7154  -9803  10817  525    7272   8900   13810   |
+|      -10232 1168   -6301  8645   4330   7746   13503  4636   14600  -15074  |
+|      -9390  2436   11660  -15000 10029  -14731 -776   15795  -3934  8918    |
+|      1848   -5596  386    -11687 -2679  -2420  -15458 -974   -7173  -10154  |
+|      -8591  2630   145    -15970 13673  12901  -13136 11150  15470  1347    |
+|      -3639  12687  -760   59     9562   -6172  -12892 8284   15132  5982    |
+|      9493   1253   6353   -13858 -15092 9011   -1870  14070  -12753 -13567  |
+|      -13447 15996  -13555 14977  8307   2545   -10736 973    5516   5936    |
+|      12265  -3192  -2823  4590   -15975 -1317  10022  -15382 9897   -15639  |
+|      12818  11341  -13901 -4843  11959  10453  -54    3938   12674  10464   |
+|      3593   -3765  -5111  -506   13650  3623   -12598 186    7787   -2846   |
+|      -11160 -13788 4048   -2652  -6657  -4860  -15235 -5122  8639   -15716  |
+|      153    1780   5403   3926   -2231  8969   -10934 6054   9851   6587    |
+|      -8253  0      0      0      0      0      0      0      0      0       |
+|      0      8253   0      0      0      0      0      0      0      0       |
+|      0      0      0      0      0      0      0      0      0      0       |
+|      0      0      0      0      0      0      0      0      0      0       |
+|      -----------------------------------------------------------------------|
+|      -10639 8538   11196  -563   -1676  0 0 0 0 0 0        0 0       0      |
+|      -7622  572    -9888  7150   13272  0 0 0 0 0 0        0 0       0      |
+|      -790   3687   -10444 13351  -12079 0 0 0 0 0 0        0 0       0      |
+|      -2533  -3644  4222   15931  -15685 0 0 0 0 0 0        0 0       0      |
+|      15274  -9160  15564  1183   -4959  0 0 0 0 0 0        0 0       0      |
+|      -7582  8919   -14464 -10869 14369  0 0 0 0 0 0        0 0       0      |
+|      2014   -11015 -5521  11175  -11780 0 0 0 0 0 0        0 0       0      |
+|      4770   2852   14858  12918  -7949  0 0 0 0 0 0        0 0       0      |
+|      14445  12178  8566   69     -10560 0 0 0 0 0 0        0 0       0      |
+|      1609   -1455  3583   -1284  -3763  0 0 0 0 0 0        0 0       0      |
+|      966    11902  -5370  -4631  -5298  0 0 0 0 0 0        0 0       0      |
+|      -4409  11800  -2116  -7846  -12213 0 0 0 0 0 0        0 0       0      |
+|      10981  1207   -12239 -11077 -6630  0 0 0 0 0 0        0 0       0      |
+|      1795   -585   -694   43     -3702  0 0 0 0 0 0        0 0       0      |
+|      4123   4230   -947   -56    -7949  0 0 0 0 0 0        0 0       0      |
+|      -1426  3250   7426   4451   -3010  0 0 0 0 0 0        0 0       0      |
+|      5691   10982  10375  -13397 10984  0 0 0 0 0 0        0 0       0      |
+|      -6994  -13196 -7353  10509  10944  0 0 0 0 0 0        0 0       0      |
+|      13930  12521  -6313  14194  3517   0 0 0 0 0 0        0 0       0      |
+|      15948  2798   14233  15020  896    0 0 0 0 0 0        0 0       0      |
+|      0      0      0      0      0      0 0 0 0 0 0        0 0       0      |
+|      0      0      0      0      0      0 0 0 0 0 0        0 0       0      |
+|      0      0      0      0      0      0 0 0 0 0 0        0 0       0      |
+|      0      0      0      0      0      0 0 0 0 0 -8253x_0 0 8253x_3 8253x_2|
+|      -----------------------------------------------------------------------|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 0       0       0       0 0       0 0 0       0       0 0 0 0 0 0 0 0|
+|      0 8253x_3 8253x_2 0       0 0       0 0 8253x_3 0       0 0 0 0 0 0 0 0|
+|      0 0       0       8253x_2 0 8253x_3 0 0 0       8253x_3 0 0 0 0 0 0 0 0|
+|      -----------------------------------------------------------------------|
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 -8253x_3 0 0 0 0 0 0 |                        |
+|      0 0 0 -8253x_3 0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|      0 0 0 0        0 0 0 0 0 0        0 0 0 0 0 0 |                        |
+|                                                                             |
+|o24 : Matrix T1 <-- T2                                                       |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+A negative result means that a random choice of homomorphism was not an
+isomorphism; especially when the ground field is small, this may not be
+definitive. Passing Tries => N may be helpful.
+
+See also
+========
+
+  * *note checkDegrees: checkDegrees, -- compares the degrees of generators of
+    two modules
+
+Ways to use isIsomorphic:
+=========================
+
+  * "isIsomorphic(Matrix,Matrix)"
+  * "isIsomorphic(Module,Module)"
+
+For the programmer
+==================
+
+The object *note isIsomorphic: isIsomorphic, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Isomorphism.m2:528:0.
+
+File: Isomorphism.info, Node: isomorphism, Prev: isIsomorphic, Up: Top
+
+isomorphism -- retrieve an isomorphism of modules
+*************************************************
+
+  * Usage: 
+        f = isomorphism(N, M)
+  * Inputs:
+      * M, a *note module: (Macaulay2Doc)Module,, 
+      * N, a *note module: (Macaulay2Doc)Module,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Homogeneous => a *note Boolean value: (Macaulay2Doc)Boolean,, default
+        value true, if false, allow an inhomogeneous isomorphism;
+      * Verbose => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        false, whether to print debugging information;
+      * Strict => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        false, whether to force strict equality of degrees;
+      * Tries => an *note integer: (Macaulay2Doc)ZZ,, default value null, the
+        number of attempts at generating random map;
+      * Strategy (missing documentation) => ..., default value null, 
+  * Outputs:
+      * f, a *note matrix: (Macaulay2Doc)Matrix,, an isomorphism $M \to N$; 
+
+Description
+===========
+
+This method retrieves the isomorphism between the given modules. Note that this
+isomorphism is already cached if a previous call to *note isIsomorphic:
+isIsomorphic, returned true, but otherwise that function is called.
+
++------------------------------------+
+|i1 : S = ZZ/32003[x_0..x_3]         |
+|                                    |
+|o1 = S                              |
+|                                    |
+|o1 : PolynomialRing                 |
++------------------------------------+
+|i2 : m = random(S^3, S^{4:-2});     |
+|                                    |
+|             3      4               |
+|o2 : Matrix S  <-- S                |
++------------------------------------+
+|i3 : A = random(target m, target m);|
+|                                    |
+|             3      3               |
+|o3 : Matrix S  <-- S                |
++------------------------------------+
+|i4 : B = random(source m, source m);|
+|                                    |
+|             4      4               |
+|o4 : Matrix S  <-- S                |
++------------------------------------+
+|i5 : N = coker(A*m*B);              |
++------------------------------------+
+|i6 : M = coker m;                   |
++------------------------------------+
+|i7 : f = isomorphism(N, M)          |
+|                                    |
+|o7 = | 1     4078 4892  |           |
+|     | -2922 6959 -89   |           |
+|     | -5122 -889 -1064 |           |
+|                                    |
+|o7 : Matrix N <-- M                 |
++------------------------------------+
+|i8 : isIsomorphism f                |
+|                                    |
+|o8 = true                           |
++------------------------------------+
+
+See also
+========
+
+  * *note isIsomorphic: isIsomorphic, -- probabilistic test for isomorphism of
+    modules
+  * *note isIsomorphism: (Macaulay2Doc)isIsomorphism, -- whether a map is an
+    isomorphism
+
+Ways to use isomorphism:
+========================
+
+  * "isomorphism(Module,Module)"
+
+For the programmer
+==================
+
+The object *note isomorphism: isomorphism, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Isomorphism.m2:528:0.
+
+Tag Table:
+Node: Top256
+Node: checkDegrees3782
+Node: checkDegrees_lp_pd_pd_pd_cmStrict=>_pd_pd_pd_rp9651
+Node: isIsomorphic13156
+Node: isomorphism84056
+
+End Tag Table

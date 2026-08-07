@@ -1,0 +1,731 @@
+ -*- coding: utf-8 -*- This is FourierMotzkin.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* FourierMotzkin: (FourierMotzkin).  convex hulls and polar cones
+END-INFO-DIR-ENTRY
+
+
+File: FourierMotzkin.info, Node: Top, Next: Applications to multigraded polynomial rings, Up: (dir)
+
+FourierMotzkin -- for convex hull and vertex enumeration
+********************************************************
+
+Description
+===========
+
+A convex cone is polyhedral if it is a finite intersection of halfspaces.  A
+convex cone is  finitely generated  if it is the set of all nonnegative linear
+combinations of a finite set of vectors.  The fundamental theorem for cones
+states that a convex cone is polyhedral if and only if it is finitely
+generated.
+
+
+FourierMotzkin is a Macaulay2 implementation of the Double Description Method
+(of Fourier, Dines and Motzkin) for converting between these two basic
+representations for convex cones.  For polytopes, this allows one to convert
+between the convex hull of a finite point set and the bounded intersection of
+halfspaces.
+
+
+Here are some examples illustrating some uses of this package.
+  * *note Finding the facets of the cyclic polytope: Finding the facets of the
+    cyclic polytope,
+  * *note Finding the facets of the permutahedron: Finding the facets of the
+    permutahedron,
+  * *note Applications to multigraded polynomial rings: Applications to
+    multigraded polynomial rings,
+
+
+This package is intended for use with relatively small polyhedra.  For larger
+polyhedra, please consider cdd (see
+http://www.ifor.math.ethz.ch/~fukuda/cdd_home/cdd.html ), lrs (see
+http://cgm.cs.mcgill.ca/~avis/C/lrs.html ) or qhull (see http://www.qhull.org/
+); also see polymake (see http://www.math.tu-berlin.de/polymake/ ).
+
+
+For an introduction to polyhedra and Fourier-Motzkin elimination, we recommend
+Chapter 2 in Gunter M. Ziegler's (see http://www.math.tu-berlin.de/~ziegler/ )
+Lectures on Polytopes, Graduate Texts in Mathematics 152, Springer-Verlag, New
+York, 1995. For historical comments, see Section 12.2 in Alexander Schrijver's
+(see http://homepages.cwi.nl/~lex/ ) Theory of Linear and Integer Programming
+Wiley-Interscience Series in Discrete Mathematics, John Wiley and Sons,
+Chichester, 1986.
+
+
+We thank Rene Birkner (see http://page.mi.fu-berlin.de/rbirkner/indexen.htm )
+for help debugging the package.
+
+Author
+======
+
+  * Gregory G. Smith (see http://www.mast.queensu.ca/~ggsmith )
+    <ggsmith@mast.queensu.ca>
+
+Version
+=======
+
+This documentation describes version 1.2 of FourierMotzkin, released 10
+December 2008.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{FourierMotzkinSource,                                                 |
+|  title = {{FourierMotzkin: convex hulls and polar cones. Version~1.2}},    |
+|  author = {Gregory G. Smith},                                              |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note fourierMotzkin: fourierMotzkin, -- interchange
+        inequality/generator representation of a polyhedral cone
+  * Methods
+      * "fourierMotzkin(Matrix)" -- see *note fourierMotzkin: fourierMotzkin,
+        -- interchange inequality/generator representation of a polyhedral cone
+      * "fourierMotzkin(Matrix,Matrix)" -- see *note fourierMotzkin:
+        fourierMotzkin, -- interchange inequality/generator representation of a
+        polyhedral cone
+
+For the programmer
+==================
+
+The object *note FourierMotzkin: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in FourierMotzkin.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in FourierMotzkin.m2:297:0.
+
+File: FourierMotzkin.info, Node: Applications to multigraded polynomial rings, Next: Finding the facets of the cyclic polytope, Prev: Top, Up: Top
+
+Applications to multigraded polynomial rings -- finding Heft
+************************************************************
+
+A vector configuration is acyclic if it has a positive linear functional.
+Using fourierMotzkin we can determine if a vector configuration has a positive
+linear functional.
+
+
+Given an acyclic vector configuration (as a list of lists of *note ZZ:
+(Macaulay2Doc)ZZ, or *note QQ: (Macaulay2Doc)QQ,), the function findHeft finds
+a *note List: (Macaulay2Doc)List, representing a positive linear functional.
++---------------------------------------------------------------------+
+|i1 : findHeft := vectorConfig -> (                                   |
+|          A := transpose matrix vectorConfig;                        |
+|          B := (fourierMotzkin A)#0;                                 |
+|          r := rank source B;                                        |
+|          heft := first entries (matrix{toList(r:-1)} * transpose B);|
+|          g := gcd heft;                                             |
+|          if g > 1 then heft = apply(heft, h -> h //g);              |
+|          heft);                                                     |
++---------------------------------------------------------------------+
+
+
+If a polynomial ring has a multigrading determined by a vector configuration,
+then a positive linear functional plays the role of a *note Heft:
+(Macaulay2Doc)Heft, vector.
+
+
+For example, S is the Cox homogeneous coordinate ring for second Hirzebruch
+surface (under an appropriate choice of basis for the Picard group).
++-------------------------------------------------------------------+
+|i2 : vectorConfig = {{1,0},{-2,1},{1,0},{0,1}}                     |
+|                                                                   |
+|o2 = {{1, 0}, {-2, 1}, {1, 0}, {0, 1}}                             |
+|                                                                   |
+|o2 : List                                                          |
++-------------------------------------------------------------------+
+|i3 : hft = findHeft vectorConfig                                   |
+|                                                                   |
+|o3 = {1, 3}                                                        |
+|                                                                   |
+|o3 : List                                                          |
++-------------------------------------------------------------------+
+|i4 : S = QQ[x_1,x_2,y_1,y_2, Heft => hft, Degrees => vectorConfig];|
++-------------------------------------------------------------------+
+|i5 : irrelevantIdeal = intersect(ideal(x_1,x_2), ideal(y_1,y_2))   |
+|                                                                   |
+|o5 = ideal (x y , x y , x y , x y )                                |
+|             2 1   1 1   2 2   1 2                                 |
+|                                                                   |
+|o5 : Ideal of S                                                    |
++-------------------------------------------------------------------+
+|i6 : res (S^1/irrelevantIdeal)                                     |
+|                                                                   |
+|      1      4      4      1                                       |
+|o6 = S  <-- S  <-- S  <-- S                                        |
+|                                                                   |
+|     0      1      2      3                                        |
+|                                                                   |
+|o6 : Complex                                                       |
++-------------------------------------------------------------------+
+The Betti numbers correspond to the f-vector of the polytope associated to the
+second Hirzebruch surface.
+
+
+Similarly, R is the Cox homogeneous coordinate ring for the blowup of the
+projective plane at three points (under an appropriate choice of basis for the
+Picard group).
++-----------------------------------------------------------------------------+
+|i7 : vectorConfig = {{1,0,0,0},{0,1,0,0},{0,-1,1,0},{0,1,-1,1},              |
+|          {1,0,-1,1},{-1,0,0,1}}                                             |
+|                                                                             |
+|o7 = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, -1, 1, 0}, {0, 1, -1, 1}, {1, 0, -1,   |
+|     ------------------------------------------------------------------------|
+|     1}, {-1, 0, 0, 1}}                                                      |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : hft = findHeft vectorConfig                                             |
+|                                                                             |
+|o8 = {4, 4, 7, 7}                                                            |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : R = QQ[x_1..x_6, Heft => hft, Degrees => vectorConfig];                 |
++-----------------------------------------------------------------------------+
+|i10 : irrelevantIdeal = ideal(x_3*x_4*x_5*x_6,x_1*x_4*x_5*x_6,x_1*x_2*x_5*x_6|
+|           x_1*x_2*x_3*x_6,x_2*x_3*x_4*x_5,x_1*x_2*x_3*x_4)                  |
+|                                                                             |
+|o10 = ideal (x x x x , x x x x , x x x x , x x x x , x x x x , x x x x )     |
+|              3 4 5 6   1 4 5 6   1 2 5 6   1 2 3 6   2 3 4 5   1 2 3 4      |
+|                                                                             |
+|o10 : Ideal of R                                                             |
+|-----------------------------------------------------------------------------|
+|,                                                                            |
++-----------------------------------------------------------------------------+
+|i11 : res (R^1/irrelevantIdeal)                                              |
+|                                                                             |
+|       1      6      6      1                                                |
+|o11 = R  <-- R  <-- R  <-- R                                                 |
+|                                                                             |
+|      0      1      2      3                                                 |
+|                                                                             |
+|o11 : Complex                                                                |
++-----------------------------------------------------------------------------+
+Again, the Betti numbers correspond to the f-vector of the polytope associated
+to this toric variety.
+
+
+For more information about resolutions of the irrelevant ideal of a toric
+variety, see subsection 4.3.6 in Ezra Miller (see
+http://www.math.umn.edu/~ezra/ ) and Bernd Sturmfels' (see
+http://math.berkeley.edu/~bernd/ ) Combinatorial commutative algebra, Graduate
+Texts in Mathematics 277, Springer-Verlag, New York, 2005.
+
+
+For more information about vector configurations is subsections 6.2 & 6.4 in
+Gunter M. Ziegler's (see http://www.math.tu-berlin.de/~ziegler/ ) Lectures on
+Polytopes, Graduate Texts in Mathematics 152, Springer-Verlag, New York, 1995.
+-------------------------------------------------------------------------------
+
+The source of this document is in FourierMotzkin.m2:485:0.
+
+File: FourierMotzkin.info, Node: Finding the facets of the cyclic polytope, Next: Finding the facets of the permutahedron, Prev: Applications to multigraded polynomial rings, Up: Top
+
+Finding the facets of the cyclic polytope
+*****************************************
+
+The cyclic polytope is the convex hull of distinct points on the moment curve.
+We can either use the function cyclicPolytope (missing documentation) to
+produce the cyclic d-polytope with n vertices, or directly construct a matrix
+whose columns are the vertices of the polytope.
++----------------------------------------------------+
+|i1 : P = cyclicPolytope(4, 8)                       |
+|                                                    |
+|o1 = P                                              |
+|                                                    |
+|o1 : Polyhedron                                     |
++----------------------------------------------------+
+|i2 : vertexList = vertices P                        |
+|                                                    |
+|o2 = | 0 1 2  3  4   5   6    7    |                |
+|     | 0 1 4  9  16  25  36   49   |                |
+|     | 0 1 8  27 64  125 216  343  |                |
+|     | 0 1 16 81 256 625 1296 2401 |                |
+|                                                    |
+|              4       8                             |
+|o2 : Matrix QQ  <-- QQ                              |
++----------------------------------------------------+
+|i3 : vertexList == map(QQ^4, QQ^8, (i,j) -> j^(i+1))|
+|                                                    |
+|o3 = true                                           |
++----------------------------------------------------+
+
+
+To find the halfspace representation for the convex hull of these points, we
+first pass from 4-space to 5-space. Specifically, we make the cyclic polytope
+into a polyhedral cone by placing it a height 1 (we make the extra coordinate
+the zeroeth coordinate).
++-----------------------------------------------------------------------------+
+|i4 : homogenizePolytope = V -> (                                             |
+|          R := ring V;                                                       |
+|          n := numgens source V;                                             |
+|          map(R^1, R^n, {toList(n:1)}) || V);                                |
++-----------------------------------------------------------------------------+
+|i5 : polyCone = homogenizePolytope vertexList                                |
+|                                                                             |
+|o5 = | 1 1 1  1  1   1   1    1    |                                         |
+|     | 0 1 2  3  4   5   6    7    |                                         |
+|     | 0 1 4  9  16  25  36   49   |                                         |
+|     | 0 1 8  27 64  125 216  343  |                                         |
+|     | 0 1 16 81 256 625 1296 2401 |                                         |
+|                                                                             |
+|              5       8                                                      |
+|o5 : Matrix QQ  <-- QQ                                                       |
++-----------------------------------------------------------------------------+
+|i6 : H = fourierMotzkin polyCone                                             |
+|                                                                             |
+|o6 = (| 0   0   -24 0   -40 0   -120 -60 0   -180 -84 -360 -252 -504 -840    |
+|      | 6   12  50  20  78  30  154  112 42  216  152 342  288  450  638     |
+|      | -11 -19 -35 -29 -49 -41 -71  -65 -55 -91  -83 -119 -113 -145 -179    |
+|      | 6   8   10  10  12  12  14   14  14  16   16  18   18   20   22      |
+|      | -1  -1  -1  -1  -1  -1  -1   -1  -1  -1   -1  -1   -1   -1   -1      |
+|     ------------------------------------------------------------------------|
+|     0    0    0   0   0   |, 0)                                             |
+|     -210 -140 -84 -42 -14 |                                                 |
+|     107  83   61  41  23  |                                                 |
+|     -18  -16  -14 -12 -10 |                                                 |
+|     1    1    1   1   1   |                                                 |
+|                                                                             |
+|o6 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+|i7 : halfspaceList = H#0                                                     |
+|                                                                             |
+|o7 = | 0   0   -24 0   -40 0   -120 -60 0   -180 -84 -360 -252 -504 -840 0   |
+|     | 6   12  50  20  78  30  154  112 42  216  152 342  288  450  638  -210|
+|     | -11 -19 -35 -29 -49 -41 -71  -65 -55 -91  -83 -119 -113 -145 -179 107 |
+|     | 6   8   10  10  12  12  14   14  14  16   16  18   18   20   22   -18 |
+|     | -1  -1  -1  -1  -1  -1  -1   -1  -1  -1   -1  -1   -1   -1   -1   1   |
+|     ------------------------------------------------------------------------|
+|     0    0   0   0   |                                                      |
+|     -140 -84 -42 -14 |                                                      |
+|     83   61  41  23  |                                                      |
+|     -16  -14 -12 -10 |                                                      |
+|     1    1   1   1   |                                                      |
+|                                                                             |
+|              5       20                                                     |
+|o7 : Matrix QQ  <-- QQ                                                       |
++-----------------------------------------------------------------------------+
+|i8 : numgens source halfspaceList                                            |
+|                                                                             |
+|o8 = 20                                                                      |
++-----------------------------------------------------------------------------+
+Since H#1 is zero, the polyhedral cone spans 5-space. The columns in the matrix
+halfspaceList describe a complete minimal system of inequalities for the convex
+hull of these points.  In particular, this polytope has 20 facets.
+
+
+To see the combinatorial structure of this polytope, we compute the
+facet-vertex incidence matrix.
++----------------------------------------------------------------------------+
+|i9 : inequalityVector = transpose submatrix(halfspaceList,{0},)             |
+|                                                                            |
+|o9 = | 0    |                                                               |
+|     | 0    |                                                               |
+|     | -24  |                                                               |
+|     | 0    |                                                               |
+|     | -40  |                                                               |
+|     | 0    |                                                               |
+|     | -120 |                                                               |
+|     | -60  |                                                               |
+|     | 0    |                                                               |
+|     | -180 |                                                               |
+|     | -84  |                                                               |
+|     | -360 |                                                               |
+|     | -252 |                                                               |
+|     | -504 |                                                               |
+|     | -840 |                                                               |
+|     | 0    |                                                               |
+|     | 0    |                                                               |
+|     | 0    |                                                               |
+|     | 0    |                                                               |
+|     | 0    |                                                               |
+|                                                                            |
+|              20       1                                                    |
+|o9 : Matrix QQ   <-- QQ                                                     |
++----------------------------------------------------------------------------+
+|i10 : inequalityMatrix = transpose submatrix(halfspaceList,{1..4},)         |
+|                                                                            |
+|o10 = | 6    -11  6   -1 |                                                  |
+|      | 12   -19  8   -1 |                                                  |
+|      | 50   -35  10  -1 |                                                  |
+|      | 20   -29  10  -1 |                                                  |
+|      | 78   -49  12  -1 |                                                  |
+|      | 30   -41  12  -1 |                                                  |
+|      | 154  -71  14  -1 |                                                  |
+|      | 112  -65  14  -1 |                                                  |
+|      | 42   -55  14  -1 |                                                  |
+|      | 216  -91  16  -1 |                                                  |
+|      | 152  -83  16  -1 |                                                  |
+|      | 342  -119 18  -1 |                                                  |
+|      | 288  -113 18  -1 |                                                  |
+|      | 450  -145 20  -1 |                                                  |
+|      | 638  -179 22  -1 |                                                  |
+|      | -210 107  -18 1  |                                                  |
+|      | -140 83   -16 1  |                                                  |
+|      | -84  61   -14 1  |                                                  |
+|      | -42  41   -12 1  |                                                  |
+|      | -14  23   -10 1  |                                                  |
+|                                                                            |
+|               20       4                                                   |
+|o10 : Matrix QQ   <-- QQ                                                    |
++----------------------------------------------------------------------------+
+|i11 : ones = map(ZZ^1,ZZ^8,{toList(8:1)})                                   |
+|                                                                            |
+|o11 = | 1 1 1 1 1 1 1 1 |                                                   |
+|                                                                            |
+|               1       8                                                    |
+|o11 : Matrix ZZ  <-- ZZ                                                     |
++----------------------------------------------------------------------------+
+|i12 : M = (inequalityMatrix * vertexList) + (ones ** inequalityVector)      |
+|                                                                            |
+|o12 = | 0    0    0    0   -24 -120 -360 -840 |                             |
+|      | 0    0    -4   0   0   -40  -180 -504 |                             |
+|      | -24  0    0    0   0   -24  -120 -360 |                             |
+|      | 0    0    -12  -12 0   0    -60  -252 |                             |
+|      | -40  0    0    -4  0   0    -40  -180 |                             |
+|      | 0    0    -24  -36 -24 0    0    -84  |                             |
+|      | -120 -24  0    0   0   0    -24  -120 |                             |
+|      | -60  0    0    -12 -12 0    0    -60  |                             |
+|      | 0    0    -40  -72 -72 -40  0    0    |                             |
+|      | -180 -40  0    0   -4  0    0    -40  |                             |
+|      | -84  0    0    -24 -36 -24  0    0    |                             |
+|      | -360 -120 -24  0   0   0    0    -24  |                             |
+|      | -252 -60  0    0   -12 -12  0    0    |                             |
+|      | -504 -180 -40  0   0   -4   0    0    |                             |
+|      | -840 -360 -120 -24 0   0    0    0    |                             |
+|      | 0    -120 -120 -72 -24 0    0    0    |                             |
+|      | 0    -72  -60  -24 0   0    -12  0    |                             |
+|      | 0    -36  -20  0   0   -20  -36  0    |                             |
+|      | 0    -12  0    0   -24 -60  -72  0    |                             |
+|      | 0    0    0    -24 -72 -120 -120 0    |                             |
+|                                                                            |
+|               20       8                                                   |
+|o12 : Matrix QQ   <-- QQ                                                    |
++----------------------------------------------------------------------------+
+|i13 : incidence = matrix table(20,8, (i,j) -> if M_(i,j) == 0 then 1 else 0)|
+|                                                                            |
+|o13 = | 1 1 1 1 0 0 0 0 |                                                   |
+|      | 1 1 0 1 1 0 0 0 |                                                   |
+|      | 0 1 1 1 1 0 0 0 |                                                   |
+|      | 1 1 0 0 1 1 0 0 |                                                   |
+|      | 0 1 1 0 1 1 0 0 |                                                   |
+|      | 1 1 0 0 0 1 1 0 |                                                   |
+|      | 0 0 1 1 1 1 0 0 |                                                   |
+|      | 0 1 1 0 0 1 1 0 |                                                   |
+|      | 1 1 0 0 0 0 1 1 |                                                   |
+|      | 0 0 1 1 0 1 1 0 |                                                   |
+|      | 0 1 1 0 0 0 1 1 |                                                   |
+|      | 0 0 0 1 1 1 1 0 |                                                   |
+|      | 0 0 1 1 0 0 1 1 |                                                   |
+|      | 0 0 0 1 1 0 1 1 |                                                   |
+|      | 0 0 0 0 1 1 1 1 |                                                   |
+|      | 1 0 0 0 0 1 1 1 |                                                   |
+|      | 1 0 0 0 1 1 0 1 |                                                   |
+|      | 1 0 0 1 1 0 0 1 |                                                   |
+|      | 1 0 1 1 0 0 0 1 |                                                   |
+|      | 1 1 1 0 0 0 0 1 |                                                   |
+|                                                                            |
+|               20       8                                                   |
+|o13 : Matrix ZZ   <-- ZZ                                                    |
++----------------------------------------------------------------------------+
+From the rows of the matrix, we see Gale's evenness condition: every segment of
+consecutive 1's is of even length if it is not an initial or a final segment.
+For more information, see Theorem 0.7 in Gunter M. Ziegler's (see
+http://www.math.tu-berlin.de/~ziegler/ ) Lectures on Polytopes, Graduate Texts
+in Mathematics 152, Springer-Verlag, New York, 1995.
+-------------------------------------------------------------------------------
+
+The source of this document is in FourierMotzkin.m2:410:0.
+
+File: FourierMotzkin.info, Node: Finding the facets of the permutahedron, Next: fourierMotzkin, Prev: Finding the facets of the cyclic polytope, Up: Top
+
+Finding the facets of the permutahedron
+***************************************
+
+The permutahedron is the convex hull of all vectors that are obtained by
+permuting the coordinates of the vector (1,2, ..., d).  The function
+permutahedron produces a matrix such that columns generate the cyclic d
+permutahedron in (d+1)-space.
++-----------------------------------------------------------------------+
+|i1 : permutahedron = d -> transpose matrix permutations toList(1..d+1);|
++-----------------------------------------------------------------------+
+|i2 : vertexList = permutahedron 3                                      |
+|                                                                       |
+|o2 = | 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 |               |
+|     | 2 2 3 3 4 4 1 1 3 3 4 4 1 1 2 2 4 4 1 1 2 2 3 3 |               |
+|     | 3 4 2 4 2 3 3 4 1 4 1 3 2 4 1 4 1 2 2 3 1 3 1 2 |               |
+|     | 4 3 4 2 3 2 4 3 4 1 3 1 4 2 4 1 2 1 3 2 3 1 2 1 |               |
+|                                                                       |
+|              4       24                                               |
+|o2 : Matrix ZZ  <-- ZZ                                                 |
++-----------------------------------------------------------------------+
+
+
+To find the halfspace representation for permutahedron, we first pass from
+4-space to 5-space.  Specifically, we make the permutahedron into a polyhedral
+cone by placing it a height 1 (we make the extra coordinate the zeroeth
+coordinate).
++------------------------------------------------------------+
+|i3 : homogenizePolytope = V -> (                            |
+|          R := ring V;                                      |
+|          n := numgens source V;                            |
+|          map(R^1, R^n, {toList(n:1)}) || V);               |
++------------------------------------------------------------+
+|i4 : H = fourierMotzkin homogenizePolytope vertexList       |
+|                                                            |
+|o4 = (| 0  0  0  0  0  0  0  0  0  0  0  0  0  0  |, | 10 |)|
+|      | 1  3  3  -7 3  -2 -2 1  1  -9 3  -7 -2 -7 |  | -1 | |
+|      | 1  3  -7 3  -2 3  -2 1  -9 1  -7 3  -2 -7 |  | -1 | |
+|      | 1  -7 3  3  -2 -2 3  -9 1  1  -7 -7 -2 3  |  | -1 | |
+|      | -9 -7 -7 -7 -2 -2 -2 1  1  1  3  3  3  3  |  | -1 | |
+|                                                            |
+|o4 : Sequence                                               |
++------------------------------------------------------------+
+|i5 : transpose H#1                                          |
+|                                                            |
+|o5 = | 10 -1 -1 -1 -1 |                                     |
+|                                                            |
+|              1       5                                     |
+|o5 : Matrix ZZ  <-- ZZ                                      |
++------------------------------------------------------------+
+|i6 : halfspaceList = H#0;                                   |
+|                                                            |
+|              5       14                                    |
+|o6 : Matrix ZZ  <-- ZZ                                      |
++------------------------------------------------------------+
+|i7 : numgens source halfspaceList                           |
+|                                                            |
+|o7 = 14                                                     |
++------------------------------------------------------------+
+Since H#1 has one column vector, the polyhedral cone spans a 4-dimensional
+subspace of 5-space.  Indeed, the sum of the components for each vertex is 10.
+The columns in the matrix halfspaceList describe a complete minimal system of
+inequalities for permutahedron.  In particular, this polytope has 14 facets.
+
+
+To see the combinatorial structure of this polytope, we compute the
+facet-vertex incidence matrix.
++-----------------------------------------------------------------------------+
+|i8 : inequalityMatrix = transpose submatrix(halfspaceList,{1..4},)           |
+|                                                                             |
+|o8 = | 1  1  1  -9 |                                                         |
+|     | 3  3  -7 -7 |                                                         |
+|     | 3  -7 3  -7 |                                                         |
+|     | -7 3  3  -7 |                                                         |
+|     | 3  -2 -2 -2 |                                                         |
+|     | -2 3  -2 -2 |                                                         |
+|     | -2 -2 3  -2 |                                                         |
+|     | 1  1  -9 1  |                                                         |
+|     | 1  -9 1  1  |                                                         |
+|     | -9 1  1  1  |                                                         |
+|     | 3  -7 -7 3  |                                                         |
+|     | -7 3  -7 3  |                                                         |
+|     | -2 -2 -2 3  |                                                         |
+|     | -7 -7 3  3  |                                                         |
+|                                                                             |
+|              14       4                                                     |
+|o8 : Matrix ZZ   <-- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i9 : M = inequalityMatrix * vertexList                                       |
+|                                                                             |
+|o9 = | -30 -20 -30 -10 -20 -10 -30 -20 -30 0   -20 0   -30 -10 -30 0   -10   |
+|     | -40 -40 -30 -30 -20 -20 -40 -40 -20 -20 -10 -10 -30 -30 -20 -20 0     |
+|     | -30 -20 -40 -20 -40 -30 -20 -10 -40 -10 -40 -20 -20 0   -30 0   -30   |
+|     | -20 -10 -20 0   -10 0   -30 -20 -30 0   -20 0   -40 -20 -40 -10 -20   |
+|     | -15 -15 -15 -15 -15 -15 -10 -10 -10 -10 -10 -10 -5  -5  -5  -5  -5    |
+|     | -10 -10 -5  -5  0   0   -15 -15 -5  -5  0   0   -15 -15 -10 -10 0     |
+|     | -5  0   -10 0   -10 -5  -5  0   -15 0   -15 -5  -10 0   -15 0   -15   |
+|     | -20 -30 -10 -30 -10 -20 -20 -30 0   -30 0   -20 -10 -30 0   -30 0     |
+|     | -10 -10 -20 -20 -30 -30 0   0   -20 -20 -30 -30 0   0   -10 -10 -30   |
+|     | 0   0   0   0   0   0   -10 -10 -10 -10 -10 -10 -20 -20 -20 -20 -20   |
+|     | -20 -30 -20 -40 -30 -40 -10 -20 -10 -40 -20 -40 0   -20 0   -30 -20   |
+|     | -10 -20 0   -20 0   -10 -20 -30 0   -30 0   -20 -20 -40 -10 -40 -10   |
+|     | 0   -5  0   -10 -5  -10 0   -5  0   -15 -5  -15 0   -10 0   -15 -10   |
+|     | 0   0   -10 -10 -20 -20 0   0   -20 -20 -30 -30 -10 -10 -20 -20 -40   |
+|     ------------------------------------------------------------------------|
+|     0   -20 -10 -20 0   -10 0   |                                           |
+|     0   -20 -20 -10 -10 0   0   |                                           |
+|     -20 -10 0   -20 0   -20 -10 |                                           |
+|     -10 -40 -30 -40 -20 -30 -20 |                                           |
+|     -5  0   0   0   0   0   0   |                                           |
+|     0   -15 -15 -10 -10 -5  -5  |                                           |
+|     -10 -10 -5  -15 -5  -15 -10 |                                           |
+|     -10 -10 -20 0   -20 0   -10 |                                           |
+|     -30 0   0   -10 -10 -20 -20 |                                           |
+|     -20 -30 -30 -30 -30 -30 -30 |                                           |
+|     -30 0   -10 0   -20 -10 -20 |                                           |
+|     -20 -30 -40 -20 -40 -20 -30 |                                           |
+|     -15 -5  -10 -5  -15 -10 -15 |                                           |
+|     -40 -20 -20 -30 -30 -40 -40 |                                           |
+|                                                                             |
+|              14       24                                                    |
+|o9 : Matrix ZZ   <-- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i10 : incidence = matrix table(14,24, (i,j) -> if M_(i,j) == 0 then 1 else 0)|
+|                                                                             |
+|o10 = | 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1 |                    |
+|      | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1 1 |                    |
+|      | 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 |                    |
+|      | 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 |                    |
+|      | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 |                    |
+|      | 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 0 0 0 |                    |
+|      | 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 |                    |
+|      | 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1 0 |                    |
+|      | 0 0 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 0 |                    |
+|      | 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |                    |
+|      | 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 |                    |
+|      | 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 |                    |
+|      | 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 |                    |
+|      | 1 1 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |                    |
+|                                                                             |
+|               14       24                                                   |
+|o10 : Matrix ZZ   <-- ZZ                                                     |
++-----------------------------------------------------------------------------+
+|i11 : vertexDegree = map(ZZ^1,ZZ^14,{toList(14:1)}) * incidence              |
+|                                                                             |
+|o11 = | 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 |                    |
+|                                                                             |
+|               1       24                                                    |
+|o11 : Matrix ZZ  <-- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i12 : facetList = transpose(incidence * transpose                            |
+|                                                                             |
+|o12 = | 6 4 4 4 6 6 6 6 6 6 4 4 6 4 |                                        |
+|                                                                             |
+|               1       14                                                    |
+|o12 : Matrix ZZ  <-- ZZ                                                      |
+|-----------------------------------------------------------------------------|
+|map(ZZ^1,ZZ^24,{toList(24:1)}))                                              |
++-----------------------------------------------------------------------------+
+We see that each vertex has degree 3.  Moreover, there are 8 hexagonal facets
+and 6 quadrilateral facets.  For pictures, see pages 17-18 in Gunter M.
+Ziegler's (see http://www.math.tu-berlin.de/~ziegler/ ) Lectures on Polytopes,
+Graduate Texts in Mathematics 152, Springer-Verlag, New York, 1995.
+-------------------------------------------------------------------------------
+
+The source of this document is in FourierMotzkin.m2:540:0.
+
+File: FourierMotzkin.info, Node: fourierMotzkin, Prev: Finding the facets of the permutahedron, Up: Top
+
+fourierMotzkin -- interchange inequality/generator representation of a polyhedral cone
+**************************************************************************************
+
+  * Usage: 
+        (A',B') = fourierMotzkin(A,B)
+  * Inputs:
+      * A, a *note Matrix: (Macaulay2Doc)Matrix, with entries in *note ZZ:
+        (Macaulay2Doc)ZZ, or *note QQ: (Macaulay2Doc)QQ,
+      * B, a *note Matrix: (Macaulay2Doc)Matrix, with entries in *note ZZ:
+        (Macaulay2Doc)ZZ, or *note QQ: (Macaulay2Doc)QQ,(this input is
+        optional)
+  * Outputs:
+      * A', a *note Matrix: (Macaulay2Doc)Matrix, with entries in *note ZZ:
+        (Macaulay2Doc)ZZ, or *note QQ: (Macaulay2Doc)QQ,
+      * B', a *note Matrix: (Macaulay2Doc)Matrix, with entries in *note ZZ:
+        (Macaulay2Doc)ZZ, or *note QQ: (Macaulay2Doc)QQ,
+
+Description
+===========
+
+
+The input pair (A,B) describes a rational polyhedral cone generated by
+nonnegative linear combinations of the column vectors of A and containing the
+linear space generated by the column vectors of B.  Dually, the pair (A,B)
+describes a rational polyhedral cone as the intersection of closed halfspaces;
+the set of vectors x satisfying (transpose A) * x <= 0 and (transpose B) * x ==
+0.  If the convex cone spans its ambient affine space, then the input B may be
+omitted.
+
+
+The output pair (A',B') is the dual description of the same cone.  In
+particular, the output pair (A',B') is valid input.  If the convex cone spans
+its ambient affine space, then the output B' will be zero.
+
+
+For example, consider the convex cone generated by the 26 columns of the
+following matrix.  Using Fourier-Motzkin elimination, we see that this cone is
+the intersection of 6 halfspaces and spans 3-space.
++---------------------------------------------------------------+
+|i1 : raylist = transpose matrix(QQ, {{1,1,6},{1,2,4},{1,2,5},  |
+|               {1,2,6},{1,3,4},{1,3,5},{1,3,6},{1,4,4},{1,4,5},|
+|               {1,4,6},{1,5,4},{1,5,5},{1,5,6},{1,5,7},{1,6,3},|
+|               {1,6,4},{1,6,5},{1,6,6},{1,6,7},{1,7,4},{1,7,5},|
+|               {1,7,6},{1,7,8},{1,8,4},{1,8,5},{1,8,6}})       |
+|                                                               |
+|o1 = | 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 |   |
+|     | 1 2 2 2 3 3 3 4 4 4 5 5 5 5 6 6 6 6 6 7 7 7 7 8 8 8 |   |
+|     | 6 4 5 6 4 5 6 4 5 6 4 5 6 7 3 4 5 6 7 4 5 6 8 4 5 6 |   |
+|                                                               |
+|              3       26                                       |
+|o1 : Matrix QQ  <-- QQ                                         |
++---------------------------------------------------------------+
+|i2 : halfspaceList = fourierMotzkin raylist                    |
+|                                                               |
+|o2 = (| -8 18 0  8  -22 -17 |, 0)                              |
+|      | 1  -1 1  -2 2   -1  |                                  |
+|      | 0  -4 -2 -1 1   3   |                                  |
+|                                                               |
+|o2 : Sequence                                                  |
++---------------------------------------------------------------+
+|i3 : numgens source halfspaceList#0                            |
+|                                                               |
+|o3 = 6                                                         |
++---------------------------------------------------------------+
+|i4 : extremalRays = fourierMotzkin halfspaceList               |
+|                                                               |
+|o4 = (| 1 1 1 1 1 1 |, 0)                                      |
+|      | 6 2 8 1 8 7 |                                          |
+|      | 3 4 4 6 6 8 |                                          |
+|                                                               |
+|o4 : Sequence                                                  |
++---------------------------------------------------------------+
+|i5 : numgens source extremalRays#0                             |
+|                                                               |
+|o5 = 6                                                         |
++---------------------------------------------------------------+
+Using Fourier-Motzkin elimination a second time, we see that this cone is in
+fact generated by 6 vectors.
+
+
+Here are some further examples illustrating fourierMotzkin elimination.
+  * *note Finding the facets of the cyclic polytope: Finding the facets of the
+    cyclic polytope,
+  * *note Finding the facets of the permutahedron: Finding the facets of the
+    permutahedron,
+
+Ways to use fourierMotzkin:
+===========================
+
+  * "fourierMotzkin(Matrix)"
+  * "fourierMotzkin(Matrix,Matrix)"
+
+For the programmer
+==================
+
+The object *note fourierMotzkin: fourierMotzkin, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in FourierMotzkin.m2:354:0.
+
+Tag Table:
+Node: Top243
+Node: Applications to multigraded polynomial rings4241
+Node: Finding the facets of the cyclic polytope12163
+Node: Finding the facets of the permutahedron28119
+Node: fourierMotzkin40026
+
+End Tag Table

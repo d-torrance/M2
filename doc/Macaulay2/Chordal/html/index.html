@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Chordal -- exploiting chordal structure in polynomial ideals</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="routines that exploit chordal structure" href="index.html">Chordal</a> :: <a title="routines that exploit chordal structure" href="index.html">Chordal</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_adjacent__Minors__Ideal.html">next</a> | previous | <a href="_adjacent__Minors__Ideal.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Chordal -- exploiting chordal structure in polynomial ideals</h1>
+      <div>
+        <h2>Description</h2>
+        <p>This package provides several specialized routines for structured polynomial ideals. The sparsity structure of a polynomial set can be described with a graph. By exploiting some suitable &quot;chordal completion&quot; of this graph, it is possible to develop more efficient algorithms for several problems in computational algebraic geometry. </p>
+See <a title="of the Chordal package" href="_installation_spand_spconfiguration.html">installation and configuration</a> for instructions on how to install this package.         <p>The examples below illustrate how to use this package to get the following properties of a structured ideal: compute elimination ideals, count the number of zeros, determine the dimension, decompose the variety. </p>
+        <h5>graphical structure of an ideal</h5>
+We can abstract the sparsity structure of a polynomial system in a graph. By exploiting the chordal completions of this graph more efficient algorithms can be developed.         <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[a,b,c,d];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I = ideal {a^2-1, a^2+a*b+1, a^3+c^2, b*d + d, c^3+c*d};
+
+o2 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : G = constraintGraph I
+
+o3 = Graph{a => {b, c}}
+           b => {a, d}
+           c => {a, d}
+           d => {b, c}
+
+o3 : Graph</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : Gc = chordalGraph G
+
+o4 = ChordalGraph{a => {b, c} }
+                  b => {c, d}
+                  c => {d}
+                  d => {}
+
+o4 : ChordalGraph</code></pre>
+            </td>
+          </tr>
+        </table>
+        <h5>chordal elimination</h5>
+Consider the <a title="chromatic ideal of a graph" href="_chromatic__Ideal.html">3-chromatic ideal</a> of the cycle graph. Its elimination ideals have have a simple generating set.         <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : I = chromaticIdeal(QQ, cycleGraph 10, 3);
+
+o5 : Ideal of QQ[a..j]</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : N = chordalNet I;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : chordalElim N;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : N
+
+                                     2    2   2          2
+o8 = ChordalNet{ a => {{a*b - a*j + b  - j , a  + a*j + j }} }
+                        2          2
+                 b => {b  + b*c + c }
+                        2          2
+                 c => {c  + c*d + d }
+                        2          2
+                 d => {d  + d*e + e }
+                        2          2
+                 e => {e  + e*f + f }
+                        2          2
+                 f => {f  + f*g + g }
+                        2          2
+                 g => {g  + g*h + h }
+                        2                2
+                 h => {h  + h*i - i*j - j }
+                        2          2
+                 i => {i  + i*j + j }
+                        3
+                 j => {j  - 1}
+
+o8 : ChordalNet</code></pre>
+            </td>
+          </tr>
+        </table>
+On the other hand, its Groebner basis is complicated.         <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : sum for f in gbList I list #terms f
+
+o9 = 253</code></pre>
+            </td>
+          </tr>
+        </table>
+        <h5>chordal networks</h5>
+Consider the <a title="ideal of adjacent minors" href="_adjacent__Minors__Ideal.html">ideal of adjacent minors</a> of a 2xn matrix. This ideal decomposes into F<sub>n</sub> components, where F<sub>n</sub> is the Fibonacci number. These (exponentially many) components can be represented compactly with a chordal network.         <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : I = adjacentMinorsIdeal(QQ,2,10);
+
+o10 : Ideal of QQ[a..t]</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : N = chordalNet I;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : chordalTria N;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : N
+
+o13 = ChordalNet{ a => { , a*d - b*c}                     }
+                  b => { , b,  }
+                  c => {c,  ,  , c*f - d*e}
+                  d => {d, d,  ,  }
+                  e => { ,  , e*h - f*g, e,  , e*h - f*g}
+                  f => { , f,  , f,  ,  }
+                  g => {g,  ,  , g*j - h*i,  , g*j - h*i}
+                  h => {h, h,  ,  ,  ,  }
+                  i => { ,  , i*l - j*k, i,  , i*l - j*k}
+                  j => { , j,  , j,  ,  }
+                  k => {k,  ,  , k*n - l*m,  , k*n - l*m}
+                  l => {l, l,  ,  ,  ,  }
+                  m => { ,  , m*p - n*o, m,  , m*p - n*o}
+                  n => { , n,  , n,  ,  }
+                  o => {o,  ,  , o*r - p*q,  , o*r - p*q}
+                  p => {p, p,  ,  ,  ,  }
+                  q => { ,  , q*t - r*s, q,  , q*t - r*s}
+                  r => { , r,  , r,  ,  }
+                  s => {s,  ,  ,  }
+                  t => {t,  ,  }
+
+o13 : ChordalNet</code></pre>
+            </td>
+          </tr>
+        </table>
+Several properties of an ideal can be computed efficiently given a chordal representation; for instance, its dimension.         <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : dim N
+
+o14 = 11</code></pre>
+            </td>
+          </tr>
+        </table>
+We can also extract the top dimensional part, and count the number of components.         <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : topComponents N</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : codimCount N
+
+         9
+o16 = 55t
+
+o16 : ZZ[t]</code></pre>
+            </td>
+          </tr>
+        </table>
+<br>For further example see        <ul>
+          <li><span><a title="a new representation of polynomial ideals" href="_chordal_spnetworks_spexamples.html">chordal networks examples</a> -- a new representation of polynomial ideals</span></li>
+        </ul>
+        <h2>Overview of methods</h2>
+Graphical structure of a polynomial ideal:        <ul>
+          <li><span><a title="constraint graph of a polynomial set" href="_constraint__Graph.html">constraintGraph</a> -- constraint graph of a polynomial set</span></li>
+          <li><span><a title="chordal completion of a graph" href="_chordal__Graph.html">chordalGraph</a> -- chordal completion of a graph</span></li>
+          <li><span><a title="constructs a chordal network from a polynomial set" href="_chordal__Net.html">chordalNet</a> -- constructs a chordal network from a polynomial set</span></li>
+        </ul>
+Elimination routines:        <ul>
+          <li><span><a title="performs elimination on the chordal network" href="_chordal__Elim.html">chordalElim</a> -- performs elimination on the chordal network</span></li>
+          <li><span><a title="makes a chordal network triangular" href="_chordal__Tria.html">chordalTria</a> -- makes a chordal network triangular</span></li>
+        </ul>
+Methods for triangular chordal networks:        <ul>
+          <li><span><a title="counts the number of roots of a chordal network" href="_root__Count.html">rootCount</a> -- counts the number of roots of a chordal network</span></li>
+          <li><span><a title="dimension of a chordal network" href="_dim_lp__Chordal__Net_rp.html">dim(ChordalNet)</a> -- dimension of a chordal network</span></li>
+          <li><span><a title="dimension of a chordal network" href="_dim_lp__Chordal__Net_rp.html">codim(ChordalNet)</a> -- dimension of a chordal network</span></li>
+          <li><span><a title="codimension counts of the chains of a chordal network" href="_codim__Count.html">codimCount</a> -- codimension counts of the chains of a chordal network</span></li>
+          <li><span><a title="top dimension of a chordal network" href="_top__Components_lp__Chordal__Net_rp.html">topComponents(ChordalNet)</a> -- top dimension of a chordal network</span></li>
+          <li><span><a title="ideal membership test" href="___Ring__Element_sp_pc_sp__Chordal__Net.html">RingElement % ChordalNet</a> -- ideal membership test</span></li>
+          <li><span><a title="iterates over the chains of a chordal network" href="_next__Chain.html">nextChain</a> -- iterates over the chains of a chordal network</span></li>
+          <li><span><a title="components of a chordal network" href="_components_lp__Chordal__Net_cm__Z__Z_rp.html">components(ChordalNet)</a> -- components of a chordal network</span></li>
+        </ul>
+        <h2>References</h2>
+        <ul>
+          <li>D. Cifuentes, P.A. Parrilo (2016), &quot;Exploiting chordal structure in polynomial ideals: a Groebner basis approach&quot;, in &quot;SIAM J. Discrete Math&quot;, 30(3):1534-–1570</li>
+          <li>D. Cifuentes, P.A. Parrilo (2017), &quot;Chordal networks of polynomial ideals&quot;, in &quot;SIAM J. Appl. Algebra Geometry&quot;, 1(1):73-–170</li>
+        </ul>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Authors</h2>
+            <ul>
+              <li><a href="http://www.mit.edu/~diegcif">Diego Cifuentes</a><span> &lt;<a href="mailto:diegcif%40mit.edu">diegcif@mit.edu</a>></span></li>
+              <li><a href="http://www.mit.edu/~parrilo/">Pablo A. Parrilo</a><span> &lt;<a href="mailto:parrilo%40mit.edu">parrilo@mit.edu</a>></span></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>0.2</b> of Chordal, released <b>May 15, 2021</b>.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{ChordalSource,
+  title = {{Chordal: routines that exploit chordal structure. Version~0.2}},
+  author = {Diego Cifuentes and Pablo A. Parrilo},
+  howpublished = {A \emph{Macaulay2} package available at
+    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Types                  <ul>
+                    <li><span><a title="a chordal graph" href="___Chordal__Graph.html">ChordalGraph</a> -- a chordal graph</span></li>
+                    <li><span><a title="a chordal network" href="___Chordal__Net.html">ChordalNet</a> -- a chordal network</span></li>
+                    <li><span><a title="a chain of a chordal network" href="___Chordal__Net__Chain.html">ChordalNetChain</a> -- a chain of a chordal network</span></li>
+                    <li><span><a title="a node of a chordal network" href="___Chordal__Net__Node.html">ChordalNetNode</a> -- a node of a chordal network</span></li>
+                    <li><span><a title="a rank of a chordal network" href="___Chordal__Net__Rank.html">ChordalNetRank</a> -- a rank of a chordal network</span></li>
+                    <li><span><a title="the elimination tree of a chordal graph" href="___Elim__Tree.html">ElimTree</a> -- the elimination tree of a chordal graph</span></li>
+                  </ul>
+                </li>
+                <li>Functions and commands                  <ul>
+                    <li><span><a title="ideal of adjacent minors" href="_adjacent__Minors__Ideal.html">adjacentMinorsIdeal</a> -- ideal of adjacent minors</span></li>
+                    <li><span><a title="performs elimination on the chordal network" href="_chordal__Elim.html">chordalElim</a> -- performs elimination on the chordal network</span></li>
+                    <li><span><a title="chordal completion of a graph" href="_chordal__Graph.html">chordalGraph</a> -- chordal completion of a graph</span></li>
+                    <li><span><kbd>structure</kbd> -- see <span><a title="a chordal network" href="___Chordal__Net.html">ChordalNet</a> -- a chordal network</span></span></li>
+                    <li><span><a title="constructs a chordal network from a polynomial set" href="_chordal__Net.html">chordalNet</a> -- constructs a chordal network from a polynomial set</span></li>
+                    <li><span><a title="makes a chordal network triangular" href="_chordal__Tria.html">chordalTria</a> -- makes a chordal network triangular</span></li>
+                    <li><span><a title="chromatic ideal of a graph" href="_chromatic__Ideal.html">chromaticIdeal</a> -- chromatic ideal of a graph</span></li>
+                    <li><span><a title="codimension counts of the chains of a chordal network" href="_codim__Count.html">codimCount</a> -- codimension counts of the chains of a chordal network</span></li>
+                    <li><span><a title="constraint graph of a polynomial set" href="_constraint__Graph.html">constraintGraph</a> -- constraint graph of a polynomial set</span></li>
+                    <li><span><a title="displays a chordal network using Graphivz" href="_display__Net.html">displayNet</a> -- displays a chordal network using Graphivz</span></li>
+                    <li><span><a title="elimination tree of a chordal graph" href="_elim__Tree.html">elimTree</a> -- elimination tree of a chordal graph</span></li>
+                    <li><span><a title="whether a chordal network is triangular" href="_is__Triangular.html">isTriangular</a> -- whether a chordal network is triangular</span></li>
+                    <li><span><span class="tt">label</span> (missing documentation)<!--tag: label-->
+</span></li>
+                    <li><span><a title="iterates over the chains of a chordal network" href="_next__Chain.html">nextChain</a> -- iterates over the chains of a chordal network</span></li>
+                    <li><span><a title="iterates over ordered partitions of a number" href="_next__Ordered__Partition.html">nextOrderedPartition</a> -- iterates over ordered partitions of a number</span></li>
+                    <li><span><a title="list of nodes of a chordal network" href="_nodes.html">nodes</a> -- list of nodes of a chordal network</span></li>
+                    <li><span><a title="removes arcs of a chordal network of small dimension" href="_reduce__Dimension.html">reduceDimension</a> -- removes arcs of a chordal network of small dimension</span></li>
+                    <li><span><a title="reduces a chordal network" href="_reduce__Net.html">reduceNet</a> -- reduces a chordal network</span></li>
+                    <li><span><a title="counts the number of roots of a chordal network" href="_root__Count.html">rootCount</a> -- counts the number of roots of a chordal network</span></li>
+                    <li><span><a title="default configuration of a package" href="_set__Default__Configuration.html">setDefaultConfiguration</a> -- default configuration of a package</span></li>
+                    <li><span><a title="ideal of subset products" href="_subsets__Products__Ideal.html">subsetsProductsIdeal</a> -- ideal of subset products</span></li>
+                    <li><span><a title="suggests a good variable ordering" href="_suggest__Variable__Order.html">suggestVariableOrder</a> -- suggests a good variable ordering</span></li>
+                    <li><span><a title="change monomial order to lexicographic" href="_to__Lex.html">toLex</a> -- change monomial order to lexicographic</span></li>
+                    <li><span><a title="treewidth of a graph" href="_treewidth.html">treewidth</a> -- treewidth of a graph</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><kbd>chordalElim(ChordalNet)</kbd> -- see <span><a title="performs elimination on the chordal network" href="_chordal__Elim.html">chordalElim</a> -- performs elimination on the chordal network</span></span></li>
+                    <li><span><kbd>chromaticNumber(ChordalGraph)</kbd> -- see <span><a title="a chordal graph" href="___Chordal__Graph.html">ChordalGraph</a> -- a chordal graph</span></span></li>
+                    <li><span><kbd>cliqueNumber(ChordalGraph)</kbd> -- see <span><a title="a chordal graph" href="___Chordal__Graph.html">ChordalGraph</a> -- a chordal graph</span></span></li>
+                    <li><span><kbd>inducedSubgraph(ChordalGraph)</kbd> -- see <span><a title="a chordal graph" href="___Chordal__Graph.html">ChordalGraph</a> -- a chordal graph</span></span></li>
+                    <li><span><kbd>isChordal(ChordalGraph)</kbd> -- see <span><a title="a chordal graph" href="___Chordal__Graph.html">ChordalGraph</a> -- a chordal graph</span></span></li>
+                    <li><span><kbd>isPerfect(ChordalGraph)</kbd> -- see <span><a title="a chordal graph" href="___Chordal__Graph.html">ChordalGraph</a> -- a chordal graph</span></span></li>
+                    <li><span><kbd>net(ChordalGraph)</kbd> -- see <span><a title="a chordal graph" href="___Chordal__Graph.html">ChordalGraph</a> -- a chordal graph</span></span></li>
+                    <li><span><kbd>chordalGraph(Digraph)</kbd> -- see <span><a title="chordal completion of a graph" href="_chordal__Graph.html">chordalGraph</a> -- chordal completion of a graph</span></span></li>
+                    <li><span><kbd>chordalGraph(Graph)</kbd> -- see <span><a title="chordal completion of a graph" href="_chordal__Graph.html">chordalGraph</a> -- chordal completion of a graph</span></span></li>
+                    <li><span><kbd>chordalGraph(Graph,List)</kbd> -- see <span><a title="chordal completion of a graph" href="_chordal__Graph.html">chordalGraph</a> -- chordal completion of a graph</span></span></li>
+                    <li><span><kbd>net(ChordalNet)</kbd> -- see <span><a title="a chordal network" href="___Chordal__Net.html">ChordalNet</a> -- a chordal network</span></span></li>
+                    <li><span><kbd>ring(ChordalNet)</kbd> -- see <span><a title="a chordal network" href="___Chordal__Net.html">ChordalNet</a> -- a chordal network</span></span></li>
+                    <li><span><kbd>chordalNet(Ideal)</kbd> -- see <span><a title="constructs a chordal network from a polynomial set" href="_chordal__Net.html">chordalNet</a> -- constructs a chordal network from a polynomial set</span></span></li>
+                    <li><span><kbd>chordalNet(Ideal,List)</kbd> -- see <span><a title="constructs a chordal network from a polynomial set" href="_chordal__Net.html">chordalNet</a> -- constructs a chordal network from a polynomial set</span></span></li>
+                    <li><span><kbd>chordalNet(Ideal,String)</kbd> -- see <span><a title="constructs a chordal network from a polynomial set" href="_chordal__Net.html">chordalNet</a> -- constructs a chordal network from a polynomial set</span></span></li>
+                    <li><span><a title="construct chordal network from a digraph" href="_chordal__Net_lp__Hash__Table_cm__Hash__Table_cm__Elim__Tree_cm__Digraph_rp.html">chordalNet(HashTable,HashTable,ElimTree,Digraph)</a> -- construct chordal network from a digraph</span></li>
+                    <li><span><kbd>codim(ChordalNetChain)</kbd> -- see <span><a title="a chain of a chordal network" href="___Chordal__Net__Chain.html">ChordalNetChain</a> -- a chain of a chordal network</span></span></li>
+                    <li><span><kbd>dim(ChordalNetChain)</kbd> -- see <span><a title="a chain of a chordal network" href="___Chordal__Net__Chain.html">ChordalNetChain</a> -- a chain of a chordal network</span></span></li>
+                    <li><span><kbd>triaSystem(ChordalNet,ChordalNetChain)</kbd> -- see <span><a title="a chain of a chordal network" href="___Chordal__Net__Chain.html">ChordalNetChain</a> -- a chain of a chordal network</span></span></li>
+                    <li><span><kbd>children(ChordalNetNode)</kbd> -- see <span><a title="a node of a chordal network" href="___Chordal__Net__Node.html">ChordalNetNode</a> -- a node of a chordal network</span></span></li>
+                    <li><span><kbd>generators(ChordalNetNode)</kbd> -- see <span><a title="a node of a chordal network" href="___Chordal__Net__Node.html">ChordalNetNode</a> -- a node of a chordal network</span></span></li>
+                    <li><span><kbd>ineqs(ChordalNetNode)</kbd> -- see <span><a title="a node of a chordal network" href="___Chordal__Net__Node.html">ChordalNetNode</a> -- a node of a chordal network</span></span></li>
+                    <li><span><kbd>label(ChordalNetNode)</kbd> -- see <span><a title="a node of a chordal network" href="___Chordal__Net__Node.html">ChordalNetNode</a> -- a node of a chordal network</span></span></li>
+                    <li><span><kbd>net(ChordalNetNode)</kbd> -- see <span><a title="a node of a chordal network" href="___Chordal__Net__Node.html">ChordalNetNode</a> -- a node of a chordal network</span></span></li>
+                    <li><span><kbd>parents(ChordalNetNode)</kbd> -- see <span><a title="a node of a chordal network" href="___Chordal__Net__Node.html">ChordalNetNode</a> -- a node of a chordal network</span></span></li>
+                    <li><span><kbd>rank(ChordalNetNode)</kbd> -- see <span><a title="a node of a chordal network" href="___Chordal__Net__Node.html">ChordalNetNode</a> -- a node of a chordal network</span></span></li>
+                    <li><span><kbd>net(ChordalNetRank)</kbd> -- see <span><a title="a rank of a chordal network" href="___Chordal__Net__Rank.html">ChordalNetRank</a> -- a rank of a chordal network</span></span></li>
+                    <li><span><kbd>chordalTria(ChordalNet)</kbd> -- see <span><a title="makes a chordal network triangular" href="_chordal__Tria.html">chordalTria</a> -- makes a chordal network triangular</span></span></li>
+                    <li><span><kbd>codimCount(ChordalNet)</kbd> -- see <span><a title="codimension counts of the chains of a chordal network" href="_codim__Count.html">codimCount</a> -- codimension counts of the chains of a chordal network</span></span></li>
+                    <li><span><kbd>components(ChordalNet)</kbd> -- see <span><a title="components of a chordal network" href="_components_lp__Chordal__Net_cm__Z__Z_rp.html">components(ChordalNet,ZZ)</a> -- components of a chordal network</span></span></li>
+                    <li><span><a title="components of a chordal network" href="_components_lp__Chordal__Net_cm__Z__Z_rp.html">components(ChordalNet,ZZ)</a> -- components of a chordal network</span></li>
+                    <li><span><kbd>constraintGraph(Ideal)</kbd> -- see <span><a title="constraint graph of a polynomial set" href="_constraint__Graph.html">constraintGraph</a> -- constraint graph of a polynomial set</span></span></li>
+                    <li><span><kbd>constraintGraph(Ring,List)</kbd> -- see <span><a title="constraint graph of a polynomial set" href="_constraint__Graph.html">constraintGraph</a> -- constraint graph of a polynomial set</span></span></li>
+                    <li><span><a title="digraph associated to a chordal network" href="_digraph_lp__Chordal__Net_rp.html">digraph(ChordalNet)</a> -- digraph associated to a chordal network</span></li>
+                    <li><span><kbd>codim(ChordalNet)</kbd> -- see <span><a title="dimension of a chordal network" href="_dim_lp__Chordal__Net_rp.html">dim(ChordalNet)</a> -- dimension of a chordal network</span></span></li>
+                    <li><span><a title="dimension of a chordal network" href="_dim_lp__Chordal__Net_rp.html">dim(ChordalNet)</a> -- dimension of a chordal network</span></li>
+                    <li><span><kbd>displayGraph(ElimTree)</kbd> -- see <span><a title="displays an elimination tree using Graphviz" href="_display__Graph_lp__String_cm__String_cm__Elim__Tree_rp.html">displayGraph(String,String,ElimTree)</a> -- displays an elimination tree using Graphviz</span></span></li>
+                    <li><span><a title="displays an elimination tree using Graphviz" href="_display__Graph_lp__String_cm__String_cm__Elim__Tree_rp.html">displayGraph(String,String,ElimTree)</a> -- displays an elimination tree using Graphviz</span></li>
+                    <li><span><kbd>displayNet(ChordalNet)</kbd> -- see <span><a title="displays a chordal network using Graphivz" href="_display__Net.html">displayNet</a> -- displays a chordal network using Graphivz</span></span></li>
+                    <li><span><kbd>displayNet(Function,ChordalNet)</kbd> -- see <span><a title="displays a chordal network using Graphivz" href="_display__Net.html">displayNet</a> -- displays a chordal network using Graphivz</span></span></li>
+                    <li><span><kbd>displayNet(String,String,Function,ChordalNet)</kbd> -- see <span><a title="displays a chordal network using Graphivz" href="_display__Net.html">displayNet</a> -- displays a chordal network using Graphivz</span></span></li>
+                    <li><span><kbd>chordalGraph(ElimTree)</kbd> -- see <span><a title="the elimination tree of a chordal graph" href="___Elim__Tree.html">ElimTree</a> -- the elimination tree of a chordal graph</span></span></li>
+                    <li><span><kbd>elimTree(ChordalNet)</kbd> -- see <span><a title="the elimination tree of a chordal graph" href="___Elim__Tree.html">ElimTree</a> -- the elimination tree of a chordal graph</span></span></li>
+                    <li><span><kbd>net(ElimTree)</kbd> -- see <span><a title="the elimination tree of a chordal graph" href="___Elim__Tree.html">ElimTree</a> -- the elimination tree of a chordal graph</span></span></li>
+                    <li><span><kbd>elimTree(ChordalGraph)</kbd> -- see <span><a title="elimination tree of a chordal graph" href="_elim__Tree.html">elimTree</a> -- elimination tree of a chordal graph</span></span></li>
+                    <li><span><span class="tt">elimTree(List,HashTable,HashTable)</span> (missing documentation)<!--tag: (elimTree,List,HashTable,HashTable)-->
+</span></li>
+                    <li><span><a title="simple primality test of a chordal network" href="_is__Prime__Simple_lp__Chordal__Net_rp.html">isPrimeSimple(ChordalNet)</a> -- simple primality test of a chordal network</span></li>
+                    <li><span><kbd>isTriangular(ChordalNet)</kbd> -- see <span><a title="whether a chordal network is triangular" href="_is__Triangular.html">isTriangular</a> -- whether a chordal network is triangular</span></span></li>
+                    <li><span><a title="leaves of an elimination tree" href="_leaves_lp__Elim__Tree_rp.html">leaves(ElimTree)</a> -- leaves of an elimination tree</span></li>
+                    <li><span><kbd>nextChain(ChordalNet)</kbd> -- see <span><a title="iterates over the chains of a chordal network" href="_next__Chain.html">nextChain</a> -- iterates over the chains of a chordal network</span></span></li>
+                    <li><span><kbd>nextChain(ChordalNetChain,ChordalNet)</kbd> -- see <span><a title="iterates over the chains of a chordal network" href="_next__Chain.html">nextChain</a> -- iterates over the chains of a chordal network</span></span></li>
+                    <li><span><kbd>nextChain(ChordalNetChain,Sequence,ZZ,ChordalNet)</kbd> -- see <span><a title="iterates over the chains of a chordal network" href="_next__Chain.html">nextChain</a> -- iterates over the chains of a chordal network</span></span></li>
+                    <li><span><kbd>nextChain(ZZ,ChordalNet)</kbd> -- see <span><a title="iterates over the chains of a chordal network" href="_next__Chain.html">nextChain</a> -- iterates over the chains of a chordal network</span></span></li>
+                    <li><span><kbd>nextOrderedPartition(List,ZZ,List)</kbd> -- see <span><a title="iterates over ordered partitions of a number" href="_next__Ordered__Partition.html">nextOrderedPartition</a> -- iterates over ordered partitions of a number</span></span></li>
+                    <li><span><kbd>nextOrderedPartition(ZZ,List)</kbd> -- see <span><a title="iterates over ordered partitions of a number" href="_next__Ordered__Partition.html">nextOrderedPartition</a> -- iterates over ordered partitions of a number</span></span></li>
+                    <li><span><kbd>nodes(ChordalNet)</kbd> -- see <span><a title="list of nodes of a chordal network" href="_nodes.html">nodes</a> -- list of nodes of a chordal network</span></span></li>
+                    <li><span><kbd>nodes(ChordalNet,RingElement)</kbd> -- see <span><a title="list of nodes of a chordal network" href="_nodes.html">nodes</a> -- list of nodes of a chordal network</span></span></li>
+                    <li><span><kbd>reduceNet(ChordalNet)</kbd> -- see <span><a title="reduces a chordal network" href="_reduce__Net.html">reduceNet</a> -- reduces a chordal network</span></span></li>
+                    <li><span><kbd>pseudoRemainder(RingElement,ChordalNet)</kbd> -- see <span><a title="ideal membership test" href="___Ring__Element_sp_pc_sp__Chordal__Net.html">RingElement % ChordalNet</a> -- ideal membership test</span></span></li>
+                    <li><span><a title="ideal membership test" href="___Ring__Element_sp_pc_sp__Chordal__Net.html">RingElement % ChordalNet</a> -- ideal membership test</span></li>
+                    <li><span><a title="apply ring map to a chordal network" href="___Ring__Map_sp__Chordal__Net.html">RingMap ChordalNet</a> -- apply ring map to a chordal network</span></li>
+                    <li><span><kbd>RingMap ElimTree</kbd> -- see <span><a title="apply ring map to a chordal network" href="___Ring__Map_sp__Chordal__Net.html">RingMap ChordalNet</a> -- apply ring map to a chordal network</span></span></li>
+                    <li><span><kbd>rootCount(ChordalNet)</kbd> -- see <span><a title="counts the number of roots of a chordal network" href="_root__Count.html">rootCount</a> -- counts the number of roots of a chordal network</span></span></li>
+                    <li><span><kbd>setDefaultConfiguration(Package,String,String)</kbd> -- see <span><a title="default configuration of a package" href="_set__Default__Configuration.html">setDefaultConfiguration</a> -- default configuration of a package</span></span></li>
+                    <li><span><kbd>setDefaultConfiguration(String,String,String)</kbd> -- see <span><a title="default configuration of a package" href="_set__Default__Configuration.html">setDefaultConfiguration</a> -- default configuration of a package</span></span></li>
+                    <li><span><a title="size of a chordal network" href="_size_lp__Chordal__Net_rp.html">size(ChordalNet)</a> -- size of a chordal network</span></li>
+                    <li><span><kbd>suggestVariableOrder(Ideal)</kbd> -- see <span><a title="suggests a good variable ordering" href="_suggest__Variable__Order.html">suggestVariableOrder</a> -- suggests a good variable ordering</span></span></li>
+                    <li><span><kbd>treewidth(ChordalGraph)</kbd> -- see <span><a title="treewidth of a graph" href="_treewidth.html">treewidth</a> -- treewidth of a graph</span></span></li>
+                    <li><span><kbd>treewidth(ElimTree)</kbd> -- see <span><a title="treewidth of a graph" href="_treewidth.html">treewidth</a> -- treewidth of a graph</span></span></li>
+                    <li><span><kbd>writeDotFile(String,ElimTree)</kbd> -- see <span><a title="writes a chordal network to a dot file" href="_write__Dot__File_lp__String_cm__Function_cm__Chordal__Net_rp.html">writeDotFile(String,Function,ChordalNet)</a> -- writes a chordal network to a dot file</span></span></li>
+                    <li><span><a title="writes a chordal network to a dot file" href="_write__Dot__File_lp__String_cm__Function_cm__Chordal__Net_rp.html">writeDotFile(String,Function,ChordalNet)</a> -- writes a chordal network to a dot file</span></li>
+                  </ul>
+                </li>
+                <li>Symbols                  <ul>
+                    <li><span><kbd>cliques</kbd> -- see <span><a title="the elimination tree of a chordal graph" href="___Elim__Tree.html">ElimTree</a> -- the elimination tree of a chordal graph</span></span></li>
+                    <li><span><a title="get dynamic programming table" href="___Get__Table.html">GetTable</a> -- get dynamic programming table</span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="routines that exploit chordal structure" href="index.html">Chordal</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">Chordal.m2</span>, with auxiliary files in <span class="tt">Chordal/</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Chordal/ChordalDoc.m2:121:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

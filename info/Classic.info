@@ -1,0 +1,399 @@
+ -*- coding: utf-8 -*- This is Classic.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* Classic: (Classic).           a classic Macaulay parser
+END-INFO-DIR-ENTRY
+
+
+File: Classic.info, Node: Top, Next: monomialIdeal_lpString_rp, Up: (dir)
+
+Classic -- a parser for classic Macaulay syntax
+***********************************************
+
+Description
+===========
+
+This package provides a parser for polynomials in the classic Macaulay format.
+Some users prefer it, for ease and speed of typing polynomials, ideals, and
+matrices.
+
+Only ring variables that are single letters, or single letters indexed by a
+sequence of numbers can be handled with this parser.
+
+The rules for creating polynomials using the classic parser include:
+
+  * Spaces, tabs, and newline characters are completely ignored.
+  * A variable is either (1) a single letter, (2) a subscripted variable, or
+    (3) a polynomial enclosed in parentheses.
+  * Subscripted variables, e.g., y_(1,1), are written using brackets, as in
+    y[1,1]. Instead of explicit numbers for subscripted variables, Macaulay2
+    user variables that have an integer value may be used.
+  * Coefficients are either integers or rational numbers, starting with a + or
+    - (which may be omitted for the first monomial).  Over finite fields, the
+    division is performed in that field.
+  * A monomial is written without symbols for multiplication or exponentiation,
+    where the (optional) coefficient comes first.
+  * A polynomial is a collection of monomials one after the other.
+  * Parenthesized subexpressions are allowed.
+  * Except for indices for subscripted variables, integers must be explicitly
+    given.
+  * All of the variables used must already belong to a specific ring.  If in
+    doubt, first type use R to ensure that all the symbols of R are in use.
+
+The source code for this parser is relatively short, since it is based on the
+package *note Parsing: (Parsing)Top,.  Here it is.
+
++-----------------------------------------------------------------------------+
+|export "poly"symbolP = (x -> (          if not isGlobalSymbol x then         |
+|-----------------------------------------------------------------------------|
+|error("symbol ",x," undefined");          getGlobalSymbol x)) %              |
+|-----------------------------------------------------------------------------|
+|letterParserseqP = (comma, parser) -> prepend % parser @ * (last % comma @   |
+|-----------------------------------------------------------------------------|
+|parser)variableP = value % symbolPintP = NNParser | variablePsubscriptP =    |
+|-----------------------------------------------------------------------------|
+|((lb,x,rb) -> x) % andP( "[", unsequence % seqP_"," intP, "]" )ringVariableP |
+|-----------------------------------------------------------------------------|
+|= ((x,n) -> value if n === nil then x else x_n) %                 symbolP @  |
+|-----------------------------------------------------------------------------|
+|optP subscriptPnumberP = ZZParser | QQParserpowerP = ((x,n) -> if n === nil  |
+|-----------------------------------------------------------------------------|
+|then x else x^n) %          (futureParser parenExprP | ringVariableP) @ optP |
+|-----------------------------------------------------------------------------|
+|NNParsermonomialP = times @@ deepSplice %             optionalSignParser @   |
+|-----------------------------------------------------------------------------|
+|(numberP @ *powerP | +powerP )polyP = plus @@ deepSplice % +monomialP |      |
+|-----------------------------------------------------------------------------|
+|terminalParser 0parenExprP = ((l,x,r) -> x) % andP("(", futureParser         |
+|-----------------------------------------------------------------------------|
+|parenExprP | polyP, ")")listPolyP = toList % seqP_"," polyParrayPolyP =      |
+|-----------------------------------------------------------------------------|
+|toList % seqP_";" listPolyPpoly = method()polyParser = polyP :               |
+|-----------------------------------------------------------------------------|
+|nonspaceAnalyzerpoly String :=  RingElement => x -> polyParser xidealParser =|
+|-----------------------------------------------------------------------------|
+|ideal % listPolyP : nonspaceAnalyzerideal String := Ideal => x -> idealParser|
+|-----------------------------------------------------------------------------|
+|xmonomialIdealParser = monomialIdeal % listPolyP :                           |
+|-----------------------------------------------------------------------------|
+|nonspaceAnalyzermonomialIdeal String := MonomialIdeal => x ->                |
+|-----------------------------------------------------------------------------|
+|monomialIdealParser xmatrix String := Matrix =>                  opts ->     |
+|-----------------------------------------------------------------------------|
+|matrix_opts % arrayPolyP : nonspaceAnalyzer                                  |
++-----------------------------------------------------------------------------+
+* Menu:
+
+* poly(String): poly_lpString_rp.  make a polynomial using classic Macaulay syntax
+* ideal(String): (Macaulay2Doc)ideal_lpString_rp.
+* matrix(String): (Macaulay2Doc)matrix_lpString_rp.
+
+Author
+======
+
+  * Daniel R. Grayson (see http://www.math.uiuc.edu/~dan/ ) <dan@math.uiuc.edu>
+
+Version
+=======
+
+This documentation describes version 1.0 of Classic, released June, 2006.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{ClassicSource,                                                        |
+|  title = {{Classic: a classic Macaulay parser. Version~1.0}},              |
+|  author = {Daniel R. Grayson},                                             |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * "poly" -- see *note poly(String): poly_lpString_rp, -- make a
+        polynomial using classic Macaulay syntax
+  * Methods
+      * *note ideal(String): ideal_lpString_rp, -- make an ideal using classic
+        Macaulay syntax
+      * *note matrix(String): matrix_lpString_rp, -- make a matrix using
+        classic Macaulay syntax
+      * *note monomialIdeal(String): monomialIdeal_lpString_rp, -- make a
+        monomial ideal using classic Macaulay syntax
+      * *note poly(String): poly_lpString_rp, -- make a polynomial using
+        classic Macaulay syntax
+
+For the programmer
+==================
+
+The object *note Classic: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in Classic.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Classic.m2:85:0.
+
+File: Classic.info, Node: poly_lpString_rp, Next: ideal_lpString_rp, Up: Top
+
+poly(String) -- make a polynomial using classic Macaulay syntax
+***************************************************************
+
+  * Function: *note poly: poly_lpString_rp,
+  * Usage: 
+        poly s
+  * Inputs:
+      * s, a *note string: (Macaulay2Doc)String,
+  * Outputs:
+      * a *note ring element: (Macaulay2Doc)RingElement,, created from s using
+        classic Macaulay syntax, as described in *note Classic: Top,
+
+Description
+===========
+
++-----------------------------------------------------------------------------+
+|i1 : R = ZZ/32003[a..d,x_1..x_4,y_(1,1)..y_(2,2)];                           |
++-----------------------------------------------------------------------------+
+|i2 : poly "a2b-3ab-1"                                                        |
+|                                                                             |
+|      2                                                                      |
+|o2 = a b - 3a*b - 1                                                          |
+|                                                                             |
+|o2 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i3 : poly "a2y[1,1]3-3ab-1"                                                  |
+|                                                                             |
+|      2 3                                                                    |
+|o3 = a y    - 3a*b - 1                                                       |
+|        1,1                                                                  |
+|                                                                             |
+|o3 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i4 : poly "(a+b)(a+2c)"                                                      |
+|                                                                             |
+|      2                                                                      |
+|o4 = a  + a*b + 2a*c + 2b*c                                                  |
+|                                                                             |
+|o4 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : poly "(a+b+c)3-1"                                                       |
+|                                                                             |
+|      3     2        2    3     2               2        2       2    3      |
+|o5 = a  + 3a b + 3a*b  + b  + 3a c + 6a*b*c + 3b c + 3a*c  + 3b*c  + c  - 1  |
+|                                                                             |
+|o5 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i6 : poly "3/4a2b-3ab-1"                                                     |
+|                                                                             |
+|            2                                                                |
+|o6 = - 8000a b - 3a*b - 1                                                    |
+|                                                                             |
+|o6 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i7 : poly "a5+5a4b+10a3b2+10a2b3+5ab4+b5-10a4c-40a3bc-60a2b2c-40ab3c-10b4c"  |
+|                                                                             |
+|      5     4       3 2      2 3       4    5      4       3         2 2     |
+|o7 = a  + 5a b + 10a b  + 10a b  + 5a*b  + b  - 10a c - 40a b*c - 60a b c -  |
+|     ------------------------------------------------------------------------|
+|          3       4                                                          |
+|     40a*b c - 10b c                                                         |
+|                                                                             |
+|o7 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i8 : poly "(a+(c+y[1,1])2)2-1"                                               |
+|                                                                             |
+|      4     3         2 2         3      4         2                   2     |
+|o8 = c  + 4c y    + 6c y    + 4c*y    + y    + 2a*c  + 4a*c*y    + 2a*y    + |
+|              1,1       1,1       1,1    1,1                 1,1       1,1   |
+|     ------------------------------------------------------------------------|
+|      2                                                                      |
+|     a  - 1                                                                  |
+|                                                                             |
+|o8 : R                                                                       |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * ideal(String) (missing documentation)
+  * matrix(String) (missing documentation)
+
+Ways to use this method:
+========================
+
+  * *note poly(String): poly_lpString_rp, -- make a polynomial using classic
+    Macaulay syntax
+-------------------------------------------------------------------------------
+
+The source of this document is in Classic.m2:104:0.
+
+File: Classic.info, Node: ideal_lpString_rp, Next: matrix_lpString_rp, Prev: poly_lpString_rp, Up: Top
+
+ideal(String) -- make an ideal using classic Macaulay syntax
+************************************************************
+
+  * Function: *note ideal: (Macaulay2Doc)ideal,
+  * Usage: 
+        ideal s
+  * Inputs:
+      * s, a *note string: (Macaulay2Doc)String,, in the form: "f1,f2,...,fr"
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,
+
+Description
+===========
+
+Creates an ideal using an abbreviated format. Each polynomial has the form
+described in *note Classic: Top,.  The polynomials are separated by commas.
+Spaces and newline characters are ignored.
+
++---------------------------------------------------------+
+|i1 : R = ZZ/32003[a..d,x_1..x_4];                        |
++---------------------------------------------------------+
+|i2 : I = ideal "a+b2-1,(a+b)(c+d),x[1]-x[2]3"            |
+|                                                         |
+|             2                                    3      |
+|o2 = ideal (b  + a - 1, a*c + b*c + a*d + b*d, - x  + x )|
+|                                                  2    1 |
+|                                                         |
+|o2 : Ideal of R                                          |
++---------------------------------------------------------+
+
+See also
+========
+
+  * *note poly(String): poly_lpString_rp, -- make a polynomial using classic
+    Macaulay syntax
+  * matrix(String) (missing documentation)
+
+Ways to use this method:
+========================
+
+  * *note ideal(String): ideal_lpString_rp, -- make an ideal using classic
+    Macaulay syntax
+-------------------------------------------------------------------------------
+
+The source of this document is in Classic.m2:125:0.
+
+File: Classic.info, Node: matrix_lpString_rp, Prev: ideal_lpString_rp, Up: Top
+
+matrix(String) -- make a matrix using classic Macaulay syntax
+*************************************************************
+
+  * Function: *note matrix: (Macaulay2Doc)matrix,
+  * Usage: 
+        matrix s
+  * Inputs:
+      * s, a *note string: (Macaulay2Doc)String,, in the form:
+        "f1,f2,...,fr;g1,...,gr;...;h1,...,hr"
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Degree: (Macaulay2Doc)matrix_lpList_rp, => ..., default value
+        null,
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,
+
+Description
+===========
+
+Creates a matrix using an abbreviated format. Each polynomial has the form
+described in *note Classic: Top,.  The rows of the matrix are separated by
+semicolons, and within each row, the polynomials are separated by commas.  Any
+entry that is missing is assumed to be 0. Spaces and newline characters are
+ignored.
++---------------------------------------------+
+|i1 : R = ZZ/32003[a..d,x_1..x_4];            |
++---------------------------------------------+
+|i2 : N = matrix "a,b,c,d;x[1],x[2],x[3],x[4]"|
+|                                             |
+|o2 = | a   b   c   d   |                     |
+|     | x_1 x_2 x_3 x_4 |                     |
+|                                             |
+|             2      4                        |
+|o2 : Matrix R  <-- R                         |
++---------------------------------------------+
+|i3 : M = matrix "ad-2c3,(a-b)2+1,ab;,abc-1," |
+|                                             |
+|o3 = | -2c3+ad a2-2ab+b2+1 ab |              |
+|     | 0       abc-1       0  |              |
+|                                             |
+|             2      3                        |
+|o3 : Matrix R  <-- R                         |
++---------------------------------------------+
+
+See also
+========
+
+  * *note poly(String): poly_lpString_rp, -- make a polynomial using classic
+    Macaulay syntax
+  * ideal(String) (missing documentation)
+
+Ways to use this method:
+========================
+
+  * *note matrix(String): matrix_lpString_rp, -- make a matrix using classic
+    Macaulay syntax
+-------------------------------------------------------------------------------
+
+The source of this document is in Classic.m2:160:0.
+
+File: Classic.info, Node: monomialIdeal_lpString_rp, Prev: Top, Up: Top
+
+monomialIdeal(String) -- make a monomial ideal using classic Macaulay syntax
+****************************************************************************
+
+  * Function: *note monomialIdeal: (Macaulay2Doc)monomialIdeal,
+  * Usage: 
+        monomialIdeal s
+  * Inputs:
+      * s, a *note string: (Macaulay2Doc)String,, in the form: "f1,f2,...,fr"
+  * Outputs:
+      * a *note monomial ideal: (Macaulay2Doc)MonomialIdeal,
+
+Description
+===========
+
+Creates a monomial ideal using an abbreviated format.  Each polynomial has the
+form described in *note Classic: Top,.  The polynomials are separated by
+commas. Spaces and newline characters are ignored.
+
++------------------------------------------+
+|i1 : R = ZZ[a..e];                        |
++------------------------------------------+
+|i2 : I = monomialIdeal "abc,bcd,cde11"    |
+|                                          |
+|                                       11 |
+|o2 = monomialIdeal (a*b*c, b*c*d, c*d*e  )|
+|                                          |
+|o2 : MonomialIdeal of R                   |
++------------------------------------------+
+
+See also
+========
+
+  * *note poly(String): poly_lpString_rp, -- make a polynomial using classic
+    Macaulay syntax
+  * matrix(String) (missing documentation)
+
+Ways to use this method:
+========================
+
+  * *note monomialIdeal(String): monomialIdeal_lpString_rp, -- make a monomial
+    ideal using classic Macaulay syntax
+-------------------------------------------------------------------------------
+
+The source of this document is in Classic.m2:144:0.
+
+Tag Table:
+Node: Top228
+Node: poly_lpString_rp7203
+Node: ideal_lpString_rp12918
+Node: matrix_lpString_rp14692
+Node: monomialIdeal_lpString_rp17022
+
+End Tag Table

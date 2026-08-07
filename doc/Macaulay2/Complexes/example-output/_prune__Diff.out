@@ -1,0 +1,85 @@
+-- -*- M2-comint -*- hash: 6395961873740048903
+
+i1 : needsPackage "LocalRings";
+
+i2 : R = ZZ/32003[vars(0..5)];
+
+i3 : I = ideal"abc-def,ab2-cd2-c,-b3+acd";
+
+o3 : Ideal of R
+
+i4 : C = freeResolution I;
+
+i5 : M = ideal gens R;
+
+o5 : Ideal of R
+
+i6 : RM = localRing(R, M);
+
+i7 : F = C.dd_2;
+
+             4      6
+o7 : Matrix R  <-- R
+
+i8 : FM = F ** RM
+
+o8 = {3} | 0    0    -b3+acd   -abc+def  0       a2c2-b2ef  |
+     {3} | cef  ac2  ab2-cd2-c 0         abc-def -ac2d+abef |
+     {3} | -ac2 -b2c 0         ab2-cd2-c -b3+acd -a2bc+b2cd |
+     {5} | b    d    0         0         0       1          |
+
+              4       6
+o8 : Matrix RM  <-- RM
+
+i9 : f = liftUp FM;
+
+             4      6
+o9 : Matrix R  <-- R
+
+i10 : g = syz f;
+
+              6      5
+o10 : Matrix R  <-- R
+
+i11 : h = syz g;
+
+              5      2
+o11 : Matrix R  <-- R
+
+i12 : C = {g ** RM, h ** RM}/mutableMatrix;
+
+i13 : C = pruneDiff(C, 1, PruningMap => false)
+
+o13 = {| -d d2+1 0   |, 0}
+       | b  -bd  -1  |
+       | 0  ef   -ac |
+       | 0  -ac  b2  |
+       | -c 0    ab  |
+       | 0  -b   d   |
+
+o13 : List
+
+i14 : g' = C#0;
+
+i15 : N = transpose entries FM;
+
+i16 : for i from 0 to numcols FM - 1 do
+        rowMult(g', i, N_i/denominator//lcm);
+
+i17 : GM = map(source FM, , matrix g')
+
+o17 = {6} | -d d2+1 0   |
+      {6} | b  -bd  -1  |
+      {6} | 0  ef   -ac |
+      {6} | 0  -ac  b2  |
+      {6} | -c 0    ab  |
+      {7} | 0  -b   d   |
+
+               6       3
+o17 : Matrix RM  <-- RM
+
+i18 : kernel FM == image GM
+
+o18 = true
+
+i19 : 

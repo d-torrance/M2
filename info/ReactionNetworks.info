@@ -1,0 +1,4075 @@
+ -*- coding: utf-8 -*- This is ReactionNetworks.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* ReactionNetworks: (ReactionNetworks).  reaction networks
+END-INFO-DIR-ENTRY
+
+
+File: ReactionNetworks.info, Node: Top, Next: clusterModelCellDeath, Up: (dir)
+
+ReactionNetworks -- create chemical reaction networks and corresponding steady-state and conservation equations
+***************************************************************************************************************
+
+Description
+===========
+
+The ReactionNetworks package provides functions for creating the steady-state
+and conservation equations corresponding to a given reaction network. Included
+are some basic building-block motifs, which can be joined together to create
+specific reaction network. Examples are provided illustrating elimination and
+degeneration with removal of a species or a reaction and the corresponding
+effect on the solutions of the system.
+
+Basic Functions: *note reactionNetwork: reactionNetwork,, *note isDeficient:
+isDeficient,, *note isWeaklyReversible: isWeaklyReversible,, *note
+steadyStateEquations: steadyStateEquations, *note conservationEquations:
+conservationEquations,, *note glue: glue,
+
+Motifs: *note oneSiteModificationA: oneSiteModificationA,, *note
+oneSiteModificationB: oneSiteModificationB,, *note oneSiteModificationC:
+oneSiteModificationC,, *note oneSiteModificationD: oneSiteModificationD,, *note
+twoSiteModificationE: twoSiteModificationE,, *note twoSiteModificationF:
+twoSiteModificationF,, *note twoSiteModificationG: twoSiteModificationG,, *note
+modificationOfTwoSubstratesH: modificationOfTwoSubstratesH,, *note
+modificationOfTwoSubstratesI: modificationOfTwoSubstratesI,, *note
+twoLayerCascadeJ: twoLayerCascadeJ,, *note twoLayerCascadeK: twoLayerCascadeK,,
+*note twoLayerCascadeL: twoLayerCascadeL,, crossLinkingModelCelldeath (missing
+documentation), *note clusterModelCellDeath: clusterModelCellDeath,, *note wnt:
+wnt,, *note nSiteProcessiveModification: nSiteProcessiveModification,, *note
+nSiteDistributiveModification: nSiteDistributiveModification,, *note
+nSiteImmuneReaction: nSiteImmuneReaction,, *note nSiteDiffusion:
+nSiteDiffusion,, *note nSitePoreForming: nSitePoreForming,, *note
+nSiteSequestration: nSiteSequestration,, *note nSiteAutocatalytic:
+nSiteAutocatalytic,
+
+Examples
+
+The following example demonstrates how to compute the degree and dimension of
+the ideal cut out by the steady-state and conservation equations.
+
++-----------------------------------------------------------------------------+
+|i1 : N = reactionNetwork "A <--> 2B, A + C <--> D, B + E --> A + C, D -->    |
+|                                                                             |
+|o1 = A-->2B                                                                  |
+|     2B-->A                                                                  |
+|     A+C-->D                                                                 |
+|     D-->A+C                                                                 |
+|     D-->B+E                                                                 |
+|     B+E-->A+C                                                               |
+|                                                                             |
+|o1 : ReactionNetwork                                                         |
+|-----------------------------------------------------------------------------|
+|B+E"                                                                         |
++-----------------------------------------------------------------------------+
+|i2 : R = createRing(N, QQ)                                                   |
+|                                                                             |
+|o2 = R                                                                       |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+
+After creating the reaction network and the corresponding ring, we create the
+steady state equations and substitute random values for the reaction rates;
+this will allows us to compute the degree of the ideal.
+
++-----------------------------------------------------------------------------+
+|i3 : SS = flatten entries steadyStateEquations N                             |
+|                                                                             |
+|        2                                                                    |
+|o3 = {xx kk       - xx xx kk       + xx xx kk       - xx kk       + xx kk    |
+|        B  {1, 0}     A  C  {2, 3}     B  E  {4, 2}     A  {0, 1}     D  {3, |
+|     ------------------------------------------------------------------------|
+|              2                                                              |
+|       , - 2xx kk       - xx xx kk       + 2xx kk       + xx kk      , -     |
+|     2}       B  {1, 0}     B  E  {4, 2}      A  {0, 1}     D  {3, 4}        |
+|     ------------------------------------------------------------------------|
+|     xx xx kk       + xx xx kk       + xx kk      , xx xx kk       - xx kk   |
+|       A  C  {2, 3}     B  E  {4, 2}     D  {3, 2}    A  C  {2, 3}     D  {3,|
+|     ------------------------------------------------------------------------|
+|        - xx kk      , - xx xx kk       + xx kk      }                       |
+|     2}     D  {3, 4}      B  E  {4, 2}     D  {3, 4}                        |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : K = apply(#N.ReactionRates, i->random QQ)                               |
+|                                                                             |
+|      9  9  3  7  7   7                                                      |
+|o4 = {-, -, -, -, -, --}                                                     |
+|      2  4  4  4  9  10                                                      |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : Rr = N.ReactionRates/value                                              |
+|                                                                             |
+|o5 = {kk      , kk      , kk      , kk      , kk      , kk      }            |
+|        {0, 1}    {1, 0}    {2, 3}    {3, 2}    {3, 4}    {4, 2}             |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i6 : P = apply(#Rr, i->Rr#i=>sub(K#i,R))                                     |
+|                                                                             |
+|                  9              9              3              7             |
+|o6 = {kk       => -, kk       => -, kk       => -, kk       => -, kk       =>|
+|        {0, 1}    2    {1, 0}    4    {2, 3}    4    {3, 2}    4    {3, 4}   |
+|     ------------------------------------------------------------------------|
+|     7               7                                                       |
+|     -, kk       => --}                                                      |
+|     9    {4, 2}    10                                                       |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : F' = apply(SS, s-> sub(s,P))                                            |
+|                                                                             |
+|      9  2   3          7         9      7       9  2    7                   |
+|o7 = {-xx  - -xx xx  + --xx xx  - -xx  + -xx , - -xx  - --xx xx  + 9xx  +    |
+|      4  B   4  A  C   10  B  E   2  A   4  D    2  B   10  B  E      A      |
+|     ------------------------------------------------------------------------|
+|     7       3          7         7     3         91        7         7      |
+|     -xx , - -xx xx  + --xx xx  + -xx , -xx xx  - --xx , - --xx xx  + -xx }  |
+|     9  D    4  A  C   10  B  E   4  D  4  A  C   36  D    10  B  E   9  D   |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Next, we create the conservation equations and assume there is no translation,
+i.e., the initial conditions are all zero.
+
++-----------------------------------------------------------------------------+
+|i8 : C = conservationEquations N                                             |
+|                                                                             |
+|o8 = {2xx  + xx  - xx  + xx  - 2cc  - cc  + cc  - cc , - 2xx  - xx  + 2xx  + |
+|         A     B     C     D      A     B     C     D       A     B      C   |
+|     ------------------------------------------------------------------------|
+|     xx  + 2cc  + cc  - 2cc  - cc }                                          |
+|       E      A     B      C     E                                           |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : L = {0,0,0,0,0}                                                         |
+|                                                                             |
+|o9 = {0, 0, 0, 0, 0}                                                         |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : Iv = N.InitialValues                                                   |
+|                                                                             |
+|o10 = {cc , cc , cc , cc , cc }                                              |
+|         A    B    C    D    E                                               |
+|                                                                             |
+|o10 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i11 : S = apply(#Iv, i->R_(Iv#i)=>L#i)                                       |
+|                                                                             |
+|o11 = {cc  => 0, cc  => 0, cc  => 0, cc  => 0, cc  => 0}                     |
+|         A         B         C         D         E                           |
+|                                                                             |
+|o11 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i12 : F'' = apply(C, c->sub(c,S))                                            |
+|                                                                             |
+|o12 = {2xx  + xx  - xx  + xx , - 2xx  - xx  + 2xx  + xx }                    |
+|          A     B     C     D       A     B      C     E                     |
+|                                                                             |
+|o12 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+Finally, we join the two sets of equations and create an ideal. Thus, the
+degree and dimension can be computed.
+
++-----------------------------------------------------------------------------+
+|i13 : F = join(F',F'')                                                       |
+|                                                                             |
+|       9  2   3          7         9      7       9  2    7                  |
+|o13 = {-xx  - -xx xx  + --xx xx  - -xx  + -xx , - -xx  - --xx xx  + 9xx  +   |
+|       4  B   4  A  C   10  B  E   2  A   4  D    2  B   10  B  E      A     |
+|      -----------------------------------------------------------------------|
+|      7       3          7         7     3         91        7         7     |
+|      -xx , - -xx xx  + --xx xx  + -xx , -xx xx  - --xx , - --xx xx  + -xx , |
+|      9  D    4  A  C   10  B  E   4  D  4  A  C   36  D    10  B  E   9  D  |
+|      -----------------------------------------------------------------------|
+|      2xx  + xx  - xx  + xx , - 2xx  - xx  + 2xx  + xx }                     |
+|         A     B     C     D       A     B      C     E                      |
+|                                                                             |
+|o13 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i14 : I = ideal F                                                            |
+|                                                                             |
+|             9  2   3          7         9      7       9  2    7            |
+|o14 = ideal (-xx  - -xx xx  + --xx xx  - -xx  + -xx , - -xx  - --xx xx  +    |
+|             4  B   4  A  C   10  B  E   2  A   4  D    2  B   10  B  E      |
+|      -----------------------------------------------------------------------|
+|             7       3          7         7     3         91        7        |
+|      9xx  + -xx , - -xx xx  + --xx xx  + -xx , -xx xx  - --xx , - --xx xx  +|
+|         A   9  D    4  A  C   10  B  E   4  D  4  A  C   36  D    10  B  E  |
+|      -----------------------------------------------------------------------|
+|      7                                                                      |
+|      -xx , 2xx  + xx  - xx  + xx , - 2xx  - xx  + 2xx  + xx )               |
+|      9  D     A     B     C     D       A     B      C     E                |
+|                                                                             |
+|o14 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i15 : degree I                                                               |
+|                                                                             |
+|o15 = 5                                                                      |
++-----------------------------------------------------------------------------+
+|i16 : dim I                                                                  |
+|                                                                             |
+|o16 = 11                                                                     |
++-----------------------------------------------------------------------------+
+
+Authors
+=======
+
+  * Cvetelina Hill <cvetelina.hill@math.gatech.edu>
+  * Timothy Duff <timothy.duff@ncf.edu>
+  * Kisun Lee <klee669@math.gatech.edu>
+  * Anton Leykin <leykin@math.gatech.edu>
+  * Alexandru Iosif <alexandru.iosif@ovgu.de>
+  * Michael Adamer <adamer@maths.ox.ac.uk>
+
+Version
+=======
+
+This documentation describes version 1.0 of ReactionNetworks, released June,
+2016.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{ReactionNetworksSource,                                                |
+|  title = {{ReactionNetworks: A \emph{Macaulay2} package. Version~1.0}},     |
+|  author = {Cvetelina Hill and Timothy Duff and Kisun Lee and Anton Leykin   |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages   |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+| and Alexandru Iosif and Michael Adamer},                                    |
+|                                                                             |
+|}}                                                                           |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note ReactionNetwork: ReactionNetwork, -- a mutable hash table, stores
+        information about a reaction network
+  * Functions and commands
+      * *note clusterModelCellDeath: clusterModelCellDeath, -- an example of a
+        chemical reaction
+      * *note conservationEquations: conservationEquations, -- creates the
+        conservation equations of a reaction network
+      * *note createConcentrationRates: createConcentrationRates, -- used in
+        creating reaction network ring
+      * *note createInitialValues: createInitialValues, -- used in creating
+        reaction network ring
+      * *note createReactionRates: createReactionRates, -- used in creating
+        reaction network ring
+      * *note createRing: createRing, -- creates a ring with generators species
+        concentrations, reaction rates, initial values
+      * crossLinkingModelCelldeath (missing documentation)
+      * displayComplexes (missing documentation)
+      * *note glue: glue, -- combine two networks
+      * *note isDeficient: isDeficient, -- determines deficiency of a network
+      * *note isWeaklyReversible: isWeaklyReversible, -- determines if a
+        network is weakly reversible
+      * *note modificationOfTwoSubstratesH: modificationOfTwoSubstratesH, -- an
+        example chemical reaction motif
+      * *note modificationOfTwoSubstratesI: modificationOfTwoSubstratesI, -- an
+        example chemical reaction motif
+      * *note negativeLaplacian: negativeLaplacian, -- Computes the negative of
+        the Laplacian matrix of a Reaction Network.
+      * *note negativeUndirectedLaplacian: negativeUndirectedLaplacian, --
+        Computes the negative of the Laplacian matrix of an undirected graph
+        associated with a Reaction Network.
+      * *note negativeWeightedLaplacian: negativeWeightedLaplacian, -- Computes
+        the negative of the weighted Laplacian matrix of a Reaction Network.
+      * *note nSiteAutocatalytic: nSiteAutocatalytic, -- A motif for
+        autocatalytic networks
+      * *note nSiteDiffusion: nSiteDiffusion, -- an example for a diffusion
+        network
+      * *note nSiteDistributiveModification: nSiteDistributiveModification, --
+        A motif for purely distributive phosphorylation
+      * *note nSiteImmuneReaction: nSiteImmuneReaction, -- A motif for an
+        immune response network
+      * *note nSitePoreForming: nSitePoreForming, -- an example for a pore
+        forming network
+      * *note nSiteProcessiveModification: nSiteProcessiveModification, -- A
+        motif for purely processive phosphorylation
+      * *note nSiteSequestration: nSiteSequestration, -- A motif for
+        sequestration networks
+      * *note oneSiteModificationA: oneSiteModificationA, -- an example for
+        chemical reaction motif
+      * *note oneSiteModificationB: oneSiteModificationB, -- an example for
+        chemical reaction motif
+      * *note oneSiteModificationC: oneSiteModificationC, -- an example for
+        chemical reaction motif
+      * *note oneSiteModificationD: oneSiteModificationD, -- an example for
+        chemical reaction motif
+      * *note reactantMatrix: reactantMatrix, -- Computes the reactants matrix
+        of a Reaction Network.
+      * reactionMatrix (missing documentation)
+      * *note reactionNetwork: reactionNetwork, -- creates a reaction network
+      * *note steadyStateEquations: steadyStateEquations, -- creates
+        steady-state equations of a reaction network
+      * *note stoichiometricConeKer: stoichiometricConeKer, -- Computes a
+        matrix whose columns are the rays of the cone non-negative kernel of
+        the stoichiometric matrix of a Reaction Network.
+      * *note stoichiometricMatrix: stoichiometricMatrix, -- Computes the
+        stoichiometric matrix of a Reaction Network.
+      * *note stoichiometricSubspace: stoichiometricSubspace, -- Computes the
+        stoichiometric space of a Reaction Network.
+      * *note stoichSubspaceKer: stoichSubspaceKer, -- Computes the kernel of
+        the stoichiometric matrix of a Reaction Network.
+      * subRandomInitVals (missing documentation)
+      * subRandomReactionRates (missing documentation)
+      * *note twoLayerCascadeJ: twoLayerCascadeJ, -- an example chemical
+        reaction motif
+      * *note twoLayerCascadeK: twoLayerCascadeK, -- an example chemical
+        reaction motif
+      * *note twoLayerCascadeL: twoLayerCascadeL, -- an example for chemical
+        reaction motif
+      * *note twoSiteModificationE: twoSiteModificationE, -- an example for
+        chemical reaction motif
+      * *note twoSiteModificationF: twoSiteModificationF, -- an example for
+        chemical reaction motif
+      * *note twoSiteModificationG: twoSiteModificationG, -- an example
+        chemical reaction motif
+      * *note wnt: wnt, -- shuttle model for Wnt signaling pathway
+  * Methods
+      * "conservationEquations(ReactionNetwork)" -- see *note
+        conservationEquations: conservationEquations, -- creates the
+        conservation equations of a reaction network
+      * "conservationEquations(ReactionNetwork,Ring)" -- see *note
+        conservationEquations: conservationEquations, -- creates the
+        conservation equations of a reaction network
+      * conservationEquations(ReactionNetwork,InexactFieldFamily) (missing
+        documentation)
+      * createConcentrationRates(ReactionNetwork) (missing documentation)
+      * createInitialValues(ReactionNetwork) (missing documentation)
+      * createReactionRates(ReactionNetwork) (missing documentation)
+      * "createRing(ReactionNetwork)" -- see *note createRing: createRing, --
+        creates a ring with generators species concentrations, reaction rates,
+        initial values
+      * "createRing(ReactionNetwork,Ring)" -- see *note createRing: createRing,
+        -- creates a ring with generators species concentrations, reaction
+        rates, initial values
+      * createRing(ReactionNetwork,InexactFieldFamily) (missing documentation)
+      * "glue(List,ReactionNetwork)" -- see *note glue: glue, -- combine two
+        networks
+      * "glue(ReactionNetwork,List)" -- see *note glue: glue, -- combine two
+        networks
+      * "glue(ReactionNetwork,ReactionNetwork)" -- see *note glue: glue, --
+        combine two networks
+      * "negativeLaplacian(ReactionNetwork)" -- see *note negativeLaplacian:
+        negativeLaplacian, -- Computes the negative of the Laplacian matrix of
+        a Reaction Network.
+      * "negativeUndirectedLaplacian(ReactionNetwork)" -- see *note
+        negativeUndirectedLaplacian: negativeUndirectedLaplacian, -- Computes
+        the negative of the Laplacian matrix of an undirected graph associated
+        with a Reaction Network.
+      * "negativeWeightedLaplacian(ReactionNetwork)" -- see *note
+        negativeWeightedLaplacian: negativeWeightedLaplacian, -- Computes the
+        negative of the weighted Laplacian matrix of a Reaction Network.
+      * net(ReactionNetwork) (missing documentation)
+      * "nSiteAutocatalytic(ZZ)" -- see *note nSiteAutocatalytic:
+        nSiteAutocatalytic, -- A motif for autocatalytic networks
+      * "nSiteDiffusion(ZZ)" -- see *note nSiteDiffusion: nSiteDiffusion, -- an
+        example for a diffusion network
+      * "nSiteDistributiveModification(ZZ)" -- see *note
+        nSiteDistributiveModification: nSiteDistributiveModification, -- A
+        motif for purely distributive phosphorylation
+      * "nSiteImmuneReaction(ZZ)" -- see *note nSiteImmuneReaction:
+        nSiteImmuneReaction, -- A motif for an immune response network
+      * "nSitePoreForming(ZZ)" -- see *note nSitePoreForming: nSitePoreForming,
+        -- an example for a pore forming network
+      * "nSiteProcessiveModification(ZZ)" -- see *note
+        nSiteProcessiveModification: nSiteProcessiveModification, -- A motif
+        for purely processive phosphorylation
+      * "nSiteSequestration(ZZ)" -- see *note nSiteSequestration:
+        nSiteSequestration, -- A motif for sequestration networks
+      * "reactantMatrix(ReactionNetwork)" -- see *note reactantMatrix:
+        reactantMatrix, -- Computes the reactants matrix of a Reaction Network.
+      * reactionMatrix(ReactionNetwork) (missing documentation)
+      * "reactionNetwork(Ideal)" -- see *note reactionNetwork: reactionNetwork,
+        -- creates a reaction network
+      * "reactionNetwork(List)" -- see *note reactionNetwork: reactionNetwork,
+        -- creates a reaction network
+      * "reactionNetwork(String)" -- see *note reactionNetwork:
+        reactionNetwork, -- creates a reaction network
+      * "steadyStateEquations(ReactionNetwork)" -- see *note
+        steadyStateEquations: steadyStateEquations, -- creates steady-state
+        equations of a reaction network
+      * "steadyStateEquations(ReactionNetwork,Ring)" -- see *note
+        steadyStateEquations: steadyStateEquations, -- creates steady-state
+        equations of a reaction network
+      * steadyStateEquations(ReactionNetwork,InexactFieldFamily) (missing
+        documentation)
+      * "stoichiometricConeKer(ReactionNetwork)" -- see *note
+        stoichiometricConeKer: stoichiometricConeKer, -- Computes a matrix
+        whose columns are the rays of the cone non-negative kernel of the
+        stoichiometric matrix of a Reaction Network.
+      * "stoichiometricMatrix(ReactionNetwork)" -- see *note
+        stoichiometricMatrix: stoichiometricMatrix, -- Computes the
+        stoichiometric matrix of a Reaction Network.
+      * "stoichiometricSubspace(ReactionNetwork)" -- see *note
+        stoichiometricSubspace: stoichiometricSubspace, -- Computes the
+        stoichiometric space of a Reaction Network.
+      * "stoichSubspaceKer(ReactionNetwork)" -- see *note stoichSubspaceKer:
+        stoichSubspaceKer, -- Computes the kernel of the stoichiometric matrix
+        of a Reaction Network.
+      * subRandomInitVals(ReactionNetwork) (missing documentation)
+      * subRandomInitVals(ReactionNetwork,Ring) (missing documentation)
+      * subRandomReactionRates(ReactionNetwork) (missing documentation)
+      * subRandomReactionRates(ReactionNetwork,Ring) (missing documentation)
+      * *note substitute(ReactionNetwork,List):
+        substitute_lpReactionNetwork_cmList_rp, -- substitute species names in
+        reaction network
+  * Symbols
+      * FullEdges (missing documentation)
+      * Input (missing documentation)
+      * NullEdges (missing documentation)
+      * "Complexes" -- see *note ReactionNetwork: ReactionNetwork, -- a mutable
+        hash table, stores information about a reaction network
+      * "ConcentrationRates" -- see *note ReactionNetwork: ReactionNetwork, --
+        a mutable hash table, stores information about a reaction network
+      * "InitialValues" -- see *note ReactionNetwork: ReactionNetwork, -- a
+        mutable hash table, stores information about a reaction network
+      * "NullIndex" -- see *note ReactionNetwork: ReactionNetwork, -- a mutable
+        hash table, stores information about a reaction network
+      * "NullSymbol" -- see *note ReactionNetwork: ReactionNetwork, -- a
+        mutable hash table, stores information about a reaction network
+      * "ReactionGraph" -- see *note ReactionNetwork: ReactionNetwork, -- a
+        mutable hash table, stores information about a reaction network
+      * "ReactionRates" -- see *note ReactionNetwork: ReactionNetwork, -- a
+        mutable hash table, stores information about a reaction network
+      * "ReactionRing" -- see *note ReactionNetwork: ReactionNetwork, -- a
+        mutable hash table, stores information about a reaction network
+      * "Species" -- see *note ReactionNetwork: ReactionNetwork, -- a mutable
+        hash table, stores information about a reaction network
+
+For the programmer
+==================
+
+The object *note ReactionNetworks: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in ReactionNetworks.m2, with auxiliary files in
+ReactionNetworks/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReactionNetworks/DocReactionNetworks.m2:88:0.
+
+File: ReactionNetworks.info, Node: clusterModelCellDeath, Next: conservationEquations, Prev: Top, Up: Top
+
+clusterModelCellDeath -- an example of a chemical reaction
+**********************************************************
+
+Description
+===========
+
+A cluster model for cell death, where a cluster is indexed by a tuple (L, X, Y,
+Z), where L represents FasL and X, Y, and Z are three posited forms of Fas,
+denoting closed, open and unstable, and open and stable, i.e., active and
+signaling, receptors, respectively [Feliu, Wiuf].
+
++----------------------------+
+|i1 : clusterModelCellDeath()|
+|                            |
+|o1 = Y+Z-->2Z               |
+|     Y+Z+L-->2Z+L           |
+|     2Y-->Y+Z               |
+|     2Y-->2Z                |
+|     2Y+L-->Y+Z+L           |
+|     2Y+L-->2Z+L            |
+|     Y+2Z-->3Z              |
+|     Y+2Z+L-->3Z+L          |
+|     2Y+Z-->Y+2Z            |
+|     2Y+Z-->3Z              |
+|     2Y+Z+L-->Y+2Z+L        |
+|     2Y+Z+L-->3Z+L          |
+|     3Y-->Y+2Z              |
+|     3Y-->3Z                |
+|     3Y-->2Y+Z              |
+|     3Y+L-->Y+2Z+L          |
+|     3Y+L-->3Z+L            |
+|     3Y+L-->2Y+Z+L          |
+|                            |
+|o1 : ReactionNetwork        |
++----------------------------+
+
+In this example n=m=3. To rename species, use *note
+substitute(ReactionNetwork,List): substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use clusterModelCellDeath:
+==================================
+
+  * "clusterModelCellDeath()"
+
+For the programmer
+==================
+
+The object *note clusterModelCellDeath: clusterModelCellDeath, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:486:0.
+
+File: ReactionNetworks.info, Node: conservationEquations, Next: createConcentrationRates, Prev: clusterModelCellDeath, Up: Top
+
+conservationEquations -- creates the conservation equations of a reaction network
+*********************************************************************************
+
+Description
+===========
+
+Generate the conservation equations using the stoichiometric subspace. Before
+any equations can be created, you must invoke the *note createRing: createRing,
+function, which creates the reaction network ring. If you do not create the
+ring, you will receive an error message.
+
++-----------------------------------------------------------------------------+
+|i1 : N = reactionNetwork "A <--> 2B, A + C <--> D, B + E --> A + C, D -->    |
+|                                                                             |
+|o1 = A-->2B                                                                  |
+|     2B-->A                                                                  |
+|     A+C-->D                                                                 |
+|     D-->A+C                                                                 |
+|     D-->B+E                                                                 |
+|     B+E-->A+C                                                               |
+|                                                                             |
+|o1 : ReactionNetwork                                                         |
+|-----------------------------------------------------------------------------|
+|B+E"                                                                         |
++-----------------------------------------------------------------------------+
+|i2 : R = createRing(N, QQ)                                                   |
+|                                                                             |
+|o2 = R                                                                       |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i3 : conservationEquations N                                                 |
+|                                                                             |
+|o3 = {2xx  + xx  - xx  + xx  - 2cc  - cc  + cc  - cc , - 2xx  - xx  + 2xx  + |
+|         A     B     C     D      A     B     C     D       A     B      C   |
+|     ------------------------------------------------------------------------|
+|     xx  + 2cc  + cc  - 2cc  - cc }                                          |
+|       E      A     B      C     E                                           |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Obtain the conservation equations for a motif and display equations.
+
++-----------------------------------------------------------------------------+
+|i4 : N = modificationOfTwoSubstratesI()                                      |
+|                                                                             |
+|o4 = S_0+E-->X_1                                                             |
+|     X_1-->S_0+E                                                             |
+|     X_1-->E+S_1                                                             |
+|     S_1+F-->Y_1                                                             |
+|     Y_1-->S_1+F                                                             |
+|     Y_1-->S_0+F                                                             |
+|     E+P_0-->X_2                                                             |
+|     X_2-->E+P_0                                                             |
+|     X_2-->E+P_1                                                             |
+|     F+P_1-->Y_2                                                             |
+|     Y_2-->F+P_1                                                             |
+|     Y_2-->F+P_0                                                             |
+|                                                                             |
+|o4 : ReactionNetwork                                                         |
++-----------------------------------------------------------------------------+
+|i5 : createRing(N,QQ)                                                        |
+|                                                                             |
+|o5 = QQ[xx   , xx , xx   , xx   , xx , xx   , xx   , xx   , xx   , xx   ,    |
+|          S_0    E    X_1    S_1    F    Y_1    P_0    X_2    P_1    Y_2     |
+|                                                                             |
+|o5 : PolynomialRing                                                          |
+|-----------------------------------------------------------------------------|
+|cc   , cc , cc   , cc   , cc , cc   , cc   , cc   , cc   , cc   , kk      ,  |
+|  S_0    E    X_1    S_1    F    Y_1    P_0    X_2    P_1    Y_2    {0, 1}   |
+|-----------------------------------------------------------------------------|
+|kk      , kk      , kk      , kk      , kk      , kk      , kk      , kk     |
+|  {1, 0}    {1, 2}    {3, 4}    {4, 3}    {4, 5}    {6, 7}    {7, 6}    {7,  |
+|-----------------------------------------------------------------------------|
+|  , kk       , kk       , kk        ]                                        |
+|8}    {9, 10}    {10, 9}    {10, 11}                                         |
++-----------------------------------------------------------------------------+
+|i6 : netList conservationEquations N                                         |
+|                                                                             |
+|     +-----------------------------------------------------------------------|
+|o6 = |xx    + xx    + xx    + xx    - cc    - cc    - cc    - cc             |
+|     |  S_0     X_1     S_1     Y_1     S_0     X_1     S_1     Y_1          |
+|     +-----------------------------------------------------------------------|
+|     |xx  + xx    + xx    - cc  - cc    - cc                                 |
+|     |  E     X_1     X_2     E     X_1     X_2                              |
+|     +-----------------------------------------------------------------------|
+|     |xx    - xx  + xx    - xx  + xx    + xx    - cc    + cc  - cc    + cc  -|
+|     |  S_0     E     S_1     F     P_0     P_1     S_0     E     S_1     F  |
+|     +-----------------------------------------------------------------------|
+|     |- xx    - xx    - xx    + xx  + xx    + cc    + cc    + cc    - cc  - c|
+|     |    S_0     X_1     S_1     F     Y_2     S_0     X_1     S_1     F    |
+|     +-----------------------------------------------------------------------|
+|-----------------------------------------------------------------------------|
+|--------------+                                                              |
+|              |                                                              |
+|              |                                                              |
+|--------------+                                                              |
+|              |                                                              |
+|              |                                                              |
+|--------------+                                                              |
+| cc    - cc   |                                                              |
+|   P_0     P_1|                                                              |
+|--------------+                                                              |
+|c             |                                                              |
+| Y_2          |                                                              |
+|--------------+                                                              |
++-----------------------------------------------------------------------------+
+
+Generate the conservation equations in a specific ring.
+
++-----------------------------------------------------------------------------+
+|i7 : N = twoLayerCascadeL()                                                  |
+|                                                                             |
+|o7 = S_0+E-->X_1                                                             |
+|     X_1-->S_0+E                                                             |
+|     X_1-->E+S_1                                                             |
+|     S_1+P_0-->X_2                                                           |
+|     X_2-->S_1+P_0                                                           |
+|     X_2-->S_1+P_1                                                           |
+|     E+P_0-->X_3                                                             |
+|     X_3-->E+P_0                                                             |
+|     X_3-->E+P_1                                                             |
+|     S_1+F_1-->Y_1                                                           |
+|     Y_1-->S_1+F_1                                                           |
+|     Y_1-->S_0+F_1                                                           |
+|     P_1+F_2-->Y_2                                                           |
+|     Y_2-->P_1+F_2                                                           |
+|     Y_2-->P_0+F_2                                                           |
+|                                                                             |
+|o7 : ReactionNetwork                                                         |
++-----------------------------------------------------------------------------+
+|i8 : R = createRing(N, ZZ/2)                                                 |
+|                                                                             |
+|o8 = R                                                                       |
+|                                                                             |
+|o8 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i9 : G = conservationEquations(N, ZZ/2)                                      |
+|                                                                             |
+|o9 = {xx  + xx    + xx    + cc  + cc    + cc   , xx    + xx    + xx    +     |
+|        E     X_1     X_3     E     X_1     X_3    S_0     X_1     S_1       |
+|     ------------------------------------------------------------------------|
+|     xx    + xx    + cc    + cc    + cc    + cc    + cc   , xx    + xx    +  |
+|       X_2     F_1     S_0     X_1     S_1     X_2     F_1    S_0     X_1    |
+|     ------------------------------------------------------------------------|
+|     xx    + xx    + xx    + cc    + cc    + cc    + cc    + cc   , xx  +    |
+|       S_1     X_2     Y_1     S_0     X_1     S_1     X_2     Y_1    E      |
+|     ------------------------------------------------------------------------|
+|     xx    + xx    + xx    + xx    + xx    + cc  + cc    + cc    + cc    +   |
+|       X_1     P_0     X_2     P_1     F_2     E     X_1     P_0     X_2     |
+|     ------------------------------------------------------------------------|
+|     cc    + cc   , xx  + xx    + xx    + xx    + xx    + xx    + cc  + cc   |
+|       P_1     F_2    E     X_1     P_0     X_2     P_1     Y_2     E     X_1|
+|     ------------------------------------------------------------------------|
+|     + cc    + cc    + cc    + cc   }                                        |
+|         P_0     X_2     P_1     Y_2                                         |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+The conservation equations describe a linear subspace going through the origin.
+To translate the subspace, the user may choose to use random values for the
+parameters, or enter specific values, such as initial conditions.
+
++-----------------------------------------------------------------------------+
+|i10 : N = twoLayerCascadeL()                                                 |
+|                                                                             |
+|o10 = S_0+E-->X_1                                                            |
+|      X_1-->S_0+E                                                            |
+|      X_1-->E+S_1                                                            |
+|      S_1+P_0-->X_2                                                          |
+|      X_2-->S_1+P_0                                                          |
+|      X_2-->S_1+P_1                                                          |
+|      E+P_0-->X_3                                                            |
+|      X_3-->E+P_0                                                            |
+|      X_3-->E+P_1                                                            |
+|      S_1+F_1-->Y_1                                                          |
+|      Y_1-->S_1+F_1                                                          |
+|      Y_1-->S_0+F_1                                                          |
+|      P_1+F_2-->Y_2                                                          |
+|      Y_2-->P_1+F_2                                                          |
+|      Y_2-->P_0+F_2                                                          |
+|                                                                             |
+|o10 : ReactionNetwork                                                        |
++-----------------------------------------------------------------------------+
+|i11 : N.Species                                                              |
+|                                                                             |
+|o11 = {S_0, E, X_1, S_1, P_0, X_2, P_1, X_3, F_1, Y_1, F_2, Y_2}             |
+|                                                                             |
+|o11 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i12 : R = createRing(N,QQ)                                                   |
+|                                                                             |
+|o12 = R                                                                      |
+|                                                                             |
+|o12 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i13 : G = conservationEquations(N, QQ)                                       |
+|                                                                             |
+|o13 = {xx  + xx    + xx    - cc  - cc    - cc   , - xx    - xx    - xx    -  |
+|         E     X_1     X_3     E     X_1     X_3      S_0     X_1     S_1    |
+|      -----------------------------------------------------------------------|
+|      xx    + xx    + cc    + cc    + cc    + cc    - cc   , xx    + xx    + |
+|        X_2     F_1     S_0     X_1     S_1     X_2     F_1    S_0     X_1   |
+|      -----------------------------------------------------------------------|
+|      xx    + xx    + xx    - cc    - cc    - cc    - cc    - cc   , xx  +   |
+|        S_1     X_2     Y_1     S_0     X_1     S_1     X_2     Y_1    E     |
+|      -----------------------------------------------------------------------|
+|      xx    - xx    - xx    - xx    + xx    - cc  - cc    + cc    + cc    +  |
+|        X_1     P_0     X_2     P_1     F_2     E     X_1     P_0     X_2    |
+|      -----------------------------------------------------------------------|
+|      cc    - cc   , - xx  - xx    + xx    + xx    + xx    + xx    + cc  +   |
+|        P_1     F_2      E     X_1     P_0     X_2     P_1     Y_2     E     |
+|      -----------------------------------------------------------------------|
+|      cc    - cc    - cc    - cc    - cc   }                                 |
+|        X_1     P_0     X_2     P_1     Y_2                                  |
+|                                                                             |
+|o13 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+Substitute InitialValues
+
+The example below demonstrates how to substitute specific values for the
+initial values in a reaction network. The list of desired values must be input
+in the order of the initial values; for that order use N.InitialValues, where N
+is the name of the reaction network. To substitute random values refer to the
+example at the end of *note steadyStateEquations: steadyStateEquations,.
+
++-----------------------------------------------------------------------------+
+|i14 : N = reactionNetwork("A --> 2B, A + C --> D, D --> 0", NullSymbol =>    |
+|                                                                             |
+|o14 = A-->2B                                                                 |
+|      A+C-->D                                                                |
+|      D-->0                                                                  |
+|                                                                             |
+|o14 : ReactionNetwork                                                        |
+|-----------------------------------------------------------------------------|
+|"0")                                                                         |
++-----------------------------------------------------------------------------+
+|i15 : R = createRing N                                                       |
+|                                                                             |
+|o15 = R                                                                      |
+|                                                                             |
+|o15 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i16 : CE = conservationEquations N                                           |
+|                                                                             |
+|o16 = {- 2xx  - xx  + 2xx  + 2cc  + cc  - 2cc }                              |
+|            A     B      C      A     B      C                               |
+|                                                                             |
+|o16 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i17 : L = {1,2,3,4}                                                          |
+|                                                                             |
+|o17 = {1, 2, 3, 4}                                                           |
+|                                                                             |
+|o17 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i18 : Iv = toList(apply(0..length N.InitialValues-1, i->                     |
+|                                                                             |
+|o18 = {cc , cc , cc , cc }                                                   |
+|         A    B    C    D                                                    |
+|                                                                             |
+|o18 : List                                                                   |
+|-----------------------------------------------------------------------------|
+|value(N.InitialValues#i)))                                                   |
++-----------------------------------------------------------------------------+
+|i19 : S=toList(apply(0..length Iv-1, i-> Iv#i=>L#i))                         |
+|                                                                             |
+|o19 = {cc  => 1, cc  => 2, cc  => 3, cc  => 4}                               |
+|         A         B         C         D                                     |
+|                                                                             |
+|o19 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i20 : toList apply(0..length CE-1, i-> sub(CE#i,S))                          |
+|                                                                             |
+|o20 = {- 2xx  - xx  + 2xx  - 2}                                              |
+|            A     B      C                                                   |
+|                                                                             |
+|o20 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note reactionNetwork: reactionNetwork, -- creates a reaction network
+  * *note steadyStateEquations: steadyStateEquations, -- creates steady-state
+    equations of a reaction network
+
+Ways to use conservationEquations:
+==================================
+
+  * "conservationEquations(ReactionNetwork)"
+  * "conservationEquations(ReactionNetwork,Ring)"
+  * conservationEquations(ReactionNetwork,InexactFieldFamily) (missing
+    documentation)
+
+For the programmer
+==================
+
+The object *note conservationEquations: conservationEquations, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:309:0.
+
+File: ReactionNetworks.info, Node: createConcentrationRates, Next: createInitialValues, Prev: conservationEquations, Up: Top
+
+createConcentrationRates -- used in creating reaction network ring
+******************************************************************
+
+Ways to use createConcentrationRates:
+=====================================
+
+  * createConcentrationRates(ReactionNetwork) (missing documentation)
+
+For the programmer
+==================
+
+The object *note createConcentrationRates: createConcentrationRates, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:780:0.
+
+File: ReactionNetworks.info, Node: createInitialValues, Next: createReactionRates, Prev: createConcentrationRates, Up: Top
+
+createInitialValues -- used in creating reaction network ring
+*************************************************************
+
+Ways to use createInitialValues:
+================================
+
+  * createInitialValues(ReactionNetwork) (missing documentation)
+
+For the programmer
+==================
+
+The object *note createInitialValues: createInitialValues, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:792:0.
+
+File: ReactionNetworks.info, Node: createReactionRates, Next: createRing, Prev: createInitialValues, Up: Top
+
+createReactionRates -- used in creating reaction network ring
+*************************************************************
+
+Ways to use createReactionRates:
+================================
+
+  * createReactionRates(ReactionNetwork) (missing documentation)
+
+For the programmer
+==================
+
+The object *note createReactionRates: createReactionRates, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:786:0.
+
+File: ReactionNetworks.info, Node: createRing, Next: crossLinkingModelCelldeath, Prev: createReactionRates, Up: Top
+
+createRing -- creates a ring with generators species concentrations, reaction rates, initial values
+***************************************************************************************************
+
+Ways to use createRing:
+=======================
+
+  * "createRing(ReactionNetwork)"
+  * "createRing(ReactionNetwork,Ring)"
+  * createRing(ReactionNetwork,InexactFieldFamily) (missing documentation)
+
+For the programmer
+==================
+
+The object *note createRing: createRing, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:774:0.
+
+File: ReactionNetworks.info, Node: crossLinkingModelCelldeath, Next: displayComplexes, Prev: createRing, Up: Top
+
+crossLinkingModelCelldeath
+**************************
+
+Ways to use crossLinkingModelCelldeath:
+=======================================
+
+  * crossLinkingModelCelldeath() (missing documentation)
+
+For the programmer
+==================
+
+The object crossLinkingModelCelldeath (missing documentation) is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: ReactionNetworks.info, Node: displayComplexes, Next: FullEdges, Prev: crossLinkingModelCelldeath, Up: Top
+
+displayComplexes
+****************
+
+For the programmer
+==================
+
+The object displayComplexes (missing documentation) is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: ReactionNetworks.info, Node: FullEdges, Next: glue, Prev: displayComplexes, Up: Top
+
+FullEdges
+*********
+
+For the programmer
+==================
+
+The object FullEdges (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: ReactionNetworks.info, Node: glue, Next: Input, Prev: FullEdges, Up: Top
+
+glue -- combine two networks
+****************************
+
+Description
+===========
+
+This function takes two reaction networks, or a reaction network and a list and
+creates a new, combined network.
+
++-------------------------------------------------------------------+
+|i1 : N1 = reactionNetwork("A <-- 2B, A + C <-- D, B + E --> A + C")|
+|                                                                   |
+|o1 = 2B-->A                                                        |
+|     D-->A+C                                                       |
+|     B+E-->A+C                                                     |
+|                                                                   |
+|o1 : ReactionNetwork                                               |
++-------------------------------------------------------------------+
+|i2 : glue(N1, {"A --> 2B", "A + C --> D", "D --> B+E"})            |
+|                                                                   |
+|o2 = A-->2B                                                        |
+|     2B-->A                                                        |
+|     A+C-->D                                                       |
+|     D-->A+C                                                       |
+|     D-->B+E                                                       |
+|     B+E-->A+C                                                     |
+|                                                                   |
+|o2 : ReactionNetwork                                               |
++-------------------------------------------------------------------+
+
+See also
+========
+
+  * *note reactionNetwork: reactionNetwork, -- creates a reaction network
+
+Ways to use glue:
+=================
+
+  * "glue(List,ReactionNetwork)"
+  * "glue(ReactionNetwork,List)"
+  * "glue(ReactionNetwork,ReactionNetwork)"
+
+For the programmer
+==================
+
+The object *note glue: glue, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:330:0.
+
+File: ReactionNetworks.info, Node: Input, Next: isDeficient, Prev: glue, Up: Top
+
+Input
+*****
+
+Functions with optional argument named Input:
+=============================================
+
+  * reactionNetwork(...,Input=>...) (missing documentation)
+
+For the programmer
+==================
+
+The object Input (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: ReactionNetworks.info, Node: isDeficient, Next: isWeaklyReversible, Prev: Input, Up: Top
+
+isDeficient -- determines deficiency of a network
+*************************************************
+
+Description
+===========
+
+Example
+
++-----------------------------------------------------------------------------+
+|i1 : N = reactionNetwork "A <--> 2B, A + C <--> D, B + E --> A + C, D -->    |
+|                                                                             |
+|o1 = A-->2B                                                                  |
+|     2B-->A                                                                  |
+|     A+C-->D                                                                 |
+|     D-->A+C                                                                 |
+|     D-->B+E                                                                 |
+|     B+E-->A+C                                                               |
+|                                                                             |
+|o1 : ReactionNetwork                                                         |
+|-----------------------------------------------------------------------------|
+|B+E"                                                                         |
++-----------------------------------------------------------------------------+
+|i2 : isDeficient N                                                           |
+|                                                                             |
+|o2 = 0                                                                       |
++-----------------------------------------------------------------------------+
+|i3 : W = wnt()                                                               |
+|                                                                             |
+|o3 = X_1-->X_2                                                               |
+|     X_2-->X_1                                                               |
+|     X_2-->X_3                                                               |
+|     X_2+X_4-->Y_4                                                           |
+|     Y_4-->X_2+X_4                                                           |
+|     Y_4-->X_2+X_5                                                           |
+|     X_5+X_8-->Y_6                                                           |
+|     Y_6-->X_5+X_8                                                           |
+|     Y_6-->X_4+X_8                                                           |
+|     X_4+Y_0-->Y_8                                                           |
+|     Y_8-->X_4+Y_0                                                           |
+|     Y_8-->X_4                                                               |
+|     0-->Y_0                                                                 |
+|     Y_0-->0                                                                 |
+|     Y_0-->Y_1                                                               |
+|     X_3+X_6-->Y_5                                                           |
+|     Y_5-->X_3+X_6                                                           |
+|     Y_5-->X_3+X_7                                                           |
+|     X_7+X_9-->Y_7                                                           |
+|     Y_7-->X_7+X_9                                                           |
+|     Y_7-->X_6+X_9                                                           |
+|     X_6+Y_1-->Y_9                                                           |
+|     Y_9-->X_6+Y_1                                                           |
+|     Y_9-->X_6                                                               |
+|     Y_1-->0                                                                 |
+|     Y_1-->Y_0                                                               |
+|     Y_1+Y_2-->Y_3                                                           |
+|     Y_3-->Y_1+Y_2                                                           |
+|     X_3-->X_2                                                               |
+|     X_5-->X_7                                                               |
+|     X_7-->X_5                                                               |
+|                                                                             |
+|o3 : ReactionNetwork                                                         |
++-----------------------------------------------------------------------------+
+|i4 : isDeficient W                                                           |
+|                                                                             |
+|o4 = 4                                                                       |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note isDeficient: isDeficient, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:807:0.
+
+File: ReactionNetworks.info, Node: isWeaklyReversible, Next: modificationOfTwoSubstratesH, Prev: isDeficient, Up: Top
+
+isWeaklyReversible -- determines if a network is weakly reversible
+******************************************************************
+
+Description
+===========
+
+Example
+
++-----------------------------------------------------------------------------+
+|i1 : N = reactionNetwork "A <--> 2B, A + C <--> D, B + E --> A + C, D -->    |
+|                                                                             |
+|o1 = A-->2B                                                                  |
+|     2B-->A                                                                  |
+|     A+C-->D                                                                 |
+|     D-->A+C                                                                 |
+|     D-->B+E                                                                 |
+|     B+E-->A+C                                                               |
+|                                                                             |
+|o1 : ReactionNetwork                                                         |
+|-----------------------------------------------------------------------------|
+|B+E"                                                                         |
++-----------------------------------------------------------------------------+
+|i2 : isWeaklyReversible N                                                    |
+|                                                                             |
+|o2 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : isWeaklyReversible wnt()                                                |
+|                                                                             |
+|o3 = false                                                                   |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note isWeaklyReversible: isWeaklyReversible, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:822:0.
+
+File: ReactionNetworks.info, Node: modificationOfTwoSubstratesH, Next: modificationOfTwoSubstratesI, Prev: isWeaklyReversible, Up: Top
+
+modificationOfTwoSubstratesH -- an example chemical reaction motif
+******************************************************************
+
+Description
+===========
+
+In this system, two cycles are connected through a joint catalyzing kinase
+[Feliu, Wiuf].
+
++-----------------------------------+
+|i1 : modificationOfTwoSubstratesH()|
+|                                   |
+|o1 = S_0+E-->X_1                   |
+|     X_1-->S_0+E                   |
+|     X_1-->E+S_1                   |
+|     S_1+F_1-->Y_1                 |
+|     Y_1-->S_1+F_1                 |
+|     Y_1-->S_0+F_1                 |
+|     E+P_0-->X_2                   |
+|     X_2-->E+P_0                   |
+|     X_2-->E+P_1                   |
+|     P_1+F_2-->Y_2                 |
+|     Y_2-->P_1+F_2                 |
+|     Y_2-->P_0+F_2                 |
+|                                   |
+|o1 : ReactionNetwork               |
++-----------------------------------+
+
+In the motif Modification of Two Different Substrates H, the symbols used in
+the chemical reactions have the following meaning:
+
+S_i and P_i are substrates with i = 0, 1, 2 phosphorylated sites, E is a kinase
+and F is a phosphotase, X and Y are the intermediate complexes formed by the
+enzymes E and F, respectively.
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+
+
+Ways to use modificationOfTwoSubstratesH:
+=========================================
+
+  * "modificationOfTwoSubstratesH()"
+
+For the programmer
+==================
+
+The object *note modificationOfTwoSubstratesH: modificationOfTwoSubstratesH, is
+a *note method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:385:0.
+
+File: ReactionNetworks.info, Node: modificationOfTwoSubstratesI, Next: negativeLaplacian, Prev: modificationOfTwoSubstratesH, Up: Top
+
+modificationOfTwoSubstratesI -- an example chemical reaction motif
+******************************************************************
+
+Description
+===========
+
+In this system, two cycles are connected through a joint catalyzing kinase and
+a joint catalyzing phosphotase [Feliu, Wiuf].
+
++-----------------------------------+
+|i1 : modificationOfTwoSubstratesI()|
+|                                   |
+|o1 = S_0+E-->X_1                   |
+|     X_1-->S_0+E                   |
+|     X_1-->E+S_1                   |
+|     S_1+F-->Y_1                   |
+|     Y_1-->S_1+F                   |
+|     Y_1-->S_0+F                   |
+|     E+P_0-->X_2                   |
+|     X_2-->E+P_0                   |
+|     X_2-->E+P_1                   |
+|     F+P_1-->Y_2                   |
+|     Y_2-->F+P_1                   |
+|     Y_2-->F+P_0                   |
+|                                   |
+|o1 : ReactionNetwork               |
++-----------------------------------+
+
+In the motif Modification of Two Different Substrates I, the symbols used in
+the chemical reactions have the following meaning:
+
+S_i and P_i are substrates with i = 0, 1, 2 phosphorylated sites, E is a kinase
+and F is a phosphotase, X and Y are the intermediate complexes formed by the
+enzymes E and F, respectively.
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use modificationOfTwoSubstratesI:
+=========================================
+
+  * "modificationOfTwoSubstratesI()"
+
+For the programmer
+==================
+
+The object *note modificationOfTwoSubstratesI: modificationOfTwoSubstratesI, is
+a *note method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:410:0.
+
+File: ReactionNetworks.info, Node: negativeLaplacian, Next: negativeUndirectedLaplacian, Prev: modificationOfTwoSubstratesI, Up: Top
+
+negativeLaplacian -- Computes the negative of the Laplacian matrix of a Reaction Network.
+*****************************************************************************************
+
+  * Usage: 
+        L = negativeLaplacian N
+  * Inputs:
+      * N, an instance of the type *note ReactionNetwork: ReactionNetwork,, a
+        chemical reaction network.
+  * Outputs:
+      * L, a *note matrix: (Macaulay2Doc)Matrix,, the negative of the
+        unweighted Laplacian matrix of N.
+
+Description
+===========
+
+Computes the negative of the (unweighted) Laplacian matrix of the directed
+graph associated with a Reaction Network.
+
++-----------------------------------+
+|i1 : N = reactionNetwork "A <--> B"|
+|                                   |
+|o1 = A-->B                         |
+|     B-->A                         |
+|                                   |
+|o1 : ReactionNetwork               |
++-----------------------------------+
+|i2 : L = negativeLaplacian N       |
+|                                   |
+|o2 = | -1 1  |                     |
+|     | 1  -1 |                     |
+|                                   |
+|              2       2            |
+|o2 : Matrix ZZ  <-- ZZ             |
++-----------------------------------+
+
+A bigger example:
+
++-------------------------------+
+|i3 : N = oneSiteModificationA()|
+|                               |
+|o3 = S_0+E-->X                 |
+|     X-->S_0+E                 |
+|     X-->E+S_1                 |
+|     S_1+F-->Y                 |
+|     Y-->S_1+F                 |
+|     Y-->S_0+F                 |
+|                               |
+|o3 : ReactionNetwork           |
++-------------------------------+
+|i4 : L = negativeLaplacian N   |
+|                               |
+|o4 = | -1 1  0 0  0  0 |       |
+|     | 1  -2 1 0  0  0 |       |
+|     | 0  0  0 0  0  0 |       |
+|     | 0  0  0 -1 1  0 |       |
+|     | 0  0  0 1  -2 1 |       |
+|     | 0  0  0 0  0  0 |       |
+|                               |
+|              6       6        |
+|o4 : Matrix ZZ  <-- ZZ         |
++-------------------------------+
+
+See also
+========
+
+  * *note negativeUndirectedLaplacian: negativeUndirectedLaplacian, -- Computes
+    the negative of the Laplacian matrix of an undirected graph associated with
+    a Reaction Network.
+  * *note negativeWeightedLaplacian: negativeWeightedLaplacian, -- Computes the
+    negative of the weighted Laplacian matrix of a Reaction Network.
+  * *note stoichiometricMatrix: stoichiometricMatrix, -- Computes the
+    stoichiometric matrix of a Reaction Network.
+
+Ways to use negativeLaplacian:
+==============================
+
+  * "negativeLaplacian(ReactionNetwork)"
+
+For the programmer
+==================
+
+The object *note negativeLaplacian: negativeLaplacian, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:571:0.
+
+File: ReactionNetworks.info, Node: negativeUndirectedLaplacian, Next: negativeWeightedLaplacian, Prev: negativeLaplacian, Up: Top
+
+negativeUndirectedLaplacian -- Computes the negative of the Laplacian matrix of an undirected graph associated with a Reaction Network.
+***************************************************************************************************************************************
+
+  * Usage: 
+        L = negativeUndirectedLaplacian N
+  * Inputs:
+      * N, an instance of the type *note ReactionNetwork: ReactionNetwork,, a
+        chemical reaction network.
+  * Outputs:
+      * L, a *note matrix: (Macaulay2Doc)Matrix,, the negative of the
+        unweighted, undirected Laplacian matrix of N.
+
+Description
+===========
+
+Computes the negative of the (unweighted) Laplacian matrix of the undirected
+graph associated with a Reaction Network.
+
++--------------------------------------+
+|i1 : N = reactionNetwork "A <--> B"   |
+|                                      |
+|o1 = A-->B                            |
+|     B-->A                            |
+|                                      |
+|o1 : ReactionNetwork                  |
++--------------------------------------+
+|i2 : L = negativeUndirectedLaplacian N|
+|                                      |
+|o2 = | -1 1  |                        |
+|     | 1  -1 |                        |
+|                                      |
+|              2       2               |
+|o2 : Matrix ZZ  <-- ZZ                |
++--------------------------------------+
+
+A bigger example:
+
++--------------------------------------+
+|i3 : N = oneSiteModificationA()       |
+|                                      |
+|o3 = S_0+E-->X                        |
+|     X-->S_0+E                        |
+|     X-->E+S_1                        |
+|     S_1+F-->Y                        |
+|     Y-->S_1+F                        |
+|     Y-->S_0+F                        |
+|                                      |
+|o3 : ReactionNetwork                  |
++--------------------------------------+
+|i4 : L = negativeUndirectedLaplacian N|
+|                                      |
+|o4 = | -1 1  0  0  0  0  |            |
+|     | 1  -2 1  0  0  0  |            |
+|     | 0  1  -1 0  0  0  |            |
+|     | 0  0  0  -1 1  0  |            |
+|     | 0  0  0  1  -2 1  |            |
+|     | 0  0  0  0  1  -1 |            |
+|                                      |
+|              6       6               |
+|o4 : Matrix ZZ  <-- ZZ                |
++--------------------------------------+
+
+See also
+========
+
+  * *note negativeLaplacian: negativeLaplacian, -- Computes the negative of the
+    Laplacian matrix of a Reaction Network.
+  * *note negativeWeightedLaplacian: negativeWeightedLaplacian, -- Computes the
+    negative of the weighted Laplacian matrix of a Reaction Network.
+  * *note stoichiometricMatrix: stoichiometricMatrix, -- Computes the
+    stoichiometric matrix of a Reaction Network.
+
+Ways to use negativeUndirectedLaplacian:
+========================================
+
+  * "negativeUndirectedLaplacian(ReactionNetwork)"
+
+For the programmer
+==================
+
+The object *note negativeUndirectedLaplacian: negativeUndirectedLaplacian, is a
+*note method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:603:0.
+
+File: ReactionNetworks.info, Node: negativeWeightedLaplacian, Next: nSiteAutocatalytic, Prev: negativeUndirectedLaplacian, Up: Top
+
+negativeWeightedLaplacian -- Computes the negative of the weighted Laplacian matrix of a Reaction Network.
+**********************************************************************************************************
+
+  * Usage: 
+        L = negativeWeightedLaplacian N
+  * Inputs:
+      * N, an instance of the type *note ReactionNetwork: ReactionNetwork,, a
+        chemical reaction network.
+  * Outputs:
+      * L, a *note matrix: (Macaulay2Doc)Matrix,, the negative of the weighted
+        Laplacian matrix of N.
+
+Description
+===========
+
+Computes the negative of the weighted Laplacian matrix of a Reaction Network.
+
++-----------------------------------------------------------------------------+
+|i1 : N = reactionNetwork "A <--> B"                                          |
+|                                                                             |
+|o1 = A-->B                                                                   |
+|     B-->A                                                                   |
+|                                                                             |
+|o1 : ReactionNetwork                                                         |
++-----------------------------------------------------------------------------+
+|i2 : L = negativeWeightedLaplacian N                                         |
+|                                                                             |
+|o2 = | -kk_{0, 1} kk_{0, 1}  |                                               |
+|     | kk_{1, 0}  -kk_{1, 0} |                                               |
+|                                                                             |
+|                                                        2                    |
+|o2 : Matrix (QQ[xx , xx , cc , cc , kk      , kk      ])  <-- (QQ[xx , xx ,  |
+|                  A    B    A    B    {0, 1}    {1, 0}              A    B   |
+|-----------------------------------------------------------------------------|
+|                              2                                              |
+|cc , cc , kk      , kk      ])                                               |
+|  A    B    {0, 1}    {1, 0}                                                 |
++-----------------------------------------------------------------------------+
+
+A bigger example:
+
++-----------------------------------------------------------------------------+
+|i3 : N = oneSiteModificationA()                                              |
+|                                                                             |
+|o3 = S_0+E-->X                                                               |
+|     X-->S_0+E                                                               |
+|     X-->E+S_1                                                               |
+|     S_1+F-->Y                                                               |
+|     Y-->S_1+F                                                               |
+|     Y-->S_0+F                                                               |
+|                                                                             |
+|o3 : ReactionNetwork                                                         |
++-----------------------------------------------------------------------------+
+|i4 : L = negativeWeightedLaplacian N                                         |
+|                                                                             |
+|o4 = | -kk_{0, 1} kk_{0, 1}            0         0          0                |
+|     | kk_{1, 0}  -kk_{1, 0}-kk_{1, 2} kk_{1, 2} 0          0                |
+|     | 0          0                    0         0          0                |
+|     | 0          0                    0         -kk_{3, 4} kk_{3, 4}        |
+|     | 0          0                    0         kk_{4, 3}  -kk_{4, 3}-kk_{4,|
+|     | 0          0                    0         0          0                |
+|     ------------------------------------------------------------------------|
+|        0         |                                                          |
+|        0         |                                                          |
+|        0         |                                                          |
+|        0         |                                                          |
+|     5} kk_{4, 5} |                                                          |
+|        0         |                                                          |
+|                                                                             |
+|                                                                             |
+|o4 : Matrix (QQ[xx   , xx , xx , xx   , xx , xx , cc   , cc , cc , cc   , cc |
+|                  S_0    E    X    S_1    F    Y    S_0    E    X    S_1    F|
+|-----------------------------------------------------------------------------|
+|                                                                   6         |
+|, cc , kk      , kk      , kk      , kk      , kk      , kk      ])  <--     |
+|    Y    {0, 1}    {1, 0}    {1, 2}    {3, 4}    {4, 3}    {4, 5}            |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|(QQ[xx   , xx , xx , xx   , xx , xx , cc   , cc , cc , cc   , cc , cc , kk   |
+|      S_0    E    X    S_1    F    Y    S_0    E    X    S_1    F    Y    {0,|
+|-----------------------------------------------------------------------------|
+|                                                      6                      |
+|  , kk      , kk      , kk      , kk      , kk      ])                       |
+|1}    {1, 0}    {1, 2}    {3, 4}    {4, 3}    {4, 5}                         |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note negativeUndirectedLaplacian: negativeUndirectedLaplacian, -- Computes
+    the negative of the Laplacian matrix of an undirected graph associated with
+    a Reaction Network.
+  * *note negativeLaplacian: negativeLaplacian, -- Computes the negative of the
+    Laplacian matrix of a Reaction Network.
+  * *note stoichiometricMatrix: stoichiometricMatrix, -- Computes the
+    stoichiometric matrix of a Reaction Network.
+
+Ways to use negativeWeightedLaplacian:
+======================================
+
+  * "negativeWeightedLaplacian(ReactionNetwork)"
+
+For the programmer
+==================
+
+The object *note negativeWeightedLaplacian: negativeWeightedLaplacian, is a
+*note method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:635:0.
+
+File: ReactionNetworks.info, Node: nSiteAutocatalytic, Next: nSiteDiffusion, Prev: negativeWeightedLaplacian, Up: Top
+
+nSiteAutocatalytic -- A motif for autocatalytic networks
+********************************************************
+
+Description
+===========
+
+This motif creates a network for an N-species autocatalytic chain. Both species
+have inflows and outflows.
+
++-------------------------+
+|i1 : nSiteAutocatalytic 5|
+|                         |
+|o1 = X_1+X_2-->2X_2      |
+|     X_2+X_3-->2X_3      |
+|     X_3+X_4-->2X_4      |
+|     X_4+X_5-->2X_5      |
+|     X_1+X_5-->2X_1      |
+|     -->X_1              |
+|     -->X_2              |
+|     -->X_3              |
+|     -->X_4              |
+|     -->X_5              |
+|     X_1-->              |
+|     X_2-->              |
+|     X_3-->              |
+|     X_4-->              |
+|     X_5-->              |
+|                         |
+|o1 : ReactionNetwork     |
++-------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use nSiteAutocatalytic:
+===============================
+
+  * "nSiteAutocatalytic(ZZ)"
+
+For the programmer
+==================
+
+The object *note nSiteAutocatalytic: nSiteAutocatalytic, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReactionNetworks/nSiteAutocatalytic.m2:16:0.
+
+File: ReactionNetworks.info, Node: nSiteDiffusion, Next: nSiteDistributiveModification, Prev: nSiteAutocatalytic, Up: Top
+
+nSiteDiffusion -- an example for a diffusion network
+****************************************************
+
+Description
+===========
+
+This motif creates a network for an N-compartment diffusion network.
+
++---------------------+
+|i1 : nSiteDiffusion 5|
+|                     |
+|o1 = X_1-->X_2       |
+|     X_2-->X_1       |
+|     X_2-->X_3       |
+|     X_3-->X_2       |
+|     X_3-->X_4       |
+|     X_4-->X_3       |
+|     X_4-->X_5       |
+|     X_5-->X_4       |
+|                     |
+|o1 : ReactionNetwork |
++---------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use nSiteDiffusion:
+===========================
+
+  * "nSiteDiffusion(ZZ)"
+
+For the programmer
+==================
+
+The object *note nSiteDiffusion: nSiteDiffusion, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReactionNetworks/nSiteDiffusion.m2:15:0.
+
+File: ReactionNetworks.info, Node: nSiteDistributiveModification, Next: nSiteImmuneReaction, Prev: nSiteDiffusion, Up: Top
+
+nSiteDistributiveModification -- A motif for purely distributive phosphorylation
+********************************************************************************
+
+Description
+===========
+
+This motif creates a network for an N-site distributive phosphorylation system.
+
++------------------------------------+
+|i1 : nSiteDistributiveModification 5|
+|                                    |
+|o1 = X_1+X_3-->X_9                  |
+|     X_9-->X_1+X_3                  |
+|     X_9-->X_1+X_4                  |
+|     X_1+X_4-->X_10                 |
+|     X_10-->X_1+X_4                 |
+|     X_10-->X_1+X_5                 |
+|     X_1+X_5-->X_11                 |
+|     X_11-->X_1+X_5                 |
+|     X_11-->X_1+X_6                 |
+|     X_1+X_6-->X_12                 |
+|     X_12-->X_1+X_6                 |
+|     X_12-->X_1+X_7                 |
+|     X_1+X_7-->X_13                 |
+|     X_13-->X_1+X_7                 |
+|     X_13-->X_1+X_8                 |
+|     X_2+X_4-->X_14                 |
+|     X_14-->X_2+X_4                 |
+|     X_14-->X_2+X_3                 |
+|     X_2+X_5-->X_15                 |
+|     X_15-->X_2+X_4                 |
+|     X_15-->X_2+X_5                 |
+|     X_2+X_6-->X_16                 |
+|     X_16-->X_2+X_5                 |
+|     X_16-->X_2+X_6                 |
+|     X_2+X_7-->X_17                 |
+|     X_17-->X_2+X_6                 |
+|     X_17-->X_2+X_7                 |
+|     X_2+X_8-->X_18                 |
+|     X_18-->X_2+X_7                 |
+|     X_18-->X_2+X_8                 |
+|                                    |
+|o1 : ReactionNetwork                |
++------------------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use nSiteDistributiveModification:
+==========================================
+
+  * "nSiteDistributiveModification(ZZ)"
+
+For the programmer
+==================
+
+The object *note nSiteDistributiveModification: nSiteDistributiveModification,
+is a *note method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/nSiteDistributiveModification.m2:15:0.
+
+File: ReactionNetworks.info, Node: nSiteImmuneReaction, Next: nSitePoreForming, Prev: nSiteDistributiveModification, Up: Top
+
+nSiteImmuneReaction -- A motif for an immune response network
+*************************************************************
+
+Description
+===========
+
+This motif creates a network describing an immune response according to the
+McKeithan model.
+
++--------------------------+
+|i1 : nSiteImmuneReaction 5|
+|                          |
+|o1 = X_1+X_2-->X_3        |
+|     X_3-->X_1+X_2        |
+|     X_3-->X_4            |
+|     X_4-->X_1+X_2        |
+|     X_4-->X_5            |
+|     X_5-->X_1+X_2        |
+|     X_5-->X_6            |
+|     X_6-->X_1+X_2        |
+|     X_6-->X_7            |
+|     X_7-->X_1+X_2        |
+|                          |
+|o1 : ReactionNetwork      |
++--------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use nSiteImmuneReaction:
+================================
+
+  * "nSiteImmuneReaction(ZZ)"
+
+For the programmer
+==================
+
+The object *note nSiteImmuneReaction: nSiteImmuneReaction, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReactionNetworks/nSiteImmuneReaction.m2:15:0.
+
+File: ReactionNetworks.info, Node: nSitePoreForming, Next: nSiteProcessiveModification, Prev: nSiteImmuneReaction, Up: Top
+
+nSitePoreForming -- an example for a pore forming network
+*********************************************************
+
+Description
+===========
+
+This motif creates a network for an N-monomer pore network. In this motif it is
+assumed that monomer one dimerises and further trimerises etc. up to a formed
+pore. The pore has finite lifetime.
+
++-----------------------+
+|i1 : nSitePoreForming 5|
+|                       |
+|o1 = 2X_1-->X_2        |
+|     X_2-->2X_1        |
+|     X_1+X_2-->X_3     |
+|     X_3-->X_1+X_2     |
+|     X_1+X_3-->X_4     |
+|     X_4-->X_1+X_3     |
+|     X_1+X_4-->X_5     |
+|     X_5-->X_1+X_4     |
+|                       |
+|o1 : ReactionNetwork   |
++-----------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use nSitePoreForming:
+=============================
+
+  * "nSitePoreForming(ZZ)"
+
+For the programmer
+==================
+
+The object *note nSitePoreForming: nSitePoreForming, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReactionNetworks/nSitePoreForming.m2:17:0.
+
+File: ReactionNetworks.info, Node: nSiteProcessiveModification, Next: nSiteSequestration, Prev: nSitePoreForming, Up: Top
+
+nSiteProcessiveModification -- A motif for purely processive phosphorylation
+****************************************************************************
+
+Description
+===========
+
+This motif creates a network for an N-site processive phosphorylation system.
+
++----------------------------------+
+|i1 : nSiteProcessiveModification 5|
+|                                  |
+|o1 = X_1+X_3-->X_5                |
+|     X_5-->X_1+X_3                |
+|     X_5-->X_6                    |
+|     X_6-->X_5                    |
+|     X_6-->X_7                    |
+|     X_7-->X_6                    |
+|     X_7-->X_8                    |
+|     X_8-->X_7                    |
+|     X_8-->X_9                    |
+|     X_9-->X_8                    |
+|     X_9-->X_1+X_4                |
+|     X_10-->X_2+X_3               |
+|     X_10-->X_11                  |
+|     X_11-->X_10                  |
+|     X_11-->X_12                  |
+|     X_12-->X_11                  |
+|     X_12-->X_13                  |
+|     X_13-->X_12                  |
+|     X_13-->X_14                  |
+|     X_14-->X_13                  |
+|     X_14-->X_2+X_4               |
+|     X_2+X_4-->X_14               |
+|                                  |
+|o1 : ReactionNetwork              |
++----------------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use nSiteProcessiveModification:
+========================================
+
+  * "nSiteProcessiveModification(ZZ)"
+
+For the programmer
+==================
+
+The object *note nSiteProcessiveModification: nSiteProcessiveModification, is a
+*note method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/nSiteProcessiveModification.m2:15:0.
+
+File: ReactionNetworks.info, Node: nSiteSequestration, Next: NullEdges, Prev: nSiteProcessiveModification, Up: Top
+
+nSiteSequestration -- A motif for sequestration networks
+********************************************************
+
+Description
+===========
+
+This motif creates a network for an N-site sequestration system. The synthesis
+reaction is created such that the network has toric steady states.
+
++-------------------------+
+|i1 : nSiteSequestration 5|
+|                         |
+|o1 = X_1+X_2-->          |
+|     X_2+X_3-->          |
+|     X_3+X_4-->          |
+|     X_4+X_5-->          |
+|     X_1-->X_5           |
+|                         |
+|o1 : ReactionNetwork     |
++-------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use nSiteSequestration:
+===============================
+
+  * "nSiteSequestration(ZZ)"
+
+For the programmer
+==================
+
+The object *note nSiteSequestration: nSiteSequestration, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReactionNetworks/nSiteSequestration.m2:16:0.
+
+File: ReactionNetworks.info, Node: NullEdges, Next: oneSiteModificationA, Prev: nSiteSequestration, Up: Top
+
+NullEdges
+*********
+
+For the programmer
+==================
+
+The object NullEdges (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: ReactionNetworks.info, Node: oneSiteModificationA, Next: oneSiteModificationB, Prev: NullEdges, Up: Top
+
+oneSiteModificationA -- an example for chemical reaction motif
+**************************************************************
+
+Description
+===========
+
+This motif is recently used as the building block of linear cascades.
+
++---------------------------+
+|i1 : oneSiteModificationA()|
+|                           |
+|o1 = S_0+E-->X             |
+|     X-->S_0+E             |
+|     X-->E+S_1             |
+|     S_1+F-->Y             |
+|     Y-->S_1+F             |
+|     Y-->S_0+F             |
+|                           |
+|o1 : ReactionNetwork       |
++---------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use oneSiteModificationA:
+=================================
+
+  * "oneSiteModificationA()"
+
+For the programmer
+==================
+
+The object *note oneSiteModificationA: oneSiteModificationA, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/OnesiteModificationA.m2:16:0.
+
+File: ReactionNetworks.info, Node: oneSiteModificationB, Next: oneSiteModificationC, Prev: oneSiteModificationA, Up: Top
+
+oneSiteModificationB -- an example for chemical reaction motif
+**************************************************************
+
+Description
+===========
+
+This is the motif that the two catalyzing enzymes are the same.
+
++---------------------------+
+|i1 : oneSiteModificationB()|
+|                           |
+|o1 = S_0+E-->X             |
+|     X-->S_0+E             |
+|     X-->E+S_1             |
+|     E+S_1-->Y             |
+|     Y-->S_0+E             |
+|     Y-->E+S_1             |
+|                           |
+|o1 : ReactionNetwork       |
++---------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use oneSiteModificationB:
+=================================
+
+  * "oneSiteModificationB()"
+
+For the programmer
+==================
+
+The object *note oneSiteModificationB: oneSiteModificationB, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/OnesiteModificationB.m2:15:0.
+
+File: ReactionNetworks.info, Node: oneSiteModificationC, Next: oneSiteModificationD, Prev: oneSiteModificationB, Up: Top
+
+oneSiteModificationC -- an example for chemical reaction motif
+**************************************************************
+
+Description
+===========
+
+This is a one-site modification cycle with two competing kinases.
+
++---------------------------+
+|i1 : oneSiteModificationC()|
+|                           |
+|o1 = S_0+E_k-->X_k         |
+|     X_k-->S_0+E_k         |
+|     X_k-->E_k+S_1         |
+|     S_1+F-->Y             |
+|     Y-->S_1+F             |
+|     Y-->S_0+F             |
+|                           |
+|o1 : ReactionNetwork       |
++---------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use oneSiteModificationC:
+=================================
+
+  * "oneSiteModificationC()"
+
+For the programmer
+==================
+
+The object *note oneSiteModificationC: oneSiteModificationC, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/OnesiteModificationC.m2:15:0.
+
+File: ReactionNetworks.info, Node: oneSiteModificationD, Next: reactantMatrix, Prev: oneSiteModificationC, Up: Top
+
+oneSiteModificationD -- an example for chemical reaction motif
+**************************************************************
+
+Description
+===========
+
+This is a one-site modification cycle with two competing kinases and two
+competing phosphatases.
+
++---------------------------+
+|i1 : oneSiteModificationD()|
+|                           |
+|o1 = S_0+E_1-->X_1         |
+|     X_1-->S_0+E_1         |
+|     X_1-->E_1+S_1         |
+|     S_1+F_1-->Y_1         |
+|     Y_1-->S_1+F_1         |
+|     Y_1-->S_0+F_1         |
+|     S_0+E_2-->X_2         |
+|     X_2-->S_0+E_2         |
+|     X_2-->S_1+E_2         |
+|     S_1+F_2-->Y_2         |
+|     Y_2-->S_1+F_2         |
+|     Y_2-->S_0+F_2         |
+|                           |
+|o1 : ReactionNetwork       |
++---------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use oneSiteModificationD:
+=================================
+
+  * "oneSiteModificationD()"
+
+For the programmer
+==================
+
+The object *note oneSiteModificationD: oneSiteModificationD, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/OnesiteModificationD.m2:15:0.
+
+File: ReactionNetworks.info, Node: reactantMatrix, Next: reactionMatrix, Prev: oneSiteModificationD, Up: Top
+
+reactantMatrix -- Computes the reactants matrix of a Reaction Network.
+**********************************************************************
+
+  * Usage: 
+        RM = reactantMatrix N
+  * Inputs:
+      * N, an instance of the type *note ReactionNetwork: ReactionNetwork,, a
+        chemical reaction network.
+  * Outputs:
+      * RM, a *note matrix: (Macaulay2Doc)Matrix,, whose rows encode the educt
+        complexes of N.
+
+Description
+===========
+
++----------------------------------------------+
+|i1 : N = reactionNetwork "A + 2B <--> 3A + 4B"|
+|                                              |
+|o1 = A+2B-->3A+4B                             |
+|     3A+4B-->A+2B                             |
+|                                              |
+|o1 : ReactionNetwork                          |
++----------------------------------------------+
+|i2 : RM = reactantMatrix N                    |
+|                                              |
+|o2 = | 1 2 |                                  |
+|     | 3 4 |                                  |
+|                                              |
+|              2       2                       |
+|o2 : Matrix ZZ  <-- ZZ                        |
++----------------------------------------------+
+
+A bigger example:
+
++-------------------------------+
+|i3 : N = oneSiteModificationA()|
+|                               |
+|o3 = S_0+E-->X                 |
+|     X-->S_0+E                 |
+|     X-->E+S_1                 |
+|     S_1+F-->Y                 |
+|     Y-->S_1+F                 |
+|     Y-->S_0+F                 |
+|                               |
+|o3 : ReactionNetwork           |
++-------------------------------+
+|i4 : RM = reactantMatrix N     |
+|                               |
+|o4 = | 1 1 0 0 0 0 |           |
+|     | 0 0 1 0 0 0 |           |
+|     | 0 0 1 0 0 0 |           |
+|     | 0 0 0 1 1 0 |           |
+|     | 0 0 0 0 0 1 |           |
+|     | 0 0 0 0 0 1 |           |
+|                               |
+|              6       6        |
+|o4 : Matrix ZZ  <-- ZZ         |
++-------------------------------+
+
+See also
+========
+
+  * *note stoichiometricMatrix: stoichiometricMatrix, -- Computes the
+    stoichiometric matrix of a Reaction Network.
+  * *note stoichiometricSubspace: stoichiometricSubspace, -- Computes the
+    stoichiometric space of a Reaction Network.
+  * *note stoichSubspaceKer: stoichSubspaceKer, -- Computes the kernel of the
+    stoichiometric matrix of a Reaction Network.
+  * *note negativeLaplacian: negativeLaplacian, -- Computes the negative of the
+    Laplacian matrix of a Reaction Network.
+  * *note negativeWeightedLaplacian: negativeWeightedLaplacian, -- Computes the
+    negative of the weighted Laplacian matrix of a Reaction Network.
+
+Ways to use reactantMatrix:
+===========================
+
+  * "reactantMatrix(ReactionNetwork)"
+
+For the programmer
+==================
+
+The object *note reactantMatrix: reactantMatrix, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:699:0.
+
+File: ReactionNetworks.info, Node: reactionMatrix, Next: ReactionNetwork, Prev: reactantMatrix, Up: Top
+
+reactionMatrix
+**************
+
+Ways to use reactionMatrix:
+===========================
+
+  * reactionMatrix(ReactionNetwork) (missing documentation)
+
+For the programmer
+==================
+
+The object reactionMatrix (missing documentation) is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: ReactionNetworks.info, Node: ReactionNetwork, Next: reactionNetwork, Prev: reactionMatrix, Up: Top
+
+ReactionNetwork -- a mutable hash table, stores information about a reaction network
+************************************************************************************
+
+Description
+===========
+
+*note ReactionNetwork: ReactionNetwork, is a *note Type: (Macaulay2Doc)Type,.
+
+See also
+========
+
+  * *note reactionNetwork: reactionNetwork, -- creates a reaction network
+
+Functions and methods returning an object of class ReactionNetwork:
+===================================================================
+
+  * *note nSiteAutocatalytic: nSiteAutocatalytic, -- A motif for autocatalytic
+    networks
+  * *note nSiteDiffusion: nSiteDiffusion, -- an example for a diffusion network
+  * *note nSiteDistributiveModification: nSiteDistributiveModification, -- A
+    motif for purely distributive phosphorylation
+  * *note nSiteImmuneReaction: nSiteImmuneReaction, -- A motif for an immune
+    response network
+  * *note nSitePoreForming: nSitePoreForming, -- an example for a pore forming
+    network
+  * *note nSiteSequestration: nSiteSequestration, -- A motif for sequestration
+    networks
+  * *note reactionNetwork: reactionNetwork, -- creates a reaction network
+
+Methods that use an object of class ReactionNetwork:
+====================================================
+
+  * "conservationEquations(ReactionNetwork)" -- see *note
+    conservationEquations: conservationEquations, -- creates the conservation
+    equations of a reaction network
+  * "conservationEquations(ReactionNetwork,Ring)" -- see *note
+    conservationEquations: conservationEquations, -- creates the conservation
+    equations of a reaction network
+  * conservationEquations(ReactionNetwork,InexactFieldFamily) (missing
+    documentation)
+  * createConcentrationRates(ReactionNetwork) (missing documentation)
+  * createInitialValues(ReactionNetwork) (missing documentation)
+  * createReactionRates(ReactionNetwork) (missing documentation)
+  * "createRing(ReactionNetwork)" -- see *note createRing: createRing, --
+    creates a ring with generators species concentrations, reaction rates,
+    initial values
+  * "createRing(ReactionNetwork,Ring)" -- see *note createRing: createRing, --
+    creates a ring with generators species concentrations, reaction rates,
+    initial values
+  * createRing(ReactionNetwork,InexactFieldFamily) (missing documentation)
+  * "glue(List,ReactionNetwork)" -- see *note glue: glue, -- combine two
+    networks
+  * "glue(ReactionNetwork,List)" -- see *note glue: glue, -- combine two
+    networks
+  * "glue(ReactionNetwork,ReactionNetwork)" -- see *note glue: glue, -- combine
+    two networks
+  * "negativeLaplacian(ReactionNetwork)" -- see *note negativeLaplacian:
+    negativeLaplacian, -- Computes the negative of the Laplacian matrix of a
+    Reaction Network.
+  * "negativeUndirectedLaplacian(ReactionNetwork)" -- see *note
+    negativeUndirectedLaplacian: negativeUndirectedLaplacian, -- Computes the
+    negative of the Laplacian matrix of an undirected graph associated with a
+    Reaction Network.
+  * "negativeWeightedLaplacian(ReactionNetwork)" -- see *note
+    negativeWeightedLaplacian: negativeWeightedLaplacian, -- Computes the
+    negative of the weighted Laplacian matrix of a Reaction Network.
+  * net(ReactionNetwork) (missing documentation)
+  * "reactantMatrix(ReactionNetwork)" -- see *note reactantMatrix:
+    reactantMatrix, -- Computes the reactants matrix of a Reaction Network.
+  * reactionMatrix(ReactionNetwork) (missing documentation)
+  * "steadyStateEquations(ReactionNetwork)" -- see *note steadyStateEquations:
+    steadyStateEquations, -- creates steady-state equations of a reaction
+    network
+  * "steadyStateEquations(ReactionNetwork,Ring)" -- see *note
+    steadyStateEquations: steadyStateEquations, -- creates steady-state
+    equations of a reaction network
+  * steadyStateEquations(ReactionNetwork,InexactFieldFamily) (missing
+    documentation)
+  * "stoichiometricConeKer(ReactionNetwork)" -- see *note
+    stoichiometricConeKer: stoichiometricConeKer, -- Computes a matrix whose
+    columns are the rays of the cone non-negative kernel of the stoichiometric
+    matrix of a Reaction Network.
+  * "stoichiometricMatrix(ReactionNetwork)" -- see *note stoichiometricMatrix:
+    stoichiometricMatrix, -- Computes the stoichiometric matrix of a Reaction
+    Network.
+  * "stoichiometricSubspace(ReactionNetwork)" -- see *note
+    stoichiometricSubspace: stoichiometricSubspace, -- Computes the
+    stoichiometric space of a Reaction Network.
+  * "stoichSubspaceKer(ReactionNetwork)" -- see *note stoichSubspaceKer:
+    stoichSubspaceKer, -- Computes the kernel of the stoichiometric matrix of a
+    Reaction Network.
+  * subRandomInitVals(ReactionNetwork) (missing documentation)
+  * subRandomInitVals(ReactionNetwork,Ring) (missing documentation)
+  * subRandomReactionRates(ReactionNetwork) (missing documentation)
+  * subRandomReactionRates(ReactionNetwork,Ring) (missing documentation)
+  * *note substitute(ReactionNetwork,List):
+    substitute_lpReactionNetwork_cmList_rp, -- substitute species names in
+    reaction network
+
+For the programmer
+==================
+
+The object *note ReactionNetwork: ReactionNetwork, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:109:0.
+
+File: ReactionNetworks.info, Node: reactionNetwork, Next: steadyStateEquations, Prev: ReactionNetwork, Up: Top
+
+reactionNetwork -- creates a reaction network
+*********************************************
+
+Description
+===========
+
+Create a reaction network from a string.
+
++-----------------------------------------------------------------------------+
+|i1 : N = reactionNetwork "A <--> 2B, A + C <--> D, B + E --> A + C, D -->    |
+|                                                                             |
+|o1 = A-->2B                                                                  |
+|     2B-->A                                                                  |
+|     A+C-->D                                                                 |
+|     D-->A+C                                                                 |
+|     D-->B+E                                                                 |
+|     B+E-->A+C                                                               |
+|                                                                             |
+|o1 : ReactionNetwork                                                         |
+|-----------------------------------------------------------------------------|
+|B+E"                                                                         |
++-----------------------------------------------------------------------------+
+
+Create a reaction network from a list.
+
++------------------------------------------------------------+
+|i2 : N = reactionNetwork {"S_0+E <--> X_1", "X_1 --> S_1+E",|
+|                          "S_1+E <--> X_2", "X_2 --> S_2+E",|
+|                          "S_1+F <--> Y_1", "Y_1 --> S_0+F",|
+|                          "S_2+F <--> Y_2", "Y_2 --> S_1+F"}|
+|                                                            |
+|o2 = S_0+E-->X_1                                            |
+|     X_1-->S_0+E                                            |
+|     X_1-->E+S_1                                            |
+|     E+S_1-->X_2                                            |
+|     X_2-->E+S_1                                            |
+|     X_2-->E+S_2                                            |
+|     S_1+F-->Y_1                                            |
+|     Y_1-->S_1+F                                            |
+|     Y_1-->S_0+F                                            |
+|     S_2+F-->Y_2                                            |
+|     Y_2-->S_1+F                                            |
+|     Y_2-->S_2+F                                            |
+|                                                            |
+|o2 : ReactionNetwork                                        |
++------------------------------------------------------------+
+
+Create a reaction network including the empty set.
+
++--------------------------------------------------------------------+
+|i3 : N = reactionNetwork ({"A --> 0", "0 --> A"}, NullSymbol => "0")|
+|                                                                    |
+|o3 = A-->0                                                          |
+|     0-->A                                                          |
+|                                                                    |
+|o3 : ReactionNetwork                                                |
++--------------------------------------------------------------------+
+
+The user may view specific information stored in the reaction network, such as
+species, complexes, etc.
+
++-----------------------------------------------------------------------------+
+|i4 : N = reactionNetwork "A <--> 2B, A + C <--> D, B + E --> A + C, D -->    |
+|                                                                             |
+|o4 = A-->2B                                                                  |
+|     2B-->A                                                                  |
+|     A+C-->D                                                                 |
+|     D-->A+C                                                                 |
+|     D-->B+E                                                                 |
+|     B+E-->A+C                                                               |
+|                                                                             |
+|o4 : ReactionNetwork                                                         |
+|-----------------------------------------------------------------------------|
+|B+E"                                                                         |
++-----------------------------------------------------------------------------+
+|i5 : N.Species                                                               |
+|                                                                             |
+|o5 = {A, B, C, D, E}                                                         |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i6 : N.Complexes                                                             |
+|                                                                             |
+|o6 = {| 1 0 0 0 0 |, | 0 2 0 0 0 |, | 1 0 1 0 0 |, | 0 0 0 1 0 |, | 0 1 0 0 1|
+|     ------------------------------------------------------------------------|
+|     |}                                                                      |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : N.ReactionGraph                                                         |
+|                                                                             |
+|o7 = Digraph{0 => {1}   }                                                    |
+|             1 => {0}                                                        |
+|             2 => {3}                                                        |
+|             3 => {2, 4}                                                     |
+|             4 => {2}                                                        |
+|                                                                             |
+|o7 : Digraph                                                                 |
++-----------------------------------------------------------------------------+
+
+Or the user may view all stored information about a reaction network:
+
++-----------------------------------------------------------------------------+
+|i8 : N = reactionNetwork "A <--> 2B, A + C <--> D, B + E --> A + C, D --> B +|
+|                                                                             |
+|o8 = A-->2B                                                                  |
+|     2B-->A                                                                  |
+|     A+C-->D                                                                 |
+|     D-->A+C                                                                 |
+|     D-->B+E                                                                 |
+|     B+E-->A+C                                                               |
+|                                                                             |
+|o8 : ReactionNetwork                                                         |
+|-----------------------------------------------------------------------------|
+|E"                                                                           |
++-----------------------------------------------------------------------------+
+|i9 : peek N                                                                  |
+|                                                                             |
+|o9 = ReactionNetwork{Complexes => {| 1 0 0 0 0 |, | 0 2 0 0 0 |, | 1 0 1 0 0 |
+|                     ConcentrationRates => null                              |
+|                     InitialValues => null                                   |
+|                     NullIndex => -1                                         |
+|                     NullSymbol =>                                           |
+|                     ReactionGraph => Digraph{0 => {1}   }                   |
+|                                              1 => {0}                       |
+|                                              2 => {3}                       |
+|                                              3 => {2, 4}                    |
+|                                              4 => {2}                       |
+|                     ReactionRates => null                                   |
+|                     ReactionRing => null                                    |
+|                     Species => {A, B, C, D, E}                              |
+|-----------------------------------------------------------------------------|
+||, | 0 0 0 1 0 |, | 0 1 0 0 1 |}}                                            |
++-----------------------------------------------------------------------------+
+
+Create a reaction network from a negative Laplacian matrix (or adjacency
+matrix) and the complexes.
+
++-----------------------------------------------------------------------------+
+|i10 : L = matrix{{-1,1,0,0,0},{1,-1,0,0,0},{0,0,-1,1,0},{0,0,1,-2,1},{0,0,1,0|
+|                                                                             |
+|o10 = | -1 1  0  0  0  |                                                     |
+|      | 1  -1 0  0  0  |                                                     |
+|      | 0  0  -1 1  0  |                                                     |
+|      | 0  0  1  -2 1  |                                                     |
+|      | 0  0  1  0  -1 |                                                     |
+|                                                                             |
+|               5       5                                                     |
+|o10 : Matrix ZZ  <-- ZZ                                                      |
+|-----------------------------------------------------------------------------|
+|,-1}}                                                                        |
++-----------------------------------------------------------------------------+
+|i11 : Comp = transpose matrix{{1,0,0,0,0},{0,2,0,0,0},{1,0,1,0,0},{0,0,0,1,0 |
+|                                                                             |
+|o11 = | 1 0 1 0 0 |                                                          |
+|      | 0 2 0 0 1 |                                                          |
+|      | 0 0 1 0 0 |                                                          |
+|      | 0 0 0 1 0 |                                                          |
+|      | 0 0 0 0 1 |                                                          |
+|                                                                             |
+|               5       5                                                     |
+|o11 : Matrix ZZ  <-- ZZ                                                      |
+|-----------------------------------------------------------------------------|
+|},{0,1,0,0,1}}                                                               |
++-----------------------------------------------------------------------------+
+|i12 : N = reactionNetwork({Comp,L},Input=>"Laplacian")                       |
+|                                                                             |
+|o12 = X_1-->2X_2                                                             |
+|      2X_2-->X_1                                                             |
+|      X_1+X_3-->X_4                                                          |
+|      X_4-->X_1+X_3                                                          |
+|      X_4-->X_2+X_5                                                          |
+|      X_2+X_5-->X_1+X_3                                                      |
+|                                                                             |
+|o12 : ReactionNetwork                                                        |
++-----------------------------------------------------------------------------+
+|i13 : peek N                                                                 |
+|                                                                             |
+|o13 = ReactionNetwork{Complexes => {| 1 0 0 0 0 |, | 0 2 0 0 0 |, | 1 0 1 0 0|
+|                      ConcentrationRates => null                             |
+|                      InitialValues => null                                  |
+|                      NullIndex => -1                                        |
+|                      NullSymbol =>                                          |
+|                      ReactionGraph => Digraph{0 => {1}   }                  |
+|                                               1 => {0}                      |
+|                                               2 => {3}                      |
+|                                               3 => {2, 4}                   |
+|                                               4 => {2}                      |
+|                      ReactionRates => null                                  |
+|                      ReactionRing => null                                   |
+|                      Species => {X_1, X_2, X_3, X_4, X_5}                   |
+|-----------------------------------------------------------------------------|
+||, | 0 0 0 1 0 |, | 0 1 0 0 1 |}}                                            |
++-----------------------------------------------------------------------------+
+
+The input can also be a weighted negative Laplacian matrix (or weighted
+adjacency matrix) and the complexes.
+
++-----------------------------------------------------------------------------+
+|i14 : R = QQ[k_1..k_6,x_1..x_5]                                              |
+|                                                                             |
+|o14 = R                                                                      |
+|                                                                             |
+|o14 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i15 : A = matrix{{-k_1,k_1,0,0,0},{k_2,-k_2,0,0,0},{0,0,-k_3,k_3,0},{0,0,k_4 |
+|                                                                             |
+|o15 = | -k_1 k_1  0    0        0    |                                       |
+|      | k_2  -k_2 0    0        0    |                                       |
+|      | 0    0    -k_3 k_3      0    |                                       |
+|      | 0    0    k_4  -k_4-k_5 k_5  |                                       |
+|      | 0    0    k_6  0        -k_6 |                                       |
+|                                                                             |
+|              5      5                                                       |
+|o15 : Matrix R  <-- R                                                        |
+|-----------------------------------------------------------------------------|
+|,-k_4-k_5,k_5},{0,0,k_6,0,-k_6}}                                             |
++-----------------------------------------------------------------------------+
+|i16 : Comp = transpose matrix{{1,0,0,0,0},{0,2,0,0,0},{1,0,1,0,0},{0,0,0,1,0 |
+|                                                                             |
+|o16 = | 1 0 1 0 0 |                                                          |
+|      | 0 2 0 0 1 |                                                          |
+|      | 0 0 1 0 0 |                                                          |
+|      | 0 0 0 1 0 |                                                          |
+|      | 0 0 0 0 1 |                                                          |
+|                                                                             |
+|               5       5                                                     |
+|o16 : Matrix ZZ  <-- ZZ                                                      |
+|-----------------------------------------------------------------------------|
+|},{0,1,0,0,1}}                                                               |
++-----------------------------------------------------------------------------+
+|i17 : N = reactionNetwork({Comp,A},Input=>"Laplacian")                       |
+|                                                                             |
+|o17 = X_1-->2X_2                                                             |
+|      2X_2-->X_1                                                             |
+|      X_1+X_3-->X_4                                                          |
+|      X_4-->X_1+X_3                                                          |
+|      X_4-->X_2+X_5                                                          |
+|      X_2+X_5-->X_1+X_3                                                      |
+|                                                                             |
+|o17 : ReactionNetwork                                                        |
++-----------------------------------------------------------------------------+
+|i18 : peek N                                                                 |
+|                                                                             |
+|o18 = ReactionNetwork{Complexes => {| 1 0 0 0 0 |, | 0 2 0 0 0 |, | 1 0 1 0 0|
+|                      ConcentrationRates => null                             |
+|                      InitialValues => null                                  |
+|                      NullIndex => -1                                        |
+|                      NullSymbol =>                                          |
+|                      ReactionGraph => Digraph{0 => {1}   }                  |
+|                                               1 => {0}                      |
+|                                               2 => {3}                      |
+|                                               3 => {2, 4}                   |
+|                                               4 => {2}                      |
+|                      ReactionRates => null                                  |
+|                      ReactionRing => null                                   |
+|                      Species => {X_1, X_2, X_3, X_4, X_5}                   |
+|-----------------------------------------------------------------------------|
+||, | 0 0 0 1 0 |, | 0 1 0 0 1 |}}                                            |
++-----------------------------------------------------------------------------+
+
+Create a reaction network from a stoichiometric matrix and a flux vector.
+
++-----------------------------------------------------------------------------+
+|i19 : R = QQ[k_1..k_6,x_1..x_5]                                              |
+|                                                                             |
+|o19 = R                                                                      |
+|                                                                             |
+|o19 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i20 : StoichM = matrix{{-1,1,-1,1,0,1},{2,-2,0,0,1,-1},{0,0,-1,1,0,1},{0,0,1 |
+|                                                                             |
+|o20 = | -1 1  -1 1  0  1  |                                                  |
+|      | 2  -2 0  0  1  -1 |                                                  |
+|      | 0  0  -1 1  0  1  |                                                  |
+|      | 0  0  1  -1 -1 0  |                                                  |
+|      | 0  0  0  0  1  -1 |                                                  |
+|                                                                             |
+|               5       6                                                     |
+|o20 : Matrix ZZ  <-- ZZ                                                      |
+|-----------------------------------------------------------------------------|
+|,-1,-1,0},{0,0,0,0,1,-1}}                                                    |
++-----------------------------------------------------------------------------+
+|i21 : FluxV = transpose matrix{{k_1*x_1,k_2*x_2^2,k_3*x_1*x_3,k_4*x_4,k_5*x_4|
+|                                                                             |
+|o21 = {-2} | k_1x_1    |                                                     |
+|      {-3} | k_2x_2^2  |                                                     |
+|      {-3} | k_3x_1x_3 |                                                     |
+|      {-2} | k_4x_4    |                                                     |
+|      {-2} | k_5x_4    |                                                     |
+|      {-3} | k_6x_2x_5 |                                                     |
+|                                                                             |
+|              6      1                                                       |
+|o21 : Matrix R  <-- R                                                        |
+|-----------------------------------------------------------------------------|
+|,k_6*x_2*x_5}}                                                               |
++-----------------------------------------------------------------------------+
+|i22 : N = reactionNetwork({StoichM,FluxV},Input=>"Stoichiometric")           |
+|                                                                             |
+|o22 = X_1-->2X_2                                                             |
+|      2X_2-->X_1                                                             |
+|      X_1+X_3-->X_4                                                          |
+|      X_4-->X_1+X_3                                                          |
+|      X_4-->X_2+X_5                                                          |
+|      X_2+X_5-->X_1+X_3                                                      |
+|                                                                             |
+|o22 : ReactionNetwork                                                        |
++-----------------------------------------------------------------------------+
+|i23 : peek N                                                                 |
+|                                                                             |
+|o23 = ReactionNetwork{Complexes => {| 0 1 0 0 1 |, | 0 0 0 1 0 |, | 1 0 1 0 0|
+|                      ConcentrationRates => null                             |
+|                      InitialValues => null                                  |
+|                      NullIndex => -1                                        |
+|                      NullSymbol =>                                          |
+|                      ReactionGraph => Digraph{0 => {2}   }                  |
+|                                               1 => {2, 0}                   |
+|                                               2 => {1}                      |
+|                                               3 => {4}                      |
+|                                               4 => {3}                      |
+|                      ReactionRates => null                                  |
+|                      ReactionRing => null                                   |
+|                      Species => {X_1, X_2, X_3, X_4, X_5}                   |
+|-----------------------------------------------------------------------------|
+||, | 1 0 0 0 0 |, | 0 2 0 0 0 |}}                                            |
++-----------------------------------------------------------------------------+
+
+Create a reaction network from a steady state ideal in R
+=QQ[k_1..k_m,x_1..x_n]. Note that the ideal needs to be unreduced with
+generator coming from a mass action dynamical system.
+
++-----------------------------------------------------------------------------+
+|i24 : R = QQ[k_1..k_6,x_1..x_5]                                              |
+|                                                                             |
+|o24 = R                                                                      |
+|                                                                             |
+|o24 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i25 : I = ideal(k_2*x_2^2-k_3*x_1*x_3+k_6*x_2*x_5-k_1*x_1+k_4*x_4,           |
+|          -2*k_2*x_2^2-k_6*x_2*x_5+2*k_1*x_1+k_5*x_4,                        |
+|          -k_3*x_1*x_3+k_6*x_2*x_5+k_4*x_4,                                  |
+|          k_3*x_1*x_3-k_4*x_4-k_5*x_4,                                       |
+|          -k_6*x_2*x_5+k_5*x_4)                                              |
+|                                                                             |
+|                2                                        2                   |
+|o25 = ideal (k x  - k x x  + k x x  - k x  + k x , - 2k x  - k x x  + 2k x  +|
+|              2 2    3 1 3    6 2 5    1 1    4 4      2 2    6 2 5     1 1  |
+|      -----------------------------------------------------------------------|
+|      k x , - k x x  + k x x  + k x , k x x  - k x  - k x , - k x x  + k x ) |
+|       5 4     3 1 3    6 2 5    4 4   3 1 3    4 4    5 4     6 2 5    5 4  |
+|                                                                             |
+|o25 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i26 : N = reactionNetwork I                                                  |
+|                                                                             |
+|o26 = 2X_2-->X_1                                                             |
+|      X_1-->2X_2                                                             |
+|      X_1+X_3-->X_4                                                          |
+|      X_4-->X_1+X_3                                                          |
+|      X_4-->X_2+X_5                                                          |
+|      X_2+X_5-->X_1+X_3                                                      |
+|                                                                             |
+|o26 : ReactionNetwork                                                        |
++-----------------------------------------------------------------------------+
+|i27 : peek N                                                                 |
+|                                                                             |
+|o27 = ReactionNetwork{Complexes => {| 0 0 0 1 0 |, | 1 0 0 0 0 |, | 0 1 0 0 1|
+|                      ConcentrationRates => null                             |
+|                      InitialValues => null                                  |
+|                      NullIndex => -1                                        |
+|                      NullSymbol =>                                          |
+|                      ReactionGraph => Digraph{0 => {3, 2}}                  |
+|                                               1 => {4}                      |
+|                                               2 => {3}                      |
+|                                               3 => {0}                      |
+|                                               4 => {1}                      |
+|                      ReactionRates => null                                  |
+|                      ReactionRing => null                                   |
+|                      Species => {X_1, X_2, X_3, X_4, X_5}                   |
+|-----------------------------------------------------------------------------|
+||, | 1 0 1 0 0 |, | 0 2 0 0 0 |}}                                            |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note glue: glue, -- combine two networks
+  * *note steadyStateEquations: steadyStateEquations, -- creates steady-state
+    equations of a reaction network
+  * *note conservationEquations: conservationEquations, -- creates the
+    conservation equations of a reaction network
+
+Ways to use reactionNetwork:
+============================
+
+  * "reactionNetwork(Ideal)"
+  * "reactionNetwork(List)"
+  * "reactionNetwork(String)"
+
+For the programmer
+==================
+
+The object *note reactionNetwork: reactionNetwork, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:190:0.
+
+File: ReactionNetworks.info, Node: steadyStateEquations, Next: stoichiometricConeKer, Prev: reactionNetwork, Up: Top
+
+steadyStateEquations -- creates steady-state equations of a reaction network
+****************************************************************************
+
+Description
+===========
+
+Obtain the steady-state equations for a given network. Before any equations can
+be created, you must invoke the *note createRing: createRing, function, which
+creates the reaction network ring. If you do not create the ring, you will
+receive an error message.
+
++-----------------------------------------------------------------------------+
+|i1 : N = reactionNetwork "A <--> 2B, A + C <--> D, B + E --> A + C, D -->    |
+|                                                                             |
+|o1 = A-->2B                                                                  |
+|     2B-->A                                                                  |
+|     A+C-->D                                                                 |
+|     D-->A+C                                                                 |
+|     D-->B+E                                                                 |
+|     B+E-->A+C                                                               |
+|                                                                             |
+|o1 : ReactionNetwork                                                         |
+|-----------------------------------------------------------------------------|
+|B+E"                                                                         |
++-----------------------------------------------------------------------------+
+|i2 : R = createRing(N, QQ)                                                   |
+|                                                                             |
+|o2 = R                                                                       |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i3 : steadyStateEquations N                                                  |
+|                                                                             |
+|o3 = | xx_B^2kk_{1, 0}-xx_Axx_Ckk_{2, 3}+xx_Bxx_Ekk_{4, 2}-xx_Akk_{0, 1}+xx_ |
+|     | -2xx_B^2kk_{1, 0}-xx_Bxx_Ekk_{4, 2}+2xx_Akk_{0, 1}+xx_Dkk_{3, 4}      |
+|     | -xx_Axx_Ckk_{2, 3}+xx_Bxx_Ekk_{4, 2}+xx_Dkk_{3, 2}                    |
+|     | xx_Axx_Ckk_{2, 3}-xx_Dkk_{3, 2}-xx_Dkk_{3, 4}                         |
+|     | -xx_Bxx_Ekk_{4, 2}+xx_Dkk_{3, 4}                                      |
+|     ------------------------------------------------------------------------|
+|     Dkk_{3, 2} |                                                            |
+|                |                                                            |
+|                |                                                            |
+|                |                                                            |
+|                |                                                            |
+|                                                                             |
+|             5      1                                                        |
+|o3 : Matrix R  <-- R                                                         |
++-----------------------------------------------------------------------------+
+
+Obtain the steady-state equations for a motif and display equations.
+
++-----------------------------------------------------------------------------+
+|i4 : N = modificationOfTwoSubstratesI()                                      |
+|                                                                             |
+|o4 = S_0+E-->X_1                                                             |
+|     X_1-->S_0+E                                                             |
+|     X_1-->E+S_1                                                             |
+|     S_1+F-->Y_1                                                             |
+|     Y_1-->S_1+F                                                             |
+|     Y_1-->S_0+F                                                             |
+|     E+P_0-->X_2                                                             |
+|     X_2-->E+P_0                                                             |
+|     X_2-->E+P_1                                                             |
+|     F+P_1-->Y_2                                                             |
+|     Y_2-->F+P_1                                                             |
+|     Y_2-->F+P_0                                                             |
+|                                                                             |
+|o4 : ReactionNetwork                                                         |
++-----------------------------------------------------------------------------+
+|i5 : R = createRing(N, QQ)                                                   |
+|                                                                             |
+|o5 = R                                                                       |
+|                                                                             |
+|o5 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i6 : steadyStateEquations N                                                  |
+|                                                                             |
+|o6 = | -xx_S_0xx_Ekk_{0, 1}+xx_X_1kk_{1, 0}+xx_Y_1kk_{4, 5}                  |
+|     | -xx_S_0xx_Ekk_{0, 1}-xx_Exx_P_0kk_{6, 7}+xx_X_1kk_{1, 0}+xx_X_1kk_{1, |
+|     | xx_S_0xx_Ekk_{0, 1}-xx_X_1kk_{1, 0}-xx_X_1kk_{1, 2}                   |
+|     | -xx_S_1xx_Fkk_{3, 4}+xx_X_1kk_{1, 2}+xx_Y_1kk_{4, 3}                  |
+|     | -xx_S_1xx_Fkk_{3, 4}-xx_Fxx_P_1kk_{9, 10}+xx_Y_1kk_{4, 3}+xx_Y_1kk_{4,|
+|     | xx_S_1xx_Fkk_{3, 4}-xx_Y_1kk_{4, 3}-xx_Y_1kk_{4, 5}                   |
+|     | -xx_Exx_P_0kk_{6, 7}+xx_X_2kk_{7, 6}+xx_Y_2kk_{10, 11}                |
+|     | xx_Exx_P_0kk_{6, 7}-xx_X_2kk_{7, 6}-xx_X_2kk_{7, 8}                   |
+|     | -xx_Fxx_P_1kk_{9, 10}+xx_X_2kk_{7, 8}+xx_Y_2kk_{10, 9}                |
+|     | xx_Fxx_P_1kk_{9, 10}-xx_Y_2kk_{10, 9}-xx_Y_2kk_{10, 11}               |
+|     ------------------------------------------------------------------------|
+|                                            |                                |
+|     2}+xx_X_2kk_{7, 6}+xx_X_2kk_{7, 8}     |                                |
+|                                            |                                |
+|                                            |                                |
+|      5}+xx_Y_2kk_{10, 9}+xx_Y_2kk_{10, 11} |                                |
+|                                            |                                |
+|                                            |                                |
+|                                            |                                |
+|                                            |                                |
+|                                            |                                |
+|                                                                             |
+|             10      1                                                       |
+|o6 : Matrix R   <-- R                                                        |
++-----------------------------------------------------------------------------+
+
+Generate the steady-state equations in a specific ring.
+
++-----------------------------------------------------------------------------+
+|i7 : N = twoLayerCascadeL()                                                  |
+|                                                                             |
+|o7 = S_0+E-->X_1                                                             |
+|     X_1-->S_0+E                                                             |
+|     X_1-->E+S_1                                                             |
+|     S_1+P_0-->X_2                                                           |
+|     X_2-->S_1+P_0                                                           |
+|     X_2-->S_1+P_1                                                           |
+|     E+P_0-->X_3                                                             |
+|     X_3-->E+P_0                                                             |
+|     X_3-->E+P_1                                                             |
+|     S_1+F_1-->Y_1                                                           |
+|     Y_1-->S_1+F_1                                                           |
+|     Y_1-->S_0+F_1                                                           |
+|     P_1+F_2-->Y_2                                                           |
+|     Y_2-->P_1+F_2                                                           |
+|     Y_2-->P_0+F_2                                                           |
+|                                                                             |
+|o7 : ReactionNetwork                                                         |
++-----------------------------------------------------------------------------+
+|i8 : R = createRing(N, ZZ/2)                                                 |
+|                                                                             |
+|o8 = R                                                                       |
+|                                                                             |
+|o8 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i9 : F = steadyStateEquations(N, ZZ/2)                                       |
+|                                                                             |
+|o9 = | xx_S_0xx_Ekk_{0, 1}+xx_X_1kk_{1, 0}+xx_Y_1kk_{10, 11}                 |
+|     | xx_S_0xx_Ekk_{0, 1}+xx_Exx_P_0kk_{6, 7}+xx_X_1kk_{1, 0}+xx_X_1kk_{1,  |
+|     | xx_S_0xx_Ekk_{0, 1}+xx_X_1kk_{1, 0}+xx_X_1kk_{1, 2}                   |
+|     | xx_S_1xx_P_0kk_{3, 4}+xx_S_1xx_F_1kk_{9, 10}+xx_X_1kk_{1, 2}+xx_X_2kk |
+|     | xx_S_1xx_P_0kk_{3, 4}+xx_Exx_P_0kk_{6, 7}+xx_X_2kk_{4, 3}+xx_X_3kk_{7 |
+|     | xx_S_1xx_P_0kk_{3, 4}+xx_X_2kk_{4, 3}+xx_X_2kk_{4, 5}                 |
+|     | xx_P_1xx_F_2kk_{12, 13}+xx_X_2kk_{4, 5}+xx_X_3kk_{7, 8}+xx_Y_2kk_{13, |
+|     | xx_Exx_P_0kk_{6, 7}+xx_X_3kk_{7, 6}+xx_X_3kk_{7, 8}                   |
+|     | xx_S_1xx_F_1kk_{9, 10}+xx_Y_1kk_{10, 9}+xx_Y_1kk_{10, 11}             |
+|     | xx_S_1xx_F_1kk_{9, 10}+xx_Y_1kk_{10, 9}+xx_Y_1kk_{10, 11}             |
+|     | xx_P_1xx_F_2kk_{12, 13}+xx_Y_2kk_{13, 12}+xx_Y_2kk_{13, 14}           |
+|     | xx_P_1xx_F_2kk_{12, 13}+xx_Y_2kk_{13, 12}+xx_Y_2kk_{13, 14}           |
+|     ------------------------------------------------------------------------|
+|                                              |                              |
+|     2}+xx_X_3kk_{7, 6}+xx_X_3kk_{7, 8}       |                              |
+|                                              |                              |
+|     _{4, 3}+xx_X_2kk_{4, 5}+xx_Y_1kk_{10, 9} |                              |
+|     , 6}+xx_Y_2kk_{13, 14}                   |                              |
+|                                              |                              |
+|      12}                                     |                              |
+|                                              |                              |
+|                                              |                              |
+|                                              |                              |
+|                                              |                              |
+|                                              |                              |
+|                                                                             |
+|             12      1                                                       |
+|o9 : Matrix R   <-- R                                                        |
++-----------------------------------------------------------------------------+
+
+Substitute ReactionRates
+
+The example below demonstrates how to substitute randomly generated values, for
+the reaction rates, directly into the steady state equations. For specific
+user-input values create a list with the corresponding values for each reaction
+rate; to view the order: N.ReactionRates, where N is the name of the reaction
+network.
+
++-----------------------------------------------------------------------------+
+|i10 : M = reactionNetwork "A <--> 2B, A+C <--> D, D --> B+E, B+E --> A+C"    |
+|                                                                             |
+|o10 = A-->2B                                                                 |
+|      2B-->A                                                                 |
+|      A+C-->D                                                                |
+|      D-->A+C                                                                |
+|      D-->B+E                                                                |
+|      B+E-->A+C                                                              |
+|                                                                             |
+|o10 : ReactionNetwork                                                        |
++-----------------------------------------------------------------------------+
+|i11 : R = createRing M                                                       |
+|                                                                             |
+|o11 = R                                                                      |
+|                                                                             |
+|o11 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i12 : K = toList(apply(0..length M.ReactionRates-1, i-> random(QQ)))         |
+|                                                                             |
+|       9  9  3  7  7   7                                                     |
+|o12 = {-, -, -, -, -, --}                                                    |
+|       2  4  4  4  9  10                                                     |
+|                                                                             |
+|o12 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i13 : Rr = toList(apply(0..length M.ReactionRates-1, i->                     |
+|                                                                             |
+|o13 = {kk      , kk      , kk      , kk      , kk      ,                     |
+|         {0, 1}    {1, 0}    {2, 3}    {3, 2}    {3, 4}                      |
+|                                                                             |
+|o13 : List                                                                   |
+|-----------------------------------------------------------------------------|
+|value(M.ReactionRates#i)))                                                   |
+|                                                                             |
+|kk      }                                                                    |
+|  {4, 2}                                                                     |
++-----------------------------------------------------------------------------+
+|i14 : P = toList(apply(0..length Rr-1, i-> Rr#i=>sub(K#i,R)))                |
+|                                                                             |
+|                   9              9              3              7            |
+|o14 = {kk       => -, kk       => -, kk       => -, kk       => -, kk        |
+|         {0, 1}    2    {1, 0}    4    {2, 3}    4    {3, 2}    4    {3, 4}  |
+|      -----------------------------------------------------------------------|
+|         7               7                                                   |
+|      => -, kk       => --}                                                  |
+|         9    {4, 2}    10                                                   |
+|                                                                             |
+|o14 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i15 : SSE = flatten entries steadyStateEquations M                           |
+|                                                                             |
+|         2                                                                   |
+|o15 = {xx kk       - xx xx kk       + xx xx kk       - xx kk       + xx kk   |
+|         B  {1, 0}     A  C  {2, 3}     B  E  {4, 2}     A  {0, 1}     D  {3,|
+|      -----------------------------------------------------------------------|
+|               2                                                             |
+|        , - 2xx kk       - xx xx kk       + 2xx kk       + xx kk      , -    |
+|      2}       B  {1, 0}     B  E  {4, 2}      A  {0, 1}     D  {3, 4}       |
+|      -----------------------------------------------------------------------|
+|      xx xx kk       + xx xx kk       + xx kk      , xx xx kk       -        |
+|        A  C  {2, 3}     B  E  {4, 2}     D  {3, 2}    A  C  {2, 3}          |
+|      -----------------------------------------------------------------------|
+|      xx kk       - xx kk      , - xx xx kk       + xx kk      }             |
+|        D  {3, 2}     D  {3, 4}      B  E  {4, 2}     D  {3, 4}              |
+|                                                                             |
+|o15 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i16 : toList apply(0..length SSE-1, i-> sub(SSE#i,P))                        |
+|                                                                             |
+|       9  2   3          7         9      7       9  2    7                  |
+|o16 = {-xx  - -xx xx  + --xx xx  - -xx  + -xx , - -xx  - --xx xx  + 9xx  +   |
+|       4  B   4  A  C   10  B  E   2  A   4  D    2  B   10  B  E      A     |
+|      -----------------------------------------------------------------------|
+|      7       3          7         7     3         91        7         7     |
+|      -xx , - -xx xx  + --xx xx  + -xx , -xx xx  - --xx , - --xx xx  + -xx } |
+|      9  D    4  A  C   10  B  E   4  D  4  A  C   36  D    10  B  E   9  D  |
+|                                                                             |
+|o16 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note reactionNetwork: reactionNetwork, -- creates a reaction network
+  * *note conservationEquations: conservationEquations, -- creates the
+    conservation equations of a reaction network
+
+Ways to use steadyStateEquations:
+=================================
+
+  * "steadyStateEquations(ReactionNetwork)"
+  * "steadyStateEquations(ReactionNetwork,Ring)"
+  * steadyStateEquations(ReactionNetwork,InexactFieldFamily) (missing
+    documentation)
+
+For the programmer
+==================
+
+The object *note steadyStateEquations: steadyStateEquations, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:242:0.
+
+File: ReactionNetworks.info, Node: stoichiometricConeKer, Next: stoichiometricMatrix, Prev: steadyStateEquations, Up: Top
+
+stoichiometricConeKer -- Computes a matrix whose columns are the rays of the cone non-negative kernel of the stoichiometric matrix of a Reaction Network.
+*********************************************************************************************************************************************************
+
+  * Usage: 
+        E = stoichiometricConeKer N
+  * Inputs:
+      * N, an instance of the type *note ReactionNetwork: ReactionNetwork,, a
+        chemical reaction network.
+  * Outputs:
+      * E, a *note matrix: (Macaulay2Doc)Matrix,, whose columns are the non
+        negative kernel of the stoichiometric matrix of N.
+
+Description
+===========
+
+Computes the cone non-negative kernel of the stoichiometric matrix of N and
+puts its rays as columns of a matrix.
+
++-----------------------------------+
+|i1 : N = reactionNetwork "A <--> B"|
+|                                   |
+|o1 = A-->B                         |
+|     B-->A                         |
+|                                   |
+|o1 : ReactionNetwork               |
++-----------------------------------+
+|i2 : S = stoichiometricMatrix N    |
+|                                   |
+|o2 = | -1 1  |                     |
+|     | 1  -1 |                     |
+|                                   |
+|              2       2            |
+|o2 : Matrix ZZ  <-- ZZ             |
++-----------------------------------+
+|i3 : E = stoichiometricConeKer N   |
+|                                   |
+|o3 = | 1 |                         |
+|     | 1 |                         |
+|                                   |
+|              2       1            |
+|o3 : Matrix ZZ  <-- ZZ             |
++-----------------------------------+
+
+A bigger example:
+
++--------------------------------+
+|i4 : N = oneSiteModificationA() |
+|                                |
+|o4 = S_0+E-->X                  |
+|     X-->S_0+E                  |
+|     X-->E+S_1                  |
+|     S_1+F-->Y                  |
+|     Y-->S_1+F                  |
+|     Y-->S_0+F                  |
+|                                |
+|o4 : ReactionNetwork            |
++--------------------------------+
+|i5 : S = stoichiometricMatrix N |
+|                                |
+|o5 = | -1 1  0  0  0  1  |      |
+|     | -1 1  1  0  0  0  |      |
+|     | 1  -1 -1 0  0  0  |      |
+|     | 0  0  1  -1 1  0  |      |
+|     | 0  0  0  -1 1  1  |      |
+|     | 0  0  0  1  -1 -1 |      |
+|                                |
+|              6       6         |
+|o5 : Matrix ZZ  <-- ZZ          |
++--------------------------------+
+|i6 : E = stoichiometricConeKer N|
+|                                |
+|o6 = | 0 1 1 |                  |
+|     | 0 0 1 |                  |
+|     | 0 1 0 |                  |
+|     | 1 1 0 |                  |
+|     | 1 0 0 |                  |
+|     | 0 1 0 |                  |
+|                                |
+|              6       3         |
+|o6 : Matrix ZZ  <-- ZZ          |
++--------------------------------+
+
+See also
+========
+
+  * *note stoichiometricMatrix: stoichiometricMatrix, -- Computes the
+    stoichiometric matrix of a Reaction Network.
+  * *note stoichiometricSubspace: stoichiometricSubspace, -- Computes the
+    stoichiometric space of a Reaction Network.
+  * *note stoichSubspaceKer: stoichSubspaceKer, -- Computes the kernel of the
+    stoichiometric matrix of a Reaction Network.
+  * *note negativeLaplacian: negativeLaplacian, -- Computes the negative of the
+    Laplacian matrix of a Reaction Network.
+  * *note negativeWeightedLaplacian: negativeWeightedLaplacian, -- Computes the
+    negative of the weighted Laplacian matrix of a Reaction Network.
+
+Ways to use stoichiometricConeKer:
+==================================
+
+  * "stoichiometricConeKer(ReactionNetwork)"
+
+For the programmer
+==================
+
+The object *note stoichiometricConeKer: stoichiometricConeKer, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:860:0.
+
+File: ReactionNetworks.info, Node: stoichiometricMatrix, Next: stoichiometricSubspace, Prev: stoichiometricConeKer, Up: Top
+
+stoichiometricMatrix -- Computes the stoichiometric matrix of a Reaction Network.
+*********************************************************************************
+
+  * Usage: 
+        S = stoichiometricMatrix N
+  * Inputs:
+      * N, an instance of the type *note ReactionNetwork: ReactionNetwork,, a
+        chemical reaction network.
+  * Outputs:
+      * S, a *note matrix: (Macaulay2Doc)Matrix,, the stoichiometric matrix of
+        N.
+
+Description
+===========
+
+Computes the stoichiometric matrix of a Reaction Network.
+
++-----------------------------------+
+|i1 : N = reactionNetwork "A <--> B"|
+|                                   |
+|o1 = A-->B                         |
+|     B-->A                         |
+|                                   |
+|o1 : ReactionNetwork               |
++-----------------------------------+
+|i2 : S = stoichiometricMatrix N    |
+|                                   |
+|o2 = | -1 1  |                     |
+|     | 1  -1 |                     |
+|                                   |
+|              2       2            |
+|o2 : Matrix ZZ  <-- ZZ             |
++-----------------------------------+
+
+A bigger example:
+
++-------------------------------+
+|i3 : N = oneSiteModificationA()|
+|                               |
+|o3 = S_0+E-->X                 |
+|     X-->S_0+E                 |
+|     X-->E+S_1                 |
+|     S_1+F-->Y                 |
+|     Y-->S_1+F                 |
+|     Y-->S_0+F                 |
+|                               |
+|o3 : ReactionNetwork           |
++-------------------------------+
+|i4 : S = stoichiometricMatrix N|
+|                               |
+|o4 = | -1 1  0  0  0  1  |     |
+|     | -1 1  1  0  0  0  |     |
+|     | 1  -1 -1 0  0  0  |     |
+|     | 0  0  1  -1 1  0  |     |
+|     | 0  0  0  -1 1  1  |     |
+|     | 0  0  0  1  -1 -1 |     |
+|                               |
+|              6       6        |
+|o4 : Matrix ZZ  <-- ZZ         |
++-------------------------------+
+
+See also
+========
+
+  * *note stoichiometricSubspace: stoichiometricSubspace, -- Computes the
+    stoichiometric space of a Reaction Network.
+  * *note stoichSubspaceKer: stoichSubspaceKer, -- Computes the kernel of the
+    stoichiometric matrix of a Reaction Network.
+  * *note negativeLaplacian: negativeLaplacian, -- Computes the negative of the
+    Laplacian matrix of a Reaction Network.
+  * *note negativeWeightedLaplacian: negativeWeightedLaplacian, -- Computes the
+    negative of the weighted Laplacian matrix of a Reaction Network.
+
+Ways to use stoichiometricMatrix:
+=================================
+
+  * "stoichiometricMatrix(ReactionNetwork)"
+
+For the programmer
+==================
+
+The object *note stoichiometricMatrix: stoichiometricMatrix, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:668:0.
+
+File: ReactionNetworks.info, Node: stoichiometricSubspace, Next: stoichSubspaceKer, Prev: stoichiometricMatrix, Up: Top
+
+stoichiometricSubspace -- Computes the stoichiometric space of a Reaction Network.
+**********************************************************************************
+
+  * Usage: 
+        S = stoichiometricSubspace N
+  * Inputs:
+      * N, an instance of the type *note ReactionNetwork: ReactionNetwork,, a
+        chemical reaction network.
+  * Outputs:
+      * S, a *note matrix: (Macaulay2Doc)Matrix,, whose columns span the
+        stoichiometric space.
+
+Description
+===========
+
+Computes the stoichiometric space of a Reaction Network.
+
++-----------------------------------+
+|i1 : N = reactionNetwork "A <--> B"|
+|                                   |
+|o1 = A-->B                         |
+|     B-->A                         |
+|                                   |
+|o1 : ReactionNetwork               |
++-----------------------------------+
+|i2 : S = stoichiometricSubspace N  |
+|                                   |
+|o2 = | -1 |                        |
+|     | 1  |                        |
+|                                   |
+|              2       1            |
+|o2 : Matrix ZZ  <-- ZZ             |
++-----------------------------------+
+
+A bigger example:
+
++---------------------------------+
+|i3 : N = oneSiteModificationA()  |
+|                                 |
+|o3 = S_0+E-->X                   |
+|     X-->S_0+E                   |
+|     X-->E+S_1                   |
+|     S_1+F-->Y                   |
+|     Y-->S_1+F                   |
+|     Y-->S_0+F                   |
+|                                 |
+|o3 : ReactionNetwork             |
++---------------------------------+
+|i4 : S = stoichiometricSubspace N|
+|                                 |
+|o4 = | -1 -1 -1 |                |
+|     | -1 0  0  |                |
+|     | 1  0  0  |                |
+|     | 0  1  0  |                |
+|     | 0  0  -1 |                |
+|     | 0  0  1  |                |
+|                                 |
+|              6       3          |
+|o4 : Matrix ZZ  <-- ZZ           |
++---------------------------------+
+
+See also
+========
+
+  * *note stoichiometricMatrix: stoichiometricMatrix, -- Computes the
+    stoichiometric matrix of a Reaction Network.
+  * *note stoichSubspaceKer: stoichSubspaceKer, -- Computes the kernel of the
+    stoichiometric matrix of a Reaction Network.
+
+Ways to use stoichiometricSubspace:
+===================================
+
+  * "stoichiometricSubspace(ReactionNetwork)"
+
+For the programmer
+==================
+
+The object *note stoichiometricSubspace: stoichiometricSubspace, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:730:0.
+
+File: ReactionNetworks.info, Node: stoichSubspaceKer, Next: subRandomInitVals, Prev: stoichiometricSubspace, Up: Top
+
+stoichSubspaceKer -- Computes the kernel of the stoichiometric matrix of a Reaction Network.
+********************************************************************************************
+
+  * Usage: 
+        Z = stoichSubspaceKer N
+  * Inputs:
+      * N, an instance of the type *note ReactionNetwork: ReactionNetwork,, a
+        chemical reaction network.
+  * Outputs:
+      * Z, a *note matrix: (Macaulay2Doc)Matrix,, whose columns span the left
+        kernel of the stoichiometric matrix.
+
+Description
+===========
+
+Computes the left kernel of the stoichiometric matrix of a Reaction Network.
+
++-----------------------------------+
+|i1 : N = reactionNetwork "A <--> B"|
+|                                   |
+|o1 = A-->B                         |
+|     B-->A                         |
+|                                   |
+|o1 : ReactionNetwork               |
++-----------------------------------+
+|i2 : Z = stoichSubspaceKer N       |
+|                                   |
+|o2 = | 1 |                         |
+|     | 1 |                         |
+|                                   |
+|              2       1            |
+|o2 : Matrix ZZ  <-- ZZ             |
++-----------------------------------+
+|i3 : S = stoichiometricMatrix N    |
+|                                   |
+|o3 = | -1 1  |                     |
+|     | 1  -1 |                     |
+|                                   |
+|              2       2            |
+|o3 : Matrix ZZ  <-- ZZ             |
++-----------------------------------+
+|i4 : K = ker transpose S           |
+|                                   |
+|o4 = image | 1 |                   |
+|           | 1 |                   |
+|                                   |
+|                               2   |
+|o4 : ZZ-module, submodule of ZZ    |
++-----------------------------------+
+
+A bigger example:
+
++--------------------------------+
+|i5 : N = oneSiteModificationA() |
+|                                |
+|o5 = S_0+E-->X                  |
+|     X-->S_0+E                  |
+|     X-->E+S_1                  |
+|     S_1+F-->Y                  |
+|     Y-->S_1+F                  |
+|     Y-->S_0+F                  |
+|                                |
+|o5 : ReactionNetwork            |
++--------------------------------+
+|i6 : Z = stoichSubspaceKer N    |
+|                                |
+|o6 = | 0 -1 1  |                |
+|     | 1 1  -1 |                |
+|     | 1 0  0  |                |
+|     | 0 -1 1  |                |
+|     | 0 1  0  |                |
+|     | 0 0  1  |                |
+|                                |
+|              6       3         |
+|o6 : Matrix ZZ  <-- ZZ          |
++--------------------------------+
+|i7 : S = stoichiometricMatrix N |
+|                                |
+|o7 = | -1 1  0  0  0  1  |      |
+|     | -1 1  1  0  0  0  |      |
+|     | 1  -1 -1 0  0  0  |      |
+|     | 0  0  1  -1 1  0  |      |
+|     | 0  0  0  -1 1  1  |      |
+|     | 0  0  0  1  -1 -1 |      |
+|                                |
+|              6       6         |
+|o7 : Matrix ZZ  <-- ZZ          |
++--------------------------------+
+|i8 : K = ker transpose S        |
+|                                |
+|o8 = image | 0 -1 1 |           |
+|           | 1 1  0 |           |
+|           | 1 0  1 |           |
+|           | 0 -1 1 |           |
+|           | 0 1  0 |           |
+|           | 0 0  1 |           |
+|                                |
+|                               6|
+|o8 : ZZ-module, submodule of ZZ |
++--------------------------------+
+
+See also
+========
+
+  * *note stoichiometricMatrix: stoichiometricMatrix, -- Computes the
+    stoichiometric matrix of a Reaction Network.
+  * *note stoichiometricSubspace: stoichiometricSubspace, -- Computes the
+    stoichiometric space of a Reaction Network.
+
+Ways to use stoichSubspaceKer:
+==============================
+
+  * "stoichSubspaceKer(ReactionNetwork)"
+
+For the programmer
+==================
+
+The object *note stoichSubspaceKer: stoichSubspaceKer, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:765:0.
+
+File: ReactionNetworks.info, Node: subRandomInitVals, Next: subRandomReactionRates, Prev: stoichSubspaceKer, Up: Top
+
+subRandomInitVals
+*****************
+
+Ways to use subRandomInitVals:
+==============================
+
+  * subRandomInitVals(ReactionNetwork) (missing documentation)
+  * subRandomInitVals(ReactionNetwork,Ring) (missing documentation)
+
+For the programmer
+==================
+
+The object subRandomInitVals (missing documentation) is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: ReactionNetworks.info, Node: subRandomReactionRates, Next: substitute_lpReactionNetwork_cmList_rp, Prev: subRandomInitVals, Up: Top
+
+subRandomReactionRates
+**********************
+
+Ways to use subRandomReactionRates:
+===================================
+
+  * subRandomReactionRates(ReactionNetwork) (missing documentation)
+  * subRandomReactionRates(ReactionNetwork,Ring) (missing documentation)
+
+For the programmer
+==================
+
+The object subRandomReactionRates (missing documentation) is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: ReactionNetworks.info, Node: substitute_lpReactionNetwork_cmList_rp, Next: twoLayerCascadeJ, Prev: subRandomReactionRates, Up: Top
+
+substitute(ReactionNetwork,List) -- substitute species names in reaction network
+********************************************************************************
+
+  * Function: *note substitute: (Macaulay2Doc)substitute,
+
+Description
+===========
+
+The user may choose to change the symbols for one or more of the species
+participating in the reaction. This can be done in the following manner. To
+rename one of the species:
+
++-------------------------------+
+|i1 : N = twoSiteModificationG()|
+|                               |
+|o1 = S_0+E-->X_1               |
+|     X_1-->S_0+E               |
+|     X_1-->E+S_1               |
+|     E+S_1-->X_2               |
+|     X_2-->E+S_1               |
+|     X_2-->E+S_2               |
+|     S_1+F-->Y_1               |
+|     Y_1-->S_1+F               |
+|     Y_1-->S_0+F               |
+|     S_2+F-->Y_2               |
+|     Y_2-->S_1+F               |
+|     Y_2-->S_2+F               |
+|                               |
+|o1 : ReactionNetwork           |
++-------------------------------+
+|i2 : sub(N, {"S_0" => "A"})    |
+|                               |
+|o2 = A+E-->X_1                 |
+|     X_1-->A+E                 |
+|     X_1-->E+S_1               |
+|     E+S_1-->X_2               |
+|     X_2-->E+S_1               |
+|     X_2-->E+S_2               |
+|     S_1+F-->Y_1               |
+|     Y_1-->S_1+F               |
+|     Y_1-->A+F                 |
+|     S_2+F-->Y_2               |
+|     Y_2-->S_1+F               |
+|     Y_2-->S_2+F               |
+|                               |
+|o2 : ReactionNetwork           |
++-------------------------------+
+
+Similarly, more species labels may be replaced.
+
++---------------------------------------------------------------------+
+|i3 : sub(N, {"S_0" => "A", "X_1" => "B", "X_2" => "C", "S_1" => "D"})|
+|                                                                     |
+|o3 = A+E-->B                                                         |
+|     B-->A+E                                                         |
+|     B-->E+D                                                         |
+|     E+D-->C                                                         |
+|     C-->E+D                                                         |
+|     C-->E+S_2                                                       |
+|     D+F-->Y_1                                                       |
+|     Y_1-->D+F                                                       |
+|     Y_1-->A+F                                                       |
+|     S_2+F-->Y_2                                                     |
+|     Y_2-->D+F                                                       |
+|     Y_2-->S_2+F                                                     |
+|                                                                     |
+|o3 : ReactionNetwork                                                 |
++---------------------------------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note substitute(ReactionNetwork,List):
+    substitute_lpReactionNetwork_cmList_rp, -- substitute species names in
+    reaction network
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:539:0.
+
+File: ReactionNetworks.info, Node: twoLayerCascadeJ, Next: twoLayerCascadeK, Prev: substitute_lpReactionNetwork_cmList_rp, Up: Top
+
+twoLayerCascadeJ -- an example chemical reaction motif
+******************************************************
+
+Description
+===========
+
+A combination of two one-site modification cycles in a cascade motif with a
+specific phosphotase acting in each layer [Feliu, Wiuf].
+
++-----------------------+
+|i1 : twoLayerCascadeJ()|
+|                       |
+|o1 = S_0+E-->X_1       |
+|     X_1-->S_0+E       |
+|     X_1-->E+S_1       |
+|     S_1+F_1-->Y_1     |
+|     Y_1-->S_1+F_1     |
+|     Y_1-->S_0+F_1     |
+|     S_1+P_0-->X_2     |
+|     X_2-->S_1+P_0     |
+|     X_2-->S_1+P_1     |
+|     P_1+F_2-->Y_2     |
+|     Y_2-->P_1+F_2     |
+|     Y_2-->P_0+F_2     |
+|                       |
+|o1 : ReactionNetwork   |
++-----------------------+
+
+In the motif Modification of Two-layer Cascade J, the symbols used in the
+chemical reactions have the following meaning:
+
+S_i and P_i are substrates with i = 0, 1, 2 phosphorylated sites, E is a kinase
+and F is a phosphotase, X and Y are the intermediate complexes formed by the
+enzymes E and F, respectively.
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use twoLayerCascadeJ:
+=============================
+
+  * "twoLayerCascadeJ()"
+
+For the programmer
+==================
+
+The object *note twoLayerCascadeJ: twoLayerCascadeJ, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:437:0.
+
+File: ReactionNetworks.info, Node: twoLayerCascadeK, Next: twoLayerCascadeL, Prev: twoLayerCascadeJ, Up: Top
+
+twoLayerCascadeK -- an example chemical reaction motif
+******************************************************
+
+Description
+===========
+
+A combination of two one-site modification cycles in a cascade motif where the
+phosphotase is not layer specific; that is the same phosphotase acts in both
+layers [Feliu, Wiuf].
+
++-----------------------+
+|i1 : twoLayerCascadeK()|
+|                       |
+|o1 = S_0+E-->X_1       |
+|     X_1-->S_0+E       |
+|     X_1-->E+S_1       |
+|     S_1+F-->Y_1       |
+|     Y_1-->S_1+F       |
+|     Y_1-->S_0+F       |
+|     S_1+P_0-->X_2     |
+|     X_2-->S_1+P_0     |
+|     X_2-->S_1+P_1     |
+|     F+P_1-->Y_2       |
+|     Y_2-->F+P_1       |
+|     Y_2-->F+P_0       |
+|                       |
+|o1 : ReactionNetwork   |
++-----------------------+
+
+In the motif Modification of Two-layer Cascade K, the symbols used in the
+chemical reactions have the following meaning:
+
+S_i and P_i are substrates with i = 0, 1, 2 phosphorylated sites, E is a kinase
+and F is a phosphotase, X and Y are the intermediate complexes formed by the
+enzymes E and F, respectively.
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use twoLayerCascadeK:
+=============================
+
+  * "twoLayerCascadeK()"
+
+For the programmer
+==================
+
+The object *note twoLayerCascadeK: twoLayerCascadeK, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:464:0.
+
+File: ReactionNetworks.info, Node: twoLayerCascadeL, Next: twoSiteModificationE, Prev: twoLayerCascadeK, Up: Top
+
+twoLayerCascadeL -- an example for chemical reaction motif
+**********************************************************
+
+Description
+===========
+
+A combination of OnesiteModificationC and TwositeModificationF.
+
++-----------------------+
+|i1 : twoLayerCascadeL()|
+|                       |
+|o1 = S_0+E-->X_1       |
+|     X_1-->S_0+E       |
+|     X_1-->E+S_1       |
+|     S_1+P_0-->X_2     |
+|     X_2-->S_1+P_0     |
+|     X_2-->S_1+P_1     |
+|     E+P_0-->X_3       |
+|     X_3-->E+P_0       |
+|     X_3-->E+P_1       |
+|     S_1+F_1-->Y_1     |
+|     Y_1-->S_1+F_1     |
+|     Y_1-->S_0+F_1     |
+|     P_1+F_2-->Y_2     |
+|     Y_2-->P_1+F_2     |
+|     Y_2-->P_0+F_2     |
+|                       |
+|o1 : ReactionNetwork   |
++-----------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use twoLayerCascadeL:
+=============================
+
+  * "twoLayerCascadeL()"
+
+For the programmer
+==================
+
+The object *note twoLayerCascadeL: twoLayerCascadeL, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ReactionNetworks/TwolayerCascadeL.m2:15:0.
+
+File: ReactionNetworks.info, Node: twoSiteModificationE, Next: twoSiteModificationF, Prev: twoLayerCascadeL, Up: Top
+
+twoSiteModificationE -- an example for chemical reaction motif
+**************************************************************
+
+Description
+===========
+
+A two-site phosphorylation system in which modifications are carried out by
+different kinases and phosphatases for each phosphoform. Simply, it is assumed
+that both phosphorylation and dephosphorylation occur sequentially.
+
++---------------------------+
+|i1 : twoSiteModificationE()|
+|                           |
+|o1 = S_0+E_1-->X_1         |
+|     X_1-->S_0+E_1         |
+|     X_1-->E_1+S_1         |
+|     S_1+E_2-->X_2         |
+|     X_2-->S_1+E_2         |
+|     X_2-->E_2+S_2         |
+|     S_1+F_1-->Y_1         |
+|     Y_1-->S_1+F_1         |
+|     Y_1-->S_0+F_1         |
+|     S_2+F_2-->Y_2         |
+|     Y_2-->S_2+F_2         |
+|     Y_2-->S_1+F_2         |
+|                           |
+|o1 : ReactionNetwork       |
++---------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use twoSiteModificationE:
+=================================
+
+  * "twoSiteModificationE()"
+
+For the programmer
+==================
+
+The object *note twoSiteModificationE: twoSiteModificationE, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/TwositeModificationE.m2:15:0.
+
+File: ReactionNetworks.info, Node: twoSiteModificationF, Next: twoSiteModificationG, Prev: twoSiteModificationE, Up: Top
+
+twoSiteModificationF -- an example for chemical reaction motif
+**************************************************************
+
+Description
+===========
+
+A two-site phosphorylation system where phosphorylation is catalyzed by the
+same kniase at both sites but dephosphorylation is catalyzed by different
+phosphateases. It assumes sequential (de)phosphorylation.
+
++---------------------------+
+|i1 : twoSiteModificationF()|
+|                           |
+|o1 = S_0+E-->X_1           |
+|     X_1-->S_0+E           |
+|     X_1-->E+S_1           |
+|     E+S_1-->X_2           |
+|     X_2-->E+S_1           |
+|     X_2-->E+S_2           |
+|     S_1+F_1-->Y_1         |
+|     Y_1-->S_1+F_1         |
+|     Y_1-->S_0+F_1         |
+|     S_2+F_2-->Y_2         |
+|     Y_2-->S_2+F_2         |
+|     Y_2-->S_1+F_2         |
+|                           |
+|o1 : ReactionNetwork       |
++---------------------------+
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use twoSiteModificationF:
+=================================
+
+  * "twoSiteModificationF()"
+
+For the programmer
+==================
+
+The object *note twoSiteModificationF: twoSiteModificationF, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/TwositeModificationF.m2:15:0.
+
+File: ReactionNetworks.info, Node: twoSiteModificationG, Next: wnt, Prev: twoSiteModificationF, Up: Top
+
+twoSiteModificationG -- an example chemical reaction motif
+**********************************************************
+
+Description
+===========
+
+A two-site phosphorylation cycle, where phosphorylation is catalyzed by the
+same kinase at both sites and dephosphorylation is catalyzed by the same
+phosphatase at both sites [Feliu, Wiuf].
+
++---------------------------+
+|i1 : twoSiteModificationG()|
+|                           |
+|o1 = S_0+E-->X_1           |
+|     X_1-->S_0+E           |
+|     X_1-->E+S_1           |
+|     E+S_1-->X_2           |
+|     X_2-->E+S_1           |
+|     X_2-->E+S_2           |
+|     S_1+F-->Y_1           |
+|     Y_1-->S_1+F           |
+|     Y_1-->S_0+F           |
+|     S_2+F-->Y_2           |
+|     Y_2-->S_1+F           |
+|     Y_2-->S_2+F           |
+|                           |
+|o1 : ReactionNetwork       |
++---------------------------+
+
+In the motif Two-site Modification G, the symbols used in the chemical
+reactions have the following meaning:
+
+S_i and P_i are substrates with i = 0, 1, 2 phosphorylated sites, E is a kinase
+and F is a phosphotase, X and Y are the intermediate complexes formed by the
+enzymes E and F, respectively.
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use twoSiteModificationG:
+=================================
+
+  * "twoSiteModificationG()"
+
+For the programmer
+==================
+
+The object *note twoSiteModificationG: twoSiteModificationG, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:358:0.
+
+File: ReactionNetworks.info, Node: wnt, Prev: twoSiteModificationG, Up: Top
+
+wnt -- shuttle model for Wnt signaling pathway
+**********************************************
+
+Description
+===========
+
+The canonical Wnt/beta-catenin signaling pathway is important for essential
+cellular functions such as development, homeostasis, and is implicated in many
+diseases [MacLean, Rosen, Byrne, Harrington]. The Wnt shuttle model includes an
+abstraction of the signal transduction pathway [Gross, Harrington, Rosen,
+Sturmfels].
+
++--------------------+
+|i1 : wnt()          |
+|                    |
+|o1 = X_1-->X_2      |
+|     X_2-->X_1      |
+|     X_2-->X_3      |
+|     X_2+X_4-->Y_4  |
+|     Y_4-->X_2+X_4  |
+|     Y_4-->X_2+X_5  |
+|     X_5+X_8-->Y_6  |
+|     Y_6-->X_5+X_8  |
+|     Y_6-->X_4+X_8  |
+|     X_4+Y_0-->Y_8  |
+|     Y_8-->X_4+Y_0  |
+|     Y_8-->X_4      |
+|     0-->Y_0        |
+|     Y_0-->0        |
+|     Y_0-->Y_1      |
+|     X_3+X_6-->Y_5  |
+|     Y_5-->X_3+X_6  |
+|     Y_5-->X_3+X_7  |
+|     X_7+X_9-->Y_7  |
+|     Y_7-->X_7+X_9  |
+|     Y_7-->X_6+X_9  |
+|     X_6+Y_1-->Y_9  |
+|     Y_9-->X_6+Y_1  |
+|     Y_9-->X_6      |
+|     Y_1-->0        |
+|     Y_1-->Y_0      |
+|     Y_1+Y_2-->Y_3  |
+|     Y_3-->Y_1+Y_2  |
+|     X_3-->X_2      |
+|     X_5-->X_7      |
+|     X_7-->X_5      |
+|                    |
+|o1 : ReactionNetwork|
++--------------------+
+
+In the Wnt shuttle model, the symbols used in the chemical reactions have the
+following meaning:
+
+X_1 - X_3: dishevelled species; X_4 - X_7: destruction complex (APC/Axin/GSK3
+beta); X_8 - X_9: phosphatase; Y_0 - Y_1: beta-catenin; Y_2: transcription
+factor; Y_3 - Y_9: intermediate complex; 0: empty set;
+
+For more details see Algebraic Systems Biology: A Case Study for the Wnt
+Pathway: Gross, Harrington, Rosen, Sturmfels.
+
+To rename species, use *note substitute(ReactionNetwork,List):
+substitute_lpReactionNetwork_cmList_rp,.
+
+
+
+Ways to use wnt:
+================
+
+  * "wnt()"
+
+For the programmer
+==================
+
+The object *note wnt: wnt, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+ReactionNetworks/DocReactionNetworks.m2:520:0.
+
+Tag Table:
+Node: Top238
+Node: clusterModelCellDeath29029
+Node: conservationEquations30864
+Node: createConcentrationRates53094
+Node: createInitialValues53835
+Node: createReactionRates54539
+Node: createRing55229
+Node: crossLinkingModelCelldeath56049
+Node: displayComplexes56656
+Node: FullEdges57095
+Node: glue57472
+Node: Input59685
+Node: isDeficient60195
+Node: isWeaklyReversible65375
+Node: modificationOfTwoSubstratesH67746
+Node: modificationOfTwoSubstratesI69708
+Node: negativeLaplacian71702
+Node: negativeUndirectedLaplacian74795
+Node: negativeWeightedLaplacian78207
+Node: nSiteAutocatalytic85090
+Node: nSiteDiffusion86566
+Node: nSiteDistributiveModification87724
+Node: nSiteImmuneReaction90108
+Node: nSitePoreForming91469
+Node: nSiteProcessiveModification92803
+Node: nSiteSequestration94796
+Node: NullEdges96028
+Node: oneSiteModificationA96423
+Node: oneSiteModificationB97648
+Node: oneSiteModificationC98878
+Node: oneSiteModificationD100110
+Node: reactantMatrix101547
+Node: reactionMatrix104799
+Node: ReactionNetwork105340
+Node: reactionNetwork110966
+Node: steadyStateEquations139940
+Node: stoichiometricConeKer159848
+Node: stoichiometricMatrix164039
+Node: stoichiometricSubspace167114
+Node: stoichSubspaceKer169983
+Node: subRandomInitVals174298
+Node: subRandomReactionRates174938
+Node: substitute_lpReactionNetwork_cmList_rp175634
+Node: twoLayerCascadeJ179088
+Node: twoLayerCascadeK180780
+Node: twoLayerCascadeL182495
+Node: twoSiteModificationE183871
+Node: twoSiteModificationF185436
+Node: twoSiteModificationG186990
+Node: wnt188800
+
+End Tag Table

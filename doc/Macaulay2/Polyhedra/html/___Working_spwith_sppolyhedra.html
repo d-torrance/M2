@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Working with polyhedra</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="convex polyhedra" href="index.html">Polyhedra</a> :: <a href="___Working_spwith_sppolyhedra.html">Working with polyhedra</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+next | <a href="___Working_spwith_spfans_sp-_sp__Part_sp2.html">previous</a> | forward | <a href="___Working_spwith_spfans_sp-_sp__Part_sp2.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Working with polyhedra</h1>
+      <div>
+        <div>
+          <p>Just like cones, polyhedra have two descriptions. One description as the convex hull of finitely many points (and optionally rays and lineality), the V-representation. Another description as the intersection of finitely many half-spaces, the H-representation. Using the method <a title="computing the convex hull of points, rays and polyhedra" href="_convex__Hull.html">convexHull</a> we can create a polyhedron in 2-space which is the <a title="computing the convex hull of points, rays and polyhedra" href="_convex__Hull.html">convexHull</a> of a given set of points.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : V = matrix {{0,2,-2,0},{-1,1,1,1}}
+
+o1 = | 0  2 -2 0 |
+     | -1 1 1  1 |
+
+              2       4
+o1 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : P = convexHull V
+
+o2 = P
+
+o2 : Polyhedron</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p><a title="convex polyhedra" href="index.html">Polyhedra</a> uses the principle of lazy evaluation: Properties of the combinatorial objects are only computed on demand and then they are stored with the object. For example we can ask for the vertices of <span class="tt">P</span> using <a title="displays the vertices of a Polyhedron or a PolyhedralComplex" href="_vertices.html">vertices</a>:</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : vertices P
+
+o3 = | 0  -2 2 |
+     | -1 1  1 |
+
+              2       3
+o3 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Here we see that the point (0,1) is not a vertex and <span class="tt">P</span> is actually a triangle.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : (HS,v) = facets P
+
+o4 = (| -1 -1 |, | 1 |)
+      | 1  -1 |  | 1 |
+      | 0  1  |  | 1 |
+
+o4 : Sequence</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>This gives the defining affine half-spaces, i.e. <span class="tt">P</span> is given by all <span class="tt">p</span> such that <span class="tt">HS*p &lt;= v</span> and that lie in the defining affine hyperplanes. The rows of the matrix <span class="tt">HS</span> are the outer normals of the polyhedron <span class="tt">P</span>. To get the defining hyperplanes we use:</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : hyperplanes P
+
+o5 = (0, 0)
+
+o5 : Sequence</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>There are none, so the polyhedron is of full dimension. It is also compact, since <span class="tt">P</span> has no rays and the lineality space is of dimension zero.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : isFullDimensional P
+
+o6 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : ambDim P
+
+o7 = 2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : dim P
+
+o8 = 2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : rays P
+
+o9 = 0
+
+              2
+o9 : Matrix QQ  &lt;-- 0</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : linealitySpace P
+
+o10 = 0
+
+               2
+o10 : Matrix QQ  &lt;-- 0</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Internally, polyhedra are realized as cones, by embedding the polyhedron at height one and then taking the positive hull. To get at this cone, use <a title="mapping cone or polyhedral cone" href="../../Macaulay2Doc/html/_cone.html">cone</a>. The height is the first coordinate of the rays of the cone, comparing the matrices of <a title="1-dimensional cones of a fan or polyhedral object" href="../../Macaulay2Doc/html/_rays.html">rays</a> and <a title="displays the vertices of a Polyhedron or a PolyhedralComplex" href="_vertices.html">vertices</a> for the example one can see the correspondence:</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : C = cone P
+
+o11 = C
+
+o11 : Cone</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : rays C
+
+o12 = | 1  1  1 |
+      | 0  -2 2 |
+      | -1 1  1 |
+
+               3       3
+o12 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : vertices P
+
+o13 = | 0  -2 2 |
+      | -1 1  1 |
+
+               2       3
+o13 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We can also construct the convex hull of a set of points and a set of rays.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : R = matrix {{1},{0},{0}}
+
+o14 = | 1 |
+      | 0 |
+      | 0 |
+
+               3       1
+o14 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : V1 = V || matrix {{1,1,1,1}}
+
+o15 = | 0  2 -2 0 |
+      | -1 1 1  1 |
+      | 1  1 1  1 |
+
+               3       4
+o15 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : P1 = convexHull(V1,R)
+
+o16 = P1
+
+o16 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : vertices P1
+
+o17 = | 0  -2 |
+      | -1 1  |
+      | 1  1  |
+
+               3       2
+o17 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>This polyhedron is not compact anymore and also not of full dimension.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : isCompact P1
+
+o18 = false</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : isFullDimensional P1
+
+o19 = false</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : rays P1
+
+o20 = | 1 |
+      | 0 |
+      | 0 |
+
+               3       1
+o20 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : hyperplanes P1
+
+o21 = (| 0 0 -1 |, | -1 |)
+
+o21 : Sequence</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>On the other hand we can construct a polyhedron as the intersection of affine half-spaces and affine hyperplanes, given via inequalities and equations:</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : inequalities = transpose (V || matrix {{-1,2,0,1}})
+
+o22 = | 0  -1 -1 |
+      | 2  1  2  |
+      | -2 1  0  |
+      | 0  1  1  |
+
+               4       3
+o22 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : v = matrix {{1},{1},{1},{1}}
+
+o23 = | 1 |
+      | 1 |
+      | 1 |
+      | 1 |
+
+               4       1
+o23 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : equations = matrix {{1,1,1}}
+
+o24 = | 1 1 1 |
+
+               1       3
+o24 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : w = matrix {{3}}
+
+o25 = | 3 |
+
+               1       1
+o25 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : P2 = polyhedronFromHData(inequalities,v,equations,w)
+
+o26 = P2
+
+o26 : Polyhedron</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>This is a triangle in 3-space with the following vertices.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : isFullDimensional P2
+
+o27 = false</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : vertices P2
+
+o28 = | 4   4  2  |
+      | 9   5  5  |
+      | -10 -6 -4 |
+
+               3       3
+o28 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>If we don't intersect with the hyperplane we get a full dimensional polyhedron.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : P3 = polyhedronFromHData(inequalities,v)
+
+o29 = P3
+
+o29 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i30 : vertices P3
+
+o30 = | 0 0  0  |
+      | 1 1  -3 |
+      | 0 -2 2  |
+
+               3       3
+o30 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i31 : linealitySpace P3
+
+o31 = | 1  |
+      | 2  |
+      | -2 |
+
+               3       1
+o31 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i32 : isFullDimensional P3
+
+o32 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Note that the vertices are given modulo the lineality space. Besides constructing polyhedra by hand, there are also some basic polyhedra implemented such as the <a title="Returns the d-dimensional hypercube" href="_hypercube.html">hypercube</a>, in this case with edge-length four.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i33 : P4 = hypercube(3,2)
+
+o33 = P4
+
+o33 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i34 : vertices P4
+
+o34 = | -2 2  -2 2  -2 2  -2 2 |
+      | -2 -2 2  2  -2 -2 2  2 |
+      | -2 -2 -2 -2 2  2  2  2 |
+
+               3       8
+o34 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Another on is the <a title="computes the d-dimensional crosspolytope with diameter 2s" href="_cross__Polytope.html">crossPolytope</a>, in this case with diameter six.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i35 : P5 = crossPolytope(3,3)
+
+o35 = P5
+
+o35 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i36 : vertices P5
+
+o36 = | -3 3 0  0 0  0 |
+      | 0  0 -3 3 0  0 |
+      | 0  0 0  0 -3 3 |
+
+               3       6
+o36 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Furthermore the standard simplex (<a title="generates the d-dimensional standard simplex" href="_std__Simplex.html">stdSimplex</a>).</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i37 : P6 = stdSimplex 2
+
+o37 = P6
+
+o37 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i38 : vertices P6
+
+o38 = | 1 0 0 |
+      | 0 1 0 |
+      | 0 0 1 |
+
+               3       3
+o38 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Now that we can construct polyhedra, we can turn to the functions that can be applied to polyhedra. First of all, we can apply the <a title="computing the convex hull of points, rays and polyhedra" href="_convex__Hull.html">convexHull</a> function also to a pair of polyhedra:</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i39 : P7 = convexHull(P4,P5)
+
+o39 = P7
+
+o39 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i40 : vertices P7
+
+o40 = | -3 3 0  0 0  -2 2  -2 2  -2 2  -2 2 0 |
+      | 0  0 -3 3 0  -2 -2 2  2  -2 -2 2  2 0 |
+      | 0  0 0  0 -3 -2 -2 -2 -2 2  2  2  2 3 |
+
+               3       14
+o40 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Or we can intersect them by using <a title="compute an intersection" href="../../Macaulay2Doc/html/_intersect.html">intersect</a>:</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i41 : P8 = intersection(P4,P5)
+
+o41 = P8
+
+o41 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i42 : vertices P8
+
+o42 = | -1 1  -2 2  -2 2 -1 1 -1 1  0  0  -2 2  0  0  -2 2 0  0 -1 1 0  0 |
+      | -2 -2 -1 -1 1  1 2  2 0  0  -1 1  0  0  -2 2  0  0 -2 2 0  0 -1 1 |
+      | 0  0  0  0  0  0 0  0 -2 -2 -2 -2 -1 -1 -1 -1 1  1 1  1 2  2 2  2 |
+
+               3       24
+o42 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Furthermore, both functions can be applied to a list containing any number of polyhedra and matrices defining vertices/rays or affine half-spaces/hyperplanes.  All of these must be in the same ambient space. For example:</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i43 : P9 = convexHull {(V1,R),P2,P6}
+
+o43 = P9
+
+o43 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i44 : vertices P9
+
+o44 = | 4   4  2  0  -2 |
+      | 9   5  5  -1 1  |
+      | -10 -6 -4 1  1  |
+
+               3       5
+o44 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Further functions are for example the Minkowski sum (<a title=" computes the Minkowski sum of two convex objects" href="_minkowski__Sum.html">minkowskiSum</a>) of two polyhedra.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i45 : Q = convexHull (-V)
+
+o45 = Q
+
+o45 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i46 : P10 = P + Q
+
+o46 = P10
+
+o46 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i47 : vertices P10
+
+o47 = | -4 4 -2 2  -2 2 |
+      | 0  0 -2 -2 2  2 |
+
+               2       6
+o47 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In the other direction, we can also determine all Minkowski summands (see <a title="computes the Cone of all Minkowski summands and the minimal decompositions" href="_mink__Summand__Cone.html">minkSummandCone</a>) of a polyhedron.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i48 : (C,L,M) = minkSummandCone P10
+
+o48 = (C, HashTable{0 => Polyhedron{...1...}}, | 1 0 |)
+                    1 => Polyhedron{...1...}   | 0 1 |
+                    2 => Polyhedron{...1...}   | 1 0 |
+                    3 => Polyhedron{...1...}   | 1 0 |
+                    4 => Polyhedron{...1...}   | 0 1 |
+
+o48 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i49 : apply(values L, vertices)
+
+o49 = {| 0 4 |, | 0 4 2  |, | 0 2 |, | 0 2  |, | 0 4 2 |}
+       | 0 0 |  | 0 0 -2 |  | 0 2 |  | 0 -2 |  | 0 0 2 |
+
+o49 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Here the polyhedra in the hash table <span class="tt">L</span> are all possible Minkowski summands up to scalar multiplication and the columns of <span class="tt">M</span> give the minimal decompositions. So the hexagon <span class="tt">P10</span> is not only the sum of two triangles but also the sum of three lines. Furthermore, we can take the direct product of two polyhedra.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i50 : P11 = P * Q
+
+o50 = P11
+
+o50 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i51 : vertices P11
+
+o51 = | 0  -2 2  0  -2 2  0  -2 2 |
+      | -1 1  1  -1 1  1  -1 1  1 |
+      | -2 -2 -2 2  2  2  0  0  0 |
+      | -1 -1 -1 -1 -1 -1 1  1  1 |
+
+               4       9
+o51 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The result is in QQ^4.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i52 : ambDim P11
+
+o52 = 4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>To find out more about this polyhedron use for example.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i53 : fVector P11
+
+o53 = {9, 18, 15, 6, 1}
+
+o53 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The function <a title="computes the f-vector of a Cone, Polyhedron, Fan or PolyhedralComplex" href="_f__Vector.html">fVector</a> gives the number of faces of each dimension, so it has 9 vertices, 18 edges and so on. We can access the faces of a certain codimension via:</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i54 : L = faces(1,P11)
+
+o54 = {({0, 1, 3, 4, 6, 7}, {}), ({0, 2, 3, 5, 6, 8}, {}), ({1, 2, 4, 5, 7,
+      -----------------------------------------------------------------------
+      8}, {}), ({0, 1, 2, 3, 4, 5}, {}), ({0, 1, 2, 6, 7, 8}, {}), ({3, 4, 5,
+      -----------------------------------------------------------------------
+      6, 7, 8}, {})}
+
+o54 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i55 : vertP11 = vertices P11
+
+o55 = | 0  -2 2  0  -2 2  0  -2 2 |
+      | -1 1  1  -1 1  1  -1 1  1 |
+      | -2 -2 -2 2  2  2  0  0  0 |
+      | -1 -1 -1 -1 -1 -1 1  1  1 |
+
+               4       9
+o55 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i56 : apply(L, l -> vertP11_(l#0))
+
+o56 = {| 0  -2 0  -2 0  -2 |, | 0  2  0  2  0  2 |, | -2 2  -2 2  -2 2 |, |
+       | -1 1  -1 1  -1 1  |  | -1 1  -1 1  -1 1 |  | 1  1  1  1  1  1 |  |
+       | -2 -2 2  2  0  0  |  | -2 -2 2  2  0  0 |  | -2 -2 2  2  0  0 |  |
+       | -1 -1 -1 -1 1  1  |  | -1 -1 -1 -1 1  1 |  | -1 -1 -1 -1 1  1 |  |
+      -----------------------------------------------------------------------
+      0  -2 2  0  -2 2  |, | 0  -2 2  0  -2 2 |, | 0  -2 2  0  -2 2 |}
+      -1 1  1  -1 1  1  |  | -1 1  1  -1 1  1 |  | -1 1  1  -1 1  1 |
+      -2 -2 -2 2  2  2  |  | -2 -2 -2 0  0  0 |  | 2  2  2  0  0  0 |
+      -1 -1 -1 -1 -1 -1 |  | -1 -1 -1 1  1  1 |  | -1 -1 -1 1  1  1 |
+
+o56 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We can compute all lattice points of the polyhedron with <a title="computes the lattice points of a polytope" href="_lattice__Points.html">latticePoints</a>.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i57 : L = latticePoints P11
+
+o57 = {| -2 |, | -2 |, | -2 |, | -2 |, | -2 |, | -2 |, | -2 |, | -2 |, | -2
+       | 1  |  | 1  |  | 1  |  | 1  |  | 1  |  | 1  |  | 1  |  | 1  |  | 1 
+       | -2 |  | -1 |  | -1 |  | 0  |  | 0  |  | 0  |  | 1  |  | 1  |  | 2 
+       | -1 |  | -1 |  | 0  |  | -1 |  | 0  |  | 1  |  | -1 |  | 0  |  | -1
+      -----------------------------------------------------------------------
+      |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1
+      |  | 0  |  | 0  |  | 0  |  | 0  |  | 0  |  | 0  |  | 0  |  | 0  |  | 0 
+      |  | -2 |  | -1 |  | -1 |  | 0  |  | 0  |  | 0  |  | 1  |  | 1  |  | 2 
+      |  | -1 |  | -1 |  | 0  |  | -1 |  | 0  |  | 1  |  | -1 |  | 0  |  | -1
+      -----------------------------------------------------------------------
+      |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1 |, | -1
+      |  | 1  |  | 1  |  | 1  |  | 1  |  | 1  |  | 1  |  | 1  |  | 1  |  | 1 
+      |  | -2 |  | -1 |  | -1 |  | 0  |  | 0  |  | 0  |  | 1  |  | 1  |  | 2 
+      |  | -1 |  | -1 |  | 0  |  | -1 |  | 0  |  | 1  |  | -1 |  | 0  |  | -1
+      -----------------------------------------------------------------------
+      |, | 0  |, | 0  |, | 0  |, | 0  |, | 0  |, | 0  |, | 0  |, | 0  |, | 0 
+      |  | -1 |  | -1 |  | -1 |  | -1 |  | -1 |  | -1 |  | -1 |  | -1 |  | -1
+      |  | -2 |  | -1 |  | -1 |  | 0  |  | 0  |  | 0  |  | 1  |  | 1  |  | 2 
+      |  | -1 |  | -1 |  | 0  |  | -1 |  | 0  |  | 1  |  | -1 |  | 0  |  | -1
+      -----------------------------------------------------------------------
+      |, | 0  |, | 0  |, | 0  |, | 0  |, 0, | 0 |, | 0  |, | 0 |, | 0  |, |
+      |  | 0  |  | 0  |  | 0  |  | 0  |     | 0 |  | 0  |  | 0 |  | 0  |  |
+      |  | -2 |  | -1 |  | -1 |  | 0  |     | 0 |  | 1  |  | 1 |  | 2  |  |
+      |  | -1 |  | -1 |  | 0  |  | -1 |     | 1 |  | -1 |  | 0 |  | -1 |  |
+      -----------------------------------------------------------------------
+      0  |, | 0  |, | 0  |, | 0  |, | 0 |, | 0 |, | 0  |, | 0 |, | 0  |, | 1 
+      1  |  | 1  |  | 1  |  | 1  |  | 1 |  | 1 |  | 1  |  | 1 |  | 1  |  | 0 
+      -2 |  | -1 |  | -1 |  | 0  |  | 0 |  | 0 |  | 1  |  | 1 |  | 2  |  | -2
+      -1 |  | -1 |  | 0  |  | -1 |  | 0 |  | 1 |  | -1 |  | 0 |  | -1 |  | -1
+      -----------------------------------------------------------------------
+      |, | 1  |, | 1  |, | 1  |, | 1 |, | 1 |, | 1  |, | 1 |, | 1  |, | 1  |,
+      |  | 0  |  | 0  |  | 0  |  | 0 |  | 0 |  | 0  |  | 0 |  | 0  |  | 1  | 
+      |  | -1 |  | -1 |  | 0  |  | 0 |  | 0 |  | 1  |  | 1 |  | 2  |  | -2 | 
+      |  | -1 |  | 0  |  | -1 |  | 0 |  | 1 |  | -1 |  | 0 |  | -1 |  | -1 | 
+      -----------------------------------------------------------------------
+      | 1  |, | 1  |, | 1  |, | 1 |, | 1 |, | 1  |, | 1 |, | 1  |, | 2  |, |
+      | 1  |  | 1  |  | 1  |  | 1 |  | 1 |  | 1  |  | 1 |  | 1  |  | 1  |  |
+      | -1 |  | -1 |  | 0  |  | 0 |  | 0 |  | 1  |  | 1 |  | 2  |  | -2 |  |
+      | -1 |  | 0  |  | -1 |  | 0 |  | 1 |  | -1 |  | 0 |  | -1 |  | -1 |  |
+      -----------------------------------------------------------------------
+      2  |, | 2  |, | 2  |, | 2 |, | 2 |, | 2  |, | 2 |, | 2  |}
+      1  |  | 1  |  | 1  |  | 1 |  | 1 |  | 1  |  | 1 |  | 1  |
+      -1 |  | -1 |  | 0  |  | 0 |  | 0 |  | 1  |  | 1 |  | 2  |
+      -1 |  | 0  |  | -1 |  | 0 |  | 1 |  | -1 |  | 0 |  | -1 |
+
+o57 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i58 : #L
+
+o58 = 81</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Evenmore the tail/recession cone of a polyhedron with <a title="computes the tail/recession cone of a polyhedron" href="_tail__Cone.html">tailCone</a>.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i59 : C = tailCone P1
+
+o59 = C
+
+o59 : Cone</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i60 : rays C
+
+o60 = | 1 |
+      | 0 |
+      | 0 |
+
+               3       1
+o60 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Finally, there is also a function to compute the polar of a polyhedron, i.e. all points in the dual space that are greater than -1 on all points of the polyhedron:</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i61 : P12 = polar P11
+
+o61 = P12
+
+o61 : Polyhedron</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i62 : vertices P12
+
+o62 = | 1 -1 0  0 0  0  |
+      | 1 1  -1 0 0  0  |
+      | 0 0  0  0 1  -1 |
+      | 0 0  0  1 -1 -1 |
+
+               4       6
+o62 : Matrix QQ  &lt;-- QQ</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Polyhedra/documentation/working_with_polyhedra.m2:239:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

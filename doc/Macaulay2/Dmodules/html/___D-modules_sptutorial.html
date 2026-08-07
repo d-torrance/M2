@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>D-modules tutorial -- Algebraic computations for linear differential equations</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="D-modules" href="index.html">Dmodules</a> » <a title="Algebraic computations for linear differential equations" href="___D-modules_sptutorial.html">D-modules tutorial</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+next | previous | forward | <a href="index.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>D-modules tutorial -- Algebraic computations for linear differential equations</h1>
+      <div>
+        <div>
+          <p>D-modules are modules over rings of differential operators over algebraic varieties. This package is mostly concerned with computations in the <em>Weyl algebra</em>, the ring of differential operators over affine space (over a field of characteristic zero). Most algorithms in this package can be found in the book <em>Gröbner deformations of Hypergeometric Differential Equations</em> by Saito, Sturmfels and Takayama, hereafter referred to as [<a href="https://mathscinet.ams.org/mathscinet/pdf/1734566.pdf">SST</a>]. This is also the best place to learn about computational D-module theory. The book <em>Computational Algebraic Geometry with Macaulay2</em> has a chapter on D-modules and local cohomology. A good introduction to D-module theory is <em>A primer of algebraic D-modules</em> by Coutinho.</p>
+          <p>The Weyl algebra $D_n$ is the free associative algebra in $2n$ variables $x_1,\dots,x_n$, $\partial_1,\dots,\partial_n$, subject to the following relations: the $x$'s commute with each other; the $\partial$'s commute with each other; $x_i$ commutes with $\partial_j$ if $i\neq j$; and finally, $\partial_i x_i = x_i \partial_i +1$ (the Leibniz rule).</p>
+          <p></p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : D1 = QQ[z,dz, WeylAlgebra=>{z=>dz}]
+
+o1 = D1
+
+o1 : PolynomialRing, 1 differential variable(s)</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>As a reality check, let us confirm that this is not a commutative ring. Here is the Leibniz rule.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : dz*z
+
+o2 = z*dz + 1
+
+o2 : D1</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In order to type less, we can use the shortcuts makeWeylAlgebra or makeWA.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : R = QQ[x_1..x_4]
+
+o3 = R
+
+o3 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : D4 = makeWA R
+
+o4 = D4
+
+o4 : PolynomialRing, 4 differential variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : describe D4
+
+o5 = QQ[x ..x , dx ..dx , Degrees => {8:1}, Heft => {1}, WeylAlgebra => {{x , dx }, {x , dx }, {x , dx }, {x , dx }}]
+         1   4    1    4                                                   1    1     2    2     3    3     4    4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Elements and ideals are handled in the usual Macaulay2 way. Let us look at the <a href="https://en.wikipedia.org/wiki/Hypergeometric_function#The_hypergeometric_differential_equation">Gauss hypergeometric equation</a> for parameters $a=1, b=2, c=3$.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : use D1
+
+o6 = D1
+
+o6 : PolynomialRing, 1 differential variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : a = 1, b = 2, c = 3
+
+o7 = (1, 2, 3)
+
+o7 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : g = z*(1-z)*dz^2 + (c-(a+b+1)*z)*dz -a*b
+
+        2  2       2
+o8 = - z dz  + z*dz  - 4z*dz + 3dz - 2
+
+o8 : D1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : I = ideal g
+
+              2  2       2
+o9 = ideal(- z dz  + z*dz  - 4z*dz + 3dz - 2)
+
+o9 : Ideal of D1</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The holonomicRank function computes the dimension of the solution space of a linear system of differential equations.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : holonomicRank I
+
+o10 = 2</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>A-Hypergeometric systems, also known as GKZ systems (see [<a href="https://mathscinet.ams.org/mathscinet/pdf/1734566.pdf">SST</a>, Chapters 3 and 4]) are implemented.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : needsPackage &quot;HolonomicSystems&quot;
+
+o11 = HolonomicSystems
+
+o11 : Package</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : use D4
+
+o12 = D4
+
+o12 : PolynomialRing, 4 differential variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : A = matrix{{1,1,1,1},{0,1,3,4}}
+
+o13 = | 1 1 1 1 |
+      | 0 1 3 4 |
+
+               2       4
+o13 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : b = {1,2}
+
+o14 = {1, 2}
+
+o14 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : H = gkz(A,b, D4)
+
+                                                                            
+o15 = ideal (x dx  + x dx  + x dx  + x dx  - 1, x dx  + 3x dx  + 4x dx  - 2,
+              1  1    2  2    3  3    4  4       2  2     3  3     4  4     
+      -----------------------------------------------------------------------
+          3        2       2     2                            3     2
+      - dx  + dx dx , dx dx  - dx dx , - dx dx  + dx dx , - dx  + dx dx )
+          3     2  4    1  3     2  4      2  3     1  4      2     1  3
+
+o15 : Ideal of D4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Holonomic D-ideals are analogous to zero-dimensional ideals in polynomial rings (see [<a href="https://mathscinet.ams.org/mathscinet/pdf/1734566.pdf">SST</a>, Section 1.4]). Let us confirm that our GKZ systems are holonomic.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : isHolonomic H
+
+o16 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Once we know our ideal is holonomic, we can compute its holonomic rank. The above is a famous GKZ example because the holonomic rank may change when the parameter vector $b$ is changed.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : holonomicRank H
+
+o17 = 5</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : holonomicRank sub(gkz(A,{1,0}), vars D4)
+
+o18 = 4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We can compute the characteristic ideal and singular locus of a D-ideal [<a href="https://mathscinet.ams.org/mathscinet/pdf/1734566.pdf">SST</a>, Section 1.4]. Note that the output of charIdeal belongs to a commutative ring, the associated graded ring of $D_n$ with respect to the order filtration.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : charIdeal H
+
+                                                                       
+o19 = ideal (dx dx  - dx dx , x dx  + 3x dx  + 4x dx , x dx  - 2x dx  -
+               2  3     1  4   2  2     3  3     4  4   1  1     3  3  
+      -----------------------------------------------------------------------
+                3        2       2     2       3     2
+      3x dx , dx  - dx dx , dx dx  - dx dx , dx  - dx dx )
+        4  4    3     2  4    1  3     2  4    2     1  3
+
+o19 : Ideal of QQ[x ..x , dx ..dx ]
+                   1   4    1    4</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : singLocus H
+
+                3 3        3 4       2 2 2 2        4 3       3     3  
+o20 = ideal(4x x x x  + 27x x x  + 6x x x x  + 27x x x  + 192x x x x  -
+              1 2 3 4      1 3 4     1 2 3 4      1 2 4       1 2 3 4  
+      -----------------------------------------------------------------------
+          4 4
+      256x x )
+          1 4
+
+o20 : Ideal of D4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The singular locus of a GKZ system is the zero set of a polynomial called the Principal A-determinant, which is a product of discriminants corresponding to faces of the matrix A (see Chapters 8 and 9 of the book <em>Discriminants, Resultants and Multidimensional Determinants</em> by Gelfand, Kapranov and Zelevinsky). Here is how to find the classic cubic discriminant.</p>
+          <p></p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : A1 = matrix{{1,1,1,1},{0,1,2,3}}, b1={0,0}
+
+o21 = (| 1 1 1 1 |, {0, 0})
+       | 0 1 2 3 |
+
+o21 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : H1 = sub(gkz(A1,b1),vars D4)
+
+                                                                         2  
+o22 = ideal (x dx  + x dx  + x dx  + x dx , x dx  + 2x dx  + 3x dx , - dx  +
+              1  1    2  2    3  3    4  4   2  2     3  3     4  4      3  
+      -----------------------------------------------------------------------
+                  2
+      dx dx , - dx  + dx dx , - dx dx  + dx dx )
+        2  4      2     1  3      2  3     1  4
+
+o22 : Ideal of D4</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : factor (singLocus H1)_0
+
+                2 2       3     3                     2 2
+o23 = (x )(x )(x x  - 4x x  - 4x x  + 18x x x x  - 27x x )
+        4   1   2 3     1 3     2 4      1 2 3 4      1 4
+
+o23 : Expression of class Product</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="D-modules" href="index.html">Dmodules</a> -- D-modules</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Dmodules.m2:142:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

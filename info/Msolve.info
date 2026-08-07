@@ -1,0 +1,1317 @@
+ -*- coding: utf-8 -*- This is Msolve.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* Msolve: (Msolve).             interface to the msolve library for solving multivariate polynomial systems using Groebner Bases
+END-INFO-DIR-ENTRY
+
+
+File: Msolve.info, Node: Top, Next: msolveEliminate, Up: (dir)
+
+Msolve -- Macaulay2 interface for msolve; computes real solutions and Groebner basis, etc.
+******************************************************************************************
+
+Description
+===========
+
+This package provides a Macaulay2 interface for the msolve library [1]
+developed by Jérémy Berthomieu, Christian Eder, and Mohab Safey El Din.
+
+The package has functions to compute Groebner basis, in *note GRevLex:
+(Macaulay2Doc)GRevLex, order only, for ideals with rational or finite field
+coefficients. Finite field characteristics must be less than $2^{31}$. There
+are also functions to compute elimination ideals, for ideals with rational or
+finite field coefficients.
+
+The *note saturation: (Saturation)saturate, of an ideal by a single polynomial
+may be computed for ideals with finite field coefficients, again with
+characteristic less than $2^{31}$.
+
+For zero dimensional polynomial ideals, with integer or rational coefficients,
+there are functions to compute all real solutions, and to compute a rational
+univariate representation of all (complex) solutions.
+
+The M2 interface assumes that the binary executable is named "msolve" is on the
+executable path.
+
+For all functions the option Verbosity can be used. It has levels 0, 1, 2. The
+default is 0.
+
+Msolve supports parallel computations. The option Threads is used to set this.
+The default value is allowableThreads, but this can be set manually by the user
+when calling a function. E.g. for an ideal I:
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y,z]                                                           |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : I = ideal(x, y, z)                                                      |
+|                                                                             |
+|o2 = ideal (x, y, z)                                                         |
+|                                                                             |
+|o2 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i3 : msolveGB(I, Verbosity => 2, Threads => 6)                               |
+| -- running: /usr/bin/msolve -g 2 -t 6 -v 2 -f /tmp/M2-59812-0/0-in.ms -o /tm|
+|                                                                             |
+|--------------- INPUT DATA ---------------                                   |
+|#variables                       3                                           |
+|#equations                       3                                           |
+|#invalid equations               0                                           |
+|field characteristic             0                                           |
+|homogeneous input?               1                                           |
+|signature-based computation      0                                           |
+|monomial order                 DRL                                           |
+|basis hash table resetting     OFF                                           |
+|linear algebra option            2                                           |
+|initial hash table size     131072 (2^17)                                    |
+|max pair selection             ALL                                           |
+|reduce gb                        1                                           |
+|#threads                         6                                           |
+|info level                       2                                           |
+|generate pbm files               0                                           |
+|------------------------------------------                                   |
+|Initial prime = 1081963529                                                   |
+|                                                                             |
+|Legend for f4 information                                                    |
+|--------------------------------------------------------                     |
+|deg       current degree of pairs selected in this round                     |
+|sel       number of pairs selected in this round                             |
+|pairs     total number of pairs in pair list                                 |
+|mat       matrix dimensions (# rows x # columns)                             |
+|density   density of the matrix                                              |
+|new data  # new elements for basis in this round                             |
+|          # zero reductions during linear algebra                            |
+|time(rd)  time of the current f4 round in seconds given                      |
+|          for real and cpu time                                              |
+|--------------------------------------------------------                     |
+|                                                                             |
+|deg     sel   pairs        mat          density            new data         t|
+|-----------------------------------------------------------------------------|
+|-----------------------------------------------------------------------------|
+|reduce final basis        3 x 3          33.33%        3 new       0 zero    |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|---------------- TIMINGS ----------------                                    |
+|overall(elapsed)        0.00 sec                                             |
+|overall(cpu)            0.00 sec                                             |
+|select                  0.00 sec   0.0%                                      |
+|symbolic prep.          0.00 sec   0.0%                                      |
+|update                  0.00 sec  83.3%                                      |
+|convert                 0.00 sec  12.5%                                      |
+|linear algebra          0.00 sec   0.2%                                      |
+|reduce gb               0.00 sec   0.0%                                      |
+|-----------------------------------------                                    |
+|                                                                             |
+|---------- COMPUTATIONAL DATA -----------                                    |
+|size of basis                     3                                          |
+|#terms in basis                   3                                          |
+|#pairs reduced                    0                                          |
+|#GM criterion                     3                                          |
+|#redundant elements               0                                          |
+|#rows reduced                     3                                          |
+|#zero reductions                  0                                          |
+|max. matrix data                  3 x 3 (33.333%)                            |
+|max. symbolic hash table size  2^11                                          |
+|max. basis hash table size     2^16                                          |
+|-----------------------------------------                                    |
+|                                                                             |
+|                                                                             |
+|---------- COMPUTATIONAL DATA -----------                                    |
+|[3]                                                                          |
+|#polynomials to lift              3                                          |
+|-----------------------------------------                                    |
+|New prime = 1140616117                                                       |
+|                                                                             |
+|---------------- TIMINGS ----------------                                    |
+|multi-mod overall(elapsed)      0.00 sec                                     |
+|learning phase                  0.00 Gops/sec                                |
+|application phase               0.00 Gops/sec                                |
+|-----------------------------------------                                    |
+|                                                                             |
+|multi-modular steps                                                          |
+|-----------------------------------------------------------------------------|
+|{1}{2}<100.00%>                                                              |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|---------- COMPUTATIONAL DATA -----------                                    |
+|Max coeff. bitsize                1                                          |
+|#primes                           3                                          |
+|#bad primes                       0                                          |
+|-----------------------------------------                                    |
+|                                                                             |
+|---------------- TIMINGS ----------------                                    |
+|CRT     (elapsed)               0.00 sec                                     |
+|ratrecon(elapsed)               0.00 sec                                     |
+|-----------------------------------------                                    |
+|                                                                             |
+|                                                                             |
+|-----------------------------------------------------------------------------|
+|msolve overall time           0.02 sec (elapsed) /  0.01 sec (cpu)           |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|o3 = | z y x |                                                               |
+|                                                                             |
+|             1      3                                                        |
+|o3 : Matrix R  <-- R                                                         |
+|-----------------------------------------------------------------------------|
+|p/M2-59812-0/0-out.ms                                                        |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|ime(rd) in sec (real|cpu)                                                    |
+|-------------------------                                                    |
+|-------------------------                                                    |
+|     0.00 | 0.00                                                             |
+|-------------------------                                                    |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|-------------------------                                                    |
+|                                                                             |
+|-------------------------                                                    |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|-------                                                                      |
+|                                                                             |
+|-------                                                                      |
++-----------------------------------------------------------------------------+
+
+References
+==========
+
+[1] The msolve library: https://msolve.lip6.fr;
+
+
+
+Authors
+=======
+
+  * Martin Helmer (see http://martin-helmer.com/ )
+    <martin.helmer@swansea.ac.uk>
+  * Mike Stillman (see https://math.cornell.edu/michael-e-stillman )
+    <mike@math.cornell.edu>
+  * Anton Leykin (see https://antonleykin.math.gatech.edu/ )
+    <leykin@math.gatech.edu>
+
+Version
+=======
+
+This documentation describes version 1.24.06 of Msolve, released September
+2025.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{MsolveSource,                                                         |
+|  title = {{Msolve: A \emph{Macaulay2} package. Version~1.24.06}},          |
+|  author = {Martin Helmer and Mike Stillman and Anton Leykin},              |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note QQi: QQi, -- the class of all rational intervals
+  * Functions and commands
+      * *note msolveEliminate: msolveEliminate, -- compute the elimination
+        ideal of a given ideal
+      * *note msolveGB: msolveGB, -- compute generators of a Groebner basis in
+        GRevLex order
+      * *note msolveLeadMonomials: msolveLeadMonomials, -- compute the leading
+        monomials of a Groebner basis in GRevLex order
+      * *note msolveRealSolutions: msolveRealSolutions, -- compute all real
+        solutions to a zero dimensional system using symbolic methods
+      * *note msolveRUR: msolveRUR, -- compute the rational univariate
+        representation using symbolic methods
+      * *note msolveSaturate: msolveSaturate, -- compute a Groebner basis for
+        the saturation of an ideal by a single polynomial in GRevLex order
+  * Methods
+      * diameter(QQi) (missing documentation)
+      * interval(QQi) (missing documentation)
+      * lift(QQi,type of Number) (missing documentation)
+      * "msolveEliminate(Ideal,List)" -- see *note msolveEliminate:
+        msolveEliminate, -- compute the elimination ideal of a given ideal
+      * "msolveEliminate(Ideal,RingElement)" -- see *note msolveEliminate:
+        msolveEliminate, -- compute the elimination ideal of a given ideal
+      * "msolveEliminate(List,Ideal)" -- see *note msolveEliminate:
+        msolveEliminate, -- compute the elimination ideal of a given ideal
+      * "msolveEliminate(RingElement,Ideal)" -- see *note msolveEliminate:
+        msolveEliminate, -- compute the elimination ideal of a given ideal
+      * "msolveGB(Ideal)" -- see *note msolveGB: msolveGB, -- compute
+        generators of a Groebner basis in GRevLex order
+      * "msolveLeadMonomials(Ideal)" -- see *note msolveLeadMonomials:
+        msolveLeadMonomials, -- compute the leading monomials of a Groebner
+        basis in GRevLex order
+      * "msolveRealSolutions(Ideal)" -- see *note msolveRealSolutions:
+        msolveRealSolutions, -- compute all real solutions to a zero
+        dimensional system using symbolic methods
+      * "msolveRealSolutions(Ideal,Ring)" -- see *note msolveRealSolutions:
+        msolveRealSolutions, -- compute all real solutions to a zero
+        dimensional system using symbolic methods
+      * "msolveRealSolutions(Ideal,RingFamily)" -- see *note
+        msolveRealSolutions: msolveRealSolutions, -- compute all real solutions
+        to a zero dimensional system using symbolic methods
+      * "msolveRUR(Ideal)" -- see *note msolveRUR: msolveRUR, -- compute the
+        rational univariate representation using symbolic methods
+      * "msolveSaturate(Ideal,RingElement)" -- see *note msolveSaturate:
+        msolveSaturate, -- compute a Groebner basis for the saturation of an
+        ideal by a single polynomial in GRevLex order
+      * Number == QQi (missing documentation)
+      * precision(QQi) (missing documentation)
+      * promote(Number,type of QQi) (missing documentation)
+      * QQi == Number (missing documentation)
+      * ring(QQi) (missing documentation)
+
+For the programmer
+==================
+
+The object *note Msolve: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in Msolve.m2, with auxiliary files in Msolve/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Msolve.m2:644:0.
+
+File: Msolve.info, Node: msolveEliminate, Next: msolveGB, Prev: Top, Up: Top
+
+msolveEliminate -- compute the elimination ideal of a given ideal
+*****************************************************************
+
+  * Usage: 
+        msolveEliminate(I,elimVars)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, in a polynomial ring with
+        *note GRevLex: (Macaulay2Doc)GRevLex, order and coefficients over *note
+        ZZ/p: (Macaulay2Doc)finite fields, in characteristic less than $2^{31}$
+      * elimVars, a *note list: (Macaulay2Doc)List,, of variables in the same
+        ring as I, these variables will be eliminated
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Threads => an *note integer: (Macaulay2Doc)ZZ,, default value 5, number
+        of processor threads to use;
+      * Verbosity => an *note integer: (Macaulay2Doc)ZZ,, default value 0,
+        level of verbosity between 0, 1, and 2;
+  * Outputs:
+      * GB, a *note matrix: (Macaulay2Doc)Matrix,, whose columns are generators
+        for the elimination ideal
+
+Description
+===========
+
+This function takes as input a polynomial ideal and computes the elimination
+ideal given by eliminating the variables specified in the inputted list.
+
+The behavior is very different over finite (prime) fields, and the rationals.
+Over *note QQ: (Macaulay2Doc)QQ,, the subideal over a smaller set of variables
+eliminating the given ones is returned. Over a finite field, the Groebner basis
+in the product order eliminating the given block of variables is returned
+(warning: this is a copy of the ring with potentially permuted variables).
+
+First an example over the rationals.
+
++---------------------------------------------------------------+
+|i1 : R = QQ[x,a,b,c,d]                                         |
+|                                                               |
+|o1 = R                                                         |
+|                                                               |
+|o1 : PolynomialRing                                            |
++---------------------------------------------------------------+
+|i2 : f = 7*x^2+a*x+b                                           |
+|                                                               |
+|       2                                                       |
+|o2 = 7x  + x*a + b                                             |
+|                                                               |
+|o2 : R                                                         |
++---------------------------------------------------------------+
+|i3 : g = 2*x^2+c*x+d                                           |
+|                                                               |
+|       2                                                       |
+|o3 = 2x  + x*c + d                                             |
+|                                                               |
+|o3 : R                                                         |
++---------------------------------------------------------------+
+|i4 : M2elim=eliminate(x,ideal(f,g))                            |
+|                                                               |
+|                        2     2               2              2 |
+|o4 = ideal(2a*b*c - 7b*c  - 2a d + 7a*c*d - 4b  + 28b*d - 49d )|
+|                                                               |
+|o4 : Ideal of R                                                |
++---------------------------------------------------------------+
+|i5 : Msolveelim=msolveEliminate(x,ideal(f,g))                  |
+|                                                               |
+|                        2     2               2              2 |
+|o5 = ideal(2a*b*c - 7b*c  - 2a d + 7a*c*d - 4b  + 28b*d - 49d )|
+|                                                               |
+|o5 : Ideal of QQ[a..d]                                         |
++---------------------------------------------------------------+
+|i6 : sub(M2elim,ring Msolveelim)==Msolveelim                   |
+|                                                               |
+|o6 = true                                                      |
++---------------------------------------------------------------+
+
+We can also work over a finite field. Here we get the full Groebner basis in
+the permuted variables with a block order.
+
++-----------------------------------------------------------------------------+
+|i7 : R = ZZ/1073741827[x,y,a,b,c,d]                                          |
+|                                                                             |
+|o7 = R                                                                       |
+|                                                                             |
+|o7 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i8 : f = c*x^2+a*x+b*y^2+d*x*y+y                                             |
+|                                                                             |
+|      2     2                                                                |
+|o8 = y b + x c + x*y*d + x*a + y                                             |
+|                                                                             |
+|o8 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i9 : g = diff(x,f)                                                           |
+|                                                                             |
+|o9 = 2x*c + y*d + a                                                          |
+|                                                                             |
+|o9 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i10 : h = diff(y,f)                                                          |
+|                                                                             |
+|o10 = 2y*b + x*d + 1                                                         |
+|                                                                             |
+|o10 : R                                                                      |
++-----------------------------------------------------------------------------+
+|i11 : M2elim = eliminate({x,y}, ideal(f,g,h))                                |
+|                                                                             |
+|             2                                                               |
+|o11 = ideal(a b - a*d + c)                                                   |
+|                                                                             |
+|o11 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i12 : Msolveelim = msolveEliminate({x,y}, ideal(f,g,h))                      |
+|                                                                             |
+|              2                             2                      2         |
+|o12 = ideal (a b - a*d + c, y*a*d - 2y*c + a , y*b*c - 268435457y*d  -       |
+|      -----------------------------------------------------------------------|
+|      268435457a*d - 536870913c, y*a*b + 536870913y*d - 536870913a, x*d +    |
+|      -----------------------------------------------------------------------|
+|      2y*b + 1, x*c - 536870913y*d - 536870913a, x*a + y)                    |
+|                                                                             |
+|                   ZZ                                                        |
+|o12 : Ideal of ----------[x..y, a..d]                                        |
+|               1073741827                                                    |
++-----------------------------------------------------------------------------+
+|i13 : M2elim_0 == sub(Msolveelim_0, R)                                       |
+|                                                                             |
+|o13 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+Ways to use msolveEliminate:
+============================
+
+  * "msolveEliminate(Ideal,List)"
+  * "msolveEliminate(Ideal,RingElement)"
+  * "msolveEliminate(List,Ideal)"
+  * "msolveEliminate(RingElement,Ideal)"
+
+For the programmer
+==================
+
+The object *note msolveEliminate: msolveEliminate, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Msolve.m2:644:0.
+
+File: Msolve.info, Node: msolveGB, Next: msolveLeadMonomials, Prev: msolveEliminate, Up: Top
+
+msolveGB -- compute generators of a Groebner basis in GRevLex order
+*******************************************************************
+
+  * Usage: 
+        msolveGB(I)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, in a polynomial ring with
+        *note GRevLex: (Macaulay2Doc)GRevLex, order and coefficients over *note
+        QQ: (Macaulay2Doc)QQ, or *note ZZ/p: (Macaulay2Doc)finite fields, in
+        characteristic less than $2^{31}$
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Threads => an *note integer: (Macaulay2Doc)ZZ,, default value 5, number
+        of processor threads to use;
+      * Verbosity => an *note integer: (Macaulay2Doc)ZZ,, default value 0,
+        level of verbosity between 0, 1, and 2;
+  * Outputs:
+      * GB, a *note matrix: (Macaulay2Doc)Matrix,, whose columns form a
+        Groebner basis for the input ideal I, in the GRevLex order
+
+Description
+===========
+
+This functions uses the F4 implementation in the msolve package to compute a
+Groebner basis, in GRevLex order, of a polynomial ideal with either rational
+coefficients or finite field coefficients with characteristic less than
+$2^{31}$. If the input ideal is a polynomial ring with monomial order other
+than GRevLex a GRevLex basis is returned (and no warning is given). The input
+ideal may also be given in a ring with integer coefficients, in this case a
+Groebner basis for the given ideal over the rationals  will be computed,
+denominators will be cleared, and the output will be a Groebner basis over the
+rationals in GRevLex order with integer coefficients.
+
+First an example over a finite field
+
++-----------------------------------------------------------------------------+
+|i1 : R=ZZ/1073741827[z_1..z_3]                                               |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : I=ideal(7*z_1*z_2+5*z_2*z_3+z_3^2+z_1+5*z_3+10,8*z_1^2+13*z_1*z_3+10*z_3|
+|                                                                             |
+|                             2                    2               2          |
+|o2 = ideal (7z z  + 5z z  + z  + z  + 5z  + 10, 8z  + 13z z  + 10z  + z  +   |
+|              1 2     2 3    3    1     3         1      1 3      3    1     |
+|     ------------------------------------------------------------------------|
+|     z )                                                                     |
+|      2                                                                      |
+|                                                                             |
+|o2 : Ideal of R                                                              |
+|-----------------------------------------------------------------------------|
+|^2+z_2+z_1)                                                                  |
++-----------------------------------------------------------------------------+
+|i3 : gB=msolveGB I                                                           |
+|                                                                             |
+|o3 = | z_1z_2-460175068z_2z_3-306783379z_3^2-306783379z_1-460175068z_3+      |
+|     ------------------------------------------------------------------------|
+|     153391691 z_1^2+134217730z_1z_3+268435458z_3^2-402653185z_1-402653185z_2|
+|     ------------------------------------------------------------------------|
+|     z_1z_3^2+19173957z_2z_3^2-479349029z_3^3-402653186z_2^2+460175073z_1z_3+|
+|     ------------------------------------------------------------------------|
+|     134217729z_2z_3+153391693z_3^2+10z_1+402653185z_2-364305253z_3+268435458|
+|     ------------------------------------------------------------------------|
+|     z_2^2z_3^2+59398484z_2z_3^3+347252676z_3^4+516309900z_2^3+91382283z_2^2z|
+|     ------------------------------------------------------------------------|
+|     _3+27414685z_2z_3^2+223886594z_3^3-466049644z_2^2-68536713z_2z_3+       |
+|     ------------------------------------------------------------------------|
+|     310699764z_3^2-310699763z_2+411220277z_3-68536709 |                     |
+|                                                                             |
+|             1      4                                                        |
+|o3 : Matrix R  <-- R                                                         |
++-----------------------------------------------------------------------------+
+|i4 : lT=monomialIdeal leadTerm gB                                            |
+|                                                                             |
+|                     2           2   2 2                                     |
+|o4 = monomialIdeal (z , z z , z z , z z )                                    |
+|                     1   1 2   1 3   2 3                                     |
+|                                                                             |
+|o4 : MonomialIdeal of R                                                      |
++-----------------------------------------------------------------------------+
+|i5 : degree lT                                                               |
+|                                                                             |
+|o5 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i6 : dim lT                                                                  |
+|                                                                             |
+|o6 = 1                                                                       |
++-----------------------------------------------------------------------------+
+
+Now the same example over the rationals.
+
++-----------------------------------------------------------------------------+
+|i7 : R=QQ[z_1..z_3]                                                          |
+|                                                                             |
+|o7 = R                                                                       |
+|                                                                             |
+|o7 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i8 : I=ideal(7*z_1*z_2+5*z_2*z_3+z_3^2+z_1+5*z_3+10,8*z_1^2+13*z_1*z_3+10*z_3|
+|                                                                             |
+|                             2                    2               2          |
+|o8 = ideal (7z z  + 5z z  + z  + z  + 5z  + 10, 8z  + 13z z  + 10z  + z  +   |
+|              1 2     2 3    3    1     3         1      1 3      3    1     |
+|     ------------------------------------------------------------------------|
+|     z )                                                                     |
+|      2                                                                      |
+|                                                                             |
+|o8 : Ideal of R                                                              |
+|-----------------------------------------------------------------------------|
+|^2+z_2+z_1)                                                                  |
++-----------------------------------------------------------------------------+
+|i9 : gB=msolveGB I                                                           |
+|                                                                             |
+|o9 = | 7z_1z_2+5z_2z_3+z_3^2+z_1+5z_3+10 8z_1^2+13z_1z_3+10z_3^2+z_1+z_2     |
+|     ------------------------------------------------------------------------|
+|     56z_1z_3^2-235z_2z_3^2+51z_3^3-49z_2^2+240z_1z_3+35z_2z_3+192z_3^2+560z_|
+|     ------------------------------------------------------------------------|
+|     1-7z_2+545z_3+70 235z_2^2z_3^2-11z_2z_3^3+8z_3^4+49z_2^3-35z_2^2z_3+13z_|
+|     ------------------------------------------------------------------------|
+|     2z_3^2+67z_3^3+14z_2^2-150z_2z_3+304z_3^2-69z_2+665z_3+790 |            |
+|                                                                             |
+|             1      4                                                        |
+|o9 : Matrix R  <-- R                                                         |
++-----------------------------------------------------------------------------+
+|i10 : (ideal gB)== ideal(groebnerBasis I)                                    |
+|                                                                             |
+|o10 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i11 : lT=monomialIdeal leadTerm gB                                           |
+|                                                                             |
+|                      2           2   2 2                                    |
+|o11 = monomialIdeal (z , z z , z z , z z )                                   |
+|                      1   1 2   1 3   2 3                                    |
+|                                                                             |
+|o11 : MonomialIdeal of R                                                     |
++-----------------------------------------------------------------------------+
+|i12 : degree lT                                                              |
+|                                                                             |
+|o12 = 4                                                                      |
++-----------------------------------------------------------------------------+
+|i13 : dim lT                                                                 |
+|                                                                             |
+|o13 = 1                                                                      |
++-----------------------------------------------------------------------------+
+
+Ways to use msolveGB:
+=====================
+
+  * "msolveGB(Ideal)"
+
+For the programmer
+==================
+
+The object *note msolveGB: msolveGB, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Msolve.m2:644:0.
+
+File: Msolve.info, Node: msolveLeadMonomials, Next: msolveRealSolutions, Prev: msolveGB, Up: Top
+
+msolveLeadMonomials -- compute the leading monomials of a Groebner basis in GRevLex order
+*****************************************************************************************
+
+  * Usage: 
+        msolveLeadMonomials(I)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, in a polynomial ring with
+        *note GRevLex: (Macaulay2Doc)GRevLex, order and coefficients over *note
+        QQ: (Macaulay2Doc)QQ, or *note ZZ/p: (Macaulay2Doc)finite fields, in
+        characteristic less than $2^{31}$
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Threads => an *note integer: (Macaulay2Doc)ZZ,, default value 5, number
+        of processor threads to use;
+      * Verbosity => an *note integer: (Macaulay2Doc)ZZ,, default value 0,
+        level of verbosity between 0, 1, and 2;
+  * Outputs:
+      * GB, a *note matrix: (Macaulay2Doc)Matrix,, whose columns are the
+        leading monomials (of a Groebner basis for) the input ideal I, in the
+        GRevLex order
+
+Description
+===========
+
+This functions uses the F4 implementation in the msolve package to compute
+leading monomials via a Groebner basis, in GRevLex order, of a polynomial ideal
+with either rational coefficients or finite field coefficients with
+characteristic less than $2^{31}$. If the input ideal is a polynomial ring with
+monomial order other than GRevLex a GRevLex basis is returned (and no warning
+is given). The input ideal may also be given in a ring with integer
+coefficients, in this case a Groebner basis for the given ideal over the
+rationals  will be computed, denominators will be cleared, and the output will
+be a Groebner basis over the rationals in GRevLex order with integer
+coefficients.
+
+First an example over a finite field
+
++-----------------------------------------------------------------------------+
+|i1 : R=ZZ/1073741827[z_1..z_3]                                               |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : I=ideal(7*z_1*z_2+5*z_2*z_3+z_3^2+z_1+5*z_3+10,8*z_1^2+13*z_1*z_3+10*z_3|
+|                                                                             |
+|                             2                    2               2          |
+|o2 = ideal (7z z  + 5z z  + z  + z  + 5z  + 10, 8z  + 13z z  + 10z  + z  +   |
+|              1 2     2 3    3    1     3         1      1 3      3    1     |
+|     ------------------------------------------------------------------------|
+|     z )                                                                     |
+|      2                                                                      |
+|                                                                             |
+|o2 : Ideal of R                                                              |
+|-----------------------------------------------------------------------------|
+|^2+z_2+z_1)                                                                  |
++-----------------------------------------------------------------------------+
+|i3 : lm=monomialIdeal msolveLeadMonomials I                                  |
+|                                                                             |
+|                     2           2   2 2                                     |
+|o3 = monomialIdeal (z , z z , z z , z z )                                    |
+|                     1   1 2   1 3   2 3                                     |
+|                                                                             |
+|o3 : MonomialIdeal of R                                                      |
++-----------------------------------------------------------------------------+
+|i4 : degree lm                                                               |
+|                                                                             |
+|o4 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : dim lm                                                                  |
+|                                                                             |
+|o5 = 1                                                                       |
++-----------------------------------------------------------------------------+
+
+Now the same example over the rationals; note over the rationals msolve first
+computes over a finite field and when only the leading monomials are asked for
+the correct leading monomials will be returned but the full Groebner basis over
+*note QQ: (Macaulay2Doc)QQ, will not be computed. Hence if only degree and
+dimension are desired this command will often be faster that the Groebner basis
+command.
+
++-----------------------------------------------------------------------------+
+|i6 : R=QQ[z_1..z_3]                                                          |
+|                                                                             |
+|o6 = R                                                                       |
+|                                                                             |
+|o6 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i7 : I=ideal(7*z_1*z_2+5*z_2*z_3+z_3^2+z_1+5*z_3+10,8*z_1^2+13*z_1*z_3+10*z_3|
+|                                                                             |
+|                             2                    2               2          |
+|o7 = ideal (7z z  + 5z z  + z  + z  + 5z  + 10, 8z  + 13z z  + 10z  + z  +   |
+|              1 2     2 3    3    1     3         1      1 3      3    1     |
+|     ------------------------------------------------------------------------|
+|     z )                                                                     |
+|      2                                                                      |
+|                                                                             |
+|o7 : Ideal of R                                                              |
+|-----------------------------------------------------------------------------|
+|^2+z_2+z_1)                                                                  |
++-----------------------------------------------------------------------------+
+|i8 : lm=monomialIdeal msolveLeadMonomials I                                  |
+|                                                                             |
+|                     2           2   2 2                                     |
+|o8 = monomialIdeal (z , z z , z z , z z )                                    |
+|                     1   1 2   1 3   2 3                                     |
+|                                                                             |
+|o8 : MonomialIdeal of R                                                      |
++-----------------------------------------------------------------------------+
+|i9 : lt=monomialIdeal leadTerm groebnerBasis I                               |
+|                                                                             |
+|                     2           2   2 2                                     |
+|o9 = monomialIdeal (z , z z , z z , z z )                                    |
+|                     1   1 2   1 3   2 3                                     |
+|                                                                             |
+|o9 : MonomialIdeal of R                                                      |
++-----------------------------------------------------------------------------+
+|i10 : lm==lt                                                                 |
+|                                                                             |
+|o10 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i11 : degree lm                                                              |
+|                                                                             |
+|o11 = 4                                                                      |
++-----------------------------------------------------------------------------+
+|i12 : dim lm                                                                 |
+|                                                                             |
+|o12 = 1                                                                      |
++-----------------------------------------------------------------------------+
+
+Ways to use msolveLeadMonomials:
+================================
+
+  * "msolveLeadMonomials(Ideal)"
+
+For the programmer
+==================
+
+The object *note msolveLeadMonomials: msolveLeadMonomials, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Msolve.m2:644:0.
+
+File: Msolve.info, Node: msolveRealSolutions, Next: msolveRUR, Prev: msolveLeadMonomials, Up: Top
+
+msolveRealSolutions -- compute all real solutions to a zero dimensional system using symbolic methods
+*****************************************************************************************************
+
+  * Usage: 
+        msolveRealSolutions(I)
+        msolveRealSolutions(I, K)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, which is zero dimensional, in
+        a polynomial ring with coefficients over *note QQ: (Macaulay2Doc)QQ,
+      * K, a *note ring: (Macaulay2Doc)Ring, or an instance of the type *note
+        RingFamily: (Macaulay2Doc)RingFamily,, the field to find answers in,
+        which must be one of *note QQi: QQi, (default), *note QQ:
+        (Macaulay2Doc)QQ,, *note RR: (Macaulay2Doc)RR,, or *note RRi:
+        (Macaulay2Doc)RRi, (possibly with specified precision)
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Threads => an *note integer: (Macaulay2Doc)ZZ,, default value 5, number
+        of processor threads to use;
+      * Verbosity => an *note integer: (Macaulay2Doc)ZZ,, default value 0,
+        level of verbosity between 0, 1, and 2;
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of lists; each entry in the list
+        consists of a list representing the coordinates of a solution. By
+        default each solution coordinate value is also represented by a *note
+        rational interval: QQi, consisting of a two element list of rational
+        numbers, {a, b}, this means that that coordinate of the solution has a
+        value greater than or equal to a and less than or equal to b. This
+        interval is computed symbolically and its correctness is guaranteed by
+        exact methods.
+
+Description
+===========
+
+This functions uses the msolve package to compute the real solutions to a zero
+dimensional polynomial ideal with either integer or rational coefficients.
+
+The second input is optional, and indicates the alternative ways to provide
+output either using an exact rational interval *note QQi: QQi,, a real interval
+*note RRi: (Macaulay2Doc)RRi,, or by taking a rational or real approximation of
+the midpoint of the intervals.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y]                                                             |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : I = ideal {(x-1)*x, y^2-5}                                              |
+|                                                                             |
+|             2       2                                                       |
+|o2 = ideal (x  - x, y  - 5)                                                  |
+|                                                                             |
+|o2 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i3 : rationalIntervalSols = msolveRealSolutions I                            |
+|                                                                             |
+|        18446744073709551615  18446744073709551617    20624086856177974293   |
+|o3 = {{{--------------------, --------------------}, {--------------------,  |
+|        18446744073709551616  18446744073709551616     9223372036854775808   |
+|     ------------------------------------------------------------------------|
+|     20624086856177974295                      2006703563                    |
+|     --------------------}}, {{- --------------------------------------,     |
+|      9223372036854775808        42535295865117307932921825928971026432      |
+|     ------------------------------------------------------------------------|
+|                   11938980589                  41248173712355948587         |
+|     ---------------------------------------}, {--------------------,        |
+|     340282366920938463463374607431768211456    18446744073709551616         |
+|     ------------------------------------------------------------------------|
+|     10312043428088987147      18446744073709551615  18446744073709551617    |
+|     --------------------}}, {{--------------------, --------------------},  |
+|      4611686018427387904      18446744073709551616  18446744073709551616    |
+|     ------------------------------------------------------------------------|
+|        10312043428088987147    41248173712355948587                         |
+|     {- --------------------, - --------------------}}, {{-                  |
+|         4611686018427387904    18446744073709551616                         |
+|     ------------------------------------------------------------------------|
+|               1609631842585563245                                           |
+|     ---------------------------------------,                                |
+|     340282366920938463463374607431768211456                                 |
+|     ------------------------------------------------------------------------|
+|               2196656601096771077                20624086856177974295       |
+|     ---------------------------------------}, {- --------------------, -    |
+|     170141183460469231731687303715884105728       9223372036854775808       |
+|     ------------------------------------------------------------------------|
+|     20624086856177974293                                                    |
+|     --------------------}}}                                                 |
+|      9223372036854775808                                                    |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : rationalApproxSols = msolveRealSolutions(I, QQ)                         |
+|                                                                             |
+|          10312043428088987147                     4114647915                |
+|o4 = {{1, --------------------}, {- ---------------------------------------, |
+|           4611686018427387904      680564733841876926926749214863536422912  |
+|     ------------------------------------------------------------------------|
+|     82496347424711897175         82496347424711897175                       |
+|     --------------------}, {1, - --------------------},                     |
+|     36893488147419103232         36893488147419103232                       |
+|     ------------------------------------------------------------------------|
+|                2783681359607978909              10312043428088987147        |
+|     {---------------------------------------, - --------------------}}      |
+|      680564733841876926926749214863536422912     4611686018427387904        |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : floatIntervalSols = msolveRealSolutions(I, RRi)                         |
+|                                                                             |
+|o5 = {{[1,1], [2.23607,2.23607]}, {[-4.71774e-29,3.50855e-29],               |
+|     ------------------------------------------------------------------------|
+|     [2.23607,2.23607]}, {[1,1], [-2.23607,-2.23607]},                       |
+|     ------------------------------------------------------------------------|
+|     {[-4.73028e-21,1.29108e-20], [-2.23607,-2.23607]}}                      |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i6 : floatIntervalSols = msolveRealSolutions(I, RRi_10)                      |
+|                                                                             |
+|o6 = {{[.999999,1], [2.23607,2.23607]}, {[-1.4743e-7,2.41046e-7],            |
+|     ------------------------------------------------------------------------|
+|     [2.23607,2.23607]}, {[.999999,1], [-2.23607,-2.23606]},                 |
+|     ------------------------------------------------------------------------|
+|     {[-1.12332e-8,8.16453e-9], [-2.23607,-2.23607]}}                        |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : floatApproxSols = msolveRealSolutions(I, RR)                            |
+|                                                                             |
+|o7 = {{1, 2.23607}, {-6.04593e-30, 2.23607}, {1, -2.23607}, {4.09025e-21,    |
+|     ------------------------------------------------------------------------|
+|     -2.23607}}                                                              |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : floatApproxSols = msolveRealSolutions(I, RR_10)                         |
+|                                                                             |
+|o8 = {{1, 2.23607}, {4.68081e-8, 2.23607}, {1, -2.23607}, {-1.53432e-9,      |
+|     ------------------------------------------------------------------------|
+|     -2.23607}}                                                              |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Note in cases where solutions have multiplicity this is not reflected in the
+output. While the solver does not return multiplicities, it reliably outputs
+the verified isolating intervals for multiple solutions.
+
++-----------------------------------------------------------------------------+
+|i9 : I = ideal {(x-1)*x^3, (y^2-5)^2}                                        |
+|                                                                             |
+|             4    3   4      2                                               |
+|o9 = ideal (x  - x , y  - 10y  + 25)                                         |
+|                                                                             |
+|o9 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i10 : floatApproxSols = msolveRealSolutions(I, RRi)                          |
+|                                                                             |
+|o10 = {{[1,1], [2.23607,2.23607]}, {[-4.71774e-29,3.50855e-29],              |
+|      -----------------------------------------------------------------------|
+|      [2.23607,2.23607]}, {[1,1], [-2.23607,-2.23607]},                      |
+|      -----------------------------------------------------------------------|
+|      {[-4.73028e-21,1.29108e-20], [-2.23607,-2.23607]}}                     |
+|                                                                             |
+|o10 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+Ways to use msolveRealSolutions:
+================================
+
+  * "msolveRealSolutions(Ideal)"
+  * "msolveRealSolutions(Ideal,Ring)"
+  * "msolveRealSolutions(Ideal,RingFamily)"
+
+For the programmer
+==================
+
+The object *note msolveRealSolutions: msolveRealSolutions, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Msolve.m2:644:0.
+
+File: Msolve.info, Node: msolveRUR, Next: msolveSaturate, Prev: msolveRealSolutions, Up: Top
+
+msolveRUR -- compute the rational univariate representation using symbolic methods
+**********************************************************************************
+
+  * Usage: 
+        msolveRUR(I)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, which is zero dimensional, in
+        a polynomial ring with coefficients over *note QQ: (Macaulay2Doc)QQ,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Threads => an *note integer: (Macaulay2Doc)ZZ,, default value 5, number
+        of processor threads to use;
+      * Verbosity => an *note integer: (Macaulay2Doc)ZZ,, default value 0,
+        level of verbosity between 0, 1, and 2;
+  * Outputs:
+      * RUR, a *note hash table: (Macaulay2Doc)HashTable,, with 6 keys giving
+        the rational univariate representation of I
+
+Description
+===========
+
+This functions uses the msolve package to compute the rational univariate
+representation (RUR) of a zero dimensional polynomial ideal with either integer
+or rational coefficients.
+
+The RUR gives a parametrization for all complex solutions to the input system.
+For a complete definition of the RUR see the paper: Rouillier, Fabrice (1999).
+"Solving Zero-Dimensional Systems Through the Rational Univariate
+Representation". Appl. Algebra Eng. Commun. Comput. 9 (9): 433–461.
+
+If I is a zero dimensional ideal in QQ[x_1..x_n] then the RUR is given by:
+
+(x_1,..,x_n)={ (-v_1(T)/w'(T), .. , -v_n(T)/w'(T)) | w(T)=0}
+
+The output is a hash table with 6 keys.
+
+The key "degree" is the number of solutions to I, counted with multiplicity.
+
+The key "findRootsUniPoly" gives the polynomial w(T) above.
+
+The key "denominator"  gives the polynomial w'(T), which is the derivative of
+w(T) and is the denominator of each coordinate above.
+
+The key "numerator" gives a list {v_1(T), .. , v_n(T)} of length n above, with
+n the number of variables, where the polynomial v_i(T) gives the numerator of
+the ith coordinate.
+
+The key "var" gives the variable name in the univariate polynomial ring; by
+default this is: "T".
+
+The key "T" gives the linear relation between the variables of the ring of I
+and the single variable, which is denoted T above.
+
+
+
+A simple example, where the input ideal is zero dimensional and radical.
+
++---------------------------------------------------------------------+
+|i1 : R = QQ[x_1..x_3]                                                |
+|                                                                     |
+|o1 = R                                                               |
+|                                                                     |
+|o1 : PolynomialRing                                                  |
++---------------------------------------------------------------------+
+|i2 : f = (x_1-1)                                                     |
+|                                                                     |
+|o2 = x  - 1                                                          |
+|      1                                                              |
+|                                                                     |
+|o2 : R                                                               |
++---------------------------------------------------------------------+
+|i3 : g = (x_2-2)                                                     |
+|                                                                     |
+|o3 = x  - 2                                                          |
+|      2                                                              |
+|                                                                     |
+|o3 : R                                                               |
++---------------------------------------------------------------------+
+|i4 : h = (x_3^2-9)                                                   |
+|                                                                     |
+|      2                                                              |
+|o4 = x  - 9                                                          |
+|      3                                                              |
+|                                                                     |
+|o4 : R                                                               |
++---------------------------------------------------------------------+
+|i5 : I = ideal (f,g,h)                                               |
+|                                                                     |
+|                             2                                       |
+|o5 = ideal (x  - 1, x  - 2, x  - 9)                                  |
+|             1       2       3                                       |
+|                                                                     |
+|o5 : Ideal of R                                                      |
++---------------------------------------------------------------------+
+|i6 : decompose I                                                     |
+|                                                                     |
+|o6 = {ideal (x  - 3, x  - 2, x  - 1), ideal (x  + 3, x  - 2, x  - 1)}|
+|              3       2       1               3       2       1      |
+|                                                                     |
+|o6 : List                                                            |
++---------------------------------------------------------------------+
+|i7 : rur=msolveRUR(I)                                                |
+|                                                                     |
+|o7 = HashTable{"degree" => 2                  }                      |
+|               "denominator" => 2T                                   |
+|                                      2                              |
+|               "findRootsUniPoly" => T  - 9                          |
+|                                            2                        |
+|               "numerator" => {-2T, -4T, -2T }                       |
+|               "T" => x                                              |
+|                       3                                             |
+|               "var" => T                                            |
+|                                                                     |
+|o7 : HashTable                                                       |
++---------------------------------------------------------------------+
+|i8 : factor rur#"findRootsUniPoly"                                   |
+|                                                                     |
+|o8 = (T - 3)(T + 3)                                                  |
+|                                                                     |
+|o8 : Expression of class Product                                     |
++---------------------------------------------------------------------+
+|i9 : sols=-1*(rur#"numerator")                                       |
+|                                                                     |
+|                2                                                    |
+|o9 = {2T, 4T, 2T }                                                   |
+|                                                                     |
+|o9 : List                                                            |
++---------------------------------------------------------------------+
+|i10 : denom= rur#"denominator"                                       |
+|                                                                     |
+|o10 = 2T                                                             |
+|                                                                     |
+|o10 : QQ[T]                                                          |
++---------------------------------------------------------------------+
+|i11 : (for s in sols list sub(s,T=>3))/sub(denom,T=>3)               |
+|                                                                     |
+|o11 = {1, 2, 3}                                                      |
+|                                                                     |
+|o11 : List                                                           |
++---------------------------------------------------------------------+
+|i12 : (for s in sols list sub(s,T=>-3))/sub(denom,T=>-3)             |
+|                                                                     |
+|o12 = {1, 2, -3}                                                     |
+|                                                                     |
+|o12 : List                                                           |
++---------------------------------------------------------------------+
+
+In cases where the input ideal has dimension greater than zero an error will be
+returned.
+
+
+
+Ways to use msolveRUR:
+======================
+
+  * "msolveRUR(Ideal)"
+
+For the programmer
+==================
+
+The object *note msolveRUR: msolveRUR, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Msolve.m2:644:0.
+
+File: Msolve.info, Node: msolveSaturate, Next: QQi, Prev: msolveRUR, Up: Top
+
+msolveSaturate -- compute a Groebner basis for the saturation of an ideal by a single polynomial in GRevLex order
+*****************************************************************************************************************
+
+  * Usage: 
+        msolveSaturate(I)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, in a polynomial ring with
+        *note GRevLex: (Macaulay2Doc)GRevLex, order and coefficients over *note
+        ZZ/p: (Macaulay2Doc)finite fields, in characteristic more than $2^16$
+        and less than $2^{31}$
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, a polynomial in
+        the same ring as I.
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Threads => an *note integer: (Macaulay2Doc)ZZ,, default value 5, number
+        of processor threads to use;
+      * Verbosity => an *note integer: (Macaulay2Doc)ZZ,, default value 0,
+        level of verbosity between 0, 1, and 2;
+  * Outputs:
+      * GB, a *note matrix: (Macaulay2Doc)Matrix,, whose columns form a
+        Groebner basis for the ideal $I:f^\infty$, in the GRevLex order
+
+Description
+===========
+
+This functions uses the F4SAT algorithm implemented in the msolve library to
+compute a Groebner basis, in GRevLex order, of $I:f^\infty$, that is of the
+saturation of the ideal $I$ by the principal ideal generated by the polynomial
+$f$.
+
++----------------------------------------------+
+|i1 : R=ZZ/1073741827[z_1..z_3]                |
+|                                              |
+|o1 = R                                        |
+|                                              |
+|o1 : PolynomialRing                           |
++----------------------------------------------+
+|i2 : I=ideal(z_1*(z_2^2-17*z_1-z_3^3),z_1*z_2)|
+|                                              |
+|                 3      2      2              |
+|o2 = ideal (- z z  + z z  - 17z , z z )       |
+|               1 3    1 2      1   1 2        |
+|                                              |
+|o2 : Ideal of R                               |
++----------------------------------------------+
+|i3 : satMsolve=ideal msolveSaturate(I,z_1)    |
+|                                              |
+|                 3                            |
+|o3 = ideal (z , z  + 17z )                    |
+|             2   3      1                     |
+|                                              |
+|o3 : Ideal of R                               |
++----------------------------------------------+
+|i4 : satM2=saturate(I,z_1)                    |
+|                                              |
+|                 3                            |
+|o4 = ideal (z , z  + 17z )                    |
+|             2   3      1                     |
+|                                              |
+|o4 : Ideal of R                               |
++----------------------------------------------+
+
+Note that the ring must be a polynomial ring over a finite field.
+
+Caveat
+======
+
+Currently the F4SAT algorithm is only implemented over prime fields in
+characteristic between $2^{16}$ and $2^{31}$.
+
+
+
+Ways to use msolveSaturate:
+===========================
+
+  * "msolveSaturate(Ideal,RingElement)"
+
+For the programmer
+==================
+
+The object *note msolveSaturate: msolveSaturate, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Msolve.m2:644:0.
+
+File: Msolve.info, Node: QQi, Prev: msolveSaturate, Up: Top
+
+QQi -- the class of all rational intervals
+******************************************
+
+Description
+===========
+
+This class is similar to the class of *note real intervals: (Macaulay2Doc)RRi,,
+except that the boundaries are arbitrary precision rational numbers.
+
+Caveat
+======
+
+Currently this class is not implemented in the interpreter, which means rings
+or matrices over rational intervals are not supported, and many functionalities
+of *note RRi: (Macaulay2Doc)RRi, are not yet available.
+
+
+
+Methods that use a rational interval:
+=====================================
+
+  * diameter(QQi) (missing documentation)
+  * interval(QQi) (missing documentation)
+  * lift(QQi,type of Number) (missing documentation)
+  * Number == QQi (missing documentation)
+  * precision(QQi) (missing documentation)
+  * promote(Number,type of QQi) (missing documentation)
+  * QQi == Number (missing documentation)
+  * ring(QQi) (missing documentation)
+
+For the programmer
+==================
+
+The object *note QQi: QQi, is a *note ring: (Macaulay2Doc)Ring,, with ancestor
+classes *note List: (Macaulay2Doc)List, < *note VisibleList:
+(Macaulay2Doc)VisibleList, < *note BasicList: (Macaulay2Doc)BasicList, < *note
+Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Msolve.m2:644:0.
+
+Tag Table:
+Node: Top298
+Node: msolveEliminate23874
+Node: msolveGB32776
+Node: msolveLeadMonomials43570
+Node: msolveRealSolutions52974
+Node: msolveRUR65533
+Node: msolveSaturate74762
+Node: QQi78355
+
+End Tag Table

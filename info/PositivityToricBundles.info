@@ -1,0 +1,1500 @@
+ -*- coding: utf-8 -*- This is PositivityToricBundles.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* PositivityToricBundles: (PositivityToricBundles).  check positivity of toric vector bundles
+END-INFO-DIR-ENTRY
+
+
+File: PositivityToricBundles.info, Node: Top, Next: cartierInd, Up: (dir)
+
+PositivityToricBundles -- checks positivity of toric vector bundles
+*******************************************************************
+
+Description
+===========
+
+Given a toric vector bundle, i.e. an equivariant vector bundle on a smooth
+complete toric variety, this package can check the positivity of this bundle.
+PositivityToricBundles can check whether a toric vector bundle is
+  * nef, i.e. whether the line bundle $\mathcal{O}(1)$ on $\mathbb{P}(\mathcal
+    E)$ is nef;
+  * (very) ample, i.e. whether the line bundle $\mathcal{O}(1)$ on
+    $\mathbb{P}(\mathcal E)$ is (very) ample;
+  * globally generated.
+Additionally, PositivityToricBundles can compute the toric Chern character of a
+toric vector bundle as introduced by Sam Payne.
+
+
+For the computational purposes, PositivityToricBundles uses the description of
+a toric vector bundles by filtrations developed by Alexander Klyachko, and
+relies on its implementation via the *note ToricVectorBundles:
+(ToricVectorBundles)Top, package by René Birkner, Nathan Ilten and Lars
+Petersen.
+To check nefness and ampleness, PositivityToricBundles uses a result of Milena
+Hering, Mircea Mustaţă and Sam Payne, namely, that it is sufficient to check
+this for the restriction of the bundle to the torus invariant curves. The
+central method for this is *note restrictToInvCurves: restrictToInvCurves,; the
+methods isNef and isAmple are based on it.
+For global generation and very ampleness, PositivityToricBundles uses results
+of Sandra Di Rocco, Kelly Jabbusch and Gregory Smith, who describe these
+properties in terms of the so-called parliament of polytopes of a toric vector
+bundle. From the parliament of polytopes one can extract the information up to
+which order jets are separated by the vector bundle. Globally generated or very
+ample toric vector bundles are those that separate 0-jets or 1-jets,
+respectively. Here, the central method is *note separatesJets: separatesJets,;
+built on it are isGloballyGenerated and isVeryAmple.
+
+
+For the mathematical background see 
+  * [K] Alexander Klyachko, Equivariant bundles over toral varieties, Izv.
+    Akad. Nauk SSSR Ser. Mat., 53, 1989.
+  * [P] Sam Payne, Moduli of toric vector bundles, Compos. Math, 144, 2008.
+  * [HMP] Milena Hering, Mircea Mustaţă, Sam Payne, Positivity properties of
+    toric vector bundles, Ann. Inst. Fourier (Grenoble), 60, 2010
+  * [RJS] Sandra Di Rocco, Kelly Jabbusch, Gregory Smith, Toric vector bundles
+    and parliaments of polytopes, Trans. AMS, 370, 2018.
+The following example computes the positivity for the tangent sheaf of $\mathbb
+P^2$:
++-------------------------------------------+
+|i1 : E = tangentBundle projectiveSpaceFan 2|
+|                                           |
+|o1 = {dimension of the variety => 2 }      |
+|      number of affine charts => 3         |
+|      number of rays => 3                  |
+|      rank of the vector bundle => 2       |
+|                                           |
+|o1 : ToricVectorBundleKlyachko             |
++-------------------------------------------+
+|i2 : isNef E                               |
+|                                           |
+|o2 = true                                  |
++-------------------------------------------+
+|i3 : isAmple E                             |
+|                                           |
+|o3 = true                                  |
++-------------------------------------------+
+|i4 : isVeryAmple E                         |
+|                                           |
+|o4 = true                                  |
++-------------------------------------------+
+|i5 : isGloballyGenerated E                 |
+|                                           |
+|o5 = true                                  |
++-------------------------------------------+
+|i6 : separatesJets E                       |
+|                                           |
+|o6 = 1                                     |
+|                                           |
+|o6 : QQ                                    |
++-------------------------------------------+
+
+
+The toric Chern character can be computed:
++-------------------------------------------+
+|i7 : toricChernCharacter E                 |
+|                                           |
+|o7 = HashTable{| -1 0 | => {| 1  |, | 1 |}}|
+|               | -1 1 |     | -1 |  | 0 |  |
+|               | 1 -1 | => {| -1 |, | 0 |} |
+|               | 0 -1 |     | 1  |  | 1 |  |
+|               | 1 0 | => {| 0  |, | -1 |} |
+|               | 0 1 |     | -1 |  | 0  |  |
+|                                           |
+|o7 : HashTable                             |
++-------------------------------------------+
+which associates to each maximal cone (its rays put into matrices) the
+corresponding components.
+
+
+The restrictions of the bundle to the torus invariant curves can be computed:
++--------------------------------+
+|i8 : restrictToInvCurves E      |
+|                                |
+|o8 = HashTable{| -1 | => {2, 1}}|
+|               | -1 |           |
+|               | 0 | => {1, 2}  |
+|               | 1 |            |
+|               | 1 | => {2, 1}  |
+|               | 0 |            |
+|                                |
+|o8 : HashTable                  |
++--------------------------------+
+Here, in all three cases, the restriction splits into $\mathcal{O}_{\mathbb
+P^1}(2) \oplus \mathcal{O}_{\mathbb P^1}(1)$.
+
+
+Most methods of PositivityToricBundles support the option Verbosity. So by
+adding Verbosity => n with n a positive integer to the arguments of a method,
+hopefully useful insight about the course of the calculation is provided.
+
+Contributors
+============
+
+The author of the package wants to thank Brett Nasserden and Alexandre Zotine
+for reporting bugs.
+
+Caveat
+======
+
+The description of a toric variety and a toric vector bundle by filtrations
+involves the choice of signs. PositivityToricBundles follows the same choice of
+signs as ToricVectorBundles, which are
+  * the fan associated to a polytope will be generated by inner normals,
+  * the filtrations for describing a toric vector bundle are increasing and
+    that the filtration steps are stored in that way, see *note
+    wellformedBundleFiltrations: wellformedBundleFiltrations,.
+Unfortunately, the above cited articles use decreasing filtrations and,
+moreover, [HMP], [P] and [RJS] use outer normals.
+
+
+Contrary to what the name suggests, *note ToricVectorBundle:
+(ToricVectorBundles)ToricVectorBundle, may very well encode a toric reflexive
+sheaf, which is not necessarily locally free, that is, not necessarily a vector
+bundle. Some methods work also for toric reflexive sheaves, but this is not
+guaranteed.
+
+
+Another warning concerns the toric variety: the methods of
+PositivityToricBundles implicitly assume that the variety is complete (to apply
+the results of [HMP] and [P]) and in addition smooth (for [RJS]). For
+non-complete or singular toric varieties, methods might break or results might
+become meaningless.
+
+See also
+========
+
+  * *note Polyhedra: (Polyhedra)Top, -- convex polyhedra
+  * *note ToricVectorBundles: (ToricVectorBundles)Top, -- vector bundles on
+    toric varieties
+
+Author
+======
+
+  * Andreas Hochenegger <andreas.hochenegger@polimi.it>
+
+Version
+=======
+
+This documentation describes version 1.9 of PositivityToricBundles, released
+August, 2024.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{PositivityToricBundlesSource,                                          |
+|  title = {{PositivityToricBundles: check positivity of toric vector bundles.|
+|  author = {Andreas Hochenegger},                                            |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Version~1.9}},                                                               |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note cartierInd: cartierInd, -- computes the Cartier index
+      * *note compatibleBases: compatibleBases, -- computes compatible bases
+        for a toric vector bundle
+      * *note drawParliament2Dtikz: drawParliament2Dtikz, -- visualises the
+        parliament of polytopes for a vector bundle on a toric surface using
+        TikZ
+      * *note graphToricChernCharacter: graphToricChernCharacter, -- computes
+        the lines connected the components of the toric Chern character of a
+        toric vector bundle
+      * *note groundSet: groundSet, -- computes the ground set of a matroid
+        associated to a toric vector bundle
+      * *note isLocallyFree: isLocallyFree, -- checks whether a toric reflexive
+        sheaf is locally free
+      * *note isLocallyWeil: isLocallyWeil, -- checks whether a toric reflexive
+        sheaf is locally Weil
+      * *note parliament: parliament, -- computes the parliament of polytopes
+        to a toric vector bundle
+      * "isAmple" -- see *note restrictToInvCurves: restrictToInvCurves, --
+        computes the restrictions of a toric vector bundle to the torus
+        invariant curves
+      * "isNef" -- see *note restrictToInvCurves: restrictToInvCurves, --
+        computes the restrictions of a toric vector bundle to the torus
+        invariant curves
+      * *note restrictToInvCurves: restrictToInvCurves, -- computes the
+        restrictions of a toric vector bundle to the torus invariant curves
+      * "isGloballyGenerated" -- see *note separatesJets: separatesJets, --
+        computes up to which order a toric vector bundle separates jets
+      * *note separatesJets: separatesJets, -- computes up to which order a
+        toric vector bundle separates jets
+      * *note toricChernCharacter: toricChernCharacter, -- computes the toric
+        Chern character of a toric vector bundle
+      * *note wellformedBundleFiltrations: wellformedBundleFiltrations, --
+        produces the same toric vector bundle, but where the filtration steps
+        are stored in matrices with ascending entries.
+  * Methods
+      * "cartierInd(ToricVectorBundleKlyachko)" -- see *note cartierInd:
+        cartierInd, -- computes the Cartier index
+      * "compatibleBases(ToricVectorBundleKlyachko)" -- see *note
+        compatibleBases: compatibleBases, -- computes compatible bases for a
+        toric vector bundle
+      * "drawParliament2Dtikz(ToricVectorBundleKlyachko,String)" -- see *note
+        drawParliament2Dtikz: drawParliament2Dtikz, -- visualises the
+        parliament of polytopes for a vector bundle on a toric surface using
+        TikZ
+      * "graphToricChernCharacter(ToricVectorBundleKlyachko)" -- see *note
+        graphToricChernCharacter: graphToricChernCharacter, -- computes the
+        lines connected the components of the toric Chern character of a toric
+        vector bundle
+      * "groundSet(ToricVectorBundleKlyachko)" -- see *note groundSet:
+        groundSet, -- computes the ground set of a matroid associated to a
+        toric vector bundle
+      * "isLocallyFree(ToricVectorBundleKlyachko)" -- see *note isLocallyFree:
+        isLocallyFree, -- checks whether a toric reflexive sheaf is locally
+        free
+      * "isLocallyWeil(ToricVectorBundleKlyachko)" -- see *note isLocallyWeil:
+        isLocallyWeil, -- checks whether a toric reflexive sheaf is locally
+        Weil
+      * "parliament(ToricVectorBundleKlyachko)" -- see *note parliament:
+        parliament, -- computes the parliament of polytopes to a toric vector
+        bundle
+      * "isAmple(ToricVectorBundleKlyachko)" -- see *note restrictToInvCurves:
+        restrictToInvCurves, -- computes the restrictions of a toric vector
+        bundle to the torus invariant curves
+      * "isNef(ToricVectorBundleKlyachko)" -- see *note restrictToInvCurves:
+        restrictToInvCurves, -- computes the restrictions of a toric vector
+        bundle to the torus invariant curves
+      * "restrictToInvCurves(ToricVectorBundleKlyachko)" -- see *note
+        restrictToInvCurves: restrictToInvCurves, -- computes the restrictions
+        of a toric vector bundle to the torus invariant curves
+      * "isGloballyGenerated(ToricVectorBundleKlyachko)" -- see *note
+        separatesJets: separatesJets, -- computes up to which order a toric
+        vector bundle separates jets
+      * "isVeryAmple(ToricVectorBundleKlyachko)" -- see *note separatesJets:
+        separatesJets, -- computes up to which order a toric vector bundle
+        separates jets
+      * "separatesJets(ToricVectorBundleKlyachko)" -- see *note separatesJets:
+        separatesJets, -- computes up to which order a toric vector bundle
+        separates jets
+      * "toricChernCharacter(ToricVectorBundleKlyachko)" -- see *note
+        toricChernCharacter: toricChernCharacter, -- computes the toric Chern
+        character of a toric vector bundle
+      * "wellformedBundleFiltrations(ToricVectorBundleKlyachko)" -- see *note
+        wellformedBundleFiltrations: wellformedBundleFiltrations, -- produces
+        the same toric vector bundle, but where the filtration steps are stored
+        in matrices with ascending entries.
+  * Symbols
+      * "DrawChernCharacter" -- see *note drawParliament2Dtikz:
+        drawParliament2Dtikz, -- visualises the parliament of polytopes for a
+        vector bundle on a toric surface using TikZ
+      * "DrawCohomology" -- see *note drawParliament2Dtikz:
+        drawParliament2Dtikz, -- visualises the parliament of polytopes for a
+        vector bundle on a toric surface using TikZ
+      * "Verbosity"
+
+For the programmer
+==================
+
+The object *note PositivityToricBundles: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in PositivityToricBundles.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:810:0.
+
+File: PositivityToricBundles.info, Node: cartierInd, Next: compatibleBases, Prev: Top, Up: Top
+
+cartierInd -- computes the Cartier index
+****************************************
+
+  * Usage: 
+        i = cartierInd E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * i, an *note integer: (Macaulay2Doc)ZZ,, Cartier index of E
+  * Consequences:
+      * The result of cartierInd will be stored as a cacheValue (missing
+        documentation) in E.cache#cartierInd.
+
+Description
+===========
+
+Contrary to what the name suggests, *note ToricVectorBundle:
+(ToricVectorBundles)ToricVectorBundle, may well encode a toric reflexive sheaf
+that is not locally free. cartierInd computes the Cartier index, that is, the
+smallest non-negative integer i such that the pullback of the bundle under the
+i-th toric Frobenius becomes locally free. In case of the reflexive sheaf of a
+Weil divisor D, this is the smallest i such that iD is Cartier. This method
+works well only on simplicial toric varieties.
+cartierInd calls internally the method *note toricChernCharacter:
+toricChernCharacter,.
++-----------------------------------------------------------------------------+
+|i1 : P112 = ccRefinement transpose matrix {{1,0},{0,1},{-1,-2}};             |
++-----------------------------------------------------------------------------+
+|i2 : D = {1,0,0};                                                            |
++-----------------------------------------------------------------------------+
+|i3 : L = toricVectorBundle(1, P112, toList(3: matrix{{1_QQ}}), apply( D, i-> |
+|-----------------------------------------------------------------------------|
+|matrix{{-i}}));                                                              |
++-----------------------------------------------------------------------------+
+|i4 : details L                                                               |
+|                                                                             |
+|o4 = HashTable{| -1 | => (| 1 |, | -1 |)}                                    |
+|               | -2 |                                                        |
+|               | 0 | => (| 1 |, 0)                                           |
+|               | 1 |                                                         |
+|               | 1 | => (| 1 |, 0)                                           |
+|               | 0 |                                                         |
+|                                                                             |
+|o4 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i5 : cI = cartierInd L                                                       |
+|                                                                             |
+|o5 = 2                                                                       |
++-----------------------------------------------------------------------------+
+|i6 : isLocallyFree L                                                         |
+|                                                                             |
+|o6 = false                                                                   |
++-----------------------------------------------------------------------------+
+|i7 : L2 = toricVectorBundle(1, P112, toList(3: matrix{{1_QQ}}), apply( cI*D, |
+|-----------------------------------------------------------------------------|
+|i-> matrix{{-i}}));                                                          |
++-----------------------------------------------------------------------------+
+|i8 : isLocallyFree L2                                                        |
+|                                                                             |
+|o8 = true                                                                    |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+This method works for a toric reflexive sheaf, which is locally Weil (see *note
+isLocallyWeil: isLocallyWeil,),  on a toric variety, whose fan is covered by
+cones of maximal dimension.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note toricChernCharacter: toricChernCharacter, -- computes the toric Chern
+    character of a toric vector bundle
+
+Ways to use cartierInd:
+=======================
+
+  * "cartierInd(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note cartierInd: cartierInd, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:1054:0.
+
+File: PositivityToricBundles.info, Node: compatibleBases, Next: drawParliament2Dtikz, Prev: cartierInd, Up: Top
+
+compatibleBases -- computes compatible bases for a toric vector bundle
+**********************************************************************
+
+  * Usage: 
+        b = compatibleBases E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * b, a *note hash table: (Macaulay2Doc)HashTable,, whose keys are maximal
+        cones and the value of a key is a *note matrix: (Macaulay2Doc)matrix,
+  * Consequences:
+      * The result of compatibleBases will be stored as a cacheValue (missing
+        documentation) in E.cache#compatibleBases. It will be used by other
+        methods.
+
+Description
+===========
+
+Given a toric vector bundle in Klyachko's description, compatibleBases computes
+for each maximal cone of the underlying toric variety a compatible basis of the
+filtrations, see [RJS, Section 3] for details.
+compatibleBases calls internally the method *note groundSet: groundSet,.
+
+
+The compatible bases serve as input for the computation of the toric Chern
+character by *note toricChernCharacter: toricChernCharacter,.
+
+Caveat
+======
+
+This method works for any toric reflexive sheaf (see *note isLocallyWeil:
+isLocallyWeil, for an example where the sheaf is not locally free) on a toric
+variety, whose fan is covered by cones of maximal dimension.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note groundSet: groundSet, -- computes the ground set of a matroid
+    associated to a toric vector bundle
+  * *note toricChernCharacter: toricChernCharacter, -- computes the toric Chern
+    character of a toric vector bundle
+
+Ways to use compatibleBases:
+============================
+
+  * "compatibleBases(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note compatibleBases: compatibleBases, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:928:0.
+
+File: PositivityToricBundles.info, Node: drawParliament2Dtikz, Next: graphToricChernCharacter, Prev: compatibleBases, Up: Top
+
+drawParliament2Dtikz -- visualises the parliament of polytopes for a vector bundle on a toric surface using TikZ
+****************************************************************************************************************
+
+  * Usage: 
+        drawParliament2Dtikz(E,file)
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+      * file, a *note string: (Macaulay2Doc)String,, containing name of file,
+        where picture will be written
+  * Consequences:
+      * The file with name file will contain a TikZ picture, ready to be
+        included into a TeX file.
+
+Description
+===========
+
+Given a toric vector bundle in Klyachko's description on a toric surface,
+drawParliament2Dtikz writes to a file a TikZ picture visualising the *note
+parliament: parliament,. Additionally, the picture may contain also information
+about the cohomology of the vector bundle as computed by *note cohomology:
+(Macaulay2Doc)cohomology, from the *note ToricVectorBundle:
+(ToricVectorBundles)ToricVectorBundle, package and the toric Chern character as
+computed by *note toricChernCharacter: toricChernCharacter, and *note
+graphToricChernCharacter: graphToricChernCharacter,.
+
+
+Extending the example from *note parliament: parliament, by the command 
+i5 : drawParliament2Dtikz(E,p,"picture.tikz")
+produces the file picture.tikz. Embedded into a TeX file, this finally leads to
+a nice picture of the parliament.
+
+
+By setting the options DrawChernCharacter and DrawCohomology to true or false,
+one can decide whether the picture also includes information about the
+cohomology or toric Chern character, respectively. By default, both are set to
+true.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note parliament: parliament, -- computes the parliament of polytopes to a
+    toric vector bundle
+
+Ways to use drawParliament2Dtikz:
+=================================
+
+  * "drawParliament2Dtikz(ToricVectorBundleKlyachko,String)"
+
+For the programmer
+==================
+
+The object *note drawParliament2Dtikz: drawParliament2Dtikz, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:906:0.
+
+File: PositivityToricBundles.info, Node: graphToricChernCharacter, Next: groundSet, Prev: drawParliament2Dtikz, Up: Top
+
+graphToricChernCharacter -- computes the lines connected the components of the toric Chern character of a toric vector bundle
+*****************************************************************************************************************************
+
+  * Usage: 
+        g = graphToricChernCharacter E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * g, a *note hash table: (Macaulay2Doc)HashTable,, whose keys are curve
+        cones and the value of a key is a pair of the connected components
+  * Consequences:
+      * The result of graphToricChernCharacter will be stored as a cacheValue
+        (missing documentation) in E.cache#graphToricChernCharacter. It will be
+        used by other methods.
+
+Description
+===========
+
+Given a toric vector bundle in Klyachko's description, graphToricChernCharacter
+connects the component of its toric Chern character.
+graphToricChernCharacter calls internally the method *note toricChernCharacter:
+toricChernCharacter,.
++------------------------------------------------------------+
+|i1 : E = tangentBundle(projectiveSpaceFan 2)                |
+|                                                            |
+|o1 = {dimension of the variety => 2 }                       |
+|      number of affine charts => 3                          |
+|      number of rays => 3                                   |
+|      rank of the vector bundle => 2                        |
+|                                                            |
+|o1 : ToricVectorBundleKlyachko                              |
++------------------------------------------------------------+
+|i2 : c = toricChernCharacter E                              |
+|                                                            |
+|o2 = HashTable{| -1 0 | => {| 1  |, | 1 |}}                 |
+|               | -1 1 |     | -1 |  | 0 |                   |
+|               | 1 -1 | => {| -1 |, | 0 |}                  |
+|               | 0 -1 |     | 1  |  | 1 |                   |
+|               | 1 0 | => {| 0  |, | -1 |}                  |
+|               | 0 1 |     | -1 |  | 0  |                   |
+|                                                            |
+|o2 : HashTable                                              |
++------------------------------------------------------------+
+|i3 : g = graphToricChernCharacter E                         |
+|                                                            |
+|o3 = HashTable{| -1 | => {{| 1  |, | -1 |}, {| 1 |, | 0 |}}}|
+|               | -1 |      | -1 |  | 1  |    | 0 |  | 1 |   |
+|               | 0 | => {{| 0  |, | 1  |}, {| -1 |, | 1 |}} |
+|               | 1 |      | -1 |  | -1 |    | 0  |  | 0 |   |
+|               | 1 | => {{| 0  |, | 0 |}, {| -1 |, | -1 |}} |
+|               | 0 |      | -1 |  | 1 |    | 0  |  | 1  |   |
+|                                                            |
+|o3 : HashTable                                              |
++------------------------------------------------------------+
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note groundSet: groundSet, -- computes the ground set of a matroid
+    associated to a toric vector bundle
+  * *note compatibleBases: compatibleBases, -- computes compatible bases for a
+    toric vector bundle
+  * *note toricChernCharacter: toricChernCharacter, -- computes the toric Chern
+    character of a toric vector bundle
+
+Ways to use graphToricChernCharacter:
+=====================================
+
+  * "graphToricChernCharacter(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note graphToricChernCharacter: graphToricChernCharacter, is a *note
+method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:1079:0.
+
+File: PositivityToricBundles.info, Node: groundSet, Next: isLocallyFree, Prev: graphToricChernCharacter, Up: Top
+
+groundSet -- computes the ground set of a matroid associated to a toric vector bundle
+*************************************************************************************
+
+  * Usage: 
+        g = groundSet E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * g, a *note list: (Macaulay2Doc)List,, containing elements of ground set
+        as one column matrices
+  * Consequences:
+      * The result of groundSet will be stored as a cacheValue (missing
+        documentation) in E.cache#groundSet. It will be used by other methods.
+
+Description
+===========
+
+ Given a toric vector bundle $\mathcal E$ in Klyachko's description on a toric
+variety $X = TV(\Sigma)$, it is encoded by increasing filtrations $E^{\rho}(j)$
+for each ray $\rho \in \Sigma(1)$. To these filtrations we can associated the
+set $L(\mathcal E)$ of intersections $\cap_{\rho} E^{\rho} (j_{\rho})$, where
+$(j_{\rho})_\rho$ runs over all tuples in $\mathbb Z^{\Sigma(1)}$. This set
+$L(\mathcal E)$ is ordered by inclusion and there is a unique matroid
+$M(\mathcal E)$ associated to it, see [RJS, Proposition 3.1]. groundSet
+computes the ground set (i.e. building blocks) of this matroid.
++--------------------------------------------+
+|i1 : E = tangentBundle(projectiveSpaceFan 2)|
+|                                            |
+|o1 = {dimension of the variety => 2 }       |
+|      number of affine charts => 3          |
+|      number of rays => 3                   |
+|      rank of the vector bundle => 2        |
+|                                            |
+|o1 : ToricVectorBundleKlyachko              |
++--------------------------------------------+
+|i2 : groundSet E                            |
+|                                            |
+|o2 = {| 1 |, | 1 |, | 0 |}                  |
+|      | 1 |  | 0 |  | 1 |                   |
+|                                            |
+|o2 : List                                   |
++--------------------------------------------+
+With the ground set, one can compute the parliament of polytopes using *note
+parliament: parliament, or compute the set of compatible bases using *note
+compatibleBases: compatibleBases,.
+
+Caveat
+======
+
+This method works for any toric reflexive sheaf on any toric variety.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note parliament: parliament, -- computes the parliament of polytopes to a
+    toric vector bundle
+  * *note compatibleBases: compatibleBases, -- computes compatible bases for a
+    toric vector bundle
+
+Ways to use groundSet:
+======================
+
+  * "groundSet(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note groundSet: groundSet, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:842:0.
+
+File: PositivityToricBundles.info, Node: isLocallyFree, Next: isLocallyWeil, Prev: groundSet, Up: Top
+
+isLocallyFree -- checks whether a toric reflexive sheaf is locally free
+***********************************************************************
+
+  * Usage: 
+        isLF = isLocallyFree E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * isLF, a *note Boolean value: (Macaulay2Doc)Boolean,, true if the
+        reflexive sheaf is locally free, false otherwise
+  * Consequences:
+      * The result of isLocallyFree will be stored as a cacheValue (missing
+        documentation) in E.cache#isLF.
+
+Description
+===========
+
+Contrary to what the name suggests, *note ToricVectorBundle:
+(ToricVectorBundles)ToricVectorBundle, may well encode a toric reflexive sheaf
+that is not locally free. isLocallyFree permits to check whether a toric
+reflexive sheaf is locally free, that is, locally a direct sum of invertible
+sheaves, that is, a vector bundle.
+isLocallyFree calls internally the methods *note isLocallyWeil: isLocallyWeil,
+and *note toricChernCharacter: toricChernCharacter,.
++-----------------------------------------------------------------------------+
+|i1 : A3 = fan coneFromVData matrix {{1,0,0},{0,1,0},{0,0,1}};                |
++-----------------------------------------------------------------------------+
+|i2 : filtMat = apply( { {{1,0},{0,1}}, {{0,1},{1,0}}, {{1,1},{1,0}} },       |
+|-----------------------------------------------------------------------------|
+|matrix);                                                                     |
++-----------------------------------------------------------------------------+
+|i3 : filtStep = apply( { {{0,1}}, {{0,1}}, {{0,1}} }, matrix);               |
++-----------------------------------------------------------------------------+
+|i4 : E = toricVectorBundle (2,A3,filtMat,filtStep);                          |
++-----------------------------------------------------------------------------+
+|i5 : details E                                                               |
+|                                                                             |
+|o5 = HashTable{| 0 | => (| 1 0 |, | 0 1 |)}                                  |
+|               | 0 |     | 0 1 |                                             |
+|               | 1 |                                                         |
+|               | 0 | => (| 0 1 |, | 0 1 |)                                   |
+|               | 1 |     | 1 0 |                                             |
+|               | 0 |                                                         |
+|               | 1 | => (| 1 1 |, | 0 1 |)                                   |
+|               | 0 |     | 1 0 |                                             |
+|               | 0 |                                                         |
+|                                                                             |
+|o5 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i6 : isLocallyFree E                                                         |
+|                                                                             |
+|o6 = false                                                                   |
++-----------------------------------------------------------------------------+
++-----------------------------------------------------------------------------+
+|i7 : P112 = ccRefinement transpose matrix {{1,0},{0,1},{-1,-2}};             |
++-----------------------------------------------------------------------------+
+|i8 : D = {1,0,0};                                                            |
++-----------------------------------------------------------------------------+
+|i9 : L = toricVectorBundle(1, P112, toList(3: matrix{{1_QQ}}), apply( D, i-> |
+|-----------------------------------------------------------------------------|
+|matrix{{-i}}));                                                              |
++-----------------------------------------------------------------------------+
+|i10 : details L                                                              |
+|                                                                             |
+|o10 = HashTable{| -1 | => (| 1 |, | -1 |)}                                   |
+|                | -2 |                                                       |
+|                | 0 | => (| 1 |, 0)                                          |
+|                | 1 |                                                        |
+|                | 1 | => (| 1 |, 0)                                          |
+|                | 0 |                                                        |
+|                                                                             |
+|o10 : HashTable                                                              |
++-----------------------------------------------------------------------------+
+|i11 : isLocallyWeil L                                                        |
+|                                                                             |
+|o11 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i12 : toricChernCharacter L                                                  |
+|                                                                             |
+|o12 = HashTable{| -1 0 | => {| 1 |}  }                                       |
+|                | -2 1 |     | 0 |                                           |
+|                | 1 -1 | => {| 0   |}                                        |
+|                | 0 -2 |     | 1/2 |                                         |
+|                | 1 0 | => {0}                                               |
+|                | 0 1 |                                                      |
+|                                                                             |
+|o12 : HashTable                                                              |
++-----------------------------------------------------------------------------+
+|i13 : isLocallyFree L                                                        |
+|                                                                             |
+|o13 = false                                                                  |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+This method works for any toric reflexive sheaf on a toric variety, whose fan
+is covered by cones of maximal dimension.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note toricChernCharacter: toricChernCharacter, -- computes the toric Chern
+    character of a toric vector bundle
+  * *note isLocallyWeil: isLocallyWeil, -- checks whether a toric reflexive
+    sheaf is locally Weil
+
+Ways to use isLocallyFree:
+==========================
+
+  * "isLocallyFree(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note isLocallyFree: isLocallyFree, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:1023:0.
+
+File: PositivityToricBundles.info, Node: isLocallyWeil, Next: parliament, Prev: isLocallyFree, Up: Top
+
+isLocallyWeil -- checks whether a toric reflexive sheaf is locally Weil
+***********************************************************************
+
+  * Usage: 
+        isLW = isLocallyWeil E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * isLW, a *note Boolean value: (Macaulay2Doc)Boolean,, true if the
+        reflexive sheaf is locally Weil, false otherwise
+  * Consequences:
+      * The result of isLocallyWeil will be stored as a cacheValue (missing
+        documentation) in E.cache#isLW.
+
+Description
+===========
+
+Contrary to what the name suggests, *note ToricVectorBundle:
+(ToricVectorBundles)ToricVectorBundle, may well encode a toric reflexive sheaf
+that is not locally Weil (as soon as the toric variety has dimension at least
+three). isLocallyWeil permits to check whether a toric reflexive sheaf is
+locally Weil, that is, locally a direct sum of reflexive sheaves of rank one.
+If the toric variety is smooth, this is equivalent to being locally free, that
+is, a vector bundle.
+isLocallyWeil calls internally the method *note compatibleBases:
+compatibleBases,, if all the bases have as many elements as the rank of the
+sheaf, then it is locally Weil.
++-----------------------------------------------------------------------------+
+|i1 : A3 = fan coneFromVData matrix {{1,0,0},{0,1,0},{0,0,1}};                |
++-----------------------------------------------------------------------------+
+|i2 : filtMat = apply( { {{1,0,0},{0,1,0},{0,0,1}}, {{0,1,0},{1,0,0},{0,0,1}},|
+|-----------------------------------------------------------------------------|
+|{{1,1,0},{1,0,0},{0,0,1}} }, matrix);                                        |
++-----------------------------------------------------------------------------+
+|i3 : filtStep = apply( { {{0,1,1}}, {{0,1,1}}, {{0,1,1}} }, matrix);         |
++-----------------------------------------------------------------------------+
+|i4 : E = toricVectorBundle (3,A3,filtMat,filtStep);                          |
++-----------------------------------------------------------------------------+
+|i5 : details E                                                               |
+|                                                                             |
+|o5 = HashTable{| 0 | => (| 1 0 0 |, | 0 1 1 |)}                              |
+|               | 0 |     | 0 1 0 |                                           |
+|               | 1 |     | 0 0 1 |                                           |
+|               | 0 | => (| 0 1 0 |, | 0 1 1 |)                               |
+|               | 1 |     | 1 0 0 |                                           |
+|               | 0 |     | 0 0 1 |                                           |
+|               | 1 | => (| 1 1 0 |, | 0 1 1 |)                               |
+|               | 0 |     | 1 0 0 |                                           |
+|               | 0 |     | 0 0 1 |                                           |
+|                                                                             |
+|o5 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i6 : isLocallyWeil E                                                         |
+|                                                                             |
+|o6 = false                                                                   |
++-----------------------------------------------------------------------------+
+|i7 : compatibleBases E                                                       |
+|                                                                             |
+|o7 = HashTable{| 1 0 0 | => | 0 1 0 1 |}                                     |
+|               | 0 1 0 |    | 0 0 1 1 |                                      |
+|               | 0 0 1 |    | 1 0 0 0 |                                      |
+|                                                                             |
+|o7 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+This method works for any toric reflexive sheaf on a toric variety, whose fan
+is covered by cones of maximal dimension.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note compatibleBases: compatibleBases, -- computes compatible bases for a
+    toric vector bundle
+  * *note isLocallyFree: isLocallyFree, -- checks whether a toric reflexive
+    sheaf is locally free
+
+Ways to use isLocallyWeil:
+==========================
+
+  * "isLocallyWeil(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note isLocallyWeil: isLocallyWeil, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:985:0.
+
+File: PositivityToricBundles.info, Node: parliament, Next: restrictToInvCurves, Prev: isLocallyWeil, Up: Top
+
+parliament -- computes the parliament of polytopes to a toric vector bundle
+***************************************************************************
+
+  * Usage: 
+        p = parliament E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+      * g, a *note list: (Macaulay2Doc)List,, containing elements of ground set
+        as one column matrices
+  * Outputs:
+      * p, a *note hash table: (Macaulay2Doc)HashTable,, whose keys are
+        elements of the ground set and the value of a key is a *note
+        Polyhedron: (Polyhedra)Polyhedron,
+  * Consequences:
+      * The result of parliament will be stored as a cacheValue (missing
+        documentation) in E.cache#parliament. It will be used by other methods.
+
+Description
+===========
+
+Given a toric vector bundle in Klyachko's description, parliament computes its
+parliament of polytopes as introduced in [RJS, Section 3].
++--------------------------------------------+
+|i1 : E = tangentBundle(projectiveSpaceFan 2)|
+|                                            |
+|o1 = {dimension of the variety => 2 }       |
+|      number of affine charts => 3          |
+|      number of rays => 3                   |
+|      rank of the vector bundle => 2        |
+|                                            |
+|o1 : ToricVectorBundleKlyachko              |
++--------------------------------------------+
+|i2 : p = parliament E                       |
+|                                            |
+|o2 = HashTable{| 0 | => Polyhedron{...1...}}|
+|               | 1 |                        |
+|               | 1 | => Polyhedron{...1...} |
+|               | 0 |                        |
+|               | 1 | => Polyhedron{...1...} |
+|               | 1 |                        |
+|                                            |
+|o2 : HashTable                              |
++--------------------------------------------+
+|i3 : applyValues(p, vertices)               |
+|                                            |
+|o3 = HashTable{| 0 | => | 0 0  1  |}        |
+|               | 1 |    | 0 -1 -1 |         |
+|               | 1 | => | 0 -1 -1 |         |
+|               | 0 |    | 0 0  1  |         |
+|               | 1 | => | 0 1 0 |           |
+|               | 1 |    | 0 0 1 |           |
+|                                            |
+|o3 : HashTable                              |
++--------------------------------------------+
++-----------------------------------------------------------------------------+
+|i4 : P112 = ccRefinement transpose matrix {{1,0},{0,1},{-1,-2}};             |
++-----------------------------------------------------------------------------+
+|i5 : D = {1,0,0};                                                            |
++-----------------------------------------------------------------------------+
+|i6 : L = toricVectorBundle(1, P112, toList(3: matrix{{1_QQ}}), apply( D, i-> |
+|-----------------------------------------------------------------------------|
+|matrix{{-i}}));                                                              |
++-----------------------------------------------------------------------------+
+|i7 : details L                                                               |
+|                                                                             |
+|o7 = HashTable{| -1 | => (| 1 |, | -1 |)}                                    |
+|               | -2 |                                                        |
+|               | 0 | => (| 1 |, 0)                                           |
+|               | 1 |                                                         |
+|               | 1 | => (| 1 |, 0)                                           |
+|               | 0 |                                                         |
+|                                                                             |
+|o7 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+|i8 : apply(values parliament L, vertices)                                    |
+|                                                                             |
+|o8 = {| 0 1 0   |}                                                           |
+|      | 0 0 1/2 |                                                            |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+If the toric variety is two-dimensional, then the result can be visualised
+using *note drawParliament2Dtikz: drawParliament2Dtikz,. parliament calls
+internally the method *note groundSet: groundSet,.
+
+Caveat
+======
+
+This method works for any toric reflexive sheaf on any toric variety.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note groundSet: groundSet, -- computes the ground set of a matroid
+    associated to a toric vector bundle
+  * *note drawParliament2Dtikz: drawParliament2Dtikz, -- visualises the
+    parliament of polytopes for a vector bundle on a toric surface using TikZ
+
+Ways to use parliament:
+=======================
+
+  * "parliament(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note parliament: parliament, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:880:0.
+
+File: PositivityToricBundles.info, Node: restrictToInvCurves, Next: separatesJets, Prev: parliament, Up: Top
+
+restrictToInvCurves -- computes the restrictions of a toric vector bundle to the torus invariant curves
+*******************************************************************************************************
+
+  * Usage: 
+        l = restrictToInvCurves E 
+        b = isNef E 
+        b = isAmple E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * l, a *note hash table: (Macaulay2Doc)HashTable,
+      * b, a *note Boolean value: (Macaulay2Doc)Boolean,
+  * Consequences:
+      * The result of restrictToInvCurves will be stored as a cacheValue
+        (missing documentation) in E.cache#restrictionsToInvCurves. It will be
+        used by other methods.
+
+Description
+===========
+
+Given a toric vector bundle in Klyachko's description, restrictToInvCurves
+computes its restrictions to the torus invariant curves, which are isomorphic
+to a direct sum of line bundles $\mathbb P^1$. Recall that on $\mathbb P^1$ any
+vector bundle splits into $\oplus_i O_{\mathbb P^1}(a_i)$. Therefore
+restrictToInvCurves returns a hash table with keys the invariant curves and as
+values lists with the integers $a_i$.
+By [HMP, Theorem 2.1], if all these integers$a_i$ are non-negative or positive,
+the original toric vector bundle is nef or ample. Hence, the methods isNef and
+isAmple check exactly that.
+restrictToInvCurves calls internally the method *note toricChernCharacter:
+toricChernCharacter,; whereas isNef and isAmple are simple checks on the output
+of restrictToInvCurves.
++--------------------------------------------+
+|i1 : E = tangentBundle(projectiveSpaceFan 2)|
+|                                            |
+|o1 = {dimension of the variety => 2 }       |
+|      number of affine charts => 3          |
+|      number of rays => 3                   |
+|      rank of the vector bundle => 2        |
+|                                            |
+|o1 : ToricVectorBundleKlyachko              |
++--------------------------------------------+
+|i2 : restrictToInvCurves E                  |
+|                                            |
+|o2 = HashTable{| -1 | => {2, 1}}            |
+|               | -1 |                       |
+|               | 0 | => {1, 2}              |
+|               | 1 |                        |
+|               | 1 | => {2, 1}              |
+|               | 0 |                        |
+|                                            |
+|o2 : HashTable                              |
++--------------------------------------------+
+|i3 : isNef E                                |
+|                                            |
+|o3 = true                                   |
++--------------------------------------------+
+|i4 : isAmple E                              |
+|                                            |
+|o4 = true                                   |
++--------------------------------------------+
+In this example we see that the vector bundle is ample, as all integers are
+positive.
+
+Caveat
+======
+
+These methods work for toric vector bundles on a complete simplicial toric
+variety.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note parliament: parliament, -- computes the parliament of polytopes to a
+    toric vector bundle
+  * *note compatibleBases: compatibleBases, -- computes compatible bases for a
+    toric vector bundle
+  * *note toricChernCharacter: toricChernCharacter, -- computes the toric Chern
+    character of a toric vector bundle
+
+Ways to use restrictToInvCurves:
+================================
+
+  * "restrictToInvCurves(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note restrictToInvCurves: restrictToInvCurves, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:1150:0.
+
+File: PositivityToricBundles.info, Node: separatesJets, Next: toricChernCharacter, Prev: restrictToInvCurves, Up: Top
+
+separatesJets -- computes up to which order a toric vector bundle separates jets
+********************************************************************************
+
+  * Usage: 
+        l = separateJets E 
+        b = isGloballyGenerated E 
+        b = isVeryAmple E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * l, an *note integer: (Macaulay2Doc)ZZ,
+      * b, a *note Boolean value: (Macaulay2Doc)Boolean,
+  * Consequences:
+      * The result of separatesJets will be stored as a cacheValue (missing
+        documentation) in E.cache#separatesJets. It will be used by other
+        methods.
+
+Description
+===========
+
+Given a toric vector bundle in Klyachko's description, separatesJets determines
+up to which order the vector bundle separates jets. Note that a toric vector
+bundle is globally generated or very ample, if it separates 0-jets or 1-jets,
+respectively, see [RJS, Theorem 1.2, 6.2 and 6.5]. Hence, the methods
+isGloballyGenerated and isVeryAmple only ask whether separatesJets returns a
+non-negative or positive integer, respectively.
+If the vector bundle is not even globally generated, then separatesJets returns
+the value -infinity.
+separatesJets calls internally the methods  *note parliament: parliament, and
+*note toricChernCharacter: toricChernCharacter,; whereas isGloballyGenerated
+and isVeryAmple are simple checks on the output of separatesJets.
++--------------------------------------------+
+|i1 : E = tangentBundle(projectiveSpaceFan 2)|
+|                                            |
+|o1 = {dimension of the variety => 2 }       |
+|      number of affine charts => 3          |
+|      number of rays => 3                   |
+|      rank of the vector bundle => 2        |
+|                                            |
+|o1 : ToricVectorBundleKlyachko              |
++--------------------------------------------+
+|i2 : separatesJets E                        |
+|                                            |
+|o2 = 1                                      |
+|                                            |
+|o2 : QQ                                     |
++--------------------------------------------+
+|i3 : isGloballyGenerated E                  |
+|                                            |
+|o3 = true                                   |
++--------------------------------------------+
+|i4 : isVeryAmple E                          |
+|                                            |
+|o4 = true                                   |
++--------------------------------------------+
+In this example, the vector bundle $\mathcal E$ separates 1-jets, hence is very
+ample.
+
+Caveat
+======
+
+These methods work for toric vector bundles on a complete simplicial toric
+variety.
+[RJS, Theorem 6.2, condition (iv)] is not checked, which might give a wrong
+result in special cases (too many polytopes of the parliament share common
+vertices). If this happens, the method separatesJets will print a warning. In
+these cases, also the results of isGloballyGenerated and isVeryAmple might be
+wrong.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note parliament: parliament, -- computes the parliament of polytopes to a
+    toric vector bundle
+  * *note compatibleBases: compatibleBases, -- computes compatible bases for a
+    toric vector bundle
+  * *note toricChernCharacter: toricChernCharacter, -- computes the toric Chern
+    character of a toric vector bundle
+
+Ways to use separatesJets:
+==========================
+
+  * "separatesJets(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note separatesJets: separatesJets, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:1115:0.
+
+File: PositivityToricBundles.info, Node: toricChernCharacter, Next: wellformedBundleFiltrations, Prev: separatesJets, Up: Top
+
+toricChernCharacter -- computes the toric Chern character of a toric vector bundle
+**********************************************************************************
+
+  * Usage: 
+        c = toricChernCharacter E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * c, a *note hash table: (Macaulay2Doc)HashTable,, whose keys are maximal
+        cones and the value of a key is a list of one column matrices
+  * Consequences:
+      * The result of toricChernCharacter will be stored as a cacheValue
+        (missing documentation) in E.cache#toricChernCharacter.
+        As a side product, this method checks whether the sheaf given is
+        locally free this will be stored as a cacheValue (missing
+        documentation) in E.cache#isLF. This value is returned by the method
+        *note isLocallyFree: isLocallyFree,.
+        Additionally,  toricChernCharacter determines the Cartier index, which
+        will be stored as a cacheValue (missing documentation) in
+        E.cache#cartierInd. This value is returned by the method *note
+        cartierInd: cartierInd,.
+
+Description
+===========
+
+Given a toric vector bundle in Klyachko's description, toricChernCharacter
+computes its toric Chern character as introduced in [P].
+toricChernCharacter calls internally the method *note compatibleBases:
+compatibleBases,.
++--------------------------------------------+
+|i1 : E = tangentBundle(projectiveSpaceFan 2)|
+|                                            |
+|o1 = {dimension of the variety => 2 }       |
+|      number of affine charts => 3          |
+|      number of rays => 3                   |
+|      rank of the vector bundle => 2        |
+|                                            |
+|o1 : ToricVectorBundleKlyachko              |
++--------------------------------------------+
+|i2 : toricChernCharacter E                  |
+|                                            |
+|o2 = HashTable{| -1 0 | => {| 1  |, | 1 |}} |
+|               | -1 1 |     | -1 |  | 0 |   |
+|               | 1 -1 | => {| -1 |, | 0 |}  |
+|               | 0 -1 |     | 1  |  | 1 |   |
+|               | 1 0 | => {| 0  |, | -1 |}  |
+|               | 0 1 |     | -1 |  | 0  |   |
+|                                            |
+|o2 : HashTable                              |
++--------------------------------------------+
+
+Caveat
+======
+
+This method works for a toric reflexive sheaf which is locally Weil (see *note
+isLocallyFree: isLocallyFree, for an example if the sheaf is locally Weil but
+not locally free) on a toric variety, whose fan is covered by simplicial cones
+of maximal dimension.
+
+See also
+========
+
+  * *note ToricVectorBundleKlyachko:
+    (ToricVectorBundles)ToricVectorBundleKlyachko, -- the class of all toric
+    vector bundles in Klyachko's description
+  * *note compatibleBases: compatibleBases, -- computes compatible bases for a
+    toric vector bundle
+  * *note graphToricChernCharacter: graphToricChernCharacter, -- computes the
+    lines connected the components of the toric Chern character of a toric
+    vector bundle
+  * *note isLocallyFree: isLocallyFree, -- checks whether a toric reflexive
+    sheaf is locally free
+  * *note cartierInd: cartierInd, -- computes the Cartier index
+
+Ways to use toricChernCharacter:
+================================
+
+  * "toricChernCharacter(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note toricChernCharacter: toricChernCharacter, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:956:0.
+
+File: PositivityToricBundles.info, Node: wellformedBundleFiltrations, Prev: toricChernCharacter, Up: Top
+
+wellformedBundleFiltrations -- produces the same toric vector bundle, but where the filtration steps are stored in matrices with ascending entries.
+***************************************************************************************************************************************************
+
+  * Usage: 
+        F = wellformedBundleFiltrations E
+  * Inputs:
+      * E, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+  * Outputs:
+      * F, a *note vector bundle on a toric variety (Klyachko's description):
+        (ToricVectorBundles)ToricVectorBundleKlyachko,
+
+Description
+===========
+
+A toric vector bundle in Klyachko's description as used in *note
+ToricVectorBundles: (ToricVectorBundles)Top, is given by ascending filtrations.
+Unfortunately, the filtration steps are not always stored in an ascending way
+by certain methods, like *note dual(ToricVectorBundle):
+(ToricVectorBundles)dual_lpToricVectorBundle_rp, or *note
+tensor(ToricVectorBundle,ToricVectorBundle):
+(ToricVectorBundles)tensor_lpToricVectorBundle_cmToricVectorBundle_rp, (and
+maybe others). This may cause problems in some methods of
+PositivityToricBundles, for example in *note toricChernCharacter:
+toricChernCharacter,. This method ensures that the filtration steps are stored
+in an ascending way and therefore, that the methods of this package can be used
+safely.
++------------------------------------------------------------+
+|i1 : T = tangentBundle projectiveSpaceFan 2                 |
+|                                                            |
+|o1 = {dimension of the variety => 2 }                       |
+|      number of affine charts => 3                          |
+|      number of rays => 3                                   |
+|      rank of the vector bundle => 2                        |
+|                                                            |
+|o1 : ToricVectorBundleKlyachko                              |
++------------------------------------------------------------+
+|i2 : E = T ** (dual T)                                      |
+|                                                            |
+|o2 = {dimension of the variety => 2 }                       |
+|      number of affine charts => 3                          |
+|      number of rays => 3                                   |
+|      rank of the vector bundle => 4                        |
+|                                                            |
+|o2 : ToricVectorBundleKlyachko                              |
++------------------------------------------------------------+
+|i3 : details E                                              |
+|                                                            |
+|o3 = HashTable{| -1 | => (| 0 1  0 1  |, | 0 -1 1 0 |)}     |
+|               | -1 |     | 1 -1 1 -1 |                     |
+|                          | 0 1  0 0  |                     |
+|                          | 1 -1 0 0  |                     |
+|               | 0 | => (| 0 0 0 1 |, | 0 -1 1 0 |)         |
+|               | 1 |     | 0 0 1 0 |                        |
+|                         | 0 1 0 0 |                        |
+|                         | 1 0 0 0 |                        |
+|               | 1 | => (| 1 0 0 0 |, | 0 -1 1 0 |)         |
+|               | 0 |     | 0 1 0 0 |                        |
+|                         | 0 0 1 0 |                        |
+|                         | 0 0 0 1 |                        |
+|                                                            |
+|o3 : HashTable                                              |
++------------------------------------------------------------+
+|i4 : toricChernCharacter E                                  |
+|                                                            |
+|o4 = HashTable{| -1 0 | => {| 2  |, | -1 |, | -1 |, | 2  |}}|
+|               | -1 1 |     | -1 |  | 1  |  | 0  |  | -1 |  |
+|               | 1 -1 | => {| -1 |, | 1  |, | 0  |, | -1 |} |
+|               | 0 -1 |     | 2  |  | -1 |  | -1 |  | 2  |  |
+|               | 1 0 | => {| -1 |, | 0 |, | 1 |, | -1 |}    |
+|               | 0 1 |     | -1 |  | 1 |  | 0 |  | -1 |     |
+|                                                            |
+|o4 : HashTable                                              |
++------------------------------------------------------------+
+Note that the filtration steps of E are neither ascending nor descending. The
+method *note toricChernCharacter: toricChernCharacter, produces nonsense here:
+$\mathcal{O}_{\mathbb P^2}$ is a direct summand of E, so 0 has to appear in the
+toric Chern character.
++-------------------------------------------------------+
+|i5 : F = wellformedBundleFiltrations E                 |
+|                                                       |
+|o5 = {dimension of the variety => 2 }                  |
+|      number of affine charts => 3                     |
+|      number of rays => 3                              |
+|      rank of the vector bundle => 4                   |
+|                                                       |
+|o5 : ToricVectorBundleKlyachko                         |
++-------------------------------------------------------+
+|i6 : details F                                         |
+|                                                       |
+|o6 = HashTable{| -1 | => (| 1  0 1  0 |, | -1 0 0 1 |)}|
+|               | -1 |     | -1 1 -1 1 |                |
+|                          | 1  0 0  0 |                |
+|                          | -1 1 0  0 |                |
+|               | 0 | => (| 0 0 1 0 |, | -1 0 0 1 |)    |
+|               | 1 |     | 0 0 0 1 |                   |
+|                         | 1 0 0 0 |                   |
+|                         | 0 1 0 0 |                   |
+|               | 1 | => (| 0 1 0 0 |, | -1 0 0 1 |)    |
+|               | 0 |     | 1 0 0 0 |                   |
+|                         | 0 0 0 1 |                   |
+|                         | 0 0 1 0 |                   |
+|                                                       |
+|o6 : HashTable                                         |
++-------------------------------------------------------+
+|i7 : toricChernCharacter F                             |
+|                                                       |
+|o7 = HashTable{| -1 0 | => {0, | 0 |, | 0  |, 0}}      |
+|               | -1 1 |        | 1 |  | -1 |           |
+|               | 1 -1 | => {0, | 1 |, | -1 |, 0}       |
+|               | 0 -1 |        | 0 |  | 0  |           |
+|               | 1 0 | => {0, | -1 |, | 1  |, 0}       |
+|               | 0 1 |        | 1  |  | -1 |           |
+|                                                       |
+|o7 : HashTable                                         |
++-------------------------------------------------------+
+By passing to ascending filtration steps, the result becomes correct.
+
+Caveat
+======
+
+This method works for any toric reflexive sheaf.
+
+See also
+========
+
+  * *note dual(ToricVectorBundle):
+    (ToricVectorBundles)dual_lpToricVectorBundle_rp, --  the dual bundle of a
+    toric vector bundle
+  * *note tensor(ToricVectorBundle,ToricVectorBundle):
+    (ToricVectorBundles)tensor_lpToricVectorBundle_cmToricVectorBundle_rp, --
+    the tensor product of two toric vector bundles
+
+Ways to use wellformedBundleFiltrations:
+========================================
+
+  * "wellformedBundleFiltrations(ToricVectorBundleKlyachko)"
+
+For the programmer
+==================
+
+The object *note wellformedBundleFiltrations: wellformedBundleFiltrations, is a
+*note method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in PositivityToricBundles.m2:1183:0.
+
+Tag Table:
+Node: Top279
+Node: cartierInd14502
+Node: compatibleBases19458
+Node: drawParliament2Dtikz21779
+Node: graphToricChernCharacter24381
+Node: groundSet28594
+Node: isLocallyFree31839
+Node: isLocallyWeil39412
+Node: parliament44699
+Node: restrictToInvCurves50587
+Node: separatesJets54787
+Node: toricChernCharacter58953
+Node: wellformedBundleFiltrations62847
+
+End Tag Table

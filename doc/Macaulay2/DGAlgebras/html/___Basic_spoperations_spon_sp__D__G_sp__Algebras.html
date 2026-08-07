@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Basic operations on DG Algebras -- Outlines some basic operations on DG Algebras</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Data type for DG algebras" href="index.html">DGAlgebras</a> » <a title="Outlines some basic operations on DG Algebras" href="___Basic_spoperations_spon_sp__D__G_sp__Algebras.html">Basic operations on DG Algebras</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___The_sp__Koszul_spcomplex_spas_spa_sp__D__G_sp__Algebra.html">next</a> | previous | <a href="___The_sp__Koszul_spcomplex_spas_spa_sp__D__G_sp__Algebra.html">forward</a> | <a href="index.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Basic operations on DG Algebras -- Outlines some basic operations on DG Algebras</h1>
+      <div>
+        <div>
+          <p>There are several ways to define a DGAlgebra.  One can start by defining one 'from scratch'.  One does this by specifying the ring over which the DGAlgebra is defined and the degrees of the generators.  The name of the generators of the DGAlgebra by default is $T_i$, but one may change this by specifying the optional (string) argument 'Variable'.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ/101[a,b,c,d]/ideal{a^3,b^3,c^3,d^3}
+
+o1 = R
+
+o1 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : A = freeDGAlgebra(R,{{1,1},{1,1},{1,1},{1,1}})
+
+o2 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,4
+      Differential => null
+
+o2 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The command freeDGAlgebra only defines the underlying algebra of A, and not the differential.  To set the differential of A, one uses the command setDiff.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : setDiff(A, gens R)
+
+o3 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,4
+      Differential => {a, b, c, d}
+
+o3 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Note that the above is the (graded) Koszul complex on a set of generators of R.  A much easier way to define this is to use the function koszulComplexDGA.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : B = koszulComplexDGA(R, Variable=>&quot;S&quot;)
+
+o4 = {Ring => R                          }
+      Underlying algebra => R[S   ..S   ]
+                               1,1   1,4
+      Differential => {a, b, c, d}
+
+o4 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>One can compute the homology algebra of a DGAlgebra using the homology (or HH) command.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : HB = HH B
+Finding easy relations           :  -- used 0.0249957s (cpu); 0.0241499s (thread); 0s (gc)
+
+o5 = HB
+
+o5 : PolynomialRing, 4 skew commutative variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : describe HB
+
+      ZZ
+o6 = ---[X ..X , Degrees => {4:{1}}, Heft => {1, 0}, Join => false, SkewCommutative => {0..3}]
+     101  1   4                {3}</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : degrees HB
+
+o7 = {{1, 3}, {1, 3}, {1, 3}, {1, 3}}
+
+o7 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Note that since R is a complete intersection, its Koszul homology algebra is an exterior algebra, which is a free graded commutative algebra.  Note that the internal degree is preserved in the computation of the homology algebra of B.</p>
+        </div>
+        <div>
+          <p>One can also adjoin variables to kill cycles in homology.  The command killCycles looks for the first positive degree nonzero homology (say i), and adjoins variables in homological degree i+1 that differentiate to a minimal generating set of this homology, so that the resulting DGAlgebra now only has homology in degree greater than i (note of course this could introduce new homology in higher degrees). The command adjoinVariables allows finer control over this procedure.  See <a title="Extend a DG algebra by a user-chosen list of cycles to be killed" href="_adjoin__Variables.html">adjoinVariables</a> for an example.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : HB.cache.cycles
+
+       2       2       2       2
+o8 = {a S   , b S   , c S   , d S   }
+         1,1     1,2     1,3     1,4
+
+o8 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : C = adjoinVariables(B,{first HB.cache.cycles})
+
+o9 = {Ring => R                                }
+      Underlying algebra => R[S   ..S   , S   ]
+                               1,1   1,4   2,1
+                                    2
+      Differential => {a, b, c, d, a S   }
+                                      1,1
+
+o9 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : homologyAlgebra(C,GenDegreeLimit=>4,RelDegreeLimit=>4)
+Finding easy relations           :  -- used 0.0252001s (cpu); 0.0236464s (thread); 0s (gc)
+
+       ZZ
+o10 = ---[X ..X ]
+      101  1   3
+
+o10 : PolynomialRing, 3 skew commutative variable(s)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : C = killCycles(B)
+
+o11 = {Ring => R                                                   }
+       Underlying algebra => R[S   ..S   ]
+                                1,1   2,4
+                                     2       2       2       2
+       Differential => {a, b, c, d, a S   , b S   , c S   , d S   }
+                                       1,1     1,2     1,3     1,4
+
+o11 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : homologyAlgebra(C,GenDegreeLimit=>4,RelDegreeLimit=>4)
+
+       ZZ
+o12 = ---
+      101
+
+o12 : QuotientRing</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Again, note that since R is a complete intersection, once we adjoin the variables in homological degree two to kill the cycles in degree one, we obtain a minimal DG Algebra resolution of the residue field of R.  Also, note that since C has generators in even degree, one must specify the optional arguments GenDegreeLimit and RelDegreeLimit to specify the max degree of the computation.  To do this, one uses the homologyAlgebra command rather than the HH command.</p>
+        </div>
+        <div>
+          <p>This computation could have also been done with the command acyclicClosure.  The command acyclicClosure performs the command killCycles sequentially to ensure that the result has homology in higher and higher degrees, thereby computing (part of) a minimal DG Algebra resolution of the residue field.  acyclicClosure has an optional argument EndDegree that allows the user to specify the maximum homological degree with which to perform this adjunction of variables.  The default value of this is 3, since if there are any variables of degree 3 that need to be added, then each subsequent homological degree will require some variables to be adjoined (Halperin's rigidity theorem).</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : D = acyclicClosure R
+
+o13 = {Ring => R                                                   }
+       Underlying algebra => R[T   ..T   ]
+                                1,1   2,4
+                                     2       2       2       2
+       Differential => {a, b, c, d, a T   , b T   , c T   , d T   }
+                                       1,1     1,2     1,3     1,4
+
+o13 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : R' = ZZ/101[x,y,z]/ideal{x^2,y^2,z^2,x*y*z}
+
+o14 = R'
+
+o14 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : E = acyclicClosure(R',EndDegree=>5)
+
+o15 = {Ring => R'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         }
+       Underlying algebra => R'[T   ..T   , T   ..T   , T   ..T   , T   ..T   , T   ..T    , T   ..T    ]
+                                 1,1   1,3   2,1   2,4   3,1   3,3   4,1   4,6   5,1   5,13   6,1   6,27
+                                                                                                                                                                                                            2                                                                                                                                                                                                                               2                               2              2              2              2
+       Differential => {x, y, z, x*T   , y*T   , z*T   , y*z*T   , y*z*T   , -y*z*T   T   , -y*z*T   T   , -y*z*T   T   , -y*z*T   T   , y*z*T   T   , y*z*T   T   , y*z*T   T   , -y*z*T   T   T   , -y*z*T   , -y*z*T   T   , -y*z*T   T   , y*z*T   T   T   , y*z*T   T   T   , y*z*T   T   T   , y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   , y*z*T   T   T   , y*z*T   T   T   , y*z*T   T   , y*z*T   T   T   , y*z*T   T   , -y*z*T   T   , -y*z*T   T   , -y*z*T   T   , -y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   T   , y*z*T   T   T   T   , y*z*T   T   T   T   , -y*z*T   T   T   T   , y*z*T   T   , -y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   T   , - y*z*T   T   T   T    - y*z*T   T   T   , -y*z*T   T   T   , y*z*T   T   T   , y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   T   , -y*z*T   T   T   , y*z*T   T   T   T   }
+                                    1,1     1,2     1,3       1,1       2,1        1,1 1,3        1,1 1,2        1,1 2,2        1,1 2,3       1,3 2,1       1,2 2,1       1,1 2,1        1,1 1,2 1,3        2,1        2,1 2,2        2,1 2,3       1,1 1,3 2,2       1,1 1,2 2,2       1,1 1,3 2,3       1,1 1,2 2,3        1,2 1,3 2,1        1,1 1,3 2,1        1,1 1,2 2,1        2,1 2,4       1,1 1,3 2,4       1,1 1,2 2,4       1,1 2,2       1,1 2,2 2,3       1,1 2,3        1,3 2,1        1,2 2,1        1,1 2,1        1,3 2,1 2,2        1,2 2,1 2,2        1,1 2,1 2,2        1,3 2,1 2,3        1,2 2,1 2,3        1,1 2,1 2,3       1,1 1,2 1,3 2,2       1,1 1,2 1,3 2,3        1,1 1,2 1,3 2,1       2,1 3,1        1,1 1,3 3,1        1,1 1,3 3,2        1,1 1,2 3,1         1,1 1,2 1,3 2,4        1,1 1,2 3,2        1,1 1,2 3,3       1,1 2,2 2,4       1,1 2,3 2,4        1,3 2,1 2,4        1,2 2,1 2,4        1,1 2,1 2,4       1,1 1,2 1,3 2,4
+
+o15 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : tally degrees E.natural
+
+o16 = Tally{{1, 1} => 3 }
+            {2, 2} => 3
+            {2, 3} => 1
+            {3, 4} => 3
+            {4, 5} => 6
+            {5, 6} => 10
+            {5, 7} => 3
+            {6, 7} => 15
+            {6, 8} => 12
+
+o16 : Tally</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>As you can see, since R' is not a complete intersection, the acyclic closure of E requires infinitely many variables; we display the degrees of the first 6 here. The tally that is displayed gives the deviations of the ring R.  One can compute the deviations directly from any minimal free resolution of the residue field of R', so that using the one provided by res coker vars R is faster.  To do this, use the command <a title="Computes the deviations of the input ring, complex, or power series." href="_deviations.html">deviations</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : deviations(R,DegreeLimit=>6)
+
+o17 = HashTable{(1, {1}) => 4}
+                (2, {3}) => 4
+
+o17 : HashTable</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : deviations(R',DegreeLimit=>6)
+
+o18 = HashTable{(1, {1}) => 3 }
+                (2, {2}) => 3
+                (2, {3}) => 1
+                (3, {4}) => 3
+                (4, {5}) => 6
+                (5, {6}) => 10
+                (5, {7}) => 3
+                (6, {7}) => 15
+                (6, {8}) => 12
+
+o18 : HashTable</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>As a brief warning, the command <a title="assemble degrees into polynomial" href="../../Macaulay2Doc/html/_poincare__N.html">poincareN</a> which is used in <a title="Computes the deviations of the input ring, complex, or power series." href="_deviations.html">deviations</a> uses the symbols S and T internally, and may cause problems referring to such rings at the Macaulay2 prompt.</p>
+        </div>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">DGAlgebras/doc.m2:103:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

@@ -1,0 +1,1927 @@
+ -*- coding: utf-8 -*- This is NumericalCertification.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* NumericalCertification: (NumericalCertification).  numerical certification
+END-INFO-DIR-ENTRY
+
+
+File: NumericalCertification.info, Node: Top, Next: alphaCertified, Up: (dir)
+
+NumericalCertification -- certify a numerical solution for a square system
+**************************************************************************
+
+Description
+===========
+
+This package provides symbolic-numeric approaches to certify roots for a square
+polynomial system.
+
+For regular roots, the package has two different approaches. The first is
+Smale's alpha theory and the second is Krawczyk method via interval arithmetic.
+Both methods are based on Newton's method and they all describe the specific
+region containing a unique root of the system.
+
+In the case of alpha theory, this package follows the algorithms of alpha
+theory established in "alphaCertified: certifying solutions to polynomial
+systems" (2012) (see https://arxiv.org/abs/1011.1091 ). In the case of Krawczyk
+method, this package follows the theory introduced in "Introduction to Interval
+Analysis" (2009) (see https://epubs.siam.org/doi/book/10.1137/1.9780898717716
+). These two methods also support not only floating-point arithmetic over the
+real and complex numbers, but also the exact computation with inputs of
+rational numbers.
+
+Moreover, the package has a function certifying regular roots via a software
+"alphaCertified" (see https://www.math.tamu.edu/~sottile/research/stories/
+alphaCertified/ ).
+
+For singular roots, the concept of the iterated deflation established in
+"Newton's method with deflation for isolated singularities of polynomial
+systems" (2006) (see https://www.sciencedirect.com/science/article/pii/
+S030439750600168X ) is implemented. For a given system and a point, the package
+provides a function constructing a system having a given point as a regular
+solution and certifies it via alpha theory or interval arithmetic.
+
+
+
+Certifying a list of solutions :
+
+$\bullet$ *note certifySolutions: certifySolutions,
+
+For a direct use of the package, a given polynomial system and a list of
+numerical solutions can be given.
+
+
+
++-----------------------------------------------------------------------------+
+|i1 : R = CC[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5, x1^2 + y1^2 -1, x2^2 +|
+|-----------------------------------------------------------------------------|
+|y2^2 -1};                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : sols = solveSystem f                                                    |
+|                                                                             |
+|o3 = {{.652548, .771177, .757747, -.63662}, {.95437, .318445, -.298627,      |
+|     ------------------------------------------------------------------------|
+|     .947941}}                                                               |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : c = certifySolutions(f, sols, Strategy => "alphaTheory");               |
++-----------------------------------------------------------------------------+
+|i5 : peek c                                                                  |
+|                                                                             |
+|o5 = MutableHashTable{alphaValues => {1.66946e-22, 1.05339e-29}              |
+|                      certifiedDistinct => {{.652548, .771177, .757747, -.636|
+|                      certifiedReal => {{.652548, .771177, .757747, -.63662},|
+|                      certifiedRegular => {{.652548, .771177, .757747, -.6366|
+|                      certifiedSingular => {}                                |
+|                      nonCertified => {}                                     |
+|-----------------------------------------------------------------------------|
+|                                          }                                  |
+|62}, {.95437, .318445, -.298627, .947941}}                                   |
+| {.95437, .318445, -.298627, .947941}}                                       |
+|2}, {.95437, .318445, -.298627, .947941}}                                    |
++-----------------------------------------------------------------------------+
+
+For possible options for certification, see *note CertificationOptions:
+CertificationOptions,.
+
+
+
+
+
+Regular Root Certification Methods:
+
+$\bullet$ *note certifyRegularSolution: certifyRegularSolution,
+
+$\bullet$ *note krawczykTest: krawczykTest,
+
+Examples
+
+The following example shows how to certify the roots of solutions for the
+square polynomial system. This example is suggested in "Certifying solutions to
+square systems of polynomial-exponential equations" (2017) (see
+https://www3.nd.edu/~jhauenst/preprints/hlPolyExp.pdf )
+
+
+
+$\bullet$ alpha theory
+
+A set of points for certification should be given in advance using other system
+solvers.
+
++-----------------------------------------------------------------------------+
+|i6 : R = RR[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i7 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5, x1^2 + y1^2 -1, x2^2 +|
+|-----------------------------------------------------------------------------|
+|y2^2 -1};                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : p1 = point{{.95, .32, -.30, .95}};                                      |
++-----------------------------------------------------------------------------+
+|i9 : p2 = point{{.9, .3, -.3, 1}}; -- poorly approximated solution           |
++-----------------------------------------------------------------------------+
+
+It shows the results of the certification.
+
++-----------------------------------------------------------------+
+|i10 : certifyRegularSolution(f,p1)                               |
+|                                                                 |
+|o10 = true                                                       |
++-----------------------------------------------------------------+
+|i11 : certifyRegularSolution(f,p2) -- not an approximate solution|
+|                                                                 |
+|o11 = false                                                      |
++-----------------------------------------------------------------+
+
+Also, if we have other solutions of the system, alpha theory suggests an
+algorithm for distinguishing these solutions.
+
++---------------------------------------+
+|i12 : p1 = point{{.95,.32,-.30,.95}};  |
++---------------------------------------+
+|i13 : p2 = point{{.65,.77,.76,-.64}};  |
++---------------------------------------+
+|i14 : certifyDistinctSolutions(f,p1,p2)|
+|                                       |
+|o14 = true                             |
++---------------------------------------+
+
+In the case of real polynomial system, we can certify that a given solution is
+real or not.
+
++-------------------------------------------------------+
+|i15 : p = point{{.954379, .318431, -.298633, .947949}};|
++-------------------------------------------------------+
+|i16 : certifyRealSolution(f,p)                         |
+|                                                       |
+|o16 = true                                             |
++-------------------------------------------------------+
+
+Even more, when the polynomial and a point are given exact numbers over the
+rational number, the package computes auxiliary quantities exactly and performs
+an exact certification.
+
++-----------------------------------------------------------------------------+
+|i17 : R = QQ[x1,x2,y1,y2]                                                    |
+|                                                                             |
+|o17 = R                                                                      |
+|                                                                             |
+|o17 : PolynomialRing                                                         |
++-----------------------------------------------------------------------------+
+|i18 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -7/2, x1^2 + y1^2 -1, x2^2 |
+|-----------------------------------------------------------------------------|
+|+ y2^2 -1};                                                                  |
++-----------------------------------------------------------------------------+
+|i19 : p = point{{95/100,32/100,-30/100,95/100}}; -- an input over the        |
+|-----------------------------------------------------------------------------|
+|rational numbers                                                             |
++-----------------------------------------------------------------------------+
+|i20 : computeConstants(f,p)                                                  |
+|                                                                             |
+|        21324026093882418049     17681521    120600632116900                 |
+|o20 = (----------------------, ------------, ---------------)                |
+|       3432333340166716036800  638081440000    537914617947                  |
+|                                                                             |
+|o20 : Sequence                                                               |
++-----------------------------------------------------------------------------+
+|i21 : certifyRegularSolution(f,p)                                            |
+|                                                                             |
+|o21 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+$\bullet$ Krawczyk method
+
+Intervals for certification should be given in advance using other system
+solvers.
+
++-----------------------------------------------------------------------------+
+|i22 : R = RR[x1,x2,y1,y2];                                                   |
++-----------------------------------------------------------------------------+
+|i23 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5, x1^2 + y1^2 -1, x2^2 |
+|-----------------------------------------------------------------------------|
+|+ y2^2 -1};                                                                  |
++-----------------------------------------------------------------------------+
+|i24 : (I1, I2, I3, I4) = (interval(.94,.96), interval(.31,.33),              |
+|-----------------------------------------------------------------------------|
+|interval(-.31,-.29), interval(.94,.96));                                     |
++-----------------------------------------------------------------------------+
+
+We set the relationships between variables and intervals using the matrix
+aligning entries in the order of variables of the polynomial ring.
+
++-----------------------------------------------------------------------------+
+|i25 : krawczykOperator(f,matrix{{I1,I2,I3,I4}})                              |
+|                                                                             |
+|o25 = | [.954149,.954609] [.318086,.318777] [-.298824,-.298442]              |
+|      -----------------------------------------------------------------------|
+|      [.947663,.948236] |                                                    |
+|                                                                             |
+|                  1          4                                               |
+|o25 : Matrix RRi    <-- RRi                                                  |
+|                53         53                                                |
++-----------------------------------------------------------------------------+
+
+The function *note krawczykTest: krawczykTest, automatically checks whether the
+Krawczyk operator is contained in the input interval box.
+
++-------------------------------------------+
+|i26 : krawczykTest(f,matrix{{I1,I2,I3,I4}})|
+|                                           |
+|o26 = true                                 |
++-------------------------------------------+
+
+For a given point, the function *note pointToInterval: pointToInterval,
+provides a proper complex interval box for the input. For constructing a
+complex interval and a matrix with complex interval entries, see *note CCi:
+CCi, and *note CCiMatrix: CCiMatrix,.
+
++-----------------------------------------------------------------------------+
+|i27 : R = RR[x1,x2,y1,y2];                                                   |
++-----------------------------------------------------------------------------+
+|i28 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5, x1^2 + y1^2 -1, x2^2 |
+|-----------------------------------------------------------------------------|
+|+ y2^2 -1};                                                                  |
++-----------------------------------------------------------------------------+
+|i29 : p = point{{.954379, .318431, -.298633, .947949}};                      |
++-----------------------------------------------------------------------------+
+|i30 : I = pointToInterval(f,p)                                               |
+|                                                                             |
+|o30 = |  [.878643,1.03011] + [0,0]*ii [.200731,.436131] + [0,0]*ii           |
+|      -----------------------------------------------------------------------|
+|      [-.343878,-.253388] + [0,0]*ii [.884177,1.01172] + [0,0]*ii |          |
+|                                                                             |
+|o30 : CCiMatrix                                                              |
++-----------------------------------------------------------------------------+
+|i31 : krawczykTest(f,I)                                                      |
+|                                                                             |
+|o31 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+Multiple Root Certification Method:
+
+$\bullet$ *note certifySingularSolution: certifySingularSolution,
+
+It is known that an isolated singular solution is regularized within finitely
+many steps by the iterated first order deflation (e.g. see  "Newton's method
+with deflation for isolated singularities of polynomial systems" (2006) (see
+https://www.sciencedirect.com/science/article/pii/S030439750600168X )). The
+function *note certifySingularSolution: certifySingularSolution, determines if
+a given point is associated to a singular solution of a given system using the
+deflation method.
+
++-----------------------------------------------------+
+|i32 :                                                |
+|      R = CC[x,y,z];                                 |
++-----------------------------------------------------+
+|i33 : f = polySystem {x^2+y+z-1,x+y^2+z-1,x+y+z^2-1};|
++-----------------------------------------------------+
+|i34 : p = point{{1e-7-1e-7*ii,1e-7+1e-7*ii,1+1e-7}}; |
++-----------------------------------------------------+
+|i35 : certifySingularSolution(f,p)                   |
+|                                                     |
+|o35 = true                                           |
++-----------------------------------------------------+
+
+Acknowledgement
+===============
+
+Special thanks: Michael Burr, Anton Leykin, Thomas Yahl.
+
+
+
+Author
+======
+
+  * Kisun Lee (see https://klee669.github.io ) <kil004@ucsd.edu>
+
+Version
+=======
+
+This documentation describes version 1.6 of NumericalCertification, released
+May, 2022.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{NumericalCertificationSource,                                          |
+|  title = {{NumericalCertification: A \emph{Macaulay2}                       |
+|  author = {Kisun Lee},                                                      |
+|  howpublished = {A \emph{Macaulay2} package available                       |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2                      |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|package. Version~1.6}},                                                      |
+|                                                                             |
+|at                                                                           |
+|/Macaulay2/packages}}                                                        |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note CCi: CCi, -- a class of all complex intervals
+      * *note CCiMatrix: CCiMatrix, -- a class of matrices of complex intervals
+  * Functions and commands
+      * *note alphaCertified: alphaCertified, -- certify a list of numerical
+        solutions via alphaCertified
+      * *note alphaTheoryCertification: alphaTheoryCertification, -- executes
+        alpha-certification on a given system and list of points
+      * "intervalCCi" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "midpointCCi" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "matrixCCi" -- see *note CCiMatrix: CCiMatrix, -- a class of matrices
+        of complex intervals
+      * *note certifyDistinctSolutions: certifyDistinctSolutions, -- determine
+        whether given points are distinct approximate solutions to the system
+      * *note certifyRealSolution: certifyRealSolution, -- determine whether a
+        given point is an real approximate solution to the system
+      * *note certifyRegularSolution: certifyRegularSolution, -- certify
+        whether a given point is an approximate solution to the system
+      * *note certifySingularSolution: certifySingularSolution, -- certify if a
+        given point is a singular solution for a given system using the
+        deflation method.
+      * *note certifySolutions: certifySolutions, -- executes certification on
+        a given system and list of points
+      * *note computeConstants: computeConstants, -- compute the square of the
+        auxiliary quantities related to alpha theory
+      * *note krawczykOperator: krawczykOperator, -- compute the Krawczyk
+        operator
+      * *note krawczykRealnessTest: krawczykRealnessTest, -- certify the
+        realness of the associated solution for the square polynomial system
+        from the given interval box
+      * *note krawczykTest: krawczykTest, -- certify the interval box for
+        square polynomial system
+      * *note pointToInterval: pointToInterval, -- finds an interval box from a
+        given point
+  * Methods
+      * "alphaCertified(PolySystem,List)" -- see *note alphaCertified:
+        alphaCertified, -- certify a list of numerical solutions via
+        alphaCertified
+      * "alphaTheoryCertification(PolySystem,List)" -- see *note
+        alphaTheoryCertification: alphaTheoryCertification, -- executes
+        alpha-certification on a given system and list of points
+      * "imaginaryPart(CCi)" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "intersect(CCi,CCi)" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "intersect(CCi,RRi)" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "intersect(RRi,CCi)" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "intervalCCi(CCi)" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "isSubset(CCi,CCi)" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "midpointCCi(CCi)" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "norm(CCi)" -- see *note CCi: CCi, -- a class of all complex intervals
+      * "realPart(CCi)" -- see *note CCi: CCi, -- a class of all complex
+        intervals
+      * "entries(CCiMatrix)" -- see *note CCiMatrix: CCiMatrix, -- a class of
+        matrices of complex intervals
+      * "norm(CCiMatrix)" -- see *note CCiMatrix: CCiMatrix, -- a class of
+        matrices of complex intervals
+      * "numColumns(CCiMatrix)" -- see *note CCiMatrix: CCiMatrix, -- a class
+        of matrices of complex intervals
+      * "numRows(CCiMatrix)" -- see *note CCiMatrix: CCiMatrix, -- a class of
+        matrices of complex intervals
+      * "transpose(CCiMatrix)" -- see *note CCiMatrix: CCiMatrix, -- a class of
+        matrices of complex intervals
+      * "certifyDistinctSolutions(PolySystem,AbstractPoint,AbstractPoint)" --
+        see *note certifyDistinctSolutions: certifyDistinctSolutions, --
+        determine whether given points are distinct approximate solutions to
+        the system
+      * "certifyDistinctSolutions(PolySystem,Matrix,Matrix)" -- see *note
+        certifyDistinctSolutions: certifyDistinctSolutions, -- determine
+        whether given points are distinct approximate solutions to the system
+      * "certifyRealSolution(PolySystem,AbstractPoint)" -- see *note
+        certifyRealSolution: certifyRealSolution, -- determine whether a given
+        point is an real approximate solution to the system
+      * "certifyRealSolution(PolySystem,Matrix)" -- see *note
+        certifyRealSolution: certifyRealSolution, -- determine whether a given
+        point is an real approximate solution to the system
+      * "certifyRegularSolution(PolySystem,AbstractPoint)" -- see *note
+        certifyRegularSolution: certifyRegularSolution, -- certify whether a
+        given point is an approximate solution to the system
+      * "certifyRegularSolution(PolySystem,Matrix)" -- see *note
+        certifyRegularSolution: certifyRegularSolution, -- certify whether a
+        given point is an approximate solution to the system
+      * "certifySingularSolution(PolySystem,AbstractPoint)" -- see *note
+        certifySingularSolution: certifySingularSolution, -- certify if a given
+        point is a singular solution for a given system using the deflation
+        method.
+      * "certifySingularSolution(PolySystem,AbstractPoint,Number)" -- see *note
+        certifySingularSolution: certifySingularSolution, -- certify if a given
+        point is a singular solution for a given system using the deflation
+        method.
+      * "certifySingularSolution(PolySystem,CCiMatrix)" -- see *note
+        certifySingularSolution: certifySingularSolution, -- certify if a given
+        point is a singular solution for a given system using the deflation
+        method.
+      * "certifySingularSolution(PolySystem,CCiMatrix,Number)" -- see *note
+        certifySingularSolution: certifySingularSolution, -- certify if a given
+        point is a singular solution for a given system using the deflation
+        method.
+      * "certifySingularSolution(PolySystem,Matrix)" -- see *note
+        certifySingularSolution: certifySingularSolution, -- certify if a given
+        point is a singular solution for a given system using the deflation
+        method.
+      * "certifySingularSolution(PolySystem,Matrix,Number)" -- see *note
+        certifySingularSolution: certifySingularSolution, -- certify if a given
+        point is a singular solution for a given system using the deflation
+        method.
+      * "certifySolutions(PolySystem,List)" -- see *note certifySolutions:
+        certifySolutions, -- executes certification on a given system and list
+        of points
+      * "certifySolutions(PolySystem,List,Number)" -- see *note
+        certifySolutions: certifySolutions, -- executes certification on a
+        given system and list of points
+      * "computeConstants(PolySystem,AbstractPoint)" -- see *note
+        computeConstants: computeConstants, -- compute the square of the
+        auxiliary quantities related to alpha theory
+      * "computeConstants(PolySystem,Matrix)" -- see *note computeConstants:
+        computeConstants, -- compute the square of the auxiliary quantities
+        related to alpha theory
+      * "krawczykOperator(Matrix,AbstractPoint)" -- see *note krawczykOperator:
+        krawczykOperator, -- compute the Krawczyk operator
+      * "krawczykOperator(Matrix,CCiMatrix)" -- see *note krawczykOperator:
+        krawczykOperator, -- compute the Krawczyk operator
+      * "krawczykOperator(Matrix,Matrix)" -- see *note krawczykOperator:
+        krawczykOperator, -- compute the Krawczyk operator
+      * "krawczykOperator(PolySystem,AbstractPoint)" -- see *note
+        krawczykOperator: krawczykOperator, -- compute the Krawczyk operator
+      * "krawczykOperator(PolySystem,CCiMatrix)" -- see *note krawczykOperator:
+        krawczykOperator, -- compute the Krawczyk operator
+      * "krawczykOperator(PolySystem,Matrix)" -- see *note krawczykOperator:
+        krawczykOperator, -- compute the Krawczyk operator
+      * "krawczykRealnessTest(Matrix,AbstractPoint)" -- see *note
+        krawczykRealnessTest: krawczykRealnessTest, -- certify the realness of
+        the associated solution for the square polynomial system from the given
+        interval box
+      * "krawczykRealnessTest(Matrix,CCiMatrix)" -- see *note
+        krawczykRealnessTest: krawczykRealnessTest, -- certify the realness of
+        the associated solution for the square polynomial system from the given
+        interval box
+      * "krawczykRealnessTest(Matrix,List)" -- see *note krawczykRealnessTest:
+        krawczykRealnessTest, -- certify the realness of the associated
+        solution for the square polynomial system from the given interval box
+      * "krawczykRealnessTest(PolySystem,AbstractPoint)" -- see *note
+        krawczykRealnessTest: krawczykRealnessTest, -- certify the realness of
+        the associated solution for the square polynomial system from the given
+        interval box
+      * "krawczykRealnessTest(PolySystem,CCiMatrix)" -- see *note
+        krawczykRealnessTest: krawczykRealnessTest, -- certify the realness of
+        the associated solution for the square polynomial system from the given
+        interval box
+      * "krawczykRealnessTest(PolySystem,List)" -- see *note
+        krawczykRealnessTest: krawczykRealnessTest, -- certify the realness of
+        the associated solution for the square polynomial system from the given
+        interval box
+      * "krawczykTest(Matrix,AbstractPoint)" -- see *note krawczykTest:
+        krawczykTest, -- certify the interval box for square polynomial system
+      * "krawczykTest(Matrix,CCiMatrix)" -- see *note krawczykTest:
+        krawczykTest, -- certify the interval box for square polynomial system
+      * "krawczykTest(Matrix,List)" -- see *note krawczykTest: krawczykTest, --
+        certify the interval box for square polynomial system
+      * "krawczykTest(Matrix,Matrix)" -- see *note krawczykTest: krawczykTest,
+        -- certify the interval box for square polynomial system
+      * "krawczykTest(PolySystem,AbstractPoint)" -- see *note krawczykTest:
+        krawczykTest, -- certify the interval box for square polynomial system
+      * "krawczykTest(PolySystem,CCiMatrix)" -- see *note krawczykTest:
+        krawczykTest, -- certify the interval box for square polynomial system
+      * "krawczykTest(PolySystem,List)" -- see *note krawczykTest:
+        krawczykTest, -- certify the interval box for square polynomial system
+      * "krawczykTest(PolySystem,Matrix)" -- see *note krawczykTest:
+        krawczykTest, -- certify the interval box for square polynomial system
+      * "pointToInterval(AbstractPoint,Number)" -- see *note pointToInterval:
+        pointToInterval, -- finds an interval box from a given point
+      * "pointToInterval(PolySystem,AbstractPoint)" -- see *note
+        pointToInterval: pointToInterval, -- finds an interval box from a given
+        point
+  * Symbols
+      * "alphaTheory" -- see *note CertificationOptions: CertificationOptions,
+        -- options for certification method
+      * *note CertificationOptions: CertificationOptions, -- options for
+        certification method
+      * "intervalArithmetic" -- see *note CertificationOptions:
+        CertificationOptions, -- options for certification method
+
+For the programmer
+==================
+
+The object *note NumericalCertification: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in NumericalCertification.m2, with auxiliary
+files in NumericalCertification/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:184:0.
+
+File: NumericalCertification.info, Node: alphaCertified, Next: alphaTheoryCertification, Prev: Top, Up: Top
+
+alphaCertified -- certify a list of numerical solutions via alphaCertified
+**************************************************************************
+
+Description
+===========
+
+For a given polynomial system and a list of numerical roots, this function
+certifies roots using a software "alphaCertified" (see
+https://www.math.tamu.edu/~sottile/research/stories/alphaCertified/ ).
+
+In order to use alphaCertified, users need to let the package knows a directory
+for alphaCertified when it is loaded.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage("NumericalCertification", Configuration =>                 |
+|                                                                             |
+|o1 = NumericalCertification                                                  |
+|                                                                             |
+|o1 : Package                                                                 |
+|-----------------------------------------------------------------------------|
+|{"ALPHACERTIFIEDexec" => "some/path/to/alphaCertified"})                     |
++-----------------------------------------------------------------------------+
+
+Function only takes elements over *note RR: (Macaulay2Doc)RR, or *note CC:
+(Macaulay2Doc)CC, as an input.
+
++-----------------------------------------------------------------------------+
+|i2 : R = CC[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i3 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5, x1^2 + y1^2 -1, x2^2 +|
+|-----------------------------------------------------------------------------|
+|y2^2 -1};                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : p1 = point{{.95, .32, -.30, .95}};                                      |
++-----------------------------------------------------------------------------+
+|i5 : p2 = point{{.65,.77,.76,-.64}};                                         |
++-----------------------------------------------------------------------------+
+|i6 : P = {p1, p2};                                                           |
++-----------------------------------------------------------------------------+
+
+The function can be used as alphaCertified(f,p). It generates output files via
+the software alphaCertified. The output can be found in the user's directory of
+alphaCertified.
+
+Users can also apply options for alphaCertified (e.g. alphaCertified(f, P,
+PRECISION => 4096)). For possible options for alphaCertified, see
+"alphaCertified manual" (see
+https://www.math.tamu.edu/~sottile/research/stories/alphaCertified/Download/V13
+/alphaCertified.pdf ).
+
+
+
+
+
+
+
+
+
+Ways to use alphaCertified:
+===========================
+
+  * "alphaCertified(PolySystem,List)"
+
+For the programmer
+==================
+
+The object *note alphaCertified: alphaCertified, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:719:0.
+
+File: NumericalCertification.info, Node: alphaTheoryCertification, Next: CCi, Prev: alphaCertified, Up: Top
+
+alphaTheoryCertification -- executes alpha-certification on a given system and list of points
+*********************************************************************************************
+
+  * Usage: 
+        (D, R, CS, C) = alphaTheoryCertification(PS, L)
+  * Inputs:
+      * PS, a *note polynomial system: (NAGtypes)PolySystem,, 
+      * L, a *note list: (Macaulay2Doc)List,, 
+  * Outputs:
+      * D, a *note list: (Macaulay2Doc)List,, a list of certified distinct
+        solutions
+      * R, a *note list: (Macaulay2Doc)List,, a list of certified real
+        solutions
+      * CS, a *note list: (Macaulay2Doc)List,, a list of certified solutions
+      * C, a *note list: (Macaulay2Doc)List,, a list of constants for certified
+        solutions
+
+Description
+===========
+
+This function does all procedures of *note certifyRegularSolution:
+certifyRegularSolution,, *note certifyDistinctSolutions:
+certifyDistinctSolutions, and *note certifyRealSolution: certifyRealSolution,
+at once.
+
++-----------------------------------------------------------------------------+
+|i1 : R = RR[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5,x1^2 + y1^2 -1, x2^2 + |
+|-----------------------------------------------------------------------------|
+|y2^2 - 1};                                                                   |
++-----------------------------------------------------------------------------+
+|i3 : p1 = point{{.954379,.318431,-.298633,.947949}}; p2 = point{{.95, .32,   |
+|-----------------------------------------------------------------------------|
+|-.30, .95}}; p3 = point{{.652567, .77115, .757776, -.636663}}; p4 =          |
+|-----------------------------------------------------------------------------|
+|point{{.65, .77, .76, -.64}};                                                |
++-----------------------------------------------------------------------------+
+|i7 : p5 = point{{.31, .30, .72, -.60}}; -- poorly approximated solution      |
++-----------------------------------------------------------------------------+
+|i8 : P = {p1, p2, p3, p4, p5}                                                |
+|                                                                             |
+|o8 = {p1, p2, p3, p4, p5}                                                    |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : alphaTheoryCertification(f,P)                                           |
+|                                                                             |
+|o9 = MutableHashTable{...4...}                                               |
+|                                                                             |
+|o9 : MutableHashTable                                                        |
++-----------------------------------------------------------------------------+
+
+Ways to use alphaTheoryCertification:
+=====================================
+
+  * "alphaTheoryCertification(PolySystem,List)"
+
+For the programmer
+==================
+
+The object *note alphaTheoryCertification: alphaTheoryCertification, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:354:0.
+
+File: NumericalCertification.info, Node: CCi, Next: CCiMatrix, Prev: alphaTheoryCertification, Up: Top
+
+CCi -- a class of all complex intervals
+***************************************
+
+Description
+===========
+
+The complex interval is entered as a pair of real intervals representing the
+real and imaginary part respectively.
+
++---------------------------------------------------------+
+|i1 : I = intervalCCi(interval(.5,.8),interval(.6,.9))    |
+|                                                         |
+|o1 = [.5,.8] + [.6,.9]*ii                                |
+|                                                         |
+|o1 : CCi                                                 |
++---------------------------------------------------------+
+|i2 : J = intervalCCi(interval(.54,.78),interval(.65,.89))|
+|                                                         |
+|o2 = [.54,.78] + [.65,.89]*ii                            |
+|                                                         |
+|o2 : CCi                                                 |
++---------------------------------------------------------+
+|i3 : K = intervalCCi(interval(.45,.6),interval(.3,.78))  |
+|                                                         |
+|o3 = [.45,.6] + [.3,.78]*ii                              |
+|                                                         |
+|o3 : CCi                                                 |
++---------------------------------------------------------+
+
+When a pair of numbers are given, it makes an interval with zero radius
+centered at the given numbers.
+
++-------------------------+
+|i4 : L = intervalCCi(3,4)|
+|                         |
+|o4 = [3,3] + [4,4]*ii    |
+|                         |
+|o4 : CCi                 |
++-------------------------+
+
+Complex interval arithmetic can be applied as defined in the Chapter 9 in
+"Interval Analysis" (see https://www.degruyter.com/document/doi/10.1515/
+9783110499469/html?lang=en ).
+
++----------------------------------------------+
+|i5 : I + J                                    |
+|                                              |
+|o5 = [1.04,1.58] + [1.25,1.79]*ii             |
+|                                              |
+|o5 : CCi                                      |
++----------------------------------------------+
+|i6 : I - J                                    |
+|                                              |
+|o6 = [-.28,.26] + [-.29,.25]*ii               |
+|                                              |
+|o6 : CCi                                      |
++----------------------------------------------+
+|i7 : I * K                                    |
+|                                              |
+|o7 = [-.477,.3] + [.42,1.164]*ii              |
+|                                              |
+|o7 : CCi                                      |
++----------------------------------------------+
+|i8 : I / K                                    |
+|                                              |
+|o8 = [.418216,4.04103] + [-1.21026,1.33333]*ii|
+|                                              |
+|o8 : CCi                                      |
++----------------------------------------------+
+|i9 : I ^ 3                                    |
+|                                              |
+|o9 = [-1.744,-.136] + [-.204,1.404]*ii        |
+|                                              |
+|o9 : CCi                                      |
++----------------------------------------------+
+|i10 : 2 * I                                   |
+|                                              |
+|o10 = [1,1.6] + [1.2,1.8]*ii                  |
+|                                              |
+|o10 : CCi                                     |
++----------------------------------------------+
+
+There are several functions that can be applied on complex intervals.
+
++----------------------------------------------+
+|i11 : isSubset(I,J)  -- I is not a subset of J|
+|                                              |
+|o11 = false                                   |
++----------------------------------------------+
+|i12 : isSubset(J,I)  -- J is a subset of I    |
+|                                              |
+|o12 = true                                    |
++----------------------------------------------+
+|i13 : intersect(I,K)                          |
+|                                              |
+|o13 = [.5,.6] + [.6,.78]*ii                   |
+|                                              |
+|o13 : CCi                                     |
++----------------------------------------------+
+|i14 : (realPart I, imaginaryPart I)           |
+|                                              |
+|o14 = ([.5,.8], [.6,.9])                      |
+|                                              |
+|o14 : Sequence                                |
++----------------------------------------------+
+|i15 : norm I                                  |
+|                                              |
+|o15 = 1.20415945787923                        |
+|                                              |
+|o15 : RR (of precision 53)                    |
++----------------------------------------------+
+|i16 : midpointCCi I                           |
+|                                              |
+|o16 = .65+.75*ii                              |
+|                                              |
+|o16 : CC (of precision 53)                    |
++----------------------------------------------+
+
+Functions and methods returning an object of class CCi:
+=======================================================
+
+  * "intervalCCi"
+
+Methods that use an object of class CCi:
+========================================
+
+  * "imaginaryPart(CCi)"
+  * "intersect(CCi,CCi)"
+  * "intersect(CCi,RRi)"
+  * "intersect(RRi,CCi)"
+  * "intervalCCi(CCi)"
+  * "isSubset(CCi,CCi)"
+  * "midpointCCi(CCi)"
+  * "norm(CCi)"
+  * "realPart(CCi)"
+
+For the programmer
+==================
+
+The object *note CCi: CCi, is a *note type: (Macaulay2Doc)Type,, with ancestor
+classes *note List: (Macaulay2Doc)List, < *note VisibleList:
+(Macaulay2Doc)VisibleList, < *note BasicList: (Macaulay2Doc)BasicList, < *note
+Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:636:0.
+
+File: NumericalCertification.info, Node: CCiMatrix, Next: CertificationOptions, Prev: CCi, Up: Top
+
+CCiMatrix -- a class of matrices of complex intervals
+*****************************************************
+
+Description
+===========
+
+A matrix with complex interval entries can be defined by a nested list.
+
++-----------------------------------------------------------------------------+
+|i1 : I = intervalCCi(interval(.5,.8),interval(.6,.9));                       |
++-----------------------------------------------------------------------------+
+|i2 : J = intervalCCi(interval(.54,.78),interval(.65,.89));                   |
++-----------------------------------------------------------------------------+
+|i3 : K = intervalCCi(interval(.45,.6),interval(.3,.78));                     |
++-----------------------------------------------------------------------------+
+|i4 : L = intervalCCi(3,4);                                                   |
++-----------------------------------------------------------------------------+
+|i5 : M = matrixCCi {{I,J},{K,L}}                                             |
+|                                                                             |
+|o5 = |  [.5,.8] + [.6,.9]*ii [.54,.78] + [.65,.89]*ii |                      |
+|     |  [.45,.6] + [.3,.78]*ii [3,3] + [4,4]*ii |                            |
+|                                                                             |
+|o5 : CCiMatrix                                                               |
++-----------------------------------------------------------------------------+
+|i6 : N = matrixCCi {{J,K},{L,I}}                                             |
+|                                                                             |
+|o6 = |  [.54,.78] + [.65,.89]*ii [.45,.6] + [.3,.78]*ii |                    |
+|     |  [3,3] + [4,4]*ii [.5,.8] + [.6,.9]*ii |                              |
+|                                                                             |
+|o6 : CCiMatrix                                                               |
++-----------------------------------------------------------------------------+
+|i7 : O = matrixCCi {{J,K,L},{I,L+K,J*L}}                                     |
+|                                                                             |
+|o7 = |  [.54,.78] + [.65,.89]*ii [.45,.6] + [.3,.78]*ii                      |
+|     |  [.5,.8] + [.6,.9]*ii [3.45,3.6] + [4.3,4.78]*ii                      |
+|     ------------------------------------------------------------------------|
+|     [3,3] + [4,4]*ii |                                                      |
+|     [-1.94,-.26] + [4.11,5.79]*ii |                                         |
+|                                                                             |
+|o7 : CCiMatrix                                                               |
++-----------------------------------------------------------------------------+
+
+Basic arithmetic operators can be applied on matrices with complex intervals.
+
++-----------------------------------------------------------------------------+
+|i8 : M + N                                                                   |
+|                                                                             |
+|o8 = |  [1.04,1.58] + [1.25,1.79]*ii [.99,1.38] + [.95,1.67]*ii |            |
+|     |  [3.45,3.6] + [4.3,4.78]*ii [3.5,3.8] + [4.6,4.9]*ii |                |
+|                                                                             |
+|o8 : CCiMatrix                                                               |
++-----------------------------------------------------------------------------+
+|i9 : M - N                                                                   |
+|                                                                             |
+|o9 = |  [-.28,.26] + [-.29,.25]*ii [-.06,.33] + [-.13,.59]*ii |              |
+|     |  [-2.55,-2.4] + [-3.7,-3.22]*ii [2.2,2.5] + [3.1,3.4]*ii |            |
+|                                                                             |
+|o9 : CCiMatrix                                                               |
++-----------------------------------------------------------------------------+
+|i10 : M * N                                                                  |
+|                                                                             |
+|o10 = |  [-2.471,-.026] + [4.759,7.204]*ii [-1.008,.534] + [1.069,2.578]*ii  |
+|      |  [-7.4512,-6.727] + [24.4545,25.1424]*ii [-2.5059,.27] + [4.07,6.836 |
+|      -----------------------------------------------------------------------|
+|      |                                                                      |
+|      ]*ii |                                                                 |
+|                                                                             |
+|o10 : CCiMatrix                                                              |
++-----------------------------------------------------------------------------+
+|i11 : M ^ 2                                                                  |
+|                                                                             |
+|o11 = |  [-1.0112,.553] + [1.0545,2.5824]*ii [-2.471,-.026] + [4.759,7.204]* |
+|      |  [-2.247,.9] + [3.12,5.904]*ii [-7.4512,-6.727] + [24.4545,25.1424]* |
+|      -----------------------------------------------------------------------|
+|      ii |                                                                   |
+|      ii |                                                                   |
+|                                                                             |
+|o11 : CCiMatrix                                                              |
++-----------------------------------------------------------------------------+
+
+There are several functions that can be applied on matrices with complex
+intervals.
+
++-----------------------------------------------------------------------------+
+|i12 : entries M                                                              |
+|                                                                             |
+|o12 = {{[.5,.8] + [.6,.9]*ii, [.54,.78] + [.65,.89]*ii}, {[.45,.6] +         |
+|      -----------------------------------------------------------------------|
+|      [.3,.78]*ii, [3,3] + [4,4]*ii}}                                        |
+|                                                                             |
+|o12 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i13 : transpose O                                                            |
+|                                                                             |
+|o13 = |  [.54,.78] + [.65,.89]*ii [.5,.8] + [.6,.9]*ii |                     |
+|      |  [.45,.6] + [.3,.78]*ii [3.45,3.6] + [4.3,4.78]*ii |                 |
+|      |  [3,3] + [4,4]*ii [-1.94,-.26] + [4.11,5.79]*ii |                    |
+|                                                                             |
+|o13 : CCiMatrix                                                              |
++-----------------------------------------------------------------------------+
+|i14 : numcols O                                                              |
+|                                                                             |
+|o14 = 3                                                                      |
++-----------------------------------------------------------------------------+
+|i15 : numrows O                                                              |
+|                                                                             |
+|o15 = 2                                                                      |
++-----------------------------------------------------------------------------+
+|i16 : norm O                                                                 |
+|                                                                             |
+|o16 = 12.98400620119145                                                      |
+|                                                                             |
+|o16 : RR (of precision 53)                                                   |
++-----------------------------------------------------------------------------+
+
+Functions and methods returning an object of class CCiMatrix:
+=============================================================
+
+  * "matrixCCi"
+
+Methods that use an object of class CCiMatrix:
+==============================================
+
+  * "entries(CCiMatrix)"
+  * "norm(CCiMatrix)"
+  * "numColumns(CCiMatrix)"
+  * "numRows(CCiMatrix)"
+  * "transpose(CCiMatrix)"
+  * "certifySingularSolution(PolySystem,CCiMatrix)" -- see *note
+    certifySingularSolution: certifySingularSolution, -- certify if a given
+    point is a singular solution for a given system using the deflation method.
+  * "certifySingularSolution(PolySystem,CCiMatrix,Number)" -- see *note
+    certifySingularSolution: certifySingularSolution, -- certify if a given
+    point is a singular solution for a given system using the deflation method.
+  * "krawczykOperator(Matrix,CCiMatrix)" -- see *note krawczykOperator:
+    krawczykOperator, -- compute the Krawczyk operator
+  * "krawczykOperator(PolySystem,CCiMatrix)" -- see *note krawczykOperator:
+    krawczykOperator, -- compute the Krawczyk operator
+  * "krawczykRealnessTest(Matrix,CCiMatrix)" -- see *note krawczykRealnessTest:
+    krawczykRealnessTest, -- certify the realness of the associated solution
+    for the square polynomial system from the given interval box
+  * "krawczykRealnessTest(PolySystem,CCiMatrix)" -- see *note
+    krawczykRealnessTest: krawczykRealnessTest, -- certify the realness of the
+    associated solution for the square polynomial system from the given
+    interval box
+  * "krawczykTest(Matrix,CCiMatrix)" -- see *note krawczykTest: krawczykTest,
+    -- certify the interval box for square polynomial system
+  * "krawczykTest(PolySystem,CCiMatrix)" -- see *note krawczykTest:
+    krawczykTest, -- certify the interval box for square polynomial system
+
+For the programmer
+==================
+
+The object *note CCiMatrix: CCiMatrix, is a *note type: (Macaulay2Doc)Type,,
+with ancestor classes *note List: (Macaulay2Doc)List, < *note VisibleList:
+(Macaulay2Doc)VisibleList, < *note BasicList: (Macaulay2Doc)BasicList, < *note
+Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:677:0.
+
+File: NumericalCertification.info, Node: CertificationOptions, Next: certifyDistinctSolutions, Prev: CCiMatrix, Up: Top
+
+CertificationOptions -- options for certification method
+********************************************************
+
+Description
+===========
+
+This is an option for *note certifySingularSolution: certifySingularSolution,
+and *note certifySolutions: certifySolutions,. There are three possible options
+alphaTheory, intervalArithmetic and alphaCertified. By default, it takes alpha
+theory as a strategy.
+
++-----------------------------------------------------------------------------+
+|i1 : R = RR[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -7/2,x1^2 + y1^2 -1, x2^2 + |
+|-----------------------------------------------------------------------------|
+|y2^2 - 1};                                                                   |
++-----------------------------------------------------------------------------+
+|i3 : p = point {{.95437, .318445, -.298627, .947941}};                       |
++-----------------------------------------------------------------------------+
+|i4 : peek certifySolutions(f, {p})                                           |
+|                                                                             |
+|o4 = MutableHashTable{alphaValues => {1.04693e-10}}                          |
+|                      certifiedDistinct => {p}                               |
+|                      certifiedReal => {p}                                   |
+|                      certifiedRegular => {p}                                |
+|                      certifiedSingular => {}                                |
+|                      nonCertified => {}                                     |
++-----------------------------------------------------------------------------+
+|i5 : peek certifySolutions(f, {p}, Strategy => "intervalArithmetic")         |
+|                                                                             |
+|o5 = MutableHashTable{certifiedReal => {|  [.954349,.95439] + [0,-0]*ii      |
+|                      certifiedRegular => {|  [.954349,.95439] + [0,-0]*     |
+|                      certifiedSingular => {}                                |
+|                      nonCertified => {}                                     |
+|-----------------------------------------------------------------------------|
+|[.318414,.318476] + [0,-0]*ii [-.298641,-.298614] + [0,-0]*ii                |
+|ii [.318414,.318476] + [0,-0]*ii [-.298641,-.298614] + [0,-0]*               |
+|-----------------------------------------------------------------------------|
+|[.94792,.947962] + [0,-0]*ii |}   }                                          |
+|ii [.94792,.947962] + [0,-0]*ii |}                                           |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note CertificationOptions: CertificationOptions, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:519:0.
+
+File: NumericalCertification.info, Node: certifyDistinctSolutions, Next: certifyRealSolution, Prev: CertificationOptions, Up: Top
+
+certifyDistinctSolutions -- determine whether given points are distinct approximate solutions to the system
+***********************************************************************************************************
+
+  * Usage: 
+        certifyDistinctSolutions(PS, P1, P2)
+  * Inputs:
+      * PS, a *note polynomial system: (NAGtypes)PolySystem,, 
+      * P1, a *note point: (NAGtypes)AbstractPoint,, 
+      * P2, a *note point: (NAGtypes)AbstractPoint,, 
+
+Description
+===========
+
+This function executes the gamma test based on the value computed by *note
+computeConstants: computeConstants,, and determine whether given points are
+distinct or not.
+
++-----------------------------------------------------------------------------+
+|i1 : R = RR[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5,x1^2 + y1^2 -1, x2^2 + |
+|-----------------------------------------------------------------------------|
+|y2^2 - 1};                                                                   |
++-----------------------------------------------------------------------------+
+|i3 : p1 = point{{.95,.32,-.30,.95}};                                         |
++-----------------------------------------------------------------------------+
+|i4 : p2 = point{{.65,.77,.76,-.64}};                                         |
++-----------------------------------------------------------------------------+
+|i5 : certifyDistinctSolutions(f,p1,p2)                                       |
+|                                                                             |
+|o5 = true                                                                    |
++-----------------------------------------------------------------------------+
+
+However, if two solutions are too close, it concludes that inputs are not
+distinct.
+
++--------------------------------------------+
+|i6 : p1 = point{{.6525,.7712,.7577,-.6366}};|
++--------------------------------------------+
+|i7 : p2 = point{{.653,.771,.758,-.637}};    |
++--------------------------------------------+
+|i8 : certifyDistinctSolutions(f,p1,p2)      |
+|                                            |
+|o8 = false                                  |
++--------------------------------------------+
+
+Even worse, if two solutions are close enough and both have alpha value which
+are bigger than $0.03$, it gives indecisive comments.
+
+In this case, user should apply *note newton:
+(NumericalAlgebraicGeometry)newton, to the point to get more precise
+approximation.
+
++---------------------------------------+
+|i9 : p1 = point{{.95,.32,-.30,.95}};   |
++---------------------------------------+
+|i10 : p2 = point{{.95,.32,-.301,.95}}; |
++---------------------------------------+
+|i11 : certifyDistinctSolutions(f,p1,p2)|
+|                                       |
+|o11 = false                            |
++---------------------------------------+
+
+Ways to use certifyDistinctSolutions:
+=====================================
+
+  * "certifyDistinctSolutions(PolySystem,AbstractPoint,AbstractPoint)"
+  * "certifyDistinctSolutions(PolySystem,Matrix,Matrix)"
+
+For the programmer
+==================
+
+The object *note certifyDistinctSolutions: certifyDistinctSolutions, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:287:0.
+
+File: NumericalCertification.info, Node: certifyRealSolution, Next: certifyRegularSolution, Prev: certifyDistinctSolutions, Up: Top
+
+certifyRealSolution -- determine whether a given point is an real approximate solution to the system
+****************************************************************************************************
+
+  * Usage: 
+        certifyRealSolution(PS, P)
+  * Inputs:
+      * PS, a *note polynomial system: (NAGtypes)PolySystem,, 
+      * P, a *note point: (NAGtypes)AbstractPoint,, 
+
+Description
+===========
+
+When the system is real (or rational) polynomial system, this function executes
+the gamma test based on the value computed by *note computeConstants:
+computeConstants,, and determine whether a given point is a real approximate
+solution  or not.
+
++-----------------------------------------------------------------------------+
+|i1 : R = RR[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5,x1^2 + y1^2 -1, x2^2 + |
+|-----------------------------------------------------------------------------|
+|y2^2 - 1};                                                                   |
++-----------------------------------------------------------------------------+
+|i3 : p = point{{.954379,.318431,-.298633,.947949}};                          |
++-----------------------------------------------------------------------------+
+|i4 : certifyRealSolution(f,p)                                                |
+|                                                                             |
+|o4 = true                                                                    |
++-----------------------------------------------------------------------------+
+
+However, an input point is poorly approximated, it gives false even if the
+point is real. In this case, user should apply *note newton:
+(NumericalAlgebraicGeometry)newton, to the point to get more precise
+approximation.
+
++--------------------------------------------------------------------+
+|i5 : p = point{{.65,.77,.75,-.64}};  -- poorly approximated solution|
++--------------------------------------------------------------------+
+|i6 : certifyRealSolution(f,p)                                       |
+|                                                                    |
+|o6 = false                                                          |
++--------------------------------------------------------------------+
+
+Ways to use certifyRealSolution:
+================================
+
+  * "certifyRealSolution(PolySystem,AbstractPoint)"
+  * "certifyRealSolution(PolySystem,Matrix)"
+
+For the programmer
+==================
+
+The object *note certifyRealSolution: certifyRealSolution, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:319:0.
+
+File: NumericalCertification.info, Node: certifyRegularSolution, Next: certifySingularSolution, Prev: certifyRealSolution, Up: Top
+
+certifyRegularSolution -- certify whether a given point is an approximate solution to the system
+************************************************************************************************
+
+  * Usage: 
+        alpha = certifyRegularSolution(PS, P)
+  * Inputs:
+      * PS, a *note polynomial system: (NAGtypes)PolySystem,, 
+      * P, a *note point: (NAGtypes)AbstractPoint,, 
+
+Description
+===========
+
+This function executes the alpha test based on the value computed by *note
+computeConstants: computeConstants,.
+
++-----------------------------------------------------------------------------+
+|i1 : R = RR[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5,x1^2 + y1^2 -1, x2^2 + |
+|-----------------------------------------------------------------------------|
+|y2^2 - 1};                                                                   |
++-----------------------------------------------------------------------------+
+
+Input can be a *note AbstractPoint: (NAGtypes)AbstractPoint, or *note Matrix:
+(Macaulay2Doc)Matrix, representing coordinates or a list of points or matrices.
+
++------------------------------------+
+|i3 : p1 = point{{.95,.32,-.30,.95}};|
++------------------------------------+
+|i4 : certifyRegularSolution(f,p1)   |
+|                                    |
+|o4 = true                           |
++------------------------------------+
+
+Ways to use certifyRegularSolution:
+===================================
+
+  * "certifyRegularSolution(PolySystem,AbstractPoint)"
+  * "certifyRegularSolution(PolySystem,Matrix)"
+
+For the programmer
+==================
+
+The object *note certifyRegularSolution: certifyRegularSolution, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:245:0.
+
+File: NumericalCertification.info, Node: certifySingularSolution, Next: certifySolutions, Prev: certifyRegularSolution, Up: Top
+
+certifySingularSolution -- certify if a given point is a singular solution for a given system using the deflation method.
+*************************************************************************************************************************
+
+Description
+===========
+
+This function determines if a given point or interval box is associated to a
+singular solution for a given system. It uses the fact that a singular solution
+can be regularized via the deflation method (e.g. see  "Newton's method with
+deflation for isolated singularities of polynomial systems" (2006) (see
+https://www.sciencedirect.com/science/article/pii/S030439750600168X ). Caveat :
+Certification is done by a subsystem obtained from the deflation method. It may
+produce a false positive result probabilistically.
+
++----------------------------------------------------+
+|i1 : R = CC[x,y,z];                                 |
++----------------------------------------------------+
+|i2 : f = polySystem {x^2+y+z-1,x+y^2+z-1,x+y+z^2-1};|
++----------------------------------------------------+
+|i3 : p = point{{1e-7-1e-7*ii,1e-7+1e-7*ii,1+1e-7}}; |
++----------------------------------------------------+
+|i4 : certifySingularSolution(f,p)                   |
+|                                                    |
+|o4 = true                                           |
++----------------------------------------------------+
+
+It is known that an isolated singular solution is regularized within finitely
+many steps by the iterated first order deflation (e.g. see  "Newton's method
+with deflation for isolated singularities of polynomial systems" (2006) (see
+https://www.sciencedirect.com/science/article/pii/S030439750600168X )). A
+positive integer can be given as a number of iterations. If no number is given,
+it iterates until the solution is regularized (hence, it may not be
+terminated).
+
++----------------------------------------------------------------------------+
+|i5 : R = CC[x,y]                                                            |
+|                                                                            |
+|o5 = R                                                                      |
+|                                                                            |
+|o5 : PolynomialRing                                                         |
++----------------------------------------------------------------------------+
+|i6 : f = polySystem {x+y^3,x^2*y-y^4};                                      |
++----------------------------------------------------------------------------+
+|i7 : p = point {{-3.38813e-21+1.35525e-20*ii, -3.38813e-21+2.03288e-20*ii}};|
++----------------------------------------------------------------------------+
+|i8 : certifySingularSolution(f,p,2) -- false, two iterations are not enough |
+|                                                                            |
+|o8 = false                                                                  |
++----------------------------------------------------------------------------+
+|i9 : certifySingularSolution(f,p,3)                                         |
+|                                                                            |
+|o9 = true                                                                   |
++----------------------------------------------------------------------------+
+
+As it checks the regularity of a numerical point eventually, two strategies
+(alpha theory and interval arithmetic) can be used.
+
++---------------------------------------------------------------------+
+|i10 : certifySingularSolution(f,p,3,Strategy => "intervalArithmetic")|
+|                                                                     |
+|o10 = true                                                           |
++---------------------------------------------------------------------+
+
+Ways to use certifySingularSolution:
+====================================
+
+  * "certifySingularSolution(PolySystem,AbstractPoint)"
+  * "certifySingularSolution(PolySystem,AbstractPoint,Number)"
+  * "certifySingularSolution(PolySystem,CCiMatrix)"
+  * "certifySingularSolution(PolySystem,CCiMatrix,Number)"
+  * "certifySingularSolution(PolySystem,Matrix)"
+  * "certifySingularSolution(PolySystem,Matrix,Number)"
+
+For the programmer
+==================
+
+The object *note certifySingularSolution: certifySingularSolution, is a *note
+method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:497:0.
+
+File: NumericalCertification.info, Node: certifySolutions, Next: computeConstants, Prev: certifySingularSolution, Up: Top
+
+certifySolutions -- executes certification on a given system and list of points
+*******************************************************************************
+
+  * Usage: 
+        certifySolutions(PS, P)
+  * Inputs:
+      * PS, a *note polynomial system: (NAGtypes)PolySystem,, 
+      * L, a *note list: (Macaulay2Doc)List,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Strategy: CertificationOptions, => ..., default value
+        "alphaTheory", options for certification method
+  * Outputs:
+      * H, a *note mutable hash table: (Macaulay2Doc)MutableHashTable,, a
+        MutableHastTable contains data of a list of given solutions
+
+Description
+===========
+
+This function does all procedures for root certification. It takes three
+strategies as options which are ''alphaTheory'', ''intervalArithmetic'' and
+''alphaCertified'' (see *note CertificationOptions: CertificationOptions,). The
+option ''alphaTheory'' returns alpha values of solutions, a list of regular
+distinct solutions, a list of real solutions, a list of regular solutions, a
+list of certified singular solutions and a list of non-certified solutions
+
++-----------------------------------------------------------------------------+
+|i1 : R = CC[x,y,z];                                                          |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {(x-y)^3 - z^2, (z-x)^3 - y^2, (y-z)^3 - x^2};           |
++-----------------------------------------------------------------------------+
+|i3 : listOfSols = solveSystem f;                                             |
++-----------------------------------------------------------------------------+
+|i4 : c = certifySolutions(f,listOfSols);                                     |
++-----------------------------------------------------------------------------+
+|i5 : peek c                                                                  |
+|                                                                             |
+|o5 = MutableHashTable{alphaValues => {1.67132e-27, 2.11744e-27, 3.44715e-    |
+|                      certifiedDistinct => {{.142332+.358782*ii, -.151879    |
+|                      certifiedReal => {}                                    |
+|                      certifiedRegular => {{.142332+.358782*ii, -.151879*    |
+|                      certifiedSingular => {(-4.32817e-17-3.46538e-17*ii,    |
+|                      nonCertified => {}                                     |
+|-----------------------------------------------------------------------------|
+|27, 8.84622e-27, 3.65063e-27, 2.53341e-27}                                   |
+|*ii, -.142332+.358782*ii}, {-.142332-.358782*ii, .142332-.358782*ii          |
+|                                                                             |
+|ii, -.142332+.358782*ii}, {-.142332-.358782*ii, .142332-.358782*ii,          |
+| 4.34867e-17+3.4708e-17*ii, -5.0822e-20), (-7.7927e-20-4.74338e-20*          |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|, .151879*ii}, {.142332-.358782*ii, .151879*ii                               |
+|                                                                             |
+| .151879*ii}, {.142332-.358782*ii, .151879*ii,                               |
+|ii, -8.80914e-20+1.35525e-20*ii, -3.55754e-20+                               |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|, -.142332-.358782*ii}, {-.142332+.358782*ii, .142332+.358782*ii, -.151879   |
+|                                                                             |
+| -.142332-.358782*ii}, {-.142332+.358782*ii, .142332+.358782*ii, -.151879*   |
+|4.06576e-20*ii), (-7.6233e-20+4.74338e-20*ii, -4.74338e-20+2.71051e-20*ii,   |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|*ii}, {-.151879*ii, -.142332+.358782*ii, .142332+.358782*ii}, {.151879*ii    |
+|                                                                             |
+|ii}, {-.151879*ii, -.142332+.358782*ii, .142332+.358782*ii}, {.151879*ii,    |
+| -1.01644e-20+5.42101e-20*ii), (-4.33986e-17-3.46199e-17*ii, 4.34189e-17+    |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|, -.142332-.358782*ii, .142332-.358782*ii}}                                  |
+|                                                                             |
+| -.142332-.358782*ii, .142332-.358782*ii}}                                   |
+|3.46674e-17*ii, -3.38813e-20+7.45389e-20*ii), (4.34087e-17+3.46606e-17*ii,   |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|-3.72694e-20-6.09864e-20*ii, -4.34511e-17-3.4647e-17*ii),                    |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|(4.91279e-20-2.71051e-20*ii, -4.3319e-17-3.45996e-17*ii,                     |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|4.34918e-17+3.46199e-17*ii), (1.18585e-20+3.38813e-20*ii,                    |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|1.18585e-20+3.38813e-20*ii, 1.18585e-20+3.38813e-20*ii), (1.35525e-20,       |
+|-----------------------------------------------------------------------------|
+|                          }                                                  |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|1.35525e-20, 1.35525e-20)}                                                   |
++-----------------------------------------------------------------------------+
+
+The option ''intervalArithmetic'' returns a list of (refined) regular real
+solutions, a list of (refined) regular solutions, a list of certified singular
+solutions and a list of non-certified solutions
+
++-----------------------------------------------------------------------------+
+|i6 : c = certifySolutions(f,listOfSols,Strategy => "intervalArithmetic");    |
++-----------------------------------------------------------------------------+
+|i7 : peek c                                                                  |
+|                                                                             |
+|o7 = MutableHashTable{certifiedReal => {}                                    |
+|                      certifiedRegular =>                                    |
+|                      certifiedSingular =>                                   |
+|                      nonCertified => {|                                     |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|{|  [.142332,.142332] + [.358782,.358782]*ii [-1.7127e-18,-1.70535e-18] +    |
+| {|  [-2.0145e-12,2.0145e-12] + [-1.95734e-12,1.95734e-12]*ii [-1.54643e-    |
+|[-1.77334e-13,1.77247e-13] + [-1.41984e-13,1.41914e-13]*ii [-1.78087e-13,    |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+| [-.151879,-.151879]*ii [-.142332,-.142332] + [.358782,.358782]*ii |, |      |
+|12,1.54643e-12] + [-6.71674e-13,6.71674e-13]*ii [-1.27307e-12,1.27307e-12    |
+|1.78174e-13] + [-1.42136e-13,1.42206e-13]*ii [-2.08228e-16,2.08126e-16] +    |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|[-.142332,-.142332] + [-.358782,-.358782]*ii [.142332,.142332] +             |
+|] + [-1.27382e-12,1.27382e-12]*ii |, |  [-1.99311e-12,1.99311e-12            |
+| [-4.96861e-26,4.96861e-26]*ii |, |  [-5.55004e-17,5.55275e-17] +            |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|[-.358782,-.358782]*ii [9.62431e-18,9.63221e-18] + [.151879,.151879]*ii |, | |
+|] + [-1.94339e-12,1.94339e-12]*ii [-1.18771e-12,1.18771e-12] + [-1.14048e-12,|
+| [0,0]*ii [-5.55004e-17,5.55275e-17] + [0,0]*ii [-5.55004e-17,5.55275e-17] + |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+| [.142332,.142332] + [-.358782,-.358782]*ii [-2.24832e-18,-2.2386e-18] +     |
+|1.14048e-12]*ii [-5.00058e-13,5.00058e-13] + [-9.71369e-13,9.71369e-13]*     |
+|[0,0]*ii |}                                                                  |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+| [.151879,.151879]*ii [-.142332,-.142332] + [-.358782,-.358782]*ii           |
+|ii |, |  [-1.29454e-9,1.29454e-9] + [-1.29086e-9,1.29086e-9]*ii [-           |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+| |, |  [-.142332,-.142332] + [.358782,.358782]*ii [.142332,.142332]          |
+|1.29577e-9,1.29577e-9] + [-1.29213e-9,1.29213e-9]*ii [-1.51079e-12,          |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+| + [.358782,.358782]*ii [2.08958e-17,2.09069e-17] + [-.151879,-.151879]*ii   |
+|1.51079e-12] + [-1.679e-12,1.679e-12]*ii |, |  [-1.29549e-9,1.29549e-9] +    |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+| |, |  [2.26458e-18,2.27511e-18] + [-.151879,-.151879]*ii [-.142332          |
+|[-1.29185e-9,1.29185e-9]*ii [-1.53595e-12,1.53595e-12] + [-1.57977e          |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|,-.142332] + [.358782,.358782]*ii [.142332,.142332] + [.358782,.358782]*ii |,|
+|-12,1.57977e-12]*ii [-1.29581e-9,1.29581e-9] + [-1.2921e-9,1.2921e-9]*ii |, ||
+|-----------------------------------------------------------------------------|
+|                                                                             |
+||  [-8.9788e-18,-8.97236e-18]                                                |
+| [-1.20905e-12,1.20905e-12] +                                                |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|+ [.151879,.151879]*ii [-.142332,-.142332] + [-.358782,-.358782]*ii          |
+|[-1.15212e-12,1.15212e-12]*ii [-1.29303e-9,1.29303e-9] + [-1.28941e-         |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|[.142332,.142332] + [-.358782,-.358782]*ii |}                                |
+|9,1.28941e-9]*ii [-1.29583e-9,1.29583e-9] + [-1.29204e-9,1.29204e-9]*ii |, | |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|[-5.53488e-13,5.53488e-13] + [-6.92572e-13,6.92572e-13]*ii                   |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|[-5.53488e-13,5.53488e-13] + [-6.92572e-13,6.92572e-13]*ii                   |
+|-----------------------------------------------------------------------------|
+|                                                             }               |
+|                                                                             |
+|[-5.53488e-13,5.53488e-13] + [-6.92572e-13,6.92572e-13]*ii |}                |
++-----------------------------------------------------------------------------+
+
+The option ''alphaCertified'' can be used by
+certifySolutions(f,listOfSols,Strategy => "alphaCertified"). It generates
+output files for using the software alphaCertified. Singular solutions may not
+be certified.
+
+
+
+Ways to use certifySolutions:
+=============================
+
+  * "certifySolutions(PolySystem,List)"
+  * "certifySolutions(PolySystem,List,Number)"
+
+For the programmer
+==================
+
+The object *note certifySolutions: certifySolutions, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:557:0.
+
+File: NumericalCertification.info, Node: computeConstants, Next: krawczykOperator, Prev: certifySolutions, Up: Top
+
+computeConstants -- compute the square of the auxiliary quantities related to alpha theory
+******************************************************************************************
+
+  * Usage: 
+        (alpha, beta, gamma) = computeConstants(PS, P)
+  * Inputs:
+      * PS, a *note polynomial system: (NAGtypes)PolySystem,, 
+      * P, a *note point: (NAGtypes)AbstractPoint,, 
+
+Description
+===========
+
+alpha theory uses three auxiliary quantities related to the input polynomial
+system and point.
+
+Beta value is defined by the length of the Newton step and gamma value is the
+quantity which is inversely proportional to the length between exact solution
+and the given point.
+
+Alpha value is defined by the multiplication of beta and gamma. When it is
+smaller than  $0.157671$, then the input point is an approximate solution to
+the system. The function *note certifyRegularSolution: certifyRegularSolution,
+does this process.
+
++-----------------------------------------------------------------------------+
+|i1 : R = RR[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -3.5,x1^2 + y1^2 -1, x2^2 + |
+|-----------------------------------------------------------------------------|
+|y2^2 - 1};                                                                   |
++-----------------------------------------------------------------------------+
+|i3 : p = point{{.95,.32,-.30,.95}};                                          |
++-----------------------------------------------------------------------------+
+|i4 : (a, b, g) = computeConstants(f,p)                                       |
+|                                                                             |
+|o4 = (.00621269, .0000277104, 224.2)                                         |
+|                                                                             |
+|o4 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+
+Ways to use computeConstants:
+=============================
+
+  * "computeConstants(PolySystem,AbstractPoint)"
+  * "computeConstants(PolySystem,Matrix)"
+
+For the programmer
+==================
+
+The object *note computeConstants: computeConstants, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:216:0.
+
+File: NumericalCertification.info, Node: krawczykOperator, Next: krawczykRealnessTest, Prev: computeConstants, Up: Top
+
+krawczykOperator -- compute the Krawczyk operator
+*************************************************
+
+Description
+===========
+
+For given interval and polynomial system, this function computes the Krawczyk
+operator.
+
++-----------------------------------------------------------------------------+
+|i1 : R = RR[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -7/2,x1^2 + y1^2 -1, x2^2 + |
+|-----------------------------------------------------------------------------|
+|y2^2 - 1};                                                                   |
++-----------------------------------------------------------------------------+
+|i3 : (I1, I2, I3, I4) = (interval(.94,.96), interval(.31,.33),               |
+|-----------------------------------------------------------------------------|
+|interval(-.31,-.29), interval(.94,.96));                                     |
++-----------------------------------------------------------------------------+
+
+Intervals for certification should be given as a Matrix, and we set the
+relationships between variables and intervals by aligning them in the order of
+variables of the polynomial ring. For constructing a proper interval box from a
+given point, see the function *note pointToInterval: pointToInterval,.
+
++--------------------------------------------------+
+|i4 : M = matrix{{I1,I2,I3,I4}}                    |
+|                                                  |
+|o4 = | [.94,.96] [.31,.33] [-.31,-.29] [.94,.96] ||
+|                                                  |
+|                 1          4                     |
+|o4 : Matrix RRi    <-- RRi                        |
+|               53         53                      |
++--------------------------------------------------+
+
+If the Krawczyk operator is contained in the input interval, then we conclude
+that the input interval (or the Krawczyk operator) contains a unique root of
+the system.
+
++-----------------------------------------------------------------------------+
+|i5 : krawczykOperator(f,M)                                                   |
+|                                                                             |
+|o5 = | [.954149,.954609] [.318086,.318777] [-.298824,-.298442]               |
+|     ------------------------------------------------------------------------|
+|     [.947663,.948236] |                                                     |
+|                                                                             |
+|                 1          4                                                |
+|o5 : Matrix RRi    <-- RRi                                                   |
+|               53         53                                                 |
++-----------------------------------------------------------------------------+
+
+The function *note krawczykTest: krawczykTest, checks this criterion
+automatically.
+
+
+
+Ways to use krawczykOperator:
+=============================
+
+  * "krawczykOperator(Matrix,AbstractPoint)"
+  * "krawczykOperator(Matrix,CCiMatrix)"
+  * "krawczykOperator(Matrix,Matrix)"
+  * "krawczykOperator(PolySystem,AbstractPoint)"
+  * "krawczykOperator(PolySystem,CCiMatrix)"
+  * "krawczykOperator(PolySystem,Matrix)"
+
+For the programmer
+==================
+
+The object *note krawczykOperator: krawczykOperator, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:387:0.
+
+File: NumericalCertification.info, Node: krawczykRealnessTest, Next: krawczykTest, Prev: krawczykOperator, Up: Top
+
+krawczykRealnessTest -- certify the realness of the associated solution for the square polynomial system from the given interval box
+************************************************************************************************************************************
+
+Description
+===========
+
+For given interval and polynomial system, this function determines if the
+associated solution is real or not.
+
++-----------------------------------------------------------------------------+
+|i1 : R = CC[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -7/2,x1^2 + y1^2 -1, x2^2 + |
+|-----------------------------------------------------------------------------|
+|y2^2 - 1};                                                                   |
++-----------------------------------------------------------------------------+
+|i3 : p = point {{.95437+0.0001*ii, .318445, -.298627, .947941}} -- a         |
+|                                                                             |
+|o3 = p                                                                       |
+|                                                                             |
+|o3 : Point                                                                   |
+|-----------------------------------------------------------------------------|
+|numerical solution over the complex number                                   |
++-----------------------------------------------------------------------------+
+|i4 : I = pointToInterval(p, 1e-2) -- an interval box centered at p with radiu|
+|                                                                             |
+|o4 = |  [.94437,.96437] + [-.0099,.0101]*ii [.308445,.328445] + [-.01,.01]*ii|
+|     ------------------------------------------------------------------------|
+|     [-.308627,-.288627] + [-.01,.01]*ii [.937941,.957941] + [-.01,.01]*ii | |
+|                                                                             |
+|o4 : CCiMatrix                                                               |
+|-----------------------------------------------------------------------------|
+|s 1e-2                                                                       |
++-----------------------------------------------------------------------------+
+
+Intervals for certification should be given as a Matrix, and we set the
+relationships between variables and intervals by aligning them in the order of
+variables of the polynomial ring. For constructing a proper interval box from a
+given point, see the function *note pointToInterval: pointToInterval,. If the
+given interval box passes the Krawczyk test and its associated solution is
+real, then the function returns true
+
++------------------------------+
+|i5 : krawczykRealnessTest(f,I)|
+|                              |
+|o5 = true                     |
++------------------------------+
+
+Ways to use krawczykRealnessTest:
+=================================
+
+  * "krawczykRealnessTest(Matrix,AbstractPoint)"
+  * "krawczykRealnessTest(Matrix,CCiMatrix)"
+  * "krawczykRealnessTest(Matrix,List)"
+  * "krawczykRealnessTest(PolySystem,AbstractPoint)"
+  * "krawczykRealnessTest(PolySystem,CCiMatrix)"
+  * "krawczykRealnessTest(PolySystem,List)"
+
+For the programmer
+==================
+
+The object *note krawczykRealnessTest: krawczykRealnessTest, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:458:0.
+
+File: NumericalCertification.info, Node: krawczykTest, Next: pointToInterval, Prev: krawczykRealnessTest, Up: Top
+
+krawczykTest -- certify the interval box for square polynomial system
+*********************************************************************
+
+Description
+===========
+
+For given interval and polynomial system, this function computes the Krawczyk
+operator and check that the operator is contained in the input interval.
+
++-----------------------------------------------------------------------------+
+|i1 : R = RR[x1,x2,y1,y2];                                                    |
++-----------------------------------------------------------------------------+
+|i2 : f = polySystem {3*y1 + 2*y2 -1, 3*x1 + 2*x2 -7/2,x1^2 + y1^2 -1, x2^2 + |
+|-----------------------------------------------------------------------------|
+|y2^2 - 1};                                                                   |
++-----------------------------------------------------------------------------+
+|i3 : (I1, I2, I3, I4) = (interval(.94,.96), interval(.31,.33),               |
+|-----------------------------------------------------------------------------|
+|interval(-.31,-.29), interval(.94,.96));                                     |
++-----------------------------------------------------------------------------+
+
+Intervals for certification should be given as a Matrix, and we set the
+relationships between variables and intervals by aligning them in the order of
+variables of the polynomial ring. For constructing a proper interval box from a
+given point, see the function *note pointToInterval: pointToInterval,.
+
++--------------------------------------------------+
+|i4 : M = matrix{{I1,I2,I3,I4}}                    |
+|                                                  |
+|o4 = | [.94,.96] [.31,.33] [-.31,-.29] [.94,.96] ||
+|                                                  |
+|                 1          4                     |
+|o4 : Matrix RRi    <-- RRi                        |
+|               53         53                      |
++--------------------------------------------------+
+
+If the Krawczyk operator is contained in the input interval, then the function
+returns the result that the input interval (or the Krawczyk operator) contains
+a unique root of the system.
+
++----------------------+
+|i5 : krawczykTest(f,M)|
+|                      |
+|o5 = true             |
++----------------------+
+
+If the function encounters a *note AbstractPoint: (NAGtypes)AbstractPoint, as
+an input, then it computes a proper interval box for the given point using
+*note pointToInterval: pointToInterval, function.
+
++---------------------------------------------------------------+
+|i6 : p = point {{.95437+0.0001*ii, .318445, -.298627, .947941}}|
+|                                                               |
+|o6 = p                                                         |
+|                                                               |
+|o6 : Point                                                     |
++---------------------------------------------------------------+
+|i7 : krawczykTest(f,p)                                         |
+|                                                               |
+|o7 = false                                                     |
++---------------------------------------------------------------+
+
+Ways to use krawczykTest:
+=========================
+
+  * "krawczykTest(Matrix,AbstractPoint)"
+  * "krawczykTest(Matrix,CCiMatrix)"
+  * "krawczykTest(Matrix,List)"
+  * "krawczykTest(Matrix,Matrix)"
+  * "krawczykTest(PolySystem,AbstractPoint)"
+  * "krawczykTest(PolySystem,CCiMatrix)"
+  * "krawczykTest(PolySystem,List)"
+  * "krawczykTest(PolySystem,Matrix)"
+
+For the programmer
+==================
+
+The object *note krawczykTest: krawczykTest, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:427:0.
+
+File: NumericalCertification.info, Node: pointToInterval, Prev: krawczykTest, Up: Top
+
+pointToInterval -- finds an interval box from a given point
+***********************************************************
+
+Description
+===========
+
+This function finds an interval box from a given point. There are two ways to
+find an interval box. If a user has a desired radius for the interval box, then
+running the function with the point and the radius returns an interval centered
+at the point with the given radius.
+
++-----------------------------------------------------------------------------+
+|i1 : p = point{{.151879*ii, -.142332-.358782*ii, .142332-.358782*ii}};       |
++-----------------------------------------------------------------------------+
+|i2 : I = pointToInterval(p, 1e-3) -- returns an interval box centered at the |
+|                                                                             |
+|o2 = |  [-.001,.001] + [.150879,.152879]*ii [-.143332,-.141332] +            |
+|     ------------------------------------------------------------------------|
+|     [-.359782,-.357782]*ii [.141332,.143332] + [-.359782,-.357782]*ii |     |
+|                                                                             |
+|o2 : CCiMatrix                                                               |
+|-----------------------------------------------------------------------------|
+|point with the radius 1e-3                                                   |
++-----------------------------------------------------------------------------+
+
+If a user doesn't know what radius to choose, but there is a given system, the
+function computes a proper interval box with the radius estimating the distance
+between the input point and its Newton convergence limit via the
+epsilon-inflation method (see "Interval Analysis" (see
+https://www.degruyter.com/document/doi/10.1515/9783110499469/html?lang=en )).
+
++-----------------------------------------------------------------------------+
+|i3 : R = CC[x,y,z];                                                          |
++-----------------------------------------------------------------------------+
+|i4 : f = polySystem {(x-y)^3 - z^2, (z-x)^3 - y^2, (y-z)^3 - x^2};           |
++-----------------------------------------------------------------------------+
+|i5 : p = point{{.151879*ii, -.142332-.358782*ii, .142332-.358782*ii}};       |
++-----------------------------------------------------------------------------+
+|i6 : I = pointToInterval(f,p)                                                |
+|                                                                             |
+|o6 = |  [-1.43243e-12,1.43243e-12] + [.15092,.152838]*ii [-.143688,-.140976] |
+|     ------------------------------------------------------------------------|
+|     + [-.361002,-.356562]*ii [.140976,.143688] + [-.361002,-.356562]*ii |   |
+|                                                                             |
+|o6 : CCiMatrix                                                               |
++-----------------------------------------------------------------------------+
+
+Ways to use pointToInterval:
+============================
+
+  * "pointToInterval(AbstractPoint,Number)"
+  * "pointToInterval(PolySystem,AbstractPoint)"
+
+For the programmer
+==================
+
+The object *note pointToInterval: pointToInterval, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in
+NumericalCertification/Documents/DocNumericalCertification.m2:586:0.
+
+Tag Table:
+Node: Top262
+Node: alphaCertified29199
+Node: alphaTheoryCertification32586
+Node: CCi36323
+Node: CCiMatrix42668
+Node: CertificationOptions53354
+Node: certifyDistinctSolutions56685
+Node: certifyRealSolution60381
+Node: certifyRegularSolution63433
+Node: certifySingularSolution65606
+Node: certifySolutions70376
+Node: computeConstants85160
+Node: krawczykOperator87897
+Node: krawczykRealnessTest91690
+Node: krawczykTest95494
+Node: pointToInterval99522
+
+End Tag Table

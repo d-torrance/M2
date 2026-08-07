@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Finding the facets of the permutahedron</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="convex hulls and polar cones" href="index.html">FourierMotzkin</a> :: <a href="___Finding_spthe_spfacets_spof_spthe_sppermutahedron.html">Finding the facets of the permutahedron</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_fourier__Motzkin.html">next</a> | <a href="___Finding_spthe_spfacets_spof_spthe_spcyclic_sppolytope.html">previous</a> | <a href="_fourier__Motzkin.html">forward</a> | <a href="___Finding_spthe_spfacets_spof_spthe_spcyclic_sppolytope.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Finding the facets of the permutahedron</h1>
+      <div>
+The <em>permutahedron</em> is the convex hull of all vectors that are obtained by permuting the coordinates of the vector <span class="tt">(1,2, ..., d)</span>.  The function <span class="tt">permutahedron</span> produces a matrix such that columns generate the cyclic <span class="tt">d</span> permutahedron in <span class="tt">(d+1)</span>-space.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : permutahedron = d -> transpose matrix permutations toList(1..d+1);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : vertexList = permutahedron 3
+
+o2 = | 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 4 4 |
+     | 2 2 3 3 4 4 1 1 3 3 4 4 1 1 2 2 4 4 1 1 2 2 3 3 |
+     | 3 4 2 4 2 3 3 4 1 4 1 3 2 4 1 4 1 2 2 3 1 3 1 2 |
+     | 4 3 4 2 3 2 4 3 4 1 3 1 4 2 4 1 2 1 3 2 3 1 2 1 |
+
+              4       24
+o2 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+        </table>
+        <p></p>
+To find the halfspace representation for permutahedron, we first pass from 4-space to 5-space.  Specifically, we make the permutahedron into a polyhedral cone by placing it a height 1 (we make the extra coordinate the zeroeth coordinate).        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : homogenizePolytope = V -> (
+          R := ring V;
+          n := numgens source V;
+          map(R^1, R^n, {toList(n:1)}) || V);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : H = fourierMotzkin homogenizePolytope vertexList
+
+o4 = (| 0  0  0  0  0  0  0  0  0  0  0  0  0  0  |, | 10 |)
+      | 1  3  3  -7 3  -2 -2 1  1  -9 3  -7 -2 -7 |  | -1 |
+      | 1  3  -7 3  -2 3  -2 1  -9 1  -7 3  -2 -7 |  | -1 |
+      | 1  -7 3  3  -2 -2 3  -9 1  1  -7 -7 -2 3  |  | -1 |
+      | -9 -7 -7 -7 -2 -2 -2 1  1  1  3  3  3  3  |  | -1 |
+
+o4 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : transpose H#1
+
+o5 = | 10 -1 -1 -1 -1 |
+
+              1       5
+o5 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : halfspaceList = H#0;
+
+              5       14
+o6 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : numgens source halfspaceList
+
+o7 = 14</code></pre>
+            </td>
+          </tr>
+        </table>
+Since <span class="tt">H#1</span> has one column vector, the polyhedral cone spans a 4-dimensional subspace of 5-space.  Indeed, the sum of the components for each vertex is 10.  The columns in the matrix <span class="tt">halfspaceList</span> describe a complete minimal system of inequalities for permutahedron.  In particular, this polytope has 14 facets.        <p></p>
+To see the combinatorial structure of this polytope, we compute the facet-vertex incidence matrix.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : inequalityMatrix = transpose submatrix(halfspaceList,{1..4},)
+
+o8 = | 1  1  1  -9 |
+     | 3  3  -7 -7 |
+     | 3  -7 3  -7 |
+     | -7 3  3  -7 |
+     | 3  -2 -2 -2 |
+     | -2 3  -2 -2 |
+     | -2 -2 3  -2 |
+     | 1  1  -9 1  |
+     | 1  -9 1  1  |
+     | -9 1  1  1  |
+     | 3  -7 -7 3  |
+     | -7 3  -7 3  |
+     | -2 -2 -2 3  |
+     | -7 -7 3  3  |
+
+              14       4
+o8 : Matrix ZZ   &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : M = inequalityMatrix * vertexList
+
+o9 = | -30 -20 -30 -10 -20 -10 -30 -20 -30 0   -20 0   -30 -10 -30 0   -10
+     | -40 -40 -30 -30 -20 -20 -40 -40 -20 -20 -10 -10 -30 -30 -20 -20 0  
+     | -30 -20 -40 -20 -40 -30 -20 -10 -40 -10 -40 -20 -20 0   -30 0   -30
+     | -20 -10 -20 0   -10 0   -30 -20 -30 0   -20 0   -40 -20 -40 -10 -20
+     | -15 -15 -15 -15 -15 -15 -10 -10 -10 -10 -10 -10 -5  -5  -5  -5  -5 
+     | -10 -10 -5  -5  0   0   -15 -15 -5  -5  0   0   -15 -15 -10 -10 0  
+     | -5  0   -10 0   -10 -5  -5  0   -15 0   -15 -5  -10 0   -15 0   -15
+     | -20 -30 -10 -30 -10 -20 -20 -30 0   -30 0   -20 -10 -30 0   -30 0  
+     | -10 -10 -20 -20 -30 -30 0   0   -20 -20 -30 -30 0   0   -10 -10 -30
+     | 0   0   0   0   0   0   -10 -10 -10 -10 -10 -10 -20 -20 -20 -20 -20
+     | -20 -30 -20 -40 -30 -40 -10 -20 -10 -40 -20 -40 0   -20 0   -30 -20
+     | -10 -20 0   -20 0   -10 -20 -30 0   -30 0   -20 -20 -40 -10 -40 -10
+     | 0   -5  0   -10 -5  -10 0   -5  0   -15 -5  -15 0   -10 0   -15 -10
+     | 0   0   -10 -10 -20 -20 0   0   -20 -20 -30 -30 -10 -10 -20 -20 -40
+     ------------------------------------------------------------------------
+     0   -20 -10 -20 0   -10 0   |
+     0   -20 -20 -10 -10 0   0   |
+     -20 -10 0   -20 0   -20 -10 |
+     -10 -40 -30 -40 -20 -30 -20 |
+     -5  0   0   0   0   0   0   |
+     0   -15 -15 -10 -10 -5  -5  |
+     -10 -10 -5  -15 -5  -15 -10 |
+     -10 -10 -20 0   -20 0   -10 |
+     -30 0   0   -10 -10 -20 -20 |
+     -20 -30 -30 -30 -30 -30 -30 |
+     -30 0   -10 0   -20 -10 -20 |
+     -20 -30 -40 -20 -40 -20 -30 |
+     -15 -5  -10 -5  -15 -10 -15 |
+     -40 -20 -20 -30 -30 -40 -40 |
+
+              14       24
+o9 : Matrix ZZ   &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : incidence = matrix table(14,24, (i,j) -> if M_(i,j) == 0 then 1 else 0)
+
+o10 = | 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1 |
+      | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1 1 |
+      | 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 |
+      | 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 |
+      | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 |
+      | 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 0 0 0 |
+      | 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 |
+      | 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1 0 |
+      | 0 0 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 0 1 1 0 0 0 0 |
+      | 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+      | 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 |
+      | 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+      | 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0 |
+      | 1 1 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 |
+
+               14       24
+o10 : Matrix ZZ   &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : vertexDegree = map(ZZ^1,ZZ^14,{toList(14:1)}) * incidence
+
+o11 = | 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 |
+
+               1       24
+o11 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : facetList = transpose(incidence * transpose map(ZZ^1,ZZ^24,{toList(24:1)}))
+
+o12 = | 6 4 4 4 6 6 6 6 6 6 4 4 6 4 |
+
+               1       14
+o12 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+        </table>
+We see that each vertex has degree 3.  Moreover, there are 8 hexagonal facets and 6 quadrilateral facets.  For pictures, see pages 17-18 in <a href="http://www.math.tu-berlin.de/~ziegler/">Gunter M. Ziegler's</a> <em>Lectures on Polytopes</em>, Graduate Texts in Mathematics 152, Springer-Verlag, New York, 1995.      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">FourierMotzkin.m2:540:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

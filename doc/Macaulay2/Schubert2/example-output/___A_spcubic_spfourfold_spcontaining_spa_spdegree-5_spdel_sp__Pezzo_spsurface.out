@@ -1,0 +1,237 @@
+-- -*- M2-comint -*- hash: 7831102991387774538
+
+i1 : p = base(r,s)
+
+o1 = p
+
+o1 : an abstract variety of dimension 0
+
+i2 : P5 = projectiveBundle(5,p)
+
+o2 = P5
+
+o2 : a flag bundle with subquotient ranks {1, 5}
+
+i3 : Y = sectionZeroLocus OO_P5(3) -- cubic fourfold
+
+o3 = Y
+
+o3 : an abstract variety of dimension 4
+
+i4 : x = chern(1,OO_Y(1)) -- hyperplane class
+
+o4 = H
+      2,1
+
+                                            QQ[r..s][H   , H   ..H   ]
+                                                      1,1   2,1   2,5
+      ------------------------------------------------------------------------------------------------------
+      (- H    - H   , - H   H    - H   , - H   H    - H   , - H   H    - H   , - H   H    - H   , -H   H   )
+          1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3     1,1 2,3    2,4     1,1 2,4    2,5    1,1 2,5
+o4 : --------------------------------------------------------------------------------------------------------
+                                                       H
+                                                        2,5
+
+i5 : S = intersectionRing p -- important that we use the same base ring
+
+o5 = S
+
+o5 : PolynomialRing
+
+i6 : B1 = S[e_1..e_4,h, Join => false]
+
+o6 = B1
+
+o6 : PolynomialRing
+
+i7 : I1 = (ideal vars B1)^3 -- relations imposed by dimension
+
+             3   2     2     2     2      2                            2 
+o7 = ideal (e , e e , e e , e e , e h, e e , e e e , e e e , e e h, e e ,
+             1   1 2   1 3   1 4   1    1 2   1 2 3   1 2 4   1 2    1 3 
+     ------------------------------------------------------------------------
+                       2            2   3   2     2     2      2         
+     e e e , e e h, e e , e e h, e h , e , e e , e e , e h, e e , e e e ,
+      1 3 4   1 3    1 4   1 4    1     2   2 3   2 4   2    2 3   2 3 4 
+     ------------------------------------------------------------------------
+               2            2   3   2     2      2            2   3   2  
+     e e h, e e , e e h, e h , e , e e , e h, e e , e e h, e h , e , e h,
+      2 3    2 4   2 4    2     3   3 4   3    3 4   3 4    3     4   4  
+     ------------------------------------------------------------------------
+        2   3
+     e h , h )
+      4
+
+o7 : Ideal of B1
+
+i8 : I2 = ideal flatten (for i from 0 to 4 list (for j from i+1 to 4 list (B1_i * B1_j))) -- relations imposed by non-intersection
+
+o8 = ideal (e e , e e , e e , e h, e e , e e , e h, e e , e h, e h)
+             1 2   1 3   1 4   1    2 3   2 4   2    3 4   3    4
+
+o8 : Ideal of B1
+
+i9 : I3 = ideal for i from 1 to 4 list (e_i^2 + h^2) -- relations that make each exceptional divisor a (-1)-curve
+
+             2    2   2    2   2    2   2    2
+o9 = ideal (e  + h , e  + h , e  + h , e  + h )
+             1        2        3        4
+
+o9 : Ideal of B1
+
+i10 : I = trim (I1 + I2 + I3)
+
+                                  2    2                     2    2       
+o10 = ideal (e h, e h, e h, e h, e  + h , e e , e e , e e , e  + h , e e ,
+              4    3    2    1    4        3 4   2 4   1 4   3        2 3 
+      -----------------------------------------------------------------------
+             2    2         2    2
+      e e , e  + h , e e , e  + h )
+       1 3   2        1 2   1
+
+o10 : Ideal of B1
+
+i11 : B = B1/I
+
+o11 = B
+
+o11 : QuotientRing
+
+i12 : integral B := b -> coefficient((B_4)^2, b)
+
+o12 = FunctionClosure[currentString:12:14-12:42]
+
+o12 : FunctionClosure
+
+i13 : K = -(3*h - e_1 - e_2 - e_3 - e_4)
+
+o13 = e  + e  + e  + e  - 3h
+       1    2    3    4
+
+o13 : B
+
+i14 : tX = 1 - K + 7*h^2
+
+        2
+o14 = 7h  - e  - e  - e  - e  + 3h + 1
+             1    2    3    4
+
+o14 : B
+
+i15 : A = intersectionRing Y
+
+o15 = A
+
+o15 : QuotientRing
+
+i16 : f = map(B, A, {K, -K, K^2, -K^3, K^4, -K^5})
+
+                                                                      2
+o16 = map (B, A, {e  + e  + e  + e  - 3h, - e  - e  - e  - e  + 3h, 5h , 0, 0, 0, r, s})
+                   1    2    3    4          1    2    3    4
+
+o16 : RingMap B <-- A
+
+i17 : i = inclusion(f,
+         SubTangent => tX,
+         SubDimension => 2,
+         Base => p)
+
+o17 = i
+
+o17 : a map to a variety from a variety
+
+i18 : X = source i
+
+o18 = X
+
+o18 : an abstract variety of dimension 2
+
+i19 : Z = target i
+
+o19 = Z
+
+o19 : an abstract variety of dimension 4
+
+i20 : (Ztilde, PN, PNmap, Zmap) = blowup(i)
+
+o20 = (Ztilde, PN, PNmap, Zmap)
+
+o20 : Sequence
+
+i21 : AZtilde = intersectionRing Ztilde
+
+o21 = AZtilde
+
+o21 : QuotientRing
+
+i22 : exc = chern(1,exceptionalDivisor Ztilde) -- exceptional class
+
+o22 = E
+       0
+
+o22 : AZtilde
+
+i23 : EBA = intersectionRing Z
+
+o23 = EBA
+
+o23 : QuotientRing
+
+i24 : hyp = Zmap^* promote(x, EBA) -- hyperplane class of Ztilde
+
+o24 = H
+       2,1
+
+o24 : AZtilde
+
+i25 : L = OO_Ztilde(2*hyp - exc)
+
+o25 = L
+
+o25 : an abstract sheaf of rank 1 on Ztilde
+
+i26 : chi L
+
+o26 = 5
+
+o26 : S
+
+i27 : integral ((chern(1,L))^4)
+
+o27 = 1
+
+o27 : S
+
+i28 : (r', s') = ((r_A, s_A) / (elt ->  promote(elt, EBA))) / Zmap^*
+
+o28 = (r, s)
+
+o28 : Sequence
+
+i29 : L = OO_Ztilde(r' * hyp + s' * exc)
+
+o29 = L
+
+o29 : an abstract sheaf of rank 1 on Ztilde
+
+i30 : chi L
+
+      1 4   5 2 2   5   3    7 4   3 3   5 2    5   2   23 3   15 2   35     
+o30 = -r  - -r s  - -r*s  - --s  + -r  + -r s - -r*s  - --s  + --r  + --r*s -
+      8     4       3       24     4     4      4       12      8     12     
+      -----------------------------------------------------------------------
+       5 2   9    29
+      --s  + -r + --s + 1
+      24     4    12
+
+o30 : S
+
+i31 : integral ((chern(1,L))^4)
+
+        4      2 2        3     4
+o31 = 3r  - 30r s  - 40r*s  - 7s
+
+o31 : S
+
+i32 : 

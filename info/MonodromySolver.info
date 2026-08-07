@@ -1,0 +1,2024 @@
+ -*- coding: utf-8 -*- This is MonodromySolver.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* MonodromySolver: (MonodromySolver).  solving polynomial systems via monodromy
+END-INFO-DIR-ENTRY
+
+
+File: MonodromySolver.info, Node: Top, Next: appendPoint, Up: (dir)
+
+MonodromySolver -- solve polynomial systems via homotopy continuation and monodromy
+***********************************************************************************
+
+Description
+===========
+
+This packages provides randomized methods for numerically solving polynomial
+systems of equations that occur in parametric families, by exploiting the
+transitive action of an associated monodromy group. The package implements the
+graph-based framework described in the third reference below. There are three
+main functions that may be used to solve a system of a family of systems:
+
+  * *note solveFamily: solveFamily, -- a solver for parametric families with
+    simple output
+  * *note sparseMonodromySolve: sparseMonodromySolve, -- an "out of the box"
+    polynomial system solver
+  * *note monodromySolve: monodromySolve, -- the main function of the
+    MonodromySolver package
+
+*note monodromySolve: monodromySolve, is the core function, whose input may be
+a *note polynomial system: (NAGtypes)PolySystem, or $ofClass GateSystem$. As an
+additional input, a seed pair consisting of initial parameter and solution
+values may be provided. *note solveFamily: solveFamily, is a wrapper function
+that returns specific solutions and parameter values. *note
+sparseMonodromySolve: sparseMonodromySolve, is a blackbox solver for systems
+without parameters, that calls the core function. These functions have many
+options in common, which are summarized in *note MonodromySolverOptions:
+MonodromySolverOptions,. Here is an example illustrating how to solve a
+parametric family for specific parameter values.
+
++-----------------------------------------------------------------------------+
+|i1 : setRandomSeed 0;                                                        |
+| -- setting random seed to 0                                                 |
++-----------------------------------------------------------------------------+
+|i2 : declareVariable \ {A,B,C,D,X,Y};                                        |
++-----------------------------------------------------------------------------+
+|i3 : F = gateSystem(matrix{{A,B,C,D}},matrix{{X,Y}},matrix{{A*(X-1)^2-B},    |
+|-----------------------------------------------------------------------------|
+|{C*(Y+2)^2+D}});                                                             |
++-----------------------------------------------------------------------------+
+|i4 : p0 = point{{1,1,1,1}};                                                  |
++-----------------------------------------------------------------------------+
+|i5 : sols = solveFamily(p0, F, NumberOfNodes=>3);                            |
++-----------------------------------------------------------------------------+
+|i6 : for i from 0 to 3 list norm(evaluate(F, p0, sols#i))                    |
+|                                                                             |
+|o6 = {4.39145e-23, 4.39145e-23, 4.39145e-23, 4.39145e-23}                    |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Each solver works by assembling randomly generated systems within a *note
+HomotopyGraph: HomotopyGraph, and tracking paths between them. They are also
+equipped with a number of options, which may be useful for speeding up
+computation or increasing the probability of success.
+
+In the example above, the system is linear in parameters, allowing for the seed
+pair to be computed automatically. The current seeding implementation will
+report failure in other cases. Depending on the problem of interest, there may
+still be a natural way to generate the seed pair, as in *note
+monodromySolve(System,AbstractPoint,List):
+monodromySolve_lpSystem_cmAbstractPoint_cmList_rp,.
+
+Some references for numerical monodromy methods:
+
+Sommese, Andrew J., Jan Verschelde, and Charles W. Wampler. "Numerical
+decomposition of the solution sets of polynomial systems into irreducible
+components." SIAM Journal on Numerical Analysis 38.6 (2001): 2022-2046.
+
+del Campo, Abraham Martin, and Jose Israel Rodriguez. "Critical points via
+monodromy and local methods." Journal of Symbolic Computation 79 (2017):
+559-574.
+
+Duff, Timothy, Cvetelina Hill, Anders Jensen, Kisun Lee, Anton Leykin, and Jeff
+Sommars. "Solving polynomial systems via homotopy continuation and monodromy."
+IMA Journal of Numerical Analysis 39.3 (2019): 1421-1446.
+
+
+
+Authors
+=======
+
+  * Timothy Duff <timduff@uw.edu>
+  * Cvetelina Hill <cvetelina.hill@math.gatech.edu>
+  * Anders Nedergaard Jensen <jensen@math.au.dk>
+  * Kisun Lee <klee669@math.gatech.edu>
+  * Anton Leykin <leykin@math.gatech.edu>
+  * Jeff Sommars <sommars1@uic.edu>
+
+Version
+=======
+
+This documentation describes version 1.16 of MonodromySolver, released May
+2023.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{MonodromySolverSource,                                                 |
+|  title = {{MonodromySolver: solving polynomial systems                      |
+|  author = {Timothy Duff and Cvetelina Hill and Anders                       |
+|  howpublished = {A \emph{Macaulay2} package available                       |
+|    "http://www.math.gatech.edu/~leykin"}                                    |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+| via monodromy. Version~1.16}},                                              |
+|Nedergaard Jensen and Kisun Lee and Anton Leykin and Jeff Sommars},          |
+|at                                                                           |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note HomotopyGraph: HomotopyGraph,
+      * *note HomotopyNode: HomotopyNode,
+      * *note PointArray: PointArray, -- a container for solutions
+  * Functions and commands
+      * *note appendPoint: appendPoint, -- append a point at the end of a
+        PointArray
+      * *note appendPoints: appendPoints, -- append a list of points at the end
+        of a PointArray
+      * *note completeGraphAugment: completeGraphAugment, -- augment graph with
+        the complete graph structure
+      * *note completeGraphInit: completeGraphInit, -- initialize the topology
+        of a complete graph
+      * *note computeMixedVolume: computeMixedVolume, -- compute mixed volume
+        via Gfan
+      * *note createSeedPair: createSeedPair, -- create initial seed for the
+        homotopy continuation
+      * *note dynamicFlowerSolve: dynamicFlowerSolve, -- a naive dynamic
+        strategy
+      * *note flowerGraphAugment: flowerGraphAugment, -- augment graph with the
+        flower graph structure
+      * *note flowerGraphInit: flowerGraphInit, -- solve via monodromy by using
+        flower shaped graph
+      * *note getTrackTime: getTrackTime, -- elapsed time taken by solver
+      * *note homotopyGraph: homotopyGraph, -- HomotopyGraph Constructor
+      * *note makeBatchPotential: makeBatchPotential, -- batch sensitive
+        potentialE
+      * *note monodromyGroup: monodromyGroup, -- compute the group of
+        permutations implicitly defined by a homotopy graph
+      * *note monodromySolve: monodromySolve, -- the main function of the
+        MonodromySolver package
+      * *note pointArray: pointArray, -- constructor for PointArray
+      * *note potentialE: potentialE, -- the "expected" potential of an edge
+      * *note potentialLowerBound: potentialLowerBound, -- the potential which
+        is equal to the minimal number of new points guaranteed to be
+        discovered
+      * *note selectBestEdgeAndDirection: selectBestEdgeAndDirection, --
+        selects edge and direction based on highest potential for obtaining new
+        information
+      * *note selectRandomEdgeAndDirection: selectRandomEdgeAndDirection, --
+        random selection of edge and direction for homotopy
+      * *note solveFamily: solveFamily, -- a solver for parametric families
+        with simple output
+      * *note sparseMonodromySolve: sparseMonodromySolve, -- an "out of the
+        box" polynomial system solver
+      * *note specializeSystem: specializeSystem, -- specialize parametric
+        system at a point in the parameter space.
+  * Methods
+      * "appendPoint(PointArray,AbstractPoint)" -- see *note appendPoint:
+        appendPoint, -- append a point at the end of a PointArray
+      * "appendPoints(PointArray,List)" -- see *note appendPoints:
+        appendPoints, -- append a list of points at the end of a PointArray
+      * betti(HomotopyGraph) (missing documentation)
+      * "computeMixedVolume(List)" -- see *note computeMixedVolume:
+        computeMixedVolume, -- compute mixed volume via Gfan
+      * computeMixedVolume(System) (missing documentation)
+      * "createSeedPair(System)" -- see *note createSeedPair: createSeedPair,
+        -- create initial seed for the homotopy continuation
+      * "createSeedPair(System,AbstractPoint)" -- see *note createSeedPair:
+        createSeedPair, -- create initial seed for the homotopy continuation
+      * "getTrackTime(HomotopyGraph)" -- see *note getTrackTime: getTrackTime,
+        -- elapsed time taken by solver
+      * homotopyGraph(System) (missing documentation)
+      * *note indices(PointArray): indices_lpPointArray_rp, -- returns indices
+        of a PointArray
+      * isAffineLinearFunction(GateSystem) (missing documentation)
+      * *note isMember(AbstractPoint,PointArray):
+        isMember_lpAbstractPoint_cmPointArray_rp, -- test point membership in a
+        PointArray
+      * isMember(AbstractPoint,PointArray,FunctionClosure) (missing
+        documentation)
+      * *note length(PointArray): length_lpPointArray_rp, -- number of items
+        stored in a PointArray
+      * "monodromyGroup(System)" -- see *note monodromyGroup: monodromyGroup,
+        -- compute the group of permutations implicitly defined by a homotopy
+        graph
+      * "monodromyGroup(System,AbstractPoint,List)" -- see *note
+        monodromyGroup: monodromyGroup, -- compute the group of permutations
+        implicitly defined by a homotopy graph
+      * monodromyGroup(HomotopyGraph) (missing documentation)
+      * *note monodromySolve(System): monodromySolve_lpSystem_rp, -- the main
+        function of the MonodromySolver package
+      * *note monodromySolve(System,AbstractPoint,List):
+        monodromySolve_lpSystem_cmAbstractPoint_cmList_rp, -- the main function
+        of the MonodromySolver package
+      * *note net(PointArray): net_lpPointArray_rp, -- pretty printing
+      * "solveFamily(AbstractPoint,System)" -- see *note solveFamily:
+        solveFamily, -- a solver for parametric families with simple output
+      * "solveFamily(System)" -- see *note solveFamily: solveFamily, -- a
+        solver for parametric families with simple output
+      * "sparseMonodromySolve(PolySystem)" -- see *note sparseMonodromySolve:
+        sparseMonodromySolve, -- an "out of the box" polynomial system solver
+      * "specializeSystem(AbstractPoint,Matrix)" -- see *note specializeSystem:
+        specializeSystem, -- specialize parametric system at a point in the
+        parameter space.
+      * "specializeSystem(AbstractPoint,PolySystem)" -- see *note
+        specializeSystem: specializeSystem, -- specialize parametric system at
+        a point in the parameter space.
+      * specializeSystem(AbstractPoint,GateSystem) (missing documentation)
+  * Symbols
+      * "PartialSols" -- see *note HomotopyNode: HomotopyNode,
+      * "SpecializedSystem" -- see *note HomotopyNode: HomotopyNode,
+      * "AugmentEdgeCount" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "AugmentGraphFunction" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "AugmentNodeCount" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "AugmentNumberOfRepeats" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "BatchSize" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "EdgesSaturated" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "Equivalencer" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "FilterCondition" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "GraphInitFunction" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * *note MonodromySolverOptions: MonodromySolverOptions,
+      * "NumberOfEdges" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "NumberOfNodes" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "NumberOfRepeats" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "PointArrayTol" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "Potential" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "Randomizer" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "SelectEdgeAndDirection" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "StoppingCriterion" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+      * "TargetSolutionCount" -- see *note MonodromySolverOptions:
+        MonodromySolverOptions,
+
+For the programmer
+==================
+
+The object *note MonodromySolver: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in MonodromySolver.m2, with auxiliary files in
+MonodromySolver/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:60:0.
+
+File: MonodromySolver.info, Node: appendPoint, Next: appendPoints, Prev: Top, Up: Top
+
+appendPoint -- append a point at the end of a PointArray
+********************************************************
+
+  * Usage: 
+        appendPoint(A,p)
+  * Inputs:
+      * A, an instance of the type *note PointArray: PointArray,, 
+      * p, a *note point: (NAGtypes)AbstractPoint,, 
+
+Ways to use appendPoint:
+========================
+
+  * "appendPoint(PointArray,AbstractPoint)"
+
+For the programmer
+==================
+
+The object *note appendPoint: appendPoint, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:616:0.
+
+File: MonodromySolver.info, Node: appendPoints, Next: completeGraphAugment, Prev: appendPoint, Up: Top
+
+appendPoints -- append a list of points at the end of a PointArray
+******************************************************************
+
+  * Usage: 
+        appendPoints(A,L)
+  * Inputs:
+      * A, an instance of the type *note PointArray: PointArray,, 
+      * L, a *note list: (Macaulay2Doc)List,, 
+
+Ways to use appendPoints:
+=========================
+
+  * "appendPoints(PointArray,List)"
+
+For the programmer
+==================
+
+The object *note appendPoints: appendPoints, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:629:0.
+
+File: MonodromySolver.info, Node: completeGraphAugment, Next: completeGraphInit, Prev: appendPoints, Up: Top
+
+completeGraphAugment -- augment graph with the complete graph structure
+***********************************************************************
+
+Description
+===========
+
+This is a possible value of the option AugmentGraphFunction of the function
+monodromySolve. It will augment the graph while respecting the complete graph
+structure, so it should be used in conjunction with flowerGraphInit. To use it,
+it is necessary to specify a number of nodes or edges to augment by using
+AugmentNodeCount or AugmentEdgeCount.
+
++-----------------------------------------------------------------------------+
+|i1 : R = CC[a,b,c,d][x,y];                                                   |
++-----------------------------------------------------------------------------+
+|i2 : polys = polySystem {a*x+b*y^2,c*x*y+d};                                 |
++-----------------------------------------------------------------------------+
+|i3 : monodromySolve(polys,GraphInitFunction => flowerGraphInit,              |
+|                                                                             |
+|o3 = (HomotopyNode{...7...}, 24)                                             |
+|                                                                             |
+|o3 : Sequence                                                                |
+|-----------------------------------------------------------------------------|
+|AugmentGraphFunction=>completeGraphAugment,AugmentNodeCount=>1,              |
+|-----------------------------------------------------------------------------|
+|AugmentNumberOfRepeats=>3)                                                   |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note completeGraphAugment: completeGraphAugment, is a *note
+function closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:529:0.
+
+File: MonodromySolver.info, Node: completeGraphInit, Next: computeMixedVolume, Prev: completeGraphAugment, Up: Top
+
+completeGraphInit -- initialize the topology of a complete graph
+****************************************************************
+
+Description
+===========
+
+This is an option for the function monodromySolve which uses a complete graph.
+For instance, the user can choose to have 4 vertices and 2 edges connecting
+each pair of vertices. Then the homotopy will run on the complete graph on 4
+vertices, where each edge is doubled.
+
++-----------------------------------------------------------------+
+|i1 : R = CC[a,b,c,d][x,y];                                       |
++-----------------------------------------------------------------+
+|i2 : polys = polySystem {a*x+b*y^2,c*x*y+d};                     |
++-----------------------------------------------------------------+
+|i3 : monodromySolve(polys,GraphInitFunction => completeGraphInit)|
+|                                                                 |
+|o3 = (HomotopyNode{...7...}, 4)                                  |
+|                                                                 |
+|o3 : Sequence                                                    |
++-----------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note completeGraphInit: completeGraphInit, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:646:0.
+
+File: MonodromySolver.info, Node: computeMixedVolume, Next: createSeedPair, Prev: completeGraphInit, Up: Top
+
+computeMixedVolume -- compute mixed volume via Gfan
+***************************************************
+
+  * Usage: 
+        d = computeMixedVolume polys
+  * Inputs:
+      * polys, a *note list: (Macaulay2Doc)List,, containing polynomials
+  * Outputs:
+      * d, an *note integer: (Macaulay2Doc)ZZ,, 
+
+Description
+===========
+
+Computes mixed volume of a polynomial system using the package {TO
+gfanInterface}. For generic systems of a given support set, this is the generic
+root count.
+
++----------------------------+
+|i1 : setRandomSeed 0;       |
+| -- setting random seed to 0|
++----------------------------+
+
+Ways to use computeMixedVolume:
+===============================
+
+  * "computeMixedVolume(List)"
+  * computeMixedVolume(System) (missing documentation)
+
+For the programmer
+==================
+
+The object *note computeMixedVolume: computeMixedVolume, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:491:0.
+
+File: MonodromySolver.info, Node: createSeedPair, Next: dynamicFlowerSolve, Prev: computeMixedVolume, Up: Top
+
+createSeedPair -- create initial seed for the homotopy continuation
+*******************************************************************
+
+  * Usage: 
+        (p0,x0) = createSeedPair PS
+        (p0, x0) = createSeedPair(PS,x0)
+  * Inputs:
+      * PS, an instance of the type *note System: (NAGtypes)System,, a
+        parametric polynomial system
+      * x0, a *note point: (NAGtypes)AbstractPoint,, an initial solution for
+        some system
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * affinity tolerance
+      * initial parameters
+      * Verbose (missing documentation) => ..., default value false, 
+  * Outputs:
+      * p0, an instance of the type *note Point: (NAGtypes)AbstractPoint,,
+        representing a random system
+      * x0, an instance of the type *note Point: (NAGtypes)AbstractPoint,,
+        representing a solution to the system defined by p0
+
+Description
+===========
+
+The "seed pair" appearing in the output of this function is used to initialize
+the *note HomotopyGraph: HomotopyGraph, in blackbox solvers. To diagnose
+failures for the parametric solvers, it may be helpful to check that seeding
+worked as in the example provided below.
+
++-----------------------------------------------------------------------------+
+|i1 : setRandomSeed 0                                                         |
+| -- setting random seed to 0                                                 |
+|                                                                             |
+|o1 = 0                                                                       |
++-----------------------------------------------------------------------------+
+|i2 : R = CC[a,b,c,d][x,y];                                                   |
++-----------------------------------------------------------------------------+
+|i3 : polys = polySystem {a*x+b*y^2,c*x*y+d};                                 |
++-----------------------------------------------------------------------------+
+|i4 : (p0,x0) := createSeedPair polys;                                        |
++-----------------------------------------------------------------------------+
+|i5 : polys0=specializeSystem(p0,polys);                                      |
++-----------------------------------------------------------------------------+
+|i6 : apply(polys0,p->sub(p,{x=>first x0.Coordinates,y=>last x0.Coordinates}))|
+|                                                                             |
+|o6 = {0, 2.77556e-17+8.32667e-17*ii}                                         |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note monodromySolve(System,AbstractPoint,List):
+    monodromySolve_lpSystem_cmAbstractPoint_cmList_rp, -- the main function of
+    the MonodromySolver package
+
+Ways to use createSeedPair:
+===========================
+
+  * "createSeedPair(System)"
+  * "createSeedPair(System,AbstractPoint)"
+
+For the programmer
+==================
+
+The object *note createSeedPair: createSeedPair, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:240:0.
+
+File: MonodromySolver.info, Node: dynamicFlowerSolve, Next: flowerGraphAugment, Prev: createSeedPair, Up: Top
+
+dynamicFlowerSolve -- a naive dynamic strategy
+**********************************************
+
+  * Usage: 
+        (L, npaths) = dynamicFlowerSolve(M,p0,L)
+  * Inputs:
+      * M, a *note matrix: (Macaulay2Doc)Matrix,, defining polynomial system
+      * p0, a *note point: (NAGtypes)AbstractPoint,, associated to a
+        specialized system
+      * L, a *note list: (Macaulay2Doc)List,, containing partial solutions
+        associated to p0
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * RandomPointFunction (missing documentation) => ..., default value null,
+      * *note StoppingCriterion: MonodromySolverOptions, => ..., default value
+        FunctionClosure[../../../../../Macaulay2/packages/MonodromySolver/
+        solveViaMonodromy.m2:110:110-110:120],
+      * TargetSolutionCount (missing documentation) => ..., default value null,
+  * Outputs:
+      * L, a *note list: (Macaulay2Doc)List,, 
+      * npaths, an *note integer: (Macaulay2Doc)ZZ,, 
+
+Description
+===========
+
+Output is verbose. For other dynamic strategies, see *note
+MonodromySolverOptions: MonodromySolverOptions,.
+
++------------------------------------------------------------+
+|i1 : R = CC[a,b,c,d][x,y];                                  |
++------------------------------------------------------------+
+|i2 : polys = polySystem {a*x+b*y^2,c*x*y+d};                |
++------------------------------------------------------------+
+|i3 : (p0, x0) = createSeedPair polys;                       |
++------------------------------------------------------------+
+|i4 : (L, npaths) = dynamicFlowerSolve(polys.PolyMap,p0,{x0})|
+|--backup directory created: /tmp/M2-46547-0/2               |
+| -- .00416898s elapsed                                      |
+|  H01: 1                                                    |
+| -- .00413167s elapsed                                      |
+|  H10: 1                                                    |
+| -- .000760776s elapsed                                     |
+|number of paths tracked: 2                                  |
+|found 1 points in the fiber so far                          |
+| -- .00404183s elapsed                                      |
+|  H01: 1                                                    |
+| -- .00421442s elapsed                                      |
+|  H10: 1                                                    |
+| -- .000652613s elapsed                                     |
+|number of paths tracked: 4                                  |
+|found 1 points in the fiber so far                          |
+| -- .00386358s elapsed                                      |
+|  H01: 1                                                    |
+| -- .0039364s elapsed                                       |
+|  H10: 1                                                    |
+| -- .00062411s elapsed                                      |
+|number of paths tracked: 6                                  |
+|found 1 points in the fiber so far                          |
+| -- .00373878s elapsed                                      |
+|  H01: 1                                                    |
+| -- .00384873s elapsed                                      |
+|  H10: 1                                                    |
+| -- .000625052s elapsed                                     |
+|number of paths tracked: 8                                  |
+|found 1 points in the fiber so far                          |
+|                                                            |
+|o4 = ({{.892712+.673395*ii, .29398+.632944*ii}}, 8)         |
+|                                                            |
+|o4 : Sequence                                               |
++------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note dynamicFlowerSolve: dynamicFlowerSolve, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:603:0.
+
+File: MonodromySolver.info, Node: flowerGraphAugment, Next: flowerGraphInit, Prev: dynamicFlowerSolve, Up: Top
+
+flowerGraphAugment -- augment graph with the flower graph structure
+*******************************************************************
+
+Description
+===========
+
+This is a possible value of the option *note AugmentGraphFunction:
+MonodromySolverOptions, of the function monodromySolve. It will augment the
+graph while respecting the flower graph structure, so it should be used in
+conjunction with *note flowerGraphInit: flowerGraphInit,. To use it, it is
+necessary to specify a number of nodes or edges to augment by using
+AugmentNodeCount or AugmentEdgeCount.
+
++-----------------------------------------------------------------------------+
+|i1 : R = CC[a,b,c,d][x,y];                                                   |
++-----------------------------------------------------------------------------+
+|i2 : polys = polySystem {a*x+b*y^2,c*x*y+d};                                 |
++-----------------------------------------------------------------------------+
+|i3 : monodromySolve(polys,GraphInitFunction => flowerGraphInit,              |
+|                                                                             |
+|o3 = (HomotopyNode{...7...}, 24)                                             |
+|                                                                             |
+|o3 : Sequence                                                                |
+|-----------------------------------------------------------------------------|
+|AugmentGraphFunction=>flowerGraphAugment,AugmentNodeCount=>1,                |
+|-----------------------------------------------------------------------------|
+|AugmentNumberOfRepeats=>3)                                                   |
++-----------------------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note flowerGraphAugment: flowerGraphAugment, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:510:0.
+
+File: MonodromySolver.info, Node: flowerGraphInit, Next: getTrackTime, Prev: flowerGraphAugment, Up: Top
+
+flowerGraphInit -- solve via monodromy by using flower shaped graph
+*******************************************************************
+
+Description
+===========
+
+This is an option for the function monodromySolve which uses a flower graph.
+That is, the seed system is the central vertex of the graph; it is connected to
+all other vertices by two paths, thus creating a "petal" for each additional
+vertex.
+
++---------------------------------------------------------------+
+|i1 : R = CC[a,b,c,d][x,y];                                     |
++---------------------------------------------------------------+
+|i2 : polys = polySystem {a*x+b*y^2,c*x*y+d};                   |
++---------------------------------------------------------------+
+|i3 : monodromySolve(polys,GraphInitFunction => flowerGraphInit)|
+|                                                               |
+|o3 = (HomotopyNode{...7...}, 24)                               |
+|                                                               |
+|o3 : Sequence                                                  |
++---------------------------------------------------------------+
+
+For the programmer
+==================
+
+The object *note flowerGraphInit: flowerGraphInit, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:465:0.
+
+File: MonodromySolver.info, Node: getTrackTime, Next: HomotopyGraph, Prev: flowerGraphInit, Up: Top
+
+getTrackTime -- elapsed time taken by solver
+********************************************
+
+  * Usage: 
+        t = getTrackTime G
+  * Inputs:
+      * G, an instance of the type *note HomotopyGraph: HomotopyGraph,, 
+  * Outputs:
+      * t, a *note real number: (Macaulay2Doc)RR,, 
+
+Description
+===========
+
+This only works on graphs which have been modified by a solver.
+
+See also
+========
+
+  * *note elapsedTime: (Macaulay2Doc)elapsedTime, -- time a computation
+    including time elapsed
+
+Ways to use getTrackTime:
+=========================
+
+  * "getTrackTime(HomotopyGraph)"
+
+For the programmer
+==================
+
+The object *note getTrackTime: getTrackTime, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:575:0.
+
+File: MonodromySolver.info, Node: HomotopyGraph, Next: homotopyGraph, Prev: getTrackTime, Up: Top
+
+HomotopyGraph
+*************
+
+Description
+===========
+
+The graph of systems connected by homotopies. Inherits from *note
+MutableHashTable: (Macaulay2Doc)MutableHashTable,.
+
+Keys associated with HomotopyGraph
+----------------------------------
+
+  * Edges: a mutable list of edges
+  * Family: the parametric system (or null)
+  * Potential: the potential function used (or null)
+  * Vertices: a mutable list of nodes
+
+See also
+========
+
+  * *note HomotopyNode: HomotopyNode,
+
+Functions and methods returning an object of class HomotopyGraph:
+=================================================================
+
+  * *note homotopyGraph: homotopyGraph, -- HomotopyGraph Constructor
+
+Methods that use an object of class HomotopyGraph:
+==================================================
+
+  * betti(HomotopyGraph) (missing documentation)
+  * "getTrackTime(HomotopyGraph)" -- see *note getTrackTime: getTrackTime, --
+    elapsed time taken by solver
+  * monodromyGroup(HomotopyGraph) (missing documentation)
+
+For the programmer
+==================
+
+The object *note HomotopyGraph: HomotopyGraph, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:425:0.
+
+File: MonodromySolver.info, Node: homotopyGraph, Next: HomotopyNode, Prev: HomotopyGraph, Up: Top
+
+homotopyGraph -- HomotopyGraph Constructor
+******************************************
+
+  * Usage: 
+        G = homotopyGraph PS
+  * Inputs:
+      * PS, an instance of the type *note System: (NAGtypes)System,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Equivalencer (missing documentation) => ..., default value null, 
+      * FilterCondition (missing documentation) => ..., default value null, 
+      * LinearSegment (missing documentation) => ..., default value true, 
+      * Potential (missing documentation) => ..., default value null, 
+      * Randomizer (missing documentation) => ..., default value null, 
+      * Verbose (missing documentation) => ..., default value null, 
+  * Outputs:
+      * G, an instance of the type *note HomotopyGraph: HomotopyGraph,, 
+
+Ways to use homotopyGraph:
+==========================
+
+  * homotopyGraph(System) (missing documentation)
+
+For the programmer
+==================
+
+The object *note homotopyGraph: homotopyGraph, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:556:0.
+
+File: MonodromySolver.info, Node: HomotopyNode, Next: indices_lpPointArray_rp, Prev: homotopyGraph, Up: Top
+
+HomotopyNode
+************
+
+Description
+===========
+
+Object associated to a polynomial system.
+
+Keys associated with HomotopyNode
+---------------------------------
+
+  * BasePoint: the parameter point defining some system
+  * Edges: a mutable list of edges
+  * Graph: a HomotopyGraph containing the node
+  * PartialSols: *note PointArray: PointArray, of solutions for
+    SpecializedSystem
+  * SpecializedSystem: list of equations for system specialized at the
+    BasePoint
+
+For the programmer
+==================
+
+The object *note HomotopyNode: HomotopyNode, is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note MutableHashTable:
+(Macaulay2Doc)MutableHashTable, < *note HashTable: (Macaulay2Doc)HashTable, <
+*note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:406:0.
+
+File: MonodromySolver.info, Node: indices_lpPointArray_rp, Next: isMember_lpAbstractPoint_cmPointArray_rp, Prev: HomotopyNode, Up: Top
+
+indices(PointArray) -- returns indices of a PointArray
+******************************************************
+
+  * Function: *note indices: (Macaulay2Doc)indices,
+  * Usage: 
+        indices A
+  * Inputs:
+      * A, an instance of the type *note PointArray: PointArray,, 
+
+See also
+========
+
+  * *note indices: (Macaulay2Doc)indices, -- indices of a polynomial; also
+    components for a direct sum
+
+Ways to use this method:
+========================
+
+  * *note indices(PointArray): indices_lpPointArray_rp, -- returns indices of a
+    PointArray
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:717:0.
+
+File: MonodromySolver.info, Node: isMember_lpAbstractPoint_cmPointArray_rp, Next: length_lpPointArray_rp, Prev: indices_lpPointArray_rp, Up: Top
+
+isMember(AbstractPoint,PointArray) -- test point membership in a PointArray
+***************************************************************************
+
+  * Function: *note isMember: (Macaulay2Doc)isMember,
+  * Usage: 
+        member(p,A)
+  * Inputs:
+      * p, a *note point: (NAGtypes)AbstractPoint,, 
+      * A, an instance of the type *note PointArray: PointArray,, 
+
+See also
+========
+
+  * *note isMember: (Macaulay2Doc)isMember, -- test membership in a list or set
+
+Ways to use this method:
+========================
+
+  * *note isMember(AbstractPoint,PointArray):
+    isMember_lpAbstractPoint_cmPointArray_rp, -- test point membership in a
+    PointArray
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:758:0.
+
+File: MonodromySolver.info, Node: length_lpPointArray_rp, Next: makeBatchPotential, Prev: isMember_lpAbstractPoint_cmPointArray_rp, Up: Top
+
+length(PointArray) -- number of items stored in a PointArray
+************************************************************
+
+  * Function: *note length: (Macaulay2Doc)length,
+  * Usage: 
+        length A
+  * Inputs:
+      * A, an instance of the type *note PointArray: PointArray,, 
+  * Outputs:
+      * an *note integer: (Macaulay2Doc)ZZ,
+
+See also
+========
+
+  * *note length: (Macaulay2Doc)length, -- length of an object
+
+Ways to use this method:
+========================
+
+  * *note length(PointArray): length_lpPointArray_rp, -- number of items stored
+    in a PointArray
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:731:0.
+
+File: MonodromySolver.info, Node: makeBatchPotential, Next: monodromyGroup, Prev: length_lpPointArray_rp, Up: Top
+
+makeBatchPotential -- batch sensitive potentialE
+************************************************
+
+Description
+===========
+
+This is a more general *note potentialE: potentialE,, which accounts for the
+fact that the expected number of points discovered along an edge depends on the
+*note BatchSize: MonodromySolverOptions,.
+
+See also
+========
+
+  * *note potentialE: potentialE, -- the "expected" potential of an edge
+  * *note MonodromySolverOptions: MonodromySolverOptions,
+
+For the programmer
+==================
+
+The object *note makeBatchPotential: makeBatchPotential, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:543:0.
+
+File: MonodromySolver.info, Node: monodromyGroup, Next: monodromySolve, Prev: makeBatchPotential, Up: Top
+
+monodromyGroup -- compute the group of permutations implicitly defined by a homotopy graph
+******************************************************************************************
+
+  * Usage: 
+        monodromyGroup S
+        monodromyGroup(S, p0, x0s)
+  * Inputs:
+      * S, an instance of the type *note System: (NAGtypes)System,, 
+      * p0, a *note point: (NAGtypes)AbstractPoint,, a basepoint for the
+        monodromy group in the parameter space for S
+      * x0s, a *note list: (Macaulay2Doc)List,, points in the fiber over S
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * FileName (missing documentation) => a *note string:
+        (Macaulay2Doc)String,, default value null, a name for an output file
+        suitable for reading by GAP. Default value is null.
+      * msOptions
+      * RootCount
+
+Description
+===========
+
+If the monodromy group is full symmetric and the degree is large, then the
+default settings have a good chance of generating the whole group. However, you
+will need to use a bigger graph than the default settings to fully generate
+imprimitive groups, as in the following example of a Euclidean distance degree
+calculation.
+
++-----------------------------------------------------------------------------+
+|i1 : setRandomSeed 100;                                                      |
+| -- setting random seed to 100                                               |
++-----------------------------------------------------------------------------+
+|i2 : declareVariable \ {t_1,t_2,u_0,u_1,u_2,u_3};                            |
++-----------------------------------------------------------------------------+
+|i3 : paramMatrix = gateMatrix{{u_0,u_1,u_2,u_3}};                            |
++-----------------------------------------------------------------------------+
+|i4 : varMatrix = gateMatrix{{t_1,t_2}};                                      |
++-----------------------------------------------------------------------------+
+|i5 : phi = transpose gateMatrix{{t_1^3, t_1^2*t_2, t_1*t_2^2, t_2^3}};       |
++-----------------------------------------------------------------------------+
+|i6 : loss = sum for i from 0 to 3 list (u_i - phi_(i,0))^2;                  |
++-----------------------------------------------------------------------------+
+|i7 : dLoss = diff(varMatrix, gateMatrix{{loss}});                            |
++-----------------------------------------------------------------------------+
+|i8 : G = gateSystem(paramMatrix,varMatrix,transpose dLoss);                  |
++-----------------------------------------------------------------------------+
+|i9 : monodromyGroup(G,"msOptions" => {NumberOfEdges=>10})                    |
+|                                                                             |
+|o9 = {{2, 1, 0, 19, 4, 5, 6, 7, 13, 9, 10, 11, 16, 8, 14, 20, 12, 18, 17, 3, |
+|     ------------------------------------------------------------------------|
+|     15}, {4, 1, 2, 3, 0, 5, 13, 7, 8, 16, 10, 11, 12, 6, 14, 15, 9, 17, 18, |
+|     ------------------------------------------------------------------------|
+|     19, 20}, {4, 5, 13, 15, 10, 20, 14, 18, 16, 1, 7, 19, 0, 6, 11, 17, 9,  |
+|     ------------------------------------------------------------------------|
+|     3, 8, 12, 2}, {16, 9, 3, 19, 1, 2, 10, 8, 15, 14, 4, 12, 17, 0, 6, 20,  |
+|     ------------------------------------------------------------------------|
+|     13, 18, 11, 5, 7}, {12, 9, 14, 17, 0, 11, 13, 5, 1, 16, 4, 7, 10, 2, 6, |
+|     ------------------------------------------------------------------------|
+|     3, 8, 15, 20, 18, 19}, {2, 9, 0, 19, 10, 5, 14, 7, 13, 1, 4, 11, 16, 8, |
+|     ------------------------------------------------------------------------|
+|     6, 20, 12, 18, 17, 3, 15}, {4, 10, 5, 2, 13, 19, 16, 20, 7, 0, 14, 18,  |
+|     ------------------------------------------------------------------------|
+|     11, 6, 1, 8, 9, 12, 17, 3, 15}, {13, 10, 8, 15, 6, 7, 9, 11, 12, 4, 14, |
+|     ------------------------------------------------------------------------|
+|     5, 2, 16, 1, 17, 0, 3, 19, 20, 18}, {9, 14, 12, 17, 16, 11, 0, 5, 2, 13,|
+|     ------------------------------------------------------------------------|
+|     1, 7, 8, 4, 10, 3, 6, 15, 20, 18, 19}, {12, 9, 14, 18, 16, 11, 0, 5, 1, |
+|     ------------------------------------------------------------------------|
+|     13, 4, 7, 10, 2, 6, 19, 8, 20, 15, 17, 3}, {20, 10, 16, 8, 6, 11, 9, 5, |
+|     ------------------------------------------------------------------------|
+|     0, 4, 14, 7, 13, 18, 1, 12, 19, 2, 3, 15, 17}, {16, 9, 3, 19, 1, 2, 10, |
+|     ------------------------------------------------------------------------|
+|     8, 15, 14, 4, 12, 17, 0, 6, 20, 13, 18, 11, 5, 7}, {9, 14, 12, 17, 16,  |
+|     ------------------------------------------------------------------------|
+|     11, 0, 5, 2, 13, 1, 7, 8, 4, 10, 3, 6, 15, 20, 18, 19}, {13, 4, 18, 2,  |
+|     ------------------------------------------------------------------------|
+|     10, 7, 14, 11, 19, 1, 6, 5, 20, 16, 9, 8, 0, 12, 17, 3, 15}, {14, 19,   |
+|     ------------------------------------------------------------------------|
+|     16, 8, 6, 11, 9, 5, 0, 4, 20, 7, 13, 1, 18, 12, 10, 2, 3, 15, 17}, {0,  |
+|     ------------------------------------------------------------------------|
+|     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}, |
+|     ------------------------------------------------------------------------|
+|     {12, 14, 9, 17, 16, 11, 0, 5, 4, 13, 1, 7, 6, 2, 10, 3, 8, 15, 20, 18,  |
+|     ------------------------------------------------------------------------|
+|     19}, {0, 9, 14, 3, 19, 2, 20, 8, 1, 18, 4, 12, 10, 13, 6, 15, 16, 17,   |
+|     ------------------------------------------------------------------------|
+|     11, 5, 7}, {13, 10, 5, 2, 6, 3, 9, 15, 7, 4, 14, 17, 11, 16, 1, 8, 0,   |
+|     ------------------------------------------------------------------------|
+|     12, 18, 19, 20}, {0, 1, 15, 12, 4, 5, 6, 7, 17, 9, 10, 11, 3, 13, 14, 2,|
+|     ------------------------------------------------------------------------|
+|     16, 8, 19, 20, 18}, {0, 9, 11, 12, 10, 18, 14, 19, 5, 1, 4, 20, 7, 13,  |
+|     ------------------------------------------------------------------------|
+|     6, 2, 16, 8, 15, 17, 3}, {19, 10, 16, 8, 6, 7, 9, 11, 0, 4, 14, 5, 13,  |
+|     ------------------------------------------------------------------------|
+|     20, 1, 12, 18, 2, 3, 15, 17}, {19, 5, 13, 15, 4, 10, 6, 14, 16, 9, 7, 1,|
+|     ------------------------------------------------------------------------|
+|     0, 20, 11, 17, 18, 3, 8, 12, 2}, {9, 14, 12, 17, 16, 11, 0, 5, 2, 13, 1,|
+|     ------------------------------------------------------------------------|
+|     7, 8, 4, 10, 3, 6, 15, 20, 18, 19}, {0, 9, 2, 3, 10, 5, 14, 7, 8, 1, 4, |
+|     ------------------------------------------------------------------------|
+|     11, 12, 13, 6, 15, 16, 17, 18, 19, 20}, {14, 19, 16, 8, 6, 11, 9, 5, 0, |
+|     ------------------------------------------------------------------------|
+|     4, 20, 7, 13, 1, 18, 12, 10, 2, 3, 15, 17}, {0, 1, 2, 3, 4, 5, 6, 7, 8, |
+|     ------------------------------------------------------------------------|
+|     9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}, {13, 10, 8, 15, 6, 7, 9,|
+|     ------------------------------------------------------------------------|
+|     11, 12, 4, 14, 5, 2, 16, 1, 17, 0, 3, 19, 20, 18}, {16, 14, 12, 17, 9,  |
+|     ------------------------------------------------------------------------|
+|     11, 4, 5, 2, 6, 1, 7, 8, 0, 10, 3, 13, 15, 20, 18, 19}, {4, 1, 2, 3, 0, |
+|     ------------------------------------------------------------------------|
+|     5, 13, 7, 8, 16, 10, 11, 12, 6, 14, 15, 9, 17, 18, 19, 20}, {13, 10, 5, |
+|     ------------------------------------------------------------------------|
+|     2, 6, 3, 9, 15, 7, 4, 14, 17, 11, 16, 1, 8, 0, 12, 18, 19, 20}, {16, 14,|
+|     ------------------------------------------------------------------------|
+|     3, 19, 4, 2, 6, 8, 15, 9, 1, 12, 17, 0, 10, 20, 13, 18, 11, 5, 7}, {13, |
+|     ------------------------------------------------------------------------|
+|     4, 18, 2, 10, 7, 14, 11, 19, 1, 6, 5, 20, 16, 9, 8, 0, 12, 15, 17, 3},  |
+|     ------------------------------------------------------------------------|
+|     {4, 1, 2, 3, 0, 5, 13, 7, 8, 16, 10, 11, 12, 6, 14, 15, 9, 17, 18, 19,  |
+|     ------------------------------------------------------------------------|
+|     20}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, |
+|     ------------------------------------------------------------------------|
+|     19, 20}, {0, 1, 15, 12, 4, 5, 6, 7, 17, 9, 10, 11, 3, 13, 14, 2, 16, 8, |
+|     ------------------------------------------------------------------------|
+|     19, 20, 18}, {17, 6, 10, 16, 11, 12, 5, 2, 14, 7, 9, 8, 1, 3, 4, 0, 15, |
+|     ------------------------------------------------------------------------|
+|     13, 20, 18, 19}, {0, 9, 14, 3, 19, 11, 20, 5, 1, 18, 4, 7, 10, 13, 6,   |
+|     ------------------------------------------------------------------------|
+|     15, 16, 17, 2, 8, 12}, {13, 10, 5, 2, 4, 3, 6, 15, 7, 9, 14, 17, 11, 16,|
+|     ------------------------------------------------------------------------|
+|     1, 8, 0, 12, 18, 19, 20}, {12, 1, 3, 19, 4, 5, 6, 7, 15, 9, 10, 11, 17, |
+|     ------------------------------------------------------------------------|
+|     2, 14, 20, 8, 18, 16, 0, 13}, {0, 9, 11, 12, 10, 18, 14, 19, 5, 1, 4,   |
+|     ------------------------------------------------------------------------|
+|     20, 7, 13, 6, 2, 16, 8, 17, 3, 15}, {0, 9, 14, 12, 19, 11, 20, 5, 1, 18,|
+|     ------------------------------------------------------------------------|
+|     4, 7, 10, 13, 6, 2, 16, 8, 15, 17, 3}, {13, 10, 8, 15, 6, 7, 9, 11, 12, |
+|     ------------------------------------------------------------------------|
+|     4, 14, 5, 2, 16, 1, 17, 0, 3, 19, 20, 18}, {0, 1, 15, 12, 4, 5, 6, 7,   |
+|     ------------------------------------------------------------------------|
+|     17, 9, 10, 11, 3, 13, 14, 2, 16, 8, 19, 20, 18}, {16, 6, 10, 17, 11, 12,|
+|     ------------------------------------------------------------------------|
+|     5, 2, 14, 7, 9, 8, 1, 0, 4, 3, 13, 15, 20, 18, 19}, {0, 9, 11, 12, 10,  |
+|     ------------------------------------------------------------------------|
+|     18, 14, 19, 5, 1, 4, 20, 7, 13, 6, 2, 16, 8, 15, 17, 3}, {14, 7, 16, 8, |
+|     ------------------------------------------------------------------------|
+|     6, 20, 9, 18, 0, 4, 11, 19, 13, 1, 5, 12, 10, 2, 3, 15, 17}, {13, 4, 5, |
+|     ------------------------------------------------------------------------|
+|     2, 10, 19, 14, 20, 7, 1, 6, 18, 11, 16, 9, 8, 0, 12, 17, 3, 15}, {4, 1, |
+|     ------------------------------------------------------------------------|
+|     2, 3, 0, 5, 13, 7, 8, 16, 10, 11, 12, 6, 14, 15, 9, 17, 18, 19, 20},    |
+|     ------------------------------------------------------------------------|
+|     {13, 10, 8, 15, 6, 7, 9, 11, 12, 4, 14, 5, 2, 16, 1, 17, 0, 3, 19, 20,  |
+|     ------------------------------------------------------------------------|
+|     18}, {0, 1, 15, 12, 4, 5, 6, 7, 17, 9, 10, 11, 3, 13, 14, 2, 16, 8, 19, |
+|     ------------------------------------------------------------------------|
+|     20, 18}, {9, 14, 12, 17, 16, 11, 0, 5, 2, 13, 1, 7, 8, 4, 10, 3, 6, 15, |
+|     ------------------------------------------------------------------------|
+|     20, 18, 19}, {13, 4, 18, 2, 10, 7, 14, 11, 19, 1, 6, 5, 20, 16, 9, 8, 0,|
+|     ------------------------------------------------------------------------|
+|     12, 17, 3, 15}, {20, 10, 16, 8, 6, 7, 9, 11, 0, 4, 14, 5, 13, 18, 1, 12,|
+|     ------------------------------------------------------------------------|
+|     19, 2, 3, 15, 17}, {13, 10, 8, 15, 6, 7, 9, 11, 12, 4, 14, 5, 2, 16, 1, |
+|     ------------------------------------------------------------------------|
+|     17, 0, 3, 19, 20, 18}}                                                  |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+This is still somewhat experimental.
+
+
+
+Ways to use monodromyGroup:
+===========================
+
+  * "monodromyGroup(System)"
+  * "monodromyGroup(System,AbstractPoint,List)"
+  * monodromyGroup(HomotopyGraph) (missing documentation)
+
+For the programmer
+==================
+
+The object *note monodromyGroup: monodromyGroup, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:794:0.
+
+File: MonodromySolver.info, Node: monodromySolve, Next: monodromySolve_lpSystem_rp, Prev: monodromyGroup, Up: Top
+
+monodromySolve -- the main function of the MonodromySolver package
+******************************************************************
+
+Description
+===========
+
+Ways to use:
+------------
+
+  * *note monodromySolve(System,AbstractPoint,List):
+    monodromySolve_lpSystem_cmAbstractPoint_cmList_rp, -- the main function of
+    the MonodromySolver package
+  * *note monodromySolve(System): monodromySolve_lpSystem_rp, -- the main
+    function of the MonodromySolver package
+
+Ways to use monodromySolve:
+===========================
+
+  * *note monodromySolve(System): monodromySolve_lpSystem_rp, -- the main
+    function of the MonodromySolver package
+  * *note monodromySolve(System,AbstractPoint,List):
+    monodromySolve_lpSystem_cmAbstractPoint_cmList_rp, -- the main function of
+    the MonodromySolver package
+
+For the programmer
+==================
+
+The object *note monodromySolve: monodromySolve, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:140:0.
+
+File: MonodromySolver.info, Node: monodromySolve_lpSystem_rp, Next: monodromySolve_lpSystem_cmAbstractPoint_cmList_rp, Prev: monodromySolve, Up: Top
+
+monodromySolve(System) -- the main function of the MonodromySolver package
+**************************************************************************
+
+  * Function: *note monodromySolve: monodromySolve,
+
+Description
+===========
+
+This blackbox solver is similar in usage to *note sparseMonodromySolve:
+sparseMonodromySolve,, but with "technical" output.
+
++-----------------------------------------------------------------------------+
+|i1 : R = CC[a,b,c,d][A,B]                                                    |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : polys = polySystem {A^2*a+B^2*b,A*B*c+d}                                |
+|                                                                             |
+|o2 = polys                                                                   |
+|                                                                             |
+|o2 : PolySystem                                                              |
++-----------------------------------------------------------------------------+
+|i3 : setRandomSeed 0;                                                        |
+| -- setting random seed to 0                                                 |
++-----------------------------------------------------------------------------+
+|i4 : (V,npaths) = monodromySolve(polys, NumberOfNodes => 3);                 |
++-----------------------------------------------------------------------------+
+|i5 : peek V                                                                  |
+|                                                                             |
+|o5 = HomotopyNode{BasePoint => {-.78761-.616174*ii, .976163-.21704*          |
+|                  Edges => MutableList{...8...}                              |
+|                  Graph => HomotopyGraph{...12...}                           |
+|                  PartialSolBins => {PointArray( 4 points: 0 1 3 2           |
+|                                                                             |
+|                  PartialSols => {PointArray( 4 points: 3 2 0 1 ),           |
+|                                                                             |
+|                  Position => 2                                              |
+|                                                                2            |
+|                  SpecializedSystem => {(- .78761 - .616174*ii)A  +          |
+|-----------------------------------------------------------------------------|
+|ii, -.416188-.909278*ii, .85817-.513365*ii}                                  |
+|                                                                             |
+|                                                                             |
+|), {.48801-.872838*ii, .814076-.580758*ii}, {-.872838-.48801*ii, .580758+.814|
+|                                                                             |
+|{.48801-.872838*ii, .814076-.580758*ii}, {-.872838-.48801*ii, .580758+.814076|
+|                                                                             |
+|                                                                             |
+|                       2                                                     |
+| (.976163 - .21704*ii)B , (- .416188 - .909278*ii)A*B + .85817 - .513365*ii} |
+|-----------------------------------------------------------------------------|
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|076*ii}, {-.48801+.872838*ii, -.814076+.580758*ii}, {.872838+.48801*         |
+|                                                                             |
+|*ii}, {-.48801+.872838*ii, -.814076+.580758*ii}, {.872838+.48801*ii,         |
+|-----------------------------------------------------------------------------|
+|                         }                                                   |
+|                                                                             |
+|                                                                             |
+|ii, -.580758-.814076*ii}}                                                    |
+|                                                                             |
+| -.580758-.814076*ii}}                                                       |
++-----------------------------------------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note monodromySolve(System): monodromySolve_lpSystem_rp, -- the main
+    function of the MonodromySolver package
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:185:0.
+
+File: MonodromySolver.info, Node: monodromySolve_lpSystem_cmAbstractPoint_cmList_rp, Next: MonodromySolverOptions, Prev: monodromySolve_lpSystem_rp, Up: Top
+
+monodromySolve(System,AbstractPoint,List) -- the main function of the MonodromySolver package
+*********************************************************************************************
+
+  * Function: *note monodromySolve: monodromySolve,
+  * Usage: 
+        (N, npaths) = monodromySolve(PS,p0,L)
+  * Inputs:
+      * PS, an instance of the type *note System: (NAGtypes)System,, with
+        parametric coefficients
+      * p0, a *note point: (NAGtypes)AbstractPoint,, representing a
+        parametrized system
+      * L, a *note list: (Macaulay2Doc)List,, containing solutions associated
+        to p0, each represented as a *note AbstractPoint:
+        (NAGtypes)AbstractPoint,.
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note AugmentEdgeCount: MonodromySolverOptions, => ..., default value
+        0,
+      * *note AugmentGraphFunction: MonodromySolverOptions, => ..., default
+        value null,
+      * *note AugmentNodeCount: MonodromySolverOptions, => ..., default value
+        0,
+      * *note AugmentNumberOfRepeats: MonodromySolverOptions, => ..., default
+        value null,
+      * *note BatchSize: MonodromySolverOptions, => ..., default value
+        infinity,
+      * *note EdgesSaturated: MonodromySolverOptions, => ..., default value
+        false,
+      * Equivalencer (missing documentation) => ..., default value null, 
+      * FilterCondition (missing documentation) => ..., default value null, 
+      * *note GraphInitFunction: MonodromySolverOptions, => ..., default value
+        completeGraphInit,
+      * new tracking routine
+      * *note NumberOfEdges: MonodromySolverOptions, => ..., default value
+        null,
+      * *note NumberOfNodes: MonodromySolverOptions, => ..., default value
+        null,
+      * *note NumberOfRepeats: MonodromySolverOptions, => ..., default value
+        10,
+      * PointArrayTol (missing documentation) => ..., default value .0001, 
+      * *note Potential: MonodromySolverOptions, => ..., default value null, 
+      * Randomizer (missing documentation) => ..., default value null, 
+      * *note SelectEdgeAndDirection: MonodromySolverOptions, => ..., default
+        value selectFirstEdgeAndDirection,
+      * *note StoppingCriterion: MonodromySolverOptions, => ..., default value
+        null,
+      * *note TargetSolutionCount: MonodromySolverOptions, => ..., default
+        value null,
+      * *note Verbose: MonodromySolverOptions, => ..., default value false, 
+  * Outputs:
+      * N, an instance of the type *note HomotopyNode: HomotopyNode,, 
+      * npaths, an *note integer: (Macaulay2Doc)ZZ,, reporting the number of
+        paths tracked.
+
+Description
+===========
+
+Most solvers rely on the manual seeding function *note createSeedPair:
+createSeedPair,. The example below demonstrates how one might seed manually
+when some equations don't have parameters—ie. the projection map onto the
+variables is non-dominant.
+
++-----------------------------------------------------------------------------+
+|i1 : setRandomSeed 0;                                                        |
+| -- setting random seed to 0                                                 |
++-----------------------------------------------------------------------------+
+|i2 : S = CC[a,b,c];                                                          |
++-----------------------------------------------------------------------------+
+|i3 : R = S[x,w];                                                             |
++-----------------------------------------------------------------------------+
+|i4 : (h, f) = (a*x+b*w+c, 3*x^2 - w + 1);                                    |
++-----------------------------------------------------------------------------+
+|i5 : x0 = point {{ii_CC,-2}}; -- clearly a zero of f                         |
++-----------------------------------------------------------------------------+
+|i6 : l = apply(2,i->random CC);                                              |
++-----------------------------------------------------------------------------+
+|i7 : p0 = point({append(l,- sum apply(l, x0.Coordinates,(i,x)->i*x))});      |
++-----------------------------------------------------------------------------+
+|i8 : (N, npaths) = monodromySolve(polySystem {h,f},p0,{x0},NumberOfNodes=>3);|
++-----------------------------------------------------------------------------+
+
+Ways to use this method:
+========================
+
+  * *note monodromySolve(System,AbstractPoint,List):
+    monodromySolve_lpSystem_cmAbstractPoint_cmList_rp, -- the main function of
+    the MonodromySolver package
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:171:0.
+
+File: MonodromySolver.info, Node: MonodromySolverOptions, Next: net_lpPointArray_rp, Prev: monodromySolve_lpSystem_cmAbstractPoint_cmList_rp, Up: Top
+
+MonodromySolverOptions
+**********************
+
+Description
+===========
+
+Here are some options for the solvers. The current defaults for a given solver
+may be accessed like so:
+
++-----------------------------------------------------------------------+
+|i1 : options monodromySolve                                            |
+|                                                                       |
+|o1 = OptionTable{AugmentEdgeCount => 0                                }|
+|                 AugmentGraphFunction => null                          |
+|                 AugmentNodeCount => 0                                 |
+|                 AugmentNumberOfRepeats => null                        |
+|                 BatchSize => infinity                                 |
+|                 EdgesSaturated => false                               |
+|                 Equivalencer => null                                  |
+|                 FilterCondition => null                               |
+|                 GraphInitFunction => completeGraphInit                |
+|                 "new tracking routine" => true                        |
+|                 NumberOfEdges => null                                 |
+|                 NumberOfNodes => null                                 |
+|                 NumberOfRepeats => 10                                 |
+|                 PointArrayTol => .0001                                |
+|                 Potential => null                                     |
+|                 Randomizer => null                                    |
+|                 SelectEdgeAndDirection => selectFirstEdgeAndDirection |
+|                 StoppingCriterion => null                             |
+|                 TargetSolutionCount => null                           |
+|                 Verbose => false                                      |
+|                                                                       |
+|o1 : OptionTable                                                       |
++-----------------------------------------------------------------------+
+
+List of Options
+---------------
+
+  * Augmentation Options (trigger dynamic strategies)
+      * AugmentEdgeCount: number of edges added in augmentation step
+      * AugmentGraphFunction: see *note flowerGraphAugment: flowerGraphAugment,
+        and *note completeGraphAugment: completeGraphAugment,
+      * AugmentNodeCount: number of nodes in augmentation step (dynamic
+        strategy triggered if >0)
+      * AugmentNumberOfRepeats: max number of augmentation steps should be set
+        to ensure termination
+  * BatchSize: maximum number of solutions tracked across an edge
+  * EdgesSaturated: fills correspondence tables after stopping criteria
+    satisfied
+  * Equivalencer: a numeric function of solutions (default (x -> x) that
+    divides partial solutions into equivalence classes
+  * FilterCondition: boolean function (default (p, x) -> false)) that evaluates
+    true when we don't want to collect x (useful when x is an extraneous
+    solution produced by path-jumping)
+  * GraphInitFunction: the underlying graph topology, see *note
+    completeGraphInit: completeGraphInit, and *note flowerGraphInit:
+    flowerGraphInit,
+  * NumberOfEdges: number of edges in underlying graph
+  * NumberOfNodes: number of nodes in underlying graph
+  * NumberOfRepeats: argument for StoppingCriterion
+  * PointArrayTol: tolerance used for comparing elements contained inan
+    instance of the type *note PointArray: PointArray,
+  * Potential: a function that assigns a number to each edge in each iteration,
+    indicating its potential for producing new solutions. Current supported
+    potential functions are *note potentialE: potentialE, and *note
+    potentialLowerBound: potentialLowerBound,
+  * Randomizer: a function of the parameters that randomizes the homotopies'
+    endpoints. Defaults to the
+  * *note gamma: (NumericalAlgebraicGeometry)numerical homotopy tracking
+    options, -- options for core functions of Numerical Algebraic Geometry
+  *  trick when linear in parameters, otherwise no randomization (p -> p)
+  * SelectEdgeAndDirection: accepts either *note selectBestEdgeAndDirection:
+    selectBestEdgeAndDirection, or *note selectRandomEdgeAndDirection:
+    selectRandomEdgeAndDirection,. The former also requires setting a
+    potential. Default is an internal function that selects the first available
+    edge.
+  * StoppingCriterion: eg. stop if no progress has been made
+  * TargetSolutionCount: expected/desired number of solutions (overrides
+    StoppingCriterion)
+  * Verbose: reports progress in each iteration
+
+For the programmer
+==================
+
+The object *note MonodromySolverOptions: MonodromySolverOptions, is a *note
+symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:386:0.
+
+File: MonodromySolver.info, Node: net_lpPointArray_rp, Next: PointArray, Prev: MonodromySolverOptions, Up: Top
+
+net(PointArray) -- pretty printing
+**********************************
+
+  * Function: *note net: (Macaulay2Doc)net,
+  * Usage: 
+        net A
+  * Inputs:
+      * A, an instance of the type *note PointArray: PointArray,, 
+  * Outputs:
+      * a *note net: (Macaulay2Doc)Net,
+
+See also
+========
+
+  * *note Net: (Macaulay2Doc)Net, -- the class of all nets and strings
+
+Ways to use this method:
+========================
+
+  * *note net(PointArray): net_lpPointArray_rp, -- pretty printing
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:744:0.
+
+File: MonodromySolver.info, Node: PointArray, Next: pointArray, Prev: net_lpPointArray_rp, Up: Top
+
+PointArray -- a container for solutions
+***************************************
+
+Description
+===========
+
+PointArray is a data structure that organizes the solutions found by a solver.
+Each *note HomotopyNode: HomotopyNode, object V has an associated PointArray
+accessed via V.PartialSols. A "fingerprinting" scheme allows for equality of
+points to be checked quickly.
+
+
+
+Methods that use an object of class PointArray:
+===============================================
+
+  * "appendPoint(PointArray,AbstractPoint)" -- see *note appendPoint:
+    appendPoint, -- append a point at the end of a PointArray
+  * "appendPoints(PointArray,List)" -- see *note appendPoints: appendPoints, --
+    append a list of points at the end of a PointArray
+  * *note indices(PointArray): indices_lpPointArray_rp, -- returns indices of a
+    PointArray
+  * *note isMember(AbstractPoint,PointArray):
+    isMember_lpAbstractPoint_cmPointArray_rp, -- test point membership in a
+    PointArray
+  * isMember(AbstractPoint,PointArray,FunctionClosure) (missing documentation)
+  * *note length(PointArray): length_lpPointArray_rp, -- number of items stored
+    in a PointArray
+  * *note net(PointArray): net_lpPointArray_rp, -- pretty printing
+
+For the programmer
+==================
+
+The object *note PointArray: PointArray, is a *note type: (Macaulay2Doc)Type,,
+with ancestor classes *note MutableHashTable: (Macaulay2Doc)MutableHashTable, <
+*note HashTable: (Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:704:0.
+
+File: MonodromySolver.info, Node: pointArray, Next: potentialE, Prev: PointArray, Up: Top
+
+pointArray -- constructor for PointArray
+****************************************
+
+  * Usage: 
+        A = pointArray L
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, containing objects of type *note
+        AbstractPoint: (NAGtypes)AbstractPoint,
+  * Outputs:
+      * A, an instance of the type *note PointArray: PointArray,, 
+
+For the programmer
+==================
+
+The object *note pointArray: pointArray, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:691:0.
+
+File: MonodromySolver.info, Node: potentialE, Next: potentialLowerBound, Prev: pointArray, Up: Top
+
+potentialE -- the "expected" potential of an edge
+*************************************************
+
+Description
+===========
+
+This is an option for the Potential option for *note monodromySolve:
+monodromySolve, when we use *note selectBestEdgeAndDirection:
+selectBestEdgeAndDirection, option to select edge and direction. This option
+computes the expected number of new points obtained by tracking points (under
+suitable randomness assumptions about the permutations generated by the
+underlying graph.) The expected value is computed by the ratio of unmatched
+points and the difference between the total solution count and the number of
+the known points.
+
++------------------------------------------------------------------+
+|i1 : R = CC[a,b,c,d,e,f,g,h][x,y,z];                              |
++------------------------------------------------------------------+
+|i2 : polys = polySystem {a*x+b*y+c*z,d*x*y+e*x*z+f*y*z,g*x*y*z+h};|
++------------------------------------------------------------------+
+
+In here, we need the target number of solutions, and we will use the mixed
+volume for that.
+
++-----------------------------------------------------------------------------+
+|i3 : (p0,x0) := createSeedPair polys                                         |
+|                                                                             |
+|o3 = ({-.395781-.24074*ii, 1.15221-.036791*ii, -.339811+.226642*ii,          |
+|     ------------------------------------------------------------------------|
+|     .225376-.140718*ii, -.324066-.135951*ii, .509177+.360148*ii,            |
+|     ------------------------------------------------------------------------|
+|     .287657+.283636*ii, .130507+.183897*ii}, {.892712+.673395*ii,           |
+|     ------------------------------------------------------------------------|
+|     .29398+.632944*ii, .025888+.714827*ii})                                 |
+|                                                                             |
+|o3 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+
+We will comput the mixed volume to find the number of solution counts.
+
++-----------------------------------------------------------------------------+
+|i4 : mixedVol = computeMixedVolume specializeSystem(p0,polys)                |
+|                                                                             |
+|o4 = 6                                                                       |
++-----------------------------------------------------------------------------+
+|i5 : monodromySolve(polys,p0,{x0},SelectEdgeAndDirection=>                   |
+|                                                                             |
+|o5 = (HomotopyNode{...7...}, 10)                                             |
+|                                                                             |
+|o5 : Sequence                                                                |
+|-----------------------------------------------------------------------------|
+|selectBestEdgeAndDirection, Potential=>potentialE,                           |
+|-----------------------------------------------------------------------------|
+|TargetSolutionCount=>mixedVol)                                               |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note selectBestEdgeAndDirection: selectBestEdgeAndDirection, -- selects
+    edge and direction based on highest potential for obtaining new information
+  * *note potentialLowerBound: potentialLowerBound, -- the potential which is
+    equal to the minimal number of new points guaranteed to be discovered
+  * *note computeMixedVolume: computeMixedVolume, -- compute mixed volume via
+    Gfan
+  * *note Potential: MonodromySolverOptions,
+
+For the programmer
+==================
+
+The object *note potentialE: potentialE, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:677:0.
+
+File: MonodromySolver.info, Node: potentialLowerBound, Next: selectBestEdgeAndDirection, Prev: potentialE, Up: Top
+
+potentialLowerBound -- the potential which is equal to the minimal number of new points guaranteed to be discovered
+*******************************************************************************************************************
+
+Description
+===========
+
+This is an option for the Potential option for *note monodromySolve:
+monodromySolve, when we use *note selectBestEdgeAndDirection:
+selectBestEdgeAndDirection, option to select edge and direction. This option
+observes discovered and undiscovered points first, and then follows the
+homotopy which has the minimal number of new points guaranteed to be found.
+
++-----------------------------------------------------------------------------+
+|i1 : R = CC[a,b,c,d][x,y];                                                   |
++-----------------------------------------------------------------------------+
+|i2 : polys = polySystem {a*x+b*y^2,c*x*y+d};                                 |
++-----------------------------------------------------------------------------+
+|i3 : (V, npaths) = monodromySolve(polys,SelectEdgeAndDirection=>             |
+|                                                                             |
+|o3 = (HomotopyNode{...7...}, 3)                                              |
+|                                                                             |
+|o3 : Sequence                                                                |
+|-----------------------------------------------------------------------------|
+|selectBestEdgeAndDirection, Potential=>potentialLowerBound)                  |
++-----------------------------------------------------------------------------+
+|i4 : G = V.Graph;                                                            |
++-----------------------------------------------------------------------------+
+|i5 : apply(toList G.Edges,e->e.Potential12)--potentials for all edges of a   |
+|                                                                             |
+|o5 = {0, 0, 0, 0}                                                            |
+|                                                                             |
+|o5 : List                                                                    |
+|-----------------------------------------------------------------------------|
+|given direction                                                              |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note selectBestEdgeAndDirection: selectBestEdgeAndDirection, -- selects
+    edge and direction based on highest potential for obtaining new information
+  * *note potentialE: potentialE, -- the "expected" potential of an edge
+  * HomotopyEdge (missing documentation)
+
+For the programmer
+==================
+
+The object *note potentialLowerBound: potentialLowerBound, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:448:0.
+
+File: MonodromySolver.info, Node: selectBestEdgeAndDirection, Next: selectRandomEdgeAndDirection, Prev: potentialLowerBound, Up: Top
+
+selectBestEdgeAndDirection -- selects edge and direction based on highest potential for obtaining new information
+*****************************************************************************************************************
+
+Description
+===========
+
+By default, the solver option SelectEdgeAndDirection is set to
+selectRandomEdgeAndDirection; it may be changed to selectBestEdgeAndDirection
+as shown below. This will return an error unless the option *note Potential:
+MonodromySolverOptions, is also set.
+
++-----------------------------------------------------------------------------+
+|i1 : R = CC[a,b,c,d][x,y];                                                   |
++-----------------------------------------------------------------------------+
+|i2 : polys = polySystem {a*x+b*y^2,c*x*y+d};                                 |
++-----------------------------------------------------------------------------+
+|i3 : (V,npaths) = monodromySolve(polys,SelectEdgeAndDirection=>              |
+|                                                                             |
+|o3 = (HomotopyNode{...7...}, 3)                                              |
+|                                                                             |
+|o3 : Sequence                                                                |
+|-----------------------------------------------------------------------------|
+|selectBestEdgeAndDirection, Potential=>potentialLowerBound)                  |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note selectRandomEdgeAndDirection: selectRandomEdgeAndDirection, -- random
+    selection of edge and direction for homotopy
+  * *note potentialLowerBound: potentialLowerBound, -- the potential which is
+    equal to the minimal number of new points guaranteed to be discovered
+  * *note potentialE: potentialE, -- the "expected" potential of an edge
+  * HomotopyEdge (missing documentation)
+  * *note MonodromySolverOptions: MonodromySolverOptions,
+
+For the programmer
+==================
+
+The object *note selectBestEdgeAndDirection: selectBestEdgeAndDirection, is a
+*note function closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:277:0.
+
+File: MonodromySolver.info, Node: selectRandomEdgeAndDirection, Next: solveFamily, Prev: selectBestEdgeAndDirection, Up: Top
+
+selectRandomEdgeAndDirection -- random selection of edge and direction for homotopy
+***********************************************************************************
+
+Description
+===========
+
+This is the random edge-selection strategy for solvers. An edge is chosen
+uniformly at random from all edges in the underlying *note HomotopyGraph:
+HomotopyGraph,, then its direction is chosen randomly. This is currently the
+default behavior for all solvers.
+
+See also
+========
+
+  * *note selectBestEdgeAndDirection: selectBestEdgeAndDirection, -- selects
+    edge and direction based on highest potential for obtaining new information
+  * HomotopyEdge (missing documentation)
+  * *note MonodromySolverOptions: MonodromySolverOptions,
+
+For the programmer
+==================
+
+The object *note selectRandomEdgeAndDirection: selectRandomEdgeAndDirection, is
+a *note function closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:256:0.
+
+File: MonodromySolver.info, Node: solveFamily, Next: sparseMonodromySolve, Prev: selectRandomEdgeAndDirection, Up: Top
+
+solveFamily -- a solver for parametric families with simple output
+******************************************************************
+
+  * Usage: 
+        (p, sols) = solveFamily PS
+        (p, sols) = solveFamily(p, P)
+  * Inputs:
+      * PS, an instance of the type *note System: (NAGtypes)System,, : a
+        parametric polynomial system, represented as either a *note PolySystem:
+        (NAGtypes)PolySystem, whose underlying coefficient ring itself a
+        polynomial ring in the parameters, or a *note GateSystem:
+        (NumericalAlgebraicGeometry)GateSystem, with parameters.
+      * p, a *note point: (NAGtypes)AbstractPoint,, consisting of target
+        parameter values (optional.)
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note AugmentEdgeCount: MonodromySolverOptions, => ..., default value
+        0,
+      * *note AugmentGraphFunction: MonodromySolverOptions, => ..., default
+        value null,
+      * *note AugmentNodeCount: MonodromySolverOptions, => ..., default value
+        0,
+      * *note AugmentNumberOfRepeats: MonodromySolverOptions, => ..., default
+        value null,
+      * *note BatchSize: MonodromySolverOptions, => ..., default value
+        infinity,
+      * *note EdgesSaturated: MonodromySolverOptions, => ..., default value
+        false,
+      * *note Equivalencer: MonodromySolverOptions, => ..., default value null,
+      * *note FilterCondition: MonodromySolverOptions, => ..., default value
+        null,
+      * *note GraphInitFunction: MonodromySolverOptions, => ..., default value
+        completeGraphInit,
+      * new tracking routine
+      * *note NumberOfEdges: MonodromySolverOptions, => ..., default value
+        null,
+      * *note NumberOfNodes: MonodromySolverOptions, => ..., default value
+        null,
+      * *note NumberOfRepeats: MonodromySolverOptions, => ..., default value
+        10,
+      * PointArrayTol (missing documentation) => ..., default value .0001, 
+      * *note Potential: MonodromySolverOptions, => ..., default value null, 
+      * *note Randomizer: MonodromySolverOptions, => ..., default value null, 
+      * *note SelectEdgeAndDirection: MonodromySolverOptions, => ..., default
+        value selectFirstEdgeAndDirection,
+      * *note StoppingCriterion: MonodromySolverOptions, => ..., default value
+        null,
+      * *note TargetSolutionCount: MonodromySolverOptions, => ..., default
+        value null,
+      * *note Verbose: MonodromySolverOptions, => ..., default value false, 
+  * Outputs:
+      * p, an instance of the type *note Point: (NAGtypes)AbstractPoint,,
+        parameter values. If not part of the input, they are chosen uniformly
+        as complex numbers w/ modulus 1.
+      * sols, an instance of the type *note PointArray: PointArray,, containing
+        solutions to PS specialized at p.
+
+Description
+===========
+
+The output of *note monodromySolve: monodromySolve, is opaque. This method is
+intended for users uninterested in the underlying *note HomotopyGraph:
+HomotopyGraph, and its satellite data. When the number of solutions is small,
+it can help to increase options like *note NumberOfNodes:
+MonodromySolverOptions, or *note NumberOfEdges: MonodromySolverOptions, above
+their default value, as shown here:
+
++-----------------------------------------------------------------------------+
+|i1 : setRandomSeed 0                                                         |
+| -- setting random seed to 0                                                 |
+|                                                                             |
+|o1 = 0                                                                       |
++-----------------------------------------------------------------------------+
+|i2 : R = CC[a,b,c,d,e,f][x,y];                                               |
++-----------------------------------------------------------------------------+
+|i3 : q  = a*x^2+b*y+c;                                                       |
++-----------------------------------------------------------------------------+
+|i4 : l = d*x+e*y+f;                                                          |
++-----------------------------------------------------------------------------+
+|i5 : (sys, sols) = solveFamily(polySystem{q,l}, NumberOfNodes=>3)            |
+|                                                                             |
+|o5 = (sys, {{1.7698-.292574*ii, 2.03236+1.25703*ii}, PointArray( 2 points: 1 |
+|     ------------------------------------------------------------------------|
+|     0 ), {-.770087+.316588*ii, .35355-.743892*ii}})                         |
+|                                                                             |
+|o5 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+This function is somewhat less flexible than *note monodromySolve:
+monodromySolve,.
+
+
+
+Ways to use solveFamily:
+========================
+
+  * "solveFamily(AbstractPoint,System)"
+  * "solveFamily(System)"
+
+For the programmer
+==================
+
+The object *note solveFamily: solveFamily, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:126:0.
+
+File: MonodromySolver.info, Node: sparseMonodromySolve, Next: specializeSystem, Prev: solveFamily, Up: Top
+
+sparseMonodromySolve -- an "out of the box" polynomial system solver
+********************************************************************
+
+  * Usage: 
+        sols = sparseMonodromySolve PS
+  * Inputs:
+      * PS, an instance of the type *note System: (NAGtypes)System,, whose
+        coefficients are complex numbers
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note AugmentEdgeCount: MonodromySolverOptions, => ..., default value
+        0,
+      * *note AugmentGraphFunction: MonodromySolverOptions, => ..., default
+        value null,
+      * *note AugmentNodeCount: MonodromySolverOptions, => ..., default value
+        0,
+      * *note AugmentNumberOfRepeats: MonodromySolverOptions, => ..., default
+        value null,
+      * *note BatchSize: MonodromySolverOptions, => ..., default value
+        infinity,
+      * *note EdgesSaturated: MonodromySolverOptions, => ..., default value
+        false,
+      * *note Equivalencer: MonodromySolverOptions, => ..., default value null,
+      * *note FilterCondition: MonodromySolverOptions, => ..., default value
+        null,
+      * *note GraphInitFunction: MonodromySolverOptions, => ..., default value
+        completeGraphInit,
+      * new tracking routine
+      * *note NumberOfEdges: MonodromySolverOptions, => ..., default value
+        null,
+      * *note NumberOfNodes: MonodromySolverOptions, => ..., default value
+        null,
+      * *note NumberOfRepeats: MonodromySolverOptions, => ..., default value
+        10,
+      * PointArrayTol (missing documentation) => ..., default value .0001, 
+      * *note Potential: MonodromySolverOptions, => ..., default value null, 
+      * *note Randomizer: MonodromySolverOptions, => ..., default value null, 
+      * *note SelectEdgeAndDirection: MonodromySolverOptions, => ..., default
+        value selectFirstEdgeAndDirection,
+      * *note StoppingCriterion: MonodromySolverOptions, => ..., default value
+        null,
+      * *note TargetSolutionCount: MonodromySolverOptions, => ..., default
+        value null,
+      * *note Verbose: MonodromySolverOptions, => ..., default value false, 
+  * Outputs:
+      * sols, a *note list: (Macaulay2Doc)List,, containing solutions to sys,
+        each represented as a *note Point: (NAGtypes)AbstractPoint,.
+
+Description
+===========
+
+Blackbox monodromy solver for a square polynomial system without parameters.
+The example below finds all six intersection of a generic cubic F with its
+quadratic polar curve P.
+
++-----------------------------------------------------------------------------+
+|i1 : setRandomSeed 2021;                                                     |
+| -- setting random seed to 2021                                              |
++-----------------------------------------------------------------------------+
+|i2 : R=CC[x,y,z];                                                            |
++-----------------------------------------------------------------------------+
+|i3 : F=random(3,R);                                                          |
++-----------------------------------------------------------------------------+
+|i4 : P=sum apply(gens R,g->diff(g,F)*random CC);                             |
++-----------------------------------------------------------------------------+
+|i5 : PS = polySystem {F,P,random(1,R)-1};                                    |
++-----------------------------------------------------------------------------+
+|i6 : sols = sparseMonodromySolve PS;                                         |
++-----------------------------------------------------------------------------+
+|i7 : length points sols                                                      |
+|                                                                             |
+|o7 = 6                                                                       |
++-----------------------------------------------------------------------------+
+|i8 : for i from 0 to 5 list norm evaluate(PS, sols#i)                        |
+|                                                                             |
+|o8 = {4.44089e-15, 1.0732e-14, 1.11022e-16, 6.66134e-16, 2.78677e-13,        |
+|     ------------------------------------------------------------------------|
+|     2.98937e-16}                                                            |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+For systems with dense support such as the above, the total number of paths
+tracked is generally not optimal, though timings may be comparable.
+
+
+
+Ways to use sparseMonodromySolve:
+=================================
+
+  * "sparseMonodromySolve(PolySystem)"
+
+For the programmer
+==================
+
+The object *note sparseMonodromySolve: sparseMonodromySolve, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:92:0.
+
+File: MonodromySolver.info, Node: specializeSystem, Prev: sparseMonodromySolve, Up: Top
+
+specializeSystem -- specialize parametric system at a point in the parameter space.
+***********************************************************************************
+
+  * Usage: 
+        equations = specializeSystem(p0, PS)
+  * Inputs:
+      * p0, a *note point: (NAGtypes)AbstractPoint,, in parameter space
+      * PS, an instance of the type *note System: (NAGtypes)System,, with
+        parameters as coefficients
+  * Outputs:
+      * equations, a *note list: (Macaulay2Doc)List,, containing equations of
+        system with parameters specialized at p0
+
+Ways to use specializeSystem:
+=============================
+
+  * "specializeSystem(AbstractPoint,Matrix)"
+  * "specializeSystem(AbstractPoint,PolySystem)"
+  * specializeSystem(AbstractPoint,GateSystem) (missing documentation)
+
+For the programmer
+==================
+
+The object *note specializeSystem: specializeSystem, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MonodromySolver/Documentation.m2:203:0.
+
+Tag Table:
+Node: Top258
+Node: appendPoint14304
+Node: appendPoints15071
+Node: completeGraphAugment15866
+Node: completeGraphInit18013
+Node: computeMixedVolume19618
+Node: createSeedPair20805
+Node: dynamicFlowerSolve24364
+Node: flowerGraphAugment28590
+Node: flowerGraphInit30780
+Node: getTrackTime32327
+Node: HomotopyGraph33307
+Node: homotopyGraph34844
+Node: HomotopyNode36191
+Node: indices_lpPointArray_rp37213
+Node: isMember_lpAbstractPoint_cmPointArray_rp38052
+Node: length_lpPointArray_rp39015
+Node: makeBatchPotential39886
+Node: monodromyGroup40789
+Node: monodromySolve53874
+Node: monodromySolve_lpSystem_rp55128
+Node: monodromySolve_lpSystem_cmAbstractPoint_cmList_rp60439
+Node: MonodromySolverOptions65351
+Node: net_lpPointArray_rp70450
+Node: PointArray71202
+Node: pointArray72952
+Node: potentialE73704
+Node: potentialLowerBound77973
+Node: selectBestEdgeAndDirection81153
+Node: selectRandomEdgeAndDirection83642
+Node: solveFamily84833
+Node: sparseMonodromySolve90374
+Node: specializeSystem95665
+
+End Tag Table

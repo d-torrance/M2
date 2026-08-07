@@ -1,0 +1,257 @@
+-- -*- M2-comint -*- hash: 4820241938833997797
+
+i1 : kk=ZZ/32749;
+
+i2 : R=kk[x_0..x_4]
+
+o2 = R
+
+o2 : PolynomialRing
+
+i3 : I=ideal(random(1,R),random(2,R),x_0*x_2-x_3*x_0);
+
+o3 : Ideal of R
+
+i4 : CSM(ideal I_0,CompMethod=>PnResidual)
+
+       4     3     2
+o4 = 4H  + 6H  + 4H  + H
+
+     ZZ[H]
+o4 : -----
+        5
+       H
+
+i5 : csmI=CSM(I)
+
+       4     3
+o5 = 2h  + 4h
+       1     1
+
+     ZZ[h ]
+         1
+o5 : ------
+        5
+       h
+        1
+
+i6 : A=ring csmI
+
+o6 = A
+
+o6 : QuotientRing
+
+i7 : csmIHash=CSM(A,I,Output=>HashForm);
+
+i8 : csmIHash#{0,1}==CSM(A,ideal(I_0*I_1))
+
+o8 = true
+
+i9 : csmI==CSM(A,I,Method=>DirectCompleteInt)
+
+o9 = true
+
+i10 : CSM(A,I,Method=>DirectCompleteInt,IndsOfSmooth=>{0,1})
+
+        4     3
+o10 = 2h  + 4h
+        1     1
+
+o10 : A
+
+i11 : R=MultiProjCoordRing({2,2})
+
+o11 = R
+
+o11 : PolynomialRing
+
+i12 : A=ChowRing(R)
+
+o12 = A
+
+o12 : QuotientRing
+
+i13 : r=gens R
+
+o13 = {x , x , x , x , x , x }
+        0   1   2   3   4   5
+
+o13 : List
+
+i14 : K=ideal(r_0^2*r_3-r_4*r_1*r_2,r_2^2*r_5)
+
+              2              2
+o14 = ideal (x x  - x x x , x x )
+              0 3    1 2 4   2 5
+
+o14 : Ideal of R
+
+i15 : time csmK=CSM(A,K)
+ -- used 0.4066s (cpu); 0.36591s (thread); 0s (gc)
+
+        2 2     2         2    2            2
+o15 = 7h h  + 5h h  + 4h h  + h  + 3h h  + h
+        1 2     1 2     1 2    1     1 2    2
+
+o15 : A
+
+i16 : csmKHash= CSM(A,K,Output=>HashForm)
+
+o16 = MutableHashTable{...4...}
+
+o16 : MutableHashTable
+
+i17 : csmK==csmKHash#"CSM"
+
+o17 = true
+
+i18 : CSM(A,ideal(K_0))==csmKHash#{0}
+
+o18 = true
+
+i19 : m=new MutableHashTable;
+
+i20 : m#{0}=csmKHash#{0}
+
+        2 2     2         2     2             2
+o20 = 8h h  + 7h h  + 6h h  + 2h  + 5h h  + 2h  + 2h  + h
+        1 2     1 2     1 2     1     1 2     2     1    2
+
+o20 : A
+
+i21 : m#{0,1}=csmKHash#{0,1}
+
+        2 2     2         2     2             2
+o21 = 9h h  + 9h h  + 9h h  + 3h  + 7h h  + 3h  + 3h  + 2h
+        1 2     1 2     1 2     1     1 2     2     1     2
+
+o21 : A
+
+i22 : time CSM(A,K,m)
+ -- used 0.0786094s (cpu); 0.0780255s (thread); 0s (gc)
+
+        2 2     2         2    2            2
+o22 = 7h h  + 5h h  + 4h h  + h  + 3h h  + h
+        1 2     1 2     1 2    1     1 2    2
+
+o22 : A
+
+i23 : needsPackage "NormalToricVarieties"
+
+o23 = NormalToricVarieties
+
+o23 : Package
+
+i24 : Rho = {{1,0,0},{0,1,0},{0,0,1},{-1,-1,0},{0,0,-1}}
+
+o24 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, -1, 0}, {0, 0, -1}}
+
+o24 : List
+
+i25 : Sigma = {{0,1,2},{1,2,3},{0,2,3},{0,1,4},{1,3,4},{0,3,4}}
+
+o25 = {{0, 1, 2}, {1, 2, 3}, {0, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 3, 4}}
+
+o25 : List
+
+i26 : X = normalToricVariety(Rho,Sigma,CoefficientRing =>ZZ/32749)
+
+o26 = X
+
+o26 : NormalToricVariety
+
+i27 : csmX=CSM X
+
+        2       2
+o27 = 6x x  + 3x  + 6x x  + 3x  + 2x  + 1
+        3 4     3     3 4     3     4
+
+                      ZZ[x ..x ]
+                          0   4
+o27 : -----------------------------------------
+      (x x , x x x , x  - x , x  - x , x  - x )
+        2 4   0 1 3   0    3   1    3   2    4
+
+i28 : Ch=ring csmX
+
+o28 = Ch
+
+o28 : QuotientRing
+
+i29 : CheckToricVarietyValid(X)
+
+o29 = true
+
+i30 : R=ring(X)
+
+o30 = R
+
+o30 : PolynomialRing
+
+i31 : I=ideal(R_0^4*R_1,R_0*R_3*R_4*R_2-R_2^2*R_0^2)
+
+              4       2 2
+o31 = ideal (x x , - x x  + x x x x )
+              0 1     0 2    0 2 3 4
+
+o31 : Ideal of R
+
+i32 : CSM(X,I)
+
+        2       2
+o32 = 5x x  + 3x  + 4x x  + x
+        3 4     3     3 4    3
+
+                      ZZ[x ..x ]
+                          0   4
+o32 : -----------------------------------------
+      (x x , x x x , x  - x , x  - x , x  - x )
+        2 4   0 1 3   0    3   1    3   2    4
+
+i33 : CSM(Ch,X,I)
+
+        2       2
+o33 = 8x x  + 3x  + 5x x  + x
+        3 4     3     3 4    3
+
+o33 : Ch
+
+i34 : needsPackage "NormalToricVarieties"
+
+o34 = NormalToricVarieties
+
+o34 : Package
+
+i35 : U = hirzebruchSurface 7
+
+o35 = U
+
+o35 : NormalToricVariety
+
+i36 : Ch=ToricChowRing(U)
+
+o36 = Ch
+
+o36 : QuotientRing
+
+i37 : CSM U
+
+                 2
+o37 = - 3x x  + x  - 5x  + 2x  + 1
+          2 3    3     2     3
+
+                   ZZ[x ..x ]
+                       0   3
+o37 : ------------------------------------
+      (x x , x x , x  - x , x  + 7x  - x )
+        0 2   1 3   0    2   1     2    3
+
+i38 : csm1=CSM(Ch,U)
+
+                 2
+o38 = - 3x x  + x  - 5x  + 2x  + 1
+          2 3    3     2     3
+
+o38 : Ch
+
+i39 : 

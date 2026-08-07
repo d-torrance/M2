@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>PrimaryDecomposition -- primary decomposition and associated primes routines for ideals and modules</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="primary decomposition and associated primes routines" href="index.html">PrimaryDecomposition</a> :: <a title="primary decomposition and associated primes routines" href="index.html">PrimaryDecomposition</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_irreducible__Decomposition.html">next</a> | previous | <a href="_associated__Primes.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>PrimaryDecomposition -- primary decomposition and associated primes routines for ideals and modules</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>This package provides routines for computation involving components of ideals and modules, including associated primes and primary decompositions.</p>
+          <p>The following simple example illustrates the use of <a title="remove components of lowest dimension" href="_remove__Lowest__Dimension.html">removeLowestDimension</a>, <a title="compute top dimensional component of an ideal or module" href="_top__Components.html">topComponents</a>, <a title="the radical of an ideal" href="../../MinimalPrimes/html/_radical.html">radical</a>, <a title="minimal primes of an ideal" href="../../MinimalPrimes/html/_minimal__Primes.html">minimalPrimes</a>, <a title="find associated primes" href="_associated__Primes.html">associatedPrimes</a>, and <a title="irredundant primary decomposition of an ideal" href="_primary__Decomposition.html">primaryDecomposition</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ/32003[a..d];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I = monomialCurveIdeal(R,{1,3,4})
+
+                        3      2     2    2    3    2
+o2 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)
+
+o2 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : J = ideal(a^3,b^3,c^3-d^3)
+
+             3   3   3    3
+o3 = ideal (a , b , c  - d )
+
+o3 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : I = intersect(I,J)
+
+             4    3      3    3      4      3         3      4   6      3 2  
+o4 = ideal (b  - a d, a*b  - a c, b*c  - a*c d - b*c*d  + a*d , c  - b*c d  -
+     ------------------------------------------------------------------------
+      3 3      5     5    2 3       2 3    2 4   2 4    3 3    3 3    2   3 
+     c d  + b*d , a*c  - b c d - a*c d  + b d , a c  - a d  + b d  - a c*d ,
+     ------------------------------------------------------------------------
+      3 3    3 3     2 3    3   2    3   2      2 3   2   3    3 2     3 2   
+     b c  - a d , a*b c  - a c*d  + b c*d  - a*b d , a b*c  - a c d + b c d -
+     ------------------------------------------------------------------------
+      2   3   3 3    3   2   4 2    3 2
+     a b*d , a c  - a b*d , a c  - a b d)
+
+o4 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : removeLowestDimension I
+
+                        3      2     2    2    3    2
+o5 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)
+
+o5 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : topComponents I
+
+                        3      2     2    2    3    2
+o6 = ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c)
+
+o6 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : radical I
+
+                          2    2    3    2    6    3 3    2 4      5
+o7 = ideal (b*c - a*d, a*c  - b d, b  - a c, c  - c d  - b d  + b*d )
+
+o7 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : minimalPrimes I
+
+                         3      2     2    2    3    2                    
+o8 = {ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c), ideal (c - d, b,
+     ------------------------------------------------------------------------
+                       2          2
+     a), ideal (b, a, c  + c*d + d )}
+
+o8 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : associatedPrimes I
+
+                         3      2     2    2    3    2                    
+o9 = {ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c), ideal (c - d, b,
+     ------------------------------------------------------------------------
+                       2          2
+     a), ideal (b, a, c  + c*d + d )}
+
+o9 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : primaryDecomposition I
+
+                          3      2     2    2    3    2                   3 
+o10 = {ideal (b*c - a*d, c  - b*d , a*c  - b d, b  - a c), ideal (c - d, b ,
+      -----------------------------------------------------------------------
+       3           2          2   3   3
+      a ), ideal (c  + c*d + d , b , a )}
+
+o10 : List</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>References</h2>
+        <div>
+          <ul>
+            <li>Eisenbud-Huneke-Vasconcelos, <i>Inventiones mathematicae</i>, 110 207–235 (1992)</li>
+            <li>Shimoyama-Yokoyama, <i>Journal of Symbolic Computation</i>, 22(3) 247–277 (1996)</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="minimal primes and radical routines for ideals" href="../../MinimalPrimes/html/index.html">MinimalPrimes</a> -- minimal primes and radical routines for ideals</span></li>
+          <li><span><a title="quotient, saturation, and annihilator routines for ideals and modules" href="../../Saturation/html/index.html">Saturation</a> -- quotient, saturation, and annihilator routines for ideals and modules</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="find associated primes" href="_associated__Primes.html">associatedPrimes</a> -- find associated primes</span></li>
+          <li><span><a href="_associated_spprimes.html">associated primes</a></span></li>
+          <li><span><a title="irredundant primary decomposition of an ideal" href="_primary__Decomposition.html">primaryDecomposition</a> -- irredundant primary decomposition of an ideal</span></li>
+          <li><span><a href="_primary_spdecomposition.html">primary decomposition</a></span></li>
+          <li><span><a title="find a primary component corresponding to an associated prime" href="_primary__Component.html">primaryComponent</a> -- find a primary component corresponding to an associated prime</span></li>
+          <li><span><a title="localize an ideal at a prime ideal" href="_localize.html">localize</a> -- localize an ideal at a prime ideal</span></li>
+        </ul>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Authors</h2>
+            <ul>
+              <li><a href="http://www.math.cornell.edu/~mike">Mike Stillman</a><span> &lt;<a href="mailto:mike%40math.cornell.edu">mike@math.cornell.edu</a>></span></li>
+              <li>Carolyn Yackel<span> &lt;<a href="mailto:cyackel%40math.indiana.edu">cyackel@math.indiana.edu</a>></span></li>
+              <li>Justin Chen<span> &lt;<a href="mailto:justin.chen%40math.gatech.edu">justin.chen@math.gatech.edu</a>></span></li>
+              <li><a href="https://math.umn.edu/~mahrud">Mahrud Sayrafi</a><span> &lt;<a href="mailto:mahrud%40umn.edu">mahrud@umn.edu</a>></span></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>2.0</b> of PrimaryDecomposition, released <b>July 4, 2020</b>.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{PrimaryDecompositionSource,
+  title = {{PrimaryDecomposition: primary decomposition and associated primes routines. Version~2.0}},
+  author = {Mike Stillman and Carolyn Yackel and Justin Chen and Mahrud Sayrafi},
+  howpublished = {A \emph{Macaulay2} package available at
+    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Functions and commands                  <ul>
+                    <li><span><a title="find associated primes" href="_associated__Primes.html">associatedPrimes</a> -- find associated primes</span></li>
+                    <li><span><a title="express a monomial ideal as an intersection of irreducible monomial ideals" href="_irreducible__Decomposition.html">irreducibleDecomposition</a> -- express a monomial ideal as an intersection of irreducible monomial ideals</span></li>
+                    <li><span><a title="determine whether a submodule is primary" href="_is__Primary.html">isPrimary</a> -- determine whether a submodule is primary</span></li>
+                    <li><span><a title="the kernel of the localization map" href="_kernel__Of__Localization.html">kernelOfLocalization</a> -- the kernel of the localization map</span></li>
+                    <li><span><a title="localize an ideal at a prime ideal" href="_localize.html">localize</a> -- localize an ideal at a prime ideal</span></li>
+                    <li><span><a title="find a primary component corresponding to an associated prime" href="_primary__Component.html">primaryComponent</a> -- find a primary component corresponding to an associated prime</span></li>
+                    <li><span><a title="irredundant primary decomposition of an ideal" href="_primary__Decomposition.html">primaryDecomposition</a> -- irredundant primary decomposition of an ideal</span></li>
+                    <li><span><a title="a regular sequence contained in an ideal" href="_reg__Seq__In__Ideal.html">regSeqInIdeal</a> -- a regular sequence contained in an ideal</span></li>
+                    <li><span><a title="remove components of lowest dimension" href="_remove__Lowest__Dimension.html">removeLowestDimension</a> -- remove components of lowest dimension</span></li>
+                    <li><span><a title="compute top dimensional component of an ideal or module" href="_top__Components.html">topComponents</a> -- compute top dimensional component of an ideal or module</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><kbd>associatedPrimes(Ideal)</kbd> -- see <span><a title="find associated primes" href="_associated__Primes.html">associatedPrimes</a> -- find associated primes</span></span></li>
+                    <li><span><kbd>associatedPrimes(Module)</kbd> -- see <span><a title="find associated primes" href="_associated__Primes.html">associatedPrimes</a> -- find associated primes</span></span></li>
+                    <li><span><kbd>associatedPrimes(Ring)</kbd> -- see <span><a title="find associated primes" href="_associated__Primes.html">associatedPrimes</a> -- find associated primes</span></span></li>
+                    <li><span><kbd>irreducibleDecomposition(MonomialIdeal)</kbd> -- see <span><a title="express a monomial ideal as an intersection of irreducible monomial ideals" href="_irreducible__Decomposition.html">irreducibleDecomposition</a> -- express a monomial ideal as an intersection of irreducible monomial ideals</span></span></li>
+                    <li><span><kbd>isPrimary(Ideal)</kbd> -- see <span><a title="determine whether a submodule is primary" href="_is__Primary.html">isPrimary</a> -- determine whether a submodule is primary</span></span></li>
+                    <li><span><kbd>isPrimary(Ideal,Ideal)</kbd> -- see <span><a title="determine whether a submodule is primary" href="_is__Primary.html">isPrimary</a> -- determine whether a submodule is primary</span></span></li>
+                    <li><span><kbd>isPrimary(Module,Module)</kbd> -- see <span><a title="determine whether a submodule is primary" href="_is__Primary.html">isPrimary</a> -- determine whether a submodule is primary</span></span></li>
+                    <li><span><kbd>kernelOfLocalization(Module,Ideal)</kbd> -- see <span><a title="the kernel of the localization map" href="_kernel__Of__Localization.html">kernelOfLocalization</a> -- the kernel of the localization map</span></span></li>
+                    <li><span><kbd>localize(Ideal,Ideal)</kbd> -- see <span><a title="localize an ideal at a prime ideal" href="_localize.html">localize</a> -- localize an ideal at a prime ideal</span></span></li>
+                    <li><span><kbd>primaryComponent(Ideal,Ideal)</kbd> -- see <span><a title="find a primary component corresponding to an associated prime" href="_primary__Component.html">primaryComponent</a> -- find a primary component corresponding to an associated prime</span></span></li>
+                    <li><span><kbd>primaryDecomposition(Ideal)</kbd> -- see <span><a title="irredundant primary decomposition of an ideal" href="_primary__Decomposition.html">primaryDecomposition</a> -- irredundant primary decomposition of an ideal</span></span></li>
+                    <li><span><a title="irredundant primary decomposition of a module" href="_primary__Decomposition_lp__Module_rp.html">primaryDecomposition(Module)</a> -- irredundant primary decomposition of a module</span></li>
+                    <li><span><kbd>primaryDecomposition(Ring)</kbd> -- see <span><a title="irredundant primary decomposition of a module" href="_primary__Decomposition_lp__Module_rp.html">primaryDecomposition(Module)</a> -- irredundant primary decomposition of a module</span></span></li>
+                    <li><span><kbd>regSeqInIdeal(Ideal)</kbd> -- see <span><a title="a regular sequence contained in an ideal" href="_reg__Seq__In__Ideal.html">regSeqInIdeal</a> -- a regular sequence contained in an ideal</span></span></li>
+                    <li><span><kbd>regSeqInIdeal(Ideal,ZZ)</kbd> -- see <span><a title="a regular sequence contained in an ideal" href="_reg__Seq__In__Ideal.html">regSeqInIdeal</a> -- a regular sequence contained in an ideal</span></span></li>
+                    <li><span><kbd>regSeqInIdeal(Ideal,ZZ,ZZ,ZZ)</kbd> -- see <span><a title="a regular sequence contained in an ideal" href="_reg__Seq__In__Ideal.html">regSeqInIdeal</a> -- a regular sequence contained in an ideal</span></span></li>
+                    <li><span><kbd>removeLowestDimension(Ideal)</kbd> -- see <span><a title="remove components of lowest dimension" href="_remove__Lowest__Dimension.html">removeLowestDimension</a> -- remove components of lowest dimension</span></span></li>
+                    <li><span><kbd>removeLowestDimension(Module)</kbd> -- see <span><a title="remove components of lowest dimension" href="_remove__Lowest__Dimension.html">removeLowestDimension</a> -- remove components of lowest dimension</span></span></li>
+                    <li><span><kbd>topComponents(Ideal)</kbd> -- see <span><a title="compute top dimensional component of an ideal or module" href="_top__Components.html">topComponents</a> -- compute top dimensional component of an ideal or module</span></span></li>
+                    <li><span><kbd>topComponents(Module)</kbd> -- see <span><a title="compute top dimensional component of an ideal or module" href="_top__Components.html">topComponents</a> -- compute top dimensional component of an ideal or module</span></span></li>
+                    <li><span><kbd>topComponents(Module,ZZ)</kbd> -- see <span><a title="compute top dimensional component of an ideal or module" href="_top__Components.html">topComponents</a> -- compute top dimensional component of an ideal or module</span></span></li>
+                  </ul>
+                </li>
+                <li>Symbols                  <ul>
+                    <li><span><kbd>Increment</kbd> -- see <span><a title="find a primary component corresponding to an associated prime" href="_primary__Component.html">primaryComponent</a> -- find a primary component corresponding to an associated prime</span></span></li>
+                    <li><span><kbd>EisenbudHunekeVasconcelos</kbd> -- see <span><a href="_strategies_spfor_spcomputing_spprimary_spdecomposition.html">strategies for computing primary decomposition</a></span></span></li>
+                    <li><span><kbd>GTZ</kbd> -- see <span><a href="_strategies_spfor_spcomputing_spprimary_spdecomposition.html">strategies for computing primary decomposition</a></span></span></li>
+                    <li><span><kbd>ShimoyamaYokoyama</kbd> -- see <span><a href="_strategies_spfor_spcomputing_spprimary_spdecomposition.html">strategies for computing primary decomposition</a></span></span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="primary decomposition and associated primes routines" href="index.html">PrimaryDecomposition</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">PrimaryDecomposition.m2</span>, with auxiliary files in <span class="tt">PrimaryDecomposition/</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">PrimaryDecomposition/doc.m2:750:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

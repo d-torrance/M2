@@ -1,0 +1,725 @@
+ -*- coding: utf-8 -*- This is CohomCalg.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* CohomCalg: (CohomCalg).       interface to cohomCalg software for computing sheaf cohomology of line bundles on toric varieties
+END-INFO-DIR-ENTRY
+
+
+File: CohomCalg.info, Node: Top, Next: cohomCalg, Up: (dir)
+
+CohomCalg -- an interface to the CohomCalg software for computing cohomology of torus invariant divisors on a toric variety
+***************************************************************************************************************************
+
+Description
+===========
+
+CohomCalg is software written by Benjamin Jurke and Thorsten Rahn (in
+collaboration with Ralph Blumenhagen and Helmut Roschy) for computing the
+cohomology vectors of torus invariant divisors on a (normal) toric variety (see
+https://github.com/BenjaminJurke/cohomCalg for more information).
+
+CohomCalg is an efficient and careful implementation. One limitation is that
+the number of rays in the fan and the number of generators of the
+Stanley-Reisner ideal of the fan must both be no larger than 64.
+
+Here is a sample usage of this package in Macaulay2.  Let's compute the
+cohomology of some divisors on a smooth Fano toric variety.
+
++-----------------------------------------------------------------------------+
+|i1 : needsPackage "NormalToricVarieties"                                     |
+|                                                                             |
+|o1 = NormalToricVarieties                                                    |
+|                                                                             |
+|o1 : Package                                                                 |
++-----------------------------------------------------------------------------+
+|i2 : X = smoothFanoToricVariety(3,15)                                        |
+|                                                                             |
+|o2 = X                                                                       |
+|                                                                             |
+|o2 : NormalToricVariety                                                      |
++-----------------------------------------------------------------------------+
+|i3 : rays X                                                                  |
+|                                                                             |
+|o3 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {0, -1, -1}, {0, -1, 0}, {-1, 0, 0},  |
+|     ------------------------------------------------------------------------|
+|     {-1, 1, 0}}                                                             |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : max X                                                                   |
+|                                                                             |
+|o4 = {{0, 1, 2}, {0, 1, 3}, {0, 2, 4}, {0, 3, 4}, {1, 2, 6}, {1, 3, 6}, {2,  |
+|     ------------------------------------------------------------------------|
+|     4, 5}, {2, 5, 6}, {3, 4, 5}, {3, 5, 6}}                                 |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : S = ring X                                                              |
+|                                                                             |
+|o5 = S                                                                       |
+|                                                                             |
+|o5 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i6 : SR = dual monomialIdeal X                                               |
+|                                                                             |
+|o6 = monomialIdeal (x x , x x , x x , x x , x x , x x )                      |
+|                     2 3   1 4   0 5   1 5   0 6   4 6                       |
+|                                                                             |
+|o6 : MonomialIdeal of S                                                      |
++-----------------------------------------------------------------------------+
+|i7 : KX = toricDivisor X                                                     |
+|                                                                             |
+|o7 = - X  - X  - X  - X  - X  - X  - X                                       |
+|        0    1    2    3    4    5    6                                      |
+|                                                                             |
+|o7 : ToricDivisor on X                                                       |
++-----------------------------------------------------------------------------+
+|i8 : assert isVeryAmple (-KX)                                                |
++-----------------------------------------------------------------------------+
+|i9 : cohoms1 = for i from 0 to 6 list X_i => cohomCalg X_i                   |
+|                                                                             |
+|o9 = {X  => {2, 0, 0, 0}, X  => {1, 0, 0, 0}, X  => {2, 0, 0, 0}, X  => {2,  |
+|       0                   1                   2                   3         |
+|     ------------------------------------------------------------------------|
+|     0, 0, 0}, X  => {1, 0, 0, 0}, X  => {1, 0, 0, 0}, X  => {1, 0, 0, 0}}   |
+|                4                   5                   6                    |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : cohoms2 = for i from 0 to 6  list X_i => (                             |
+|          for j from 0 to dim X list rank HH^j(X, OO_X(toSequence degree X_i)|
+|          )                                                                  |
+|                                                                             |
+|o10 = {X  => {2, 0, 0, 0}, X  => {1, 0, 0, 0}, X  => {2, 0, 0, 0}, X  => {2, |
+|        0                   1                   2                   3        |
+|      -----------------------------------------------------------------------|
+|      0, 0, 0}, X  => {1, 0, 0, 0}, X  => {1, 0, 0, 0}, X  => {1, 0, 0, 0}}  |
+|                 4                   5                   6                   |
+|                                                                             |
+|o10 : List                                                                   |
+|-----------------------------------------------------------------------------|
+|)                                                                            |
++-----------------------------------------------------------------------------+
+|i11 : assert(cohoms1 === cohoms2)                                            |
++-----------------------------------------------------------------------------+
+
+For efficiency reasons, it is better, if this works for your use, to call
+CohomCalg by batching together several cohomology requests.
+
++-----------------------------------------------------------------------------+
+|i12 : needsPackage "ReflexivePolytopesDB"                                    |
+|                                                                             |
+|o12 = ReflexivePolytopesDB                                                   |
+|                                                                             |
+|o12 : Package                                                                |
++-----------------------------------------------------------------------------+
+|i13 : topes = kreuzerSkarke(21, Limit => 20);                                |
+|using offline data file: ks21-n100.txt                                       |
++-----------------------------------------------------------------------------+
+|i14 : A = matrix topes_10                                                    |
+|                                                                             |
+|o14 = | 1 0 0 -1 2  0  0 -3 -2 1  |                                          |
+|      | 0 1 0 1  -1 1  0 1  0  -1 |                                          |
+|      | 0 0 1 1  -1 -1 0 4  2  -2 |                                          |
+|      | 0 0 0 0  0  0  1 -1 -1 1  |                                          |
+|                                                                             |
+|               4       10                                                    |
+|o14 : Matrix ZZ  <-- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i15 : P = convexHull A                                                       |
+|                                                                             |
+|o15 = P                                                                      |
+|                                                                             |
+|o15 : Polyhedron                                                             |
++-----------------------------------------------------------------------------+
+|i16 : X = normalToricVariety P                                               |
+|                                                                             |
+|o16 = X                                                                      |
+|                                                                             |
+|o16 : NormalToricVariety                                                     |
++-----------------------------------------------------------------------------+
+|i17 : SR = dual monomialIdeal X                                              |
+|                                                                             |
+|o17 = monomialIdeal (x x , x x x , x x , x x x , x x x , x x x x , x x x ,   |
+|                      1 2   0 1 3   0 4   0 2 6   0 3 6   1 3 5 6   1 3 7    |
+|      -----------------------------------------------------------------------|
+|      x x x , x x x x , x x x , x x x , x x x x , x x x x , x x x , x x x x ,|
+|       1 4 7   0 3 5 7   2 4 8   2 6 8   3 5 6 8   4 5 6 8   4 7 8   2 5 7 8 |
+|      -----------------------------------------------------------------------|
+|      x x x x , x x x x , x x x , x x x , x x , x x x , x x x , x x x ,      |
+|       3 5 7 8   3 6 7 8   0 1 9   2 4 9   5 9   0 6 9   2 6 9   1 7 9       |
+|      -----------------------------------------------------------------------|
+|      x x x )                                                                |
+|       4 7 9                                                                 |
+|                                                                             |
+|o17 : MonomialIdeal of QQ[x ..x ]                                            |
+|                           0   9                                             |
++-----------------------------------------------------------------------------+
+|i18 : D2 = subsets(for i from 0 to #rays X - 1 list (-X_i), 2)               |
+|                                                                             |
+|o18 = {{- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, |
+|           0     1       0     2       1     2       0     3       1     3   |
+|      -----------------------------------------------------------------------|
+|      {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X },  |
+|          2     3       0     4       1     4       2     4       3     4    |
+|      -----------------------------------------------------------------------|
+|      {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X },  |
+|          0     5       1     5       2     5       3     5       4     5    |
+|      -----------------------------------------------------------------------|
+|      {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X },  |
+|          0     6       1     6       2     6       3     6       4     6    |
+|      -----------------------------------------------------------------------|
+|      {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X },  |
+|          5     6       0     7       1     7       2     7       3     7    |
+|      -----------------------------------------------------------------------|
+|      {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X },  |
+|          4     7       5     7       6     7       0     8       1     8    |
+|      -----------------------------------------------------------------------|
+|      {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X },  |
+|          2     8       3     8       4     8       5     8       6     8    |
+|      -----------------------------------------------------------------------|
+|      {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X },  |
+|          7     8       0     9       1     9       2     9       3     9    |
+|      -----------------------------------------------------------------------|
+|      {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }, {- X , - X }}  |
+|          4     9       5     9       6     9       7     9       8     9    |
+|                                                                             |
+|o18 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i19 : D2 = D2/sum/degree                                                     |
+|                                                                             |
+|o19 = {{0, 1, -2, -2, 4, 0}, {0, 1, -1, 1, 0, -2}, {2, 2, 3, 1, -4, -6}, {-1,|
+|      -----------------------------------------------------------------------|
+|      0, -4, -2, 5, 3}, {1, 1, 0, -2, 1, -1}, {1, 1, 1, 1, -3, -3}, {-2, 0,  |
+|      -----------------------------------------------------------------------|
+|      -3, -1, 4, 2}, {0, 1, 1, -1, 0, -2}, {0, 1, 2, 2, -4, -4}, {-1, 0, -1, |
+|      -----------------------------------------------------------------------|
+|      -1, 1, 1}, {-1, -1, -3, -1, 4, 2}, {1, 0, 1, -1, 0, -2}, {1, 0, 2, 2,  |
+|      -----------------------------------------------------------------------|
+|      -4, -4}, {0, -1, -1, -1, 1, 1}, {-1, -1, 0, 0, 0, 0}, {-1, 0, -4, -1,  |
+|      -----------------------------------------------------------------------|
+|      4, 2}, {1, 1, 0, -1, 0, -2}, {1, 1, 1, 2, -4, -4}, {0, 0, -2, -1, 1,   |
+|      -----------------------------------------------------------------------|
+|      1}, {-1, 0, -1, 0, 0, 0}, {0, -1, -1, 0, 0, 0}, {-1, 0, -3, -2, 4, 2}, |
+|      -----------------------------------------------------------------------|
+|      {1, 1, 1, -2, 0, -2}, {1, 1, 2, 1, -4, -4}, {0, 0, -1, -2, 1, 1}, {-1, |
+|      -----------------------------------------------------------------------|
+|      0, 0, -1, 0, 0}, {0, -1, 0, -1, 0, 0}, {0, 0, -1, -1, 0, 0}, {-1, 0,   |
+|      -----------------------------------------------------------------------|
+|      -3, -1, 3, 2}, {1, 1, 1, -1, -1, -2}, {1, 1, 2, 2, -5, -4}, {0, 0, -1, |
+|      -----------------------------------------------------------------------|
+|      -1, 0, 1}, {-1, 0, 0, 0, -1, 0}, {0, -1, 0, 0, -1, 0}, {0, 0, -1, 0,   |
+|      -----------------------------------------------------------------------|
+|      -1, 0}, {0, 0, 0, -1, -1, 0}, {-1, 0, -3, -1, 4, 1}, {1, 1, 1, -1, 0,  |
+|      -----------------------------------------------------------------------|
+|      -3}, {1, 1, 2, 2, -4, -5}, {0, 0, -1, -1, 1, 0}, {-1, 0, 0, 0, 0, -1}, |
+|      -----------------------------------------------------------------------|
+|      {0, -1, 0, 0, 0, -1}, {0, 0, -1, 0, 0, -1}, {0, 0, 0, -1, 0, -1}, {0,  |
+|      -----------------------------------------------------------------------|
+|      0, 0, 0, -1, -1}}                                                      |
+|                                                                             |
+|o19 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i20 : elapsedTime hvecs = cohomCalg(X, D2)                                   |
+| -- 3.79228s elapsed                                                         |
+|                                                                             |
+|o20 = {{0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 1, 0, 0, 0}, {0, 0, 0, 0, 0},   |
+|      -----------------------------------------------------------------------|
+|      {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 1, 0, 0, 0}, {0, 0, 0, 0, 0}, {0,|
+|      -----------------------------------------------------------------------|
+|      0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, |
+|      -----------------------------------------------------------------------|
+|      0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, |
+|      -----------------------------------------------------------------------|
+|      0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, |
+|      -----------------------------------------------------------------------|
+|      0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0},|
+|      -----------------------------------------------------------------------|
+|      {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0,|
+|      -----------------------------------------------------------------------|
+|      0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, |
+|      -----------------------------------------------------------------------|
+|      0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, |
+|      -----------------------------------------------------------------------|
+|      0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 1, 0, 0, |
+|      -----------------------------------------------------------------------|
+|      0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}}                 |
+|                                                                             |
+|o20 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i21 : peek cohomCalg X                                                       |
+|                                                                             |
+|o21 = MutableHashTable{{-1, -1, -3, -1, 4, 2} => {{0, 0, 0, 0, 0}, {}}       |
+|                       {-1, -1, 0, 0, 0, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {-1, 0, -1, -1, 1, 1} => {{0, 0, 0, 0, 0}, {}}        |
+|                       {-1, 0, -1, 0, 0, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {-1, 0, -3, -1, 3, 2} => {{0, 0, 0, 0, 0}, {}}        |
+|                       {-1, 0, -3, -1, 4, 1} => {{0, 0, 0, 0, 0}, {}}        |
+|                       {-1, 0, -3, -2, 4, 2} => {{0, 0, 0, 0, 0}, {}}        |
+|                       {-1, 0, -4, -1, 4, 2} => {{0, 0, 0, 0, 0}, {}}        |
+|                       {-1, 0, -4, -2, 5, 3} => {{0, 0, 0, 0, 0}, {}}        |
+|                       {-1, 0, 0, -1, 0, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {-1, 0, 0, 0, -1, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {-1, 0, 0, 0, 0, -1} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {-2, 0, -3, -1, 4, 2} => {{0, 1, 0, 0, 0}, {{1, 1x0   |
+|                       {0, -1, -1, -1, 1, 1} => {{0, 0, 0, 0, 0}, {}}        |
+|                       {0, -1, -1, 0, 0, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, -1, 0, -1, 0, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, -1, 0, 0, -1, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, -1, 0, 0, 0, -1} => {{0, 1, 0, 0, 0}, {{1, 1x5*   |
+|                       {0, 0, -1, -1, 0, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 0, -1, -1, 0, 1} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 0, -1, -1, 1, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 0, -1, -2, 1, 1} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 0, -1, 0, -1, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 0, -1, 0, 0, -1} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 0, -2, -1, 1, 1} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 0, 0, -1, -1, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 0, 0, -1, 0, -1} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 0, 0, 0, -1, -1} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 1, -1, 1, 0, -2} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 1, -2, -2, 4, 0} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 1, 1, -1, 0, -2} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {0, 1, 2, 2, -4, -4} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 0, 1, -1, 0, -2} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 0, 2, 2, -4, -4} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 1, 0, -1, 0, -2} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 1, 0, -2, 1, -1} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 1, 1, -1, -1, -2} => {{0, 0, 0, 0, 0}, {}}        |
+|                       {1, 1, 1, -1, 0, -3} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 1, 1, -2, 0, -2} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 1, 1, 1, -3, -3} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 1, 1, 2, -4, -4} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 1, 2, 1, -4, -4} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 1, 2, 2, -4, -5} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {1, 1, 2, 2, -5, -4} => {{0, 0, 0, 0, 0}, {}}         |
+|                       {2, 2, 3, 1, -4, -6} => {{0, 1, 0, 0, 0}, {{1, 1x1*   |
+|-----------------------------------------------------------------------------|
+|      }                                                                      |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|*x4}}}                                                                       |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|x9}}}                                                                        |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|x2}}}                                                                        |
++-----------------------------------------------------------------------------+
+|i22 : degree(X_3 + X_7 + X_8)                                                |
+|                                                                             |
+|o22 = {0, 0, 1, 2, 0, -1}                                                    |
+|                                                                             |
+|o22 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i23 : elapsedTime cohomvec1 = cohomCalg(X_3 + X_7 + X_8)                     |
+| -- .468163s elapsed                                                         |
+|                                                                             |
+|o23 = {1, 0, 0, 0, 0}                                                        |
+|                                                                             |
+|o23 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i24 : elapsedTime cohomvec2 = for j from 0 to dim X list rank HH^j(X,        |
+| -- 12.1644s elapsed                                                         |
+|                                                                             |
+|o24 = {1, 0, 0, 0, 0}                                                        |
+|                                                                             |
+|o24 : List                                                                   |
+|-----------------------------------------------------------------------------|
+|OO_X(0,0,1,2,0,-1))                                                          |
++-----------------------------------------------------------------------------+
+|i25 : assert(cohomvec1 == cohomvec2)                                         |
++-----------------------------------------------------------------------------+
+|i26 : degree(X_3 + X_7 - X_8)                                                |
+|                                                                             |
+|o26 = {0, 0, 1, 2, -2, -1}                                                   |
+|                                                                             |
+|o26 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i27 : elapsedTime cohomvec1 = cohomCalg(X_3 + X_7 - X_8)                     |
+| -- .417734s elapsed                                                         |
+|                                                                             |
+|o27 = {0, 0, 0, 0, 0}                                                        |
+|                                                                             |
+|o27 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i28 : elapsedTime cohomvec2 = elapsedTime for j from 0 to dim X list rank    |
+| -- .575766s elapsed                                                         |
+| -- .575784s elapsed                                                         |
+|                                                                             |
+|o28 = {0, 0, 0, 0, 0}                                                        |
+|                                                                             |
+|o28 : List                                                                   |
+|-----------------------------------------------------------------------------|
+|HH^j(X, OO_X(0,0,1,2,-2,-1))                                                 |
++-----------------------------------------------------------------------------+
+|i29 : assert(cohomvec1 == cohomvec2)                                         |
++-----------------------------------------------------------------------------+
+
+*note cohomCalg: cohomCalg, computes cohomology vectors by calling CohomCalg.
+It also stashes it's results in the toric variety's cache table, so
+computations need not be performed twice.
+
+See also
+========
+
+  * *note cohomCalg: cohomCalg, -- compute cohomology vectors using the
+    CohomCalg software
+
+Author
+======
+
+  * Michael E. Stillman (see
+    http://www.math.cornell.edu/People/Faculty/stillman.html )
+    <mike@math.cornell.edu>
+
+Version
+=======
+
+This documentation describes version 0.8 of CohomCalg, released 24 May 2019.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{CohomCalgSource,                                                      |
+|  title = {{CohomCalg: A \emph{Macaulay2} package. Version~0.8}},           |
+|  author = {Michael E. Stillman},                                           |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note cohomCalg: cohomCalg, -- compute cohomology vectors using the
+        CohomCalg software
+  * Methods
+      * "cohomCalg(NormalToricVariety,List)" -- see *note cohomCalg: cohomCalg,
+        -- compute cohomology vectors using the CohomCalg software
+      * "cohomCalg(NormalToricVariety,ToricDivisor)" -- see *note cohomCalg:
+        cohomCalg, -- compute cohomology vectors using the CohomCalg software
+      * "cohomCalg(ToricDivisor)" -- see *note cohomCalg: cohomCalg, -- compute
+        cohomology vectors using the CohomCalg software
+      * *note cohomCalg(NormalToricVariety): cohomCalg_lpNormalToricVariety_rp,
+        -- locally stashed cohomology vectors from CohomCalg
+  * Symbols
+      * Silent (missing documentation)
+
+For the programmer
+==================
+
+The object *note CohomCalg: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in CohomCalg.m2, with auxiliary files in CohomCalg/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CohomCalg.m2:240:0.
+
+File: CohomCalg.info, Node: cohomCalg, Next: cohomCalg_lpNormalToricVariety_rp, Prev: Top, Up: Top
+
+cohomCalg -- compute cohomology vectors using the CohomCalg software
+********************************************************************
+
+  * Usage: 
+        cvecs = cohomCalg(X, L)
+        cvecs = cohomCalg D
+  * Inputs:
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,,
+      * L, a *note list: (Macaulay2Doc)List,, of toric divisors, or degrees, or
+        a single degree, or a toric divisor
+      * D, a *note toric divisor: (NormalToricVarieties)ToricDivisor,, a single
+        toric divisor
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Silent => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        null, but if null, then the default value from the configuration file
+        is overridden by this value. If true, then all output from CohomCalg is
+        suppressed.
+  * Outputs:
+      * cvecs, a *note list: (Macaulay2Doc)List,, The list of cohomology
+        vectors of the toric divisors in L (or a single list, if the input was
+        a single degree or toric divisor)
+  * Consequences:
+      * The answers are stashed into the mutable hashtable X.cache#CohomCalg,
+        and are not recomputed if possible.
+
+Description
+===========
+
+Given a toric divisor D, or its degree d, its cohomology vector is the list
+$\{h^0(X, OO_X(d)), h^1(X, OO_X(d)), \ldots, h^{dim X}(X, OO_X(d)) \}$.
+
+Here is an example.
+
++-------------------------------------------+
+|i1 : needsPackage "ReflexivePolytopesDB"   |
+|                                           |
+|o1 = ReflexivePolytopesDB                  |
+|                                           |
+|o1 : Package                               |
++-------------------------------------------+
+|i2 : topes = kreuzerSkarke(5, Limit => 20);|
+|using offline data file: ks5-n50.txt       |
++-------------------------------------------+
+|i3 : A = matrix topes_15                   |
+|                                           |
+|o3 = | 1 1 0 1 -1 -2 1  |                  |
+|     | 0 2 0 0 -4 0  6  |                  |
+|     | 0 0 1 0 2  -1 -4 |                  |
+|     | 0 0 0 2 -2 0  0  |                  |
+|                                           |
+|              4       7                    |
+|o3 : Matrix ZZ  <-- ZZ                     |
++-------------------------------------------+
+|i4 : P = convexHull A                      |
+|                                           |
+|o4 = P                                     |
+|                                           |
+|o4 : Polyhedron                            |
++-------------------------------------------+
+|i5 : X = normalToricVariety P              |
+|                                           |
+|o5 = X                                     |
+|                                           |
+|o5 : NormalToricVariety                    |
++-------------------------------------------+
+|i6 : D = 3 * X_0 - 5 * X_4                 |
+|                                           |
+|o6 = 3*X  - 5*X                            |
+|        0      4                           |
+|                                           |
+|o6 : ToricDivisor on X                     |
++-------------------------------------------+
+|i7 : cohomCalg(D, Silent => true)          |
+|                                           |
+|o7 = {0, 0, 0, 194, 0}                     |
+|                                           |
+|o7 : List                                  |
++-------------------------------------------+
+
+We compare this to the results from *note NormalToricVarieties:
+(NormalToricVarieties)Top,.
+
++-----------------------------------------------------------------------------+
+|i8 : cohomCalg(X, D)                                                         |
+|                                                                             |
+|o8 = {0, 0, 0, 194, 0}                                                       |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : for i from 0 to dim X list rank HH^i(X, OO D)                           |
+|                                                                             |
+|o9 = {0, 0, 0, 194, 0}                                                       |
+|                                                                             |
+|o9 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i10 : peek cohomCalg X                                                       |
+|                                                                             |
+|o10 = MutableHashTable{{-22, 3, -5} => {{0, 0, 0, 194, 0}, {{3,              |
+|      -----------------------------------------------------------------------|
+|      1x1*x2*x4*x5}, {3, 1x1*x2*x3*x4*x5}, {3, 1x1*x2*x4*x5*x6}}}}           |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note cohomCalg(NormalToricVariety): cohomCalg_lpNormalToricVariety_rp, --
+    locally stashed cohomology vectors from CohomCalg
+  * *note ReflexivePolytopesDB: (ReflexivePolytopesDB)Top, -- simple access to
+    Kreuzer-Skarke database of reflexive polytopes of dimensions 3 and 4
+
+Ways to use cohomCalg:
+======================
+
+  * "cohomCalg(NormalToricVariety,List)"
+  * "cohomCalg(NormalToricVariety,ToricDivisor)"
+  * "cohomCalg(ToricDivisor)"
+  * *note cohomCalg(NormalToricVariety): cohomCalg_lpNormalToricVariety_rp, --
+    locally stashed cohomology vectors from CohomCalg
+
+For the programmer
+==================
+
+The object *note cohomCalg: cohomCalg, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in CohomCalg.m2:336:0.
+
+File: CohomCalg.info, Node: cohomCalg_lpNormalToricVariety_rp, Next: Silent, Prev: cohomCalg, Up: Top
+
+cohomCalg(NormalToricVariety) -- locally stashed cohomology vectors from CohomCalg
+**********************************************************************************
+
+  * Function: *note cohomCalg: cohomCalg,
+  * Usage: 
+        H = cohomCalg X
+  * Inputs:
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,,
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Silent: cohomCalg, => a *note Boolean value:
+        (Macaulay2Doc)Boolean,, default value null, Not used in this particular
+        method
+  * Outputs:
+      * H, a *note mutable hash table: (Macaulay2Doc)MutableHashTable,, 
+  * Consequences:
+      * The mutable hash table is stashed into X.cache#CohomCalg.  If it
+        doesn't exist yet, it is created.
+
+Description
+===========
+
+The keys of this hash table are the divisor classes (degrees) whose cohomology
+vector has already been computed.  The value of the hash table for this key is
+a list of two things: the cohomology vector, and a list representing the
+denominators which appear for this degree.
+
++-------------------------------------------+
+|i1 : needsPackage "ReflexivePolytopesDB"   |
+|                                           |
+|o1 = ReflexivePolytopesDB                  |
+|                                           |
+|o1 : Package                               |
++-------------------------------------------+
+|i2 : topes = kreuzerSkarke(5, Limit => 20);|
+|using offline data file: ks5-n50.txt       |
++-------------------------------------------+
+|i3 : A = matrix topes_15                   |
+|                                           |
+|o3 = | 1 1 0 1 -1 -2 1  |                  |
+|     | 0 2 0 0 -4 0  6  |                  |
+|     | 0 0 1 0 2  -1 -4 |                  |
+|     | 0 0 0 2 -2 0  0  |                  |
+|                                           |
+|              4       7                    |
+|o3 : Matrix ZZ  <-- ZZ                     |
++-------------------------------------------+
+|i4 : P = convexHull A                      |
+|                                           |
+|o4 = P                                     |
+|                                           |
+|o4 : Polyhedron                            |
++-------------------------------------------+
+|i5 : X = normalToricVariety P              |
+|                                           |
+|o5 = X                                     |
+|                                           |
+|o5 : NormalToricVariety                    |
++-------------------------------------------+
+|i6 : H = cohomCalg X                       |
+|                                           |
+|o6 = MutableHashTable{}                    |
+|                                           |
+|o6 : MutableHashTable                      |
++-------------------------------------------+
+
+Notice that the hash table H is empty, as we haven't tried computing any
+cohomology vectors yet.
+
++-----------------------------------------------------------------------------+
+|i7 : cohomCalg(X, {-4, 10, -9})                                              |
+|                                                                             |
+|o7 = {0, 0, 0, 5396, 0}                                                      |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : for i from 0 to dim X list rank HH^i(X, OO_X(-4, 10, -9))               |
+|                                                                             |
+|o8 = {0, 0, 0, 5396, 0}                                                      |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : peek cohomCalg X                                                        |
+|                                                                             |
+|o9 = MutableHashTable{{-4, 10, -9} => {{0, 0, 0, 5396, 0}, {{3,              |
+|     ------------------------------------------------------------------------|
+|     1x0*x1*x2*x6}, {3, 1x0*x1*x2*x3*x6}, {3, 1x0*x1*x2*x4*x6}}}}            |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note cohomCalg: cohomCalg, -- compute cohomology vectors using the
+    CohomCalg software
+
+Ways to use this method:
+========================
+
+  * *note cohomCalg(NormalToricVariety): cohomCalg_lpNormalToricVariety_rp, --
+    locally stashed cohomology vectors from CohomCalg
+-------------------------------------------------------------------------------
+
+The source of this document is in CohomCalg.m2:282:0.
+
+File: CohomCalg.info, Node: Silent, Prev: cohomCalg_lpNormalToricVariety_rp, Up: Top
+
+Silent
+******
+
+Functions with optional argument named Silent:
+==============================================
+
+  * "cohomCalg(...,Silent=>...)" -- see *note cohomCalg: cohomCalg, -- compute
+    cohomology vectors using the CohomCalg software
+
+For the programmer
+==================
+
+The object Silent (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:375.
+
+Tag Table:
+Node: Top302
+Node: cohomCalg32734
+Node: cohomCalg_lpNormalToricVariety_rp38845
+Node: Silent43855
+
+End Tag Table

@@ -1,0 +1,546 @@
+ -*- coding: utf-8 -*- This is GroebnerWalk.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* GroebnerWalk: (GroebnerWalk).  Groebner bases via the Groebner walk
+END-INFO-DIR-ENTRY
+
+
+File: GroebnerWalk.info, Node: Top, Next: getWalkTrace, Up: (dir)
+
+GroebnerWalk -- Compute Groebner bases via the Groebner walk
+************************************************************
+
+Description
+===========
+
+The Groebner walk is a Groebner basis conversion algorithm. This means it takes
+a Groebner basis of an ideal with respect to one monomial order and changes it
+into a Groebner basis of the same ideal over a different monomial order.
+Conversion algorithms can be useful since sometimes when a Groebner basis over
+a difficult monomial order (such as lexicographic or an elimination order) is
+desired, it can be faster to compute a Groebner basis directly over an easier
+order (such as graded reverse lexicographic) and then convert rather than
+computing directly in the original order. Other examples of conversion
+algorithms include FGLM and Hilbert-driven Buchberger.
+
+The Groebner walk performs conversion by traveling through the Groebner fan.
+The Groebner basis is the same for all vectors inside a cone of the fan, and
+when crossing a face into a new cone a (hopefully small) adjustment of the
+Groebner basis is all that must be computed. Further background and details can
+be found in the following resources:
+
+Cox, Little, O'Shea - Using Algebraic Geometry (2005)
+
+Amrhein, Gloor, Kuchlin - On the Walk (1997)
+
+Collart, Kalkbrenner, Mall - Converting Bases with the Groebner Walk (1997)
+
+Fukuda, Jensen, Lauritzen, Thomas - The Generic Grobner Walk (2007)
+
+Tran - A Fast Algorithm for Grobner Basis Conversion and its Applications
+(2000)
+
+In Macaulay2, monomial orders must be given as options to rings. For example,
+the following ideal has monomial order given by first using a weight vector and
+then breaking ties with graded reverse lexicographic.
+
++-------------------------------------------------------------------+
+|i1 : R1 = QQ[x,y,z,u,v, MonomialOrder=>Weights=>{1,1,1,0,0}];      |
++-------------------------------------------------------------------+
+|i2 : I1 = ideal(u + u^2 - 2*v - 2*u^2*v + 2*u*v^2 - x,             |
+|                -6*u + 2*v + v^2 - 5*v^3 + 2*u*v^2 - 4*u^2*v^2 - y,|
+|                -2 + 2*u^2 + 6*v - 3*u^2*v^2 - z);                 |
+|                                                                   |
+|o2 : Ideal of R1                                                   |
++-------------------------------------------------------------------+
+
+If we want a Groebner basis of I with respect to the monomial order given by
+using a different weight vector and then graded reverse lexicographic we could
+substitute and compute directly,
+
++---------------------------------------------------------------------+
+|i3 : R2 = QQ[x,y,z,u,v, MonomialOrder=>Weights=>{0,0,0,1,1}];        |
++---------------------------------------------------------------------+
+|i4 : I2 = sub(I1, R2);                                               |
+|                                                                     |
+|o4 : Ideal of R2                                                     |
++---------------------------------------------------------------------+
+|i5 : elapsedTime gb I2                                               |
+| -- 3.04614s elapsed                                                 |
+|                                                                     |
+|o5 = GroebnerBasis[status: done; S-pairs encountered up to degree 16]|
+|                                                                     |
+|o5 : GroebnerBasis                                                   |
++---------------------------------------------------------------------+
+
+but it is faster to compute directly in the first order and then use the
+Groebner walk.
+
++--------------------------------------------------------------------+
+|i6 : elapsedTime groebnerWalk(gb I1, R2)                            |
+| -- 2.38417s elapsed                                                |
+|                                                                    |
+|o6 = GroebnerBasis[status: done; S-pairs encountered up to degree 0]|
+|                                                                    |
+|o6 : GroebnerBasis                                                  |
++--------------------------------------------------------------------+
+
+Caveat
+======
+
+The target ring must be the same ring as the ring of the starting ideal, except
+with different monomial order. The ring must be a polynomial ring over a field.
+
+See also
+========
+
+  * *note groebnerBasis: (Macaulay2Doc)groebnerBasis, -- Gröbner basis, as a
+    matrix
+
+Author
+======
+
+  * Dylan Peifer (see https://www.math.cornell.edu/~djp282 )
+    <djp282@cornell.edu>
+
+Version
+=======
+
+This documentation describes version 1.0.0 of GroebnerWalk, released November
+17, 2017.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{GroebnerWalkSource,                                                    |
+|  title = {{GroebnerWalk: Groebner bases via the Groebner walk. Version~1.0.0|
+|  author = {Dylan Peifer},                                                   |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|}},                                                                          |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note getWalkTrace: getWalkTrace, -- get current value of walkTrace
+      * *note groebnerWalk: groebnerWalk, -- convert a Groebner basis
+      * *note setWalkTrace: setWalkTrace, -- set value of walkTrace
+  * Methods
+      * "groebnerWalk(GroebnerBasis,Ring)" -- see *note groebnerWalk:
+        groebnerWalk, -- convert a Groebner basis
+      * "groebnerWalk(Ideal,Ring)" -- see *note groebnerWalk: groebnerWalk, --
+        convert a Groebner basis
+      * "setWalkTrace(ZZ)" -- see *note setWalkTrace: setWalkTrace, -- set
+        value of walkTrace
+
+For the programmer
+==================
+
+The object *note GroebnerWalk: Top, is a *note package: (Macaulay2Doc)Package,,
+defined in GroebnerWalk.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in GroebnerWalk.m2:435:0.
+
+File: GroebnerWalk.info, Node: getWalkTrace, Next: groebnerWalk, Prev: Top, Up: Top
+
+getWalkTrace -- get current value of walkTrace
+**********************************************
+
+  * Usage: 
+        n = getWalkTrace()
+  * Outputs:
+      * n, an *note integer: (Macaulay2Doc)ZZ,, the current value of walkTrace
+
+Description
+===========
+
+The value of walkTrace determines how much additional information is printed
+during a call to *note groebnerWalk: groebnerWalk,. The function *note
+getWalkTrace: getWalkTrace, allows the user to check the current value of
+walkTrace.
+
+Levels of walkTrace are as follows:
+
+Level 0: No additional information is printed. This is the default level.
+
+Level 1: The total number of conversions performed during the algorithm is
+printed at the end of the computation. Conversions are sometimes done in
+initialization and finalization at the start and end of the path, and otherwise
+happen at faces in the Groebner fan.
+
+Level 2: All Level 1 information is printed, and the current vector and size of
+the Groebner basis are printed at each conversion step. Since information is
+printed at each conversion, this level is helpful for verifying that the
+computation is proceeding and noticing where the algorithm gets stuck.
+
+Level 3: All Level 2 information is printed, and the codimension of the face in
+the Groebner fan where the conversion is taking place is printed at each
+conversion. Note that running on Level 3 will significantly slow down the
+computation, and is not recommended except for testing.
+
++---------------------+
+|i1 : getWalkTrace()  |
+|                     |
+|o1 = 0               |
++---------------------+
+|i2 : setWalkTrace 2; |
++---------------------+
+|i3 : getWalkTrace()  |
+|                     |
+|o3 = 2               |
++---------------------+
+
+See also
+========
+
+  * *note groebnerWalk: groebnerWalk, -- convert a Groebner basis
+  * *note setWalkTrace: setWalkTrace, -- set value of walkTrace
+
+Ways to use getWalkTrace:
+=========================
+
+  * getWalkTrace() (missing documentation)
+
+For the programmer
+==================
+
+The object *note getWalkTrace: getWalkTrace, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in GroebnerWalk.m2:605:0.
+
+File: GroebnerWalk.info, Node: groebnerWalk, Next: groebnerWalk_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, Prev: getWalkTrace, Up: Top
+
+groebnerWalk -- convert a Groebner basis
+****************************************
+
+  * Usage: 
+        H = groebnerWalk(G, R)
+        H = groebnerWalk(I, R)
+  * Inputs:
+      * G, a *note Gröbner basis: (Macaulay2Doc)GroebnerBasis,, the starting
+        Groebner basis
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, the starting ideal
+      * R, a *note ring: (Macaulay2Doc)Ring,, a ring with the target monomial
+        order
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Strategy: groebnerWalk_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, =>
+        ..., default value Standard, specify the algorithm for groebnerWalk
+  * Outputs:
+      * H, a *note Gröbner basis: (Macaulay2Doc)GroebnerBasis,, the new
+        Groebner basis in the target monomial order
+
+Description
+===========
+
+The Groebner walk takes a Groebner basis of an ideal with respect to one
+monomial order and changes it into a Groebner basis of the same ideal over a
+different monomial order. The initial order is given by the ring of G and the
+target order is the order in R. When given an ideal I as input a Groebner basis
+of I in the ring of I is initially computed directly, and then this Groebner
+basis is converted into a Groebner basis in the ring R.
+
++--------------------------------------------------------------------+
+|i1 : KK = ZZ/32003;                                                 |
++--------------------------------------------------------------------+
+|i2 : R1 = KK[x,y,z,u,v, MonomialOrder=>Eliminate 3];                |
++--------------------------------------------------------------------+
+|i3 : I1 = ideal(3 - 2*u + 2*u^2 - 2*u^3 - v + u*v + 2*u^2*v^3 - x,  |
+|                6*u + 5*u^2 - u^3 + v + u*v + v^2 - y,              |
+|                -2 + 3*u - u*v + 2*u*v^2 - z);                      |
+|                                                                    |
+|o3 : Ideal of R1                                                    |
++--------------------------------------------------------------------+
+|i4 : R2 = KK[x,y,z,u,v, MonomialOrder=>Weights=>{0,0,0,1,1}];       |
++--------------------------------------------------------------------+
+|i5 : groebnerWalk(I1, R2)                                           |
+|                                                                    |
+|o5 = GroebnerBasis[status: done; S-pairs encountered up to degree 0]|
+|                                                                    |
+|o5 : GroebnerBasis                                                  |
++--------------------------------------------------------------------+
+
+Caveat
+======
+
+The target ring R must be the same ring as the ring of G or I, except with
+different monomial order. R must be a polynomial ring over a field.
+
+See also
+========
+
+  * *note GroebnerWalk: Top, -- Groebner bases via the Groebner walk
+  * *note setWalkTrace: setWalkTrace, -- set value of walkTrace
+  * *note getWalkTrace: getWalkTrace, -- get current value of walkTrace
+  * *note groebnerBasis: (Macaulay2Doc)groebnerBasis, -- Gröbner basis, as a
+    matrix
+
+Ways to use groebnerWalk:
+=========================
+
+  * "groebnerWalk(GroebnerBasis,Ring)"
+  * "groebnerWalk(Ideal,Ring)"
+
+For the programmer
+==================
+
+The object *note groebnerWalk: groebnerWalk, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in GroebnerWalk.m2:481:0.
+
+File: GroebnerWalk.info, Node: groebnerWalk_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, Next: setWalkTrace, Prev: groebnerWalk, Up: Top
+
+groebnerWalk(...,Strategy=>...) -- specify the algorithm for groebnerWalk
+*************************************************************************
+
+  * Usage: 
+        H = groebnerWalk(G, R, Strategy => Generic)
+
+Description
+===========
+
+Choose which algorithm to use for the Groebner walk. Options are Standard for
+the original algorithm of Collart, Kalkbrener, and Mall and Generic for the
+generic walk of Fukuda, Jensen, Lauritzen, and Thomas. The default option is
+Standard.
+
++--------------------------------------------------------------------+
+|i1 : KK = ZZ/32003;                                                 |
++--------------------------------------------------------------------+
+|i2 : R1 = KK[x,y,z,u,v, MonomialOrder=>Eliminate 3];                |
++--------------------------------------------------------------------+
+|i3 : I1 = ideal(3 - 2*u + 2*u^2 - 2*u^3 - v + u*v + 2*u^2*v^3 - x,  |
+|                6*u + 5*u^2 - u^3 + v + u*v + v^2 - y,              |
+|                -2 + 3*u - u*v + 2*u*v^2 - z);                      |
+|                                                                    |
+|o3 : Ideal of R1                                                    |
++--------------------------------------------------------------------+
+|i4 : R2 = KK[x,y,z,u,v, MonomialOrder=>Weights=>{0,0,0,1,1}];       |
++--------------------------------------------------------------------+
+|i5 : groebnerWalk(I1, R2, Strategy=>Generic)                        |
+|                                                                    |
+|o5 = GroebnerBasis[status: done; S-pairs encountered up to degree 0]|
+|                                                                    |
+|o5 : GroebnerBasis                                                  |
++--------------------------------------------------------------------+
+
+See also
+========
+
+  * *note GroebnerWalk: Top, -- Groebner bases via the Groebner walk
+  * *note groebnerWalk: groebnerWalk, -- convert a Groebner basis
+
+Functions with optional argument named Strategy:
+================================================
+
+  * "addHook(...,Strategy=>...)" -- see *note addHook: (Macaulay2Doc)addHook,
+    -- add a hook function to an object for later processing
+  * annihilator(...,Strategy=>...) (missing documentation)
+  * "basis(...,Strategy=>...)" -- see *note basis: (Macaulay2Doc)basis, --
+    basis or generating set of all or part of a ring, ideal or module
+  * "mingens(...,Strategy=>...)" -- see *note Complement:
+    (Macaulay2Doc)Complement, -- a Strategy option value
+  * "trim(...,Strategy=>...)" -- see *note Complement:
+    (Macaulay2Doc)Complement, -- a Strategy option value
+  * "compose(Module,Module,Module,Strategy=>...)" -- see *note compose:
+    (Macaulay2Doc)compose, -- composition as a pairing on Hom-modules
+  * decompose(Ideal,Strategy=>...) (missing documentation)
+  * *note determinant(...,Strategy=>...):
+    (Macaulay2Doc)determinant_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- choose
+    between Bareiss, Cofactor and Dynamic algorithms
+  * "dual(MonomialIdeal,List,Strategy=>...)" -- see *note
+    dual(MonomialIdeal,Strategy=>...):
+    (Macaulay2Doc)dual_lpMonomialIdeal_cmStrategy=>_pd_pd_pd_rp,
+  * "dual(MonomialIdeal,RingElement,Strategy=>...)" -- see *note
+    dual(MonomialIdeal,Strategy=>...):
+    (Macaulay2Doc)dual_lpMonomialIdeal_cmStrategy=>_pd_pd_pd_rp,
+  * *note dual(MonomialIdeal,Strategy=>...):
+    (Macaulay2Doc)dual_lpMonomialIdeal_cmStrategy=>_pd_pd_pd_rp,
+  * "End(...,Strategy=>...)" -- see *note End: (Macaulay2Doc)End, -- module of
+    endomorphisms
+  * *note exteriorPower(...,Strategy=>...):
+    (Macaulay2Doc)exteriorPower_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- choose
+    between Bareiss, Cofactor and Dynamic algorithms
+  * "gb(...,Strategy=>...)" -- see *note gb: (Macaulay2Doc)gb, -- compute a
+    Gröbner basis
+  * "GF(...,Strategy=>...)" -- see *note GF: (Macaulay2Doc)GF, -- make a finite
+    field
+  * "groebnerBasis(...,Strategy=>...)" -- see *note groebnerBasis:
+    (Macaulay2Doc)groebnerBasis, -- Gröbner basis, as a matrix
+  * *note groebnerWalk(...,Strategy=>...):
+    groebnerWalk_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- specify the algorithm
+    for groebnerWalk
+  * hilbertFunction(...,Strategy=>...) (missing documentation)
+  * "Hom(...,Strategy=>...)" -- see *note Hom: (Macaulay2Doc)Hom, -- module of
+    homomorphisms
+  * "homomorphism'(...,Strategy=>...)" -- see *note homomorphism':
+    (Macaulay2Doc)homomorphism', -- get the element of Hom from a homomorphism
+  * "hooks(...,Strategy=>...)" -- see *note hooks: (Macaulay2Doc)hooks, -- list
+    hooks attached to a key
+  * "intersect(Ideal,Ideal,Strategy=>...)" -- see *note intersect(Ideal,Ideal):
+    (Macaulay2Doc)intersect_lpIdeal_cmIdeal_rp, -- compute an intersection of a
+    sequence of ideals or modules
+  * "intersect(Module,Module,Strategy=>...)" -- see *note
+    intersect(Ideal,Ideal): (Macaulay2Doc)intersect_lpIdeal_cmIdeal_rp, --
+    compute an intersection of a sequence of ideals or modules
+  * isPrime(Ideal,Strategy=>...) (missing documentation)
+  * "match(...,Strategy=>...)" -- see *note match: (Macaulay2Doc)match, --
+    regular expression matching
+  * *note minors(...,Strategy=>...):
+    (Macaulay2Doc)minors_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- choose
+    between Bareiss, Cofactor and Dynamic algorithms
+  * normalCone(Ideal,RingElement,Strategy=>...) (missing documentation)
+  * normalCone(Ideal,Strategy=>...) (missing documentation)
+  * "parallelApply(...,Strategy=>...)" -- see *note parallelApply:
+    (Macaulay2Doc)parallelApply, -- apply a function to each element in
+    parallel
+  * "pushForward(...,Strategy=>...)" -- see *note pushForward(RingMap,Module):
+    (Macaulay2Doc)pushForward_lpRingMap_cmModule_rp, -- compute the pushforward
+    of a module along a ring map
+  * quotient'(...,Strategy=>...) (missing documentation)
+  * quotient(...,Strategy=>...) (missing documentation)
+  * saturate(...,Strategy=>...) (missing documentation)
+  * "syz(...,Strategy=>...)" -- see *note syz(Matrix):
+    (Macaulay2Doc)syz_lpMatrix_rp, -- compute the syzygy matrix
+
+Further information
+===================
+
+  * Default value: *note Standard: (Macaulay2Doc)Standard,
+  * Function: *note groebnerWalk: groebnerWalk, -- convert a Groebner basis
+  * Option key: *note Strategy: (Macaulay2Doc)Strategy, -- an optional argument
+-------------------------------------------------------------------------------
+
+The source of this document is in GroebnerWalk.m2:507:0.
+
+File: GroebnerWalk.info, Node: setWalkTrace, Prev: groebnerWalk_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, Up: Top
+
+setWalkTrace -- set value of walkTrace
+**************************************
+
+  * Usage: 
+        setWalkTrace(n)
+  * Inputs:
+      * n, an *note integer: (Macaulay2Doc)ZZ,, the desired value of walkTrace
+
+Description
+===========
+
+The value of walkTrace determines how much additional information is printed
+during a call to *note groebnerWalk: groebnerWalk,. The function *note
+setWalkTrace: setWalkTrace, allows the user to change the value of walkTrace.
+
+Levels of walkTrace are as follows:
+
+Level 0: No additional information is printed. This is the default level.
+
+Level 1: The total number of conversions performed during the algorithm is
+printed at the end of the computation. Conversions are sometimes done in
+initialization and finalization at the start and end of the path, and otherwise
+happen at faces in the Groebner fan.
+
+Level 2: All Level 1 information is printed, and the current vector and size of
+the Groebner basis are printed at each conversion step. Since information is
+printed at each conversion, this level is helpful for verifying that the
+computation is proceeding and noticing where the algorithm gets stuck.
+
+Level 3: All Level 2 information is printed, and the codimension of the face in
+the Groebner fan where the conversion is taking place is printed at each
+conversion. Note that running on Level 3 will significantly slow down the
+computation, and is not recommended except for testing.
+
+For example, running the following code at the default Level 0 prints nothing
+
++--------------------------------------------------------------------+
+|i1 : R1 = ZZ/32003[x,y,z, MonomialOrder=>Weights=>{1,10,100}];      |
++--------------------------------------------------------------------+
+|i2 : I1 = ideal(y-x^2, z-x^3);                                      |
+|                                                                    |
+|o2 : Ideal of R1                                                    |
++--------------------------------------------------------------------+
+|i3 : R2 = ZZ/32003[x,y,z, MonomialOrder=>Lex];                      |
++--------------------------------------------------------------------+
+|i4 : groebnerWalk(gb I1, R2)                                        |
+|                                                                    |
+|o4 = GroebnerBasis[status: done; S-pairs encountered up to degree 0]|
+|                                                                    |
+|o4 : GroebnerBasis                                                  |
++--------------------------------------------------------------------+
+
+while running at Level 2 gives some conversion information.
+
++--------------------------------------------------------------------+
+|i5 : setWalkTrace 2;                                                |
++--------------------------------------------------------------------+
+|i6 : groebnerWalk(gb I1, R2)                                        |
+|Conversion Number: 1                                                |
+|Weight Vector: {1, 10, 100}                                         |
+|Size of new Groebner Basis: 2                                       |
+|                                                                    |
+|Conversion Number: 2                                                |
+|Weight Vector: {1, 2, 20}                                           |
+|Size of new Groebner Basis: 2                                       |
+|                                                                    |
+|Conversion Number: 3                                                |
+|Weight Vector: {9, 1, 10}                                           |
+|Size of new Groebner Basis: 4                                       |
+|                                                                    |
+|Conversion Number: 4                                                |
+|Weight Vector: {1, 0, 0}                                            |
+|Size of new Groebner Basis: 4                                       |
+|                                                                    |
+|Conversion Number: 5                                                |
+|Weight Vector: {1, 0, 0}                                            |
+|Size of new Groebner Basis: 4                                       |
+|                                                                    |
+|Total Conversions: 5                                                |
+|                                                                    |
+|o6 = GroebnerBasis[status: done; S-pairs encountered up to degree 0]|
+|                                                                    |
+|o6 : GroebnerBasis                                                  |
++--------------------------------------------------------------------+
+
+See also
+========
+
+  * *note groebnerWalk: groebnerWalk, -- convert a Groebner basis
+  * *note getWalkTrace: getWalkTrace, -- get current value of walkTrace
+
+Ways to use setWalkTrace:
+=========================
+
+  * "setWalkTrace(ZZ)"
+
+For the programmer
+==================
+
+The object *note setWalkTrace: setWalkTrace, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in GroebnerWalk.m2:561:0.
+
+Tag Table:
+Node: Top245
+Node: getWalkTrace6787
+Node: groebnerWalk9118
+Node: groebnerWalk_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp12774
+Node: setWalkTrace19401
+
+End Tag Table

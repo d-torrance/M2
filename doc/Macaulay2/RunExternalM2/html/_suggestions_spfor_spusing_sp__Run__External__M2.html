@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>suggestions for using RunExternalM2 -- suggestions for using RunExternalM2</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="run Macaulay2 functions outside the current Macaulay2 process" href="index.html">RunExternalM2</a> :: <a title="suggestions for using RunExternalM2" href="_suggestions_spfor_spusing_sp__Run__External__M2.html">suggestions for using RunExternalM2</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+next | <a href="_run__External__M2__Return__Answer.html">previous</a> | forward | <a href="_run__External__M2__Return__Answer.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>suggestions for using RunExternalM2 -- suggestions for using RunExternalM2</h1>
+      <div>
+        <div>
+          <p>A suggested way of writing programs using this package is to write your program in a file, perhaps named <span class="tt">&quot;somefilename.m2&quot;</span>, with the following structure:</p>
+        </div>
+        <pre>needsPackage &quot;RunExternalM2&quot;
+
+...
+(ring definitions, etc., here)
+...
+
+
+mycalc = (...) -> (
+        ...
+        (do a calculation)
+        ...
+);
+
+if isExternalM2Parent() then (
+        ...
+        h=runExternalM2(&quot;somefilename.m2&quot;,mycalc,...);
+        ...
+);</pre>
+        <div>
+          <p>and then execute your program in Macaulay2 by running:</p>
+        </div>
+        <pre>i1 : load &quot;somefilename.m2&quot;</pre>
+        <div>
+          <p></p>
+          <p>This has a few advantages. It ensures that ring definitions are always the same in the parent and child Macaulay2 processes, even if you are frequently editing the file and running the calculation again. If the file containing the function has syntax errors, then they should appear directly in the console rather than inside a temporary file containing the program's output. If a particular try at execution does not work, then you can immediately call the function directly for quick debugging.</p>
+          <p>For instance, the following code calculates an ideal of minors:</p>
+        </div>
+        <pre>needsPackage &quot;RunExternalM2&quot;
+
+m=4;
+n=3;
+R=QQ[x_(1,1)..x_(m,n)];
+
+idealOfMinors = (i) -> (
+        M:=genericMatrix(R,m,n);
+        return trim minors(i,M);
+);
+
+if isExternalM2Parent() then (
+        h=runExternalM2(&quot;example1.m2&quot;,idealOfMinors,2);
+        if (h#&quot;exit code&quot;===0) then (
+                stdio&lt;&lt;&quot;The code ran successfully and the answer was:&quot;&lt;&lt;endl;
+                stdio&lt;&lt;toExternalString(h#value)&lt;&lt;endl;
+        ) else (
+                stderr&lt;&lt;&quot;There was a problem.&quot;&lt;&lt;endl;
+        );
+);</pre>
+        <div>
+          <p></p>
+          <p>When using random numbers, it may be useful for the parent to provide the random number seed to the child, so that the output of the child is reproducible. For instance, the following code searches for a random integer matrix with a large determinant:</p>
+        </div>
+        <pre>needsPackage &quot;RunExternalM2&quot;
+
+getRandomMat = (seed,size,height) -> (
+        setRandomSeed(seed);
+        blankMat:=mutableMatrix(ZZ,size,size);
+        return matrix fillMatrix(blankMat,Height=>height);
+);
+
+if isExternalM2Parent() then (
+        seed:=0;
+        while (true) do (
+                seed=random(0,2^32);
+                h:=runExternalM2(&quot;z1.m2&quot;,getRandomMat,(seed,5,5));
+                if (h#&quot;exit code&quot;===0) then (
+                        d:=det(h#value);
+                        stdio&lt;&lt;&quot;Starting with seed &quot;&lt;&lt;seed&lt;&lt;&quot; gives this matrix (with det=&quot;&lt;&lt;d&lt;&lt;&quot;):&quot;&lt;&lt;endl;
+                        stdio&lt;&lt;&quot;  &quot;&lt;&lt;h#value&lt;&lt;endl;
+
+                        if (d>100) then (
+                                break;
+                        );
+                ) else (
+                        stderr&lt;&lt;&quot;There was a problem; aborting.&quot;&lt;&lt;endl;
+                        break;
+                );
+        );
+
+        stdio&lt;&lt;&quot;Using the seed &quot;&lt;&lt;seed&lt;&lt;&quot; again gives the same matrix:&quot;&lt;&lt;endl;
+        stdio&lt;&lt;&quot;  &quot;&lt;&lt;getRandomMat(seed,5,5)&lt;&lt;endl;
+);</pre>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="run Macaulay2 functions outside the current Macaulay2 process" href="index.html">RunExternalM2</a> -- run Macaulay2 functions outside the current Macaulay2 process</span></li>
+          <li><span><a title="run a Macaulay2 function in a new Macaulay2 process" href="_run__External__M2.html">runExternalM2</a> -- run a Macaulay2 function in a new Macaulay2 process</span></li>
+          <li><span><a title="indicate if this process is a parent process or not" href="_is__External__M2__Parent.html">isExternalM2Parent</a> -- indicate if this process is a parent process or not</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">RunExternalM2.m2:894:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

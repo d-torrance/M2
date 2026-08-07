@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>SVDHomology -- Estimate the homology of a chain complex over RR with the SVD decomposition</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="SVD (singular value decomposition) of a complex over the reals and related functions" href="index.html">SVDComplexes</a> :: <a title="Estimate the homology of a chain complex over RR with the SVD decomposition" href="___S__V__D__Homology.html">SVDHomology</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+next | <a href="___S__V__D__Complex.html">previous</a> | forward | <a href="___S__V__D__Complex.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>SVDHomology -- Estimate the homology of a chain complex over RR with the SVD decomposition</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">(h,h1)=SVDHomology C or</code></dd>
+            <dd><code class="language-macaulay2">(h,h1)=SVDHomology(C,C')</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">C</span>, <span>a <a title="the class of all chain complexes" href="../../Complexes/html/___Complex.html">complex</a></span>, over RR_{53}</span></li>
+            <li><span><span class="tt">C'</span>, <span>a <a title="the class of all chain complexes" href="../../Complexes/html/___Complex.html">complex</a></span>, in a lower precision</span></li>
+          </ul>
+        </li>
+        <li><a href="../../Macaulay2Doc/html/_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:          <ul>
+            <li><span><span class="tt">Strategy</span><span class="tt"> => </span><span>a <a title="the class of all symbols" href="../../Macaulay2Doc/html/___Symbol.html">symbol</a></span>, <span>default value Projection</span>, Laplacian or Projection for the method used</span></li>
+            <li><span><span class="tt">Threshold</span><span class="tt"> => </span><span>a <a title="the class of all real numbers" href="../../Macaulay2Doc/html/___R__R.html">real number</a></span>, <span>default value .0001</span>, the relative threshold used to detect the zero singular values</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span class="tt">h</span>, <span>a <a title="the class of all hash tables" href="../../Macaulay2Doc/html/___Hash__Table.html">hash table</a></span>, the dimensions of the homology groups HH C</span></li>
+            <li><span><span class="tt">h1</span>, <span>a <a title="the class of all hash tables" href="../../Macaulay2Doc/html/___Hash__Table.html">hash table</a></span>, information about the singular values</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>We compute the singular value decomposition either by the iterated Projections or by the Laplacian method. In case of the projection method we record in h1 the last two nonzero singular values and first singular value expected to be really zero.</p>
+          <p>In case of the Laplacian method we record in h1 the smallest common Eigenvalues of the neighboring Laplacians, and the first Eigenvalue expected to be zero.</p>
+          <p>In case the input consists of two chain complexes we use the iterated  Projection method, and identify the stable singular values.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : needsPackage &quot;RandomComplexes&quot;
+
+o1 = RandomComplexes
+
+o1 : Package</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : h={1,3,5,2}
+
+o2 = {1, 3, 5, 2}
+
+o2 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : r={4,3,3}
+
+o3 = {4, 3, 3}
+
+o3 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : elapsedTime C=randomChainComplex(h,r,Height=>5,ZeroMean=>true)
+ -- .041897s elapsed
+
+       5       10       11       5
+o4 = ZZ  &lt;-- ZZ   &lt;-- ZZ   &lt;-- ZZ
+                                
+     0       1        2        3
+
+o4 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : C.dd^2
+
+o5 = 0
+
+o5 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : CR=(C**RR_53)
+
+         5         10         11         5
+o6 = RR    &lt;-- RR     &lt;-- RR     &lt;-- RR
+       53        53         53         53
+                                      
+     0         1          2          3
+
+o6 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : elapsedTime (h,h1)=SVDHomology CR
+ -- .000617367s elapsed
+
+o7 = (HashTable{0 => 1}, HashTable{1 => (7.87842, 1.31052, )           })
+                1 => 3             2 => (37.9214, 30.3707, 4.44441e-15)
+                2 => 5             3 => (14.972, 8.57847, 2.56036e-15)
+                3 => 2
+
+o7 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : elapsedTime (hL,hL1)=SVDHomology(CR,Strategy=>Laplacian)
+ -- .00146271s elapsed
+
+o8 = (HashTable{0 => 1}, HashTable{0 => (, 1.71747, -1.49161e-14)      })
+                1 => 3             1 => (1.71747, 922.381, 6.04463e-13)
+                2 => 5             2 => (922.381, 73.5901, 1.85733e-13)
+                3 => 2             3 => (73.5901, , 5.10357e-14)
+
+o8 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : hL === h
+
+o9 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : (h1#1_1)^2, hL1#1_0, (h1#1_1)^2-hL1#1_0
+
+o10 = (1.71747, 1.71747, -3.83693e-13)
+
+o10 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : (h1#2_1)^2, hL1#2_0, (h1#2_1)^2-hL1#2_0
+
+o11 = (922.381, 922.381, -9.09495e-13)
+
+o11 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : (h1#3_1)^2, hL1#3_0, (h1#3_1)^2-hL1#3_0
+
+o12 = (73.5901, 73.5901, -1.42109e-14)
+
+o12 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : D=disturb(C,1e-3,Strategy=>Discrete)
+
+          5         10         11         5
+o13 = RR    &lt;-- RR     &lt;-- RR     &lt;-- RR
+        53        53         53         53
+                                       
+      0         1          2          3
+
+o13 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : C.dd_1
+
+o14 = | -1 -1 -5 -3 -4 -2 3 -3 7  -1 |
+      | -5 -2 -1 5  -3 1  5 4  3  0  |
+      | 1  -3 5  5  0  3  4 3  -9 -3 |
+      | 0  -3 -4 -2 -5 -1 6 -3 4  -3 |
+      | -1 -2 3  5  1  3  3 4  -5 0  |
+
+               5       10
+o14 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : D.dd_1
+
+o15 = | -.999  -1.001 -4.995 -2.997 -3.996 -2.002 2.997 -3.003 6.993  -.999 
+      | -5.005 -2.002 -.999  4.995  -2.997 1.001  5.005 3.996  3.003  0     
+      | .999   -3.003 5.005  4.995  0      3.003  4.004 3.003  -8.991 -3.003
+      | 0      -2.997 -3.996 -2.002 -4.995 -1.001 6.006 -3.003 4.004  -3.003
+      | -1.001 -2.002 2.997  5.005  1.001  2.997  3.003 3.996  -4.995 0     
+      -----------------------------------------------------------------------
+      |
+      |
+      |
+      |
+      |
+
+                 5         10
+o15 : Matrix RR    &lt;-- RR
+               53        53</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : (hd,hd1)=SVDHomology(CR,D,Threshold=>1e-2)
+
+o16 = (HashTable{0 => 1}, HashTable{1 => (7.87842, 1.31052, )           })
+                 1 => 3             2 => (37.9214, 30.3707, 4.44441e-15)
+                 2 => 5             3 => (14.972, 8.57847, 2.56036e-15)
+                 3 => 2
+
+o16 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : hd === h
+
+o17 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : hd1 === h1
+
+o18 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>The algorithm might fail if the condition numbers of the differential are too bad</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Compute the SVD decomposition of a chain complex over RR" href="___S__V__D__Complex.html">SVDComplex</a> -- Compute the SVD decomposition of a chain complex over RR</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">SVDHomology</span>:</h2>
+          <ul>
+            <li><kbd>SVDHomology(Complex)</kbd></li>
+            <li><kbd>SVDHomology(Complex,Complex)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="Estimate the homology of a chain complex over RR with the SVD decomposition" href="___S__V__D__Homology.html">SVDHomology</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function__With__Options.html">method function with options</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">SVDComplexes.m2:1132:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

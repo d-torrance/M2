@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>StrategyDefault -- strategies for choosing submatrices</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="faster linear algebra operations" href="index.html">FastMinors</a> :: <a title="strategies for choosing submatrices" href="___Strategy__Default.html">StrategyDefault</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Verify__Non__Regular.html">next</a> | <a href="_reorder__Polynomial__Ring.html">previous</a> | <a href="___Verify__Non__Regular.html">forward</a> | <a href="_reorder__Polynomial__Ring.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>StrategyDefault -- strategies for choosing submatrices</h1>
+      <div>
+        <h2>Description</h2>
+Many of the core functions of this package allow the user to fine tune the strategy used for selecting submatrices.  Different strategies yield markedly different performance or results on various examples. These are controlled by specifying a <span class="tt"> Strategy => </span> option, pointing to a <span class="tt"> HashTable</span>which specifies several strategies should be used simultaneously, or to a symbol saying we should use only a single strategy.  For a more detailed look at this in an example please see <a title="How to use and construct strategies for selecting submatrices in various functions" href="___Fast__Minors__Strategy__Tutorial.html">FastMinorsStrategyTutorial</a>Before describing the available strategies, we begin by roughly outlining the different approaches.        <ul>
+          <li><b>Heuristic submatrix selection:</b> In this case, a submatrix is chosen via a greedy algorithm, looking for a submatrix with smallest (or largest) degree with respect to a random monomial order.</li>
+          <li><b>Submatrix selection via rational and geometric points:</b> Here a rational or geometric point is found where a given ideal vanishes.  That point is plugged into the matrix and a submatrix of full rank is identified.   This approach currently only works over a finite field and is accomplished with the help of the package <a title="find a point in a given variety over a finite field" href="../../RandomPoints/html/index.html">RandomPoints</a>.</li>
+          <li><b>Random submatrix selection:</b> This either chooses a completely random submatrix, or a submatrix which has no zero columns or rows.</li>
+        </ul>
+There we highlight five pre-programmed strategies provided to the user.        <ul>
+          <li><span class="tt">StrategyDefault</span>: this uses a mix of heuristics and random submatrices.</li>
+          <li><span class="tt">StrategyRandom</span>: this uses purely random submatrices.</li>
+          <li><span class="tt">StrategyDefaultNonRandom</span>: this uses a mix of heuristics but no random submatrices.</li>
+          <li><span class="tt">StrategyPoints</span>: this only uses rational / geometric points to find submatrices.</li>
+          <li><span class="tt">StrategyDefaultWithPoints</span>: this uses a mix of heuristics and submatrices chosen with rational and geometric points.</li>
+        </ul>
+Below the details of how these strategies are constructed will be detailed below.  But first, we provide an example showing that these strategies can perform quite differently.  The following is the cone over the product of two elliptic curves.  We verify that this ring is regular in codimension 1 using different strategies.  Essentially, minors are computed until it is verified that the ring is regular in codimension 1.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : T=ZZ/7[a..i]/ideal(f*h-e*i,c*h-b*i,f*g-d*i,e*g-d*h,c*g-a*i,b*g-a*h,c*e-b*f,c*d-a*f,b*d-a*e,g^3-h^2*i-g*i^2,d*g^2-e*h*i-d*i^2,a*g^2-b*h*i-a*i^2,d^2*g-e^2*i-d*f*i,a*d*g-b*e*i-a*f*i,a^2*g-b^2*i-a*c*i,d^3-e^2*f-d*f^2,a*d^2-b*e*f-a*f^2,a^2*d-b^2*f-a*c*f,c^3+f^3-i^3,b*c^2+e*f^2-h*i^2,a*c^2+d*f^2-g*i^2,b^2*c+e^2*f-h^2*i,a*b*c+d*e*f-g*h*i,a^2*c+d^2*f-g^2*i,b^3+e^3-h^3,a*b^2+d*e^2-g*h^2,a^2*b+d^2*e-g^2*h,a^3+e^2*f+d*f^2-h^2*i-g*i^2);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : elapsedTime regularInCodimension(1, T, Strategy=>StrategyDefault)
+ -- 4.43011s elapsed
+
+o2 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+In this particular example, on one machine, we list average time to completion of each of the above strategies after 100 runs.        <ul>
+          <li><span class="tt">StrategyDefault</span>: 1.65 seconds</li>
+          <li><span class="tt">StrategyRandom</span>: 8.32 seconds</li>
+          <li><span class="tt">StrategyDefaultNonRandom</span>: 0.99 seconds</li>
+          <li><span class="tt">StrategyPoints</span>: 3.27 seconds</li>
+          <li><span class="tt">StrategyDefaultWithPoints</span>: 3.37</li>
+        </ul>
+Roughly speaking, heuristics tend to provide more information than random submatrices and so they work much faster since they consider far fewer submatrices.  Frequently also, computing random or rational points does have advantages as typically fewer still minors are needed (hence if computing minors is slow <span class="tt">StrategyPoints</span> is a good choice).  However, sometimes that non-trivial point computation will become stuck (in the above example, the median time for <span class="tt">StrategyPoints</span> and <span class="tt">StrategyDefaultWithPoints</span> was close to 1.5 seconds, but a couple runs in each case were orders of magnitude slower).<br><br><b>Custom Strategies</b><br>The user can create their own strategies as well, as we now explain.  In particular, the user can even customize the heuristics used.  See below for how to easily use only a single heuristic. To custom strategy is specified by a <span class="tt">HashTable</span> which must have the following keys.        <ul>
+          <li><span class="tt">GRevLexLargest</span>: try to find submatrices where each row and column has a large entry with respect to a random <span class="tt">GRevLex</span>order.</li>
+          <li><span class="tt">GRevLexSmallest</span>: try to find submatrices where each row and column has a small entry with respect to a random <span class="tt">GRevLex</span>order.</li>
+          <li><span class="tt">GRevLexSmallestTerm</span>: find submatrices where each row and column has an entry with a small term with respect to a random <span class="tt">GRevLex</span>order.</li>
+          <li><span class="tt">LexLargest</span>: try to find submatrices where each row and column has a large entry with respect to a random <span class="tt">Lex</span>order.</li>
+          <li><span class="tt">LexSmallest</span>: try to find submatrices where each row and column has a small entry with respect to a random <span class="tt">Lex</span>order.</li>
+          <li><span class="tt">LexSmallestTerm</span>: find submatrices where each row and column has an entry with a small term with respect to a random <span class="tt">Lex</span>order.</li>
+          <li><span class="tt">Random</span>: find random submatrices </li>
+          <li><span class="tt">RandomNonzero</span>: find random submatrices that have nonzero rows and columns</li>
+          <li><span class="tt">Points</span>: find submatrices that are not singular at the given ideal by finding a point where that ideal vanishes, and evaluating the matrix at that point (via the package <a title="find a point in a given variety over a finite field" href="../../RandomPoints/html/index.html">RandomPoints</a>).  If working over a characteristic zero field, this will select random submatrices.  To access options for that package, set the <a title="options to pass to functions in the package RandomPoints" href="___Point__Options.html">PointOptions</a> option.</li>
+        </ul>
+For example:        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : peek StrategyDefault
+
+o3 = OptionTable{GRevLexLargest => 0      }
+                 GRevLexSmallest => 16
+                 GRevLexSmallestTerm => 16
+                 LexLargest => 0
+                 LexSmallest => 16
+                 LexSmallestTerm => 16
+                 Points => 0
+                 Random => 16
+                 RandomNonzero => 16</code></pre>
+            </td>
+          </tr>
+        </table>
+Each such key should point to an integer.  The larger the integer, the more likely that such a minor will be chosen.  <br><br>Functions such as <a title="returns an ideal generated by interesting minors in a matrix" href="_choose__Good__Minors.html">chooseGoodMinors</a> will select a number of random submatrices based on the values of those keys.  For example, if <span class="tt">LexSmallest</span> and <span class="tt">LexLargest</span> are set to <span class="tt">50</span> approximately the submatrics will be smallest with respect to <span class="tt">Lex</span> and the other half will be largest with respect to <span class="tt">Lex.</span>The values do not need to add up to 100.<br><br>The heuristic functions all work by finding the optimal entry with respect to the given strategy, removing that row and column, and then choosing the next optimal entry.  This is done until a submatrix of the desired size has been found.<br><br>In some functions, the <span class="tt">GRevLex</span> versions of this strategy will modify the working matrix in a loop, repeatedly lowering/raising the degree of elementsso as to ensure that different choices are made.<br><br>We briefly summarize the Strategies provided to the user by default (some of which we have seen in action above)        <ul>
+          <li><span class="tt">StrategyDefault</span>: 16% of the matrices are <span class="tt">LexSmallest</span>, <span class="tt">LexSmallestTerm</span>, <span class="tt">GRevLexSmallest</span>, <span class="tt">GRevLexLargest</span>, <span class="tt">Random</span>, and <span class="tt">RandomNonZero</span> each</li>
+          <li><span class="tt">StrategyDefaultNonRandom</span>: 25% of the matrices are <span class="tt">LexSmallest</span>, <span class="tt">LexSmallestTerm</span>, <span class="tt">GRevLexSmallest</span> and, <span class="tt">GRevLexLargest</span> each</li>
+          <li><span class="tt">StrategyLexSmallest</span>: 50% of the matrices are <span class="tt">LexSmallest</span> and 50% are <span class="tt">LexSmallestTerm</span></li>
+          <li><span class="tt">StrategyGRevLexSmallest</span>: 50% of the matrices are <span class="tt">GRevLexSmallest</span> and 50% are <span class="tt">GRevLexLargest</span></li>
+          <li><span class="tt">StrategyRandom</span>: chooses 100% random submatrices.</li>
+          <li><span class="tt">StrategyPoints</span>: choose all submatrices via Points.</li>
+          <li><span class="tt">StrategyDefaultWithPoints</span>: like <span class="tt">StrategyDefault</span> but replaces the <span class="tt">Random</span> and RandomNonZero submatrices as with matrices chosen as in Points.</li>
+        </ul>
+Additionally, a <span class="tt">MutableHashTable</span> named <span class="tt">StrategyCurrent</span> is also exported.  It begins as the default strategy, but the user can modify it.<br><br><b>Using a single heuristic  </b>Alternatively, if the user only wants to use say <span class="tt">LexSmallestTerm</span> they can set, <span class="tt">Strategy</span> to point to that symbol, instead of a creating a custom strategy HashTable.  For example:         <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : elapsedTime regularInCodimension(1, T, Strategy=>LexSmallestTerm)
+ -- 1.81319s elapsed
+
+o4 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="strategies for choosing submatrices" href="___Strategy__Default.html">StrategyDefault</a> is <span>an <a title="the class of hash tables for optional arguments" href="../../Macaulay2Doc/html/___Option__Table.html">option table</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">FastMinors.m2:2037:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

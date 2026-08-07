@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>quotient(...,Strategy=>...)</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="quotient, saturation, and annihilator routines for ideals and modules" href="index.html">Saturation</a> :: <a href="_quotient_lp..._cm__Strategy_eq_gt..._rp.html">quotient(...,Strategy=>...)</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_saturate_lp..._cm__Strategy_eq_gt..._rp.html">next</a> | <a href="_module_spquotients_cm_spsaturation_cm_spand_spannihilator.html">previous</a> | <a href="_saturate_lp..._cm__Strategy_eq_gt..._rp.html">forward</a> | <a href="_module_spquotients_cm_spsaturation_cm_spand_spannihilator.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>quotient(...,Strategy=>...)</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>Suppose that <span class="tt">I</span> is the image of a free module <span class="tt">FI</span> in a quotient module <span class="tt">G</span>, and <span class="tt">J</span> is the image of the free module <span class="tt">FJ</span> in <span class="tt">G</span>.</p>
+          <p>Available strategies for the computation can be listed using the function <a title="list hooks attached to a key" href="../../Macaulay2Doc/html/_hooks.html">hooks</a>:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : hooks methods(quotient, Ideal, Ideal)
+
+o1 = {0 => (quotient, Ideal, Ideal, Strategy => Quotient)}
+     {1 => (quotient, Ideal, Ideal, Strategy => Iterate) }
+     {2 => (quotient, Ideal, Ideal, Strategy => Monomial)}
+
+o1 : NumberedVerticalList</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The strategy <span class="tt">Quotient</span> computes the first components of the syzygies of the map $R\oplus(FJ^\vee\otimes FI) \to FJ^\vee \otimes G$. The Macaulay2 code for each strategy can be viewed using the function <a title="display source code" href="../../Macaulay2Doc/html/_code.html">code</a>:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : code(quotient, Ideal, Ideal, Strategy => Quotient)
+
+o2 = -- code for strategy: quotient(Ideal,Ideal,Strategy => Quotient)
+     ../../../../../Macaulay2/packages/Saturation.m2:226:16-238:25: --source
+     code:
+         Quotient => (opts, I, J) -> (
+             R := ring I;
+             -- FIXME: this line computes a gb for I!!!
+             mR := transpose generators J ** (R / I);
+             -- if J is a single element, this is the same as
+             -- computing syz gb(matrix{{f}} | generators I, ...)
+             g := syz gb(mR, opts,
+                 Strategy   => LongPolynomial,
+                 Syzygies   => true,
+                 SyzygyRows => 1);
+             -- The degrees of g are not correct, so we fix that here:
+             -- g = map(R^1, null, g);
+             lift(ideal g, R)),</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>If <span class="tt">Strategy => Iterate</span> then quotient first computes the quotient <span class="tt">I1</span> by the first generator of <span class="tt">J</span>. It then checks whether this quotient already annihilates the second generator of <span class="tt">J mod I</span>. If so, it goes on to the third generator; else it intersects <span class="tt">I1</span> with the quotient of <span class="tt">I</span> by the second generator to produce a new <span class="tt">I1</span>. It then iterates this process, working through the generators one at a time.</p>
+          <p>To use <span class="tt">Strategy=>Linear</span> the argument <span class="tt">J</span> must be a principal ideal, generated by a linear form. A change of variables is made so that this linear form becomes the last variable. Then a reverse lex Gröbner basis is used, and the quotient of the initial ideal by the last variable is computed combinatorially. This set of monomial is then lifted back to a set of generators for the quotient.</p>
+          <p>The following examples show timings for the different strategies. <span class="tt">Strategy => Iterate</span> is sometimes faster for ideals with a small number of generators:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : n = 6
+
+o3 = 6</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : S = ZZ/101[vars(0..n-1)];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : I = monomialCurveIdeal(S, 1..n-1);
+
+o5 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : J = ideal(map(S^1, S^n, (p, q) -> S_q^5));
+
+o6 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : time quotient(I^3, J^2, Strategy => Iterate);
+ -- used 0.443356s (cpu); 0.390391s (thread); 0s (gc)
+
+o7 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : time quotient(I^3, J^2, Strategy => Quotient);
+ -- used 0.756126s (cpu); 0.650496s (thread); 0s (gc)
+
+o8 : Ideal of S</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p><span class="tt">Strategy => Quotient</span> is faster in other cases:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : S = ZZ/101[vars(0..4)];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : I = ideal vars S;
+
+o10 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : time quotient(I^5, I^3, Strategy => Iterate);
+ -- used 0.0262354s (cpu); 0.0262381s (thread); 0s (gc)
+
+o11 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : time quotient(I^5, I^3, Strategy => Quotient);
+ -- used 0.00885803s (cpu); 0.00885983s (thread); 0s (gc)
+
+o12 : Ideal of S</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>References</h2>
+        <div>
+          <p>For further information see for example Exercise 15.41 in Eisenbud's Commutative Algebra with a View Towards Algebraic Geometry.</p>
+        </div>
+      </div>
+      <div>
+        <div>
+          <h2>Functions with optional argument named <span class="tt">Strategy</span>:</h2>
+          <ul>
+            <li><span><kbd>addHook(...,Strategy=>...)</kbd> -- see <span><a title="add a hook function to an object for later processing" href="../../Macaulay2Doc/html/_add__Hook.html">addHook</a> -- add a hook function to an object for later processing</span></span></li>
+            <li><span><kbd>annihilator(...,Strategy=>...)</kbd> -- see <span><a title="the annihilator ideal" href="_annihilator.html">annihilator</a> -- the annihilator ideal</span></span></li>
+            <li><span><kbd>basis(...,Strategy=>...)</kbd> -- see <span><a title="basis or generating set of all or part of a ring, ideal or module" href="../../Macaulay2Doc/html/_basis.html">basis</a> -- basis or generating set of all or part of a ring, ideal or module</span></span></li>
+            <li><span><kbd>mingens(...,Strategy=>...)</kbd> -- see <span><a title="a Strategy option value" href="../../Macaulay2Doc/html/___Complement.html">Complement</a> -- a Strategy option value</span></span></li>
+            <li><span><kbd>trim(...,Strategy=>...)</kbd> -- see <span><a title="a Strategy option value" href="../../Macaulay2Doc/html/___Complement.html">Complement</a> -- a Strategy option value</span></span></li>
+            <li><span><kbd>compose(Module,Module,Module,Strategy=>...)</kbd> -- see <span><a title="composition as a pairing on Hom-modules" href="../../Macaulay2Doc/html/_compose.html">compose</a> -- composition as a pairing on Hom-modules</span></span></li>
+            <li><span><span class="tt">decompose(Ideal,Strategy=>...)</span> (missing documentation)<!--tag: [(decompose,Ideal), Strategy]-->
+</span></li>
+            <li><span><a title="choose between Bareiss, Cofactor and Dynamic algorithms" href="../../Macaulay2Doc/html/_determinant_lp..._cm__Strategy_eq_gt..._rp.html">determinant(...,Strategy=>...)</a> -- choose between Bareiss, Cofactor and Dynamic algorithms</span></li>
+            <li><span><kbd>dual(MonomialIdeal,List,Strategy=>...)</kbd> -- see <span><a href="../../Macaulay2Doc/html/_dual_lp__Monomial__Ideal_cm__Strategy_eq_gt..._rp.html">dual(MonomialIdeal,Strategy=>...)</a></span></span></li>
+            <li><span><kbd>dual(MonomialIdeal,RingElement,Strategy=>...)</kbd> -- see <span><a href="../../Macaulay2Doc/html/_dual_lp__Monomial__Ideal_cm__Strategy_eq_gt..._rp.html">dual(MonomialIdeal,Strategy=>...)</a></span></span></li>
+            <li><span><a href="../../Macaulay2Doc/html/_dual_lp__Monomial__Ideal_cm__Strategy_eq_gt..._rp.html">dual(MonomialIdeal,Strategy=>...)</a></span></li>
+            <li><span><kbd>End(...,Strategy=>...)</kbd> -- see <span><a title="module of endomorphisms" href="../../Macaulay2Doc/html/___End.html">End</a> -- module of endomorphisms</span></span></li>
+            <li><span><span class="tt">epicResolutionMap(...,Strategy=>...)</span> (missing documentation)<!--tag: [epicResolutionMap, Strategy]-->
+</span></li>
+            <li><span><a title="choose between Bareiss, Cofactor and Dynamic algorithms" href="../../Macaulay2Doc/html/_exterior__Power_lp..._cm__Strategy_eq_gt..._rp.html">exteriorPower(...,Strategy=>...)</a> -- choose between Bareiss, Cofactor and Dynamic algorithms</span></li>
+            <li><span><kbd>gb(...,Strategy=>...)</kbd> -- see <span><a title="compute a Gröbner basis" href="../../Macaulay2Doc/html/_gb.html">gb</a> -- compute a Gröbner basis</span></span></li>
+            <li><span><kbd>GF(...,Strategy=>...)</kbd> -- see <span><a title="make a finite field" href="../../Macaulay2Doc/html/___G__F.html">GF</a> -- make a finite field</span></span></li>
+            <li><span><kbd>groebnerBasis(...,Strategy=>...)</kbd> -- see <span><a title="Gröbner basis, as a matrix" href="../../Macaulay2Doc/html/_groebner__Basis.html">groebnerBasis</a> -- Gröbner basis, as a matrix</span></span></li>
+            <li><span><span class="tt">hilbertFunction(...,Strategy=>...)</span> (missing documentation)<!--tag: [hilbertFunction, Strategy]-->
+</span></li>
+            <li><span><kbd>Hom(...,Strategy=>...)</kbd> -- see <span><a title="module of homomorphisms" href="../../Macaulay2Doc/html/___Hom.html">Hom</a> -- module of homomorphisms</span></span></li>
+            <li><span><kbd>homomorphism'(...,Strategy=>...)</kbd> -- see <span><a title="get the element of Hom from a homomorphism" href="../../Macaulay2Doc/html/_homomorphism_sq.html">homomorphism'</a> -- get the element of Hom from a homomorphism</span></span></li>
+            <li><span><kbd>hooks(...,Strategy=>...)</kbd> -- see <span><a title="list hooks attached to a key" href="../../Macaulay2Doc/html/_hooks.html">hooks</a> -- list hooks attached to a key</span></span></li>
+            <li><span><kbd>intersect(Ideal,Ideal,Strategy=>...)</kbd> -- see <span><a title="compute an intersection of a sequence of ideals or modules" href="../../Macaulay2Doc/html/_intersect_lp__Ideal_cm__Ideal_rp.html">intersect(Ideal,Ideal)</a> -- compute an intersection of a sequence of ideals or modules</span></span></li>
+            <li><span><kbd>intersect(Module,Module,Strategy=>...)</kbd> -- see <span><a title="compute an intersection of a sequence of ideals or modules" href="../../Macaulay2Doc/html/_intersect_lp__Ideal_cm__Ideal_rp.html">intersect(Ideal,Ideal)</a> -- compute an intersection of a sequence of ideals or modules</span></span></li>
+            <li><span><span class="tt">isPrime(Ideal,Strategy=>...)</span> (missing documentation)<!--tag: [(isPrime,Ideal), Strategy]-->
+</span></li>
+            <li><span><kbd>match(...,Strategy=>...)</kbd> -- see <span><a title="regular expression matching" href="../../Macaulay2Doc/html/_match.html">match</a> -- regular expression matching</span></span></li>
+            <li><span><a title="choose between Bareiss, Cofactor and Dynamic algorithms" href="../../Macaulay2Doc/html/_minors_lp..._cm__Strategy_eq_gt..._rp.html">minors(...,Strategy=>...)</a> -- choose between Bareiss, Cofactor and Dynamic algorithms</span></li>
+            <li><span><span class="tt">normalCone(Ideal,RingElement,Strategy=>...)</span> (missing documentation)<!--tag: [(normalCone,Ideal,RingElement), Strategy]-->
+</span></li>
+            <li><span><span class="tt">normalCone(Ideal,Strategy=>...)</span> (missing documentation)<!--tag: [(normalCone,Ideal), Strategy]-->
+</span></li>
+            <li><span><kbd>parallelApply(...,Strategy=>...)</kbd> -- see <span><a title="apply a function to each element in parallel" href="../../Macaulay2Doc/html/_parallel__Apply.html">parallelApply</a> -- apply a function to each element in parallel</span></span></li>
+            <li><span><a title="Whether to use the methods in the package or C++ algorithms in the engine" href="../../Complexes/html/_prune__Complex_lp..._cm__Strategy_eq_gt..._rp.html">pruneComplex(...,Strategy=>...)</a> -- Whether to use the methods in the package or C++ algorithms in the engine</span></li>
+            <li><span><kbd>pushForward(...,Strategy=>...)</kbd> -- see <span><a title="compute the pushforward of a module along a ring map" href="../../Macaulay2Doc/html/_push__Forward_lp__Ring__Map_cm__Module_rp.html">pushForward(RingMap,Module)</a> -- compute the pushforward of a module along a ring map</span></span></li>
+            <li><span><span class="tt">quotient'(...,Strategy=>...)</span> (missing documentation)<!--tag: [quotient', Strategy]-->
+</span></li>
+            <li><span><a href="_quotient_lp..._cm__Strategy_eq_gt..._rp.html">quotient(...,Strategy=>...)</a></span></li>
+            <li><span><kbd>resolutionMap(...,Strategy=>...)</kbd> -- see <span><a title="map from a free resolution to the given complex" href="../../Complexes/html/_resolution__Map.html">resolutionMap</a> -- map from a free resolution to the given complex</span></span></li>
+            <li><span><a href="_saturate_lp..._cm__Strategy_eq_gt..._rp.html">saturate(...,Strategy=>...)</a></span></li>
+            <li><span><kbd>freeResolution(...,Strategy=>...)</kbd> -- see <span><a title="overview of the different algorithms for computing free resolutions" href="../../Complexes/html/___Strategies_spfor_spfree_spresolutions.html">Strategies for free resolutions</a> -- overview of the different algorithms for computing free resolutions</span></span></li>
+            <li><span><kbd>syz(...,Strategy=>...)</kbd> -- see <span><a title="compute the syzygy matrix" href="../../Macaulay2Doc/html/_syz_lp__Matrix_rp.html">syz(Matrix)</a> -- compute the syzygy matrix</span></span></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Further information</h2>
+          <ul>
+            <li><span>Default value: <span class="tt">null</span></span></li>
+            <li><span>Function: <span><a title="quotient or division" href="../../Macaulay2Doc/html/_quotient.html">quotient</a> -- quotient or division</span></span></li>
+            <li><span>Option key: <span><a title="an optional argument" href="../../Macaulay2Doc/html/___Strategy.html">Strategy</a> -- an optional argument</span></span></li>
+          </ul>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Saturation/quotient-doc.m2:147:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

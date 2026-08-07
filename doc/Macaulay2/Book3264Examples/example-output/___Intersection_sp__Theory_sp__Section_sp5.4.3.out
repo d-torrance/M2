@@ -1,0 +1,253 @@
+-- -*- M2-comint -*- hash: 16998185210306772276
+
+i1 : P3 = flagBundle({1,3})
+
+o1 = P3
+
+o1 : a flag bundle with subquotient ranks {1, 3}
+
+i2 : O1 = dual(P3.Bundles#0)
+
+o2 = O1
+
+o2 : an abstract sheaf of rank 1 on P3
+
+i3 : T = tangentBundle(P3)
+
+o3 = T
+
+o3 : an abstract sheaf of rank 3 on P3
+
+i4 : NX = O1^**4 -- the fourth tensor power of O(1), i.e. O(4)
+
+o4 = NX
+
+o4 : an abstract sheaf of rank 1 on P3
+
+i5 : X = chern(1,NX) -- the fundamental class [X] of X
+
+o5 = 4H
+       2,1
+
+                          QQ[][H   , H   ..H   ]
+                                1,1   2,1   2,3
+o5 : ----------------------------------------------------------------
+     (- H    - H   , - H   H    - H   , - H   H    - H   , -H   H   )
+         1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3    1,1 2,3
+
+i6 : TX = chern(T - NX) * X
+
+o6 = 4H    + 24H
+       2,1      2,3
+
+                          QQ[][H   , H   ..H   ]
+                                1,1   2,1   2,3
+o6 : ----------------------------------------------------------------
+     (- H    - H   , - H   H    - H   , - H   H    - H   , -H   H   )
+         1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3    1,1 2,3
+
+i7 : integral TX -- The Euler characteristic of a quartic surface
+
+o7 = 24
+
+i8 : eulerChar = n -> (
+          S := base d;
+          Pn := flagBundle({1,n},S);
+          TPn := tangentBundle(Pn);
+          O1 := dual(Pn.Bundles#0);
+          NX := O1^**d;
+          TX := chern(TPn - NX)*chern(1,NX);
+          integral TX)
+
+o8 = eulerChar
+
+o8 : FunctionClosure
+
+i9 : eulerChar(4) -- The Euler characteristic of a degree-d hypersurface in P4
+
+        4     3      2
+o9 = - d  + 5d  - 10d  + 10d
+
+o9 : QQ[d]
+
+i10 : sub(eulerChar(4),{d=>4/1}) -- The Euler characteristic of quartic threefold
+
+o10 = -56
+
+o10 : QQ
+
+i11 : middleBetti = n -> (
+           euC := eulerChar(n);
+           ((-1)^(n-1)) * (euC - 2*ceiling((n-1)/2)))
+
+o11 = middleBetti
+
+o11 : FunctionClosure
+
+i12 : middleBetti(4) -- The middle Betti number of a degree-d hypersurface in P4
+
+       4     3      2
+o12 = d  - 5d  + 10d  - 10d + 4
+
+o12 : QQ[d]
+
+i13 : sub(middleBetti(4), {d => 5/1}) -- The middle Betti number of a quintic threefold
+
+o13 = 204
+
+o13 : QQ
+
+i14 : for n from 3 to 5 do (
+           for e from 2 to 5 do (
+                euC := sub(eulerChar(n),{d=>e/1});
+                midB := sub(middleBetti(n),{d=>e/1});
+                << "n: " << n << " d: " << e << " chi: " << euC << " middle Betti: " << midB << endl))
+n: 3 d: 2 chi: 4 middle Betti: 2
+n: 3 d: 3 chi: 9 middle Betti: 7
+n: 3 d: 4 chi: 24 middle Betti: 22
+n: 3 d: 5 chi: 55 middle Betti: 53
+n: 4 d: 2 chi: 4 middle Betti: 0
+n: 4 d: 3 chi: -6 middle Betti: 10
+n: 4 d: 4 chi: -56 middle Betti: 60
+n: 4 d: 5 chi: -200 middle Betti: 204
+n: 5 d: 2 chi: 6 middle Betti: 2
+n: 5 d: 3 chi: 27 middle Betti: 23
+n: 5 d: 4 chi: 188 middle Betti: 184
+n: 5 d: 5 chi: 825 middle Betti: 821
+
+i15 : eulerChar = (n,k) -> (
+           S := base(e_1 .. e_k);
+           Pn := flagBundle({1,n},S);
+           TPn := tangentBundle(Pn);
+           O1 := dual(Pn.Bundles#0);
+           N := sum(1..k, i-> O1^**(e_i)); --the denominator in the above formula
+           X := product(1..k, i->chern(1,O1^**(e_i))); --fundamental class of X
+           TX := chern(TPn - N) * X;
+           integral TX)
+
+o15 = eulerChar
+
+o15 : FunctionClosure
+
+i16 : eulerChar(4,2) -- Euler char of a complete intersection surface in P4
+
+       3      2 2      3     2         2
+o16 = e e  + e e  + e e  - 5e e  - 5e e  + 10e e
+       1 2    1 2    1 2     1 2     1 2      1 2
+
+o16 : QQ[e ..e ]
+          1   2
+
+i17 : middleBetti = (n,k) -> (
+           euC := eulerChar(n,k);
+           ((-1)^(n-k)) * (euC - 2*ceiling((n-k)/2)))
+
+o17 = middleBetti
+
+o17 : FunctionClosure
+
+i18 : sub(middleBetti(4,2),{e_1=>2,e_2=>3/1}) -- complete intersection of a quadric and cubic in P4
+
+o18 = 22
+
+o18 : QQ
+
+i19 : sub(middleBetti(5,3),{e_1=>2,e_2=>2,e_3=>2/1}) -- three quadrics in P5
+
+o19 = 22
+
+o19 : QQ
+
+i20 : sub(eulerChar(4,2),{e_1=>2,e_2=>3/1}) -- complete intersection of a quadric and cubic in P4
+
+o20 = 24
+
+o20 : QQ
+
+i21 : sub(eulerChar(5,3),{e_1=>2,e_2=>2,e_3=>2/1}) -- three quadrics in P5
+
+o21 = 24
+
+o21 : QQ
+
+i22 : sub(middleBetti(5,2),{e_1=>2,e_2=>2/1})
+
+o22 = 4
+
+o22 : QQ
+
+i23 : P2 = flagBundle({1,2})
+
+o23 = P2
+
+o23 : a flag bundle with subquotient ranks {1..2}
+
+i24 : P2xP3 = flagBundle({1,3},P2,VariableNames => K)
+
+o24 = P2xP3
+
+o24 : a flag bundle with subquotient ranks {1, 3}
+
+i25 : intersectionRing(P2xP3)
+
+                   QQ[][H   , H   ..H   ]
+                         1,1   2,1   2,2
+       ---------------------------------------------[K   , K   ..K   ]
+       (- H    - H   , - H   H    - H   , -H   H   )  1,1   2,1   2,3
+           1,1    2,1     1,1 2,1    2,2    1,1 2,2
+o25 = ----------------------------------------------------------------
+      (- K    - K   , - K   K    - K   , - K   K    - K   , -K   K   )
+          1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3    1,1 2,3
+
+o25 : QuotientRing
+
+i26 : eulerChar = (n,m) -> (
+           S := base(a,b);
+           Pn := flagBundle({1,n},S);
+           PnxPm := flagBundle({1,m},Pn);
+           T := tangentBundle(PnxPm);
+           O1Pn := dual(Pn.Bundles#0);
+           f := PnxPm / Pn; -- the first projection map from P2xP3 to P2
+           O10 := f^* O1Pn; -- we pull back O_P2(1) to get O(1,0)
+           O01 := dual(PnxPm.Bundles#0); -- O(0,1)
+           NX := (O10^**a)**(O01^**b); -- O(a,b)
+           X := chern(1,NX); -- Chow class of divisor of type (a,b)
+           TX := chern(T - NX) * X; -- pushed-forward total Chern class of tangent bundle to X
+           integral TX) -- chi of a smooth hypersurface of bidegree (a,b) in PnxPm
+
+o26 = eulerChar
+
+o26 : FunctionClosure
+
+i27 : eulerChar(4,4) -- chi of a smooth hypersurface of bidegree (a,b) in P4xP4
+
+           4 4       4 3       3 4       4 2       3 3       2 4      4   
+o27 = - 70a b  + 175a b  + 175a b  - 150a b  - 500a b  - 150a b  + 50a b +
+      -----------------------------------------------------------------------
+          3 2       2 3        4     4       3        2 2         3     4  
+      500a b  + 500a b  + 50a*b  - 5a  - 200a b - 600a b  - 200a*b  - 5b  +
+      -----------------------------------------------------------------------
+         3       2          2      3      2               2
+      25a  + 300a b + 300a*b  + 25b  - 50a  - 200a*b - 50b  + 50a + 50b
+
+o27 : QQ[a..b]
+
+i28 : sub(eulerChar(2,3),{a=>1,b=>0/1}) -- is P1xP3, should be 8 by Kunneth
+
+o28 = 8
+
+o28 : QQ
+
+i29 : sub(eulerChar(1,1),{a=>1,b=>1/1}) -- a conic in P2, should be 2
+
+o29 = 2
+
+o29 : QQ
+
+i30 : sub(eulerChar(1,1),{a=>2,b=>1/1}) -- a twisted cubic, should be 2
+
+o30 = 2
+
+o30 : QQ
+
+i31 : 

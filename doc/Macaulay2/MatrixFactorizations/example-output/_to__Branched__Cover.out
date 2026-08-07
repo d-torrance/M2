@@ -1,0 +1,244 @@
+-- -*- M2-comint -*- hash: 13890088847690648447
+
+i1 : S = zeroOutDegrees (ZZ/101[a..c])
+
+o1 = S
+
+o1 : PolynomialRing
+
+i2 : C = koszulMF(a^3+b^3+c^3)
+
+      4      4      4
+o2 = S  <-- S  <-- S
+                    
+     0      1      0
+
+o2 : ZZdFactorization
+
+i3 : M = toBranchedCover(C,z)
+
+o3 = | z  0  0   0   c2 0  b  a   |
+     | 0  z  0   0   0  c2 a2 -b2 |
+     | 0  0  z   0   b2 a  -c 0   |
+     | 0  0  0   z   a2 -b 0  -c  |
+     | c  0  b   a   -z 0  0  0   |
+     | 0  c  a2  -b2 0  -z 0  0   |
+     | b2 a  -c2 0   0  0  -z 0   |
+     | a2 -b 0   -c2 0  0  0  -z  |
+
+            /       S[z]      \8     /       S[z]      \8
+o3 : Matrix |-----------------|  <-- |-----------------|
+            | 2    3    3    3|      | 2    3    3    3|
+            \z  + a  + b  + c /      \z  + a  + b  + c /
+
+i4 : liftM = sub(M, ambient ring M)
+
+o4 = | z  0  0   0   c2 0  b  a   |
+     | 0  z  0   0   0  c2 a2 -b2 |
+     | 0  0  z   0   b2 a  -c 0   |
+     | 0  0  0   z   a2 -b 0  -c  |
+     | c  0  b   a   -z 0  0  0   |
+     | 0  c  a2  -b2 0  -z 0  0   |
+     | b2 a  -c2 0   0  0  -z 0   |
+     | a2 -b 0   -c2 0  0  0  -z  |
+
+                  8           8
+o4 : Matrix (S[z])  <-- (S[z])
+
+i5 : prune ker liftM == 0 --this implies that the cokernel is MCM over the hypersurface
+
+o5 = true
+
+i6 : D = linearMF(a^4 + b^4, t)
+
+     /   S[t]   \3     /   S[t]   \3     /   S[t]   \3     /   S[t]   \3
+o6 = |----------|  <-- |----------|  <-- |----------|  <-- |----------|
+     | 2        |      | 2        |      | 2        |      | 2        |
+     \t  + t + 1/      \t  + t + 1/      \t  + t + 1/      \t  + t + 1/
+                                                            
+     0                 1                 2                 0
+
+o6 : ZZdFactorization
+
+i7 : N = toBranchedCover(D, z)
+
+o7 = | z 0   0     b  a2 0       0       0       0       |
+     | 0 z   0     0  bt a       0       0       0       |
+     | 0 0   z     a  0  -b2t-b2 0       0       0       |
+     | 0 0   0     tz 0  0       b2      a2      0       |
+     | 0 0   0     0  tz 0       0       bt      a       |
+     | 0 0   0     0  0  tz      a       0       -bt-b   |
+     | b a2  0     0  0  0       (-t-1)z 0       0       |
+     | 0 b2t a     0  0  0       0       (-t-1)z 0       |
+     | a 0   -bt-b 0  0  0       0       0       (-t-1)z |
+
+            /   S[t]      \      /   S[t]      \
+            |----------[z]|      |----------[z]|
+            | 2           |      | 2           |
+            |t  + t + 1   |9     |t  + t + 1   |9
+o7 : Matrix |-------------|  <-- |-------------|
+            |  3    4    4|      |  3    4    4|
+            \ z  + a  + b /      \ z  + a  + b /
+
+i8 : liftN = sub(N, ambient ring N)
+
+o8 = | z 0   0     b  a2 0       0       0       0       |
+     | 0 z   0     0  bt a       0       0       0       |
+     | 0 0   z     a  0  -b2t-b2 0       0       0       |
+     | 0 0   0     tz 0  0       b2      a2      0       |
+     | 0 0   0     0  tz 0       0       bt      a       |
+     | 0 0   0     0  0  tz      a       0       -bt-b   |
+     | b a2  0     0  0  0       (-t-1)z 0       0       |
+     | 0 b2t a     0  0  0       0       (-t-1)z 0       |
+     | a 0   -bt-b 0  0  0       0       0       (-t-1)z |
+
+            /   S[t]      \9     /   S[t]      \9
+o8 : Matrix |----------[z]|  <-- |----------[z]|
+            | 2           |      | 2           |
+            \t  + t + 1   /      \t  + t + 1   /
+
+i9 : prune ker liftN == 0 --again, must be MCM
+
+o9 = true
+
+i10 : bC = branchedToMF(M, S) --specifying S substitutes back into the original ring
+
+       8      8      8
+o10 = S  <-- S  <-- S
+                     
+      0      1      0
+
+o10 : ZZdFactorization
+
+i11 : bC.dd
+
+           8                                      8
+o11 = 1 : S  <---------------------------------- S  : 0
+                | 0   0  0   0  c2 0  b  a   |
+                | 0   0  0   0  0  c2 a2 -b2 |
+                | 0   0  0   0  b2 a  -c 0   |
+                | 0   0  0   0  a2 -b 0  -c  |
+                | -c  0  -b  -a 0  0  0  0   |
+                | 0   -c -a2 b2 0  0  0  0   |
+                | -b2 -a c2  0  0  0  0  0   |
+                | -a2 b  0   c2 0  0  0  0   |
+
+           8                                      8
+      0 : S  <---------------------------------- S  : 1
+                | 0   0  0   0  c2 0  b  a   |
+                | 0   0  0   0  0  c2 a2 -b2 |
+                | 0   0  0   0  b2 a  -c 0   |
+                | 0   0  0   0  a2 -b 0  -c  |
+                | -c  0  -b  -a 0  0  0  0   |
+                | 0   -c -a2 b2 0  0  0  0   |
+                | -b2 -a c2  0  0  0  0  0   |
+                | -a2 b  0   c2 0  0  0  0   |
+
+o11 : ZZdFactorizationMap
+
+i12 : C.dd
+
+           4                        4
+o12 = 1 : S  <-------------------- S  : 0
+                | c2 0  b  a   |
+                | 0  c2 a2 -b2 |
+                | b2 a  -c 0   |
+                | a2 -b 0  -c  |
+
+           4                         4
+      0 : S  <--------------------- S  : 1
+                | c  0  b   a   |
+                | 0  c  a2  -b2 |
+                | b2 a  -c2 0   |
+                | a2 -b 0   -c2 |
+
+o12 : ZZdFactorizationMap
+
+i13 : isdFactorization bC
+
+                3    3    3
+o13 = (true, - a  - b  - c )
+
+o13 : Sequence
+
+i14 : bD = branchedToMF(N, ring D)
+
+      /   S[t]   \9     /   S[t]   \9     /   S[t]   \9     /   S[t]   \9
+o14 = |----------|  <-- |----------|  <-- |----------|  <-- |----------|
+      | 2        |      | 2        |      | 2        |      | 2        |
+      \t  + t + 1/      \t  + t + 1/      \t  + t + 1/      \t  + t + 1/
+                                                             
+      0                 1                 2                 0
+
+o14 : ZZdFactorization
+
+i15 : bD.dd --notice the block structure
+
+          /   S[t]   \9                                                      /   S[t]   \9
+o15 = 2 : |----------|  <--------------------------------------------------- |----------|  : 0
+          | 2        |     | 0  0    0    bt+b a2t+a2 0    0    0    0   |   | 2        |
+          \t  + t + 1/     | 0  0    0    0    -b     at+a 0    0    0   |   \t  + t + 1/
+                           | 0  0    0    at+a 0      -b2t 0    0    0   |
+                           | 0  0    0    0    0      0    -b2t -a2t 0   |
+                           | 0  0    0    0    0      0    0    bt+b -at |
+                           | 0  0    0    0    0      0    -at  0    -b  |
+                           | -b -a2  0    0    0      0    0    0    0   |
+                           | 0  -b2t -a   0    0      0    0    0    0   |
+                           | -a 0    bt+b 0    0      0    0    0    0   |
+
+          /   S[t]   \9                                                      /   S[t]   \9
+      0 : |----------|  <--------------------------------------------------- |----------|  : 1
+          | 2        |     | 0  0    0    bt+b a2t+a2 0    0    0    0   |   | 2        |
+          \t  + t + 1/     | 0  0    0    0    -b     at+a 0    0    0   |   \t  + t + 1/
+                           | 0  0    0    at+a 0      -b2t 0    0    0   |
+                           | 0  0    0    0    0      0    -b2t -a2t 0   |
+                           | 0  0    0    0    0      0    0    bt+b -at |
+                           | 0  0    0    0    0      0    -at  0    -b  |
+                           | -b -a2  0    0    0      0    0    0    0   |
+                           | 0  -b2t -a   0    0      0    0    0    0   |
+                           | -a 0    bt+b 0    0      0    0    0    0   |
+
+          /   S[t]   \9                                                      /   S[t]   \9
+      1 : |----------|  <--------------------------------------------------- |----------|  : 2
+          | 2        |     | 0  0    0    bt+b a2t+a2 0    0    0    0   |   | 2        |
+          \t  + t + 1/     | 0  0    0    0    -b     at+a 0    0    0   |   \t  + t + 1/
+                           | 0  0    0    at+a 0      -b2t 0    0    0   |
+                           | 0  0    0    0    0      0    -b2t -a2t 0   |
+                           | 0  0    0    0    0      0    0    bt+b -at |
+                           | 0  0    0    0    0      0    -at  0    -b  |
+                           | -b -a2  0    0    0      0    0    0    0   |
+                           | 0  -b2t -a   0    0      0    0    0    0   |
+                           | -a 0    bt+b 0    0      0    0    0    0   |
+
+o15 : ZZdFactorizationMap
+
+i16 : D.dd
+
+          /   S[t]   \3                       /   S[t]   \3
+o16 = 2 : |----------|  <-------------------- |----------|  : 0
+          | 2        |     | b a2 0       |   | 2        |
+          \t  + t + 1/     | 0 bt a       |   \t  + t + 1/
+                           | a 0  -b2t-b2 |
+
+          /   S[t]   \3                      /   S[t]   \3
+      0 : |----------|  <------------------- |----------|  : 1
+          | 2        |     | b2 a2 0     |   | 2        |
+          \t  + t + 1/     | 0  bt a     |   \t  + t + 1/
+                           | a  0  -bt-b |
+
+          /   S[t]   \3                      /   S[t]   \3
+      1 : |----------|  <------------------- |----------|  : 2
+          | 2        |     | b a2  0     |   | 2        |
+          \t  + t + 1/     | 0 b2t a     |   \t  + t + 1/
+                           | a 0   -bt-b |
+
+o16 : ZZdFactorizationMap
+
+i17 : isdFactorization bD
+
+                4    4
+o17 = (true, - a  - b )
+
+o17 : Sequence
+
+i18 : 

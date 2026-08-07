@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>VectorFields -- a package for manipulating polynomial vector fields</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="vector fields" href="index.html">VectorFields</a> :: <a title="vector fields" href="index.html">VectorFields</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_apply__Vector__Field.html">next</a> | previous | <a href="_apply__Vector__Field.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>VectorFields -- a package for manipulating polynomial vector fields</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>VectorFields provides functions to study polynomial vector fields on affine space, and modules of such vector fields. This package may be of interest to those studying representations of Lie groups, foliations, or logarithmic vector fields.</p>
+          <p>We represent a vector field on affine $n$-space as an element of the module $R^n$, where $R$ is a polynomial ring in $n$ variables. Concretely, the ordering of variables given by <span class="tt">vars(R)</span> is used to identify each vector field with a $n\times 1$ <a title="the class of all matrices" href="../../Macaulay2Doc/html/___Matrix.html">Matrix</a>, and vice-versa, with each entry in the matrix storing the coefficient of a derivative with respect to a particular variable. For instance, on a 3-dimensional space the vector field $M=2y \partial_y + z \partial_z$ is entered this way:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R=QQ[x,y,z];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : vars(R)
+
+o2 = | x y z |
+
+             1      3
+o2 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : M=matrix {{0},{2*y},{z}}
+
+o3 = | 0  |
+     | 2y |
+     | z  |
+
+             3      1
+o3 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p></p>
+          <p>Many functions in this package are designed to accept either a finite collection of vector fields (in the form of a <a title="the class of all matrices" href="../../Macaulay2Doc/html/___Matrix.html">Matrix</a> where each column represents a vector field), or a module of vector fields (in the form of a submodule of $R^n$). These different versions may compute quite different things! For instance, the vector field in <span class="tt">M</span> commutes with itself:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : commutator(M)
+
+o4 = 0
+
+             3
+o4 : Matrix R  &lt;-- 0</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : bracket(M,M)
+
+o5 = 0
+
+             3      1
+o5 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>but the vector fields in the module generated by <span class="tt">M</span> do not:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : commutator(image M)
+
+o6 = image | 0 0   0   |
+           | 0 4y2 2yz |
+           | 0 2yz z2  |
+
+                             3
+o6 : R-module, submodule of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : bracket(M,y*M)
+
+o7 = | 0   |
+     | 4y2 |
+     | 2yz |
+
+             3      1
+o7 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In other cases, the <a title="the class of all matrices" href="../../Macaulay2Doc/html/___Matrix.html">Matrix</a> and <a title="the class of all modules" href="../../Macaulay2Doc/html/___Module.html">Module</a> versions of a function compute identical things, perhaps returning different types. For instance, here we apply vector fields to a function:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : applyVectorField(M,x*y-z^2)
+
+              2
+o8 = 2x*y - 2z
+
+o8 : R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : applyVectorField(image M,x*y-z^2)
+
+                    2
+o9 = ideal(2x*y - 2z )
+
+o9 : Ideal of R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>See <a title="The difference between certain bracketing functions" href="_differences_spbetween_spcertain_spbracketing_spfunctions.html">differences between certain bracketing functions</a> for more details.</p>
+          <p>To show some capabilities of this package, let us use <a title="compute the logarithmic (tangent) vector fields to an ideal" href="_derlog.html">derlog</a> to find the vector fields on the ambient space that are tangent to $xy-z^2=0$:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : D=derlog(ideal (x*y-z^2))
+
+o10 = image | 2x 0  2z 0  |
+            | 0  2y 0  2z |
+            | z  z  y  x  |
+
+                              3
+o10 : R-module, submodule of R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Actually, $M$ is one of these vector fields:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : isSubset(image M,D)
+
+o11 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We may also check some properties of $D$:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : isVectorField(gens D)
+
+o12 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : isVectorField(D)
+
+o13 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : isLieAlgebra(D)
+
+o14 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p></p>
+          <p>Note that this package has been rewritten since version 1.0. Any users of the earlier version should upgrade with care, and read the comments inside the package's source code.</p>
+          <p></p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="the commutator of a collection of vector fields" href="_commutator.html">commutator</a> -- the commutator of a collection of vector fields</span></li>
+          <li><span><a title="compute the Lie bracket of vector fields" href="_bracket.html">bracket</a> -- compute the Lie bracket of vector fields</span></li>
+          <li><span><a title="apply a vector field to a function or functions" href="_apply__Vector__Field.html">applyVectorField</a> -- apply a vector field to a function or functions</span></li>
+          <li><span><a title="compute the logarithmic (tangent) vector fields to an ideal" href="_derlog.html">derlog</a> -- compute the logarithmic (tangent) vector fields to an ideal</span></li>
+          <li><span><a title="test whether a module or matrix can be interpreted as a collection of vector fields" href="_is__Vector__Field.html">isVectorField</a> -- test whether a module or matrix can be interpreted as a collection of vector fields</span></li>
+          <li><span><a title="check that a module of vector fields is closed under the Lie bracket" href="_is__Lie__Algebra.html">isLieAlgebra</a> -- check that a module of vector fields is closed under the Lie bracket</span></li>
+        </ul>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Author</h2>
+            <ul>
+              <li><a href="http://www.brianpike.info/">Brian Pike</a><span> &lt;<a href="mailto:bapike%40gmail.com">bapike@gmail.com</a>></span></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>1.80</b> of VectorFields, released <b>April 7, 2016</b>.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{VectorFieldsSource,
+  title = {{VectorFields: A \emph{Macaulay2} package. Version~1.80}},
+  author = {Brian Pike},
+  howpublished = {A \emph{Macaulay2} package available at
+    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Types                  <ul>
+                    <li><span><a title="a type to hold a rank computation" href="___Stratification__By__Rank.html">StratificationByRank</a> -- a type to hold a rank computation</span></li>
+                  </ul>
+                </li>
+                <li>Functions and commands                  <ul>
+                    <li><span><a title="apply a vector field to a function or functions" href="_apply__Vector__Field.html">applyVectorField</a> -- apply a vector field to a function or functions</span></li>
+                    <li><span><a title="compute the Lie bracket of vector fields" href="_bracket.html">bracket</a> -- compute the Lie bracket of vector fields</span></li>
+                    <li><span><a title="the commutator of a collection of vector fields" href="_commutator.html">commutator</a> -- the commutator of a collection of vector fields</span></li>
+                    <li><span><a title="compute the module of vector fields which send one set to another" href="_der.html">der</a> -- compute the module of vector fields which send one set to another</span></li>
+                    <li><span><a title="compute the derived series of a set of vector fields" href="_derived__Series.html">derivedSeries</a> -- compute the derived series of a set of vector fields</span></li>
+                    <li><span><a title="compute the logarithmic (tangent) vector fields to an ideal" href="_derlog.html">derlog</a> -- compute the logarithmic (tangent) vector fields to an ideal</span></li>
+                    <li><span><kbd>derlogH</kbd> -- see <span><a title="compute the logarithmic (tangent) vector fields to an ideal" href="_derlog.html">derlog</a> -- compute the logarithmic (tangent) vector fields to an ideal</span></span></li>
+                    <li><span><a title="check if vector fields are homogeneous, and of what degree" href="_homogeneous__Vector__Field__Degree.html">homogeneousVectorFieldDegree</a> -- check if vector fields are homogeneous, and of what degree</span></li>
+                    <li><span><a title="checks if a stratification by integral submanifolds is finite" href="_is__Finite__Stratification.html">isFiniteStratification</a> -- checks if a stratification by integral submanifolds is finite</span></li>
+                    <li><span><a title="check if the provided information is associated with a free divisor" href="_is__Free__Divisor.html">isFreeDivisor</a> -- check if the provided information is associated with a free divisor</span></li>
+                    <li><span><a title="test whether a hypersurface is H-holonomic" href="_is__H__Holonomic.html">isHHolonomic</a> -- test whether a hypersurface is H-holonomic</span></li>
+                    <li><span><a title="test whether an algebraic set is holonomic" href="_is__Holonomic.html">isHolonomic</a> -- test whether an algebraic set is holonomic</span></li>
+                    <li><span><a title="determine whether a matrix or module is generated by homogeneous vector fields" href="_is__Homogeneous__Vector__Field.html">isHomogeneousVectorField</a> -- determine whether a matrix or module is generated by homogeneous vector fields</span></li>
+                    <li><span><a title="check that a module of vector fields is closed under the Lie bracket" href="_is__Lie__Algebra.html">isLieAlgebra</a> -- check that a module of vector fields is closed under the Lie bracket</span></li>
+                    <li><span><a title="check if the given vector fields are logarithmic" href="_is__Logarithmic.html">isLogarithmic</a> -- check if the given vector fields are logarithmic</span></li>
+                    <li><span><a title="test whether a module or matrix can be interpreted as a collection of vector fields" href="_is__Vector__Field.html">isVectorField</a> -- test whether a module or matrix can be interpreted as a collection of vector fields</span></li>
+                    <li><span><a title="compute the lower central series of a set of vector fields" href="_lower__Central__Series.html">lowerCentralSeries</a> -- compute the lower central series of a set of vector fields</span></li>
+                    <li><span><a title="compute ideals describing where the vector fields have a particular rank" href="_stratify__By__Rank.html">stratifyByRank</a> -- compute ideals describing where the vector fields have a particular rank</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><kbd>applyVectorField(Matrix,List)</kbd> -- see <span><a title="apply a vector field to a function or functions" href="_apply__Vector__Field.html">applyVectorField</a> -- apply a vector field to a function or functions</span></span></li>
+                    <li><span><kbd>applyVectorField(Matrix,RingElement)</kbd> -- see <span><a title="apply a vector field to a function or functions" href="_apply__Vector__Field.html">applyVectorField</a> -- apply a vector field to a function or functions</span></span></li>
+                    <li><span><kbd>applyVectorField(Module,Ideal)</kbd> -- see <span><a title="apply a vector field to a function or functions" href="_apply__Vector__Field.html">applyVectorField</a> -- apply a vector field to a function or functions</span></span></li>
+                    <li><span><kbd>applyVectorField(Module,RingElement)</kbd> -- see <span><a title="apply a vector field to a function or functions" href="_apply__Vector__Field.html">applyVectorField</a> -- apply a vector field to a function or functions</span></span></li>
+                    <li><span><kbd>applyVectorField(Vector,List)</kbd> -- see <span><a title="apply a vector field to a function or functions" href="_apply__Vector__Field.html">applyVectorField</a> -- apply a vector field to a function or functions</span></span></li>
+                    <li><span><kbd>applyVectorField(Vector,RingElement)</kbd> -- see <span><a title="apply a vector field to a function or functions" href="_apply__Vector__Field.html">applyVectorField</a> -- apply a vector field to a function or functions</span></span></li>
+                    <li><span><kbd>bracket(Matrix,Matrix)</kbd> -- see <span><a title="compute the Lie bracket of vector fields" href="_bracket.html">bracket</a> -- compute the Lie bracket of vector fields</span></span></li>
+                    <li><span><kbd>bracket(Matrix,Matrix,List)</kbd> -- see <span><a title="compute the Lie bracket of vector fields" href="_bracket.html">bracket</a> -- compute the Lie bracket of vector fields</span></span></li>
+                    <li><span><kbd>bracket(Module,Module)</kbd> -- see <span><a title="compute the Lie bracket of vector fields" href="_bracket.html">bracket</a> -- compute the Lie bracket of vector fields</span></span></li>
+                    <li><span><kbd>bracket(Vector,Vector)</kbd> -- see <span><a title="compute the Lie bracket of vector fields" href="_bracket.html">bracket</a> -- compute the Lie bracket of vector fields</span></span></li>
+                    <li><span><kbd>commutator(Matrix)</kbd> -- see <span><a title="the commutator of a collection of vector fields" href="_commutator.html">commutator</a> -- the commutator of a collection of vector fields</span></span></li>
+                    <li><span><kbd>commutator(Module)</kbd> -- see <span><a title="the commutator of a collection of vector fields" href="_commutator.html">commutator</a> -- the commutator of a collection of vector fields</span></span></li>
+                    <li><span><kbd>der(Ideal,Ideal)</kbd> -- see <span><a title="compute the module of vector fields which send one set to another" href="_der.html">der</a> -- compute the module of vector fields which send one set to another</span></span></li>
+                    <li><span><kbd>der(VisibleList,Ideal)</kbd> -- see <span><a title="compute the module of vector fields which send one set to another" href="_der.html">der</a> -- compute the module of vector fields which send one set to another</span></span></li>
+                    <li><span><kbd>derivedSeries(ZZ,Matrix)</kbd> -- see <span><a title="compute the derived series of a set of vector fields" href="_derived__Series.html">derivedSeries</a> -- compute the derived series of a set of vector fields</span></span></li>
+                    <li><span><kbd>derivedSeries(ZZ,Module)</kbd> -- see <span><a title="compute the derived series of a set of vector fields" href="_derived__Series.html">derivedSeries</a> -- compute the derived series of a set of vector fields</span></span></li>
+                    <li><span><kbd>derlog(Ideal)</kbd> -- see <span><a title="compute the logarithmic (tangent) vector fields to an ideal" href="_derlog.html">derlog</a> -- compute the logarithmic (tangent) vector fields to an ideal</span></span></li>
+                    <li><span><kbd>derlog(RingElement)</kbd> -- see <span><a title="compute the logarithmic (tangent) vector fields to an ideal" href="_derlog.html">derlog</a> -- compute the logarithmic (tangent) vector fields to an ideal</span></span></li>
+                    <li><span><kbd>derlogH(List)</kbd> -- see <span><a title="compute the logarithmic (tangent) vector fields to an ideal" href="_derlog.html">derlog</a> -- compute the logarithmic (tangent) vector fields to an ideal</span></span></li>
+                    <li><span><kbd>derlogH(RingElement)</kbd> -- see <span><a title="compute the logarithmic (tangent) vector fields to an ideal" href="_derlog.html">derlog</a> -- compute the logarithmic (tangent) vector fields to an ideal</span></span></li>
+                    <li><span><kbd>homogeneousVectorFieldDegree(Matrix)</kbd> -- see <span><a title="check if vector fields are homogeneous, and of what degree" href="_homogeneous__Vector__Field__Degree.html">homogeneousVectorFieldDegree</a> -- check if vector fields are homogeneous, and of what degree</span></span></li>
+                    <li><span><kbd>homogeneousVectorFieldDegree(Module)</kbd> -- see <span><a title="check if vector fields are homogeneous, and of what degree" href="_homogeneous__Vector__Field__Degree.html">homogeneousVectorFieldDegree</a> -- check if vector fields are homogeneous, and of what degree</span></span></li>
+                    <li><span><kbd>isFiniteStratification(StratificationByRank)</kbd> -- see <span><a title="checks if a stratification by integral submanifolds is finite" href="_is__Finite__Stratification.html">isFiniteStratification</a> -- checks if a stratification by integral submanifolds is finite</span></span></li>
+                    <li><span><kbd>isFreeDivisor(Matrix)</kbd> -- see <span><a title="check if the provided information is associated with a free divisor" href="_is__Free__Divisor.html">isFreeDivisor</a> -- check if the provided information is associated with a free divisor</span></span></li>
+                    <li><span><kbd>isFreeDivisor(Module)</kbd> -- see <span><a title="check if the provided information is associated with a free divisor" href="_is__Free__Divisor.html">isFreeDivisor</a> -- check if the provided information is associated with a free divisor</span></span></li>
+                    <li><span><kbd>isFreeDivisor(RingElement)</kbd> -- see <span><a title="check if the provided information is associated with a free divisor" href="_is__Free__Divisor.html">isFreeDivisor</a> -- check if the provided information is associated with a free divisor</span></span></li>
+                    <li><span><kbd>isHHolonomic(RingElement)</kbd> -- see <span><a title="test whether a hypersurface is H-holonomic" href="_is__H__Holonomic.html">isHHolonomic</a> -- test whether a hypersurface is H-holonomic</span></span></li>
+                    <li><span><kbd>isHolonomic(Ideal)</kbd> -- see <span><a title="test whether an algebraic set is holonomic" href="_is__Holonomic.html">isHolonomic</a> -- test whether an algebraic set is holonomic</span></span></li>
+                    <li><span><kbd>isHolonomic(RingElement)</kbd> -- see <span><a title="test whether an algebraic set is holonomic" href="_is__Holonomic.html">isHolonomic</a> -- test whether an algebraic set is holonomic</span></span></li>
+                    <li><span><kbd>isHomogeneousVectorField(Matrix)</kbd> -- see <span><a title="determine whether a matrix or module is generated by homogeneous vector fields" href="_is__Homogeneous__Vector__Field.html">isHomogeneousVectorField</a> -- determine whether a matrix or module is generated by homogeneous vector fields</span></span></li>
+                    <li><span><kbd>isHomogeneousVectorField(Matrix,List)</kbd> -- see <span><a title="determine whether a matrix or module is generated by homogeneous vector fields" href="_is__Homogeneous__Vector__Field.html">isHomogeneousVectorField</a> -- determine whether a matrix or module is generated by homogeneous vector fields</span></span></li>
+                    <li><span><kbd>isHomogeneousVectorField(Matrix,Set)</kbd> -- see <span><a title="determine whether a matrix or module is generated by homogeneous vector fields" href="_is__Homogeneous__Vector__Field.html">isHomogeneousVectorField</a> -- determine whether a matrix or module is generated by homogeneous vector fields</span></span></li>
+                    <li><span><kbd>isHomogeneousVectorField(Module)</kbd> -- see <span><a title="determine whether a matrix or module is generated by homogeneous vector fields" href="_is__Homogeneous__Vector__Field.html">isHomogeneousVectorField</a> -- determine whether a matrix or module is generated by homogeneous vector fields</span></span></li>
+                    <li><span><kbd>isHomogeneousVectorField(Module,List)</kbd> -- see <span><a title="determine whether a matrix or module is generated by homogeneous vector fields" href="_is__Homogeneous__Vector__Field.html">isHomogeneousVectorField</a> -- determine whether a matrix or module is generated by homogeneous vector fields</span></span></li>
+                    <li><span><kbd>isHomogeneousVectorField(Module,Set)</kbd> -- see <span><a title="determine whether a matrix or module is generated by homogeneous vector fields" href="_is__Homogeneous__Vector__Field.html">isHomogeneousVectorField</a> -- determine whether a matrix or module is generated by homogeneous vector fields</span></span></li>
+                    <li><span><kbd>isLieAlgebra(Module)</kbd> -- see <span><a title="check that a module of vector fields is closed under the Lie bracket" href="_is__Lie__Algebra.html">isLieAlgebra</a> -- check that a module of vector fields is closed under the Lie bracket</span></span></li>
+                    <li><span><kbd>isLogarithmic(Matrix,Ideal)</kbd> -- see <span><a title="check if the given vector fields are logarithmic" href="_is__Logarithmic.html">isLogarithmic</a> -- check if the given vector fields are logarithmic</span></span></li>
+                    <li><span><kbd>isLogarithmic(Module,Ideal)</kbd> -- see <span><a title="check if the given vector fields are logarithmic" href="_is__Logarithmic.html">isLogarithmic</a> -- check if the given vector fields are logarithmic</span></span></li>
+                    <li><span><kbd>isLogarithmic(Vector,Ideal)</kbd> -- see <span><a title="check if the given vector fields are logarithmic" href="_is__Logarithmic.html">isLogarithmic</a> -- check if the given vector fields are logarithmic</span></span></li>
+                    <li><span><kbd>isVectorField(Matrix)</kbd> -- see <span><a title="test whether a module or matrix can be interpreted as a collection of vector fields" href="_is__Vector__Field.html">isVectorField</a> -- test whether a module or matrix can be interpreted as a collection of vector fields</span></span></li>
+                    <li><span><kbd>isVectorField(Module)</kbd> -- see <span><a title="test whether a module or matrix can be interpreted as a collection of vector fields" href="_is__Vector__Field.html">isVectorField</a> -- test whether a module or matrix can be interpreted as a collection of vector fields</span></span></li>
+                    <li><span><kbd>lowerCentralSeries(ZZ,Matrix)</kbd> -- see <span><a title="compute the lower central series of a set of vector fields" href="_lower__Central__Series.html">lowerCentralSeries</a> -- compute the lower central series of a set of vector fields</span></span></li>
+                    <li><span><kbd>lowerCentralSeries(ZZ,Module)</kbd> -- see <span><a title="compute the lower central series of a set of vector fields" href="_lower__Central__Series.html">lowerCentralSeries</a> -- compute the lower central series of a set of vector fields</span></span></li>
+                    <li><span><kbd>stratifyByRank(Matrix)</kbd> -- see <span><a title="compute ideals describing where the vector fields have a particular rank" href="_stratify__By__Rank.html">stratifyByRank</a> -- compute ideals describing where the vector fields have a particular rank</span></span></li>
+                    <li><span><kbd>stratifyByRank(Module)</kbd> -- see <span><a title="compute ideals describing where the vector fields have a particular rank" href="_stratify__By__Rank.html">stratifyByRank</a> -- compute ideals describing where the vector fields have a particular rank</span></span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="vector fields" href="index.html">VectorFields</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">VectorFields.m2</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">VectorFields.m2:2155:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

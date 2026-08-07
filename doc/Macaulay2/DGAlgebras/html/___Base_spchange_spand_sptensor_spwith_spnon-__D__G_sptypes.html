@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Base change and tensor with non-DG types -- Tensoring DG objects with ordinary rings and modules</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Data type for DG algebras" href="index.html">DGAlgebras</a> » <a title="Tensoring DG objects with ordinary rings and modules" href="___Base_spchange_spand_sptensor_spwith_spnon-__D__G_sptypes.html">Base change and tensor with non-DG types</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Operations_spon_sp__D__G_sp__Ideals.html">next</a> | <a href="___Basic_spoperations_spon_sp__D__G_sp__Module_sp__Maps.html">previous</a> | <a href="___D__G__Algebra_sp_st_st_sp__Ring.html">forward</a> | <a href="___Basic_spoperations_spon_sp__D__G_sp__Module_sp__Maps.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Base change and tensor with non-DG types -- Tensoring DG objects with ordinary rings and modules</h1>
+      <div>
+        <div>
+          <p>The DGAlgebras package extends <a title="Base change of a DG algebra to another ring" href="___D__G__Algebra_sp_st_st_sp__Ring.html">** </a> so that every DG object (<a title="The class of all DGAlgebras" href="___D__G__Algebra.html">DGAlgebra</a>, <a title="The class of DG modules over a DG algebra" href="___D__G__Module.html">DGModule</a>, <a title="The class of d-closed submodules of a DG module" href="___D__G__Submodule.html">DGSubmodule</a>, <a title="The class of quotient DG modules M / S" href="___D__G__Quotient__Module.html">DGQuotientModule</a>, <a title="The class of d-closed graded ideals of a DG algebra" href="___D__G__Ideal.html">DGIdeal</a>, <a title="The class of DG algebra maps" href="___D__G__Algebra__Map.html">DGAlgebraMap</a>, <a title="The class of morphisms of DG modules over a common DG algebra" href="___D__G__Module__Map.html">DGModuleMap</a>) can be base-changed along any ring map out of the ground ring.  It also defines the exterior tensor of a DGModule with an ordinary <a title="the class of all modules" href="../../Macaulay2Doc/html/___Module.html">Module</a>, subsuming the usual ring-of-scalars base change as the special case <span class="tt">M ** S^1</span>.</p>
+        </div>
+        <div>
+          <p>Two design choices make these operations usable in larger constructions.</p>
+        </div>
+        <div>
+          <p><b>Caching (object identity).</b>  Both <a title="Base change of a DG algebra to another ring" href="___D__G__Algebra_sp_st_st_sp__Ring.html">DGAlgebra ** Ring</a> and <a title="Base change of a DG module along a ring map" href="___D__G__Module_sp_st_st_sp__Ring.html">DGModule ** Ring</a> cache their result, so repeated calls with the same operands return the SAME object.  This matters because a DGAlgebraMap or DGModuleMap is tagged by its source and target DG-objects, and without identity the source of <span class="tt">id_M ** S</span> and the target of <span class="tt">id_M ** S</span> would be two distinct (though isomorphic) DGModules.</p>
+        </div>
+        <div>
+          <p><b>Functoriality.</b>  These operations are functorial: if <span class="tt">id</span> is the identity DGModuleMap on M, then <span class="tt">id ** S</span> is the identity DGModuleMap on <span class="tt">M ** S</span>; likewise for DGAlgebraMaps.  Composition is preserved.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ/101[x,y]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : A = koszulComplexDGA R
+
+o2 = {Ring => R                          }
+      Underlying algebra => R[T   ..T   ]
+                               1,1   1,2
+      Differential => {x, y}
+
+o2 : DGAlgebra</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : M = freeDGModule(A, {0, 1})
+
+o3 = {Base ring => R                       }
+      DG algebra => R[T   ..T   ]
+                       1,1   1,2
+                                       2
+      Natural module => (R[T   ..T   ])
+                            1,1   1,2
+      Generator degrees => {{0, 0}, {1, 0}}
+      Differentials on gens => {0, 0}
+
+o3 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : QR = R / ideal(x^2)
+
+o4 = QR
+
+o4 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : MQ = M ** QR
+
+o5 = {Base ring => QR                      }
+      DG algebra => QR[T   ..T   ]
+                        1,1   1,2
+                                        2
+      Natural module => (QR[T   ..T   ])
+                             1,1   1,2
+      Generator degrees => {{0, 0}, {1, 0}}
+      Differentials on gens => {0, 0}
+
+o5 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : MQ === M ** QR
+
+o6 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : idM = identityDGModuleMap M
+
+                               2
+o7 = {Source => (R[T   ..T   ]) }
+                    1,1   1,2
+                               2
+      Target => (R[T   ..T   ])
+                    1,1   1,2
+      Natural => {0, 0} | 1 0 |
+                 {1, 0} | 0 1 |
+
+o7 : DGModuleMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : (idM ** QR).source === MQ
+
+o8 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : (idM ** QR).target === MQ
+
+o9 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : isWellDefined(idM ** QR)
+
+o10 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>For a DGModule M and an ordinary free module N, <span class="tt">M ** N</span> forms the exterior tensor product over <span class="tt">A.natural</span>.  This lets you tensor by copies of a ring, by direct sums, or by arbitrary graded shifts without leaving the DG world.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : N = R^{0, -1}
+
+       2
+o11 = R
+
+o11 : R-module, free, degrees {0..1}</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : MN = M ** N
+
+o12 = {Base ring => R                                       }
+       DG algebra => R[T   ..T   ]
+                        1,1   1,2
+                                        4
+       Natural module => (R[T   ..T   ])
+                             1,1   1,2
+       Generator degrees => {{0, 0}, {0, 1}, {1, 0}, {1, 1}}
+       Differentials on gens => {0, 0, 0, 0}
+
+o12 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : class MN
+
+o13 = DGModule
+
+o13 : Type</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : numgens MN
+
+o14 = 4</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : rank MN.natural == (rank M.natural) * (rank N)
+
+o15 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The tensor is associative in the natural way: you can chain <span class="tt">(M ** N) ** K</span> for a sequence of ordinary free modules, producing a DGModule whose natural rank is the product of the ranks.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : K = R^3
+
+       3
+o16 = R
+
+o16 : R-module, free</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : MNK = (M ** R^2) ** K
+
+o17 = {Base ring => R                                                                                                       }
+       DG algebra => R[T   ..T   ]
+                        1,1   1,2
+                                        12
+       Natural module => (R[T   ..T   ])
+                             1,1   1,2
+       Generator degrees => {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}}
+       Differentials on gens => {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+o17 : DGModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : isWellDefined MNK
+
+o18 = true</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : numgens MNK == 2 * 2 * 3
+
+o19 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>A deliberate omission: there is no <span class="tt">** Ideal</span> method.  For an ideal I, the underlying module <span class="tt">module I</span> is almost never free, so exterior tensor with a DGModule is not well-defined in our framework.  Use <span class="tt">** (R/I)</span> for base change along the quotient instead.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="Base change of a DG algebra to another ring" href="___D__G__Algebra_sp_st_st_sp__Ring.html">DGAlgebra ** Ring</a> -- Base change of a DG algebra to another ring</span></li>
+          <li><span><a title="Base change of a DG module along a ring map" href="___D__G__Module_sp_st_st_sp__Ring.html">DGModule ** Ring</a> -- Base change of a DG module along a ring map</span></li>
+          <li><span><a title="Base change of a DG submodule along a ring map" href="___D__G__Submodule_sp_st_st_sp__Ring.html">DGSubmodule ** Ring</a> -- Base change of a DG submodule along a ring map</span></li>
+          <li><span><a title="Base change of a DG quotient module along a ring map" href="___D__G__Quotient__Module_sp_st_st_sp__Ring.html">DGQuotientModule ** Ring</a> -- Base change of a DG quotient module along a ring map</span></li>
+          <li><span><a title="Base change of a DG ideal along a ring map" href="___D__G__Ideal_sp_st_st_sp__Ring.html">DGIdeal ** Ring</a> -- Base change of a DG ideal along a ring map</span></li>
+          <li><span><a title="Base change of a DG algebra map along a ring map" href="___D__G__Algebra__Map_sp_st_st_sp__Ring.html">DGAlgebraMap ** Ring</a> -- Base change of a DG algebra map along a ring map</span></li>
+          <li><span><a title="Base change of a DG module map along a ring map" href="___D__G__Module__Map_sp_st_st_sp__Ring.html">DGModuleMap ** Ring</a> -- Base change of a DG module map along a ring map</span></li>
+          <li><span><a title="Exterior tensor product of a DG module with an ordinary free module" href="___D__G__Module_sp_st_st_sp__Module.html">DGModule ** Module</a> -- Exterior tensor product of a DG module with an ordinary free module</span></li>
+          <li><span><a title="Exterior tensor product of a DG submodule with an ordinary free module" href="___D__G__Submodule_sp_st_st_sp__Module.html">DGSubmodule ** Module</a> -- Exterior tensor product of a DG submodule with an ordinary free module</span></li>
+          <li><span><a title="Exterior tensor product of a DG quotient module with an ordinary free module" href="___D__G__Quotient__Module_sp_st_st_sp__Module.html">DGQuotientModule ** Module</a> -- Exterior tensor product of a DG quotient module with an ordinary free module</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">DGAlgebras/doc.m2:1780:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

@@ -1,0 +1,2124 @@
+ -*- coding: utf-8 -*- This is SLPexpressions.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* SLPexpressions: (SLPexpressions).  straight line programs and algebraic circuits
+END-INFO-DIR-ENTRY
+
+
+File: SLPexpressions.info, Node: Top, Next: arithmetic with circuits, Up: (dir)
+
+SLPexpressions -- Straight Line Programs and expressions for evaluation circuits
+********************************************************************************
+
+Description
+===========
+
+Many polynomials can be stored and evaluated efficiently when represented as a
+straight line program (SLP), also known as an algebraic circuit (see
+https://en.wikipedia.org/wiki/Circuit_(computer_science) ). By contrast,
+elements of a *note PolynomialRing: (Macaulay2Doc)PolynomialRing, in Macaulay2
+are necessarily represented in "expanded" form, e.g. via a monomial basis.
+
+This package provides basic types and methods for constructing and evaluating
+SLPs.
+
+Here is a simple example illustrating an advantage of SLP representations.
+
++-----------------------------------------------------------------------------+
+|i1 : declareVariable x                                                       |
+|                                                                             |
+|o1 = x                                                                       |
+|                                                                             |
+|o1 : InputGate                                                               |
++-----------------------------------------------------------------------------+
+|i2 : f = x + 1                                                               |
+|                                                                             |
+|o2 = (x + 1)                                                                 |
+|                                                                             |
+|o2 : SumGate                                                                 |
++-----------------------------------------------------------------------------+
+|i3 : n = 12;                                                                 |
++-----------------------------------------------------------------------------+
+|i4 : for i from 1 to n do f = f*f -- f = (x+1)^(2^n)                         |
++-----------------------------------------------------------------------------+
+|i5 : slp = makeInterpretedSLProgram({x},{f})                                 |
+|                                                                             |
+|o5 = InterpretedSLProgram{cache => CacheTable{}               }              |
+|                          "constant positions" => {-2}                       |
+|                          "constants" => | 1 |                               |
+|                          "number of inputs" => 1                            |
+|                          "number of outputs" => 1                           |
+|                          RawSLProgram => SLProgram (                        |
+|                                            consts+vars: 2                   |
+|                                            noninput nodes: 13               |
+|                                            output nodes: 1                  |
+|                                            )                                |
+|                                                                             |
+|                          "variable positions" => {-1}                       |
+|                                                                             |
+|o5 : InterpretedSLProgram                                                    |
++-----------------------------------------------------------------------------+
+|i6 : time A = evaluate(slp,matrix{{1}});                                     |
+| -- used 0.000203871s (cpu); 0.000201657s (thread); 0s (gc)                  |
+|                                                                             |
+|              1       1                                                      |
+|o6 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i7 : ZZ[y];                                                                  |
++-----------------------------------------------------------------------------+
+|i8 : time B = sub((y+1)^(2^n),{y=>1})                                        |
+| -- used 4.75849s (cpu); 3.51888s (thread); 0s (gc)                          |
+|                                                                             |
+|o8 = 104438888141315250669175271071662438257996424904738378038423348328395390|
+|     797155745684882681193499755834089010671443926283798757343818579360726323|
+|     608785136527794595697654370999834036159013438371831442807001185594622637|
+|     631883939771274567233468434458661749680790870580370407128404874011860911|
+|     446797778359802900668693897688178778594690563019026094059957945343282346|
+|     930302669644305902501597239986771421554169383555988529148631823791443449|
+|     673408781187263949647510018904134900841706167509366833385055103297208826|
+|     955076998361636941193301521379682583718809183365675122131849284636812555|
+|     022599830041234478486259567449219461702380650591324561082573183538008760|
+|     862210283427019769820231316901767800667519548507992163641937028537512478|
+|     401490715913545998279051339961155179427110683113409058427288427979155484|
+|     978295432353451706522326906139490598769300212296339568778287894844061600|
+|     741294567491982305057164237715481632138063104590291613692670834285644073|
+|     044789997190178146576347322385026725305989979599609079946920177462481771|
+|     844986745565925017832907047311943316555080756822184657174637329688491281|
+|     952031745700244092661691087414838507841192980452298185733897764810312608|
+|     590300130241346718972667321649151113160292078173803343609024380470834040|
+|     3154190336                                                              |
++-----------------------------------------------------------------------------+
+|i9 : A == B                                                                  |
+|                                                                             |
+|o9 = true                                                                    |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note NAGtypes: (NAGtypes)Top, -- types used in Numerical Algebraic
+    Geometry
+  * makeCompiledSLProgram (missing documentation)
+
+Authors
+=======
+
+  * Anton Leykin (see https://people.math.gatech.edu/~aleykin3 )
+    <leykin@math.gatech.edu>
+  * Timothy Duff (see http://people.math.gatech.edu/~tduff3 )
+    <tduff3@gatech.edu>
+  * Justin Chen (see https://people.math.gatech.edu/~jchen646 )
+    <jchen646@math.gatech.edu>
+  * Mike Stillman (see http://www.math.cornell.edu/~mike )
+    <mike@math.cornell.edu>
+
+Version
+=======
+
+This documentation describes version 1.21 of SLPexpressions, released Nov 2022.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{SLPexpressionsSource,                                                  |
+|  title = {{SLPexpressions: straight line programs and algebraic circuits.   |
+|  author = {Anton Leykin and Timothy Duff and Justin Chen and Mike Stillman  |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    "http://people.math.gatech.edu/~aleykin3/NAG4M2"}                        |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Version~1.21}},                                                              |
+|},                                                                           |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * CompiledSLProgram (missing documentation)
+      * "DetGate" -- see *note Gate: Gate, -- the class of all gates
+      * "DivideGate" -- see *note Gate: Gate, -- the class of all gates
+      * *note Gate: Gate, -- the class of all gates
+      * "InputGate" -- see *note Gate: Gate, -- the class of all gates
+      * "ProductGate" -- see *note Gate: Gate, -- the class of all gates
+      * "SumGate" -- see *note Gate: Gate, -- the class of all gates
+      * *note GateMatrix: GateMatrix, -- a matrix of Gates
+      * "InterpretedSLProgram" -- see *note makeInterpretedSLProgram:
+        makeInterpretedSLProgram, -- create a straight-line program
+      * SLProgram (missing documentation)
+      * "ValueHashTable" -- see *note valueHashTable: valueHashTable, --
+        creates a hash table of values for evaluation
+  * Functions and commands
+      * "detGate" -- see *note creating gates: creating gates,
+      * "inputGate" -- see *note creating gates: creating gates,
+      * "productGate" -- see *note creating gates: creating gates,
+      * "sumGate" -- see *note creating gates: creating gates,
+      * *note declareVariable: declareVariable, -- assigns an input gate to a
+        given variable name
+      * *note gateMatrix: gateMatrix, -- create a GateMatrix
+      * *note gatePolynomial: gatePolynomial, -- creates an input gate for a
+        given polynomial
+      * *note getVarGates: getVarGates, -- returns the input gates for
+        variables in a polynomial ring
+      * makeCompiledSLProgram (missing documentation)
+      * *note makeInterpretedSLProgram: makeInterpretedSLProgram, -- create a
+        straight-line program
+      * *note makeSLProgram: makeSLProgram, -- create a straight-line program
+        (either interpreted or compiled)
+      * "setTryJustInTimeCompilation" -- see *note makeSLProgram:
+        makeSLProgram, -- create a straight-line program (either interpreted or
+        compiled)
+      * "countGates" -- see *note measuring the size of circuits: measuring the
+        size of circuits,
+      * *note undeclareVariable: undeclareVariable, -- clears assignment of an
+        input gate to a variable name
+      * *note valueHashTable: valueHashTable, -- creates a hash table of values
+        for evaluation
+  * Methods
+      * "- Gate" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Gate * Gate" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Gate * Matrix" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Gate * Number" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Gate * RingElement" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "Gate + Gate" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Gate + Number" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Gate + RingElement" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "Gate - Gate" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Gate - Number" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Gate - RingElement" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "Gate / Gate" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Gate ^ ZZ" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "GateMatrix * GateMatrix" -- see *note arithmetic with circuits:
+        arithmetic with circuits,
+      * "GateMatrix * Matrix" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "GateMatrix * RingElement" -- see *note arithmetic with circuits:
+        arithmetic with circuits,
+      * "GateMatrix + GateMatrix" -- see *note arithmetic with circuits:
+        arithmetic with circuits,
+      * "GateMatrix + Matrix" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "GateMatrix - GateMatrix" -- see *note arithmetic with circuits:
+        arithmetic with circuits,
+      * "GateMatrix - Matrix" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "GateMatrix ^ List" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "Matrix * Gate" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Matrix * GateMatrix" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "Matrix + GateMatrix" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "Matrix - GateMatrix" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "Number * Gate" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Number + Gate" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "Number - Gate" -- see *note arithmetic with circuits: arithmetic with
+        circuits,
+      * "RingElement * Gate" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "RingElement * GateMatrix" -- see *note arithmetic with circuits:
+        arithmetic with circuits,
+      * "RingElement + Gate" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * "RingElement - Gate" -- see *note arithmetic with circuits: arithmetic
+        with circuits,
+      * cCode(GateMatrix,GateMatrix,File) (missing documentation)
+      * cCode(List,List,File) (missing documentation)
+      * "compress(Gate)" -- see *note compressing circuits: compressing
+        circuits,
+      * "compress(GateMatrix)" -- see *note compressing circuits: compressing
+        circuits,
+      * "detGate(List)" -- see *note creating gates: creating gates,
+      * "inputGate(Thing)" -- see *note creating gates: creating gates,
+      * "productGate(List)" -- see *note creating gates: creating gates,
+      * "sumGate(List)" -- see *note creating gates: creating gates,
+      * "vars(IndexedVariable)" -- see *note creating variables as objects of
+        type InputGate: creating variables as objects of type InputGate,
+      * "vars(InputGate)" -- see *note creating variables as objects of type
+        InputGate: creating variables as objects of type InputGate,
+      * "vars(Symbol)" -- see *note creating variables as objects of type
+        InputGate: creating variables as objects of type InputGate,
+      * "declareVariable(IndexedVariable)" -- see *note declareVariable:
+        declareVariable, -- assigns an input gate to a given variable name
+      * "declareVariable(InputGate)" -- see *note declareVariable:
+        declareVariable, -- assigns an input gate to a given variable name
+      * "declareVariable(Symbol)" -- see *note declareVariable:
+        declareVariable, -- assigns an input gate to a given variable name
+      * "declareVariable(Thing)" -- see *note declareVariable: declareVariable,
+        -- assigns an input gate to a given variable name
+      * detGate(GateMatrix) (missing documentation)
+      * "diff(GateMatrix,GateMatrix)" -- see *note differentiating circuits:
+        differentiating circuits,
+      * "diff(InputGate,Gate)" -- see *note differentiating circuits:
+        differentiating circuits,
+      * "diff(InputGate,GateMatrix)" -- see *note differentiating circuits:
+        differentiating circuits,
+      * evaluate(CompiledSLProgram,MutableMatrix,MutableMatrix) (missing
+        documentation)
+      * evaluate(InterpretedSLProgram,MutableMatrix,MutableMatrix) (missing
+        documentation)
+      * "evaluate(SLProgram,Matrix)" -- see *note
+        evaluate(SLProgram,MutableMatrix,MutableMatrix):
+        evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp, -- evaluate a
+        straight-line program
+      * *note evaluate(SLProgram,MutableMatrix,MutableMatrix):
+        evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp, -- evaluate a
+        straight-line program
+      * "value(DetGate,ValueHashTable)" -- see *note evaluating gates:
+        evaluating gates,
+      * "value(DivideGate,ValueHashTable)" -- see *note evaluating gates:
+        evaluating gates,
+      * "value(Gate,ValueHashTable)" -- see *note evaluating gates: evaluating
+        gates,
+      * "value(GateMatrix,ValueHashTable)" -- see *note evaluating gates:
+        evaluating gates,
+      * "value(InputGate,ValueHashTable)" -- see *note evaluating gates:
+        evaluating gates,
+      * "value(ProductGate,ValueHashTable)" -- see *note evaluating gates:
+        evaluating gates,
+      * "value(SumGate,ValueHashTable)" -- see *note evaluating gates:
+        evaluating gates,
+      * expression(DetGate) (missing documentation)
+      * expression(DivideGate) (missing documentation)
+      * expression(GateMatrix) (missing documentation)
+      * expression(InputGate) (missing documentation)
+      * expression(ProductGate) (missing documentation)
+      * expression(SumGate) (missing documentation)
+      * flatten(GateMatrix) (missing documentation)
+      * "gateMatrix(GateMatrix)" -- see *note gateMatrix: gateMatrix, -- create
+        a GateMatrix
+      * "gateMatrix(List)" -- see *note gateMatrix: gateMatrix, -- create a
+        GateMatrix
+      * "gateMatrix(Matrix)" -- see *note gateMatrix: gateMatrix, -- create a
+        GateMatrix
+      * "gatePolynomial(Matrix)" -- see *note gatePolynomial: gatePolynomial,
+        -- creates an input gate for a given polynomial
+      * "gatePolynomial(RingElement)" -- see *note gatePolynomial:
+        gatePolynomial, -- creates an input gate for a given polynomial
+      * "getVarGates(PolynomialRing)" -- see *note getVarGates: getVarGates, --
+        returns the input gates for variables in a polynomial ring
+      * html(Gate) (missing documentation)
+      * html(GateMatrix) (missing documentation)
+      * *note InputGate .. InputGate: InputGate _pd_pd InputGate, -- Passing ..
+        to InputGate names (see code). TO DO: expand this.
+      * *note isConstant(InputGate): isConstant_lpInputGate_rp, -- whether an
+        input gate is constant
+      * makeCompiledSLProgram(GateMatrix,GateMatrix) (missing documentation)
+      * makeCompiledSLProgram(List,List) (missing documentation)
+      * "makeInterpretedSLProgram(GateMatrix,GateMatrix)" -- see *note
+        makeInterpretedSLProgram: makeInterpretedSLProgram, -- create a
+        straight-line program
+      * "makeInterpretedSLProgram(List,List)" -- see *note
+        makeInterpretedSLProgram: makeInterpretedSLProgram, -- create a
+        straight-line program
+      * "makeSLProgram(GateMatrix,GateMatrix)" -- see *note makeSLProgram:
+        makeSLProgram, -- create a straight-line program (either interpreted or
+        compiled)
+      * "makeSLProgram(List,List)" -- see *note makeSLProgram: makeSLProgram,
+        -- create a straight-line program (either interpreted or compiled)
+      * "setTryJustInTimeCompilation(Boolean)" -- see *note makeSLProgram:
+        makeSLProgram, -- create a straight-line program (either interpreted or
+        compiled)
+      * matrix(GateMatrix) (missing documentation)
+      * "countGates(Gate)" -- see *note measuring the size of circuits:
+        measuring the size of circuits,
+      * "countGates(GateMatrix)" -- see *note measuring the size of circuits:
+        measuring the size of circuits,
+      * "depth(DetGate)" -- see *note measuring the size of circuits: measuring
+        the size of circuits,
+      * "depth(DivideGate)" -- see *note measuring the size of circuits:
+        measuring the size of circuits,
+      * "depth(GateMatrix)" -- see *note measuring the size of circuits:
+        measuring the size of circuits,
+      * "depth(InputGate)" -- see *note measuring the size of circuits:
+        measuring the size of circuits,
+      * "depth(ProductGate)" -- see *note measuring the size of circuits:
+        measuring the size of circuits,
+      * "depth(SumGate)" -- see *note measuring the size of circuits: measuring
+        the size of circuits,
+      * net(Gate) (missing documentation)
+      * toExternalString(InputGate) (missing documentation)
+      * "undeclareVariable(InputGate)" -- see *note undeclareVariable:
+        undeclareVariable, -- clears assignment of an input gate to a variable
+        name
+      * "valueHashTable(List,List)" -- see *note valueHashTable:
+        valueHashTable, -- creates a hash table of values for evaluation
+      * "determinant(GateMatrix)" -- see *note working with gate matrices:
+        working with gate matrices,
+      * "entries(GateMatrix)" -- see *note working with gate matrices: working
+        with gate matrices,
+      * "GateMatrix _ List" -- see *note working with gate matrices: working
+        with gate matrices,
+      * "GateMatrix _ Sequence" -- see *note working with gate matrices:
+        working with gate matrices,
+      * "GateMatrix | GateMatrix" -- see *note working with gate matrices:
+        working with gate matrices,
+      * "GateMatrix | Matrix" -- see *note working with gate matrices: working
+        with gate matrices,
+      * "GateMatrix || GateMatrix" -- see *note working with gate matrices:
+        working with gate matrices,
+      * "GateMatrix || Matrix" -- see *note working with gate matrices: working
+        with gate matrices,
+      * "Matrix | GateMatrix" -- see *note working with gate matrices: working
+        with gate matrices,
+      * "Matrix || GateMatrix" -- see *note working with gate matrices: working
+        with gate matrices,
+      * "numColumns(GateMatrix)" -- see *note working with gate matrices:
+        working with gate matrices,
+      * "numRows(GateMatrix)" -- see *note working with gate matrices: working
+        with gate matrices,
+      * "submatrix(GateMatrix,List,List)" -- see *note working with gate
+        matrices: working with gate matrices,
+      * "substitute(GateMatrix,GateMatrix,GateMatrix)" -- see *note working
+        with gate matrices: working with gate matrices,
+      * "substitute(GateMatrix,HashTable)" -- see *note working with gate
+        matrices: working with gate matrices,
+      * "substitute(GateMatrix,List)" -- see *note working with gate matrices:
+        working with gate matrices,
+      * "substitute(GateMatrix,Option)" -- see *note working with gate
+        matrices: working with gate matrices,
+      * "transpose(GateMatrix)" -- see *note working with gate matrices:
+        working with gate matrices,
+
+For the programmer
+==================
+
+The object *note SLPexpressions: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in SLPexpressions.m2, with auxiliary files in
+SLPexpressions/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:29:0.
+
+File: SLPexpressions.info, Node: arithmetic with circuits, Next: CompiledSLProgram, Prev: Top, Up: Top
+
+arithmetic with circuits
+************************
+
+There are many arithmetic operations that can be performed on *note gates:
+Gate,. This makes it easy to create combine existing gates into new gates.
+
++------------------------------------------------+
+|i1 : declareVariable X; declareVariable Y;      |
++------------------------------------------------+
+|i3 : m1 = Y*Y                                   |
+|                                                |
+|o3 = (Y * Y)                                    |
+|                                                |
+|o3 : ProductGate                                |
++------------------------------------------------+
+|i4 : m2 = X^3                                   |
+|                                                |
+|o4 = (X * X * X)                                |
+|                                                |
+|o4 : ProductGate                                |
++------------------------------------------------+
+|i5 : F = m1-m2-X                                |
+|                                                |
+|o5 = (((Y * Y) + (-1 * (X * X * X))) + (-1 * X))|
+|                                                |
+|o5 : SumGate                                    |
++------------------------------------------------+
+
+If one of the inputs is a *note Number: (Macaulay2Doc)Number,, it is first
+converted to an *note InputGate: Gate,:
+
++------------+
+|i6 : X + 2  |
+|            |
+|o6 = (X + 2)|
+|            |
+|o6 : SumGate|
++------------+
+
+By extension, arithmetic operations also work with *note gate matrices:
+GateMatrix,:
+
++-----------------------------------------------------+
+|i7 : M = matrix {{X, Y}}                             |
+|                                                     |
+|o7 = {{X, Y}}                                        |
+|                                                     |
+|o7 : GateMatrix                                      |
++-----------------------------------------------------+
+|i8 : 3*M                                             |
+|                                                     |
+|o8 = {{(3 * X), (3 * Y)}}                            |
+|                                                     |
+|o8 : GateMatrix                                      |
++-----------------------------------------------------+
+|i9 : transpose M * M                                 |
+|                                                     |
+|o9 = {{((X * X)), ((X * Y))}, {((Y * X)), ((Y * Y))}}|
+|                                                     |
+|o9 : GateMatrix                                      |
++-----------------------------------------------------+
+
+See also
+========
+
+  * *note InputGate: Gate, -- the class of all gates
+  * *note GateMatrix: GateMatrix, -- a matrix of Gates
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:472:0.
+
+File: SLPexpressions.info, Node: CompiledSLProgram, Next: compressing circuits, Prev: arithmetic with circuits, Up: Top
+
+CompiledSLProgram
+*****************
+
+Functions and methods returning an object of class CompiledSLProgram:
+=====================================================================
+
+  * makeCompiledSLProgram (missing documentation)
+
+Methods that use an object of class CompiledSLProgram:
+======================================================
+
+  * evaluate(CompiledSLProgram,MutableMatrix,MutableMatrix) (missing
+    documentation)
+
+For the programmer
+==================
+
+The object CompiledSLProgram (missing documentation) is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes SLProgram (missing documentation) <
+*note HashTable: (Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:380.
+
+File: SLPexpressions.info, Node: compressing circuits, Next: creating gates, Prev: CompiledSLProgram, Up: Top
+
+compressing circuits
+********************
+
+  * Usage: 
+        g' = compress g
+        G' = compress G
+  * Inputs:
+      * g, an instance of the type *note Gate: Gate,, 
+      * G, an instance of the type *note GateMatrix: GateMatrix,, 
+  * Outputs:
+      * g', an instance of the type *note Gate: Gate,, 
+      * G', an instance of the type *note GateMatrix: GateMatrix,, 
+
+These commands attempt to remove superfluous operations involving constants
+from the building blocks of a compound *note Gate: Gate, or *note GateMatrix:
+GateMatrix,. The example below is contrived, but illustrates what may happen in
+general.
+
++----------------------------------------------------------------------+
+|i1 : declareVariable \ {a,b,c}                                        |
+|                                                                      |
+|o1 = {a, b, c}                                                        |
+|                                                                      |
+|o1 : List                                                             |
++----------------------------------------------------------------------+
+|i2 : x = inputGate 1                                                  |
+|                                                                      |
+|o2 = 1                                                                |
+|                                                                      |
+|o2 : InputGate                                                        |
++----------------------------------------------------------------------+
+|i3 : y = inputGate 2                                                  |
+|                                                                      |
+|o3 = 2                                                                |
+|                                                                      |
+|o3 : InputGate                                                        |
++----------------------------------------------------------------------+
+|i4 : G = gateMatrix{{(x+y)+3+4+b+4+c+4*(a+b+2)}}                      |
+|                                                                      |
+|o4 = {{(((((((1 + 2) + 3) + 4) + b) + 4) + c) + (4 * ((a + b) + 2)))}}|
+|                                                                      |
+|o4 : GateMatrix                                                       |
++----------------------------------------------------------------------+
+|i5 : cG = compress G                                                  |
+|                                                                      |
+|o5 = {{(((4 + (10 + b)) + c) + (4 * (2 + (a + b))))}}                 |
+|                                                                      |
+|o5 : GateMatrix                                                       |
++----------------------------------------------------------------------+
+|i6 : depth G                                                          |
+|                                                                      |
+|o6 = 7                                                                |
++----------------------------------------------------------------------+
+|i7 : depth cG                                                         |
+|                                                                      |
+|o7 = 4                                                                |
++----------------------------------------------------------------------+
+|i8 : countGates G                                                     |
+|                                                                      |
+|o8 = HashTable{cache => CacheTable{...17...}}                         |
+|               InputGate => 7                                         |
+|               ProductGate => 1                                       |
+|               SumGate => 9                                           |
+|                                                                      |
+|o8 : HashTable                                                        |
++----------------------------------------------------------------------+
+|i9 : countGates cG                                                    |
+|                                                                      |
+|o9 = HashTable{cache => CacheTable{...13...}}                         |
+|               InputGate => 6                                         |
+|               ProductGate => 1                                       |
+|               SumGate => 6                                           |
+|                                                                      |
+|o9 : HashTable                                                        |
++----------------------------------------------------------------------+
+
+See also
+========
+
+  * *note measuring the size of circuits: measuring the size of circuits,
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:582:0.
+
+File: SLPexpressions.info, Node: creating gates, Next: creating variables as objects of type InputGate, Prev: compressing circuits, Up: Top
+
+creating gates
+**************
+
+  * Usage: 
+        inputGate L
+        sumGate L
+        productGate L
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, 
+  * Outputs:
+      * an instance of the type *note InputGate: Gate,, 
+
+This method returns a type of *note Gate: Gate, from the given data. Some
+specific *note Gate: Gate,s are constructed as follows:
+
+*note InputGate: Gate, is constructed with *note inputGate: creating gates,
+name, if name is a number then this gate is assumed to be constant.
+
++----------------------+
+|i1 : declareVariable X|
+|                      |
+|o1 = X                |
+|                      |
+|o1 : InputGate        |
++----------------------+
+|i2 : declareVariable Y|
+|                      |
+|o2 = Y                |
+|                      |
+|o2 : InputGate        |
++----------------------+
+|i3 : inputGate 3      |
+|                      |
+|o3 = 3                |
+|                      |
+|o3 : InputGate        |
++----------------------+
+
+*note SumGate: Gate, is constructed with *note sumGate: creating gates, L,
+where L is a list of gates, or *note Gate + Gate: arithmetic with circuits,.
+
++-----------------+
+|i4 : X + 1       |
+|                 |
+|o4 = (X + 1)     |
+|                 |
+|o4 : SumGate     |
++-----------------+
+|i5 : sumGate{X,Y}|
+|                 |
+|o5 = (X + Y)     |
+|                 |
+|o5 : SumGate     |
++-----------------+
+
+*note ProductGate: Gate, is constructed with *note productGate: creating gates,
+L, where L is a list of gates, or *note Gate * Gate: arithmetic with circuits,.
+
++------------------------+
+|i6 : 2*Y                |
+|                        |
+|o6 = (2 * Y)            |
+|                        |
+|o6 : ProductGate        |
++------------------------+
+|i7 : productGate{X,-X,Y}|
+|                        |
+|o7 = (X * (-1 * X) * Y) |
+|                        |
+|o7 : ProductGate        |
++------------------------+
+
+*note DivideGate: Gate, is constructed with *note Gate / Gate: arithmetic with
+circuits,.
+
++---------------+
+|i8 : X / Y     |
+|               |
+|     X         |
+|o8 = -         |
+|     Y         |
+|               |
+|o8 : DivideGate|
++---------------+
+
+*note DetGate: Gate, is constructed with *note detGate: creating gates, L,
+where L is a doubly-nested list of gates, or det A, where A is a *note
+GateMatrix: GateMatrix,.
+
++---------------------------------+
+|i9 : detGate {{X, Y}, {-Y, X}}   |
+|                                 |
+|o9 = det| X        Y |           |
+|        | (-1 * Y) X |           |
+|                                 |
+|o9 : DetGate                     |
++---------------------------------+
+|i10 : det matrix{{Y, 1}, {-1, X}}|
+|                                 |
+|o10 = det| Y  1 |                |
+|         | -1 X |                |
+|                                 |
+|o10 : DetGate                    |
++---------------------------------+
+
+See also
+========
+
+  * *note Gate: Gate, -- the class of all gates
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:97:0.
+
+File: SLPexpressions.info, Node: creating variables as objects of type InputGate, Next: declareVariable, Prev: creating gates, Up: Top
+
+creating variables as objects of type InputGate
+***********************************************
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:647:0.
+
+File: SLPexpressions.info, Node: declareVariable, Next: differentiating circuits, Prev: creating variables as objects of type InputGate, Up: Top
+
+declareVariable -- assigns an input gate to a given variable name
+*****************************************************************
+
+  * Usage: 
+        declareVariable x
+  * Inputs:
+      * x, a *note symbol: (Macaulay2Doc)Symbol,, or an *note IndexedVariable:
+        (Macaulay2Doc)IndexedVariable,
+  * Outputs:
+      * an instance of the type *note InputGate: Gate,, 
+
+Description
+===========
+
+This method assigns an *note InputGate: Gate, which has the same *note Name:
+(Macaulay2Doc)newPackage, as the given symbol or the *note baseName:
+(Macaulay2Doc)baseName, of the given *note IndexedVariable:
+(Macaulay2Doc)IndexedVariable,, so that later references to the symbol will be
+treated (and can be used) as an *note InputGate: Gate,. This can be reverted
+with *note undeclareVariable: undeclareVariable,.
+
++----------------------+
+|i1 : declareVariable x|
+|                      |
+|o1 = x                |
+|                      |
+|o1 : InputGate        |
++----------------------+
+|i2 : x + 1            |
+|                      |
+|o2 = (x + 1)          |
+|                      |
+|o2 : SumGate          |
++----------------------+
+
+See also
+========
+
+  * *note undeclareVariable: undeclareVariable, -- clears assignment of an
+    input gate to a variable name
+
+Ways to use declareVariable:
+============================
+
+  * "declareVariable(IndexedVariable)"
+  * "declareVariable(InputGate)"
+  * "declareVariable(Symbol)"
+  * "declareVariable(Thing)"
+
+For the programmer
+==================
+
+The object *note declareVariable: declareVariable, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:123:0.
+
+File: SLPexpressions.info, Node: differentiating circuits, Next: evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp, Prev: declareVariable, Up: Top
+
+differentiating circuits
+************************
+
+The output of these commands is generally a circuit for evaluating the
+derivative of the second argument with respect to the first.
+
++-----------------------------------------------------------------------------+
+|i1 : declareVariable X; declareVariable Y;                                   |
++-----------------------------------------------------------------------------+
+|i3 : F = Y^2-X^3-X                                                           |
+|                                                                             |
+|o3 = (((Y * Y) + (-1 * (X * X * X))) + (-1 * X))                             |
+|                                                                             |
+|o3 : SumGate                                                                 |
++-----------------------------------------------------------------------------+
+|i4 : diff(X,F)                                                               |
+|                                                                             |
+|o4 = (((0 + 0) + (0 + ((-1) * ((X * X) + (X * X) + (X * X))))) + (0 + (-1))) |
+|                                                                             |
+|o4 : SumGate                                                                 |
++-----------------------------------------------------------------------------+
+|i5 : J = diff(gateMatrix{{X,Y}},gateMatrix{{F}})                             |
+|                                                                             |
+|o5 = {{(((0 + 0) + (0 + ((-1) * ((X * X) + (X * X) + (X * X))))) + (0 +      |
+|     ------------------------------------------------------------------------|
+|     (-1))), ((((Y) + (Y)) + (0 + ((-1) * (0 + 0 + 0)))) + (0 + 0))}}        |
+|                                                                             |
+|o5 : GateMatrix                                                              |
++-----------------------------------------------------------------------------+
+|i6 : (numrows J, numcols J)                                                  |
+|                                                                             |
+|o6 = (1, 2)                                                                  |
+|                                                                             |
+|o6 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note InputGate: Gate, -- the class of all gates
+  * *note GateMatrix: GateMatrix, -- a matrix of Gates
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:492:0.
+
+File: SLPexpressions.info, Node: evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp, Next: evaluating gates, Prev: differentiating circuits, Up: Top
+
+evaluate(SLProgram,MutableMatrix,MutableMatrix) -- evaluate a straight-line program
+***********************************************************************************
+
+  * Function: *note evaluate: (NAGtypes)evaluate,
+  * Usage: 
+        evaluate(slp, inp, out)
+  * Inputs:
+      * slp, an instance of the type SLProgram (missing documentation), 
+      * inp, a *note mutable matrix: (Macaulay2Doc)MutableMatrix,, of inputs
+      * out, a *note mutable matrix: (Macaulay2Doc)MutableMatrix,, of outputs
+  * Consequences:
+      * The second argument (i.e. the mutable matrix out) is changed to be the
+        value of the straight-line program on the input inp.
+
+Description
+===========
+
+This method evaluates an object of type SLProgram (missing documentation) on a
+given input. The two matrices inp and out should both be *note mutable:
+(Macaulay2Doc)MutableMatrix,, of the same sizes, and be defined over the same
+ring.
+
++-----------------------------------------------------------------------------+
+|i1 : declareVariable X; declareVariable C;                                   |
++-----------------------------------------------------------------------------+
+|i3 : XpC = X+C                                                               |
+|                                                                             |
+|o3 = (X + C)                                                                 |
+|                                                                             |
+|o3 : SumGate                                                                 |
++-----------------------------------------------------------------------------+
+|i4 : XXC = productGate{X,X,C}                                                |
+|                                                                             |
+|o4 = (X * X * C)                                                             |
+|                                                                             |
+|o4 : ProductGate                                                             |
++-----------------------------------------------------------------------------+
+|i5 : detXCCX = detGate{{X,C},{C,X}}                                          |
+|                                                                             |
+|o5 = det| X C |                                                              |
+|        | C X |                                                              |
+|                                                                             |
+|o5 : DetGate                                                                 |
++-----------------------------------------------------------------------------+
+|i6 : XoC = X/C                                                               |
+|                                                                             |
+|     X                                                                       |
+|o6 = -                                                                       |
+|     C                                                                       |
+|                                                                             |
+|o6 : DivideGate                                                              |
++-----------------------------------------------------------------------------+
+|i7 : slp = makeInterpretedSLProgram(matrix{{C,X}},matrix{{XXC,detXCCX,XoC,XpC|
+|                                                                             |
+|o7 = InterpretedSLProgram{cache => CacheTable{}              }               |
+|                          "constant positions" => {-3}                       |
+|                          "constants" => | 2 |                               |
+|                          "number of inputs" => 2                            |
+|                          "number of outputs" => 4                           |
+|                          RawSLProgram => SLProgram (                        |
+|                                            consts+vars: 3                   |
+|                                            noninput nodes: 5                |
+|                                            output nodes: 4                  |
+|                                            )                                |
+|                                                                             |
+|                          "variable positions" => {-1, -2}                   |
+|                                                                             |
+|o7 : InterpretedSLProgram                                                    |
+|-----------------------------------------------------------------------------|
+|+2}})                                                                        |
++-----------------------------------------------------------------------------+
+|i8 : inp = mutableMatrix{{1.2,-1}}                                           |
+|                                                                             |
+|o8 = | 1.2 -1 |                                                              |
+|                                                                             |
+|o8 : MutableMatrix                                                           |
++-----------------------------------------------------------------------------+
+|i9 : out = mutableMatrix(ring inp,1,4)                                       |
+|                                                                             |
+|o9 = 0                                                                       |
+|                                                                             |
+|o9 : MutableMatrix                                                           |
++-----------------------------------------------------------------------------+
+|i10 : evaluate(slp,inp,out)                                                  |
++-----------------------------------------------------------------------------+
+|i11 : clean_0.001(out - mutableMatrix {{1.2, -.44, -.833333, 2.2}}) == 0     |
+|                                                                             |
+|o11 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+The straight-line program can also be evaluated at different inputs in
+different rings:
+
++---------------------------------------+
+|i12 : inp = mutableMatrix{{-5_QQ,3}}   |
+|                                       |
+|o12 = | -5 3 |                         |
+|                                       |
+|o12 : MutableMatrix                    |
++---------------------------------------+
+|i13 : ring inp                         |
+|                                       |
+|o13 = QQ                               |
+|                                       |
+|o13 : Ring                             |
++---------------------------------------+
+|i14 : out = mutableMatrix(ring inp,1,4)|
+|                                       |
+|o14 = 0                                |
+|                                       |
+|o14 : MutableMatrix                    |
++---------------------------------------+
+|i15 : evaluate(slp, inp, out)          |
++---------------------------------------+
+|i16 : out                              |
+|                                       |
+|o16 = | -45 -16 -3/5 0 |               |
+|                                       |
+|o16 : MutableMatrix                    |
++---------------------------------------+
+
+See also
+========
+
+  * SLProgram (missing documentation)
+  * *note InterpretedSLProgram: makeInterpretedSLProgram, -- create a
+    straight-line program
+  * CompiledSLProgram (missing documentation)
+
+Ways to use this method:
+========================
+
+  * "evaluate(SLProgram,Matrix)"
+  * *note evaluate(SLProgram,MutableMatrix,MutableMatrix):
+    evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp, -- evaluate a
+    straight-line program
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:368:0.
+
+File: SLPexpressions.info, Node: evaluating gates, Next: Gate, Prev: evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp, Up: Top
+
+evaluating gates
+****************
+
+The standard method *note value: (Macaulay2Doc)value, provides a way to
+evaluate *note Gate: Gate,s at particular inputs, provided in the form of a
+*note ValueHashTable: valueHashTable,. The results are cached, and thus are not
+recomputed when called again with the same *note Gate: Gate, and *note
+ValueHashTable: valueHashTable, as inputs.
+
++-----------------------------------------------------+
+|i1 : declareVariable X                               |
+|                                                     |
+|o1 = X                                               |
+|                                                     |
+|o1 : InputGate                                       |
++-----------------------------------------------------+
+|i2 : declareVariable Y                               |
+|                                                     |
+|o2 = Y                                               |
+|                                                     |
+|o2 : InputGate                                       |
++-----------------------------------------------------+
+|i3 : C = sumGate {X+Y,Y,X}                           |
+|                                                     |
+|o3 = ((X + Y) + Y + X)                               |
+|                                                     |
+|o3 : SumGate                                         |
++-----------------------------------------------------+
+|i4 : D = productGate {X*Y,Y,C}                       |
+|                                                     |
+|o4 = ((X * Y) * Y * ((X + Y) + Y + X))               |
+|                                                     |
+|o4 : ProductGate                                     |
++-----------------------------------------------------+
+|i5 : h = valueHashTable({X,Y},{1,ii})                |
+|                                                     |
+|o5 = ValueHashTable{...2...}                         |
+|                                                     |
+|o5 : ValueHashTable                                  |
++-----------------------------------------------------+
+|i6 : v = value(D,h)                                  |
+|                                                     |
+|o6 = -2-2*ii                                         |
+|                                                     |
+|o6 : CC (of precision 53)                            |
++-----------------------------------------------------+
+|i7 : v == product{value(X*Y,h),value(Y,h),value(C,h)}|
+|                                                     |
+|o7 = true                                            |
++-----------------------------------------------------+
+
+See also
+========
+
+  * *note valueHashTable: valueHashTable, -- creates a hash table of values for
+    evaluation
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:273:0.
+
+File: SLPexpressions.info, Node: Gate, Next: GateMatrix, Prev: evaluating gates, Up: Top
+
+Gate -- the class of all gates
+******************************
+
+Description
+===========
+
+A gate is a building block of an evaluation circuit. For instance, an *note
+InputGate: Gate, represents an abstract unit of input, and a *note SumGate:
+Gate, takes a list of inputs, and has an output which represents the sum of the
+inputs. For more information on the types of gates available in this package,
+as well as how to construct gates, see *note creating input gates: creating
+gates,.
+
+
+
+Types of Gate:
+==============
+
+  * "DetGate"
+  * "DivideGate"
+  * "InputGate"
+  * "ProductGate"
+  * "SumGate"
+
+Methods that use an object of class Gate:
+=========================================
+
+  * "- Gate" -- see *note arithmetic with circuits: arithmetic with circuits,
+  * "Gate * Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate * Matrix" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate * Number" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate * RingElement" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate + Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate + Number" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate + RingElement" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate - Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate - Number" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate - RingElement" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate / Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Gate ^ ZZ" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Matrix * Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Number * Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Number + Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Number - Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "RingElement * Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "RingElement + Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "RingElement - Gate" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "compress(Gate)" -- see *note compressing circuits: compressing circuits,
+  * "diff(InputGate,Gate)" -- see *note differentiating circuits:
+    differentiating circuits,
+  * "value(Gate,ValueHashTable)" -- see *note evaluating gates: evaluating
+    gates,
+  * html(Gate) (missing documentation)
+  * "countGates(Gate)" -- see *note measuring the size of circuits: measuring
+    the size of circuits,
+  * net(Gate) (missing documentation)
+
+For the programmer
+==================
+
+The object *note Gate: Gate, is a *note type: (Macaulay2Doc)Type,, with
+ancestor classes *note HashTable: (Macaulay2Doc)HashTable, < *note Thing:
+(Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:45:0.
+
+File: SLPexpressions.info, Node: GateMatrix, Next: gateMatrix, Prev: Gate, Up: Top
+
+GateMatrix -- a matrix of Gates
+*******************************
+
+Description
+===========
+
+An object of this type is a matrix with Gates as entries. Some algebraic
+operations (matrix multiplication, determinant, etc.) are defined for this
+type. It is provided, in part, for convenience of setting up involved
+evaluation circuits. To see how to create a *note GateMatrix: GateMatrix,, see
+*note gateMatrix: gateMatrix,. For information about operations that can be
+performed on gate matrices, see *note working with gate matrices: working with
+gate matrices,.
+
+See also
+========
+
+  * *note Gate: Gate, -- the class of all gates
+  * *note gateMatrix: gateMatrix, -- create a GateMatrix
+  * *note working with gate matrices: working with gate matrices,
+
+Methods that use an object of class GateMatrix:
+===============================================
+
+  * "GateMatrix * GateMatrix" -- see *note arithmetic with circuits: arithmetic
+    with circuits,
+  * "GateMatrix * Matrix" -- see *note arithmetic with circuits: arithmetic
+    with circuits,
+  * "GateMatrix * RingElement" -- see *note arithmetic with circuits:
+    arithmetic with circuits,
+  * "GateMatrix + GateMatrix" -- see *note arithmetic with circuits: arithmetic
+    with circuits,
+  * "GateMatrix + Matrix" -- see *note arithmetic with circuits: arithmetic
+    with circuits,
+  * "GateMatrix - GateMatrix" -- see *note arithmetic with circuits: arithmetic
+    with circuits,
+  * "GateMatrix - Matrix" -- see *note arithmetic with circuits: arithmetic
+    with circuits,
+  * "GateMatrix ^ List" -- see *note arithmetic with circuits: arithmetic with
+    circuits,
+  * "Matrix * GateMatrix" -- see *note arithmetic with circuits: arithmetic
+    with circuits,
+  * "Matrix + GateMatrix" -- see *note arithmetic with circuits: arithmetic
+    with circuits,
+  * "Matrix - GateMatrix" -- see *note arithmetic with circuits: arithmetic
+    with circuits,
+  * "RingElement * GateMatrix" -- see *note arithmetic with circuits:
+    arithmetic with circuits,
+  * cCode(GateMatrix,GateMatrix,File) (missing documentation)
+  * "compress(GateMatrix)" -- see *note compressing circuits: compressing
+    circuits,
+  * detGate(GateMatrix) (missing documentation)
+  * "diff(GateMatrix,GateMatrix)" -- see *note differentiating circuits:
+    differentiating circuits,
+  * "diff(InputGate,GateMatrix)" -- see *note differentiating circuits:
+    differentiating circuits,
+  * "value(GateMatrix,ValueHashTable)" -- see *note evaluating gates:
+    evaluating gates,
+  * expression(GateMatrix) (missing documentation)
+  * flatten(GateMatrix) (missing documentation)
+  * "gateMatrix(GateMatrix)" -- see *note gateMatrix: gateMatrix, -- create a
+    GateMatrix
+  * html(GateMatrix) (missing documentation)
+  * makeCompiledSLProgram(GateMatrix,GateMatrix) (missing documentation)
+  * "makeInterpretedSLProgram(GateMatrix,GateMatrix)" -- see *note
+    makeInterpretedSLProgram: makeInterpretedSLProgram, -- create a
+    straight-line program
+  * "makeSLProgram(GateMatrix,GateMatrix)" -- see *note makeSLProgram:
+    makeSLProgram, -- create a straight-line program (either interpreted or
+    compiled)
+  * matrix(GateMatrix) (missing documentation)
+  * "countGates(GateMatrix)" -- see *note measuring the size of circuits:
+    measuring the size of circuits,
+  * "depth(GateMatrix)" -- see *note measuring the size of circuits: measuring
+    the size of circuits,
+  * "determinant(GateMatrix)" -- see *note working with gate matrices: working
+    with gate matrices,
+  * "entries(GateMatrix)" -- see *note working with gate matrices: working with
+    gate matrices,
+  * "GateMatrix _ List" -- see *note working with gate matrices: working with
+    gate matrices,
+  * "GateMatrix _ Sequence" -- see *note working with gate matrices: working
+    with gate matrices,
+  * "GateMatrix | GateMatrix" -- see *note working with gate matrices: working
+    with gate matrices,
+  * "GateMatrix | Matrix" -- see *note working with gate matrices: working with
+    gate matrices,
+  * "GateMatrix || GateMatrix" -- see *note working with gate matrices: working
+    with gate matrices,
+  * "GateMatrix || Matrix" -- see *note working with gate matrices: working
+    with gate matrices,
+  * "Matrix | GateMatrix" -- see *note working with gate matrices: working with
+    gate matrices,
+  * "Matrix || GateMatrix" -- see *note working with gate matrices: working
+    with gate matrices,
+  * "numColumns(GateMatrix)" -- see *note working with gate matrices: working
+    with gate matrices,
+  * "numRows(GateMatrix)" -- see *note working with gate matrices: working with
+    gate matrices,
+  * "submatrix(GateMatrix,List,List)" -- see *note working with gate matrices:
+    working with gate matrices,
+  * "substitute(GateMatrix,GateMatrix,GateMatrix)" -- see *note working with
+    gate matrices: working with gate matrices,
+  * "substitute(GateMatrix,HashTable)" -- see *note working with gate matrices:
+    working with gate matrices,
+  * "substitute(GateMatrix,List)" -- see *note working with gate matrices:
+    working with gate matrices,
+  * "substitute(GateMatrix,Option)" -- see *note working with gate matrices:
+    working with gate matrices,
+  * "transpose(GateMatrix)" -- see *note working with gate matrices: working
+    with gate matrices,
+
+For the programmer
+==================
+
+The object *note GateMatrix: GateMatrix, is a *note type: (Macaulay2Doc)Type,,
+with ancestor classes *note List: (Macaulay2Doc)List, < *note VisibleList:
+(Macaulay2Doc)VisibleList, < *note BasicList: (Macaulay2Doc)BasicList, < *note
+Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:162:0.
+
+File: SLPexpressions.info, Node: gateMatrix, Next: gatePolynomial, Prev: GateMatrix, Up: Top
+
+gateMatrix -- create a GateMatrix
+*********************************
+
+  * Usage: 
+        gateMatrix M
+  * Inputs:
+      * M, a *note matrix: (Macaulay2Doc)matrix, or a table (a nested *note
+        List: (Macaulay2Doc)List,)
+  * Outputs:
+      * an instance of the type *note GateMatrix: GateMatrix,, 
+
+Description
+===========
+
+This methods creates a *note GateMatrix: GateMatrix, from the given input data,
+which should be a matrix or a doubly-nested list.
+
+The package *note SLPexpressions: Top, overrides *note matrix:
+(Macaulay2Doc)matrix, to allow a table (a nested list) of *note Gate: Gate,s as
+an argument.
+
+
+
++-----------------------------------------------------------------------------+
+|i1 : declareVariable x; declareVariable y;                                   |
++-----------------------------------------------------------------------------+
+|i3 : A = matrix { apply(5,i->i*x) }                                          |
+|                                                                             |
+|o3 = {{0, x, (2 * x), (3 * x), (4 * x)}}                                     |
+|                                                                             |
+|o3 : GateMatrix                                                              |
++-----------------------------------------------------------------------------+
+|i4 : A#0                                                                     |
+|                                                                             |
+|o4 = {0, x, (2 * x), (3 * x), (4 * x)}                                       |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i5 : A#0#0                                                                   |
+|                                                                             |
+|o5 = 0                                                                       |
+|                                                                             |
+|o5 : InputGate                                                               |
++-----------------------------------------------------------------------------+
+|i6 : B = matrix { apply(4,i->y^i) }                                          |
+|                                                                             |
+|o6 = {{1, (y), (y * y), (y * y * y)}}                                        |
+|                                                                             |
+|o6 : GateMatrix                                                              |
++-----------------------------------------------------------------------------+
+|i7 : C = transpose A * B                                                     |
+|                                                                             |
+|o7 = {{(0), (0), (0), (0)}, {(x), ((x * (y))), ((x * (y * y))), ((x * (y * y |
+|     ------------------------------------------------------------------------|
+|     * y)))}, {((2 * x)), (((2 * x) * (y))), (((2 * x) * (y * y))), (((2 * x)|
+|     ------------------------------------------------------------------------|
+|     * (y * y * y)))}, {((3 * x)), (((3 * x) * (y))), (((3 * x) * (y * y))), |
+|     ------------------------------------------------------------------------|
+|     (((3 * x) * (y * y * y)))}, {((4 * x)), (((4 * x) * (y))), (((4 * x) *  |
+|     ------------------------------------------------------------------------|
+|     (y * y))), (((4 * x) * (y * y * y)))}}                                  |
+|                                                                             |
+|o7 : GateMatrix                                                              |
++-----------------------------------------------------------------------------+
+|i8 : numrows C, numcols C                                                    |
+|                                                                             |
+|o8 = (5, 4)                                                                  |
+|                                                                             |
+|o8 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note GateMatrix: GateMatrix, -- a matrix of Gates
+
+Ways to use gateMatrix:
+=======================
+
+  * "gateMatrix(GateMatrix)"
+  * "gateMatrix(List)"
+  * "gateMatrix(Matrix)"
+
+For the programmer
+==================
+
+The object *note gateMatrix: gateMatrix, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:195:0.
+
+File: SLPexpressions.info, Node: gatePolynomial, Next: getVarGates, Prev: gateMatrix, Up: Top
+
+gatePolynomial -- creates an input gate for a given polynomial
+**************************************************************
+
+  * Usage: 
+        gatePolynomial f
+  * Inputs:
+      * f, a *note ring element: (Macaulay2Doc)RingElement,, 
+  * Outputs:
+      * an instance of the type *note Gate: Gate,, representing the polynomial
+        $f$
+
+Description
+===========
+
+This methods creates a *note Gate: Gate, from the given input polynomial $f$.
+The resulting *note Gate: Gate, is a *note SumGate: Gate, whose terms are *note
+product gates: Gate, corresponding to monomials of $f$.
+
++-----------------------------------------------------------------------------+
+|i1 : R = QQ[x,y]                                                             |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : f = random(3, R)                                                        |
+|                                                                             |
+|     9 3   9 2    3   2   7 3                                                |
+|o2 = -x  + -x y + -x*y  + -y                                                 |
+|     2     4      4       4                                                  |
+|                                                                             |
+|o2 : R                                                                       |
++-----------------------------------------------------------------------------+
+|i3 : gatePolynomial f                                                        |
+|                                                                             |
+|       9                         9                             3             |
+|o3 = ((- * ([x] * [x] * [x])) + (- * (([x] * [x]) * ([y]))) + (- * (([x]) *  |
+|       2                         4                             4             |
+|                                                                             |
+|o3 : SumGate                                                                 |
+|-----------------------------------------------------------------------------|
+|                 7                                                           |
+|([y] * [y]))) + (- * ([y] * [y] * [y])))                                     |
+|                 4                                                           |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note Gate: Gate, -- the class of all gates
+
+Ways to use gatePolynomial:
+===========================
+
+  * "gatePolynomial(Matrix)"
+  * "gatePolynomial(RingElement)"
+
+For the programmer
+==================
+
+The object *note gatePolynomial: gatePolynomial, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:220:0.
+
+File: SLPexpressions.info, Node: getVarGates, Next: InputGate _pd_pd InputGate, Prev: gatePolynomial, Up: Top
+
+getVarGates -- returns the input gates for variables in a polynomial ring
+*************************************************************************
+
+  * Usage: 
+        getVarGates R
+  * Inputs:
+      * R, a *note polynomial ring: (Macaulay2Doc)PolynomialRing,, 
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, of input gates for the variables in
+        $R$
+
+Description
+===========
+
+This methods returns a *note List: (Macaulay2Doc)List, of *note input gates:
+Gate, corresponding to variables in the given polynomial $R$, and caches the
+result in the ring for future use.
+
++-------------------+
+|i1 : R = QQ[x,y]   |
+|                   |
+|o1 = R             |
+|                   |
+|o1 : PolynomialRing|
++-------------------+
+|i2 : getVarGates R |
+|                   |
+|o2 = {[x], [y]}    |
+|                   |
+|o2 : List          |
++-------------------+
+
+See also
+========
+
+  * *note Gate: Gate, -- the class of all gates
+
+Ways to use getVarGates:
+========================
+
+  * "getVarGates(PolynomialRing)"
+
+For the programmer
+==================
+
+The object *note getVarGates: getVarGates, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:391:0.
+
+File: SLPexpressions.info, Node: InputGate _pd_pd InputGate, Next: isConstant_lpInputGate_rp, Prev: getVarGates, Up: Top
+
+InputGate .. InputGate -- Passing .. to InputGate names (see code). TO DO: expand this.
+***************************************************************************************
+
+  * Operator: *note ..: (Macaulay2Doc)_pd_pd,
+
+Ways to use this method:
+========================
+
+  * *note InputGate .. InputGate: InputGate _pd_pd InputGate, -- Passing .. to
+    InputGate names (see code). TO DO: expand this.
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:639:0.
+
+File: SLPexpressions.info, Node: isConstant_lpInputGate_rp, Next: makeCompiledSLProgram, Prev: InputGate _pd_pd InputGate, Up: Top
+
+isConstant(InputGate) -- whether an input gate is constant
+**********************************************************
+
+  * Function: *note isConstant: (Macaulay2Doc)isConstant,
+  * Usage: 
+        isConstant g
+  * Inputs:
+      * g, an instance of the type *note InputGate: Gate,, 
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, whether g is a constant
+
+Description
+===========
+
+An input gate is constant if its *note Name: (Macaulay2Doc)newPackage, is
+either a *note Number: (Macaulay2Doc)Number, or a *note RingElement:
+(Macaulay2Doc)RingElement,.
+
++----------------------+
+|i1 : declareVariable X|
+|                      |
+|o1 = X                |
+|                      |
+|o1 : InputGate        |
++----------------------+
+|i2 : isConstant X     |
+|                      |
+|o2 = false            |
++----------------------+
+|i3 : isConstant 3     |
+|                      |
+|o3 = true             |
++----------------------+
+
+See also
+========
+
+  * *note InputGate: Gate, -- the class of all gates
+
+Ways to use this method:
+========================
+
+  * *note isConstant(InputGate): isConstant_lpInputGate_rp, -- whether an input
+    gate is constant
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:414:0.
+
+File: SLPexpressions.info, Node: makeCompiledSLProgram, Next: makeInterpretedSLProgram, Prev: isConstant_lpInputGate_rp, Up: Top
+
+makeCompiledSLProgram
+*********************
+
+Ways to use makeCompiledSLProgram:
+==================================
+
+  * makeCompiledSLProgram(GateMatrix,GateMatrix) (missing documentation)
+  * makeCompiledSLProgram(List,List) (missing documentation)
+
+For the programmer
+==================
+
+The object makeCompiledSLProgram (missing documentation) is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:380.
+
+File: SLPexpressions.info, Node: makeInterpretedSLProgram, Next: makeSLProgram, Prev: makeCompiledSLProgram, Up: Top
+
+makeInterpretedSLProgram -- create a straight-line program
+**********************************************************
+
+  * Usage: 
+        makeInterpretedSLProgram(inL, outL)
+  * Inputs:
+      * inL, a *note list: (Macaulay2Doc)List,, of inputs
+      * outL, a *note list: (Macaulay2Doc)List,, of outputs
+  * Outputs:
+      * an instance of the type *note InterpretedSLProgram:
+        makeInterpretedSLProgram,,
+
+Description
+===========
+
+This method returns an object of type *note InterpretedSLProgram:
+makeInterpretedSLProgram,, which encodes a method for evaluating an algebraic
+circuit.
+
++-----------------------------------------------------------------------------+
+|i1 : declareVariable X; declareVariable C;                                   |
++-----------------------------------------------------------------------------+
+|i3 : XpC = X+C                                                               |
+|                                                                             |
+|o3 = (X + C)                                                                 |
+|                                                                             |
+|o3 : SumGate                                                                 |
++-----------------------------------------------------------------------------+
+|i4 : XXC = productGate{X,X,C}                                                |
+|                                                                             |
+|o4 = (X * X * C)                                                             |
+|                                                                             |
+|o4 : ProductGate                                                             |
++-----------------------------------------------------------------------------+
+|i5 : detXCCX = detGate{{X,C},{C,X}}                                          |
+|                                                                             |
+|o5 = det| X C |                                                              |
+|        | C X |                                                              |
+|                                                                             |
+|o5 : DetGate                                                                 |
++-----------------------------------------------------------------------------+
+|i6 : XoC = X/C                                                               |
+|                                                                             |
+|     X                                                                       |
+|o6 = -                                                                       |
+|     C                                                                       |
+|                                                                             |
+|o6 : DivideGate                                                              |
++-----------------------------------------------------------------------------+
+|i7 : slp = makeInterpretedSLProgram(matrix{{C,X}},matrix{{XXC,detXCCX,XoC,XpC|
+|                                                                             |
+|o7 = InterpretedSLProgram{cache => CacheTable{}              }               |
+|                          "constant positions" => {-3}                       |
+|                          "constants" => | 2 |                               |
+|                          "number of inputs" => 2                            |
+|                          "number of outputs" => 4                           |
+|                          RawSLProgram => SLProgram (                        |
+|                                            consts+vars: 3                   |
+|                                            noninput nodes: 5                |
+|                                            output nodes: 4                  |
+|                                            )                                |
+|                                                                             |
+|                          "variable positions" => {-1, -2}                   |
+|                                                                             |
+|o7 : InterpretedSLProgram                                                    |
+|-----------------------------------------------------------------------------|
+|+2}})                                                                        |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note evaluate(SLProgram,MutableMatrix,MutableMatrix):
+    evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp, -- evaluate a
+    straight-line program
+
+Ways to use makeInterpretedSLProgram:
+=====================================
+
+  * "makeInterpretedSLProgram(GateMatrix,GateMatrix)"
+  * "makeInterpretedSLProgram(List,List)"
+
+For the programmer
+==================
+
+The object *note makeInterpretedSLProgram: makeInterpretedSLProgram, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:323:0.
+
+File: SLPexpressions.info, Node: makeSLProgram, Next: measuring the size of circuits, Prev: makeInterpretedSLProgram, Up: Top
+
+makeSLProgram -- create a straight-line program (either interpreted or compiled)
+********************************************************************************
+
+Description
+===========
+
+Passes the arguments to *note makeInterpretedSLProgram:
+makeInterpretedSLProgram, or makeCompiledSLProgram (missing documentation)
+depending on the flag set by *note setTryJustInTimeCompilation: makeSLProgram,.
+(Giving `true` as a value triggers a search for gnu C++ compiler and, if
+successful, makes a makeCompiledSLProgram (missing documentation) the default
+choice. Currently, just-in-time compilation works over RR_53 and CC_53)
+
+Ways to use makeSLProgram:
+==========================
+
+  * "makeSLProgram(GateMatrix,GateMatrix)"
+  * "makeSLProgram(List,List)"
+
+For the programmer
+==================
+
+The object *note makeSLProgram: makeSLProgram, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:292:0.
+
+File: SLPexpressions.info, Node: measuring the size of circuits, Next: SLProgram, Prev: makeSLProgram, Up: Top
+
+measuring the size of circuits
+******************************
+
+  * Usage: 
+        d = depth g
+        d = depth G
+        H = countGates g
+        H = countGates G
+  * Inputs:
+      * g, an instance of the type *note Gate: Gate,, 
+      * G, an instance of the type *note GateMatrix: GateMatrix,, 
+  * Outputs:
+      * d, an *note integer: (Macaulay2Doc)ZZ,, circuit depth
+      * H, a *note hash table: (Macaulay2Doc)HashTable,, total number of gates
+        of each type
+
+The depth of an algebraic circuit is the length of the longest path of
+evaluations from any input gate to any output gate.
+
++----------------------------------------------------+
+|i1 : declareVariable x                              |
+|                                                    |
+|o1 = x                                              |
+|                                                    |
+|o1 : InputGate                                      |
++----------------------------------------------------+
+|i2 : f = x + 1                                      |
+|                                                    |
+|o2 = (x + 1)                                        |
+|                                                    |
+|o2 : SumGate                                        |
++----------------------------------------------------+
+|i3 : n = 12;                                        |
++----------------------------------------------------+
+|i4 : for i from 1 to n do f = f*f -- f = (x+1)^(2^n)|
++----------------------------------------------------+
+|i5 : depth f                                        |
+|                                                    |
+|o5 = 13                                             |
++----------------------------------------------------+
+
+depth is not the sole indicator of circuit complexity. For instance, the total
+number of gates in a circuit (sometimes referred to as its "size") also plays a
+role. "countGates" returns the number of constituent *note Gate: Gate,s
+according to their type.
+
++--------------------------------------------------------------------+
+|i6 : x = symbol x                                                   |
+|                                                                    |
+|o6 = x                                                              |
+|                                                                    |
+|o6 : Symbol                                                         |
++--------------------------------------------------------------------+
+|i7 : n = 8                                                          |
+|                                                                    |
+|o7 = 8                                                              |
++--------------------------------------------------------------------+
+|i8 : varGates = declareVariable \ for i from 1 to n list x_i        |
+|                                                                    |
+|o8 = {x , x , x , x , x , x , x , x }                               |
+|       1   2   3   4   5   6   7   8                                |
+|                                                                    |
+|o8 : List                                                           |
++--------------------------------------------------------------------+
+|i9 : G1 = gateMatrix{{x_1+x_2+x_3+x_4+x_5+x_6+x_7+x_8}}             |
+|                                                                    |
+|o9 = {{(((((((x  + x ) + x ) + x ) + x ) + x ) + x ) + x )}}        |
+|               1    2     3     4     5     6     7     8           |
+|                                                                    |
+|o9 : GateMatrix                                                     |
++--------------------------------------------------------------------+
+|i10 : G2 = gateMatrix{{((x_1+x_2)+(x_3+x_4))+((x_5+x_6)+(x_7+x_8))}}|
+|                                                                    |
+|o10 = {{(((x  + x ) + (x  + x )) + ((x  + x ) + (x  + x )))}}       |
+|            1    2      3    4        5    6      7    8            |
+|                                                                    |
+|o10 : GateMatrix                                                    |
++--------------------------------------------------------------------+
+|i11 : depth G1                                                      |
+|                                                                    |
+|o11 = 7                                                             |
++--------------------------------------------------------------------+
+|i12 : depth G2                                                      |
+|                                                                    |
+|o12 = 3                                                             |
++--------------------------------------------------------------------+
+|i13 : countGates G1                                                 |
+|                                                                    |
+|o13 = HashTable{cache => CacheTable{...15...}}                      |
+|                InputGate => 8                                      |
+|                SumGate => 7                                        |
+|                                                                    |
+|o13 : HashTable                                                     |
++--------------------------------------------------------------------+
+|i14 : countGates G2                                                 |
+|                                                                    |
+|o14 = HashTable{cache => CacheTable{...15...}}                      |
+|                InputGate => 8                                      |
+|                SumGate => 7                                        |
+|                                                                    |
+|o14 : HashTable                                                     |
++--------------------------------------------------------------------+
+
+See also
+========
+
+  * *note compressing circuits: compressing circuits,
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:632:0.
+
+File: SLPexpressions.info, Node: SLProgram, Next: undeclareVariable, Prev: measuring the size of circuits, Up: Top
+
+SLProgram
+*********
+
+Types of SLProgram:
+===================
+
+  * CompiledSLProgram (missing documentation)
+  * "InterpretedSLProgram" -- see *note makeInterpretedSLProgram:
+    makeInterpretedSLProgram, -- create a straight-line program
+
+Methods that use an object of class SLProgram:
+==============================================
+
+  * "evaluate(SLProgram,Matrix)" -- see *note
+    evaluate(SLProgram,MutableMatrix,MutableMatrix):
+    evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp, -- evaluate a
+    straight-line program
+  * *note evaluate(SLProgram,MutableMatrix,MutableMatrix):
+    evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp, -- evaluate a
+    straight-line program
+
+For the programmer
+==================
+
+The object SLProgram (missing documentation) is a *note type:
+(Macaulay2Doc)Type,, with ancestor classes *note HashTable:
+(Macaulay2Doc)HashTable, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:380.
+
+File: SLPexpressions.info, Node: undeclareVariable, Next: valueHashTable, Prev: SLProgram, Up: Top
+
+undeclareVariable -- clears assignment of an input gate to a variable name
+**************************************************************************
+
+  * Usage: 
+        undeclareVariable x
+  * Inputs:
+      * x, a *note symbol: (Macaulay2Doc)Symbol,, or an *note IndexedVariable:
+        (Macaulay2Doc)IndexedVariable,
+  * Outputs:
+      * an instance of the type *note InputGate: Gate,, 
+
+Description
+===========
+
+This method undoes the action of *note declareVariable: declareVariable,, by
+reverting the assignment of an *note InputGate: Gate, to a symbol.
+
++------------------------+
+|i1 : declareVariable x  |
+|                        |
+|o1 = x                  |
+|                        |
+|o1 : InputGate          |
++------------------------+
+|i2 : x + 1              |
+|                        |
+|o2 = (x + 1)            |
+|                        |
+|o2 : SumGate            |
++------------------------+
+|i3 : undeclareVariable x|
+|                        |
+|o3 = x                  |
+|                        |
+|o3 : Symbol             |
++------------------------+
+|i4 : x                  |
+|                        |
+|o4 = x                  |
+|                        |
+|o4 : Symbol             |
++------------------------+
+
+See also
+========
+
+  * *note declareVariable: declareVariable, -- assigns an input gate to a given
+    variable name
+
+Ways to use undeclareVariable:
+==============================
+
+  * "undeclareVariable(InputGate)"
+
+For the programmer
+==================
+
+The object *note undeclareVariable: undeclareVariable, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:148:0.
+
+File: SLPexpressions.info, Node: valueHashTable, Next: working with gate matrices, Prev: undeclareVariable, Up: Top
+
+valueHashTable -- creates a hash table of values for evaluation
+***************************************************************
+
+  * Usage: 
+        valueHashTable(L1, L2)
+  * Inputs:
+      * L1, a *note list: (Macaulay2Doc)List,, of *note InputGate: Gate,s
+      * L2, a *note list: (Macaulay2Doc)List,, of values
+  * Outputs:
+      * an instance of the type *note ValueHashTable: valueHashTable,, 
+
+Description
+===========
+
+This methods creates an object of type *note ValueHashTable: valueHashTable,
+from a *note List: (Macaulay2Doc)List, of *note InputGate: Gate,s and a *note
+List: (Macaulay2Doc)List, of corresponding values. The evaluations of the input
+gates at the values can be performed using the method *note value:
+(Macaulay2Doc)value,.
+
++-------------------------------------+
+|i1 : declareVariable X               |
+|                                     |
+|o1 = X                               |
+|                                     |
+|o1 : InputGate                       |
++-------------------------------------+
+|i2 : declareVariable Y               |
+|                                     |
+|o2 = Y                               |
+|                                     |
+|o2 : InputGate                       |
++-------------------------------------+
+|i3 : h = valueHashTable({X,Y},{1,ii})|
+|                                     |
+|o3 = ValueHashTable{...2...}         |
+|                                     |
+|o3 : ValueHashTable                  |
++-------------------------------------+
+|i4 : peek h                          |
+|                                     |
+|o4 = ValueHashTable{X => 1 }         |
+|                    Y => ii          |
++-------------------------------------+
+
+See also
+========
+
+  * *note evaluating gates: evaluating gates,
+
+Ways to use valueHashTable:
+===========================
+
+  * "valueHashTable(List,List)"
+
+For the programmer
+==================
+
+The object *note valueHashTable: valueHashTable, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:248:0.
+
+File: SLPexpressions.info, Node: working with gate matrices, Prev: valueHashTable, Up: Top
+
+working with gate matrices
+**************************
+
+Many typical matrix operations can also be performed on *note gate matrices:
+GateMatrix,, such as obtaining entries, number of rows and columns, transpose,
+and vertical or horizontal concatenation.
+
++-------------------------------+
+|i1 : R = RR[x,y]               |
+|                               |
+|o1 = R                         |
+|                               |
+|o1 : PolynomialRing            |
++-------------------------------+
+|i2 : M = gateMatrix basis(3, R)|
+|                               |
+|        3   2      2   3       |
+|o2 = {{x , x y, x*y , y }}     |
+|                               |
+|o2 : GateMatrix                |
++-------------------------------+
+|i3 : numcols M, numrows M      |
+|                               |
+|o3 = (4, 1)                    |
+|                               |
+|o3 : Sequence                  |
++-------------------------------+
+
+Rows or entries can be accessed with &#95; or #:
+
++--------------------------+
+|i4 : M_0                  |
+|                          |
+|       3   2      2   3   |
+|o4 = {x , x y, x*y , y }  |
+|                          |
+|o4 : List                 |
++--------------------------+
+|i5 : M#0                  |
+|                          |
+|       3   2      2   3   |
+|o5 = {x , x y, x*y , y }  |
+|                          |
+|o5 : List                 |
++--------------------------+
+|i6 : M#0#0                |
+|                          |
+|      3                   |
+|o6 = x                    |
+|                          |
+|o6 : InputGate            |
++--------------------------+
+|i7 : entries M            |
+|                          |
+|        3   2      2   3  |
+|o7 = {{x , x y, x*y , y }}|
+|                          |
+|o7 : List                 |
++--------------------------+
+
+Horizontal (resp. vertical) concatenation is done with *note |: working with
+gate matrices, (resp. *note ||: working with gate matrices,):
+
++------------------------------------------------------------------+
+|i8 : N = gateMatrix {delete(x^2*y^2, flatten entries basis(4, R))}|
+|                                                                  |
+|        4   3      3   4                                          |
+|o8 = {{x , x y, x*y , y }}                                        |
+|                                                                  |
+|o8 : GateMatrix                                                   |
++------------------------------------------------------------------+
+|i9 : M | N                                                        |
+|                                                                  |
+|        3   2      2   3   4   3      3   4                       |
+|o9 = {{x , x y, x*y , y , x , x y, x*y , y }}                     |
+|                                                                  |
+|o9 : GateMatrix                                                   |
++------------------------------------------------------------------+
+|i10 : M || N                                                      |
+|                                                                  |
+|         3   2      2   3     4   3      3   4                    |
+|o10 = {{x , x y, x*y , y }, {x , x y, x*y , y }}                  |
+|                                                                  |
+|o10 : GateMatrix                                                  |
++------------------------------------------------------------------+
+
+The determinant of a gate matrix is a *note DetGate: Gate,:
+
++-----------------------------------------------------------------------------+
+|i11 : P = transpose M*M                                                      |
+|                                                                             |
+|           3    3       3    2        3      2       3    3         2        |
+|o11 = {{((x  * x )), ((x  * x y)), ((x  * x*y )), ((x  * y ))}, {((x y *     |
+|      -----------------------------------------------------------------------|
+|       3       2     2        2       2       2     3           2    3       |
+|      x )), ((x y * x y)), ((x y * x*y )), ((x y * y ))}, {((x*y  * x )),    |
+|      -----------------------------------------------------------------------|
+|           2    2          2      2         2    3         3    3       3    |
+|      ((x*y  * x y)), ((x*y  * x*y )), ((x*y  * y ))}, {((y  * x )), ((y  *  |
+|      -----------------------------------------------------------------------|
+|       2        3      2       3    3                                        |
+|      x y)), ((y  * x*y )), ((y  * y ))}}                                    |
+|                                                                             |
+|o11 : GateMatrix                                                             |
++-----------------------------------------------------------------------------+
+|i12 : det P                                                                  |
+|                                                                             |
+|o12 = det|    3    3        3    2         3      2        3    3     |      |
+|         | ((x  * x ))   ((x  * x y))   ((x  * x*y ))   ((x  * y ))   |      |
+|         |    2     3       2     2        2       2       2     3    |      |
+|         | ((x y * x ))  ((x y * x y))  ((x y * x*y ))  ((x y * y ))  |      |
+|         |      2    3        2    2         2      2        2    3   |      |
+|         | ((x*y  * x )) ((x*y  * x y)) ((x*y  * x*y )) ((x*y  * y )) |      |
+|         |    3    3        3    2         3      2        3    3     |      |
+|         | ((y  * x ))   ((y  * x y))   ((y  * x*y ))   ((y  * y ))   |      |
+|                                                                             |
+|o12 : DetGate                                                                |
++-----------------------------------------------------------------------------+
+
+The native method *note substitute: (Macaulay2Doc)substitute, has also been
+overloaded to work with gate matrices: the input should be a list of *note
+options: (Macaulay2Doc)Option, of the form "A => B" where A is an *note
+InputGate: Gate, and B is a *note Gate: Gate,; and the output is another *note
+GateMatrix: GateMatrix,.
+
+See also
+========
+
+  * *note GateMatrix: GateMatrix, -- a matrix of Gates
+-------------------------------------------------------------------------------
+
+The source of this document is in SLPexpressions/doc.m2:549:0.
+
+Tag Table:
+Node: Top260
+Node: arithmetic with circuits22974
+Node: CompiledSLProgram25998
+Node: compressing circuits26954
+Node: creating gates32085
+Node: creating variables as objects of type InputGate35317
+Node: declareVariable35696
+Node: differentiating circuits37594
+Node: evaluate_lpSLProgram_cmMutableMatrix_cmMutableMatrix_rp40526
+Node: evaluating gates48779
+Node: Gate51849
+Node: GateMatrix55202
+Node: gateMatrix61001
+Node: gatePolynomial65962
+Node: getVarGates69284
+Node: InputGate _pd_pd InputGate70707
+Node: isConstant_lpInputGate_rp71381
+Node: makeCompiledSLProgram72832
+Node: makeInterpretedSLProgram73507
+Node: makeSLProgram78807
+Node: measuring the size of circuits79979
+Node: SLProgram86299
+Node: undeclareVariable87472
+Node: valueHashTable89327
+Node: working with gate matrices91606
+
+End Tag Table

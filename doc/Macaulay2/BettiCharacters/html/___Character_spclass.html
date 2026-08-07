@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Character class -- internal representation of graded characters</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="finite group characters on free resolutions and graded modules" href="index.html">BettiCharacters</a> » <a title="internal representation of graded characters" href="___Character_spclass.html">Character class</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_character.html">next</a> | <a href="_actors.html">previous</a> | <a href="_character.html">forward</a> | <a href="_actors_lp__Action__On__Graded__Module_cm__List_rp.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Character class -- internal representation of graded characters</h1>
+      <div>
+        <div>
+          <p>Version 2.5 of the <a title="finite group characters on free resolutions and graded modules" href="index.html">BettiCharacters</a> package introduces a new internal representation of graded characters. Although character printouts look the same as in previous versions, this new representation is incompatible with the one from earlier versions of the package. The earlier representation was not sufficient to compute tensor products of characters of the semidirect product of a finite group with a torus (see <a title="action of semidirect product with torus" href="___Semidirect.html">Semidirect</a>). Not only the new representation makes this possible, it also generally makes character operations more natural and sets the groundwork for functionality to be added in future versions.</p>
+          <p>To understand how characters are stored, consider the following example.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[x,y,z]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I = ideal(x+y+z,x*y+x*z+y*z,x*y*z)
+
+o2 = ideal (x + y + z, x*y + x*z + y*z, x*y*z)
+
+o2 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : Q = R/I
+
+o3 = Q
+
+o3 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : S2 = symmetricGroupActors R
+
+o4 = {| y z x |, | y x z |, | x y z |}
+
+o4 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : A = action(Q,S2)
+
+o5 = QuotientRing with 3 actors
+
+o5 : ActionOnGradedModule</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : a = character(A,0,10)
+
+o6 = Character over QQ
+      
+     (0, {0})  |   1   1  1
+     (0, {1})  |  -1   0  2
+     (0, {2})  |  -1   0  2
+     (0, {3})  |   1  -1  1
+
+o6 : Character</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The quotient ring <span class="tt">Q</span> is a module concentrated in homological degree zero. It is an Artinian ring with nonzero components in degrees zero, one, two, and three. Hence, the printout of the character of <span class="tt">Q</span> shows four rows indexed by pairs <span class="tt">(h,d)</span>, with <span class="tt">h</span> the homological degree and <span class="tt">d</span> the internal degree.</p>
+          <p>Internally, the character stores a single matrix for each homological degree. To separate the internal degrees, the character uses elements from the <a title="the ring or monoid of degrees" href="../../Macaulay2Doc/html/_degrees__Ring.html">degreesMonoid</a> of the ambient ring of <span class="tt">Q</span>. Factoring out the monomials of the monoid of degrees, gives the characters of the graded components.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : a.characters
+
+o7 = HashTable{0 => | 1-T-T2+T3 1-T3 1+2T+2T2+T3 |}
+
+o7 : HashTable</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : coefficients a.characters#0
+
+o8 = (| 1 T T2 T3 |, {0} | 1  1  1 |)
+                     {1} | -1 0  2 |
+                     {2} | -1 0  2 |
+                     {3} | 1  -1 1 |
+
+o8 : Sequence</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>With this setup, the character in each homological degree is a matrix with values in a &quot;character ring&quot;. This character ring is constructed as <span class="tt">F[M]</span>, where <span class="tt">F</span> is the field of coefficients of <span class="tt">R</span> and <span class="tt">M</span> is the <a title="the ring or monoid of degrees" href="../../Macaulay2Doc/html/_degrees__Ring.html">degreesMonoid</a> of <span class="tt">R</span>. The character ring is stored with each action and character, and in the cache table of the polynomial ring under the key <span class="tt">degreesRing</span>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : A.degreesRing
+
+o9 = QQ[T]
+
+o9 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : a.degreesRing
+
+o10 = QQ[T]
+
+o10 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : R.cache#degreesRing
+
+o11 = QQ[T]
+
+o11 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>When different characters are combined with methods such as <a title="direct sum of characters" href="_direct__Sum_lp__Character_rp.html">directSum(Character)</a> or <a title="tensor product of characters" href="_tensor_lp__Character_cm__Character_rp.html">tensor(Character,Character)</a>, the package checks that all characters have values in the same character ring. All actions and characters of objects (rings, ideals, modules, resolutions) over the same ambient ring automatically share the same character ring.</p>
+          <p>The character ring can be defined just as well when the ambient ring is multigraded and in the presence of actions by the semidirect product of a finite group and the torus responsible for the multigrading.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : S = QQ[u,v,w,Degrees=>{{1,0,0},{0,1,0},{0,0,1}}]
+
+o12 = S
+
+o12 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : J = ideal(u^2,v^2,w^2,u*v*w)
+
+              2   2   2
+o13 = ideal (u , v , w , u*v*w)
+
+o13 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : RJ = res J
+
+       1      4      6      3
+o14 = S  &lt;-- S  &lt;-- S  &lt;-- S
+                            
+      0      1      2      3
+
+o14 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : S3 = symmetricGroupActors(S)
+
+o15 = {| v w u |, | v u w |, | u v w |}
+
+o15 : List</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : B = action(RJ,S3,Semidirect=>{uniquePermutations,rsort})
+
+o16 = Complex with 3 actors
+
+o16 : ActionOnComplex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : b = character B
+
+o17 = Character over QQ
+       
+      (0, {0, 0, 0})  |  1   1  1
+      (1, {1, 1, 1})  |  1   1  1
+      (1, {2, 0, 0})  |  0   1  3
+      (2, {2, 1, 1})  |  0   1  3
+      (2, {2, 2, 0})  |  0  -1  3
+      (3, {2, 2, 1})  |  0  -1  3
+
+o17 : Character</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : b.characters
+
+o18 = HashTable{0 => | 1 1 1 |                                                                                         }
+                1 => | T_0T_1T_2 T_2^2+T_0T_1T_2 T_0^2+T_1^2+T_2^2+T_0T_1T_2 |
+                2 => | 0 -T_0^2T_1^2+T_0T_1T_2^2 T_0^2T_1^2+T_0^2T_1T_2+T_0^2T_2^2+T_0T_1^2T_2+T_0T_1T_2^2+T_1^2T_2^2 |
+                3 => | 0 -T_0^2T_1^2T_2 T_0^2T_1^2T_2+T_0^2T_1T_2^2+T_0T_1^2T_2^2 |
+
+o18 : HashTable</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : b.degreesRing
+
+o19 = QQ[T ..T ]
+          0   2
+
+o19 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>Caveat</h2>
+        <div>
+          <p>To avoid issues such as incompatible character rings or character rings being recreated over and over, the handling of character rings is currently not exposed to the user.</p>
+          <p></p>
+        </div>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">BettiCharacters.m2:3837:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

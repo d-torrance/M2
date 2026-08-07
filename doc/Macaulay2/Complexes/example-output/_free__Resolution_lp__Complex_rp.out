@@ -1,0 +1,124 @@
+-- -*- M2-comint -*- hash: 10441256998997873155
+
+i1 : R = ZZ/101[a,b,c];
+
+i2 : I = ideal(a^2, a*b, b*c)
+
+             2
+o2 = ideal (a , a*b, b*c)
+
+o2 : Ideal of R
+
+i3 : C = Hom(freeResolution I, R^1/I)
+
+o3 = cokernel {-3} | bc ab a2 0  0  0  | <-- cokernel {-2} | bc ab a2 0  0  0  0  0  0  | <-- cokernel | bc ab a2 |
+              {-3} | 0  0  0  bc ab a2 |              {-2} | 0  0  0  bc ab a2 0  0  0  |      
+                                                      {-2} | 0  0  0  0  0  0  bc ab a2 |     0
+     -2                                       
+                                             -1
+
+o3 : Complex
+
+i4 : assert all(min C .. max C, i -> not isFreeModule C_i)
+
+i5 : fC = resolutionMap C
+
+                                                                   2
+o5 = -2 : cokernel {-3} | bc ab a2 0  0  0  | <------------------ R  : -2
+                   {-3} | 0  0  0  bc ab a2 |    {-3} | -1 0  |
+                                                 {-3} | 0  -1 |
+
+                                                                                                9
+     -1 : cokernel {-2} | bc ab a2 0  0  0  0  0  0  | <-------------------------------------- R  : -1
+                   {-2} | 0  0  0  bc ab a2 0  0  0  |    {-2} | 1 0  0  -c -a 0  0  0  0  |
+                   {-2} | 0  0  0  0  0  0  bc ab a2 |    {-2} | 0 -1 0  0  0  -b -a 0  0  |
+                                                          {-2} | 0 0  -1 0  0  0  -c -b -a |
+
+                                                                      14
+     0 : cokernel | bc ab a2 | <------------------------------------ R   : 0
+                                  | 0 0 0 0 0 0 0 0 0 0 0 0 0 -1 |
+
+o5 : ComplexMap
+
+i6 : FC = resolution C
+
+      2      9      14      9      2
+o6 = R  <-- R  <-- R   <-- R  <-- R
+                                   
+     -2     -1     0       1      2
+
+o6 : Complex
+
+i7 : prune HH FC
+
+o7 = cokernel {-3} | b a  0 | <-- cokernel {-1} | b a  0 0 0 0 0 0 0 0  0 0 | <-- cokernel | bc ab a2 |
+              {-3} | 0 -c a |              {-1} | 0 -c b a 0 0 0 0 0 0  0 0 |      
+                                           {-1} | 0 0  0 0 c a 0 0 0 0  0 0 |     0
+     -2                                    {-1} | 0 0  0 0 0 0 b 0 0 a  0 0 |
+                                           {-1} | 0 0  0 0 0 0 0 c a 0  0 0 |
+                                           {-1} | 0 0  0 0 0 0 0 0 0 -c b a |
+                                   
+                                  -1
+
+o7 : Complex
+
+i8 : assert isQuasiIsomorphism fC
+
+i9 : assert isFree FC
+
+i10 : assert isWellDefined fC
+
+i11 : assert(0 == coker fC) -- showing that fC is surjective.
+
+i12 : J = ideal(a,b)
+
+o12 = ideal (a, b)
+
+o12 : Ideal of R
+
+i13 : K = ideal(b^2,c)
+
+              2
+o13 = ideal (b , c)
+
+o13 : Ideal of R
+
+i14 : g1 = map(R^1/(J+K), R^1/J ++ R^1/K, {{1,-1}})
+
+o14 = | 1 -1 |
+
+o14 : Matrix
+
+i15 : g2 = map(R^1/J ++ R^1/K, R^1/(intersect(J,K)), {{1},{1}})
+
+o15 = | 1 |
+      | 1 |
+
+o15 : Matrix
+
+i16 : D = complex{g1, g2}
+
+o16 = cokernel | a b b2 c | <-- cokernel | a b 0  0 | <-- cokernel | bc ac b2 |
+                                         | 0 0 b2 c |      
+      0                                                   2
+                                1
+
+o16 : Complex
+
+i17 : assert isWellDefined D
+
+i18 : assert isShortExactSequence(g1,g2)
+
+i19 : fD = resolutionMap D
+
+o19 = 0
+
+o19 : ComplexMap
+
+i20 : assert isWellDefined fD
+
+i21 : assert isQuasiIsomorphism fD
+
+i22 : assert(0 == source fD) -- so fD is certainly not surjective!
+
+i23 : 

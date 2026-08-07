@@ -1,0 +1,282 @@
+-- -*- M2-comint -*- hash: 3137715562558126259
+
+i1 : S = ZZ/101[x_0..x_8];
+
+i2 : C = complex{genericMatrix(S,x_0,2,1)}
+
+      2      1
+o2 = S  <-- S
+             
+     0      1
+
+o2 : Complex
+
+i3 : D = complex{genericMatrix(S,x_2,1,2)}
+
+      1      2
+o3 = S  <-- S
+             
+     0      1
+
+o3 : Complex
+
+i4 : F = C ** D
+
+      2      5      2
+o4 = S  <-- S  <-- S
+                    
+     0      1      2
+
+o4 : Complex
+
+i5 : G = D ** C
+
+      2      5      2
+o5 = S  <-- S  <-- S
+                    
+     0      1      2
+
+o5 : Complex
+
+i6 : f = tensorCommutativity(C,D)
+
+          2               2
+o6 = 0 : S  <----------- S  : 0
+               | 1 0 |
+               | 0 1 |
+
+          5                         5
+     1 : S  <--------------------- S  : 1
+               {1} | 0 0 0 0 1 |
+               {1} | 1 0 0 0 0 |
+               {1} | 0 0 1 0 0 |
+               {1} | 0 1 0 0 0 |
+               {1} | 0 0 0 1 0 |
+
+          2                     2
+     2 : S  <----------------- S  : 2
+               {2} | -1 0  |
+               {2} | 0  -1 |
+
+o6 : ComplexMap
+
+i7 : assert isWellDefined f
+
+i8 : assert isComplexMorphism f
+
+i9 : assert(source f === F)
+
+i10 : assert(target f === G)
+
+i11 : assert(f_1 != id_(source f_1))
+
+i12 : assert(prune ker f == 0)
+
+i13 : assert(prune coker f == 0)
+
+i14 : g = f^-1
+
+           2               2
+o14 = 0 : S  <----------- S  : 0
+                | 1 0 |
+                | 0 1 |
+
+           5                         5
+      1 : S  <--------------------- S  : 1
+                {1} | 0 1 0 0 0 |
+                {1} | 0 0 0 1 0 |
+                {1} | 0 0 1 0 0 |
+                {1} | 0 0 0 0 1 |
+                {1} | 1 0 0 0 0 |
+
+           2                     2
+      2 : S  <----------------- S  : 2
+                {2} | -1 0  |
+                {2} | 0  -1 |
+
+o14 : ComplexMap
+
+i15 : assert isWellDefined g
+
+i16 : assert(g * f == 1)
+
+i17 : assert(f * g == 1)
+
+i18 : ses = (I,J) -> (
+          complex{
+              map(S^1/(I+J), S^1/I ++ S^1/J, {{1,1}}),
+              map(S^1/I ++ S^1/J, S^1/(intersect(I,J)), {{1},{-1}})
+              }
+          )
+
+o18 = ses
+
+o18 : FunctionClosure
+
+i19 : C = ses(ideal(x_0,x_1), ideal(x_1,x_2))
+
+o19 = cokernel | x_0 x_1 x_1 x_2 | <-- cokernel | x_0 x_1 0   0   | <-- cokernel | x_1 x_0x_2 |
+                                                | 0   0   x_1 x_2 |      
+      0                                                                 2
+                                       1
+
+o19 : Complex
+
+i20 : D = ses(ideal(x_3,x_4,x_5), ideal(x_6,x_7,x_8))
+
+o20 = cokernel | x_3 x_4 x_5 x_6 x_7 x_8 | <-- cokernel | x_3 x_4 x_5 0   0   0   | <-- cokernel | x_5x_8 x_4x_8 x_3x_8 x_5x_7 x_4x_7 x_3x_7 x_5x_6 x_4x_6 x_3x_6 |
+                                                        | 0   0   0   x_6 x_7 x_8 |      
+      0                                                                                 2
+                                               1
+
+o20 : Complex
+
+i21 : h = tensorCommutativity(C, D);
+
+i22 : assert isWellDefined h
+
+i23 : assert isComplexMorphism h
+
+i24 : assert(ker h == 0)
+
+i25 : assert(coker h == 0)
+
+i26 : k = h^-1;
+
+i27 : assert(h*k == 1)
+
+i28 : assert(k*h == 1)
+
+i29 : h_2
+
+o29 = | 0 0  0  0  0  1 |
+      | 0 -1 0  0  0  0 |
+      | 0 0  0  -1 0  0 |
+      | 0 0  -1 0  0  0 |
+      | 0 0  0  0  -1 0 |
+      | 1 0  0  0  0  0 |
+
+o29 : Matrix
+
+i30 : assert(source h_2 != target h_2)
+
+i31 : h1 = tensorCommutativity(D, C)
+
+o31 = 0 : cokernel | x_3 x_4 x_5 x_6 x_7 x_8 x_0 x_1 x_1 x_2 | <--------- cokernel | x_0 x_1 x_1 x_2 x_3 x_4 x_5 x_6 x_7 x_8 | : 0
+                                                                  | 1 |
+
+      1 : cokernel | x_3 x_4 x_5 0   0   0   x_0 x_1 x_1 x_2 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   | <--------------- cokernel | x_0 x_1 0   0   x_3 x_4 x_5 x_6 x_7 x_8 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   | : 1
+                   | 0   0   0   x_6 x_7 x_8 0   0   0   0   x_0 x_1 x_1 x_2 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   |    | 0 0 1 0 |            | 0   0   x_1 x_2 0   0   0   0   0   0   x_3 x_4 x_5 x_6 x_7 x_8 0   0   0   0   0   0   0   0   0   0   0   0   0   0   |
+                   | 0   0   0   0   0   0   0   0   0   0   0   0   0   0   x_3 x_4 x_5 x_6 x_7 x_8 0   0   0   0   0   0   x_0 x_1 0   0   |    | 0 0 0 1 |            | 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   x_0 x_1 x_1 x_2 0   0   0   0   x_3 x_4 x_5 0   0   0   |
+                   | 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   x_3 x_4 x_5 x_6 x_7 x_8 0   0   x_1 x_2 |    | 1 0 0 0 |            | 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   x_0 x_1 x_1 x_2 0   0   0   x_6 x_7 x_8 |
+                                                                                                                                                  | 0 1 0 0 |
+
+      2 : cokernel | x_5x_8 x_4x_8 x_3x_8 x_5x_7 x_4x_7 x_3x_7 x_5x_6 x_4x_6 x_3x_6 x_0 x_1 x_1 x_2 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0      | <----------------------- cokernel | x_1 x_0x_2 x_3 x_4 x_5 x_6 x_7 x_8 0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0      0      0      0      0      0      0      0      0      | : 2
+                   | 0      0      0      0      0      0      0      0      0      0   0   0   0   x_3 x_4 x_5 0   0   0   0   0   0   0   0   0   x_0 x_1 0   0   0   0   0   0   0   0   0   0   0   0   0   0      |    | 0 0  0  0  0  1 |            | 0   0      0   0   0   0   0   0   x_0 x_1 0   0   0   0   0   0   x_3 x_4 x_5 0   0   0   0   0   0   0   0   0   0   0   0   0   0      0      0      0      0      0      0      0      0      |
+                   | 0      0      0      0      0      0      0      0      0      0   0   0   0   0   0   0   x_6 x_7 x_8 0   0   0   0   0   0   0   0   0   0   x_0 x_1 0   0   0   0   0   0   0   0   0   0      |    | 0 -1 0  0  0  0 |            | 0   0      0   0   0   0   0   0   0   0   x_1 x_2 0   0   0   0   0   0   0   0   0   0   x_3 x_4 x_5 0   0   0   0   0   0   0   0      0      0      0      0      0      0      0      0      |
+                   | 0      0      0      0      0      0      0      0      0      0   0   0   0   0   0   0   0   0   0   x_3 x_4 x_5 0   0   0   0   0   x_1 x_2 0   0   0   0   0   0   0   0   0   0   0   0      |    | 0 0  0  -1 0  0 |            | 0   0      0   0   0   0   0   0   0   0   0   0   x_0 x_1 0   0   0   0   0   x_6 x_7 x_8 0   0   0   0   0   0   0   0   0   0   0      0      0      0      0      0      0      0      0      |
+                   | 0      0      0      0      0      0      0      0      0      0   0   0   0   0   0   0   0   0   0   0   0   0   x_6 x_7 x_8 0   0   0   0   0   0   x_1 x_2 0   0   0   0   0   0   0   0      |    | 0 0  -1 0  0  0 |            | 0   0      0   0   0   0   0   0   0   0   0   0   0   0   x_1 x_2 0   0   0   0   0   0   0   0   0   x_6 x_7 x_8 0   0   0   0   0      0      0      0      0      0      0      0      0      |
+                   | 0      0      0      0      0      0      0      0      0      0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   x_3 x_4 x_5 x_6 x_7 x_8 x_1 x_0x_2 |    | 0 0  0  0  -1 0 |            | 0   0      0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   x_0 x_1 x_1 x_2 x_5x_8 x_4x_8 x_3x_8 x_5x_7 x_4x_7 x_3x_7 x_5x_6 x_4x_6 x_3x_6 |
+                                                                                                                                                                                                                            | 1 0  0  0  0  0 |
+
+      3 : cokernel | x_5x_8 x_4x_8 x_3x_8 x_5x_7 x_4x_7 x_3x_7 x_5x_6 x_4x_6 x_3x_6 0      0      0      0      0      0      0      0      0      x_0 x_1 0   0   0   0   0   0   0   0   0   0      0   0      | <--------------- cokernel | x_1 x_0x_2 0   0      x_3 x_4 x_5 0   0   0   0   0   0   0   0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      | : 3
+                   | 0      0      0      0      0      0      0      0      0      x_5x_8 x_4x_8 x_3x_8 x_5x_7 x_4x_7 x_3x_7 x_5x_6 x_4x_6 x_3x_6 0   0   x_1 x_2 0   0   0   0   0   0   0   0      0   0      |    | 0 0 1 0 |            | 0   0      x_1 x_0x_2 0   0   0   x_6 x_7 x_8 0   0   0   0   0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      |
+                   | 0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0   0   0   0   x_3 x_4 x_5 0   0   0   x_1 x_0x_2 0   0      |    | 0 0 0 1 |            | 0   0      0   0      0   0   0   0   0   0   x_0 x_1 0   0   x_5x_8 x_4x_8 x_3x_8 x_5x_7 x_4x_7 x_3x_7 x_5x_6 x_4x_6 x_3x_6 0      0      0      0      0      0      0      0      0      |
+                   | 0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0      0   0   0   0   0   0   0   x_6 x_7 x_8 0   0      x_1 x_0x_2 |    | 1 0 0 0 |            | 0   0      0   0      0   0   0   0   0   0   0   0   x_1 x_2 0      0      0      0      0      0      0      0      0      x_5x_8 x_4x_8 x_3x_8 x_5x_7 x_4x_7 x_3x_7 x_5x_6 x_4x_6 x_3x_6 |
+                                                                                                                                                                                                                      | 0 1 0 0 |
+
+      4 : cokernel | x_5x_8 x_4x_8 x_3x_8 x_5x_7 x_4x_7 x_3x_7 x_5x_6 x_4x_6 x_3x_6 x_1 x_0x_2 | <--------- cokernel | x_1 x_0x_2 x_5x_8 x_4x_8 x_3x_8 x_5x_7 x_4x_7 x_3x_7 x_5x_6 x_4x_6 x_3x_6 | : 4
+                                                                                                    | 1 |
+
+o31 : ComplexMap
+
+i32 : assert isComplexMorphism h1
+
+i33 : assert(h1*h == id_(C**D))
+
+i34 : assert(h*h1 == id_(D**C))
+
+i35 : C = freeResolution ideal(x_0^2, x_1^2)
+
+       1      2      1
+o35 = S  <-- S  <-- S
+                     
+      0      1      2
+
+o35 : Complex
+
+i36 : D = freeResolution ideal(x_0, x_1)
+
+       1      2      1
+o36 = S  <-- S  <-- S
+                     
+      0      1      2
+
+o36 : Complex
+
+i37 : f = extend(D, C, map(D_0, C_0, 1))
+
+           1             1
+o37 = 0 : S  <--------- S  : 0
+                | 1 |
+
+           2                       2
+      1 : S  <------------------- S  : 1
+                {1} | x_0 0   |
+                {1} | 0   x_1 |
+
+           1                      1
+      2 : S  <------------------ S  : 2
+                {2} | x_0x_1 |
+
+o37 : ComplexMap
+
+i38 : E = freeResolution ideal(x_2^3, x_3^3, x_4^3)
+
+       1      3      3      1
+o38 = S  <-- S  <-- S  <-- S
+                            
+      0      1      2      3
+
+o38 : Complex
+
+i39 : F = freeResolution ideal(x_2, x_3, x_4)
+
+       1      3      3      1
+o39 = S  <-- S  <-- S  <-- S
+                            
+      0      1      2      3
+
+o39 : Complex
+
+i40 : g = extend(F, E, map(F_0, E_0, 1))
+
+           1             1
+o40 = 0 : S  <--------- S  : 0
+                | 1 |
+
+           3                                 3
+      1 : S  <----------------------------- S  : 1
+                {1} | x_2^2 0     0     |
+                {1} | 0     x_3^2 0     |
+                {1} | 0     0     x_4^2 |
+
+           3                                                3
+      2 : S  <-------------------------------------------- S  : 2
+                {2} | x_2^2x_3^2 0          0          |
+                {2} | 0          x_2^2x_4^2 0          |
+                {2} | 0          0          x_3^2x_4^2 |
+
+           1                               1
+      3 : S  <--------------------------- S  : 3
+                {3} | x_2^2x_3^2x_4^2 |
+
+o40 : ComplexMap
+
+i41 : assert(tensorCommutativity(D,F) * (f**g) == (g**f) * tensorCommutativity(C,E))
+
+i42 : assert isComplexMorphism tensorCommutativity(D,F)
+
+i43 : assert isComplexMorphism tensorCommutativity(C,E)
+
+i44 : 

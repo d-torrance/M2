@@ -1,0 +1,537 @@
+ -*- coding: utf-8 -*- This is MapleInterface.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* MapleInterface: (MapleInterface).  interface to Maple
+END-INFO-DIR-ENTRY
+
+
+File: MapleInterface.info, Node: Top, Next: callMaple, Up: (dir)
+
+MapleInterface -- Interface to Maple.
+*************************************
+
+Description
+===========
+
+What's new:
+
+December 1, 2009: Added functions *note msqrt: msqrt, computing the modular
+square root (for large numbers) and *note integralBasis: integralBasis,
+computing an integral basis of an algebraic function field.
+
+October 4, 2009: Added method *note callMaple(String): callMaple,.
+
+August 25, 2009: Added an *note Option: (Macaulay2Doc)Option, *note store:
+store, to *note callMaple: callMaple, to store the result of a computation in a
+file, and a function *note readMaple: readMaple, to read the file.
+
+
+
+Overview:
+
+The goal of this package is to provide an interface to run Maple scripts from
+Macaulay 2.
+
+Setup:
+
+This package is just an interface. To use it you need a licence for Maple and
+have the program installed on your machine.
+
+Install this package by doing
+
+installPackage("MapleInterface")
+
+Edit the file init-MapleInterface.m2 in the directory .Macaulay2 in your home
+directory changing the line
+
+"MapleCommand" => "maple"
+
+to
+
+"MapleCommand" => StringWithMapleCommand
+
+where StringWithMapleCommand is a string containing the command starting
+command-line Maple in the shell.
+
+This is usually "maple" on Unix machines (be sure that you do not put the
+command launching xmaple).
+
+If you are using Macaulay 2 in cygwin and the Windows native Maple version best
+put the complete path to the Maple command line executable, e.g.,
+StringWithMapleCommand could be (depending on the Maple version)
+
+"C:/Program Files/Maple 9.5/bin.win/cmaple9.5.exe"
+
+(English Windows version)
+
+"C:/Programme/Maple 9.5/bin.win/cmaple9.5.exe"
+
+(German Windows version).
+
+To test whether the interface is working do, e.g.,
+
+callMaple("","","returnvalue:=1;")
+
+(which should return 1)
+
+
+
+Caveat
+======
+
+Note that the file init-MapleInterface.m2 will be overwritten when you
+reinstall a newer version of the package, but there will be a backup.
+
+
+
+Author
+======
+
+  * Janko Boehm (see http://www.math.uni-sb.de/ag/schreyer/jb/ )
+    <boehm@mathematik.uni-kl.de>
+
+Version
+=======
+
+This documentation describes version 0.3 of MapleInterface, released June 14,
+2010.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{MapleInterfaceSource,                                                 |
+|  title = {{MapleInterface: interface to Maple. Version~0.3}},              |
+|  author = {Janko Boehm},                                                   |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note callMaple: callMaple, -- Run a Maple program from Macaulay 2.
+      * *note integralBasis: integralBasis, -- Compute an integral basis of an
+        algebraic function field.
+      * *note msqrt: msqrt, -- Compute modular square root.
+      * *note readMaple: readMaple, -- Read the result of a previous Maple
+        computation.
+  * Methods
+      * "callMaple(String)" -- see *note callMaple: callMaple, -- Run a Maple
+        program from Macaulay 2.
+      * "callMaple(String,String,String)" -- see *note callMaple: callMaple, --
+        Run a Maple program from Macaulay 2.
+      * "integralBasis(Ideal)" -- see *note integralBasis: integralBasis, --
+        Compute an integral basis of an algebraic function field.
+      * "msqrt(ZZ,ZZ)" -- see *note msqrt: msqrt, -- Compute modular square
+        root.
+      * "readMaple(String)" -- see *note readMaple: readMaple, -- Read the
+        result of a previous Maple computation.
+  * Symbols
+      * *note store: store, -- Store result of a Maple computation in a file.
+
+For the programmer
+==================
+
+The object *note MapleInterface: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in MapleInterface.m2, with auxiliary files in
+MapleInterface/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MapleInterface.m2:190:0.
+
+File: MapleInterface.info, Node: callMaple, Next: integralBasis, Prev: Top, Up: Top
+
+callMaple -- Run a Maple program from Macaulay 2.
+*************************************************
+
+  * Usage: 
+        callMaple(mapleprogram)
+        callMaple(inputdata1,inputdata2,mapleprogram)
+  * Inputs:
+      * inputdata1, a *note string: (Macaulay2Doc)String,, 
+      * inputdata2, a *note string: (Macaulay2Doc)String,, 
+      * mapleprogram, a *note string: (Macaulay2Doc)String,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note store: store, => ..., default value null, Store result of a Maple
+        computation in a file.
+  * Outputs:
+      * a *note thing: (Macaulay2Doc)Thing,, 
+
+Description
+===========
+
+This function calls a Mapleprogram given as a string mapleprogram.
+
+Note that any command line there has to end with a semicolon.
+
+The arguments inputdata1 and inputdata2 are here just for convenience and you
+can put the empty strings if you want or leave them away.
+
+Inside mapleprogram the string placeholder1 is then replaced by the string
+inputdata1 and placeholder2 is replaced the string inputdata2.
+
+In the string inputdata1 we take care automatically of the main compatibility
+problem between Macaulay 2 and Maple which is replacing in lists the curly
+brackets are by square brackets.
+
+The Maple program has to write its output in the Maple variable returnvalue.
+This is converted in Maple into a string, square brackets are replaced by curly
+brackets and then this string is evaluated in Macaulay 2 via the function *note
+value: (Macaulay2Doc)value,.
+
+A very simple example:
+
+
+
++------------------------------------------------------------+
+|i1 : L={3,5}                                                |
+|                                                            |
+|o1 = {3, 5}                                                 |
+|                                                            |
+|o1 : List                                                   |
++------------------------------------------------------------+
+|i2 : mapleprogram="L:=placeholder1;returnvalue:=L[1]+L[2];";|
++------------------------------------------------------------+
+|i3 : callMaple(toString L,"",mapleprogram)                  |
+|                                                            |
+|o3 = 8                                                      |
++------------------------------------------------------------+
+
+
+
+Here is an example how to send a *note Matrix: (Macaulay2Doc)Matrix, to Maple,
+compute its integer normal form and send it back to Macaulay 2:
+
+
+
++-----------------------------------------------------------------------------+
+|i4 : A=matrix {{1,5,7},{7,13,5}}                                             |
+|                                                                             |
+|o4 = | 1 5  7 |                                                              |
+|     | 7 13 5 |                                                              |
+|                                                                             |
+|              2        3                                                     |
+|o4 : Matrix ZZ  <--- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i5 : inputdata1=toString entries A                                           |
+|                                                                             |
+|o5 = {{1, 5, 7}, {7, 13, 5}}                                                 |
++-----------------------------------------------------------------------------+
+|i6 : mapleprogram="with(linalg,ismith);A:=placeholder1;S:=ismith(A);         |
+|-----------------------------------------------------------------------------|
+|returnvalue:=convert(S,listlist);";                                          |
++-----------------------------------------------------------------------------+
+|i7 : matrix callMaple(inputdata1,"",mapleprogram)                            |
+|                                                                             |
+|o7 = | 1 0  0 |                                                              |
+|     | 0 22 0 |                                                              |
+|                                                                             |
+|              2        3                                                     |
+|o7 : Matrix ZZ  <--- ZZ                                                      |
++-----------------------------------------------------------------------------+
+
+
+
+Using inputdata2 to pass the command ismith to Maple:
+
+
+
++-----------------------------------------------------------------------------+
+|i8 : A=matrix {{1,5,7},{7,13,5}}                                             |
+|                                                                             |
+|o8 = | 1 5  7 |                                                              |
+|     | 7 13 5 |                                                              |
+|                                                                             |
+|              2        3                                                     |
+|o8 : Matrix ZZ  <--- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i9 : inputdata1=toString entries A                                           |
+|                                                                             |
+|o9 = {{1, 5, 7}, {7, 13, 5}}                                                 |
++-----------------------------------------------------------------------------+
+|i10 : inputdata2="ismith"                                                    |
+|                                                                             |
+|o10 = ismith                                                                 |
++-----------------------------------------------------------------------------+
+|i11 : mapleprogram="with(linalg,placeholder2);A:=placeholder1;S:=placeholder2|
+|-----------------------------------------------------------------------------|
+|(A);returnvalue:=convert(S,listlist);";                                      |
++-----------------------------------------------------------------------------+
+|i12 : matrix callMaple(inputdata1,inputdata2,mapleprogram)                   |
+|                                                                             |
+|o12 = | 1 0  0 |                                                             |
+|      | 0 22 0 |                                                             |
+|                                                                             |
+|               2        3                                                    |
+|o12 : Matrix ZZ  <--- ZZ                                                     |
++-----------------------------------------------------------------------------+
+
+
+
+(Note that it may be more convenient for you to use for mapleprogram the
+three-slashes string delimiter but this cannot be done here in the doc
+environment).
+
+Same program but obtaining also the base change matrices:
+
+
+
++-----------------------------------------------------------------------------+
+|i13 : A=matrix {{1,5,7},{7,13,5}}                                            |
+|                                                                             |
+|o13 = | 1 5  7 |                                                             |
+|      | 7 13 5 |                                                             |
+|                                                                             |
+|               2        3                                                    |
+|o13 : Matrix ZZ  <--- ZZ                                                     |
++-----------------------------------------------------------------------------+
+|i14 : inputdata1=toString entries A                                          |
+|                                                                             |
+|o14 = {{1, 5, 7}, {7, 13, 5}}                                                |
++-----------------------------------------------------------------------------+
+|i15 : inputdata2="ismith";                                                   |
++-----------------------------------------------------------------------------+
+|i16 : mapleprogram="with(linalg,placeholder2):A:=placeholder1;S:=placeholder2|
+|-----------------------------------------------------------------------------|
+|(A,U,V);returnvalue:=[convert(S,listlist),convert(U,listlist),convert(V,     |
+|-----------------------------------------------------------------------------|
+|listlist)];";                                                                |
++-----------------------------------------------------------------------------+
+|i17 : L=callMaple(inputdata1,inputdata2,mapleprogram);                       |
++-----------------------------------------------------------------------------+
+|i18 : S=matrix L#0                                                           |
+|                                                                             |
+|o18 = | 1 0  0 |                                                             |
+|      | 0 22 0 |                                                             |
+|                                                                             |
+|               2        3                                                    |
+|o18 : Matrix ZZ  <--- ZZ                                                     |
++-----------------------------------------------------------------------------+
+|i19 : U=matrix L#1                                                           |
+|                                                                             |
+|o19 = | 1  0 |                                                               |
+|      | -7 1 |                                                               |
+|                                                                             |
+|               2        2                                                    |
+|o19 : Matrix ZZ  <--- ZZ                                                     |
++-----------------------------------------------------------------------------+
+|i20 : V=matrix L#2                                                           |
+|                                                                             |
+|o20 = | 1 5  3  |                                                            |
+|      | 0 -1 -2 |                                                            |
+|      | 0 0  1  |                                                            |
+|                                                                             |
+|               3        3                                                    |
+|o20 : Matrix ZZ  <--- ZZ                                                     |
++-----------------------------------------------------------------------------+
+|i21 : U*A*V==S                                                               |
+|                                                                             |
+|o21 = true                                                                   |
++-----------------------------------------------------------------------------+
+
+Ways to use callMaple:
+======================
+
+  * "callMaple(String)"
+  * "callMaple(String,String,String)"
+
+For the programmer
+==================
+
+The object *note callMaple: callMaple, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MapleInterface.m2:270:0.
+
+File: MapleInterface.info, Node: integralBasis, Next: msqrt, Prev: callMaple, Up: Top
+
+integralBasis -- Compute an integral basis of an algebraic function field.
+**************************************************************************
+
+  * Usage: 
+        integralBasis(I)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, in a *note PolynomialRing:
+        (Macaulay2Doc)PolynomialRing, R of two variables over QQ, say x,y.
+        defining an affine plane curve which has no singularities at infinity
+        and its projective closure does not contain the point (x:y:z)=(0:1:0).
+  * Outputs:
+      * a *note matrix: (Macaulay2Doc)Matrix,, over *note frac:
+        (Macaulay2Doc)frac,(R)
+
+Description
+===========
+
+Computes an integral basis in CC(x)[y] of the integral closure of CC[x] in
+CC(x,y). We consider x as transcendental and y as algebraic. The i-th element
+of the integral basis has degree i as a polynomial in y. Note that the integral
+basis will have coefficients in QQ.
+
+
+
++-----------------------------------------------------------------------------+
+|i1 : R=QQ[x,y]                                                               |
+|                                                                             |
+|o1 = R                                                                       |
+|                                                                             |
+|o1 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i2 : I=ideal(y^8-x^3*(1+x)^5)                                                |
+|                                                                             |
+|              8    8     7      6      5     4    3                          |
+|o2 = ideal(- x  + y  - 5x  - 10x  - 10x  - 5x  - x )                         |
+|                                                                             |
+|o2 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i3 : integralBasis(I)                                                        |
+|                                                                             |
+|o3 = | 1 x (x2+x)/y (x3+2x2+x)/y2 (x4+2x3+x2)/y3 (x5+3x4+3x3+x2)/y4          |
+|     ------------------------------------------------------------------------|
+|     (x6+4x5+6x4+4x3+x2)/y5 (x7+4x6+6x5+4x4+x3)/y6 |                         |
+|                                                                             |
+|                    1              8                                         |
+|o3 : Matrix (frac R)  <--- (frac R)                                          |
++-----------------------------------------------------------------------------+
+
+Ways to use integralBasis:
+==========================
+
+  * "integralBasis(Ideal)"
+
+For the programmer
+==================
+
+The object *note integralBasis: integralBasis, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MapleInterface.m2:362:0.
+
+File: MapleInterface.info, Node: msqrt, Next: readMaple, Prev: integralBasis, Up: Top
+
+msqrt -- Compute modular square root.
+*************************************
+
+  * Usage: 
+        msqrt(m,n)
+  * Inputs:
+      * m, an *note integer: (Macaulay2Doc)ZZ,, 
+      * n, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * a *note thing: (Macaulay2Doc)Thing,, an element of ZZ or the *note
+        Boolean: (Macaulay2Doc)Boolean, false.
+
+Description
+===========
+
+Computes a modular square root solving x^2 = m mod n. This is useful in the
+case of very large numbers, in which case the M2 native routines will not work.
+
++-------------------+
+|i1 : msqrt(3,12347)|
+|                   |
+|o1 = 10378         |
++-------------------+
+
+Ways to use msqrt:
+==================
+
+  * "msqrt(ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note msqrt: msqrt, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MapleInterface.m2:332:0.
+
+File: MapleInterface.info, Node: readMaple, Next: store, Prev: msqrt, Up: Top
+
+readMaple -- Read the result of a previous Maple computation.
+*************************************************************
+
+  * Usage: 
+        readMaple(fn)
+  * Inputs:
+      * fn, a *note string: (Macaulay2Doc)String,, 
+  * Outputs:
+      * a *note thing: (Macaulay2Doc)Thing,, 
+
+Description
+===========
+
+Read the result of a previous Maple computation stored in the file fn via the
+option *note store: store, of *note callMaple: callMaple,.
+
+*note callMaple: callMaple,( ... , *note store: store,=>fn); readMaple(fn)
+
+will return the same result as
+
+callMaple( ... )
+
+Ways to use readMaple:
+======================
+
+  * "readMaple(String)"
+
+For the programmer
+==================
+
+The object *note readMaple: readMaple, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MapleInterface.m2:309:0.
+
+File: MapleInterface.info, Node: store, Prev: readMaple, Up: Top
+
+store -- Store result of a Maple computation in a file.
+*******************************************************
+
+Description
+===========
+
+If the option store=>fn with a *note String: (Macaulay2Doc)String, fn is given
+then *note callMaple: callMaple,  stores the result of the Maple computation in
+a file named fn.
+
+This data can be read by the command *note readMaple: readMaple,.
+
+Functions with optional argument named store:
+=============================================
+
+  * "callMaple(...,store=>...)"
+
+For the programmer
+==================
+
+The object *note store: store, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MapleInterface.m2:285:0.
+
+Tag Table:
+Node: Top233
+Node: callMaple4685
+Node: integralBasis16472
+Node: msqrt19685
+Node: readMaple20750
+Node: store21753
+
+End Tag Table

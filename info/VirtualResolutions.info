@@ -1,0 +1,1467 @@
+ -*- coding: utf-8 -*- This is VirtualResolutions.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* VirtualResolutions: (VirtualResolutions).  Methods for virtual resolutions on products of projective spaces
+END-INFO-DIR-ENTRY
+
+
+File: VirtualResolutions.info, Node: Top, Next: Attempt, Up: (dir)
+
+VirtualResolutions -- a package for computing virtual resolutions
+*****************************************************************
+
+Description
+===========
+
+While graded minimal free resolutions are useful for studying quasicoherent
+sheaves over projective space, when working over a product of projective spaces
+or, more generally, over smooth projective toric varieties, graded minimal free
+resolutions over the Cox ring seem too restricted by algebraic structure that
+is in some sense unimportant geometrically. By allowing a limited amount of
+homology, virtual resolutions offer a more flexible alternative for studying
+toric subvarieties when compared to minimal graded free resolutions.
+
+Introduced by Berkesch, Erman, and Smith in Virtual resolutions for a product
+of projective spaces (see [BES20, arXiv:1703.07631 (see
+https://arxiv.org/abs/1703.07631 )]) if $X$ is a smooth toric variety, $S$ is
+the Cox ring of $X$ graded by the Picard group of $X$, and $B\subset S$ is the
+irrelevant ideal of $X$, then a virtual resolution of a graded $S$-module $M$
+is a complex of graded free $S$-modules, which sheafifies to a resolution of
+the associated sheaf of $M$.
+
+This package provides tools for constructing and studying virtual resolutions
+for products of projective spaces. In particular, it implements a number of the
+methods for constructing virtual resolutions for products of projective spaces
+as introduced by Berkesch, Erman, and Smith. This package also contains methods
+for constructing curves in $\PP^1\times\PP^2$, as these are a natural source
+for interesting virtual resolutions.
+
+As a running example, consider three points $([1:1],[1:4])$, $([1:2],[1:5])$,
+and $([1:3],[1:6])$ in $\PP^1 \times \PP^1$.
+
+
+
++-----------------------------------------------------------------------+
+|i1 : X = toricProjectiveSpace(1)**toricProjectiveSpace(1);             |
++-----------------------------------------------------------------------+
+|i2 : S = ring X;                                                       |
++-----------------------------------------------------------------------+
+|i3 : B = ideal X;                                                      |
+|                                                                       |
+|o3 : Ideal of S                                                        |
++-----------------------------------------------------------------------+
+|i4 : J = saturate(intersect(                                           |
+|         ideal(x_1 - x_0, x_3 - 4*x_2),                                |
+|         ideal(x_1 - 2*x_0, x_3 - 5*x_2),                              |
+|         ideal(x_1 - 3*x_0, x_3 - 6*x_2)), B);                         |
+|                                                                       |
+|o4 : Ideal of S                                                        |
++-----------------------------------------------------------------------+
+|i5 : minres = res J;                                                   |
++-----------------------------------------------------------------------+
+|i6 : multigraded betti minres                                          |
+|                                                                       |
+|        0                   1                         2               3|
+|o6 = 0: 1                   .                         .               .|
+|     2: .                 a*b                         .               .|
+|     3: . a^3+a^2*b+a*b^2+b^3                         .               .|
+|     4: .                   . 2*a^3*b+2*a^2*b^2+2*a*b^3               .|
+|     5: .                   .                         . a^3*b^2+a^2*b^3|
+|                                                                       |
+|o6 : MultigradedBettiTally                                             |
++-----------------------------------------------------------------------+
+
+As described in Algorithm 3.4 of Berkesch, Erman, and Smith's paper, one may
+construct a virtual resolution of a module from its graded minimal free
+resolution and an element of the multigraded Castelnuovo-Mumford regularity of
+the module. (See Maclagan and Smith's paper Multigraded Castelnuovo-Mumford
+Regularity (see [MS04, arXiv:math/0305214 (see
+https://arxiv.org/abs/math/0305214 )]) for the definition of multigraded
+regularity.) Building on the *note TateOnProducts: (TateOnProducts)Top, and
+*note LinearTruncations: (LinearTruncations)Top, packages, this package
+contains a function allowing one to compute the minimal elements of the
+multigraded Castelnuovo-Mumford regularity of a $B$-saturated module.
+
+Continuing the example from above, we see that $(2,0)$ is an element of the
+multigraded regularity of $S/J$. From this we can compute a virtual resolution
+of $S/J$.
+
++-------------------------------------+
+|i7 : multigradedRegularity(X, J)     |
+|                                     |
+|o7 = {{0, 2}, {1, 1}, {2, 0}}        |
+|                                     |
+|o7 : List                            |
++-------------------------------------+
+|i8 : vres = virtualOfPair(J, {{3,1}})|
+|                                     |
+|      1      3      2                |
+|o8 = S  <-- S  <-- S  <-- 0          |
+|                                     |
+|     0      1      2      3          |
+|                                     |
+|o8 : Complex                         |
++-------------------------------------+
+|i9 : multigraded betti vres          |
+|                                     |
+|        0         1       2          |
+|o9 = 0: 1         .       .          |
+|     2: .       a*b       .          |
+|     3: . a^3+a^2*b       .          |
+|     4: .         . 2*a^3*b          |
+|                                     |
+|o9 : MultigradedBettiTally           |
++-------------------------------------+
+
+Notice that this virtual resolution of $S/J$ is much shorter and thinner than
+the graded minimal free resolution of $S/J$. This is a common theme: virtual
+resolutions tend to be much shorter and less wide than graded minimal free
+resolutions over the Cox ring, but they still preserve geometric information
+about $S/J$.
+
+In addition to the functions highlighted above, the VirtualResolutions package
+contains a number of other tools for constructing and studying virtual
+resolutions. In particular, there are functions to construct virtual
+resolutions for zero dimensional subschemes, to check whether a complex is a
+virtual resolution, and to construct curves in $\PP^1\times\PP^2$.
+
+Contributors
+============
+
+The following people have generously contributed code or worked on this
+package.
+
+  * Daniel Erman (see http://www.math.wisc.edu/~derman/ )
+  * Gregory G. Smith (see https://mast.queensu.ca/~ggsmith/ )
+  * Lauren Cranton Heller (see https://math.berkeley.edu/~lch/ )
+
+References
+==========
+
+  * [BES20]: Berkesch, Erman, and Smith, Virtual resolutions for a product of
+    projective spaces (see arXiv:1703.07631 (see
+    https://arxiv.org/abs/1703.07631 )).
+  * [MS04]: Maclagan and Smith, Multigraded Castelnuovo-Mumford Regularity (see
+    arXiv:math/0305214 (see https://arxiv.org/abs/math/0305214 )).
+
+Authors
+=======
+
+  * Ayah Almousa (see http://pi.math.cornell.edu/~aalmousa  )
+    <aka66@cornell.edu>
+  * Christine Berkesch (see http://math.umn.edu/~cberkesc/ ) <cberkesc@umn.edu>
+  * Juliette Bruce (see https://juliettebruce.github.io ) <jebruce2@wisc.edu>
+  * David Eisenbud (see http://www.msri.org/~de/ ) <de@msri.org>
+  * Michael Loper (see http://math.umn.edu/~loper012/ ) <loper012@umn.edu>
+  * Mahrud Sayrafi (see http://math.umn.edu/~mahrud/ ) <mahrud@umn.edu>
+
+Certification a gold star
+=========================
+
+Version 1.2 of this package was accepted for publication in volume 10 (see
+https://msp.org/jsag/2020/10-1/ ) of The Journal of Software for Algebra and
+Geometry (see https://msp.org/jsag/ ) on 19 May 2020, in the article The
+virtual resolutions package for Macaulay2 (see
+https://msp.org/jsag/2020/10-1/p06.xhtml ) (DOI: 10.2140/jsag.2020.10.51 (see
+https://doi.org/10.2140/jsag.2020.10.51 )). That version can be obtained from
+the journal (see https://msp.org/jsag/2020/10-1/jsag-v10-n1-x06-
+VirtualResolutions.zip ).
+
+Version
+=======
+
+This documentation describes version 1.4 of VirtualResolutions, released May
+06, 2021.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{VirtualResolutionsSource,                                              |
+|  title = {{VirtualResolutions: Methods for virtual resolutions on products  |
+|  author = {Ayah Almousa and Christine Berkesch and Juliette Bruce and David |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}} |
+|}                                                                            |
+|                                                                             |
+|@article{VirtualResolutionsArticle,                                          |
+|  title = {{The virtual resolutions package for \emph{Macaulay2}}},          |
+|  author = {Ayah Almousa and Christine Berkesch and Juliette Bruce and David |
+|  journal = {The Journal of Software for Algebra and Geometry},              |
+|  volume = {10},                                                             |
+|  year = {2020},                                                             |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|of projective spaces. Version~1.4}},                                         |
+| Eisenbud and Michael Loper and Mahrud Sayrafi},                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+| Eisenbud and Michael Loper and Mahrud Sayrafi},                             |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note curveFromP3toP1P2: curveFromP3toP1P2, -- creates the ideal of a
+        curve in P^1xP^2 from the ideal of a curve in P^3
+      * *note idealSheafGens: idealSheafGens, -- creates a list of subsets of
+        the minimal generators that generate a given ideal up to saturation
+      * *note isVirtual: isVirtual, -- checks whether a chain complex is a
+        virtual resolution
+      * *note multigradedRegularity: multigradedRegularity, -- computes the
+        minimal elements of the multigraded regularity of a module over a
+        multigraded ring
+      * *note randomCurveP1P2: randomCurveP1P2, -- creates the ideal of a
+        random curve in P^1xP^2
+      * *note randomMonomialCurve: randomMonomialCurve, -- creates the ideal of
+        a random monomial curve of degree (d,e) in P^1xP^2
+      * *note randomRationalCurve: randomRationalCurve, -- creates the ideal of
+        a random rational curve of degree (d,e) in P^1xP^2
+      * *note resolveViaFatPoint: resolveViaFatPoint, -- returns a virtual
+        resolution of a zero-dimensional scheme
+      * *note virtualOfPair: virtualOfPair, -- creates a virtual resolution
+        from a free resolution by keeping only summands of specified degrees
+  * Methods
+      * "curveFromP3toP1P2(Ideal)" -- see *note curveFromP3toP1P2:
+        curveFromP3toP1P2, -- creates the ideal of a curve in P^1xP^2 from the
+        ideal of a curve in P^3
+      * "idealSheafGens(ZZ,Ideal,Ideal)" -- see *note idealSheafGens:
+        idealSheafGens, -- creates a list of subsets of the minimal generators
+        that generate a given ideal up to saturation
+      * "idealSheafGens(ZZ,Ideal,NormalToricVariety)" -- see *note
+        idealSheafGens: idealSheafGens, -- creates a list of subsets of the
+        minimal generators that generate a given ideal up to saturation
+      * "isVirtual(Ideal,Complex)" -- see *note isVirtual: isVirtual, -- checks
+        whether a chain complex is a virtual resolution
+      * "isVirtual(NormalToricVariety,Complex)" -- see *note isVirtual:
+        isVirtual, -- checks whether a chain complex is a virtual resolution
+      * "multigradedRegularity(NormalToricVariety,Ideal)" -- see *note
+        multigradedRegularity: multigradedRegularity, -- computes the minimal
+        elements of the multigraded regularity of a module over a multigraded
+        ring
+      * "multigradedRegularity(NormalToricVariety,Module)" -- see *note
+        multigradedRegularity: multigradedRegularity, -- computes the minimal
+        elements of the multigraded regularity of a module over a multigraded
+        ring
+      * "multigradedRegularity(Ring,Ideal)" -- see *note multigradedRegularity:
+        multigradedRegularity, -- computes the minimal elements of the
+        multigraded regularity of a module over a multigraded ring
+      * "multigradedRegularity(Ring,Module)" -- see *note
+        multigradedRegularity: multigradedRegularity, -- computes the minimal
+        elements of the multigraded regularity of a module over a multigraded
+        ring
+      * "randomCurveP1P2(ZZ,ZZ)" -- see *note randomCurveP1P2: randomCurveP1P2,
+        -- creates the ideal of a random curve in P^1xP^2
+      * "randomCurveP1P2(ZZ,ZZ,Ring)" -- see *note randomCurveP1P2:
+        randomCurveP1P2, -- creates the ideal of a random curve in P^1xP^2
+      * "randomMonomialCurve(ZZ,ZZ)" -- see *note randomMonomialCurve:
+        randomMonomialCurve, -- creates the ideal of a random monomial curve of
+        degree (d,e) in P^1xP^2
+      * "randomMonomialCurve(ZZ,ZZ,Ring)" -- see *note randomMonomialCurve:
+        randomMonomialCurve, -- creates the ideal of a random monomial curve of
+        degree (d,e) in P^1xP^2
+      * "randomRationalCurve(ZZ,ZZ)" -- see *note randomRationalCurve:
+        randomRationalCurve, -- creates the ideal of a random rational curve of
+        degree (d,e) in P^1xP^2
+      * "randomRationalCurve(ZZ,ZZ,Ring)" -- see *note randomRationalCurve:
+        randomRationalCurve, -- creates the ideal of a random rational curve of
+        degree (d,e) in P^1xP^2
+      * "resolveViaFatPoint(Ideal,Ideal,List)" -- see *note resolveViaFatPoint:
+        resolveViaFatPoint, -- returns a virtual resolution of a
+        zero-dimensional scheme
+      * "virtualOfPair(Complex,List)" -- see *note virtualOfPair:
+        virtualOfPair, -- creates a virtual resolution from a free resolution
+        by keeping only summands of specified degrees
+      * "virtualOfPair(Ideal,List)" -- see *note virtualOfPair: virtualOfPair,
+        -- creates a virtual resolution from a free resolution by keeping only
+        summands of specified degrees
+      * "virtualOfPair(Module,List)" -- see *note virtualOfPair: virtualOfPair,
+        -- creates a virtual resolution from a free resolution by keeping only
+        summands of specified degrees
+  * Symbols
+      * *note Attempt: Attempt, -- limit number of attempts for randomCurveP1P2
+      * *note GeneralElements: GeneralElements, -- combines generators of same
+        degree into a general linear combination
+      * "LowerLimit" -- see *note multigradedRegularity: multigradedRegularity,
+        -- computes the minimal elements of the multigraded regularity of a
+        module over a multigraded ring
+      * "UpperLimit" -- see *note multigradedRegularity: multigradedRegularity,
+        -- computes the minimal elements of the multigraded regularity of a
+        module over a multigraded ring
+      * *note PreserveDegree: PreserveDegree, -- Determines if curve is
+        disjoint from base loci
+
+For the programmer
+==================
+
+The object *note VirtualResolutions: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in VirtualResolutions.m2, with auxiliary files
+in VirtualResolutions/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:77:0.
+
+File: VirtualResolutions.info, Node: Attempt, Next: curveFromP3toP1P2, Prev: Top, Up: Top
+
+Attempt -- limit number of attempts for randomCurveP1P2
+*******************************************************
+
+Description
+===========
+
+When *note randomCurveP1P2: randomCurveP1P2, generates a random curve in
+$\PP^3$ using the *note SpaceCurves: (SpaceCurves)Top, package, it is possible
+the resulting curve will intersect the base loci of the projections used to
+construct the curve in $\PP^1\times\PP^2$. If the curve does intersect the base
+locusi it will generate a new random curve in $\PP^3$. The option Attempt
+limits the number of attempts to find a curve disjoint from the base loci
+before quitting. By default, Attempt is set to 1000.
+
+See also
+========
+
+  * *note randomCurveP1P2: randomCurveP1P2, -- creates the ideal of a random
+    curve in P^1xP^2
+
+Functions with optional argument named Attempt:
+===============================================
+
+  * "randomCurveP1P2(...,Attempt=>...)"
+
+For the programmer
+==================
+
+The object *note Attempt: Attempt, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:379:0.
+
+File: VirtualResolutions.info, Node: curveFromP3toP1P2, Next: GeneralElements, Prev: Attempt, Up: Top
+
+curveFromP3toP1P2 -- creates the ideal of a curve in P^1xP^2 from the ideal of a curve in P^3
+*********************************************************************************************
+
+  * Usage: 
+        I = curveFromP3toP1P2(J)
+  * Inputs:
+      * J, an *note ideal: (Macaulay2Doc)Ideal,, defining a curve in $\PP^3$.
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note PreserveDegree: PreserveDegree, => ..., default value true,
+        Determines if curve is disjoint from base loci
+  * Outputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, defining a curve in
+        $\PP^1\times\PP^2$.
+
+Description
+===========
+
+Given an ideal J defining a curve $C$ in $\PP^3$, curveFromP3toP1P2 produces
+the ideal of the curve in $\PP^1\times\PP^2$ defined as follows: consider the
+projections $\PP^3\to\PP^2$ and $\PP^3\to\PP^1$ from the point [0:0:0:1] and
+the line [0:0:s:t], respectively. The product of these defines a map from
+$\PP^3$ to $\PP^1\times\PP^2$. The curve produced by curveFromP3toP1P2 is the
+image of the input curve under this map.
+
+This computation is done by first constructing the graph in
+$\PP^3\times(\PP^1\times\PP^2)$ of the product of the two projections
+$\PP^3\to\PP^2$ and $\PP^3\to\PP^1$ defined above. This graph is then
+intersected with $C\times(\PP^1\times\PP^2)$. A curve in $\PP^1\times\PP^2$ is
+then obtained from this by saturating and then eliminating.
+
+Note the curve in $\PP^1\times\PP^2$ will have degree and genus equal to the
+degree and genus of $C$ as long as $C$ does not intersect the base locus of the
+projection. If the option *note curveFromP3toP1P2(...,PreserveDegree=>...):
+PreserveDegree, is set to true, curveFromP3toP1P2 will check whether $C$
+intersects the base locus. If it does, the function will return an error. If
+PreserveDegree is set to false, this check is not performed and the output
+curve in $\PP^1\times\PP^2$ may have degree and genus different from $C$.
+
++--------------------------------------------------------------------------+
+|i1 : R = ZZ/101[z_0,z_1,z_2,z_3];                                         |
++--------------------------------------------------------------------------+
+|i2 : J = ideal(z_0*z_2-z_1^2, z_1*z_3-z_2^2, z_0*z_3-z_1*z_2);            |
+|                                                                          |
+|o2 : Ideal of R                                                           |
++--------------------------------------------------------------------------+
+|i3 : curveFromP3toP1P2(J)                                                 |
+|                                                                          |
+|             2                                                            |
+|o3 = ideal (x    - x   x   , - x   x    + x   x   , - x   x    + x   x   )|
+|             1,1    1,0 1,2     0,1 1,1    0,0 1,2     0,1 1,0    0,0 1,1 |
+|                                                                          |
+|               ZZ                                                         |
+|o3 : Ideal of ---[x   ..x   , x   ..x   ]                                 |
+|              101  0,0   0,1   1,0   1,2                                  |
++--------------------------------------------------------------------------+
+
+Caveat
+======
+
+This creates a ring $F[x_{0,0},x_{0,1},x_{1,0},x_{1,1},x_{1,2}]$ in which the
+resulting ideal is defined.
+
+Ways to use curveFromP3toP1P2:
+==============================
+
+  * "curveFromP3toP1P2(Ideal)"
+
+For the programmer
+==================
+
+The object *note curveFromP3toP1P2: curveFromP3toP1P2, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:308:0.
+
+File: VirtualResolutions.info, Node: GeneralElements, Next: idealSheafGens, Prev: curveFromP3toP1P2, Up: Top
+
+GeneralElements -- combines generators of same degree into a general linear combination
+***************************************************************************************
+
+Description
+===========
+
+If GeneralElements is set to true, *note idealSheafGens: idealSheafGens, will
+replace all generators of I of the same degree with a new generator of the that
+degree which is a general linear combination of those generators, then run
+idealSheafGens on the new ideal.
+
+See also
+========
+
+  * *note idealSheafGens: idealSheafGens, -- creates a list of subsets of the
+    minimal generators that generate a given ideal up to saturation
+
+Functions with optional argument named GeneralElements:
+=======================================================
+
+  * "idealSheafGens(...,GeneralElements=>...)"
+
+For the programmer
+==================
+
+The object *note GeneralElements: GeneralElements, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:191:0.
+
+File: VirtualResolutions.info, Node: idealSheafGens, Next: isVirtual, Prev: GeneralElements, Up: Top
+
+idealSheafGens -- creates a list of subsets of the minimal generators that generate a given ideal up to saturation
+******************************************************************************************************************
+
+  * Usage: 
+        idealSheafGens(n,I,irr)
+        idealSheafGens(n,I,X)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+      * n, an *note integer: (Macaulay2Doc)ZZ,, size of subset of minimal
+        generators of I that may generate I up to saturation with irr
+      * irr, an *note ideal: (Macaulay2Doc)Ideal,, irrelevant ideal
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,, normal toric variety whose
+        Cox ring contains I
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note GeneralElements: GeneralElements, => ..., default value false,
+        combines generators of same degree into a general linear combination
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, all ideals generated by subsets of
+        size n of generators of I that generate I up to saturation with irr
+
+Description
+===========
+
+Given an ideal I, integer n, and irrelevant ideal irr, idealSheafGens searches
+through all n-subsets of the generators of I. If a subset generates the same
+irr-saturated ideal as the irr-saturation of I, then the ideal generated by
+that subset is added to a list. After running through all subsets, the list is
+returned.
+
++-----------------------------------------------------------------------------+
+|i1 : R = ZZ/101[x_0,x_1,x_2,x_3,x_4,Degrees=>{2:{1,0},3:{0,1}}];             |
++-----------------------------------------------------------------------------+
+|i2 : B = intersect(ideal(x_0,x_1),ideal(x_2,x_3,x_4));                       |
+|                                                                             |
+|o2 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i3 : I = ideal(x_0^2*x_2^2+x_1^2*x_3^2+x_0*x_1*x_4^2,                        |
+|                                                                             |
+|o3 : Ideal of R                                                              |
+|-----------------------------------------------------------------------------|
+|x_0^3*x_4+x_1^3*(x_2+x_3));                                                  |
++-----------------------------------------------------------------------------+
+|i4 : idealSheafGens(2,I,B)                                                   |
+|                                                                             |
+|              2 2    2 2        2   3      3      3                          |
+|o4 = {ideal (x x  + x x  + x x x , x x  + x x  + x x )}                      |
+|              0 2    1 3    0 1 4   1 2    1 3    0 4                        |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Ways to use idealSheafGens:
+===========================
+
+  * "idealSheafGens(ZZ,Ideal,Ideal)"
+  * "idealSheafGens(ZZ,Ideal,NormalToricVariety)"
+
+For the programmer
+==================
+
+The object *note idealSheafGens: idealSheafGens, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:177:0.
+
+File: VirtualResolutions.info, Node: isVirtual, Next: isVirtual_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, Prev: idealSheafGens, Up: Top
+
+isVirtual -- checks whether a chain complex is a virtual resolution
+*******************************************************************
+
+  * Usage: 
+        isVirtual(irr,C)
+        isVirtual(X,C)
+  * Inputs:
+      * irr, an *note ideal: (Macaulay2Doc)Ideal,, irrelevant ideal of the ring
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,, normal toric variety
+      * C, a *note complex: (Complexes)Complex,, chain complex we want to check
+        if is a virtual resolution
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Strategy: isVirtual_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, => ...,
+        default value null, changes strategy from computing homology to
+        computing minors of boundary maps
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, true if Cis a virtual
+        resolution of I false if not
+
+Description
+===========
+
+Given the irrelevant ideal irr of a NormalToricVariety and a chain complex C,
+isVirtual returns true if C is a virtual resolution of some module. If not, it
+returns false. This is done by checking that the higher homology groups of Care
+supported on the irrelevant ideal.
+
+If *note debugLevel: (Macaulay2Doc)debugLevel, is larger than zero, the
+homological degree where isVirtual fails is printed.
+
++---------------------------------------+
+|i1 : R = ZZ/101[s,t];                  |
++---------------------------------------+
+|i2 : isVirtual(ideal(s,t),res ideal(t))|
+|                                       |
+|o2 = true                              |
++---------------------------------------+
+
+Continuing our running example of three points $([1:1],[1:4])$,
+$([1:2],[1:5])$, and $([1:3],[1:6])$ in $\PP^1 \times \PP^1$, we can check
+whether the virtual complex we compute below and in other places is in fact
+virtual.
+
++----------------------------------------------------------+
+|i3 : Y = toricProjectiveSpace(1)**toricProjectiveSpace(1);|
++----------------------------------------------------------+
+|i4 : S = ring Y;                                          |
++----------------------------------------------------------+
+|i5 : B = ideal Y;                                         |
+|                                                          |
+|o5 : Ideal of S                                           |
++----------------------------------------------------------+
+|i6 : J = saturate(intersect(                              |
+|        ideal(x_1 - x_0, x_3 - 4*x_2),                    |
+|        ideal(x_1 - 2*x_0, x_3 - 5*x_2),                  |
+|        ideal(x_1 - 3*x_0, x_3 - 6*x_2)), B);             |
+|                                                          |
+|o6 : Ideal of S                                           |
++----------------------------------------------------------+
+|i7 : minres = res J;                                      |
++----------------------------------------------------------+
+|i8 : vres = virtualOfPair(J,{{3,1}});                     |
++----------------------------------------------------------+
+|i9 : isVirtual(B,vres)                                    |
+|                                                          |
+|o9 = true                                                 |
++----------------------------------------------------------+
+
+Finally, we can also use the Determinantal strategy, which implements Theorem
+1.3 of [Loper, arXiv:1904.05994 (see https://arxiv.org/abs/1904.05994 )].
+
++-----------------------------------------------+
+|i10 : isVirtual(B,vres,Strategy=>Determinantal)|
+|                                               |
+|o10 = true                                     |
++-----------------------------------------------+
+
+Ways to use isVirtual:
+======================
+
+  * "isVirtual(Ideal,Complex)"
+  * "isVirtual(NormalToricVariety,Complex)"
+
+For the programmer
+==================
+
+The object *note isVirtual: isVirtual, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:129:0.
+
+File: VirtualResolutions.info, Node: isVirtual_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, Next: multigradedRegularity, Prev: isVirtual, Up: Top
+
+isVirtual(...,Strategy=>...) -- changes strategy from computing homology to computing minors of boundary maps
+*************************************************************************************************************
+
+Description
+===========
+
+If Strategy is set to Determinantal, isVirtual will check whether the given
+chain complex is a virtual resolution by checking the depth of the saturation
+of the ideals of maximal rank from the boundary maps. See Theorem 1.3 of
+[Loper, arXiv:1904.05994 (see https://arxiv.org/abs/1904.05994 )].
+
+See also
+========
+
+  * *note isVirtual: isVirtual, -- checks whether a chain complex is a virtual
+    resolution
+
+Functions with optional argument named Strategy:
+================================================
+
+  * "addHook(...,Strategy=>...)" -- see *note addHook: (Macaulay2Doc)addHook,
+    -- add a hook function to an object for later processing
+  * "annihilator(...,Strategy=>...)" -- see *note annihilator:
+    (Saturation)annihilator, -- the annihilator ideal
+  * "basis(...,Strategy=>...)" -- see *note basis: (Macaulay2Doc)basis, --
+    basis or generating set of all or part of a ring, ideal or module
+  * "canonicalBundle(...,Strategy=>...)" -- see *note canonicalBundle:
+    (Varieties)canonicalBundle, -- the canonical bundle of a projective variety
+  * "coarseMultigradedRegularity(...,Strategy=>...)" -- see *note
+    coarseMultigradedRegularity: (TateOnProducts)coarseMultigradedRegularity,
+    -- A truncation that has linear resolution
+  * "mingens(...,Strategy=>...)" -- see *note Complement:
+    (Macaulay2Doc)Complement, -- a Strategy option value
+  * "trim(...,Strategy=>...)" -- see *note Complement:
+    (Macaulay2Doc)Complement, -- a Strategy option value
+  * "compose(Module,Module,Module,Strategy=>...)" -- see *note compose:
+    (Macaulay2Doc)compose, -- composition as a pairing on Hom-modules
+  * "cotangentSheaf(...,Strategy=>...)" -- see *note cotangentSheaf:
+    (Varieties)cotangentSheaf, -- cotangent sheaf of a projective variety
+  * decompose(Ideal,Strategy=>...) (missing documentation)
+  * *note determinant(...,Strategy=>...):
+    (Macaulay2Doc)determinant_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- choose
+    between Bareiss, Cofactor and Dynamic algorithms
+  * "dual(MonomialIdeal,List,Strategy=>...)" -- see *note
+    dual(MonomialIdeal,Strategy=>...):
+    (Macaulay2Doc)dual_lpMonomialIdeal_cmStrategy=>_pd_pd_pd_rp,
+  * "dual(MonomialIdeal,RingElement,Strategy=>...)" -- see *note
+    dual(MonomialIdeal,Strategy=>...):
+    (Macaulay2Doc)dual_lpMonomialIdeal_cmStrategy=>_pd_pd_pd_rp,
+  * *note dual(MonomialIdeal,Strategy=>...):
+    (Macaulay2Doc)dual_lpMonomialIdeal_cmStrategy=>_pd_pd_pd_rp,
+  * dual(SheafMap,Strategy=>...) (missing documentation)
+  * "End(...,Strategy=>...)" -- see *note End: (Macaulay2Doc)End, -- module of
+    endomorphisms
+  * epicResolutionMap(...,Strategy=>...) (missing documentation)
+  * *note exteriorPower(...,Strategy=>...):
+    (Macaulay2Doc)exteriorPower_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- choose
+    between Bareiss, Cofactor and Dynamic algorithms
+  * "gb(...,Strategy=>...)" -- see *note gb: (Macaulay2Doc)gb, -- compute a
+    Gröbner basis
+  * gcdLLL(...,Strategy=>...) (missing documentation)
+  * "GF(...,Strategy=>...)" -- see *note GF: (Macaulay2Doc)GF, -- make a finite
+    field
+  * "groebnerBasis(...,Strategy=>...)" -- see *note groebnerBasis:
+    (Macaulay2Doc)groebnerBasis, -- Gröbner basis, as a matrix
+  * hermite(...,Strategy=>...) (missing documentation)
+  * hilbertFunction(...,Strategy=>...) (missing documentation)
+  * "Hom(...,Strategy=>...)" -- see *note Hom: (Macaulay2Doc)Hom, -- module of
+    homomorphisms
+  * "homomorphism'(...,Strategy=>...)" -- see *note homomorphism':
+    (Macaulay2Doc)homomorphism', -- get the element of Hom from a homomorphism
+  * "hooks(...,Strategy=>...)" -- see *note hooks: (Macaulay2Doc)hooks, -- list
+    hooks attached to a key
+  * idealSheaf(...,Strategy=>...) (missing documentation)
+  * "intersect(Ideal,Ideal,Strategy=>...)" -- see *note intersect(Ideal,Ideal):
+    (Macaulay2Doc)intersect_lpIdeal_cmIdeal_rp, -- compute an intersection of a
+    sequence of ideals or modules
+  * "intersect(Module,Module,Strategy=>...)" -- see *note
+    intersect(Ideal,Ideal): (Macaulay2Doc)intersect_lpIdeal_cmIdeal_rp, --
+    compute an intersection of a sequence of ideals or modules
+  * "isIsomorphic(...,Strategy=>...)" -- see *note isIsomorphic:
+    (Isomorphism)isIsomorphic, -- probabilistic test for isomorphism of modules
+  * isomorphism(...,Strategy=>...) (missing documentation)
+  * isPrime(Ideal,Strategy=>...) (missing documentation)
+  * *note isVirtual(...,Strategy=>...):
+    isVirtual_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- changes strategy from
+    computing homology to computing minors of boundary maps
+  * *note LLL(...,Strategy=>...):
+    (LLLBases)LLL_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- choose among
+    different algorithms
+  * "makeSimplicial(...,Strategy=>...)" -- see *note
+    makeSimplicial(NormalToricVariety):
+    (NormalToricVarieties)makeSimplicial_lpNormalToricVariety_rp, -- make a
+    birational simplicial toric variety
+  * "makeSmooth(...,Strategy=>...)" -- see *note
+    makeSmooth(NormalToricVariety):
+    (NormalToricVarieties)makeSmooth_lpNormalToricVariety_rp, -- make a
+    birational smooth toric variety
+  * "match(...,Strategy=>...)" -- see *note match: (Macaulay2Doc)match, --
+    regular expression matching
+  * *note minors(...,Strategy=>...):
+    (Macaulay2Doc)minors_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- choose
+    between Bareiss, Cofactor and Dynamic algorithms
+  * "multigradedRegularity(...,Strategy=>...)" -- see *note
+    multigradedRegularity: multigradedRegularity, -- computes the minimal
+    elements of the multigraded regularity of a module over a multigraded ring
+  * normalCone(Ideal,RingElement,Strategy=>...) (missing documentation)
+  * normalCone(Ideal,Strategy=>...) (missing documentation)
+  * "parallelApply(...,Strategy=>...)" -- see *note parallelApply:
+    (Macaulay2Doc)parallelApply, -- apply a function to each element in
+    parallel
+  * *note pruneComplex(...,Strategy=>...):
+    (Complexes)pruneComplex_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, -- Whether to
+    use the methods in the package or C++ algorithms in the engine
+  * pseudoInverse(...,Strategy=>...) (missing documentation)
+  * "pushForward(...,Strategy=>...)" -- see *note pushForward(RingMap,Module):
+    (Macaulay2Doc)pushForward_lpRingMap_cmModule_rp, -- compute the pushforward
+    of a module along a ring map
+  * quotient'(...,Strategy=>...) (missing documentation)
+  * *note quotient(...,Strategy=>...):
+    (Saturation)quotient_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp,
+  * "resolutionMap(...,Strategy=>...)" -- see *note resolutionMap:
+    (Complexes)resolutionMap, -- map from a free resolution to the given
+    complex
+  * *note saturate(...,Strategy=>...):
+    (Saturation)saturate_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp,
+  * "sheafHom(...,Strategy=>...)" -- see *note sheafHom: (Varieties)sheafHom,
+    -- sheaf Hom
+  * "freeResolution(...,Strategy=>...)" -- see *note Strategies for free
+    resolutions: (Complexes)Strategies for free resolutions, -- overview of the
+    different algorithms for computing free resolutions
+  * "SVDComplex(...,Strategy=>...)" -- see *note SVDComplex:
+    (SVDComplexes)SVDComplex, -- Compute the SVD decomposition of a chain
+    complex over RR
+  * "SVDHomology(...,Strategy=>...)" -- see *note SVDHomology:
+    (SVDComplexes)SVDHomology, -- Estimate the homology of a chain complex over
+    RR with the SVD decomposition
+  * "syz(...,Strategy=>...)" -- see *note syz(Matrix):
+    (Macaulay2Doc)syz_lpMatrix_rp, -- compute the syzygy matrix
+  * "tangentSheaf(...,Strategy=>...)" -- see *note tangentSheaf:
+    (Varieties)tangentSheaf, -- tangent sheaf of a projective variety
+
+Further information
+===================
+
+  * Default value: null
+  * Function: *note isVirtual: isVirtual, -- checks whether a chain complex is
+    a virtual resolution
+  * Option key: *note Strategy: (Macaulay2Doc)Strategy, -- an optional argument
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:143:0.
+
+File: VirtualResolutions.info, Node: multigradedRegularity, Next: PreserveDegree, Prev: isVirtual_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp, Up: Top
+
+multigradedRegularity -- computes the minimal elements of the multigraded regularity of a module over a multigraded ring
+************************************************************************************************************************
+
+  * Usage: 
+        multigradedRegularity(S,I)
+        multigradedRegularity(S,M)
+        multigradedRegularity(X,I)
+        multigradedRegularity(X,M)
+  * Inputs:
+      * S, a *note ring: (Macaulay2Doc)Ring,, a multigraded Cox ring
+      * X, a *note normal toric variety:
+        (NormalToricVarieties)NormalToricVariety,, a product of normal toric
+        varieties
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, an ideal over a multigraded
+        ring
+      * M, a *note module: (Macaulay2Doc)Module,, a module over a multigraded
+        ring
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * UpperLimit => a *note list: (Macaulay2Doc)List,, default value null,
+        largest twist to compute cohomology for
+      * LowerLimit => a *note list: (Macaulay2Doc)List,, default value null,
+        smallest twist to compute cohomology for
+      * Strategy => a *note string: (Macaulay2Doc)String,, default value null,
+        implemented strategies are "CohomologySearch" and "TruncationSearch"
+        (default)
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, a list of multidegrees
+
+Description
+===========
+
+Given a module M over a multigraded ring S or a product of toric varieties X,
+this method finds the minimal elements of the multigraded Castelnuovo-Mumford
+regularity of M as defined in Definition 1.1 of [MS04] (see arXiv:math/0305214
+(see https://arxiv.org/abs/math/0305214 )). If the input is an ideal,
+multigraded regularity of $S^1/I$ is computed.
+
+There are two strategies implemented and run using *note hooks:
+(Macaulay2Doc)hooks,:
+
+Strategy => "CohomologySearch"
+
+  * This strategy calls the *note cohomologyHashTable:
+    (TateOnProducts)cohomologyHashTable, method from *note TateOnProducts:
+    (TateOnProducts)Top, and checks for the multidegrees where the Hilbert
+    polynomial and Hilbert function match and where the higher sheaf cohomology
+    vanishes.
+
+Strategy => "TruncationSearch" (default)
+
+  * This strategy uses *note isQuasiLinear: (LinearTruncations)isQuasiLinear,
+    method from *note LinearTruncations: (LinearTruncations)Top, to search for
+    the multidegrees where the module is regular by checking the Betti numbers
+    of the truncation of the module. See Theorem 4.6 of arXiv:2110.10705 (see
+    https://arxiv.org/abs/2110.10705 ). This strategy is much faster.
+
+Note that both strategies require the module or ideal to be saturated by the
+irrelevant ideal of the Cox ring.
+
+As an example, here we compute the minimal elements of the multigraded
+regularity for Example 1.4 of [BES20] (see arXiv:1703.07631 (see
+https://arxiv.org/abs/1703.07631 )). We consider the example of a hyperelliptic
+curve of genus 4 in $\PP^1\times\PP^2$.
+
++-----------------------------------------------------------------------------+
+|i1 : X = toricProjectiveSpace(1)**toricProjectiveSpace(2)                    |
+|                                                                             |
+|o1 = X                                                                       |
+|                                                                             |
+|o1 : NormalToricVariety                                                      |
++-----------------------------------------------------------------------------+
+|i2 : S = ring X; B = ideal X;                                                |
+|                                                                             |
+|o3 : Ideal of S                                                              |
++-----------------------------------------------------------------------------+
+|i4 : I = ideal(x_0^2*x_2^2+x_1^2*x_3^2+x_0*x_1*x_4^2,                        |
+|                                                                             |
+|             2 2    2 2        2   3      3      3                           |
+|o4 = ideal (x x  + x x  + x x x , x x  + x x  + x x )                        |
+|             0 2    1 3    0 1 4   1 2    1 3    0 4                         |
+|                                                                             |
+|o4 : Ideal of S                                                              |
+|-----------------------------------------------------------------------------|
+|x_0^3*x_4+x_1^3*(x_2+x_3))                                                   |
++-----------------------------------------------------------------------------+
+
+After saturating the defining ideal by the irrelevant ideal we may compute its
+multigraded regularity.
+
++------------------------------------+
+|i5 : J = saturate(I,B);             |
+|                                    |
+|o5 : Ideal of S                     |
++------------------------------------+
+|i6 : L = multigradedRegularity(X, J)|
+|                                    |
+|o6 = {{2, 2}, {4, 1}, {1, 5}}       |
+|                                    |
+|o6 : List                           |
++------------------------------------+
+
+If *note debugLevel: (Macaulay2Doc)debugLevel, is larger than zero, additional
+information about the degree search is printed.
+
+This method also accepts the ring provided by *note productOfProjectiveSpaces:
+(TateOnProducts)productOfProjectiveSpaces, from the *note TateOnProducts:
+(TateOnProducts)Top, package.
+
+Contributors
+============
+
+Lauren Cranton Heller contributed to the code for this method.
+
+Caveat
+======
+
+The input is assumed to be saturated. Moreover, if the input is a module
+generated in non-positive degrees, then the output may be incorrect. In that
+case, adding the optional argument
+
+LowerLimit => apply(n, i -> min(degrees M / (deg -> deg_i))) - dim X
+
+where M is the module and X is the toric variety, may be a sufficient solution.
+
+Ways to use multigradedRegularity:
+==================================
+
+  * "multigradedRegularity(NormalToricVariety,Ideal)"
+  * "multigradedRegularity(NormalToricVariety,Module)"
+  * "multigradedRegularity(Ring,Ideal)"
+  * "multigradedRegularity(Ring,Module)"
+
+For the programmer
+==================
+
+The object *note multigradedRegularity: multigradedRegularity, is a *note
+method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:582:0.
+
+File: VirtualResolutions.info, Node: PreserveDegree, Next: randomCurveP1P2, Prev: multigradedRegularity, Up: Top
+
+PreserveDegree -- Determines if curve is disjoint from base loci
+****************************************************************
+
+Description
+===========
+
+When set to true, *note curveFromP3toP1P2: curveFromP3toP1P2, will check
+whether or not the given curve in $\PP^3$ intersects the base locus of the
+projections maps used in this function. If this option is set to true and the
+given curve does intersect the base locus, an error is returned.
+
+See also
+========
+
+  * *note curveFromP3toP1P2: curveFromP3toP1P2, -- creates the ideal of a curve
+    in P^1xP^2 from the ideal of a curve in P^3
+
+Functions with optional argument named PreserveDegree:
+======================================================
+
+  * "curveFromP3toP1P2(...,PreserveDegree=>...)"
+
+For the programmer
+==================
+
+The object *note PreserveDegree: PreserveDegree, is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:324:0.
+
+File: VirtualResolutions.info, Node: randomCurveP1P2, Next: randomMonomialCurve, Prev: PreserveDegree, Up: Top
+
+randomCurveP1P2 -- creates the ideal of a random curve in P^1xP^2
+*****************************************************************
+
+  * Usage: 
+        randomCurveP1P2(d,g,F)
+        randomCurveP1P2(d,g)
+  * Inputs:
+      * d, an *note integer: (Macaulay2Doc)ZZ,, degree of the curve.
+      * g, an *note integer: (Macaulay2Doc)ZZ,, genus of the curve.
+      * F, a *note ring: (Macaulay2Doc)Ring,, base ring.
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note Attempt: Attempt, => ..., default value 1000, limit number of
+        attempts for randomCurveP1P2
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, defining random curve
+        $\PP^1\times\PP^2$ from a curve of degree d and genus g in $\PP^3$ over
+        F.
+
+Description
+===========
+
+Given a positive integer d, a non-negative integer g, and a ring F,
+randomCurveP1P2 produces a random curve of bi-degree (d,d) and genus g in
+$\PP^1\times\PP^2$. This is done by using the *note curve: (SpaceCurves)curve,
+function from the *note SpaceCurves: (SpaceCurves)Top, package to first
+generate a random curve of degree d and genus g in $\PP^1\times\PP^2$, and then
+applying *note curveFromP3toP1P2: curveFromP3toP1P2, to produce a curve in
+$\PP^1\times\PP^2$.
+
+Since *note curveFromP3toP1P2: curveFromP3toP1P2, relies on projecting from the
+point $[0:0:0:1]$ and the line $[0:0:s:t]$, randomCurveP1P2 attempts to find a
+curve in $\PP^3$, which does not intersect the base locus of these projections.
+If the curve did intersect the base locus the resulting curve in
+$\PP^1\times\PP^2$ would not have degree (d,d). The number of attempts used to
+try to find such curves is controlled by the *note
+randomCurveP1P2(...,Attempt=>...): Attempt, option, which by default is set to
+1000.
+
++-----------------------------------------+
+|i1 : randomCurveP1P2(3,0);               |
+|                                         |
+|               ZZ                        |
+|o1 : Ideal of ---[x   ..x   , x   ..x   ]|
+|              101  0,0   0,1   1,0   1,2 |
++-----------------------------------------+
+|i2 : randomCurveP1P2(3,0,QQ);            |
+|                                         |
+|o2 : Ideal of QQ[x   ..x   , x   ..x   ] |
+|                  0,0   0,1   1,0   1,2  |
++-----------------------------------------+
+
+Caveat
+======
+
+This creates a ring $F[x_{0,0},x_{0,1},x_{1,0},x_{1,1},x_{1,2}]$ in which the
+resulting ideal is defined.
+
+Ways to use randomCurveP1P2:
+============================
+
+  * "randomCurveP1P2(ZZ,ZZ)"
+  * "randomCurveP1P2(ZZ,ZZ,Ring)"
+
+For the programmer
+==================
+
+The object *note randomCurveP1P2: randomCurveP1P2, is a *note method function
+with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:362:0.
+
+File: VirtualResolutions.info, Node: randomMonomialCurve, Next: randomRationalCurve, Prev: randomCurveP1P2, Up: Top
+
+randomMonomialCurve -- creates the ideal of a random monomial curve of degree (d,e) in P^1xP^2
+**********************************************************************************************
+
+  * Usage: 
+        randomMonomialCurve(d,e,F)
+        randomMonomialCurve(d,e)
+  * Inputs:
+      * d, an *note integer: (Macaulay2Doc)ZZ,, degree of curve on the $\PP^1$
+        factor of $\PP^1\times\PP^2$
+      * e, an *note integer: (Macaulay2Doc)ZZ,, degree of curve on the $\PP^2$
+        factor of $\PP^1\times\PP^2$
+      * F, a *note ring: (Macaulay2Doc)Ring,, base ring
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, defining random monomial curve in
+        $\PP^1\times\PP^2$ of degree (d,e) over F.
+
+Description
+===========
+
+Given two positive integers d,e and a ring F, randomMonomialCurve returns the
+ideal of a random curve in $\PP^1\times\PP^2$ of degree (d,e) defined over the
+base ring F.
+
+This is done by randomly generating a monomial $m$ of degree $e$ in $F[s,t]$,
+which is not $s^e$ or $t^e$. This allows one to define two maps $\PP^1\to\PP^1$
+and $\PP^1\to\PP^2$ given by {s^d,t^d} and {s^e,m,t^e}, respectively. The graph
+of the product of these two maps in $\PP^1\times(\PP^1\times\PP^2)$ is
+computed, from which a curve of bi-degree (d,e) in $\PP^1\times\PP^2$ over F is
+obtained by saturating and then eliminating.
+
+If no base ring is specified, the computations are performed over ZZ/101.
+
++----------------------------------------+
+|i1 : randomMonomialCurve(2,3,QQ);       |
+|                                        |
+|o1 : Ideal of QQ[x   ..x   , x   ..x   ]|
+|                  0,0   0,1   1,0   1,2 |
++----------------------------------------+
+
+Caveat
+======
+
+This creates a ring $F[x_{0,0},x_{0,1},x_{1,0},x_{1,1},x_{1,2}]$ in which the
+resulting ideal is defined.
+
+Ways to use randomMonomialCurve:
+================================
+
+  * "randomMonomialCurve(ZZ,ZZ)"
+  * "randomMonomialCurve(ZZ,ZZ,Ring)"
+
+For the programmer
+==================
+
+The object *note randomMonomialCurve: randomMonomialCurve, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:268:0.
+
+File: VirtualResolutions.info, Node: randomRationalCurve, Next: resolveViaFatPoint, Prev: randomMonomialCurve, Up: Top
+
+randomRationalCurve -- creates the ideal of a random rational curve of degree (d,e) in P^1xP^2
+**********************************************************************************************
+
+  * Usage: 
+        randomRationalCurve(d,e,F)
+        randomRationalCurve(d,e)
+  * Inputs:
+      * d, an *note integer: (Macaulay2Doc)ZZ,, degree of curve on the $\PP^1$
+        factor of $\PP^1\times\PP^2$
+      * e, an *note integer: (Macaulay2Doc)ZZ,, degree of curve on the $\PP^2$
+        factor of $\PP^1\times\PP^2$
+      * F, a *note ring: (Macaulay2Doc)Ring,, base ring
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, defining random rational curve in
+        $\PP^1\times\PP^2$ of degree (d,e) over F.
+
+Description
+===========
+
+Given two positive integers d,e and a ring F, randomRationalCurve returns the
+ideal of a random curve in $\PP^1\times\PP^2$ of degree (d,e) defined over the
+base ring F.
+
+This is done by randomly generating two homogeneous polynomials of degree d and
+three homogeneous polynomials of degree three in $F[s,t]$ defining maps
+$\PP^1\to\PP^1$ and $\PP^1\to\PP^2$, respectively. The graph of the product of
+these two maps in $\PP^1\times(\PP^1\times\PP^2)$ is computed, from which a
+curve of bi-degree (d,e) in $\PP^1\times\PP^2$ over F is obtained by saturating
+and then eliminating.
+
+If no base ring is specified, the computations are performed over ZZ/101.
+
++-----------------------------------------+
+|i1 : randomRationalCurve(2,3,QQ);        |
+|                                         |
+|o1 : Ideal of QQ[x   ..x   , x   ..x   ] |
+|                  0,0   0,1   1,0   1,2  |
++-----------------------------------------+
+|i2 : randomRationalCurve(2,3);           |
+|                                         |
+|               ZZ                        |
+|o2 : Ideal of ---[x   ..x   , x   ..x   ]|
+|              101  0,0   0,1   1,0   1,2 |
++-----------------------------------------+
+
+Caveat
+======
+
+This creates a ring $F[x_{0,0},x_{0,1},x_{1,0},x_{1,1},x_{1,2}]$ in which the
+resulting ideal is defined.
+
+Ways to use randomRationalCurve:
+================================
+
+  * "randomRationalCurve(ZZ,ZZ)"
+  * "randomRationalCurve(ZZ,ZZ,Ring)"
+
+For the programmer
+==================
+
+The object *note randomRationalCurve: randomRationalCurve, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:230:0.
+
+File: VirtualResolutions.info, Node: resolveViaFatPoint, Next: virtualOfPair, Prev: randomRationalCurve, Up: Top
+
+resolveViaFatPoint -- returns a virtual resolution of a zero-dimensional scheme
+*******************************************************************************
+
+  * Usage: 
+        resolveViaFatPoint(I, irr, A)
+  * Inputs:
+      * J, an *note ideal: (Macaulay2Doc)Ideal,, saturated ideal corresponding
+        to a zero-dimensional scheme
+      * irr, an *note ideal: (Macaulay2Doc)Ideal,, the irrelevant ideal
+      * A, a *note list: (Macaulay2Doc)List,, power you want to take the
+        irrelevant ideal to
+  * Outputs:
+      * a *note complex: (Complexes)Complex,, virtual resolution of our ideal
+
+Description
+===========
+
+Given a saturated ideal J of a zero-dimensional subscheme, irrelevant ideal
+irr, and a tuple A, resolveViaFatPoint computes a free resolution of J
+intersected with A-th power of the irrelevant ideal. See Theorem 4.1 of [BES20,
+arXiv:1703.07631 (see https://arxiv.org/abs/1703.07631 )].
+
+Below we follow example 4.7 of [BES20,arXiv:1703.07631 (see
+https://arxiv.org/abs/1703.07631 )] and compute the virtual resolution of 6
+points in $\PP^1\times\PP^1\times\PP^2$.
+
++-----------------------------------------------------------------+
+|i1 : N = {1,1,2}                                                 |
+|                                                                 |
+|o1 = {1, 1, 2}                                                   |
+|                                                                 |
+|o1 : List                                                        |
++-----------------------------------------------------------------+
+|i2 : pts = 6                                                     |
+|                                                                 |
+|o2 = 6                                                           |
++-----------------------------------------------------------------+
+|i3 : (S, E) = productOfProjectiveSpaces N                        |
+|                                                                 |
+|o3 = (S, E)                                                      |
+|                                                                 |
+|o3 : Sequence                                                    |
++-----------------------------------------------------------------+
+|i4 : irr = intersect for n to #N-1 list (                        |
+|         ideal select(gens S, i -> (degree i)#n == 1)            |
+|         );                                                      |
+|                                                                 |
+|o4 : Ideal of S                                                  |
++-----------------------------------------------------------------+
+|i5 : I = saturate intersect for i to pts - 1 list (              |
+|         P := sum for n to N#0 - 1 list ideal random({1,0,0}, S);|
+|         Q := sum for n to N#1 - 1 list ideal random({0,1,0}, S);|
+|         R := sum for n to N#2 - 1 list ideal random({0,0,1}, S);|
+|         P + Q + R                                               |
+|         );                                                      |
+|                                                                 |
+|o5 : Ideal of S                                                  |
++-----------------------------------------------------------------+
+|i6 : C = resolveViaFatPoint (I, irr, {2,1,0})                    |
+|                                                                 |
+|      1      17      34      24      6                           |
+|o6 = S  <-- S   <-- S   <-- S   <-- S                            |
+|                                                                 |
+|     0      1       2       3       4                            |
+|                                                                 |
+|o6 : Complex                                                     |
++-----------------------------------------------------------------+
+|i7 : isVirtual(irr, C)                                           |
+|                                                                 |
+|o7 = true                                                        |
++-----------------------------------------------------------------+
+
+Ways to use resolveViaFatPoint:
+===============================
+
+  * "resolveViaFatPoint(Ideal,Ideal,List)"
+
+For the programmer
+==================
+
+The object *note resolveViaFatPoint: resolveViaFatPoint, is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:423:0.
+
+File: VirtualResolutions.info, Node: virtualOfPair, Next: virtualOfPair_lp_pd_pd_pd_cmLengthLimit=>_pd_pd_pd_rp, Prev: resolveViaFatPoint, Up: Top
+
+virtualOfPair -- creates a virtual resolution from a free resolution by keeping only summands of specified degrees
+******************************************************************************************************************
+
+  * Usage: 
+        virtualOfPair(I, L)
+        virtualOfPair(M, L)
+        virtualOfPair(C, L)
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, ideal over multigraded ring
+      * M, a *note module: (Macaulay2Doc)Module,, module over multigraded ring
+      * C, a *note complex: (Complexes)Complex,, free resolution of a module
+      * L, a *note list: (Macaulay2Doc)List,, multidegrees of summands to keep
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * *note LengthLimit: virtualOfPair_lp_pd_pd_pd_cmLengthLimit=>_pd_pd_pd_
+        rp, => ..., default value infinity, stop when the virtual resolution
+        reaches this length
+  * Outputs:
+      * a *note complex: (Complexes)Complex,, 
+
+Description
+===========
+
+Given an ideal I or module M and a list of multidegrees L, this function
+produces a chain complex by iteratively computing syzygies in degrees in L. In
+particular, if the list L contains only one element which is in the multigraded
+regularity of M plus the dimension vector, the output will be the virtual
+resolution of a pair as defined in Section 1 of [BES20]. See Algorithm 3.4 of
+[BES20, arXiv:1703.07631 (see https://arxiv.org/abs/1703.07631 )] for further
+details.
+
+If a resolution for the object exists in the cache or when the input is a chain
+complex C, virtualOfPair uses this information by simply removing the summands
+in degrees not in L. This option is useful when a minimal free resolution of M
+can be more efficiently computed in the engine or is already known. Otherwise,
+induced Schreyer orders are used to speed up the computation of syzygies. Note
+that this speedup is often very significant.
+
+When L contains more than one multidegree, summands with degrees in at least
+one member of L are kept.
+
+For example, consider the ideal of three points in $\PP^1\times\PP^1$.
+
++-----------------------------------------------------------------------------+
+|i1 : X = toricProjectiveSpace(1) ** toricProjectiveSpace(1);                 |
++-----------------------------------------------------------------------------+
+|i2 : S = ring X; B = ideal X;                                                |
+|                                                                             |
+|o3 : Ideal of S                                                              |
++-----------------------------------------------------------------------------+
+|i4 : J = saturate(intersect(                                                 |
+|           ideal(x_1 - 1*x_0, x_3 - 4*x_2),                                  |
+|           ideal(x_1 - 2*x_0, x_3 - 5*x_2),                                  |
+|           ideal(x_1 - 3*x_0, x_3 - 6*x_2)),                                 |
+|           B)                                                                |
+|                                                                             |
+|                                     3      2          2    3        2       |
+|o4 = ideal (3x x  + x x  - x x , 120x  - 74x x  + 15x x  - x , 120x x  -     |
+|              0 2    1 2    0 3      2      2 3      2 3    3      1 2       |
+|     ------------------------------------------------------------------------|
+|                    2       2     2       2                  2      3        |
+|     34x x x  - 2x x  + 3x x , 40x x  + 6x x  - 13x x x  - 3x x , 6x  -      |
+|        1 2 3     0 3     1 3     1 2     0 3      0 1 3     1 3    0        |
+|     ------------------------------------------------------------------------|
+|        2         2    3                                                     |
+|     11x x  + 6x x  - x )                                                    |
+|        0 1     0 1    1                                                     |
+|                                                                             |
+|o4 : Ideal of S                                                              |
++-----------------------------------------------------------------------------+
+
+We can now compute its minimal free resolution and a virtual resolution. One
+can show that $(2,0)$ is in the multigraded regularity of this example. Thus,
+since we want to compute a virtual resolution we apply virtualOfPair to the
+element $(3,1)$ since $(3,1)=(2,0)+(1,1)$ and $(1,1)$ is the dimension vector
+for $\PP^1\times\PP^1$.
+
++-------------------------------------------------------------+
+|i5 : minres = res J                                          |
+|                                                             |
+|      1      5      6      2                                 |
+|o5 = S  <-- S  <-- S  <-- S                                  |
+|                                                             |
+|     0      1      2      3                                  |
+|                                                             |
+|o5 : Complex                                                 |
++-------------------------------------------------------------+
+|i6 : vres = virtualOfPair(J, {{3,1}}) --(3,1) = (2,0) + (1,1)|
+|                                                             |
+|      1      3      2                                        |
+|o6 = S  <-- S  <-- S  <-- 0                                  |
+|                                                             |
+|     0      1      2      3                                  |
+|                                                             |
+|o6 : Complex                                                 |
++-------------------------------------------------------------+
+
+Notice that the virtual resolution of the pair $(S^1/J, (2,0))$ is shorter and
+thinner than the graded minimal free resolution of $S^1/J$.
+
+Finally, we check that the result is indeed virtual.
+
++-----------------------+
+|i7 : isVirtual(B, vres)|
+|                       |
+|o7 = true              |
++-----------------------+
+
+Caveat
+======
+
+Given an element of the multigraded regularity, one must add the dimension
+vector of the product of projective spaces for this to return a virtual
+resolution.
+
+Ways to use virtualOfPair:
+==========================
+
+  * "virtualOfPair(Complex,List)"
+  * "virtualOfPair(Ideal,List)"
+  * "virtualOfPair(Module,List)"
+
+For the programmer
+==================
+
+The object *note virtualOfPair: virtualOfPair, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:489:0.
+
+File: VirtualResolutions.info, Node: virtualOfPair_lp_pd_pd_pd_cmLengthLimit=>_pd_pd_pd_rp, Prev: virtualOfPair, Up: Top
+
+virtualOfPair(...,LengthLimit=>...) -- stop when the virtual resolution reaches this length
+*******************************************************************************************
+
+Description
+===========
+
+When the optional argument LengthLimit is specified virtualOfPair will stop
+computing syzygies after the given length is reached, otherwise computation
+continues until the resolution terminates.
+
+See also
+========
+
+  * *note virtualOfPair: virtualOfPair, -- creates a virtual resolution from a
+    free resolution by keeping only summands of specified degrees
+
+Functions with optional argument named LengthLimit:
+===================================================
+
+  * "bgg(...,LengthLimit=>...)" -- see *note bgg: (TateOnProducts)bgg, -- make
+    a linear free complex from a module over an exterior algebra or a symmetric
+    algebra
+  * connectingExtMap(...,LengthLimit=>...) (missing documentation)
+  * connectingTorMap(...,LengthLimit=>...) (missing documentation)
+  * epicResolutionMap(...,LengthLimit=>...) (missing documentation)
+  * "horseshoeResolution(...,LengthLimit=>...)" -- see *note
+    horseshoeResolution(Complex): (Complexes)horseshoeResolution_lpComplex_rp,
+    -- make the horseshoe resolution
+  * "minimalBetti(...,LengthLimit=>...)" -- see *note minimalBetti:
+    (Macaulay2Doc)minimalBetti, -- minimal betti numbers of (the minimal free
+    resolution of) a homogeneous ideal or module
+  * "freeResolution(...,LengthLimit=>...)" -- see *note Options for free
+    resolutions: (Complexes)Options for free resolutions, -- optional arguments
+    for freeResolution
+  * "resolutionMap(...,LengthLimit=>...)" -- see *note resolutionMap:
+    (Complexes)resolutionMap, -- map from a free resolution to the given
+    complex
+  * torSymmetry(...,LengthLimit=>...) (missing documentation)
+  * *note virtualOfPair(...,LengthLimit=>...):
+    virtualOfPair_lp_pd_pd_pd_cmLengthLimit=>_pd_pd_pd_rp, -- stop when the
+    virtual resolution reaches this length
+  * "yonedaMap(...,LengthLimit=>...)" -- see *note yonedaMap(Matrix):
+    (Complexes)yonedaMap_lpMatrix_rp, -- creates a chain complex map
+    representing an extension of modules
+
+Further information
+===================
+
+  * Default value: *note infinity: (Macaulay2Doc)infinity,
+  * Function: *note virtualOfPair: virtualOfPair, -- creates a virtual
+    resolution from a free resolution by keeping only summands of specified
+    degrees
+  * Option key: *note LengthLimit: (Macaulay2Doc)LengthLimit, -- an optional
+    argument
+-------------------------------------------------------------------------------
+
+The source of this document is in VirtualResolutions/doc.m2:502:0.
+
+Tag Table:
+Node: Top291
+Node: Attempt16753
+Node: curveFromP3toP1P218015
+Node: GeneralElements21941
+Node: idealSheafGens23130
+Node: isVirtual26855
+Node: isVirtual_lp_pd_pd_pd_cmStrategy=>_pd_pd_pd_rp31155
+Node: multigradedRegularity39544
+Node: PreserveDegree46228
+Node: randomCurveP1P247380
+Node: randomMonomialCurve50381
+Node: randomRationalCurve52748
+Node: resolveViaFatPoint55363
+Node: virtualOfPair60047
+Node: virtualOfPair_lp_pd_pd_pd_cmLengthLimit=>_pd_pd_pd_rp66973
+
+End Tag Table

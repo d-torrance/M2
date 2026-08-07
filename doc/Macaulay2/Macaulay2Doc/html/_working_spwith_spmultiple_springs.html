@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>working with multiple rings</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="index.html">Documentation </a> <br><a href="_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> » <a href="_rings.html">rings</a> » <a href="_substitution_spand_spmaps_spbetween_springs.html">substitution and maps between rings</a> » <a href="_working_spwith_spmultiple_springs.html">working with multiple rings</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Ring__Map.html">next</a> | <a href="_substituting_spvalues_spfor_spvariables.html">previous</a> | <a href="_use_lp__Ring_rp.html">forward</a> | <a href="_substituting_spvalues_spfor_spvariables.html">backward</a> | <a href="_substitution_spand_spmaps_spbetween_springs.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>working with multiple rings</h1>
+      <div>
+Working with multiple rings is more subtle than simply replacing values of the variables in a ring.  On the other hand it is particularly easy in Macaulay2.  We define a sequence of rings below and move between each to show both the dangers and the convenience.        <h2>defining multiple rings</h2>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R1 = ZZ/101;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : R2 = ZZ/101[s,t];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : describe R2
+
+o3 = R1[s..t, Degrees => {2:1}, Heft => {1}]</code></pre>
+            </td>
+          </tr>
+        </table>
+Notice that Macaulay2 sees the coefficient ring as R1, we could just as easily defined <span class="tt">R2</span> as <span class="tt">R1[s,t]</span> . Movement and addition between these rings is easy.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : I = ideal (s^4+t^2+1);
+
+o4 : Ideal of R2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : R3 = R2/I;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : describe R3
+
+          R2
+o6 = -----------
+      4    2
+     s  + t  + 1</code></pre>
+            </td>
+          </tr>
+        </table>
+Since <span class="tt">I</span> is defined as an ideal in <span class="tt">R2</span> we cannot type <span class="tt">ZZ/101[s,t]/I</span> as the computer sees <span class="tt">ZZ/101[s,t]</span> as different from <span class="tt">R2</span> and so does not see <span class="tt">I</span> as being in this ring.  For more about defining rings see <a href="_rings.html">rings</a>.  We now work with moving between <span class="tt">R2</span> and <span class="tt">R3</span>.        <h2>moving between rings using use and substitute</h2>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : f = s^4+1
+
+       2
+o7 = -t
+
+o7 : R3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : g = s^4+t^2+1
+
+o8 = 0
+
+o8 : R3</code></pre>
+            </td>
+          </tr>
+        </table>
+f and g are elements in <span class="tt">R3</span> now and this is shown by the fact that Macaulay2 sees them as <span class="tt">-t^2</span> and 0.  To recover these elements as polynomials in <span class="tt">R2</span> type <span class="tt">use R2</span> and define them again in <span class="tt">R2</span>.  The command substitute does not work well here, where as if we want to see the image of elements of <span class="tt">R2</span> in <span class="tt">R3</span> it does work well and without using the command <span class="tt">use</span>.  Macaulay2 always tells you which ring an element is in on the line after it prints the ring element.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : use R2;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : substitute(g,R2)
+
+o10 = 0
+
+o10 : R2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : f = s^4+1
+
+       4
+o11 = s  + 1
+
+o11 : R2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : g = s^4+t^2+1
+
+       4    2
+o12 = s  + t  + 1
+
+o12 : R2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : substitute(f,R3)
+
+        2
+o13 = -t
+
+o13 : R3</code></pre>
+            </td>
+          </tr>
+        </table>
+        <h2>subtleties of substitute and describe</h2>
+Now we complicate things further by constructing a fraction field and then further constructing polynomial rings and quotient rings.  First we see that while <a title="real description" href="_describe.html">describe</a> helped us to see how we defined <span class="tt">R2</span> and <span class="tt">R3</span>, the same does not hold when a fraction field is constructed.  Note that R3 is a domain.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : describe R3
+
+           R2
+o14 = -----------
+       4    2
+      s  + t  + 1</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : R4 = frac R3;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : describe R4
+
+          /     R2    \
+o16 = frac|-----------|
+          | 4    2    |
+          \s  + t  + 1/</code></pre>
+            </td>
+          </tr>
+        </table>
+The command <a title="substituting values for variables" href="_substitute.html">substitute</a> works well to move elements from <span class="tt">R2</span> or <span class="tt">R3</span> to <span class="tt">R4</span>. An alternative to substitute is to form the canonical injection of R3 into R4 (the same can be done for the canonical projection from R2 to R3 above - we do the example here).  To move elements from <span class="tt">R4</span> back to <span class="tt">R3</span> an alternate method must be used.  Also, the method of constructing a map does not work well in the reverse direction for the same reasons <a title="substituting values for variables" href="_substitute.html">substitute</a> does not.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : use R2;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : f = s^4+1;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : substitute(f,R4)
+
+        2
+o19 = -t
+
+o19 : R4</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : use R3;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : g = substitute(f,R3);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : substitute(g,R4)
+
+        2
+o22 = -t
+
+o22 : R4</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : F = map(R4,R3)
+
+o23 = map (R4, R3, {s, t})
+
+o23 : RingMap R4 &lt;-- R3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : F(f)
+
+        2
+o24 = -t
+
+o24 : R4</code></pre>
+            </td>
+          </tr>
+        </table>
+        <h2>non-standard coefficient fields</h2>
+We can go through the whole process again using R4 now as the field.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : R5 = R4[u,v,w];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : describe R5
+
+o26 = R4[u..w, Degrees => {3:1}, Heft => {1}]</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : J = ideal(u^3-v^2*w+w^3,v^2+w^2,u*v-v*w+u*w)
+
+              3    2     3   2    2
+o27 = ideal (u  - v w + w , v  + w , u*v + u*w - v*w)
+
+o27 : Ideal of R5</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : R6 = R5/J;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : describe R6
+
+                          R5
+o29 = -----------------------------------------
+        3    2     3   2    2
+      (u  - v w + w , v  + w , u*v + u*w - v*w)</code></pre>
+            </td>
+          </tr>
+        </table>
+Notice that at each stage Macaulay2 only refers back to the last ring we defined.  All of the methods above still work here in theory, but caution is advised.  We give an example below to illustrate.  Also, note that many other computations will no longer work, because Gröbner basis computations only work over <a title="the class of all integers" href="___Z__Z.html">ZZ</a>, <span class="tt">ZZ/n</span> and <a title="the class of all rational numbers" href="___Q__Q.html">QQ</a> at this time.         <h2>using maps to move between rings</h2>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i30 : map(R6,R2)
+
+o30 = map (R6, R2, {s, t})
+
+o30 : RingMap R6 &lt;-- R2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i31 : substitute(f,R6)
+
+        2
+o31 = -t
+
+o31 : R6</code></pre>
+            </td>
+          </tr>
+        </table>
+Macaulay2 claims this is the zero map, and that the image of <span class="tt">f</span> is 1, but we know better.  By forming a series of maps and composing them we see the map that makes sense.  We also contrast the map with using <span class="tt">substitute</span>.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i32 : use R2;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i33 : f = s^4+1;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i34 : F = map(R4,R2);
+
+o34 : RingMap R4 &lt;-- R2</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i35 : G = map(R5,R4);
+
+o35 : RingMap R5 &lt;-- R4</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i36 : H = map(R6,R5);
+
+o36 : RingMap R6 &lt;-- R5</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i37 : H(G(F(f)))
+
+        2
+o37 = -t
+
+o37 : R6</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i38 : f1 = substitute(f,R4)
+
+        2
+o38 = -t
+
+o38 : R4</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i39 : f2 = substitute(f1,R5)
+
+        2
+o39 = -t
+
+o39 : R5</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i40 : substitute(f2,R6)
+
+        2
+o40 = -t
+
+o40 : R6</code></pre>
+            </td>
+          </tr>
+        </table>
+        <h2>elements versus matrices</h2>
+Finally, note that everywhere we used the element <span class="tt">f</span> we can place a matrix or an ideal and get similar results.        <h2>substitute(J,vars R)</h2>
+We close this long example with a brief discussion of <span class="tt">substitute(J,vars R)</span>.  This command is more sensitive than <span class="tt">substitute</span> as it will give an error message when the variables involved do not match up.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i41 : substitute(f,vars R3)
+
+        2
+o41 = -t
+
+o41 : R3</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i42 : try substitute(f,vars R5) else &quot;found error&quot;
+
+o42 = found error</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><a title="install ring variables and ring operations" href="_use_lp__Ring_rp.html">use(Ring)</a> -- install ring variables and ring operations</span></li>
+          <li><span><a title="lift to another ring" href="_lift.html">lift</a> -- lift to another ring</span></li>
+          <li><span><a title="promote to another ring" href="_promote.html">promote</a> -- promote to another ring</span></li>
+          <li><span><a title="make a copy of a ring, with some features changed" href="_new__Ring.html">newRing</a> -- make a copy of a ring, with some features changed</span></li>
+          <li><span><a title="find smallest containing ring" href="_common__Ring.html">commonRing</a> -- find smallest containing ring</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Macaulay2Doc/ov_ringmaps.m2:278:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

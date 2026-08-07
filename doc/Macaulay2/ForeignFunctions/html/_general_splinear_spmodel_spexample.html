@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>general linear model example -- constrained least squares using foreign function calls to the LAPACK library</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="foreign function interface" href="index.html">ForeignFunctions</a> » <a title="constrained least squares using foreign function calls to the LAPACK library" href="_general_splinear_spmodel_spexample.html">general linear model example</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_just-in-time_spcompilation_spexample.html">next</a> | <a href="_fast_sp__Fourier_sptransform_spexample.html">previous</a> | <a href="_just-in-time_spcompilation_spexample.html">forward</a> | <a href="_fast_sp__Fourier_sptransform_spexample.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>general linear model example -- constrained least squares using foreign function calls to the LAPACK library</h1>
+      <div>
+        <div>
+          <p>In this example, we make foreign function calls to <a href="https://www.netlib.org/lapack/">LAPACK</a> to solve constrained least squares problems. LAPACK is already used by Macaulay2 for a number of its linear algebra computations, but some functions aren't available.</p>
+          <p>One of these is <code>dggglm</code>, which solves constrained least squares problems that have applications to general Gauss-Markov linear models in statistics.  In particular, suppose $A$ is an $n\times m$ real matrix, $B$ is an $n\times p$ real matrix, and $\mathbf d$ is a vector in $\RR^n$.  We would like to find the vectors $\mathbf x\in\RR^m$ and $\mathbf y\in\RR^p$ that minimize $\|\mathbf y\|$ subject to the constraint $\mathbf d = A\mathbf x + B\mathbf y$.</p>
+          <p>The <code>dggglm</code> function does exactly this.  Its signature is <code>void dggglm_(int *n, int *m, int *p, double *A, int *ldA, double *B, int *ldB, double *d, double *x, double *y, double *work, int *lwork, int *info)</code>.  Note the trailing underscore that was added by the Fortran compiler.  Each of the 13 arguments are pointers, so we use <a title="foreign pointer type" href="___Foreign__Pointer__Type.html">voidstar</a> to represent them in our call to <a title="construct a foreign function" href="_foreign__Function.html">foreignFunction</a>.  Since Macaulay2 is already linked against LAPACK, we don't need to worry about calling <a title="open a shared library" href="_open__Shared__Library.html">openSharedLibrary</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : dggglm = foreignFunction(&quot;dggglm_&quot;, void, toList(13:voidstar))
+
+o1 = dggglm_
+
+o1 : ForeignFunction</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The parameters <code>n</code>, <code>m</code> and <code>p</code> are exactly the numbers $n$, $m$, and $p$ above.  The parameters <code>A</code>, <code>B</code>, and <code>d</code> are arrays that will store the entries of $A$, $B$, and $\mathbf d$.  LAPACK expects these to be in column-major order, in contrast to the row-major order used by Macaulay2.  So we add helper methods to take care of this conversion.  The local variable <code>T</code> is a <a title="foreign array type" href="___Foreign__Array__Type.html">ForeignArrayType</a> created by <a title="construct a foreign array type" href="_foreign__Array__Type.html">ZZ * ForeignType</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : toLAPACK = method();</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : toLAPACK Matrix := A -> (
+        T := (numRows A * numColumns A) * double;
+        T flatten entries transpose A);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : toLAPACK Vector := toLAPACK @@ matrix;</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The parameters <code>ldA</code> and <code>ldB</code> are the &quot;leading dimensions&quot; of the arrays <code>A</code> and <code>B</code>.  We will use $n$ for both.  The arrays <code>x</code> and <code>y</code> will store the solutions.  The array <code>work</code> has dimension <code>lwork</code> (for which we will use $n + m + p$) that the procedure will use as a workspace.  Finally, <code>info</code> stores the return value (0 on success).</p>
+          <p>The following method prepares matrices $A$ and $B$ and a vector $\mathbf d$ to be sent to the foreign function we created above, and then converts the solutions into a sequence two of Macaulay2 vectors.  Note that we use <a title="allocate memory using the garbage collector" href="_get__Memory.html">getMemory</a> to allocate memory for <code>x</code>, <code>y</code>, and <code>info</code> (which we name <code>i</code> here to avoid conflicting with <a title="convert hypertext to info format" href="../../Macaulay2Doc/html/_info.html">info</a>) and <a title="pointer to type or object" href="_address.html">address</a> to get pointers to the other integer arguments.  We also use <a title="dereference a voidstar object" href="___Foreign__Type_sp_st_spvoidstar.html">ForeignType * voidstar</a> to dereference <code>i</code> and determine whether the call was successful.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : generalLinearModel= method();</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : generalLinearModel(Matrix, Matrix, Vector) := (A, B, d) -> (
+         if numRows A != numRows B
+         then error &quot;expected first two arguments to have the same number of rows&quot;;
+         n := numRows A;
+         m := numColumns A;
+         p := numColumns B;
+         x := getMemory(m * size double);
+         y := getMemory(p * size double);
+         lwork := n + m + p;
+         work := getMemory(lwork * size double);
+         i := getMemory int;
+         dggglm(address int n, address int m, address int p, toLAPACK A,
+             address int n, toLAPACK B, address int n, toLAPACK d, x, y, work,
+             address int lwork, i);
+         if value(int * i) != 0 then error(&quot;call to dggglm failed&quot;);
+         (vector value (m * double) x, vector value (p * double) y));</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Finally, let's call this method and solve a constrained least squares problem.  This example is from <a href="https://doi.org/10.1080/01621459.1981.10477694">Kourouklis, S., &amp; Paige, &quot;A Constrained Least Squares Approach to the General Gauss-Markov Linear Model&quot;</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : A = matrix {{1, 2, 3}, {4, 1, 2}, {5, 6, 7}, {3, 4, 6}};
+
+              4       3
+o7 : Matrix ZZ  &lt;-- ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : B = matrix {{1, 0, 0, 0}, {2, 3, 0, 0}, {4, 5, 1e-5, 0}, {7, 8, 9, 10}};
+
+                4         4
+o8 : Matrix RR    &lt;-- RR
+              53        53</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : d = vector {1, 2, 3, 4};
+
+       4
+o9 : ZZ</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : generalLinearModel(A, B, d)
+
+o10 = (|   .3141  |, | .0296627 |)
+       | -.334417 |  | .0451036 |
+       |  .441691 |  | .0585128 |
+                     | .0650142 |
+
+o10 : Sequence</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">ForeignFunctions.m2:2322:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

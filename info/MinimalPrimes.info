@@ -1,0 +1,810 @@
+ -*- coding: utf-8 -*- This is MinimalPrimes.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* MinimalPrimes: (MinimalPrimes).  minimal primes and radical routines for ideals
+END-INFO-DIR-ENTRY
+
+
+File: MinimalPrimes.info, Node: Top, Next: Hybrid, Up: (dir)
+
+MinimalPrimes -- minimal primes and radical routines for ideals
+***************************************************************
+
+Description
+===========
+
+Find the *note minimal primes of an ideal: minimal primes of an ideal, in a
+polynomial ring over a prime field, or a quotient ring of that. These are the
+geometric components of the corresponding algebraic set.
+
+Multiple strategies are implemented via *note hooks: (Macaulay2Doc)using
+hooks,. In many cases the default Birational strategy is much faster, although
+there are cases when the Legacy strategy does better. For a *note monomial
+ideal: (Macaulay2Doc)MonomialIdeal,, a more efficient algorithm is used
+instead.
+
+minprimes and decompose are synonyms for *note minimalPrimes: minimalPrimes,.
+
+Caveat
+======
+
+Only works for ideals in (commutative) polynomial rings or quotients of
+polynomial rings over a prime field, might have bugs in small characteristic
+and larger degree (although, many of these cases are caught correctly).
+
+* Menu:
+
+* minimalPrimes::               minimal primes of an ideal
+* isPrime(Ideal): (Macaulay2Doc)isPrime_lpIdeal_rp.
+* radical(Ideal): radical.      the radical of an ideal
+* minimal primes of an ideal::
+* radical of an ideal::
+
+Authors
+=======
+
+  * Frank Moore (see https://users.wfu.edu/moorewf ) <moorewf@wfu.edu>
+  * Mike Stillman (see https://www.math.cornell.edu/~mike )
+    <mike@math.cornell.edu>
+  * Franziska Hinkelmann
+  * Justin Chen <justin.chen@math.gatech.edu>
+  * Mahrud Sayrafi (see https://math.umn.edu/~mahrud ) <mahrud@umn.edu>
+
+Version
+=======
+
+This documentation describes version 0.10 of MinimalPrimes, released November
+12, 2020.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{MinimalPrimesSource,                                                   |
+|  title = {{MinimalPrimes: minimal primes and radical routines for           |
+|  author = {Frank Moore and Mike Stillman and Franziska Hinkelmann           |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/           |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+| ideals. Version~0.10}},                                                     |
+| and Justin Chen and Mahrud Sayrafi},                                        |
+|                                                                             |
+|packages}}                                                                   |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Types
+      * *note Hybrid: Hybrid, -- the class of lists encapsulating hybrid
+        strategies
+  * Functions and commands
+      * *note minimalPrimes: minimalPrimes, -- minimal primes of an ideal
+      * *note radical: radical, -- the radical of an ideal
+      * *note radicalContainment: radicalContainment, -- whether an element is
+        contained in the radical of an ideal
+  * Methods
+      * *note isPrime(Ideal): isPrime_lpIdeal_rp, -- whether an ideal is prime
+      * "decompose(Ideal)" -- see *note minimalPrimes: minimalPrimes, --
+        minimal primes of an ideal
+      * "minimalPrimes(Ideal)" -- see *note minimalPrimes: minimalPrimes, --
+        minimal primes of an ideal
+      * "radical(Ideal)" -- see *note radical: radical, -- the radical of an
+        ideal
+      * "radicalContainment(Ideal,Ideal)" -- see *note radicalContainment:
+        radicalContainment, -- whether an element is contained in the radical
+        of an ideal
+      * "radicalContainment(RingElement,Ideal)" -- see *note
+        radicalContainment: radicalContainment, -- whether an element is
+        contained in the radical of an ideal
+
+For the programmer
+==================
+
+The object *note MinimalPrimes: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in MinimalPrimes.m2, with auxiliary files in
+MinimalPrimes/.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MinimalPrimes/doc.m2:310:0.
+
+File: MinimalPrimes.info, Node: minimalPrimes, Next: isPrime_lpIdeal_rp, Up: Top
+
+minimalPrimes -- minimal primes of an ideal
+*******************************************
+
+  * Usage: 
+        minimalPrimes I
+        minprimes I
+        decompose I
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Verbosity => an *note integer: (Macaulay2Doc)ZZ,, default value 0, a
+        larger number will print more information during the computation
+      * Strategy => a *note string: (Macaulay2Doc)String,, default value null,
+        specifies the computation strategy to use. If it is slow, try Legacy,
+        Birational, or NoBirational. The strategies might change in the future,
+        and there are other undocumented ways to fine-tune the algorithm.
+      * CodimensionLimit => an *note integer: (Macaulay2Doc)ZZ,, default value
+        infinity, stop after finding primes of codimension less than or equal
+        to this value
+      * MinimalGenerators => a *note Boolean value: (Macaulay2Doc)Boolean,,
+        default value true, if false, the minimal primes will not be
+        minimalized
+      * CheckPrimeOnly
+      * SquarefreeFactorSize
+  * Outputs:
+      * a *note list: (Macaulay2Doc)List,, with entries the minimal associated
+        primes of I
+
+Description
+===========
+
+Given an ideal in a polynomial ring, or a quotient of a polynomial ring whose
+base ring is either QQ or ZZ/p, this function computes the minimal associated
+primes of the ideal I. Geometrically, it decomposes the algebraic set defined
+by I.
+
++------------------------------------------------+
+|i1 : R = ZZ/32003[a..e]                         |
+|                                                |
+|o1 = R                                          |
+|                                                |
+|o1 : PolynomialRing                             |
++------------------------------------------------+
+|i2 : I = ideal"a2b-c3,abd-c2e,ade-ce2"          |
+|                                                |
+|             2     3           2              2 |
+|o2 = ideal (a b - c , a*b*d - c e, a*d*e - c*e )|
+|                                                |
+|o2 : Ideal of R                                 |
++------------------------------------------------+
+|i3 : C = minprimes I;                           |
++------------------------------------------------+
+|i4 : netList C                                  |
+|                                                |
+|     +---------------------------+              |
+|o4 = |ideal (c, a)               |              |
+|     +---------------------------+              |
+|     |              2     3      |              |
+|     |ideal (e, d, a b - c )     |              |
+|     +---------------------------+              |
+|     |ideal (e, c, b)            |              |
+|     +---------------------------+              |
+|     |ideal (d, c, b)            |              |
+|     +---------------------------+              |
+|     |ideal (d - e, b - c, a - c)|              |
+|     +---------------------------+              |
+|     |ideal (d + e, b - c, a + c)|              |
+|     +---------------------------+              |
++------------------------------------------------+
++-----------------------------------------------------------------------------+
+|i5 : C2 = minprimes(I, Strategy=>"NoBirational", Verbosity=>2)               |
+|                                                                             |
+|                                  2     3                                    |
+|o5 = {ideal (c, a), ideal (e, d, a b - c ), ideal (e, c, b), ideal (d, c, b),|
+|     ------------------------------------------------------------------------|
+|     ideal (d - e, b - c, a - c), ideal (d + e, b - c, a + c)}               |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i6 : C1 = minprimes(I, Strategy=>"Birational", Verbosity=>2)                 |
+|                                                                             |
+|                                  2     3                                    |
+|o6 = {ideal (c, a), ideal (e, d, a b - c ), ideal (e, c, b), ideal (d, c, b),|
+|     ------------------------------------------------------------------------|
+|     ideal (d - e, b - c, a - c), ideal (d + e, b - c, a + c)}               |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Example. The homogenized equations of the affine twisted cubic curve define the
+union of the projective twisted cubic curve and a line at infinity:
+
++----------------------------------------------------------+
+|i7 : R = QQ[w,x,y,z];                                     |
++----------------------------------------------------------+
+|i8 : I=ideal(x^2-y*w, x^3-z*w^2)                          |
+|                                                          |
+|             2         3    2                             |
+|o8 = ideal (x  - w*y, x  - w z)                           |
+|                                                          |
+|o8 : Ideal of R                                           |
++----------------------------------------------------------+
+|i9 : minimalPrimes I                                      |
+|                                                          |
+|                            2                    2        |
+|o9 = {ideal (x, w), ideal (y  - x*z, x*y - w*z, x  - w*y)}|
+|                                                          |
+|o9 : List                                                 |
++----------------------------------------------------------+
+
+Note that the ideal is decomposed over the given field of coefficients and not
+over the extension field where the decomposition into absolutely irreducible
+factors occurs:
+
++--------------------------+
+|i10 : I = ideal(x^2 + y^2)|
+|                          |
+|             2    2       |
+|o10 = ideal(x  + y )      |
+|                          |
+|o10 : Ideal of R          |
++--------------------------+
+|i11 : minimalPrimes I     |
+|                          |
+|              2    2      |
+|o11 = {ideal(x  + y )}    |
+|                          |
+|o11 : List                |
++--------------------------+
+
+For monomial ideals, the method used is essentially what is shown in the
+example.
+
++-----------------------------------------------------------------------------+
+|i12 : I = monomialIdeal ideal"wxy,xz,yz"                                     |
+|                                                                             |
+|o12 = monomialIdeal (w*x*y, x*z, y*z)                                        |
+|                                                                             |
+|o12 : MonomialIdeal of R                                                     |
++-----------------------------------------------------------------------------+
+|i13 : minimalPrimes I                                                        |
+|                                                                             |
+|o13 = {monomialIdeal (x, y), monomialIdeal (w, z), monomialIdeal (x, z),     |
+|      -----------------------------------------------------------------------|
+|      monomialIdeal (y, z)}                                                  |
+|                                                                             |
+|o13 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i14 : P = intersect(monomialIdeal(w,x,y), monomialIdeal(x,z),                |
+|                                                                             |
+|o14 = monomialIdeal (x*y, w*z, x*z, y*z)                                     |
+|                                                                             |
+|o14 : MonomialIdeal of R                                                     |
+|-----------------------------------------------------------------------------|
+|monomialIdeal(y,z))                                                          |
++-----------------------------------------------------------------------------+
+|i15 : minI = apply(P_*, monomialIdeal @@ support)                            |
+|                                                                             |
+|o15 = {monomialIdeal (x, y), monomialIdeal (w, z), monomialIdeal (x, z),     |
+|      -----------------------------------------------------------------------|
+|      monomialIdeal (y, z)}                                                  |
+|                                                                             |
+|o15 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+It is sometimes useful to compute P instead, where each generator encodes a
+single minimal prime. This can be obtained directly, as in the following code.
+
++----------------------------------------+
+|i16 : dual radical I                    |
+|                                        |
+|o16 = monomialIdeal (x*y, w*z, x*z, y*z)|
+|                                        |
+|o16 : MonomialIdeal of R                |
++----------------------------------------+
+|i17 : P == oo                           |
+|                                        |
+|o17 = true                              |
++----------------------------------------+
+
+See also
+========
+
+  * isPrime(Ideal) (missing documentation)
+  * *note topComponents: (PrimaryDecomposition)topComponents, -- compute top
+    dimensional component of an ideal or module
+  * *note removeLowestDimension: (PrimaryDecomposition)removeLowestDimension,
+    -- remove components of lowest dimension
+  * *note radical: radical, -- the radical of an ideal
+  * *note irreducibleCharacteristicSeries:
+    (Macaulay2Doc)irreducibleCharacteristicSeries, -- irreducible
+    characteristic series of an ideal
+  * *note dual(MonomialIdeal): (Macaulay2Doc)dual_lpMonomialIdeal_rp, -- the
+    Alexander dual of a monomial ideal
+
+Ways to use minimalPrimes:
+==========================
+
+  * "minimalPrimes(Ideal)"
+
+For the programmer
+==================
+
+The object *note minimalPrimes: minimalPrimes, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MinimalPrimes/doc.m2:310:0.
+
+File: MinimalPrimes.info, Node: isPrime_lpIdeal_rp, Next: radical, Prev: minimalPrimes, Up: Top
+
+isPrime(Ideal) -- whether an ideal is prime
+*******************************************
+
+  * Function: *note isPrime: (Macaulay2Doc)isPrime,
+  * Usage: 
+        isPrime I
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, in a polynomial ring or
+        quotient of one
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Strategy => a *note string: (Macaulay2Doc)String,, default value null,
+        See *note minimalPrimes(...,Strategy=>...): minimalPrimes,
+      * Verbosity => an *note integer: (Macaulay2Doc)ZZ,, default value 0, See
+        *note minimalPrimes(...,Verbosity=>...): minimalPrimes,
+      * SquarefreeFactorSize
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, *note true:
+        (Macaulay2Doc)true, if I is a prime ideal, or *note false:
+        (Macaulay2Doc)false, otherwise
+
+Description
+===========
+
+This function determines whether an ideal in a polynomial ring is prime.
+
++----------------------------------------------------------------------+
+|i1 : R = QQ[a..d];                                                    |
++----------------------------------------------------------------------+
+|i2 : I = monomialCurveIdeal(R, {1, 5, 8})                             |
+|                                                                      |
+|               2    2      3    2 2   3     3    5        3   5    4  |
+|o2 = ideal (a*c  - b d, b*c  - a d , b c - a d, c  - a*b*d , b  - a c)|
+|                                                                      |
+|o2 : Ideal of R                                                       |
++----------------------------------------------------------------------+
+|i3 : isPrime I                                                        |
+|                                                                      |
+|o3 = true                                                             |
++----------------------------------------------------------------------+
+
+See also
+========
+
+  * *note minimalPrimes: minimalPrimes, -- minimal primes of an ideal
+
+Ways to use this method:
+========================
+
+  * *note isPrime(Ideal): isPrime_lpIdeal_rp, -- whether an ideal is prime
+-------------------------------------------------------------------------------
+
+The source of this document is in MinimalPrimes/doc.m2:310:0.
+
+File: MinimalPrimes.info, Node: radical, Next: minimal primes of an ideal, Prev: isPrime_lpIdeal_rp, Up: Top
+
+radical -- the radical of an ideal
+**********************************
+
+  * Usage: 
+        radical I
+  * Inputs:
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Unmixed => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        false, whether it is known that the ideal I is unmixed. The ideal $I$
+        is said to be unmixed if all associated primes of $R/I$ have the same
+        dimension. In this case the algorithm tends to be much faster.
+      * Strategy => a *note symbol: (Macaulay2Doc)Symbol,, default value null,
+        the strategy to use, either Decompose or Unmixed
+      * CompleteIntersection => an *note ideal: (Macaulay2Doc)Ideal,, default
+        value null, an ideal J of the same height as I whose generators form a
+        maximal regular sequence contained in I. Providing this option as a
+        hint allows a separate, often faster, algorithm to be used to compute
+        the radical. This option should only be used if J is nice in some way.
+        For example, if J is randomly generated, but I is relatively sparse,
+        then this will most likely run slower than just giving the Unmixed
+        (missing documentation) option.
+  * Outputs:
+      * an *note ideal: (Macaulay2Doc)Ideal,, the radical of I
+
+Description
+===========
+
+If I is an ideal in an affine ring (i.e. a quotient of a polynomial ring over a
+field), and if the characteristic of this field is large enough (see below),
+then this routine yields the radical of the ideal I. The method used is the
+Eisenbud-Huneke-Vasconcelos algorithm.
+
+The algorithms used generally require that the characteristic of the ground
+field is larger than the degree of each primary component. In practice, this
+means that if the characteristic is something like 32003, rather than, for
+example, 5, the methods used will produce the radical of I. Of course, you may
+do the computation over *note QQ: (Macaulay2Doc)QQ,, but it will often run much
+slower. In general, this routine still needs to be tuned for speed.
+
++----------------------------------+
+|i1 : R = QQ[x, y]                 |
+|                                  |
+|o1 = R                            |
+|                                  |
+|o1 : PolynomialRing               |
++----------------------------------+
+|i2 : I = ideal((x^2+1)^2*y, y+1)  |
+|                                  |
+|             4      2             |
+|o2 = ideal (x y + 2x y + y, y + 1)|
+|                                  |
+|o2 : Ideal of R                   |
++----------------------------------+
+|i3 : radical I                    |
+|                                  |
+|                    2             |
+|o3 = ideal (y + 1, x  + 1)        |
+|                                  |
+|o3 : Ideal of R                   |
++----------------------------------+
+
+If I is a *note monomial ideal: (Macaulay2Doc)MonomialIdeal,, a faster,
+combinatorial algorithm is used.
+
++---------------------------------------------------------+
+|i4 : R = ZZ/101[a..d]                                    |
+|                                                         |
+|o4 = R                                                   |
+|                                                         |
+|o4 : PolynomialRing                                      |
++---------------------------------------------------------+
+|i5 : I = intersect(ideal(a^2,b^2,c), ideal(a,b^3,c^2))   |
+|                                                         |
+|             2        2   3     2                        |
+|o5 = ideal (c , a*c, a , b , a*b )                       |
+|                                                         |
+|o5 : Ideal of R                                          |
++---------------------------------------------------------+
+|i6 : elapsedTime radical(ideal I_*, Strategy => Monomial)|
+| -- .000585468s elapsed                                  |
+|                                                         |
+|o6 = ideal (a, b, c)                                     |
+|                                                         |
+|o6 : Ideal of R                                          |
++---------------------------------------------------------+
+|i7 : elapsedTime radical(ideal I_*, Unmixed => true)     |
+| -- .0278174s elapsed                                    |
+|                                                         |
+|o7 = ideal (c, b, a)                                     |
+|                                                         |
+|o7 : Ideal of R                                          |
++---------------------------------------------------------+
+
+For another example, see *note PrimaryDecomposition:
+(PrimaryDecomposition)Top,.
+
+References
+==========
+
+Eisenbud, Huneke, Vasconcelos, Invent. Math. 110 207-235 (1992).
+
+Caveat
+======
+
+The current implementation requires that the characteristic of the ground field
+is either zero or a large prime (unless I is a *note monomial ideal:
+(Macaulay2Doc)MonomialIdeal,).
+
+See also
+========
+
+  * *note minimalPrimes: minimalPrimes, -- minimal primes of an ideal
+  * *note topComponents: (PrimaryDecomposition)topComponents, -- compute top
+    dimensional component of an ideal or module
+  * *note removeLowestDimension: (PrimaryDecomposition)removeLowestDimension,
+    -- remove components of lowest dimension
+  * *note saturate: (Saturation)saturate, -- saturation of ideal or submodule
+  * *note Ideal _colon_ Ideal: (Saturation)quotient_lpModule_cmModule_rp, --
+    ideal or submodule quotient
+* Menu:
+
+* radicalContainment::          whether an element is contained in the radical of an ideal
+
+Ways to use radical:
+====================
+
+  * "radical(Ideal)"
+
+For the programmer
+==================
+
+The object *note radical: radical, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MinimalPrimes/doc.m2:310:0.
+
+File: MinimalPrimes.info, Node: radicalContainment, Up: radical
+
+radicalContainment -- whether an element is contained in the radical of an ideal
+********************************************************************************
+
+  * Usage: 
+        radicalContainment(g, I)
+  * Inputs:
+      * g, a *note ring element: (Macaulay2Doc)RingElement,, 
+      * I, an *note ideal: (Macaulay2Doc)Ideal,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Strategy => ..., default value "Rabinowitsch"
+  * Outputs:
+      * a *note Boolean value: (Macaulay2Doc)Boolean,, true if g is in the
+        radical of I, and false otherwise
+
+Description
+===========
+
+This method determines if a given element g is contained in the radical of a
+given ideal I. There are 2 algorithms implemented for doing so: the first
+(default) uses the Rabinowitsch trick in the proof of the Nullstellensatz, and
+is called with Strategy => "Rabinowitsch". The second algorithm, for
+homogeneous ideals, uses a theorem of Kollar to obtain an effective upper bound
+on the required power to check containment, together with repeated squaring,
+and is called with Strategy => "Kollar". The latter algorithm is generally
+quite fast if a Grobner basis of I has already been computed. A recommended way
+to do so is to check ordinary containment, i.e. g % I == 0, before calling this
+function.
+
++-----------------------------------------------------------------------------+
+|i1 : d = (4,5,6,7)                                                           |
+|                                                                             |
+|o1 = (4, 5, 6, 7)                                                            |
+|                                                                             |
+|o1 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+|i2 : n = #d                                                                  |
+|                                                                             |
+|o2 = 4                                                                       |
++-----------------------------------------------------------------------------+
+|i3 : R = QQ[x_0..x_n]                                                        |
+|                                                                             |
+|o3 = R                                                                       |
+|                                                                             |
+|o3 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i4 : I = ideal homogenize(matrix{{x_1^(d#0)} | apply(toList(1..n-2), i -> x_i|
+|                                                                             |
+|             4     5      4     6      5     7      6                        |
+|o4 = ideal (x , - x  + x x , - x  + x x , - x  + x x )                       |
+|             1     2    1 4     3    2 4     0    3 4                        |
+|                                                                             |
+|o4 : Ideal of R                                                              |
+|-----------------------------------------------------------------------------|
+|- x_(i+1)^(d#i)) | {x_(n-1) - x_0^(d#-1)}}, x_n)                             |
++-----------------------------------------------------------------------------+
+|i5 : D = product(I_*/degree/sum)                                             |
+|                                                                             |
+|o5 = 840                                                                     |
++-----------------------------------------------------------------------------+
+|i6 : x_0^(D-1) % I != 0 and x_0^D % I == 0                                   |
+|                                                                             |
+|o6 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : elapsedTime radicalContainment(x_0, I)                                  |
+| -- .104651s elapsed                                                         |
+|                                                                             |
+|o7 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : elapsedTime radicalContainment(x_0, I, Strategy => "Kollar")            |
+| -- .00212085s elapsed                                                       |
+|                                                                             |
+|o8 = true                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : elapsedTime radicalContainment(x_n, I, Strategy => "Kollar")            |
+| -- .00162828s elapsed                                                       |
+|                                                                             |
+|o9 = false                                                                   |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note radical: radical, -- the radical of an ideal
+
+Ways to use radicalContainment:
+===============================
+
+  * "radicalContainment(Ideal,Ideal)"
+  * "radicalContainment(RingElement,Ideal)"
+
+For the programmer
+==================
+
+The object *note radicalContainment: radicalContainment, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MinimalPrimes/doc.m2:310:0.
+
+File: MinimalPrimes.info, Node: minimal primes of an ideal, Next: radical of an ideal, Prev: radical, Up: Top
+
+minimal primes of an ideal
+**************************
+
+using { t minimalPrimes}
+========================
+
+To obtain a list of the minimal associated primes for an ideal I (i.e. the
+smallest primes containing I), use the function *note minimalPrimes:
+minimalPrimes,.
+
++---------------------------------------------------------------------+
+|i1 : R = QQ[w,x,y,z];                                                |
++---------------------------------------------------------------------+
+|i2 : I = ideal(w*x^2-42*y*z, x^6+12*w*y+x^3*z, w^2-47*x^4*z-47*x*z^2)|
+|                                                                     |
+|               2           6    3                4         2    2    |
+|o2 = ideal (w*x  - 42y*z, x  + x z + 12w*y, - 47x z - 47x*z  + w )   |
+|                                                                     |
+|o2 : Ideal of R                                                      |
++---------------------------------------------------------------------+
+|i3 : minimalPrimes I                                                 |
+|                                                                     |
+|                                                      3              |
+|o3 = {ideal (z, x, w), ideal (y, x, w), ideal (y, w, x  + z)}        |
+|                                                                     |
+|o3 : List                                                            |
++---------------------------------------------------------------------+
+
+If the ideal given is a prime ideal then *note minimalPrimes: minimalPrimes,
+will return the ideal given.
+
++-----------------------------------------------------------------------------+
+|i4 : R = ZZ/101[w..z];                                                       |
++-----------------------------------------------------------------------------+
+|i5 : I = ideal(w*x^2-42*y*z, x^6+12*w*y+x^3*z, w^2-47*x^4*z-47*x*z^2);       |
+|                                                                             |
+|o5 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i6 : minimalPrimes I                                                         |
+|                                                                             |
+|                2           2   2          2      3   2   2      2 3      4  |
+|o6 = {ideal (w*x  - 42y*z, x y*z  - 12w*x*z  + 11w , w x*z  + 47y z  - 43w , |
+|     ------------------------------------------------------------------------|
+|      4       2      2   6    3                                              |
+|     x z + x*z  - 43w , x  + x z + 12w*y)}                                   |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+See *note associated primes: (PrimaryDecomposition)associated primes, for
+information on finding associated prime ideals and *note primary decomposition:
+(PrimaryDecomposition)primary decomposition, for more information about finding
+the full primary decomposition of an ideal.
+
+
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MinimalPrimes/doc.m2:310:0.
+
+File: MinimalPrimes.info, Node: radical of an ideal, Prev: minimal primes of an ideal, Up: Top
+
+radical of an ideal
+*******************
+
+There are two main ways to find the radical of an ideal. On some large examples
+the second method is faster.
+
+using *note radical: radical,
+=============================
+
++-------------------------------+
+|i1 : S = ZZ/101[x,y,z]         |
+|                               |
+|o1 = S                         |
+|                               |
+|o1 : PolynomialRing            |
++-------------------------------+
+|i2 : I = ideal(x^3-y^2,y^2*z^2)|
+|                               |
+|             3    2   2 2      |
+|o2 = ideal (x  - y , y z )     |
+|                               |
+|o2 : Ideal of S                |
++-------------------------------+
+|i3 : radical I                 |
+|                               |
+|                       3    2  |
+|o3 = ideal (y*z, x*z, x  - y ) |
+|                               |
+|o3 : Ideal of S                |
++-------------------------------+
+
+using the*note minimal primes of an ideal: minimal primes of an ideal,
+======================================================================
+
+An alternate way to find the radical of an ideal I is to take the intersection
+of its minimal prime ideals. To find the *note minimal primes of an ideal:
+minimal primes of an ideal, I use the function *note minimalPrimes:
+minimalPrimes,. Then use *note intersect: (Macaulay2Doc)intersect,.
+
++------------------------------+
+|i4 : intersect minimalPrimes I|
+|                              |
+|                       3    2 |
+|o4 = ideal (y*z, x*z, x  - y )|
+|                              |
+|o4 : Ideal of S               |
++------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in MinimalPrimes/doc.m2:310:0.
+
+File: MinimalPrimes.info, Node: Hybrid, Prev: Top, Up: Top
+
+Hybrid -- the class of lists encapsulating hybrid strategies
+************************************************************
+
+Description
+===========
+
+This class is used to encapsulate hybrid strategies for certain method
+functions.
+
+This example demonstrates an example of what is meant by a hybrid strategy.
+
++-----------------------------------------------------------------------------+
+|i1 : debug MinimalPrimes                                                     |
++-----------------------------------------------------------------------------+
+|i2 : R = ZZ/101[w..z];                                                       |
++-----------------------------------------------------------------------------+
+|i3 : I = ideal(w*x^2-42*y*z, x^6+12*w*y+x^3*z, w^2-47*x^4*z-47*x*z^2);       |
+|                                                                             |
+|o3 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i4 : elapsedTime minimalPrimes(                                              |
+|  Strategy: Linear            (                                              |
+|  Strategy: Birational        (                                              |
+|  Strategy: Factorization     (                                              |
+|  Strategy: DecomposeMonomials(                                              |
+| -- Converting annotated ideals                                              |
+| --  Time taken : .000787318                                                 |
+| -- .0281619s elapsed                                                        |
+|-----------------------------------------------------------------------------|
+|ideal I_*, Strategy => Hybrid{Linear,Birational,Factorization,               |
+|time .00124436)  #primes = 0 #prunedViaCodim = 0                             |
+|time .015507)   #primes = 0 #prunedViaCodim = 0                              |
+|time .000405677)  #primes = 0 #prunedViaCodim = 0                            |
+|time .000019957)  #primes = 1 #prunedViaCodim = 0                            |
+| to ideals and selecting minimal primes...                                   |
+|-----------------------------------------------------------------------------|
+|DecomposeMonomials}, Verbosity => 2);                                        |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note primaryDecomposition(...,Strategy=>...):
+    (PrimaryDecomposition)strategies for computing primary decomposition,
+
+For the programmer
+==================
+
+The object *note Hybrid: Hybrid, is a *note self initializing type:
+(Macaulay2Doc)SelfInitializingType,, with ancestor classes *note List:
+(Macaulay2Doc)List, < *note VisibleList: (Macaulay2Doc)VisibleList, < *note
+BasicList: (Macaulay2Doc)BasicList, < *note Thing: (Macaulay2Doc)Thing,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in MinimalPrimes/doc.m2:310:0.
+
+Tag Table:
+Node: Top258
+Node: minimalPrimes4598
+Node: isPrime_lpIdeal_rp15444
+Node: radical17889
+Node: radicalContainment24023
+Node: minimal primes of an ideal29961
+Node: radical of an ideal33458
+Node: Hybrid35324
+
+End Tag Table

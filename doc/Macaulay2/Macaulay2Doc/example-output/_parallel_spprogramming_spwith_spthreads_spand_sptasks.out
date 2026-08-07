@@ -1,0 +1,120 @@
+-- -*- M2-comint -*- hash: 4375196804909677163
+
+i1 : parallelApply(1..10, n -> n!)
+
+o1 = {1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800}
+
+o1 : List
+
+i2 : L = shuffle toList (1..10000);
+
+i3 : elapsedTime         apply(1..100, n -> sort L);
+ -- .665354s elapsed
+
+i4 : elapsedTime parallelApply(1..100, n -> sort L);
+ -- .261645s elapsed
+
+i5 : allowableThreads
+
+o5 = 5
+
+i6 : allowableThreads = maxAllowableThreads
+
+o6 = 5
+
+i7 : R = QQ[x,y,z];
+
+i8 : I = ideal(x^2 + 2*y^2 - y - 2*z, x^2 - 8*y^2 + 10*z - 1, x^2 - 7*y*z)
+
+             2     2            2     2             2
+o8 = ideal (x  + 2y  - y - 2z, x  - 8y  + 10z - 1, x  - 7y*z)
+
+o8 : Ideal of R
+
+i9 : f = () -> gens gb I
+
+o9 = f
+
+o9 : FunctionClosure
+
+i10 : t = schedule f
+
+o10 = <<task, created>>
+
+o10 : Task
+
+i11 : t
+
+o11 = <<task, running>>
+
+o11 : Task
+
+i12 : isReady t
+
+o12 = false
+
+i13 : taskResult t
+
+o13 = | 980z2-18y-201z+13 35yz-4y+2z-1 10y2-y-12z+1 5x2-4y+2z-1 |
+
+              1      4
+o13 : Matrix R  <-- R
+
+i14 : assert instance(oo, Matrix)
+
+i15 : t' = createTask f
+
+o15 = <<task, created>>
+
+o15 : Task
+
+i16 : t'
+
+o16 = <<task, created>>
+
+o16 : Task
+
+i17 : schedule t';
+
+i18 : t'
+
+o18 = <<task, created>>
+
+o18 : Task
+
+i19 : taskResult t'
+
+o19 = | 980z2-18y-201z+13 35yz-4y+2z-1 10y2-y-12z+1 5x2-4y+2z-1 |
+
+              1      4
+o19 : Matrix R  <-- R
+
+i20 : F = createTask(() -> "result of F")
+
+o20 = <<task, created>>
+
+o20 : Task
+
+i21 : G = createTask(() -> "result of G")
+
+o21 = <<task, created>>
+
+o21 : Task
+
+i22 : addStartTask(F,G)
+
+i23 : schedule F
+
+o23 = <<task, created>>
+
+o23 : Task
+
+i24 : taskResult F
+
+o24 = result of F
+
+i25 : taskResult G
+
+o25 = result of G
+
+i26 : 

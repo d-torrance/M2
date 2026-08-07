@@ -1,0 +1,705 @@
+ -*- coding: utf-8 -*- This is ToricInvariants.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* ToricInvariants: (ToricInvariants).  Euclidean distance degrees, polar degrees, and Chern-Mather classes of toric varieties
+END-INFO-DIR-ENTRY
+
+
+File: ToricInvariants.info, Node: Top, Next: cmClass, Up: (dir)
+
+ToricInvariants -- Given a projective toric variety, the package computes the degree and codimension of the dual, the Euclidean distance degree, polar degrees, and Chern-Mather class
+**************************************************************************************************************************************************************************************
+
+Description
+===========
+
+Given a projective toric variety X_A defined by a full rank integer matrix A
+with the vector (1,1,...,1) in its row space, the package computes the degree
+and codimension of the dual (i.e. the A-discriminant variety), the Euclidean
+distance degree of X_A, the polar degrees of X_A, and the Chern-Mather class of
+X_A. Note that we do not require that X_A is normal. This package uses the
+algorithms described in [1] and [2]. For definitions of the objects computed by
+the package see [1,2].
+
+References: \break [1] Martin Helmer and Bernd Sturmfels. "Nearest points on
+toric varieties." Mathematica Scandinavica 122, no. 2 (2018): 213-238. Arxiv
+version: https://arxiv.org/abs/1603.06544.\break [2] Martin Helmer and Bernt
+Ivar Utstol Nodland. "Polar degrees and closest points in codimension two."
+Journal of Algebra and Its Applications (2017): 1950095. Arxiv version:
+https://arxiv.org/abs/1711.02381.
+
+Author
+======
+
+  * Martin Helmer (see http://martin-helmer.com/ ) <m.helmer@math.ku.dk>
+
+Version
+=======
+
+This documentation describes version 3.01 of ToricInvariants, released July 12,
+2018.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++----------------------------------------------------------------------------+
+|@misc{ToricInvariantsSource,                                                |
+|  title = {{ToricInvariants: A \emph{Macaulay2} package. Version~3.01}},    |
+|  author = {Martin Helmer},                                                 |
+|  howpublished = {A \emph{Macaulay2} package available at                   |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}|
+|}                                                                           |
+|                                                                            |
++----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note cmClass: cmClass, -- Computes the Chern-Mather class of a
+        projective toric variety
+      * *note cmVolumes: cmVolumes, -- Computes the Chern-Mather volumes of a
+        projective toric variety
+      * *note dualDegCodim: dualDegCodim, -- Computes the degree and
+        codimension of the dual to a projective toric variety
+      * *note edDeg: edDeg, -- Computes the (generic) Euclidean distance degree
+        of a projective toric variety
+      * *note polarDegrees: polarDegrees, -- Computes the polar degrees of a
+        projective toric variety
+  * Methods
+      * "cmClass(Matrix)" -- see *note cmClass: cmClass, -- Computes the
+        Chern-Mather class of a projective toric variety
+      * cmClass(Matrix,QuotientRing) (missing documentation)
+      * "cmVolumes(Matrix)" -- see *note cmVolumes: cmVolumes, -- Computes the
+        Chern-Mather volumes of a projective toric variety
+      * "dualDegCodim(Matrix)" -- see *note dualDegCodim: dualDegCodim, --
+        Computes the degree and codimension of the dual to a projective toric
+        variety
+      * "edDeg(Matrix)" -- see *note edDeg: edDeg, -- Computes the (generic)
+        Euclidean distance degree of a projective toric variety
+      * "polarDegrees(Matrix)" -- see *note polarDegrees: polarDegrees, --
+        Computes the polar degrees of a projective toric variety
+      * polarDegrees(Matrix,QuotientRing) (missing documentation)
+  * Symbols
+      * ForceAmat (missing documentation)
+      * Output (missing documentation)
+      * TextOutput (missing documentation)
+
+For the programmer
+==================
+
+The object *note ToricInvariants: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in ToricInvariants.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ToricInvariants.m2:744:0.
+
+File: ToricInvariants.info, Node: cmClass, Next: cmVolumes, Prev: Top, Up: Top
+
+cmClass -- Computes the Chern-Mather class of a projective toric variety
+************************************************************************
+
+  * Usage: 
+        cmClass(A)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, a full rank integer matrix
+        with the vector (1,1,...,1) in its row space defining a projective
+        toric variety X_A
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * ForceAmat (missing documentation) => a *note Boolean value:
+        (Macaulay2Doc)Boolean,, default value false, if A defines a codimension
+        two toric variety a faster method will be used by default, setting this
+        to true forces the general purpose method
+      * Output (missing documentation) => a *note list: (Macaulay2Doc)List,,
+        default value RingElement, this can be set to HashTable to return a
+        HashTable with all computed values
+      * TextOutput (missing documentation) => ..., default value "Quiet", 
+  * Outputs:
+      * cm, a *note ring element: (Macaulay2Doc)RingElement,, the Chern-Mather
+        class of the projective toric variety X_A pushedforward to the Chow
+        ring of the ambient projective space.
+
+Description
+===========
+
+This function computes the Chern-Mather class of the projective toric variety
+X_A pushedforward to the Chow ring of the ambient projective space, we do not
+assume that X_A is normal.
+
++-----------------------------------------------------------------------------+
+|i1 : A=matrix{{0, 0, 0, 1, 1,5},{7,0, 1, 3, 0, -2},{1,1, 1, 1, 1, 1}}        |
+|                                                                             |
+|o1 = | 0 0 0 1 1 5  |                                                        |
+|     | 7 0 1 3 0 -2 |                                                        |
+|     | 1 1 1 1 1 1  |                                                        |
+|                                                                             |
+|              3       6                                                      |
+|o1 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i2 : cmClass(A)                                                              |
+|                                                                             |
+|                                                                             |
+|          5      4      3                                                    |
+|o2 = - 12h  + 20h  + 35h                                                     |
+|                                                                             |
+|     ZZ[h]                                                                   |
+|o2 : -----                                                                   |
+|        6                                                                    |
+|       h                                                                     |
++-----------------------------------------------------------------------------+
+|i3 : A=matrix{{3, 0, 0, 1, 1,2}, {3,5,0,2,1,3},{0, 1, 2, 0, 2,0},{1, 1, 1, 1,|
+|                                                                             |
+|o3 = | 3 0 0 1 1 2 |                                                         |
+|     | 3 5 0 2 1 3 |                                                         |
+|     | 0 1 2 0 2 0 |                                                         |
+|     | 1 1 1 1 1 1 |                                                         |
+|                                                                             |
+|              4       6                                                      |
+|o3 : Matrix ZZ  <-- ZZ                                                       |
+|-----------------------------------------------------------------------------|
+|1,1}}                                                                        |
++-----------------------------------------------------------------------------+
+|i4 : cmh=cmClass(A,Output=>HashTable);                                       |
++-----------------------------------------------------------------------------+
+|i5 : cmh#"CM class"                                                          |
+|                                                                             |
+|        5      4      3      2                                               |
+|o5 = 20h  + 23h  + 31h  + 28h                                                |
+|                                                                             |
+|     ZZ[h]                                                                   |
+|o5 : -----                                                                   |
+|        6                                                                    |
+|       h                                                                     |
++-----------------------------------------------------------------------------+
+|i6 : cmh#"polar degrees"                                                     |
+|                                                                             |
+|o6 = {45, 98, 81, 28}                                                        |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : cmh#"dual degree"                                                       |
+|                                                                             |
+|o7 = 45                                                                      |
+|                                                                             |
+|o7 : QQ                                                                      |
++-----------------------------------------------------------------------------+
+|i8 : cmh#"dual codim"                                                        |
+|                                                                             |
+|o8 = 1                                                                       |
++-----------------------------------------------------------------------------+
+|i9 : cmh#"ED"                                                                |
+|                                                                             |
+|o9 = 252                                                                     |
+|                                                                             |
+|o9 : QQ                                                                      |
++-----------------------------------------------------------------------------+
+|i10 : cmh#"degree"                                                           |
+|                                                                             |
+|o10 = 28                                                                     |
+|                                                                             |
+|o10 : QQ                                                                     |
++-----------------------------------------------------------------------------+
+
+Ways to use cmClass:
+====================
+
+  * "cmClass(Matrix)"
+  * cmClass(Matrix,QuotientRing) (missing documentation)
+
+For the programmer
+==================
+
+The object *note cmClass: cmClass, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ToricInvariants.m2:744:0.
+
+File: ToricInvariants.info, Node: cmVolumes, Next: dualDegCodim, Prev: cmClass, Up: Top
+
+cmVolumes -- Computes the Chern-Mather volumes of a projective toric variety
+****************************************************************************
+
+  * Usage: 
+        cmVolumes(A)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, a full rank integer matrix
+        with the vector (1,1,...,1) in its row space defining a projective
+        toric variety X_A
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * ForceAmat (missing documentation) => a *note Boolean value:
+        (Macaulay2Doc)Boolean,, default value false, if A defines a codimension
+        two toric variety a faster method will be used by default, setting this
+        to true forces the general purpose method
+      * Output (missing documentation) => a *note list: (Macaulay2Doc)List,,
+        default value List, this can be set to HashTable to return a HashTable
+        with all computed values
+      * TextOutput (missing documentation) => ..., default value "Quiet", 
+  * Outputs:
+      * cmv, a *note list: (Macaulay2Doc)List,, the Chern-Mather volumes of the
+        projective toric variety X_A, ordered from dimension X_A to dimension
+        zero.
+
+Description
+===========
+
+This function computes the Chern-Mather volumes of the projective toric variety
+X_A, these are the coefficients of the Chern-Mather class ordered from
+dimension X_A to dimension zero. We do not assume that X_A is normal.
+
++-----------------------------------------------------------------------------+
+|i1 : A=matrix{{0, 0, 0, 1, 1,5}, {7,0, 1, 3, 0, -2},{1,1, 1, 1, 1, 1}}       |
+|                                                                             |
+|o1 = | 0 0 0 1 1 5  |                                                        |
+|     | 7 0 1 3 0 -2 |                                                        |
+|     | 1 1 1 1 1 1  |                                                        |
+|                                                                             |
+|              3       6                                                      |
+|o1 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i2 : cmVolumes(A)                                                            |
+|                                                                             |
+|                                                                             |
+|o2 = {35, 20, -12}                                                           |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : A=matrix{{3, 0, 0, 1, 1,2}, {3,5,0,2,1,3},{0, 1, 2, 0, 2,0},{1, 1, 1, 1,|
+|                                                                             |
+|o3 = | 3 0 0 1 1 2 |                                                         |
+|     | 3 5 0 2 1 3 |                                                         |
+|     | 0 1 2 0 2 0 |                                                         |
+|     | 1 1 1 1 1 1 |                                                         |
+|                                                                             |
+|              4       6                                                      |
+|o3 : Matrix ZZ  <-- ZZ                                                       |
+|-----------------------------------------------------------------------------|
+|1,1}}                                                                        |
++-----------------------------------------------------------------------------+
+|i4 : cm=cmVolumes(A)                                                         |
+|                                                                             |
+|                                                                             |
+|o4 = {28, 31, 23, 20}                                                        |
+|                                                                             |
+|o4 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Ways to use cmVolumes:
+======================
+
+  * "cmVolumes(Matrix)"
+
+For the programmer
+==================
+
+The object *note cmVolumes: cmVolumes, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ToricInvariants.m2:744:0.
+
+File: ToricInvariants.info, Node: dualDegCodim, Next: edDeg, Prev: cmVolumes, Up: Top
+
+dualDegCodim -- Computes the degree and codimension of the dual to a projective toric variety
+*********************************************************************************************
+
+  * Usage: 
+        dualDegCodim(A)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, a full rank integer matrix
+        with the vector (1,1,...,1) in its row space defining a projective
+        toric variety X_A
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * ForceAmat (missing documentation) => a *note Boolean value:
+        (Macaulay2Doc)Boolean,, default value false, if A defines a codimension
+        two toric variety a faster method will be used by default, setting this
+        to true forces the general purpose method
+  * Outputs:
+      * degCodim, a *note hash table: (Macaulay2Doc)HashTable,, the polar
+        degrees of the projective toric variety X_A.
+
+Description
+===========
+
+This function computes the degree and codimension of the projective toric
+variety X_A, we do not assume that X_A is normal. This function uses *note
+polarDegrees: polarDegrees, internally and this information can also be
+obtained from the *note polarDegrees: polarDegrees, function.
+
++---------------------------------------------------------------------+
+|i1 : A=matrix{{0, 0, 0, 1, 1,5},{7,0, 1, 3, 0, -2},{1,1, 1, 1, 1, 1}}|
+|                                                                     |
+|o1 = | 0 0 0 1 1 5  |                                                |
+|     | 7 0 1 3 0 -2 |                                                |
+|     | 1 1 1 1 1 1  |                                                |
+|                                                                     |
+|              3       6                                              |
+|o1 : Matrix ZZ  <-- ZZ                                               |
++---------------------------------------------------------------------+
+|i2 : dc=dualDegCodim(A)                                              |
+|                                                                     |
+|                                                                     |
+|o2 = HashTable{"dualCodim" => 1  }                                   |
+|               "dualDegree" => 53                                    |
+|                                                                     |
+|o2 : HashTable                                                       |
++---------------------------------------------------------------------+
+|i3 : dc#"dualCodim"                                                  |
+|                                                                     |
+|o3 = 1                                                               |
++---------------------------------------------------------------------+
+|i4 : dc#"dualDegree"                                                 |
+|                                                                     |
+|o4 = 53                                                              |
+|                                                                     |
+|o4 : QQ                                                              |
++---------------------------------------------------------------------+
+|i5 : pd=polarDegrees(A);                                             |
+|                                                                     |
+|The toric variety has degree = 35                                    |
+|The dual variety has degree = 53, and codimension = 1                |
+|Chern-Mather Volumes: (V_0,..,V_(d-1)) = {-12, 20, 35}               |
+|Polar Degrees: {53, 85, 35}                                          |
+|ED Degree = 173                                                      |
+|                                                                     |
+|                         5      4      3                             |
+|Chern-Mather Class: - 12h  + 20h  + 35h                              |
++---------------------------------------------------------------------+
+
+Ways to use dualDegCodim:
+=========================
+
+  * "dualDegCodim(Matrix)"
+
+For the programmer
+==================
+
+The object *note dualDegCodim: dualDegCodim, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ToricInvariants.m2:744:0.
+
+File: ToricInvariants.info, Node: edDeg, Next: ForceAmat, Prev: dualDegCodim, Up: Top
+
+edDeg -- Computes the (generic) Euclidean distance degree of a projective toric variety
+***************************************************************************************
+
+  * Usage: 
+        edDeg(A)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, a full rank integer matrix
+        with the vector (1,1,...,1) in its row space defining a projective
+        toric variety X_A
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * ForceAmat (missing documentation) => a *note Boolean value:
+        (Macaulay2Doc)Boolean,, default value false, if A defines a codimension
+        two toric variety a faster method will be used by default, setting this
+        to true forces the general purpose method
+      * Output (missing documentation) => a *note list: (Macaulay2Doc)List,,
+        default value ZZ, this can be set to HashTable to return a HashTable
+        with all computed values
+      * TextOutput (missing documentation) => ..., default value "Quiet", 
+  * Outputs:
+      * ED, an *note integer: (Macaulay2Doc)ZZ,, the (generic) Euclidean
+        distance degree of the projective toric variety X_A.
+
+Description
+===========
+
+This function computes (generic) Euclidean distance degree the projective toric
+variety X_A, we do not assume that X_A is normal. The default output is a list
+of polar degrees; other values of interest computed by the program are also
+output. To suppress text output use the option Output =>HashTable. This
+function uses *note polarDegrees: polarDegrees, internally.
+
++-----------------------------------------------------------------------------+
+|i1 : A=matrix{{0, 0, 0, 1, 1,5}, {7,0, 1, 3, 0, -2},{1,1, 1, 1, 1, 1}}       |
+|                                                                             |
+|o1 = | 0 0 0 1 1 5  |                                                        |
+|     | 7 0 1 3 0 -2 |                                                        |
+|     | 1 1 1 1 1 1  |                                                        |
+|                                                                             |
+|              3       6                                                      |
+|o1 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i2 : edDeg(A)                                                                |
+|                                                                             |
+|The toric variety has degree = 35                                            |
+|The dual variety has degree = 53, and codimension = 1                        |
+|Chern-Mather Volumes: (V_0,..,V_(d-1)) = {-12, 20, 35}                       |
+|Polar Degrees: {53, 85, 35}                                                  |
+|ED Degree = 173                                                              |
+|                                                                             |
+|                         5      4      3                                     |
+|Chern-Mather Class: - 12h  + 20h  + 35h                                      |
+|                                                                             |
+|o2 = 173                                                                     |
+|                                                                             |
+|o2 : QQ                                                                      |
++-----------------------------------------------------------------------------+
+|i3 : A=matrix{{3, 0, 0, 1, 1,2}, {3,5,0,2,1,3},{0, 1, 2, 0, 2,0},{1, 1, 1, 1,|
+|                                                                             |
+|o3 = | 3 0 0 1 1 2 |                                                         |
+|     | 3 5 0 2 1 3 |                                                         |
+|     | 0 1 2 0 2 0 |                                                         |
+|     | 1 1 1 1 1 1 |                                                         |
+|                                                                             |
+|              4       6                                                      |
+|o3 : Matrix ZZ  <-- ZZ                                                       |
+|-----------------------------------------------------------------------------|
+|1,1}}                                                                        |
++-----------------------------------------------------------------------------+
+|i4 : time edDeg(A)                                                           |
+|                                                                             |
+|The toric variety has degree = 28                                            |
+|The dual variety has degree = 45, and codimension = 1                        |
+|Chern-Mather Volumes: (V_0,..,V_(d-1)) = {20, 23, 31, 28}                    |
+|Polar Degrees: {45, 98, 81, 28}                                              |
+|ED Degree = 252                                                              |
+|                                                                             |
+|                       5      4      3      2                                |
+|Chern-Mather Class: 20h  + 23h  + 31h  + 28h                                 |
+| -- used 1.14739s (cpu); 0.912257s (thread); 0s (gc)                         |
+|                                                                             |
+|o4 = 252                                                                     |
+|                                                                             |
+|o4 : QQ                                                                      |
++-----------------------------------------------------------------------------+
+|i5 : time edDeg(A,ForceAmat=>true)                                           |
+|                                                                             |
+|The toric variety has degree = 28                                            |
+|The dual variety has degree = 45, and codimension = 1                        |
+|Chern-Mather Volumes: (V_0,..,V_(d-1)) = {20, 23, 31, 28}                    |
+|Polar Degrees: {45, 98, 81, 28}                                              |
+|ED Degree = 252                                                              |
+|                                                                             |
+|                       5      4      3      2                                |
+|Chern-Mather Class: 20h  + 23h  + 31h  + 28h                                 |
+| -- used 4.58022s (cpu); 3.54591s (thread); 0s (gc)                          |
+|                                                                             |
+|o5 = 252                                                                     |
+|                                                                             |
+|o5 : QQ                                                                      |
++-----------------------------------------------------------------------------+
+
+Ways to use edDeg:
+==================
+
+  * "edDeg(Matrix)"
+
+For the programmer
+==================
+
+The object *note edDeg: edDeg, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ToricInvariants.m2:744:0.
+
+File: ToricInvariants.info, Node: ForceAmat, Next: Output, Prev: edDeg, Up: Top
+
+ForceAmat
+*********
+
+Functions with optional argument named ForceAmat:
+=================================================
+
+  * cmClass(...,ForceAmat=>...) (missing documentation)
+  * cmVolumes(...,ForceAmat=>...) (missing documentation)
+  * dualDegCodim(...,ForceAmat=>...) (missing documentation)
+  * edDeg(...,ForceAmat=>...) (missing documentation)
+  * polarDegrees(...,ForceAmat=>...) (missing documentation)
+
+For the programmer
+==================
+
+The object ForceAmat (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:381.
+
+File: ToricInvariants.info, Node: Output, Next: polarDegrees, Prev: ForceAmat, Up: Top
+
+Output
+******
+
+Functions with optional argument named Output:
+==============================================
+
+  * cmClass(...,Output=>...) (missing documentation)
+  * cmVolumes(...,Output=>...) (missing documentation)
+  * edDeg(...,Output=>...) (missing documentation)
+  * polarDegrees(...,Output=>...) (missing documentation)
+
+For the programmer
+==================
+
+The object Output (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:381.
+
+File: ToricInvariants.info, Node: polarDegrees, Next: TextOutput, Prev: Output, Up: Top
+
+polarDegrees -- Computes the polar degrees of a projective toric variety
+************************************************************************
+
+  * Usage: 
+        polarDegrees(A)
+  * Inputs:
+      * A, a *note matrix: (Macaulay2Doc)Matrix,, a full rank integer matrix
+        with the vector (1,1,...,1) in its row space defining a projective
+        toric variety X_A
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * ForceAmat (missing documentation) => a *note Boolean value:
+        (Macaulay2Doc)Boolean,, default value false, if A defines a codimension
+        two toric variety a faster method will be used by default, setting this
+        to true forces the general purpose method
+      * Output (missing documentation) => a *note list: (Macaulay2Doc)List,,
+        default value List, this can be set to HashTable to return a HashTable
+        with all computed values
+      * TextOutput (missing documentation) => ..., default value "Quiet", 
+  * Outputs:
+      * pd, a *note list: (Macaulay2Doc)List,, the polar degrees of the
+        projective toric variety X_A.
+
+Description
+===========
+
+This function computes the polar degrees of the projective toric variety X_A,
+we do not assume that X_A is normal. The default output is a list of polar
+degrees; other values of interest computed by the program are also output. To
+suppress text output use the option Output =>HashTable.
+
++-----------------------------------------------------------------------------+
+|i1 : A=matrix{{0, 0, 0, 1, 1,5}, {7,0, 1, 3, 0, -2},{1,1, 1, 1, 1, 1}}       |
+|                                                                             |
+|o1 = | 0 0 0 1 1 5  |                                                        |
+|     | 7 0 1 3 0 -2 |                                                        |
+|     | 1 1 1 1 1 1  |                                                        |
+|                                                                             |
+|              3       6                                                      |
+|o1 : Matrix ZZ  <-- ZZ                                                       |
++-----------------------------------------------------------------------------+
+|i2 : polarDegrees(A)                                                         |
+|                                                                             |
+|The toric variety has degree = 35                                            |
+|The dual variety has degree = 53, and codimension = 1                        |
+|Chern-Mather Volumes: (V_0,..,V_(d-1)) = {-12, 20, 35}                       |
+|Polar Degrees: {53, 85, 35}                                                  |
+|ED Degree = 173                                                              |
+|                                                                             |
+|                         5      4      3                                     |
+|Chern-Mather Class: - 12h  + 20h  + 35h                                      |
+|                                                                             |
+|o2 = {53, 85, 35}                                                            |
+|                                                                             |
+|o2 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i3 : A=matrix{{3, 0, 0, 1, 1,2},{3,5,0,2,1,3},{0, 1, 2, 0, 2,0},{1, 1, 1, 1, |
+|                                                                             |
+|o3 = | 3 0 0 1 1 2 |                                                         |
+|     | 3 5 0 2 1 3 |                                                         |
+|     | 0 1 2 0 2 0 |                                                         |
+|     | 1 1 1 1 1 1 |                                                         |
+|                                                                             |
+|              4       6                                                      |
+|o3 : Matrix ZZ  <-- ZZ                                                       |
+|-----------------------------------------------------------------------------|
+|1,1}}                                                                        |
++-----------------------------------------------------------------------------+
+|i4 : pdh=polarDegrees(A,Output=>HashTable);                                  |
++-----------------------------------------------------------------------------+
+|i5 : pdh#"polar degrees"                                                     |
+|                                                                             |
+|o5 = {45, 98, 81, 28}                                                        |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i6 : pdh#"dual degree"                                                       |
+|                                                                             |
+|o6 = 45                                                                      |
+|                                                                             |
+|o6 : QQ                                                                      |
++-----------------------------------------------------------------------------+
+|i7 : pdh#"dual codim"                                                        |
+|                                                                             |
+|o7 = 1                                                                       |
++-----------------------------------------------------------------------------+
+|i8 : pdh#"ED"                                                                |
+|                                                                             |
+|o8 = 252                                                                     |
+|                                                                             |
+|o8 : QQ                                                                      |
++-----------------------------------------------------------------------------+
+|i9 : pdh#"degree"                                                            |
+|                                                                             |
+|o9 = 28                                                                      |
+|                                                                             |
+|o9 : QQ                                                                      |
++-----------------------------------------------------------------------------+
+
+Ways to use polarDegrees:
+=========================
+
+  * "polarDegrees(Matrix)"
+  * polarDegrees(Matrix,QuotientRing) (missing documentation)
+
+For the programmer
+==================
+
+The object *note polarDegrees: polarDegrees, is a *note method function with
+options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in ToricInvariants.m2:744:0.
+
+File: ToricInvariants.info, Node: TextOutput, Prev: polarDegrees, Up: Top
+
+TextOutput
+**********
+
+Functions with optional argument named TextOutput:
+==================================================
+
+  * cmClass(...,TextOutput=>...) (missing documentation)
+  * cmVolumes(...,TextOutput=>...) (missing documentation)
+  * edDeg(...,TextOutput=>...) (missing documentation)
+  * polarDegrees(...,TextOutput=>...) (missing documentation)
+
+For the programmer
+==================
+
+The object TextOutput (missing documentation) is a *note symbol:
+(Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:381.
+
+Tag Table:
+Node: Top304
+Node: cmClass4576
+Node: cmVolumes12342
+Node: dualDegCodim17122
+Node: edDeg21633
+Node: ForceAmat29155
+Node: Output29914
+Node: polarDegrees30592
+Node: TextOutput37928
+
+End Tag Table

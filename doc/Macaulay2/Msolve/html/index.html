@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Msolve -- Macaulay2 interface for msolve; computes real solutions and Groebner basis, etc.</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="interface to the msolve library for solving multivariate polynomial systems using Groebner Bases" href="index.html">Msolve</a> :: <a title="interface to the msolve library for solving multivariate polynomial systems using Groebner Bases" href="index.html">Msolve</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_msolve__Eliminate.html">next</a> | previous | <a href="_msolve__Eliminate.html">forward</a> | backward | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Msolve -- Macaulay2 interface for msolve; computes real solutions and Groebner basis, etc.</h1>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>This package provides a Macaulay2 interface for the msolve library [1] developed by Jérémy Berthomieu, Christian Eder, and Mohab Safey El Din.</p>
+          <p>The package has functions to compute Groebner basis, in <a title="graded reverse lexicographical monomial ordering" href="../../Macaulay2Doc/html/___G__Rev__Lex.html">GRevLex</a> order only, for ideals with rational or finite field coefficients. Finite field characteristics must be less than $2^{31}$. There are also functions to compute elimination ideals, for ideals with rational or finite field coefficients.</p>
+          <p>The <a title="saturation of ideal or submodule" href="../../Saturation/html/_saturate.html">saturation</a> of an ideal by a single polynomial may be computed for ideals with finite field coefficients, again with characteristic less than $2^{31}$.</p>
+          <p>For zero dimensional polynomial ideals, with integer or rational coefficients, there are functions to compute all real solutions, and to compute a rational univariate representation of all (complex) solutions.</p>
+          <p>The M2 interface assumes that the binary executable is named &quot;msolve&quot; is on the executable path.</p>
+          <p>For all functions the option <span class="tt">Verbosity</span> can be used. It has levels 0, 1, 2. The default is 0.</p>
+          <p>Msolve supports parallel computations. The option <span class="tt">Threads</span> is used to set this. The default value is allowableThreads, but this can be set manually by the user when calling a function. E.g. for an ideal I:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = QQ[x,y,z]
+
+o1 = R
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I = ideal(x, y, z)
+
+o2 = ideal (x, y, z)
+
+o2 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : msolveGB(I, Verbosity => 2, Threads => 6) 
+ -- running: /usr/bin/msolve -g 2 -t 6 -v 2 -f /tmp/M2-59812-0/0-in.ms -o /tmp/M2-59812-0/0-out.ms
+
+--------------- INPUT DATA ---------------
+#variables                       3
+#equations                       3
+#invalid equations               0
+field characteristic             0
+homogeneous input?               1
+signature-based computation      0
+monomial order                 DRL
+basis hash table resetting     OFF
+linear algebra option            2
+initial hash table size     131072 (2^17)
+max pair selection             ALL
+reduce gb                        1
+#threads                         6
+info level                       2
+generate pbm files               0
+------------------------------------------
+Initial prime = 1081963529
+
+Legend for f4 information
+--------------------------------------------------------
+deg       current degree of pairs selected in this round
+sel       number of pairs selected in this round
+pairs     total number of pairs in pair list
+mat       matrix dimensions (# rows x # columns)
+density   density of the matrix
+new data  # new elements for basis in this round
+          # zero reductions during linear algebra
+time(rd)  time of the current f4 round in seconds given
+          for real and cpu time
+--------------------------------------------------------
+
+deg     sel   pairs        mat          density            new data         time(rd) in sec (real|cpu)
+------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+reduce final basis        3 x 3          33.33%        3 new       0 zero         0.00 | 0.00         
+------------------------------------------------------------------------------------------------------
+
+---------------- TIMINGS ----------------
+overall(elapsed)        0.00 sec
+overall(cpu)            0.00 sec
+select                  0.00 sec   0.0%
+symbolic prep.          0.00 sec   0.0%
+update                  0.00 sec  83.3%
+convert                 0.00 sec  12.5%
+linear algebra          0.00 sec   0.2%
+reduce gb               0.00 sec   0.0%
+-----------------------------------------
+
+---------- COMPUTATIONAL DATA -----------
+size of basis                     3
+#terms in basis                   3
+#pairs reduced                    0
+#GM criterion                     3
+#redundant elements               0
+#rows reduced                     3
+#zero reductions                  0
+max. matrix data                  3 x 3 (33.333%)
+max. symbolic hash table size  2^11
+max. basis hash table size     2^16
+-----------------------------------------
+
+
+---------- COMPUTATIONAL DATA -----------
+[3]
+#polynomials to lift              3
+-----------------------------------------
+New prime = 1140616117
+
+---------------- TIMINGS ----------------
+multi-mod overall(elapsed)      0.00 sec
+learning phase                  0.00 Gops/sec
+application phase               0.00 Gops/sec
+-----------------------------------------
+
+multi-modular steps
+------------------------------------------------------------------------------------------------------
+{1}{2}&lt;100.00%> 
+------------------------------------------------------------------------------------------------------
+
+
+---------- COMPUTATIONAL DATA -----------
+Max coeff. bitsize                1
+#primes                           3
+#bad primes                       0
+-----------------------------------------
+
+---------------- TIMINGS ----------------
+CRT     (elapsed)               0.00 sec
+ratrecon(elapsed)               0.00 sec
+-----------------------------------------
+
+
+------------------------------------------------------------------------------------
+msolve overall time           0.02 sec (elapsed) /  0.01 sec (cpu)
+------------------------------------------------------------------------------------
+
+o3 = | z y x |
+
+             1      3
+o3 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>References</h2>
+        <div>
+          <p>[1] The msolve library: <a href="https://msolve.lip6.fr">https://msolve.lip6.fr</a>;</p>
+          <p></p>
+        </div>
+      </div>
+      <div>
+        <div>
+          <div>
+            <h2>Authors</h2>
+            <ul>
+              <li><a href="http://martin-helmer.com/">Martin Helmer</a><span> &lt;<a href="mailto:martin.helmer%40swansea.ac.uk">martin.helmer@swansea.ac.uk</a>></span></li>
+              <li><a href="https://math.cornell.edu/michael-e-stillman">Mike Stillman</a><span> &lt;<a href="mailto:mike%40math.cornell.edu">mike@math.cornell.edu</a>></span></li>
+              <li><a href="https://antonleykin.math.gatech.edu/">Anton Leykin</a><span> &lt;<a href="mailto:leykin%40math.gatech.edu">leykin@math.gatech.edu</a>></span></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Version</h2>
+            <p>This documentation describes version <b>1.24.06</b> of Msolve, released <b>September 2025</b>.</p>
+          </div>
+          <div>
+            <h2>Citation</h2>
+            <p>If you have used this package in your research, please cite it as follows:</p>
+            <table class="examples">
+              <tr>
+                <td>
+                  <pre><code class="language-bib">@misc{MsolveSource,
+  title = {{Msolve: A \emph{Macaulay2} package. Version~1.24.06}},
+  author = {Martin Helmer and Mike Stillman and Anton Leykin},
+  howpublished = {A \emph{Macaulay2} package available at
+    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages}}
+}
+</code></pre>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div>
+            <h2>Exports</h2>
+            <div class="exports">
+              <ul>
+                <li>Types                  <ul>
+                    <li><span><a title="the class of all rational intervals" href="___Q__Qi.html">QQi</a> -- the class of all rational intervals</span></li>
+                  </ul>
+                </li>
+                <li>Functions and commands                  <ul>
+                    <li><span><a title="compute the elimination ideal of a given ideal" href="_msolve__Eliminate.html">msolveEliminate</a> -- compute the elimination ideal of a given ideal</span></li>
+                    <li><span><a title="compute generators of a Groebner basis in GRevLex order" href="_msolve__G__B.html">msolveGB</a> -- compute generators of a Groebner basis in GRevLex order</span></li>
+                    <li><span><a title="compute the leading monomials of a Groebner basis in GRevLex order" href="_msolve__Lead__Monomials.html">msolveLeadMonomials</a> -- compute the leading monomials of a Groebner basis in GRevLex order</span></li>
+                    <li><span><a title="compute all real solutions to a zero dimensional system using symbolic methods" href="_msolve__Real__Solutions.html">msolveRealSolutions</a> -- compute all real solutions to a zero dimensional system using symbolic methods</span></li>
+                    <li><span><a title="compute the rational univariate representation using symbolic methods" href="_msolve__R__U__R.html">msolveRUR</a> -- compute the rational univariate representation using symbolic methods</span></li>
+                    <li><span><a title="compute a Groebner basis for the saturation of an ideal by a single polynomial in GRevLex order" href="_msolve__Saturate.html">msolveSaturate</a> -- compute a Groebner basis for the saturation of an ideal by a single polynomial in GRevLex order</span></li>
+                  </ul>
+                </li>
+                <li>Methods                  <ul>
+                    <li><span><span class="tt">diameter(QQi)</span> (missing documentation)<!--tag: (diameter,QQi)-->
+</span></li>
+                    <li><span><span class="tt">interval(QQi)</span> (missing documentation)<!--tag: (interval,QQi)-->
+</span></li>
+                    <li><span><span class="tt">lift(QQi,type of Number)</span> (missing documentation)<!--tag: (lift,QQi,Number)-->
+</span></li>
+                    <li><span><kbd>msolveEliminate(Ideal,List)</kbd> -- see <span><a title="compute the elimination ideal of a given ideal" href="_msolve__Eliminate.html">msolveEliminate</a> -- compute the elimination ideal of a given ideal</span></span></li>
+                    <li><span><kbd>msolveEliminate(Ideal,RingElement)</kbd> -- see <span><a title="compute the elimination ideal of a given ideal" href="_msolve__Eliminate.html">msolveEliminate</a> -- compute the elimination ideal of a given ideal</span></span></li>
+                    <li><span><kbd>msolveEliminate(List,Ideal)</kbd> -- see <span><a title="compute the elimination ideal of a given ideal" href="_msolve__Eliminate.html">msolveEliminate</a> -- compute the elimination ideal of a given ideal</span></span></li>
+                    <li><span><kbd>msolveEliminate(RingElement,Ideal)</kbd> -- see <span><a title="compute the elimination ideal of a given ideal" href="_msolve__Eliminate.html">msolveEliminate</a> -- compute the elimination ideal of a given ideal</span></span></li>
+                    <li><span><kbd>msolveGB(Ideal)</kbd> -- see <span><a title="compute generators of a Groebner basis in GRevLex order" href="_msolve__G__B.html">msolveGB</a> -- compute generators of a Groebner basis in GRevLex order</span></span></li>
+                    <li><span><kbd>msolveLeadMonomials(Ideal)</kbd> -- see <span><a title="compute the leading monomials of a Groebner basis in GRevLex order" href="_msolve__Lead__Monomials.html">msolveLeadMonomials</a> -- compute the leading monomials of a Groebner basis in GRevLex order</span></span></li>
+                    <li><span><kbd>msolveRealSolutions(Ideal)</kbd> -- see <span><a title="compute all real solutions to a zero dimensional system using symbolic methods" href="_msolve__Real__Solutions.html">msolveRealSolutions</a> -- compute all real solutions to a zero dimensional system using symbolic methods</span></span></li>
+                    <li><span><kbd>msolveRealSolutions(Ideal,Ring)</kbd> -- see <span><a title="compute all real solutions to a zero dimensional system using symbolic methods" href="_msolve__Real__Solutions.html">msolveRealSolutions</a> -- compute all real solutions to a zero dimensional system using symbolic methods</span></span></li>
+                    <li><span><kbd>msolveRealSolutions(Ideal,RingFamily)</kbd> -- see <span><a title="compute all real solutions to a zero dimensional system using symbolic methods" href="_msolve__Real__Solutions.html">msolveRealSolutions</a> -- compute all real solutions to a zero dimensional system using symbolic methods</span></span></li>
+                    <li><span><kbd>msolveRUR(Ideal)</kbd> -- see <span><a title="compute the rational univariate representation using symbolic methods" href="_msolve__R__U__R.html">msolveRUR</a> -- compute the rational univariate representation using symbolic methods</span></span></li>
+                    <li><span><kbd>msolveSaturate(Ideal,RingElement)</kbd> -- see <span><a title="compute a Groebner basis for the saturation of an ideal by a single polynomial in GRevLex order" href="_msolve__Saturate.html">msolveSaturate</a> -- compute a Groebner basis for the saturation of an ideal by a single polynomial in GRevLex order</span></span></li>
+                    <li><span><span class="tt">Number == QQi</span> (missing documentation)<!--tag: (==,Number,QQi)-->
+</span></li>
+                    <li><span><span class="tt">precision(QQi)</span> (missing documentation)<!--tag: (precision,QQi)-->
+</span></li>
+                    <li><span><span class="tt">promote(Number,type of QQi)</span> (missing documentation)<!--tag: (promote,Number,QQi)-->
+</span></li>
+                    <li><span><span class="tt">QQi == Number</span> (missing documentation)<!--tag: (==,QQi,Number)-->
+</span></li>
+                    <li><span><span class="tt">ring(QQi)</span> (missing documentation)<!--tag: (ring,QQi)-->
+</span></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="interface to the msolve library for solving multivariate polynomial systems using Groebner Bases" href="index.html">Msolve</a> is <span>a <a title="the class of all packages" href="../../Macaulay2Doc/html/___Package.html">package</a></span>, defined in <span class="tt">Msolve.m2</span>, with auxiliary files in <span class="tt">Msolve/</span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Msolve.m2:644:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

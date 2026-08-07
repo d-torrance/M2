@@ -1,0 +1,91 @@
+-- -*- M2-comint -*- hash: 4580570119809392374
+
+i1 : SE = ZZ/101[a,b,c,x,y,Degrees=>toList(3:{1,0})|toList(2:{1,1}), SkewCommutative=>{x,y}]
+
+o1 = SE
+
+o1 : PolynomialRing, 2 skew commutative variable(s)
+
+i2 : RE = SE/ideal"a2,b2,c2"
+
+o2 = RE
+
+o2 : QuotientRing
+
+i3 : T = hashTable {{0,RE^1},{1,RE^{2:{ -1,-1}}}, {2,RE^{{ -2,-2}}}}
+
+                      1
+o3 = HashTable{0 => RE }
+                      2
+               1 => RE
+                      1
+               2 => RE
+
+o3 : HashTable
+
+i4 : E = matrix{{x,y}}
+
+o4 = | x y |
+
+              1       2
+o4 : Matrix RE  <-- RE
+
+i5 : F=apply(2, j-> source E_{j})
+
+        1    1
+o5 = {RE , RE }
+
+o5 : List
+
+i6 : phi = hashTable{ {{0,0}, map(T#1, F_0**T#0, T#1_{0})},{{1,0}, map(T#1, F_1**T#0, T#1_{1})},{{0,1}, map(T#2, F_0**T#1, T#1^{1})}, {{1,1}, -map(T#2, F_1**T#1, T#1^{0})}}
+
+o6 = HashTable{{0, 0} => {1, 1} | 1 |   }
+                         {1, 1} | 0 |
+               {0, 1} => {2, 2} | 0 1 |
+               {1, 0} => {1, 1} | 0 |
+                         {1, 1} | 1 |
+               {1, 1} => {2, 2} | -1 0 |
+
+o6 : HashTable
+
+i7 : apply(keys phi, k->isHomogeneous phi#k)
+
+o7 = {true, true, true, true}
+
+o7 : List
+
+i8 : X = makeModule(T,E,phi)
+
+o8 = cokernel {0, 0} | -x 0  0  -y 0  0  |
+              {1, 1} | 1  -x 0  0  -y 0  |
+              {1, 1} | 0  0  -x 1  0  -y |
+              {2, 2} | 0  0  1  0  -1 0  |
+
+                              4
+o8 : RE-module, quotient of RE
+
+i9 : isHomogeneous X
+
+o9 = true
+
+i10 : q = map(ZZ/101[x,y, SkewCommutative => true, DegreeMap => d->{d_1}], ring X, {3:0,x,y})
+
+            ZZ
+o10 = map (---[x..y], RE, {0, 0, 0, x, y})
+           101
+
+               ZZ
+o10 : RingMap ---[x..y] <-- RE
+              101
+
+i11 : prune coker q presentation X
+
+        ZZ       1
+o11 = (---[x..y])
+       101
+
+       ZZ
+o11 : ---[x..y]-module, free
+      101
+
+i12 : 

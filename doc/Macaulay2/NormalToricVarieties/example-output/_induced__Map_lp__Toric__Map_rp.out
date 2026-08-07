@@ -1,0 +1,142 @@
+-- -*- M2-comint -*- hash: 16832993100566490768
+
+i1 : A = affineSpace 2;
+
+i2 : P = toricProjectiveSpace 2;
+
+i3 : f = map(P, A, 1)
+
+o3 = | 1 0 |
+     | 0 1 |
+
+o3 : ToricMap P <--- A
+
+i4 : (R = ring A, S = ring P);
+
+i5 : f' = inducedMap f
+
+o5 = map (R, S, {1, x , x })
+                     0   1
+
+o5 : RingMap R <-- S
+
+i6 : f' vars S
+
+o6 = | 1 x_0 x_1 |
+
+             1      3
+o6 : Matrix R  <-- R
+
+i7 : ideal f == 0
+
+o7 = true
+
+i8 : degrees source f'
+
+o8 = {{1}, {1}, {1}}
+
+o8 : List
+
+i9 : degrees target f'
+
+o9 = {{}, {}}
+
+o9 : List
+
+i10 : assert (isWellDefined f and isHomogeneous f')
+
+i11 : X = hirzebruchSurface 3;
+
+i12 : Y = toricProjectiveSpace 1;
+
+i13 : g = map(Y, X, matrix {{1, 0}})
+
+o13 = | 1 0 |
+
+o13 : ToricMap Y <--- X
+
+i14 : (R = ring Y, S = ring X);
+
+i15 : g' = inducedMap g
+
+o15 = map (S, R, {x , x })
+                   2   0
+
+o15 : RingMap S <-- R
+
+i16 : degrees source g'
+
+o16 = {{1}, {1}}
+
+o16 : List
+
+i17 : degrees target g'
+
+o17 = {{1, 0}, {-3, 1}, {1, 0}, {0, 1}}
+
+o17 : List
+
+i18 : assert (isWellDefined g and isHomogeneous g')
+
+i19 : Z = toricProjectiveSpace 3;
+
+i20 : h = map(Z, Y, matrix {{1}, {2}, {3}})
+
+o20 = | 1 |
+      | 2 |
+      | 3 |
+
+o20 : ToricMap Z <--- Y
+
+i21 : (R = ring Y, S = ring X);
+
+i22 : h' = inducedMap h
+
+                            3   2       2   3
+o22 = map (R, QQ[x ..x ], {x , x x , x x , x })
+                  0   3     0   0 1   0 1   1
+
+o22 : RingMap R <-- QQ[x ..x ]
+                        0   3
+
+i23 : degrees source g'
+
+o23 = {{1}, {1}}
+
+o23 : List
+
+i24 : degrees target g'
+
+o24 = {{1, 0}, {-3, 1}, {1, 0}, {0, 1}}
+
+o24 : List
+
+i25 : ideal h
+
+              2                       2
+o25 = ideal (x  - x x , x x  - x x , x  - x x )
+              2    1 3   1 2    0 3   1    0 2
+
+o25 : Ideal of QQ[x ..x ]
+                   0   3
+
+i26 : assert (isWellDefined h and isHomogeneous h' and ideal h == ker h')
+
+i27 : code (inducedMap, ToricMap)
+
+o27 = -- code for method: inducedMap(ToricMap)
+      ../../../../../Macaulay2/packages/NormalToricVarieties/ToricMaps.m2:394
+      :34-404:5: --source code:
+      inducedMap ToricMap := RingMap => o -> (cacheValue symbol inducedMap) (f -> (
+              Y := target f;
+              S := ring Y;
+              R := ring source f;
+              m := picardGroup f; -- degree map
+              map(R, S, apply(numgens S, i -> (
+                          exps := entries pullback(f, Y_i);
+                          product(numgens R, j -> R_j^(exps#j)))),
+                  DegreeMap => (deg -> first entries (matrix{deg} * transpose m)))
+              )
+          )
+
+i28 : 

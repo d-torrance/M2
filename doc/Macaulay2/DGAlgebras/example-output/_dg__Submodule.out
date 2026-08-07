@@ -1,0 +1,234 @@
+-- -*- M2-comint -*- hash: 13241464007778067184
+
+i1 : R = ZZ/101[x]
+
+o1 = R
+
+o1 : PolynomialRing
+
+i2 : A = koszulComplexDGA R
+
+o2 = {Ring => R                    }
+      Underlying algebra => R[T   ]
+                               1,1
+      Differential => {x}
+
+o2 : DGAlgebra
+
+i3 : M = freeDGModule(A, {0})
+
+o3 = {Base ring => R               }
+      DG algebra => R[T   ]
+                       1,1
+                                 1
+      Natural module => (R[T   ])
+                            1,1
+      Generator degrees => {{0, 0}}
+      Differentials on gens => {0}
+
+o3 : DGModule
+
+i4 : S = dgSubmodule(M, id_(M.natural))
+
+o4 = DGSubmodule of ambient DGModule
+     Degrees  => {{0, 0}}
+                          1
+     natural  => (R[T   ])
+                     1,1
+     inclusion => | 1 |
+
+o4 : DGSubmodule
+
+i5 : instance(S, DGSubmodule)
+
+o5 = true
+
+i6 : ambient S === M
+
+o6 = true
+
+i7 : isWellDefined S
+
+o7 = true
+
+i8 : Z = dgSubmodule(M, {})
+
+o8 = DGSubmodule of ambient DGModule
+     Degrees  => {}
+     natural  => 0
+     inclusion => 0
+
+o8 : DGSubmodule
+
+i9 : numcols (inclusion Z).natural == 0
+
+o9 = true
+
+i10 : isZero Z
+
+o10 = true
+
+i11 : M2 = freeDGModule(A, {0, 1})
+
+o11 = {Base ring => R                       }
+       DG algebra => R[T   ]
+                        1,1
+                                  2
+       Natural module => (R[T   ])
+                             1,1
+       Generator degrees => {{0, 0}, {1, 0}}
+       Differentials on gens => {0, 0}
+
+o11 : DGModule
+
+i12 : natGens = apply(rank M2.natural, i -> (M2.natural)_i)
+
+o12 = {| 1 |, | 0 |}
+       | 0 |  | 1 |
+
+o12 : List
+
+i13 : setDiff(M2, {0, x * natGens#0})
+
+o13 = {Base ring => R                       }
+       DG algebra => R[T   ]
+                        1,1
+                                  2
+       Natural module => (R[T   ])
+                             1,1
+       Generator degrees => {{0, 0}, {1, 0}}
+       Differentials on gens => {0, | x |}
+                                    | 0 |
+
+o13 : DGModule
+
+i14 : Anat = A.natural
+
+o14 = Anat
+
+o14 : PolynomialRing, 1 skew commutative variable(s)
+
+i15 : seed = (id_(M2.natural))_{1}
+
+o15 = {0, 0} | 0 |
+      {1, 0} | 1 |
+
+                 2         1
+o15 : Matrix Anat  <-- Anat
+
+i16 : S2 = dgSubmodule(M2, seed)
+
+o16 = DGSubmodule of ambient DGModule
+      Degrees  => {{1, 0}, {0, 0}}
+                      2
+      natural  => Anat
+      inclusion => {0, 0} | 0 x |
+                   {1, 0} | 1 0 |
+
+o16 : DGSubmodule
+
+i17 : xe0 = (id_(M2.natural))_{0} * matrix {{x_Anat}}
+
+o17 = {0, 0} | x |
+      {1, 0} | 0 |
+
+                 2         1
+o17 : Matrix Anat  <-- Anat
+
+i18 : incMat = (inclusion S2).natural
+
+o18 = {0, 0} | 0 x |
+      {1, 0} | 1 0 |
+
+                 2         2
+o18 : Matrix Anat  <-- Anat
+
+i19 : (xe0 - incMat * (xe0 // incMat)) == 0
+
+o19 = true
+
+i20 : S = QQ[x, y] / ideal(x^2, y^2)
+
+o20 = S
+
+o20 : QuotientRing
+
+i21 : B = koszulComplexDGA S
+
+o21 = {Ring => S                          }
+       Underlying algebra => S[T   ..T   ]
+                                1,1   1,2
+       Differential => {x, y}
+
+o21 : DGAlgebra
+
+i22 : Mdg = minimalSemifreeResolution(B, S^1 / ideal(x, y), EndDegree => 3)
+
+o22 = {Base ring => S                                                                                    }
+       DG algebra => S[T   ..T   ]
+                        1,1   1,2
+                                        6
+       Natural module => (S[T   ..T   ])
+                             1,1   1,2
+       Generator degrees => {{0, 0}, {2, 2}, {2, 2}, {4, 4}, {4, 4}, {4, 4}}
+       Differentials on gens => {0, | xT_(1,1) |, | yT_(1,2) |, |     0    |, |     0    |, |     0    |}
+                                    |     0    |  |     0    |  | xT_(1,1) |  | yT_(1,2) |  |     0    |
+                                    |     0    |  |     0    |  |     0    |  | xT_(1,1) |  | yT_(1,2) |
+                                    |     0    |  |     0    |  |     0    |  |     0    |  |     0    |
+                                    |     0    |  |     0    |  |     0    |  |     0    |  |     0    |
+                                    |     0    |  |     0    |  |     0    |  |     0    |  |     0    |
+
+o22 : DGModule
+
+i23 : homDegs = apply(Mdg.Degrees, d -> d#0)
+
+o23 = {0, 2, 2, 4, 4, 4}
+
+o23 : List
+
+i24 : pos2 = positions(Mdg.Degrees, d -> d#0 == 2)
+
+o24 = {1, 2}
+
+o24 : List
+
+i25 : seedHi = (id_(Mdg.natural))_pos2
+
+o25 = {0, 0} | 0 0 |
+      {2, 2} | 1 0 |
+      {2, 2} | 0 1 |
+      {4, 4} | 0 0 |
+      {4, 4} | 0 0 |
+      {4, 4} | 0 0 |
+
+                            6                    2
+o25 : Matrix (S[T   ..T   ])  <-- (S[T   ..T   ])
+                 1,1   1,2            1,1   1,2
+
+i26 : Shi = dgSubmodule(Mdg, seedHi)
+
+o26 = DGSubmodule of ambient DGModule
+      Degrees  => {{2, 2}, {2, 2}, {1, 2}, {1, 2}}
+                                 4
+      natural  => (S[T   ..T   ])
+                      1,1   1,2
+      inclusion => {0, 0} | 0 0 xT_(1,1) yT_(1,2) |
+                   {2, 2} | 1 0 0        0        |
+                   {2, 2} | 0 1 0        0        |
+                   {4, 4} | 0 0 0        0        |
+                   {4, 4} | 0 0 0        0        |
+                   {4, 4} | 0 0 0        0        |
+
+o26 : DGSubmodule
+
+i27 : apply(Shi.Degrees, d -> d#0)
+
+o27 = {2, 2, 1, 1}
+
+o27 : List
+
+i28 : isWellDefined Shi
+
+o28 = true
+
+i29 : 

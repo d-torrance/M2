@@ -1,0 +1,1029 @@
+ -*- coding: utf-8 -*- This is RandomComplexes.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* RandomComplexes: (RandomComplexes).  random complexes over fields or the integers
+END-INFO-DIR-ENTRY
+
+
+File: RandomComplexes.info, Node: Top, Next: Discrete, Up: (dir)
+
+RandomComplexes -- support for creating random complexes over the integers
+**************************************************************************
+
+Description
+===========
+
+We implement two methods to create a random *note Complex: (Complexes)Complex,
+over the integers. The first method (*note randomChainComplex:
+randomChainComplex,) builds the complex from products of randomly chosen
+matrices of desired rank. The limitation of this method to produce large
+complexes over the integers with moderate Height is the use of the LLL
+algorithm to improve the presentation of syzygy matrices.
+
+The second method (*note randomSimplicialComplex: randomSimplicialComplex,)
+uses Stanley-Reisner rings from randomly chosen monomial ideals.
+
+Caveat
+======
+
+Some functionality here should be moved elsewhere, e.g. *note disturb:
+disturb,, *note histogram: histogram,, *note maximalEntry: maximalEntry,, and
+*note normalize: normalize,.
+
+Authors
+=======
+
+  * Frank-Olaf Schreyer (see http://www.math.uni-sb.de/ag/schreyer/ )
+    <schreyer@math.uni-sb.de>
+  * Michael E. Stillman (see
+    http://www.math.cornell.edu/People/Faculty/stillman.html )
+    <mike@math.cornell.edu>
+
+Version
+=======
+
+This documentation describes version 0.2 of RandomComplexes, released 4 April
+2018.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{RandomComplexesSource,                                                 |
+|  title = {{RandomComplexes: random complexes over fields or the integers.   |
+|  author = {Frank-Olaf Schreyer and Michael E. Stillman},                    |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages   |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+| Version~0.2}},                                                              |
+|                                                                             |
+|                                                                             |
+|}}                                                                           |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note disturb: disturb, -- disturb the matrices of a chain complex over
+        RR
+      * *note histogram: histogram, -- histogram of a list of real numbers
+      * *note maximalEntry: maximalEntry, -- maximal absolute value of the
+        entries of the matrix or matrices
+      * *note normalize: normalize, -- normalize a Complex over QQ or RR
+      * *note randomChainComplex: randomChainComplex, -- random chain complex
+        over the integers with prescribed ranks of the homology group and ranks
+        of the matrices
+      * *note randomSimplicialComplex: randomSimplicialComplex, -- the
+        chainComplex over ZZ of a random Stanley-Reisner simplicial complex
+      * *note testTimeForLLLonSyzygies: testTimeForLLLonSyzygies, -- test
+        timing for LLL on syzygies
+  * Methods
+      * "disturb(Complex,RR)" -- see *note disturb: disturb, -- disturb the
+        matrices of a chain complex over RR
+      * "histogram(List,ZZ)" -- see *note histogram: histogram, -- histogram of
+        a list of real numbers
+      * "maximalEntry(Complex)" -- see *note maximalEntry: maximalEntry, --
+        maximal absolute value of the entries of the matrix or matrices
+      * "maximalEntry(Matrix)" -- see *note maximalEntry: maximalEntry, --
+        maximal absolute value of the entries of the matrix or matrices
+      * "normalize(Complex)" -- see *note normalize: normalize, -- normalize a
+        Complex over QQ or RR
+      * "randomChainComplex(List,List)" -- see *note randomChainComplex:
+        randomChainComplex, -- random chain complex over the integers with
+        prescribed ranks of the homology group and ranks of the matrices
+      * "randomSimplicialComplex(ZZ,ZZ)" -- see *note randomSimplicialComplex:
+        randomSimplicialComplex, -- the chainComplex over ZZ of a random
+        Stanley-Reisner simplicial complex
+      * "testTimeForLLLonSyzygies(ZZ,ZZ)" -- see *note
+        testTimeForLLLonSyzygies: testTimeForLLLonSyzygies, -- test timing for
+        LLL on syzygies
+  * Symbols
+      * "Continuous" -- see *note Discrete: Discrete, -- Value for the Strategy
+        in disturb
+      * *note Discrete: Discrete, -- Value for the Strategy in disturb
+      * *note WithLLL: WithLLL, -- Option for randomComplex
+      * *note ZeroMean: ZeroMean, -- Option for randomComplex
+
+For the programmer
+==================
+
+The object *note RandomComplexes: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in RandomComplexes.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:255:0.
+
+File: RandomComplexes.info, Node: Discrete, Next: disturb, Prev: Top, Up: Top
+
+Discrete -- Value for the Strategy in disturb
+*********************************************
+
+Description
+===========
+
+If Strategy=>Continuous then we disturb the complex by floating point numbers
+otherwise by discrete values.
+
+See also
+========
+
+  * *note disturb: disturb, -- disturb the matrices of a chain complex over RR
+
+For the programmer
+==================
+
+The object *note Discrete: Discrete, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:534:0.
+
+File: RandomComplexes.info, Node: disturb, Next: histogram, Prev: Discrete, Up: Top
+
+disturb -- disturb the matrices of a chain complex over RR
+**********************************************************
+
+  * Usage: 
+        B = disturb(C,epsilon)
+  * Inputs:
+      * C, a *note complex: (Complexes)Complex,, over RR or QQ
+      * epsilon, a *note real number: (Macaulay2Doc)RR,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Strategy => a *note symbol: (Macaulay2Doc)Symbol,, default value
+        Discrete, either Discrete or Continuous, whether the disturbed values
+        should be drawn from a discrete distribution or a continuous
+        distribution
+  * Outputs:
+      * B, a *note complex: (Complexes)Complex,, a sequence of matrices over RR
+
+Description
+===========
+
+We disturb the entries of the matrices by a relative error of size epsilon
+depending on either a discrete with values in \{-1,1\}\ or a continuous random
+variable with values in [-1..1].
+
++----------------------------------------------------------------------------+
+|i1 : needsPackage "RandomComplexes"                                         |
+|                                                                            |
+|o1 = RandomComplexes                                                        |
+|                                                                            |
+|o1 : Package                                                                |
++----------------------------------------------------------------------------+
+|i2 : setRandomSeed "nice example 2";                                        |
+| -- setting random seed to 12638458417381289481402307077                    |
++----------------------------------------------------------------------------+
+|i3 : C=randomChainComplex({1,1,1},{2,2})                                    |
+|                                                                            |
+|       3       5       3                                                    |
+|o3 = ZZ  <-- ZZ  <-- ZZ                                                     |
+|                                                                            |
+|     0       1       2                                                      |
+|                                                                            |
+|o3 : Complex                                                                |
++----------------------------------------------------------------------------+
+|i4 : C.dd                                                                   |
+|                                                                            |
+|           3                              5                                 |
+|o4 = 0 : ZZ  <------------------------- ZZ  : 1                             |
+|                | -14 -7  5 5   3   |                                       |
+|                | 8   13  1 -17 -21 |                                       |
+|                | -13 -15 1 18  21  |                                       |
+|                                                                            |
+|           5                        3                                       |
+|     1 : ZZ  <------------------- ZZ  : 2                                   |
+|                | -11 5   -10 |                                             |
+|                | 26  -29 37  |                                             |
+|                | 19  -16 23  |                                             |
+|                | -41 -1  -22 |                                             |
+|                | 46  -16 38  |                                             |
+|                                                                            |
+|o4 : ComplexMap                                                             |
++----------------------------------------------------------------------------+
+|i5 : B=disturb(C,1e-4)                                                      |
+|                                                                            |
+|         3         5         3                                              |
+|o5 = RR    <-- RR    <-- RR                                                 |
+|       53        53        53                                               |
+|                                                                            |
+|     0         1         2                                                  |
+|                                                                            |
+|o5 : Complex                                                                |
++----------------------------------------------------------------------------+
+|i6 : B.dd                                                                   |
+|                                                                            |
+|             3                                                         5    |
+|o6 = 0 : RR    <-------------------------------------------------- RR    : 1|
+|           53     | -13.9986 -6.9993  5.0005 5.0005   2.9997   |     53     |
+|                  | 8.0008   12.9987  1.0001 -17.0017 -20.9979 |            |
+|                  | -13.0013 -15.0015 1.0001 18.0018  20.9979  |            |
+|                                                                            |
+|             5                                         3                    |
+|     1 : RR    <---------------------------------- RR    : 2                |
+|           53     | -10.9989 4.9995   -10.001  |     53                     |
+|                  | 26.0026  -29.0029 37.0037  |                            |
+|                  | 18.9981  -16.0016 23.0023  |                            |
+|                  | -40.9959 -1.0001  -21.9978 |                            |
+|                  | 46.0046  -16.0016 37.9962  |                            |
+|                                                                            |
+|o6 : ComplexMap                                                             |
++----------------------------------------------------------------------------+
+|i7 : B.dd^2                                                                 |
+|                                                                            |
+|             3                                               3              |
+|o7 = 0 : RR    <---------------------------------------- RR    : 2          |
+|           53     | -.0307969    -.0030031 .00020458 |     53               |
+|                  | -4.26326e-14 .00020002 .148183   |                      |
+|                  | -.0780078    .080208   -.239992  |                      |
+|                                                                            |
+|o7 : ComplexMap                                                             |
++----------------------------------------------------------------------------+
+|i8 : B1=disturb(C,1e-4,Strategy => Continuous)                              |
+|                                                                            |
+|         3         5         3                                              |
+|o8 = RR    <-- RR    <-- RR                                                 |
+|       53        53        53                                               |
+|                                                                            |
+|     0         1         2                                                  |
+|                                                                            |
+|o8 : Complex                                                                |
++----------------------------------------------------------------------------+
+|i9 : B1.dd^2                                                                |
+|                                                                            |
+|             3                                            3                 |
+|o9 = 0 : RR    <------------------------------------- RR    : 2             |
+|           53     | -.0274814 .0279033  -.0248834 |     53                  |
+|                  | -.0316963 -.0630671 .0213659  |                         |
+|                  | .0211089  .0524756  -.0148725 |                         |
+|                                                                            |
+|o9 : ComplexMap                                                             |
++----------------------------------------------------------------------------+
+
+Caveat
+======
+
+The result is only approximately a complex
+
+See also
+========
+
+  * *note Continuous: Discrete, -- Value for the Strategy in disturb
+  * *note Discrete: Discrete, -- Value for the Strategy in disturb
+
+Ways to use disturb:
+====================
+
+  * "disturb(Complex,RR)"
+
+For the programmer
+==================
+
+The object *note disturb: disturb, is a *note method function with options:
+(Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:432:0.
+
+File: RandomComplexes.info, Node: histogram, Next: maximalEntry, Prev: disturb, Up: Top
+
+histogram -- histogram of a list of real numbers
+************************************************
+
+  * Usage: 
+        h = histogram(L,n)
+  * Inputs:
+      * L, a *note list: (Macaulay2Doc)List,, of numbers in RR or QQ or ZZ
+      * n, an *note integer: (Macaulay2Doc)ZZ,, the number of subintervals to
+        be considered.
+  * Outputs:
+      * h, a *note list: (Macaulay2Doc)List,, of n integers, the number of
+        entries in L in i-th equidistant subdivision of the interval from min L
+        to max L
+
+Description
+===========
+
+We compute h_i the number to elements in the i-th equidistant subdivision of
+the interval [min L, max L] into n parts
+
++-----------------------------------------------------------------------------+
+|i1 : M=(randomChainComplex({20,20},{20},ZeroMean=>true)).dd_1;               |
+|                                                                             |
+|              40       40                                                    |
+|o1 : Matrix ZZ   <-- ZZ                                                      |
++-----------------------------------------------------------------------------+
+|i2 : (svds,U,Vt)=SVD(M**RR_53);                                              |
++-----------------------------------------------------------------------------+
+|i3 : (entries matrix {svds})_0/log                                           |
+|                                                                             |
+|o3 = {6.37106, 6.31472, 6.27245, 6.10348, 6.02102, 5.98252, 5.92934, 5.83927,|
+|     ------------------------------------------------------------------------|
+|     5.72509, 5.63923, 5.51957, 5.51441, 5.45378, 5.3237, 5.14787, 5.11063,  |
+|     ------------------------------------------------------------------------|
+|     4.80679, 4.71988, 4.56427, 3.9834, -30.0491, -30.2254, -30.4045,        |
+|     ------------------------------------------------------------------------|
+|     -30.6124, -30.8016, -30.8016, -30.8016, -30.8016, -30.8016, -30.8016,   |
+|     ------------------------------------------------------------------------|
+|     -30.8016, -30.8016, -30.8016, -30.8016, -30.8016, -30.8016, -30.8016,   |
+|     ------------------------------------------------------------------------|
+|     -30.8016, -31.3779, -31.4988}                                           |
+|                                                                             |
+|o3 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i4 : maximalEntry M                                                          |
+|                                                                             |
+|o4 = 138                                                                     |
+|                                                                             |
+|o4 : RR (of precision 53)                                                    |
++-----------------------------------------------------------------------------+
+|i5 : histogram(svds/log,10)                                                  |
+|                                                                             |
+|o5 = {20, 0, 0, 0, 0, 0, 0, 0, 0, 20}                                        |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i6 : histogram(svds_{0..19}/log,10)                                          |
+|                                                                             |
+|o6 = {1, 0, 1, 2, 2, 1, 4, 2, 4, 3}                                          |
+|                                                                             |
+|o6 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i7 : histogram(svds_{20..39}/log,10)                                         |
+|                                                                             |
+|o7 = {2, 0, 0, 0, 14, 0, 1, 1, 1, 1}                                         |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+
+Ways to use histogram:
+======================
+
+  * "histogram(List,ZZ)"
+
+For the programmer
+==================
+
+The object *note histogram: histogram, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:463:0.
+
+File: RandomComplexes.info, Node: maximalEntry, Next: normalize, Prev: histogram, Up: Top
+
+maximalEntry -- maximal absolute value of the entries of the matrix or matrices
+*******************************************************************************
+
+  * Usage: 
+        m = maximalEntries C
+  * Inputs:
+      * C, a *note complex: (Complexes)Complex,, or a *note Matrix:
+        (Macaulay2Doc)Matrix,, over ZZ, QQ, or RR
+  * Outputs:
+      * m, a *note list: (Macaulay2Doc)List,, of the maximal absolute values of
+        the entries in matrices defining the differential
+
+Description
+===========
+
+For each matrix we compute the of maximal absolute value of the entries
+
++------------------------------------------------------------------+
+|i1 : setRandomSeed "nice example 2";                              |
+| -- setting random seed to 12638458417381289481402307077          |
++------------------------------------------------------------------+
+|i2 : C=randomChainComplex({1,1,1},{2,2},Height=>10)               |
+|                                                                  |
+|       3       5       3                                          |
+|o2 = ZZ  <-- ZZ  <-- ZZ                                           |
+|                                                                  |
+|     0       1       2                                            |
+|                                                                  |
+|o2 : Complex                                                      |
++------------------------------------------------------------------+
+|i3 : C.dd                                                         |
+|                                                                  |
+|           3                              5                       |
+|o3 = 0 : ZZ  <------------------------- ZZ  : 1                   |
+|                | -14 -7  5 5   3   |                             |
+|                | 8   13  1 -17 -21 |                             |
+|                | -13 -15 1 18  21  |                             |
+|                                                                  |
+|           5                        3                             |
+|     1 : ZZ  <------------------- ZZ  : 2                         |
+|                | -11 5   -10 |                                   |
+|                | 26  -29 37  |                                   |
+|                | 19  -16 23  |                                   |
+|                | -41 -1  -22 |                                   |
+|                | 46  -16 38  |                                   |
+|                                                                  |
+|o3 : ComplexMap                                                   |
++------------------------------------------------------------------+
+|i4 : maximalEntry C                                               |
+|                                                                  |
+|o4 = {21, 46}                                                     |
+|                                                                  |
+|o4 : List                                                         |
++------------------------------------------------------------------+
+|i5 : B=randomChainComplex({2,2,4,2,5,2,2},{2,3,3,2,3,3},Height=>5)|
+|                                                                  |
+|       4       7       10       7       10       8       5        |
+|o5 = ZZ  <-- ZZ  <-- ZZ   <-- ZZ  <-- ZZ   <-- ZZ  <-- ZZ         |
+|                                                                  |
+|     0       1       2        3       4        5       6          |
+|                                                                  |
+|o5 : Complex                                                      |
++------------------------------------------------------------------+
+|i6 : maximalEntry B                                               |
+|                                                                  |
+|o6 = {6, 28, 14, 15, 16, 11}                                      |
+|                                                                  |
+|o6 : List                                                         |
++------------------------------------------------------------------+
+|i7 : apply(min B..max B,i->rank HH_i(B**QQ))                      |
+|                                                                  |
+|o7 = (2, 2, 4, 2, 5, 2, 2)                                        |
+|                                                                  |
+|o7 : Sequence                                                     |
++------------------------------------------------------------------+
+
+Ways to use maximalEntry:
+=========================
+
+  * "maximalEntry(Complex)"
+  * "maximalEntry(Matrix)"
+
+For the programmer
+==================
+
+The object *note maximalEntry: maximalEntry, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:392:0.
+
+File: RandomComplexes.info, Node: normalize, Next: randomChainComplex, Prev: maximalEntry, Up: Top
+
+normalize -- normalize a Complex over QQ or RR
+**********************************************
+
+  * Usage: 
+        B = normalize C
+  * Inputs:
+      * C, a *note complex: (Complexes)Complex,, over RR or QQ
+  * Outputs:
+      * B, a *note complex: (Complexes)Complex,, an isomorphic Complex over QQ
+        or RR
+
+Description
+===========
+
+We divide each matrix by its entry of maximal absolute value, to obtain a
+complex with entries of absolute size $\le 1$.
+
++----------------------------------------------------------+
+|i1 : setRandomSeed "nice example 2";                      |
+| -- setting random seed to 12638458417381289481402307077  |
++----------------------------------------------------------+
+|i2 : C=randomChainComplex({1,1,1},{2,2})                  |
+|                                                          |
+|       3       5       3                                  |
+|o2 = ZZ  <-- ZZ  <-- ZZ                                   |
+|                                                          |
+|     0       1       2                                    |
+|                                                          |
+|o2 : Complex                                              |
++----------------------------------------------------------+
+|i3 : C.dd                                                 |
+|                                                          |
+|           3                              5               |
+|o3 = 0 : ZZ  <------------------------- ZZ  : 1           |
+|                | -14 -7  5 5   3   |                     |
+|                | 8   13  1 -17 -21 |                     |
+|                | -13 -15 1 18  21  |                     |
+|                                                          |
+|           5                        3                     |
+|     1 : ZZ  <------------------- ZZ  : 2                 |
+|                | -11 5   -10 |                           |
+|                | 26  -29 37  |                           |
+|                | 19  -16 23  |                           |
+|                | -41 -1  -22 |                           |
+|                | 46  -16 38  |                           |
+|                                                          |
+|o3 : ComplexMap                                           |
++----------------------------------------------------------+
+|i4 : B=normalize C                                        |
+|                                                          |
+|       3       5       3                                  |
+|o4 = QQ  <-- QQ  <-- QQ                                   |
+|                                                          |
+|     0       1       2                                    |
+|                                                          |
+|o4 : Complex                                              |
++----------------------------------------------------------+
+|i5 : B.dd                                                 |
+|                                                          |
+|           3                                         5    |
+|o5 = 0 : QQ  <------------------------------------ QQ  : 1|
+|                | -2/3   -1/3  5/21 5/21   1/7 |          |
+|                | 8/21   13/21 1/21 -17/21 -1  |          |
+|                | -13/21 -5/7  1/21 6/7    1   |          |
+|                                                          |
+|           5                                 3            |
+|     1 : QQ  <---------------------------- QQ  : 2        |
+|                | -11/46 5/46   -5/23  |                  |
+|                | 13/23  -29/46 37/46  |                  |
+|                | 19/46  -8/23  1/2    |                  |
+|                | -41/46 -1/46  -11/23 |                  |
+|                | 1      -8/23  19/23  |                  |
+|                                                          |
+|o5 : ComplexMap                                           |
++----------------------------------------------------------+
+
+Ways to use normalize:
+======================
+
+  * "normalize(Complex)"
+
+For the programmer
+==================
+
+The object *note normalize: normalize, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:364:0.
+
+File: RandomComplexes.info, Node: randomChainComplex, Next: randomSimplicialComplex, Prev: normalize, Up: Top
+
+randomChainComplex -- random chain complex over the integers with prescribed ranks of the homology group and ranks of the matrices
+**********************************************************************************************************************************
+
+  * Usage: 
+        C = randomChainComplex(h,r)
+  * Inputs:
+      * h, a *note list: (Macaulay2Doc)List,, of desired ranks of the homology
+        groups, of some length $n$
+      * r, a *note list: (Macaulay2Doc)List,, of desired ranks of the matrices
+        in the complex, of length $n-1$
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Height => an *note integer: (Macaulay2Doc)ZZ,, default value 10, the
+        sizes of the random integers used
+      * WithLLL => a *note Boolean value: (Macaulay2Doc)Boolean,, default value
+        true, use the LLL algorithm to keep the sizes of the integers small
+      * ZeroMean => a *note Boolean value: (Macaulay2Doc)Boolean,, default
+        value true, whether to balance the random numbers around zero
+  * Outputs:
+      * C, a *note complex: (Complexes)Complex,, a random chain complex over
+        the integers whose homology ranks match $h$, and whose matrices have
+        ranks given by $r$
+
+Description
+===========
+
+
+
+
+
++------------------------------------------+
+|i1 : h={1,4,6,5,1}                        |
+|                                          |
+|o1 = {1, 4, 6, 5, 1}                      |
+|                                          |
+|o1 : List                                 |
++------------------------------------------+
+|i2 : r={1,3,3,4}                          |
+|                                          |
+|o2 = {1, 3, 3, 4}                         |
+|                                          |
+|o2 : List                                 |
++------------------------------------------+
+|i3 : C=randomChainComplex(h,r)            |
+|                                          |
+|       2       8       12       12       5|
+|o3 = ZZ  <-- ZZ  <-- ZZ   <-- ZZ   <-- ZZ |
+|                                          |
+|     0       1       2        3        4  |
+|                                          |
+|o3 : Complex                              |
++------------------------------------------+
+|i4 : prune HH C                           |
+|                                          |
+|       1       4       6       5       1  |
+|o4 = ZZ  <-- ZZ  <-- ZZ  <-- ZZ  <-- ZZ   |
+|                                          |
+|     0       1       2       3       4    |
+|                                          |
+|o4 : Complex                              |
++------------------------------------------+
+|i5 : for i from 0 to 4 list rank HH_i C   |
+|                                          |
+|o5 = {1, 4, 6, 5, 1}                      |
+|                                          |
+|o5 : List                                 |
++------------------------------------------+
+|i6 : for i from 1 to 4 list rank(C.dd_i)  |
+|                                          |
+|o6 = {1, 3, 3, 4}                         |
+|                                          |
+|o6 : List                                 |
++------------------------------------------+
+
+The optional argument Height chooses the maximum sizes of the random numbers
+used. The actual numbers are somewhat larger (twice as many bits), as matrices
+are multiplied together.
+
++-----------------------------------------------------------------------------+
+|i7 : h={1,4,0,5,1}                                                           |
+|                                                                             |
+|o7 = {1, 4, 0, 5, 1}                                                         |
+|                                                                             |
+|o7 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i8 : r={2,3,3,4}                                                             |
+|                                                                             |
+|o8 = {2, 3, 3, 4}                                                            |
+|                                                                             |
+|o8 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i9 : C=randomChainComplex(h,r, Height=>1000)                                 |
+|                                                                             |
+|       3       9       6       12       5                                    |
+|o9 = ZZ  <-- ZZ  <-- ZZ  <-- ZZ   <-- ZZ                                     |
+|                                                                             |
+|     0       1       2       3        4                                      |
+|                                                                             |
+|o9 : Complex                                                                 |
++-----------------------------------------------------------------------------+
+|i10 : C.dd                                                                   |
+|                                                                             |
+|            3                                                                |
+|o10 = 0 : ZZ  <--------------------------------------------------------------|
+|                 | 44424  -8775 -2160 -53262  -62508  -10437 -6822  -62838  1|
+|                 | 90516  14087 19368 -141214 -90936  2397   -10686 -117210 2|
+|                 | 138645 31572 37098 -226521 -127899 11070  -15363 -176148 4|
+|                                                                             |
+|            9                                                              6 |
+|      1 : ZZ  <--------------------------------------------------------- ZZ  |
+|                 | 330985  16445   756805   1698     330472  348418  |       |
+|                 | 713026  -154053 -42697   1538759  531828  793108  |       |
+|                 | 1313518 -554313 -1321367 952247   994858  2800    |       |
+|                 | 1504309 -561736 -934444  734919   1193028 74986   |       |
+|                 | -566001 95813   3887     -1731404 -398918 -893718 |       |
+|                 | -940456 315736  168999   191100   -803825 96554   |       |
+|                 | -505191 256413  438512   888174   -448781 587460  |       |
+|                 | -380977 341680  1286800  724845   -281448 878246  |       |
+|                 | 1910440 -687155 -752920  2107     1588083 -178598 |       |
+|                                                                             |
+|            6                                                                |
+|      2 : ZZ  <--------------------------------------------------------------|
+|                 | 41388167  -95238274 5488161   12322184  -52314315 -1585451|
+|                 | 9777314   29735878  8710464   42894623  -632054   -3113942|
+|                 | 21143227  -17020460 17282979  975209    12792629  -2778763|
+|                 | 20760737  -1043822  21170415  7109264   22491307  -3611535|
+|                 | -40854113 120671920 421659    2171879   64292129  1029525 |
+|                 | -47055725 11588622  -43668471 -17943160 -39150723 76088519|
+|                                                                             |
+|            12                                                         5     |
+|      3 : ZZ   <---------------------------------------------------- ZZ  : 4 |
+|                  | -2098931 -882197  -1197770 192505   -821100  |           |
+|                  | -540649  1132991  -2558060 653635   -1393888 |           |
+|                  | -1333740 3364752  -3624762 -4878996 2320266  |           |
+|                  | -1425716 -2621421 1862275  564680   -64468   |           |
+|                  | 1352058  -1470320 3544570  -96870   1495604  |           |
+|                  | -121418  1868293  -1472318 -1881704 649512   |           |
+|                  | -37268   -77123   -385029  440508   -259828  |           |
+|                  | -469251  -460737  -885687  1959819  -1865142 |           |
+|                  | -1299118 659729   -1037071 -1031938 -476574  |           |
+|                  | 28821    -1464654 -120682  2377619  -941278  |           |
+|                  | -857790  -1893725 2246803  -1115706 1519562  |           |
+|                  | -1160441 -1211038 -190488  1500701  -1537374 |           |
+|                                                                             |
+|o10 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|           9                                                                 |
+|-------- ZZ  : 1                                                             |
+|011  |                                                                       |
+|4977 |                                                                       |
+|5423 |                                                                       |
+|                                                                             |
+|                                                                             |
+|: 2                                                                          |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                     12      |
+|------------------------------------------------------------------ ZZ   : 3  |
+|3 50425642  -29862626 -100716183 -78673592 -64535295 57729071  |             |
+|4 6643135   83313808  -38773955  -56265921 3886477   -86494233 |             |
+|5 -357149   9785294   -29488934  -28260935 -29357422 16504066  |             |
+|9 -6466526  30843814  -27310181  -32178816 -24665021 -4404699  |             |
+|  -57179939 69499514  98152576   65571655  71827928  -98294804 |             |
+|  6825892   -62888800 68596487   76741536  56882559  6646445   |             |
++-----------------------------------------------------------------------------+
+|i11 : C.dd^2 == 0                                                            |
+|                                                                             |
+|o11 = true                                                                   |
++-----------------------------------------------------------------------------+
+|i12 : prune HH C                                                             |
+|                                                                             |
+|                           4                                                 |
+|o12 = cokernel | 3 | <-- ZZ  <-- cokernel | 64931150 | <-- cokernel | 6 | <--|
+|               | 0 |                                                | 0 |    |
+|                         1       2                                  | 0 |    |
+|      0                                                             | 0 |    |
+|                                                                    | 0 |    |
+|                                                                    | 0 |    |
+|                                                                             |
+|                                                           3                 |
+|                                                                             |
+|o12 : Complex                                                                |
+|-----------------------------------------------------------------------------|
+|  1                                                                          |
+|ZZ                                                                           |
+|                                                                             |
+|4                                                                            |
++-----------------------------------------------------------------------------+
+|i13 : for i from 0 to 4 list rank HH_i C                                     |
+|                                                                             |
+|o13 = {1, 4, 0, 5, 1}                                                        |
+|                                                                             |
+|o13 : List                                                                   |
++-----------------------------------------------------------------------------+
+|i14 : for i from 1 to 4 list rank(C.dd_i)                                    |
+|                                                                             |
+|o14 = {2, 3, 3, 4}                                                           |
+|                                                                             |
+|o14 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+Caveat
+======
+
+This returns a chain complex over the integers.  Notice that if one gives h to
+be a list of zeros, then that doesn't mean that the complex is exact, just that
+the ranks are as expected.
+
+See also
+========
+
+  * *note SVDComplexes: (SVDComplexes)Top, -- SVD (singular value
+    decomposition) of a complex over the reals and related functions
+
+Ways to use randomChainComplex:
+===============================
+
+  * "randomChainComplex(List,List)"
+
+For the programmer
+==================
+
+The object *note randomChainComplex: randomChainComplex, is a *note method
+function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:311:0.
+
+File: RandomComplexes.info, Node: randomSimplicialComplex, Next: testTimeForLLLonSyzygies, Prev: randomChainComplex, Up: Top
+
+randomSimplicialComplex -- the chainComplex over ZZ of a random Stanley-Reisner simplicial complex
+**************************************************************************************************
+
+  * Usage: 
+        C = randomSimplicialComplex(k,n)
+  * Inputs:
+      * k, an *note integer: (Macaulay2Doc)ZZ,, 
+      * n, an *note integer: (Macaulay2Doc)ZZ,, 
+  * Outputs:
+      * C, a *note complex: (Complexes)Complex,, the chainComplex of the
+        Stanley-Reisner simplicial complex of a random square free monomial
+        ideal in k+1 variables and n generators
+
+Description
+===========
+
+We compute the simplicial complex associated to a square free monomial ideal in
+k+1 variables whose n generators we choose randomly among the square free
+monomials.
+
+
+
++--------------------------------------------------------+
+|i1 : setRandomSeed "nice example 2";                    |
+| -- setting random seed to 12638458417381289481402307077|
++--------------------------------------------------------+
+|i2 : C = randomSimplicialComplex(7,20)                  |
+|                                                        |
+|       1       8       24       34       21             |
+|o2 = ZZ  <-- ZZ  <-- ZZ   <-- ZZ   <-- ZZ               |
+|                                                        |
+|     0       1       2        3        4                |
+|                                                        |
+|o2 : Complex                                            |
++--------------------------------------------------------+
+|i3 : prune HH C                                         |
+|                                                        |
+|       4                                                |
+|o3 = ZZ                                                 |
+|                                                        |
+|     4                                                  |
+|                                                        |
+|o3 : Complex                                            |
++--------------------------------------------------------+
+
+See also
+========
+
+  * *note SVDComplexes: (SVDComplexes)Top, -- SVD (singular value
+    decomposition) of a complex over the reals and related functions
+
+Ways to use randomSimplicialComplex:
+====================================
+
+  * "randomSimplicialComplex(ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note randomSimplicialComplex: randomSimplicialComplex, is a *note
+method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:339:0.
+
+File: RandomComplexes.info, Node: testTimeForLLLonSyzygies, Next: WithLLL, Prev: randomSimplicialComplex, Up: Top
+
+testTimeForLLLonSyzygies -- test timing for LLL on syzygies
+***********************************************************
+
+  * Usage: 
+        (m,t1,t2)=testTimeForLLLonSyzygies(r,n,Height=>100)
+  * Inputs:
+      * r, an *note integer: (Macaulay2Doc)ZZ,, 
+      * n, an *note integer: (Macaulay2Doc)ZZ,, 
+  * *note Optional inputs: (Macaulay2Doc)using functions with optional inputs,:
+      * Height => an *note integer: (Macaulay2Doc)ZZ,, default value 11, the
+        sizes of the random integers used
+  * Outputs:
+      * m, a *note list: (Macaulay2Doc)List,, of maximal absolute values of the
+        entries of A, B and the LLL basis of B
+      * t1, a *note real number: (Macaulay2Doc)RR,, the time in seconds to
+        compute B = ker A
+      * t2, a *note real number: (Macaulay2Doc)RR,, the time to compute the LLL
+        basis of B
+
+Description
+===========
+
+We randomly choose an $r \times\ n$ matrix A over ZZ with entries up to the
+given Height, and take the time to compute B=ker A and an LLL basis of B.
+
++-----------------------------------------------------------------------------+
+|i1 : setRandomSeed "nice example 2";                                         |
+| -- setting random seed to 12638458417381289481402307077                     |
++-----------------------------------------------------------------------------+
+|i2 : r=10,n=20                                                               |
+|                                                                             |
+|o2 = (10, 20)                                                                |
+|                                                                             |
+|o2 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+|i3 : (m,t1,t2)=testTimeForLLLonSyzygies(r,n,Height=>11)                      |
+|                                                                             |
+|o3 = ({5, 2.91596e52, 9}, .00219686, .00104693)                              |
+|                                                                             |
+|o3 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+|i4 : (m,t1,t2)=testTimeForLLLonSyzygies(15,30,Height=>100)                   |
+|                                                                             |
+|o4 = ({50, 2.30853e454, 98}, .00641379, .0440248)                            |
+|                                                                             |
+|o4 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+|i5 : L=apply(10,c->(testTimeForLLLonSyzygies(15,30))_{1,2})                  |
+|                                                                             |
+|o5 = {(.0064179, .014708), (.00699067, .00658813), (.00755661, .00922962),   |
+|     ------------------------------------------------------------------------|
+|     (.00781673, .0132745), (.00717642, .0174641), (.00704361, .0167375),    |
+|     ------------------------------------------------------------------------|
+|     (.00608146, .0106481), (.00627316, .010088), (.00543463, .00713445),    |
+|     ------------------------------------------------------------------------|
+|     (.00693316, .0108371)}                                                  |
+|                                                                             |
+|o5 : List                                                                    |
++-----------------------------------------------------------------------------+
+|i6 : 1/10*sum(L,t->t_0)                                                      |
+|                                                                             |
+|o6 = .006772436399999826                                                     |
+|                                                                             |
+|o6 : RR (of precision 53)                                                    |
++-----------------------------------------------------------------------------+
+|i7 : 1/10*sum(L,t->t_1)                                                      |
+|                                                                             |
+|o7 = .0116709397000001                                                       |
+|                                                                             |
+|o7 : RR (of precision 53)                                                    |
++-----------------------------------------------------------------------------+
+
+Ways to use testTimeForLLLonSyzygies:
+=====================================
+
+  * "testTimeForLLLonSyzygies(ZZ,ZZ)"
+
+For the programmer
+==================
+
+The object *note testTimeForLLLonSyzygies: testTimeForLLLonSyzygies, is a *note
+method function with options: (Macaulay2Doc)MethodFunctionWithOptions,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:499:0.
+
+File: RandomComplexes.info, Node: WithLLL, Next: ZeroMean, Prev: testTimeForLLLonSyzygies, Up: Top
+
+WithLLL -- Option for randomComplex
+***********************************
+
+Description
+===========
+
+If WithLLL=>true then syzygy matrices of the randomly chosen matrices are
+improved for their Height by applying the LLL algorithm.
+
+Functions with optional argument named WithLLL:
+===============================================
+
+  * "randomChainComplex(...,WithLLL=>...)" -- see *note randomChainComplex:
+    randomChainComplex, -- random chain complex over the integers with
+    prescribed ranks of the homology group and ranks of the matrices
+
+For the programmer
+==================
+
+The object *note WithLLL: WithLLL, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:520:0.
+
+File: RandomComplexes.info, Node: ZeroMean, Prev: WithLLL, Up: Top
+
+ZeroMean -- Option for randomComplex
+************************************
+
+Description
+===========
+
+If ZeroMean=>true then the integer of given Height values are randomly chosen
+with a zero mean
+
+Functions with optional argument named ZeroMean:
+================================================
+
+  * "randomChainComplex(...,ZeroMean=>...)" -- see *note randomChainComplex:
+    randomChainComplex, -- random chain complex over the integers with
+    prescribed ranks of the homology group and ranks of the matrices
+
+For the programmer
+==================
+
+The object *note ZeroMean: ZeroMean, is a *note symbol: (Macaulay2Doc)Symbol,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in RandomComplexes.m2:509:0.
+
+Tag Table:
+Node: Top262
+Node: Discrete5395
+Node: disturb6062
+Node: histogram15162
+Node: maximalEntry20102
+Node: normalize25174
+Node: randomChainComplex29627
+Node: randomSimplicialComplex44319
+Node: testTimeForLLLonSyzygies47087
+Node: WithLLL52353
+Node: ZeroMean53257
+
+End Tag Table

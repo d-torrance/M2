@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>cone(ComplexMap) -- make the mapping cone of a morphism of chain complexes</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="beta testing new version of chain complexes" href="index.html">Complexes</a> :: <a title="make the mapping cone of a morphism of chain complexes" href="_cone_lp__Complex__Map_rp.html">cone(ComplexMap)</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_connecting__Ext__Map_lp__Module_cm__Matrix_cm__Matrix_rp.html">next</a> | <a href="_concentration_lp__Complex__Map_rp.html">previous</a> | <a href="_connecting__Ext__Map_lp__Module_cm__Matrix_cm__Matrix_rp.html">forward</a> | <a href="_concentration_lp__Complex__Map_rp.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>cone(ComplexMap) -- make the mapping cone of a morphism of chain complexes</h1>
+      <ul>
+        <li><span>Function: <a title="mapping cone or polyhedral cone" href="../../Macaulay2Doc/html/_cone.html">cone</a></span></li>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">cone f</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">f</span>, <span>a <a title="the class of all maps between chain complexes" href="___Complex__Map.html">map of complexes</a></span>, which is a morphism of complexes</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span>a <a title="the class of all chain complexes" href="___Complex.html">complex</a></span>, </span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>Given a morphism $f \colon B \to C$, the mapping cone is the complex whose $i$-th term is $B_{i-1} \oplus C_i$, and whose $i$-th differential is given by \[ \begin{bmatrix} -\operatorname{dd}^{B[-1]} &amp; 0 \\ f[-1] &amp; \operatorname{dd}^C \end{bmatrix}. \]</p>
+        </div>
+        <div>
+          <p>A map between modules induces a map between their free resolutions, and we compute the associated mapping cone.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : S = ZZ/32003[x,y,z];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : M = ideal vars S
+
+o2 = ideal (x, y, z)
+
+o2 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : B = freeResolution(S^1/M^2)
+
+      1      6      8      3
+o3 = S  &lt;-- S  &lt;-- S  &lt;-- S
+                           
+     0      1      2      3
+
+o3 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : C = freeResolution(S^1/M)
+
+      1      3      3      1
+o4 = S  &lt;-- S  &lt;-- S  &lt;-- S
+                           
+     0      1      2      3
+
+o4 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : f = extend(C,B,id_(S^1))
+
+          1             1
+o5 = 0 : S  &lt;--------- S  : 0
+               | 1 |
+
+          3                           6
+     1 : S  &lt;----------------------- S  : 1
+               {1} | x y 0 0 0 0 |
+               {1} | 0 0 y 0 0 0 |
+               {1} | 0 0 0 x y z |
+
+          3                               8
+     2 : S  &lt;--------------------------- S  : 2
+               {2} | 0 y 0 0 0 0 0 0 |
+               {2} | 0 0 x y 0 0 0 0 |
+               {2} | 0 0 0 0 0 y 0 0 |
+
+          1                     3
+     3 : S  &lt;----------------- S  : 3
+               {3} | 0 y 0 |
+
+o5 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : Cf = cone f
+
+      1      4      9      9      3
+o6 = S  &lt;-- S  &lt;-- S  &lt;-- S  &lt;-- S
+                                  
+     0      1      2      3      4
+
+o6 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : dd^Cf
+
+          1                   4
+o7 = 0 : S  &lt;--------------- S  : 1
+               | 1 x y z |
+
+          4                                                9
+     1 : S  &lt;-------------------------------------------- S  : 2
+               {0} | -x2 -xy -y2 -xz -yz -z2 0  0  0  |
+               {1} | x   y   0   0   0   0   -y -z 0  |
+               {1} | 0   0   y   0   0   0   x  0  -z |
+               {1} | 0   0   0   x   y   z   0  x  y  |
+
+          9                                          9
+     2 : S  &lt;-------------------------------------- S  : 3
+               {2} | y  0  z  0  0  0  0  0  0  |
+               {2} | -x y  0  z  0  0  0  0  0  |
+               {2} | 0  -x 0  0  0  z  0  0  0  |
+               {2} | 0  0  -x -y y  0  z  0  0  |
+               {2} | 0  0  0  0  -x -y 0  z  0  |
+               {2} | 0  0  0  0  0  0  -x -y 0  |
+               {2} | 0  y  0  0  0  0  0  0  z  |
+               {2} | 0  0  x  y  0  0  0  0  -y |
+               {2} | 0  0  0  0  0  y  0  0  x  |
+
+          9                        3
+     3 : S  &lt;-------------------- S  : 4
+               {3} | -z 0  0  |
+               {3} | 0  -z 0  |
+               {3} | y  0  0  |
+               {3} | -x y  0  |
+               {3} | 0  y  -z |
+               {3} | 0  -x 0  |
+               {3} | 0  0  y  |
+               {3} | 0  0  -x |
+               {3} | 0  y  0  |
+
+o7 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : prune HH Cf
+
+o8 = cokernel {1} | z y x 0 0 0 0 0 0 |
+              {1} | 0 0 0 z y x 0 0 0 |
+              {1} | 0 0 0 0 0 0 z y x |
+      
+     1
+
+o8 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : assert(prune HH_1 Cf == prune(M/M^2))</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The mapping cone fits into a canonical short exact sequence of chain complexes: $$0 \to C \to \operatorname{cone}(f) \to B[-1] \to 0.$$</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : g = canonicalMap(Cf,C)
+
+           1             1
+o10 = 0 : S  &lt;--------- S  : 0
+                | 1 |
+
+           4                     3
+      1 : S  &lt;----------------- S  : 1
+                {0} | 0 0 0 |
+                {1} | 1 0 0 |
+                {1} | 0 1 0 |
+                {1} | 0 0 1 |
+
+           9                     3
+      2 : S  &lt;----------------- S  : 2
+                {2} | 0 0 0 |
+                {2} | 0 0 0 |
+                {2} | 0 0 0 |
+                {2} | 0 0 0 |
+                {2} | 0 0 0 |
+                {2} | 0 0 0 |
+                {2} | 1 0 0 |
+                {2} | 0 1 0 |
+                {2} | 0 0 1 |
+
+           9                 1
+      3 : S  &lt;------------- S  : 3
+                {3} | 0 |
+                {3} | 0 |
+                {3} | 0 |
+                {3} | 0 |
+                {3} | 0 |
+                {3} | 0 |
+                {3} | 0 |
+                {3} | 0 |
+                {3} | 1 |
+
+o10 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : h = canonicalMap(B[-1],Cf)
+
+           1                   4
+o11 = 1 : S  &lt;--------------- S  : 1
+                | 1 0 0 0 |
+
+           6                                 9
+      2 : S  &lt;----------------------------- S  : 2
+                {2} | 1 0 0 0 0 0 0 0 0 |
+                {2} | 0 1 0 0 0 0 0 0 0 |
+                {2} | 0 0 1 0 0 0 0 0 0 |
+                {2} | 0 0 0 1 0 0 0 0 0 |
+                {2} | 0 0 0 0 1 0 0 0 0 |
+                {2} | 0 0 0 0 0 1 0 0 0 |
+
+           8                                 9
+      3 : S  &lt;----------------------------- S  : 3
+                {3} | 1 0 0 0 0 0 0 0 0 |
+                {3} | 0 1 0 0 0 0 0 0 0 |
+                {3} | 0 0 1 0 0 0 0 0 0 |
+                {3} | 0 0 0 1 0 0 0 0 0 |
+                {3} | 0 0 0 0 1 0 0 0 0 |
+                {3} | 0 0 0 0 0 1 0 0 0 |
+                {3} | 0 0 0 0 0 0 1 0 0 |
+                {3} | 0 0 0 0 0 0 0 1 0 |
+
+           3                     3
+      4 : S  &lt;----------------- S  : 4
+                {4} | 1 0 0 |
+                {4} | 0 1 0 |
+                {4} | 0 0 1 |
+
+o11 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : assert(isWellDefined g and isWellDefined h)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : assert(isShortExactSequence(h,g))</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The most important application of mapping cones is to identify quasi-isomorphisms: $f$ is a quasi-isomorphism if and only if the mapping cone is acyclic.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : aug = augmentationMap C
+
+                                         1
+o14 = 0 : cokernel | x y z | &lt;--------- S  : 0
+                                | 1 |
+
+o14 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : assert isWellDefined aug</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : cone aug
+
+                              1      3      3      1
+o16 = cokernel | x y z | &lt;-- S  &lt;-- S  &lt;-- S  &lt;-- S
+                                                   
+      0                      1      2      3      4
+
+o16 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : assert(0 == prune HH cone aug)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : assert isQuasiIsomorphism aug</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Mapping cones can also be used to construct free resolutions of subschemes linked via a complete intersection to a arithmetically Cohen-Macaulay subscheme; see Peskine-Szpiro, Liaison des variétés algébriques I, <i>Invent. math.</i> <b>26</b> (1974) 271-302.</p>
+        </div>
+        <div>
+          <p>Here, we consider a random complete intersection of 2 cubics contained in the ideal of the twisted cubic curve, and we compute a free resolution of the linked curve of degree 6.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : S = ZZ/32003[a..d]
+
+o19 = S
+
+o19 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : I = monomialCurveIdeal(S, {1,2,3})
+
+              2                    2
+o20 = ideal (c  - b*d, b*c - a*d, b  - a*c)
+
+o20 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : K = ideal((gens I) * random(source gens I, S^{-3,-3}))
+
+                    2         3        2                      2            2
+o21 = ideal (8444a*b  - 10480b  - 8444a c + 14263a*b*c + 5052b c - 10252a*c 
+      -----------------------------------------------------------------------
+                2        3        2                      2               
+      + 12946b*c  - 5570c  - 3783a d + 5200a*b*d - 11840b d - 1106a*c*d -
+      -----------------------------------------------------------------------
+                       2            2          2         2        3        2 
+      9774b*c*d + 3187c d + 15344a*d  - 3187b*d , 8231a*b  + 5864b  - 8231a c
+      -----------------------------------------------------------------------
+                         2            2          2        3         2   
+      + 6501a*b*c - 8482b c - 13277a*c  - 6827b*c  + 5071c  - 12365a d -
+      -----------------------------------------------------------------------
+                        2                                 2            2  
+      10244a*b*d + 7606b d - 779a*c*d + 14982b*c*d - 6203c d + 11950a*d  +
+      -----------------------------------------------------------------------
+             2
+      6203b*d )
+
+o21 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : C = freeResolution(S^1/I)
+
+       1      3      2
+o22 = S  &lt;-- S  &lt;-- S
+                     
+      0      1      2
+
+o22 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : B = freeResolution(S^1/K)
+
+       1      2      1
+o23 = S  &lt;-- S  &lt;-- S
+                     
+      0      1      2
+
+o23 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i24 : f = dual extend(C,B,id_(S^1))
+
+            1                                                                                                                                                                                                                                                                                                               2
+o24 = -2 : S  &lt;----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- S  : -2
+                 {-6} | a2b+13164ab2+7073b3+14275a2c+12412abc+5971b2c+5936ac2-1626bc2-13990a2d+2551abd+4239b2d+713acd+13423bcd-14082c2d-8823ad2-4362bd2-14372cd2-5192d3 a3-4564a2b-12518ab2+5971b3-13990a2c+13569abc-9576b2c-1274ac2-4545bc2-5082a2d+14176abd-14035b2d-8823acd+9663bcd-4810c2d+3896ad2-9562bd2-5192cd2 |
+
+            2                                                                          3
+      -1 : S  &lt;---------------------------------------------------------------------- S  : -1
+                 {-3} | a-9704b-6703d -815a-6222b-2797d  -3046a+6364b-4113c+5637d |
+                 {-3} | b+6234d       12692a+4634b+3570d 9317a+14985b+4650c+3653d |
+
+           1             1
+      0 : S  &lt;--------- S  : 0
+                | 1 |
+
+o24 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i25 : Cf = (cone f)[-2]
+
+       1      4      4      1
+o25 = S  &lt;-- S  &lt;-- S  &lt;-- S
+                            
+      0      1      2      3
+
+o25 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i26 : prune HH Cf
+
+o26 = cokernel {-6} | b3+12691abc+4634b2c+9317ac2+14985bc2+4650c3-12692a2d-13951abd-8751b2d-6234acd-1080bcd+3653c2d-3570ad2-3653bd2 ab2-a2c+14809abc-2101b2c+647ac2-828bc2-4743c3-14809a2d+1454abd+3191b2d-2363acd-14023bcd-4975c2d-13237ad2+4975bd2 a2b-4564a2c+1981abc+7733b2c-3338ac2-9826bc2+8633c3+3514a2d+10063abd-12128b2d-6723acd+9014bcd-12568c2d-13047ad2-5876bd2-14372cd2-5192d3 a3+9352a2c-11170abc+3656b2c-10684ac2-5185bc2+11464c3+14456a2d+6480abd-4521b2d-7255acd+6319bcd-1015c2d-3792ad2+8120bd2+7150cd2-14068d3 |
+       
+      0
+
+o26 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i27 : Cf' = minimize Cf
+
+       1      4      3
+o27 = S  &lt;-- S  &lt;-- S
+                     
+      0      1      2
+
+o27 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i28 : J = ideal dd^Cf'_1
+
+              2            2        3         2                      2   
+o28 = ideal (a b + 13164a*b  + 7073b  + 14275a c + 12412a*b*c + 5971b c +
+      -----------------------------------------------------------------------
+             2          2         2                     2              
+      5936a*c  - 1626b*c  - 13990a d + 2551a*b*d + 4239b d + 713a*c*d +
+      -----------------------------------------------------------------------
+                         2           2          2           2        3   3  
+      13423b*c*d - 14082c d - 8823a*d  - 4362b*d  - 14372c*d  - 5192d , a  -
+      -----------------------------------------------------------------------
+           2            2        3         2                      2   
+      4564a b - 12518a*b  + 5971b  - 13990a c + 13569a*b*c - 9576b c -
+      -----------------------------------------------------------------------
+             2          2        2                       2               
+      1274a*c  - 4545b*c  - 5082a d + 14176a*b*d - 14035b d - 8823a*c*d +
+      -----------------------------------------------------------------------
+                       2           2          2          2         3  
+      9663b*c*d - 4810c d + 3896a*d  - 9562b*d  - 5192c*d , - 9554b  +
+      -----------------------------------------------------------------------
+                        2            2           2        3    2             
+      9553a*b*c - 13087b c - 14275a*c  + 14732b*c  - 5936c  + a d - 4641a*b*d
+      -----------------------------------------------------------------------
+              2                                   2           2           2 
+      + 15218b d + 2053a*c*d + 13354b*c*d + 14511c d - 7418a*d  - 14511b*d ,
+      -----------------------------------------------------------------------
+             2       3        2                       2            2  
+      9554a*b  + 675b  - 9554a c - 10456a*b*c - 15417b c - 10757a*c  -
+      -----------------------------------------------------------------------
+             2        3        2                     2               
+      4044b*c  + 4082c  + 9781a d - 5829a*b*d + 1585b d + 2459a*c*d -
+      -----------------------------------------------------------------------
+                       2         2          2
+      4115b*c*d - 5151c d + 33a*d  + 5151b*d )
+
+o28 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i29 : freeResolution J
+
+       1      4      3
+o29 = S  &lt;-- S  &lt;-- S
+                     
+      0      1      2
+
+o29 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i30 : assert(degree J == 6)</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="information about the basic constructors" href="___Making_spchain_spcomplexes.html">Making chain complexes</a> -- information about the basic constructors</span></li>
+          <li><span><a title="information about the basic constructors" href="___Making_spmaps_spbetween_spchain_spcomplexes.html">Making maps between chain complexes</a> -- information about the basic constructors</span></li>
+          <li><span><a title="make the mapping cylinder of a morphism of chain complexes" href="_cylinder.html">cylinder(ComplexMap)</a> -- make the mapping cylinder of a morphism of chain complexes</span></li>
+          <li><span><a title="map from a free resolution to a module regarded as a complex" href="_augmentation__Map.html">augmentationMap(Complex)</a> -- map from a free resolution to a module regarded as a complex</span></li>
+          <li><span><a title="extend a map of modules to a map of chain complexes" href="_extend_lp__Complex_cm__Complex_cm__Matrix_cm__Sequence_rp.html">extend(Complex,Complex,Matrix)</a> -- extend a map of modules to a map of chain complexes</span></li>
+          <li><span><a title="compute a free resolution of a module or ideal" href="_free__Resolution.html">freeResolution(Module)</a> -- compute a free resolution of a module or ideal</span></li>
+          <li><span><a title="gets the natural map arising from various constructions" href="_canonical__Map.html">canonicalMap</a> -- gets the natural map arising from various constructions</span></li>
+          <li><span><a title="whether a map of complexes is a quasi-isomorphism" href="_is__Quasi__Isomorphism_lp__Complex__Map_rp.html">isQuasiIsomorphism</a> -- whether a map of complexes is a quasi-isomorphism</span></li>
+          <li><span><a title="whether a chain complex is a short exact sequence" href="_is__Short__Exact__Sequence_lp__Complex_rp.html">isShortExactSequence</a> -- whether a chain complex is a short exact sequence</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use this method:</h2>
+          <ul>
+            <li><span><a title="make the mapping cone of a morphism of chain complexes" href="_cone_lp__Complex__Map_rp.html">cone(ComplexMap)</a> -- make the mapping cone of a morphism of chain complexes</span></li>
+          </ul>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Complexes/ChainComplexMapDoc.m2:2544:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

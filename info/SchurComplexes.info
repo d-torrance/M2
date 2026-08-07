@@ -1,0 +1,719 @@
+ -*- coding: utf-8 -*- This is SchurComplexes.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* SchurComplexes: (SchurComplexes).  Schur functors of complexes
+END-INFO-DIR-ENTRY
+
+
+File: SchurComplexes.info, Node: Top, Next: schurComplex, Up: (dir)
+
+SchurComplexes -- Schur functors of chain complexes
+***************************************************
+
+Description
+===========
+
+This package computes the Schur complex $S_{\lambda}F_{\bullet}$ associated to
+a bounded chain complex $F_{\bullet}$ of finitely-generated free modules,  and
+a partition $\lambda$. Our conventions are the transpose of the convention in
+"Cohomology of Vector Bundles and Syzygies", by Jerzy Weyman, Chapter 2.4.
+
+
+
+Authors
+=======
+
+  * Michael K. Brown (see https://www.math.wisc.edu/~mkbrown5/ )
+    <mkbrown5@wisc.edu>
+  * Amy Huang (see https://www.math.wisc.edu/~hhuang235/ )
+    <hhuang235@math.wisc.edu>
+  * Robert Laudone (see https://www.math.wisc.edu/~laudone/ )
+    <robert.laudone@gmail.com>
+  * Michael Perlman (see https://www3.nd.edu/~mperlman/ ) <mperlman@nd.edu>
+  * Claudiu Raicu (see https://www3.nd.edu/~craicu/ ) <craicu@nd.edu>
+  * Steven V Sam (see http://math.ucsd.edu/~ssam/ ) <ssam@sd.edu>
+  * Joao Pedro Santos (see http://math.nd.edu/people/graduate-students/graduate
+    -directory-with-photos/ ) <jsantos3@nd.edu>
+
+Certification a gold star
+=========================
+
+Version 1.1 of this package was accepted for publication in volume 9 (see
+https://msp.org/jsag/2019/9-2/ ) of Journal of Software for Algebra and
+Geometry (see https://msp.org/jsag/ ) on 21 August 2019, in the article
+Computing Schur complexes (see https://msp.org/jsag/2019/9-2/p02.xhtml ) (DOI:
+10.2140/jsag.2019.9.111 (see https://doi.org/10.2140/jsag.2019.9.111 )). That
+version can be obtained from the journal (see
+https://msp.org/jsag/2019/9-2/jsag-v9-n2-x02-SchurComplexes.m2 ).
+
+Version
+=======
+
+This documentation describes version 1.2 of SchurComplexes, released November
+12, 2025.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{SchurComplexesSource,                                                  |
+|  title = {{SchurComplexes: Schur functors of complexes. Version~1.2}},      |
+|  author = {Michael K. Brown and Amy Huang and Robert Laudone and Michael    |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages   |
+|}                                                                            |
+|                                                                             |
+|@article{SchurComplexesArticle,                                              |
+|  title = {{Computing Schur complexes}},                                     |
+|  author = {Michael K. Brown and Amy Huang and Robert Laudone and Michael    |
+|  journal = {Journal of Software for Algebra and Geometry},                  |
+|  volume = {9},                                                              |
+|  year = {2019},                                                             |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Perlman and Claudiu Raicu and Steven V Sam and Joao Pedro Santos},           |
+|                                                                             |
+|}}                                                                           |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|Perlman and Claudiu Raicu and Steven V Sam and Joao Pedro Santos},           |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note schurComplex: schurComplex, -- Schur functors of chain complexes
+      * *note straightenTableau: straightenTableau, -- Straightening law for
+        Z/2Z-graded tableau
+
+For the programmer
+==================
+
+The object *note SchurComplexes: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in SchurComplexes.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurComplexes.m2:488:0.
+
+File: SchurComplexes.info, Node: schurComplex, Next: straightenTableau, Prev: Top, Up: Top
+
+schurComplex -- Schur functors of chain complexes
+*************************************************
+
+  * Usage: 
+        G=schurComplex(lambda,F)
+  * Inputs:
+      * lambda, a *note list: (Macaulay2Doc)List,, 
+      * F, a *note complex: (Complexes)Complex,, 
+  * Outputs:
+      * G, a *note complex: (Complexes)Complex,, 
+
+Description
+===========
+
+This function computes the Schur complex associated to a partition $\lambda$
+and a bounded complex $F_{\bullet}$ of finitely-generated free modules over a
+commutative ring.
+
+The user inputs the partition $\lambda$ as a list and the chain complex
+$F_{\bullet}$.
+
+In the following example, the complex F is the free resolution of the ideal
+$(x,y,z)\subset \mathbb{Z}[x,y,z]$, and lambda is the partition $(1,1)$ in the
+form of a List. In this case, the Schur complex G is the second exterior power
+of F.
+
+
+
++-----------------------------------------------------------------+
+|i1 : R=ZZ[x,y,z];                                                |
++-----------------------------------------------------------------+
+|i2 : I=ideal(x,y,z);                                             |
+|                                                                 |
+|o2 : Ideal of R                                                  |
++-----------------------------------------------------------------+
+|i3 : F=freeResolution I;                                         |
++-----------------------------------------------------------------+
+|i4 : lambda={1,1};                                               |
++-----------------------------------------------------------------+
+|i5 : G=schurComplex(lambda,F)                                    |
+|                                                                 |
+|      3      9      10      6      3      1                      |
+|o5 = R  <-- R  <-- R   <-- R  <-- R  <-- R                       |
+|                                                                 |
+|     1      2      3       4      5      6                       |
+|                                                                 |
+|o5 : Complex                                                     |
++-----------------------------------------------------------------+
+|i6 : G.dd                                                        |
+|                                                                 |
+|          3                                    9                 |
+|o6 = 1 : R  <-------------------------------- R  : 2             |
+|               {1} | z y x 0 0 0 0  y  x  |                      |
+|               {1} | 0 z 0 y x 0 x  -z 0  |                      |
+|               {1} | 0 0 z 0 y x -y 0  -z |                      |
+|                                                                 |
+|          9                                                10    |
+|     2 : R  <-------------------------------------------- R   : 3|
+|               {2} | 0  0  2y 2x 0  0   0  0   0  0   |          |
+|               {2} | 0  x  -z 0  0  y   x  0   0  0   |          |
+|               {2} | 0  -y 0  -z 0  0   0  0   y  x   |          |
+|               {2} | 0  0  0  0  2x -2z 0  0   0  0   |          |
+|               {2} | 0  0  0  0  -y 0   -z x   -z 0   |          |
+|               {2} | 0  0  0  0  0  0   0  -2y 0  -2z |          |
+|               {2} | -z -z 0  0  -y 0   0  -x  0  0   |          |
+|               {2} | -x 0  -z 0  0  -y  0  0   -x 0   |          |
+|               {2} | y  0  0  -z 0  0   -y 0   0  -x  |          |
+|                                                                 |
+|          10                                 6                   |
+|     3 : R   <----------------------------- R  : 4               |
+|                {3} | z  y  x  0  0  0  |                        |
+|                {3} | -z 0  0  y  x  0  |                        |
+|                {3} | -x 0  0  0  0  x  |                        |
+|                {3} | y  0  0  0  0  -y |                        |
+|                {3} | 0  -z 0  -z 0  0  |                        |
+|                {3} | 0  -x 0  -x 0  0  |                        |
+|                {3} | 0  y  0  0  -x z  |                        |
+|                {3} | 0  0  -z 0  -z 0  |                        |
+|                {3} | 0  0  -x y  0  -z |                        |
+|                {3} | 0  0  y  0  y  0  |                        |
+|                                                                 |
+|          6                        3                             |
+|     4 : R  <-------------------- R  : 5                         |
+|               {4} | 0  y  x  |                                  |
+|               {4} | x  -z 0  |                                  |
+|               {4} | -y 0  -z |                                  |
+|               {4} | -x z  0  |                                  |
+|               {4} | y  0  z  |                                  |
+|               {4} | 0  y  x  |                                  |
+|                                                                 |
+|          3                  1                                   |
+|     5 : R  <-------------- R  : 6                               |
+|               {5} | -z |                                        |
+|               {5} | -x |                                        |
+|               {5} | y  |                                        |
+|                                                                 |
+|o6 : ComplexMap                                                  |
++-----------------------------------------------------------------+
+
+As a second example, we consider the ring of polynomial functions
+$R=\mathbb{Q}[x_{i,j}]$ on the space of 2 x 4 generic matrices. We set the
+complex F to be the map $R^4\to R^2$ given by the generic matrix $(x_{i,j})$.
+We compute the third symmetric power G of F, in which case lambda is the
+partition $(3)$. By Weyman "Cohomology of Vector Bundles and Syzygies",
+Exercise 6.34(d), the Schur complex G is exact except in degree zero. We verify
+this by computing the Hilbert series of each homology module of G.
+
+
+
++-----------------------------------------------------------------------------+
+|i7 : R=QQ[x11,x21,x12,x22,x13,x23,x14,x24];                                  |
++-----------------------------------------------------------------------------+
+|i8 : M=genericMatrix(R,x11,2,4);                                             |
+|                                                                             |
+|             2      4                                                        |
+|o8 : Matrix R  <-- R                                                         |
++-----------------------------------------------------------------------------+
+|i9 : F = complex {M};                                                        |
++-----------------------------------------------------------------------------+
+|i10 : lambda={3};                                                            |
++-----------------------------------------------------------------------------+
+|i11 : G=schurComplex(lambda,F)                                               |
+|                                                                             |
+|       4      12      12      4                                              |
+|o11 = R  <-- R   <-- R   <-- R                                               |
+|                                                                             |
+|      0      1       2       3                                               |
+|                                                                             |
+|o11 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i12 : G.dd                                                                   |
+|                                                                             |
+|           4                                                           12    |
+|o12 = 0 : R  <------------------------------------------------------- R   : 1|
+|                | x14 0   0   x13 0   0   x12 0   0   x11 0   0   |          |
+|                | x24 x14 0   x23 x13 0   x22 x12 0   x21 x11 0   |          |
+|                | 0   x24 x14 0   x23 x13 0   x22 x12 0   x21 x11 |          |
+|                | 0   0   x24 0   0   x23 0   0   x22 0   0   x21 |          |
+|                                                                             |
+|           12                                                                |
+|      1 : R   <--------------------------------------------------------------|
+|                 {1} | -x13 0    -x12 0    -x11 0    0    0    0    0    0   |
+|                 {1} | -x23 -x13 -x22 -x12 -x21 -x11 0    0    0    0    0   |
+|                 {1} | 0    -x23 0    -x22 0    -x21 0    0    0    0    0   |
+|                 {1} | x14  0    0    0    0    0    -x12 0    -x11 0    0   |
+|                 {1} | x24  x14  0    0    0    0    -x22 -x12 -x21 -x11 0   |
+|                 {1} | 0    x24  0    0    0    0    0    -x22 0    -x21 0   |
+|                 {1} | 0    0    x14  0    0    0    x13  0    0    0    -x11|
+|                 {1} | 0    0    x24  x14  0    0    x23  x13  0    0    -x21|
+|                 {1} | 0    0    0    x24  0    0    0    x23  0    0    0   |
+|                 {1} | 0    0    0    0    x14  0    0    0    x13  0    x12 |
+|                 {1} | 0    0    0    0    x24  x14  0    0    x23  x13  x22 |
+|                 {1} | 0    0    0    0    0    x24  0    0    0    x23  0   |
+|                                                                             |
+|           12                                   4                            |
+|      2 : R   <------------------------------- R  : 3                        |
+|                 {2} | x12  x11  0    0    |                                 |
+|                 {2} | x22  x21  0    0    |                                 |
+|                 {2} | -x13 0    x11  0    |                                 |
+|                 {2} | -x23 0    x21  0    |                                 |
+|                 {2} | 0    -x13 -x12 0    |                                 |
+|                 {2} | 0    -x23 -x22 0    |                                 |
+|                 {2} | x14  0    0    x11  |                                 |
+|                 {2} | x24  0    0    x21  |                                 |
+|                 {2} | 0    x14  0    -x12 |                                 |
+|                 {2} | 0    x24  0    -x22 |                                 |
+|                 {2} | 0    0    x14  x13  |                                 |
+|                 {2} | 0    0    x24  x23  |                                 |
+|                                                                             |
+|o12 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|           12                                                                |
+|--------- R   : 2                                                            |
+| 0    |                                                                      |
+| 0    |                                                                      |
+| 0    |                                                                      |
+| 0    |                                                                      |
+| 0    |                                                                      |
+| 0    |                                                                      |
+| 0    |                                                                      |
+| -x11 |                                                                      |
+| -x21 |                                                                      |
+| 0    |                                                                      |
+| x12  |                                                                      |
+| x22  |                                                                      |
++-----------------------------------------------------------------------------+
+|i13 : apply(1+length G,i->reduceHilbert hilbertSeries HH_i(G))               |
+|                                                                             |
+|           4     0  0  0                                                     |
+|o13 = {--------, -, -, -}                                                    |
+|              5  1  1  1                                                     |
+|       (1 - T)                                                               |
+|                                                                             |
+|o13 : List                                                                   |
++-----------------------------------------------------------------------------+
+
+We compute a third example.
+
+
+
++-----------------------------------------------------------------------------+
+|i14 : R=ZZ/7[x,y,z,w];                                                       |
++-----------------------------------------------------------------------------+
+|i15 : I=ideal(x*z-y^2,x*w-y*z, y*w-z^2);                                     |
+|                                                                             |
+|o15 : Ideal of R                                                             |
++-----------------------------------------------------------------------------+
+|i16 : F=freeResolution I;                                                    |
++-----------------------------------------------------------------------------+
+|i17 : lambda={2,1};                                                          |
++-----------------------------------------------------------------------------+
+|i18 : G=schurComplex(lambda,F)                                               |
+|                                                                             |
+|       3      11      20      22      12      2                              |
+|o18 = R  <-- R   <-- R   <-- R   <-- R   <-- R                               |
+|                                                                             |
+|      1      2       3       4       5       6                               |
+|                                                                             |
+|o18 : Complex                                                                |
++-----------------------------------------------------------------------------+
+|i19 : G.dd                                                                   |
+|                                                                             |
+|           3                                                                 |
+|o19 = 1 : R  <---------------------------------------------------------------|
+|                {2} | yz-xw y2-xz z2-yw yz-xw y2-xz 0     0     0     0     -|
+|                {2} | 0     0     0     z2-yw 0     y2-xz yz-xw y2-xz 0     y|
+|                {2} | 0     0     0     0     z2-yw 0     0     yz-xw y2-xz -|
+|                                                                             |
+|           11                                                                |
+|      2 : R   <--------------------------------------------------------------|
+|                 {4} | z2-yw  yz-xw  y2-xz  0      0      0      0      0    |
+|                 {4} | 0      0      0      z2-yw  yz-xw  y2-xz  0      0    |
+|                 {4} | -yz+xw 0      0      -y2+xz 0      0      -2x    2y   |
+|                 {4} | 0      -yz+xw 0      0      -y2+xz 0      y      -z   |
+|                 {4} | 0      0      -yz+xw 0      0      -y2+xz -z     w    |
+|                 {4} | 0      0      -z2+yw 0      z2-yw  0      0      0    |
+|                 {4} | 0      z2-yw  0      0      0      0      0      0    |
+|                 {4} | 0      0      z2-yw  0      0      0      0      0    |
+|                 {4} | 0      0      0      0      0      z2-yw  0      0    |
+|                 {3} | 0      0      0      0      0      0      -z2+yw 0    |
+|                 {3} | 0      0      0      0      0      0      0      -z2+y|
+|                                                                             |
+|           20                                                                |
+|      3 : R   <--------------------------------------------------------------|
+|                 {6} | -2x    2y     0      0      -y    -x    0     z     y |
+|                 {6} | y      -z     0      0      0     -y    0     0     z |
+|                 {6} | -z     w      0      0      0     0     -y    0     0 |
+|                 {6} | 0      0      -2x    2y     z     0     -x    -w    0 |
+|                 {6} | 0      0      y      -z     0     z     0     0     -w|
+|                 {6} | 0      0      -z     w      0     0     z     0     0 |
+|                 {5} | yz-xw  0      y2-xz  0      0     0     0     0     0 |
+|                 {5} | 0      yz-xw  0      y2-xz  0     0     0     0     0 |
+|                 {5} | 0      0      0      0      z2-yw yz-xw y2-xz 0     0 |
+|                 {5} | 0      0      0      0      0     0     0     z2-yw yz|
+|                 {6} | 0      0      0      0      0     0     0     0     0 |
+|                 {6} | 0      0      0      0      0     0     0     0     0 |
+|                 {5} | -z2+yw 0      0      0      0     0     0     0     0 |
+|                 {5} | 0      -z2+yw 0      0      0     0     0     0     0 |
+|                 {5} | z2-yw  0      0      0      0     z2-yw 0     0     0 |
+|                 {5} | 0      z2-yw  0      0      0     0     0     0     z2|
+|                 {5} | 0      0      -z2+yw 0      0     0     0     0     0 |
+|                 {5} | 0      0      0      -z2+yw 0     0     0     0     0 |
+|                 {5} | 0      0      z2-yw  0      0     0     z2-yw 0     0 |
+|                 {5} | 0      0      0      z2-yw  0     0     0     0     0 |
+|                                                                             |
+|           22                                                                |
+|      4 : R   <--------------------------------------------------------------|
+|                 {7} | y      0      -z     0      x      0      -y     0    |
+|                 {7} | 0      y      0      -z     0      x      0      -y   |
+|                 {7} | -z     0      w      0      0      0      0      0    |
+|                 {7} | 0      -z     0      w      0      0      0      0    |
+|                 {7} | -3x    2y     y      0      0      0      0      0    |
+|                 {7} | y      -z     0      0      -2x    y      y      0    |
+|                 {7} | -z     w      0      0      0      0      0      0    |
+|                 {7} | 0      -x     -2x    3y     0      0      0      0    |
+|                 {7} | 0      0      y      -z     0      -x     -x     2y   |
+|                 {7} | 0      0      -z     w      0      0      0      0    |
+|                 {7} | 0      0      0      0      -z     0      w      0    |
+|                 {7} | 0      0      0      0      0      -z     0      w    |
+|                 {7} | 0      0      0      0      3y     -2z    -z     0    |
+|                 {7} | 0      0      0      0      -z     w      0      0    |
+|                 {7} | 0      0      0      0      0      y      2y     -3z  |
+|                 {7} | 0      0      0      0      0      0      -z     w    |
+|                 {7} | 0      0      0      0      0      0      0      0    |
+|                 {7} | 0      0      0      0      0      0      0      0    |
+|                 {6} | -z2+yw 0      0      0      -yz+xw 0      0      0    |
+|                 {6} | 0      -z2+yw 0      0      0      -yz+xw 0      0    |
+|                 {6} | 0      0      -z2+yw 0      0      0      -yz+xw 0    |
+|                 {6} | 0      0      0      -z2+yw 0      0      0      -yz+x|
+|                                                                             |
+|           12                       2                                        |
+|      5 : R   <------------------- R  : 6                                    |
+|                 {8} | y   0   |                                             |
+|                 {8} | 2x  -y  |                                             |
+|                 {8} | -x  2y  |                                             |
+|                 {8} | 0   x   |                                             |
+|                 {8} | -z  0   |                                             |
+|                 {8} | -2y z   |                                             |
+|                 {8} | y   -2z |                                             |
+|                 {8} | 0   -y  |                                             |
+|                 {8} | w   0   |                                             |
+|                 {8} | 2z  -w  |                                             |
+|                 {8} | -z  2w  |                                             |
+|                 {8} | 0   z   |                                             |
+|                                                                             |
+|o19 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+|          11                                                                 |
+|-------- R   : 2                                                             |
+|x y  |                                                                       |
+|  -z |                                                                       |
+|z w  |                                                                       |
+|                                                                             |
+|                                                                   20        |
+|----------------------------------------------------------------- R   : 3    |
+|  y  -z 0      0      0      0      x  -y 0      0      0  0  |              |
+|  -z w  0      0      0      0      0  0  0      0      x  -y |              |
+|  -x y  0      0      0      0      0  0  0      0      0  0  |              |
+|  0  0  0      0      -x     y      -x y  0      0      0  0  |              |
+|  0  0  0      0      0      0      0  0  -x     y      -x y  |              |
+|  0  0  yz-xw  y2-xz  0      0      -z w  0      0      -y z  |              |
+|  0  0  -y2+xz 0      2y     -2z    y  -z 0      0      0  0  |              |
+|  0  0  0      -y2+xz -z     w      0  0  y      -z     y  -z |              |
+|  0  0  0      yz-xw  0      0      0  0  -2z    2w     -z w  |              |
+|  0  0  0      0      -yz+xw 0      0  0  -y2+xz 0      0  0  |              |
+|w 0  0  0      0      0      -yz+xw 0  0  0      -y2+xz 0  0  |              |
+|                                                                             |
+|                                                                             |
+|-----------------------------------------------------------------------------|
+|    0     0      0      0     0     0     0     0     0     0   0  0  0   |  |
+|    0     0      0      -x    0     y     0     0     0     0   0  0  0   |  |
+|    z     0      0      0     -x    0     y     0     0     0   0  0  0   |  |
+|    y     0      0      0     0     0     0     0     0     0   0  0  0   |  |
+|    0     -x     y      0     -x    0     y     0     0     0   0  0  0   |  |
+|    -w    0      0      0     0     0     0     -x    y     0   0  0  0   |  |
+|    0     0      0      0     0     0     0     0     0     x   0  -y 0   |  |
+|    0     0      0      0     0     0     0     0     0     0   x  0  -y  |  |
+|    0     0      0      0     0     0     0     0     0     -2x y  y  0   |  |
+|-xw y2-xz 0      0      0     0     0     0     0     0     0   -x -x 2y  |  |
+|    0     2y     -2z    z     y     -w    -z    0     0     0   0  0  0   |  |
+|    0     -z     w      0     z     0     -w    y     -z    0   0  0  0   |  |
+|    0     y2-xz  0      0     0     0     0     0     0     -y  0  z  0   |  |
+|    0     0      y2-xz  0     0     0     0     0     0     0   -y 0  z   |  |
+|    0     0      0      yz-xw y2-xz 0     0     0     0     2y  -z -z 0   |  |
+|-yw 0     0      0      0     0     yz-xw y2-xz 0     0     0   y  y  -2z |  |
+|    0     -yz+xw 0      0     0     0     0     0     0     z   0  -w 0   |  |
+|    0     0      -yz+xw 0     0     0     0     0     0     0   z  0  -w  |  |
+|    0     yz-xw  0      0     yz-xw 0     0     y2-xz 0     -2z w  w  0   |  |
+|    z2-yw 0      yz-xw  0     0     0     yz-xw 0     y2-xz 0   -z -z 2w  |  |
+|                                                                             |
+|                                   12                                        |
+|--------------------------------- R   : 5                                    |
+|  0      0      0      0      |                                              |
+|  0      0      0      0      |                                              |
+|  x      0      -y     0      |                                              |
+|  0      x      0      -y     |                                              |
+|  0      0      0      0      |                                              |
+|  0      0      0      0      |                                              |
+|  -2x    y      y      0      |                                              |
+|  0      0      0      0      |                                              |
+|  0      0      0      0      |                                              |
+|  0      -x     -x     2y     |                                              |
+|  -y     0      z      0      |                                              |
+|  0      -y     0      z      |                                              |
+|  0      0      0      0      |                                              |
+|  2y     -z     -z     0      |                                              |
+|  0      0      0      0      |                                              |
+|  0      y      y      -2z    |                                              |
+|  -3z    2w     w      0      |                                              |
+|  0      -z     -2z    3w     |                                              |
+|  -y2+xz 0      0      0      |                                              |
+|  0      -y2+xz 0      0      |                                              |
+|  0      0      -y2+xz 0      |                                              |
+|w 0      0      0      -y2+xz |                                              |
+|-----------------------------------------------------------------------------|
+| 22                                                                          |
+|R   : 4                                                                      |
++-----------------------------------------------------------------------------+
+
+If the input complex F has a (multi)grading, the resulting Schur complex does
+as well.
+
+
+
++-----------------------------------------------------------------------------+
+|i20 : needsPackage "NormalToricVarieties"                                    |
+|                                                                             |
+|o20 = NormalToricVarieties                                                   |
+|                                                                             |
+|o20 : Package                                                                |
++-----------------------------------------------------------------------------+
+|i21 : R = ring hirzebruchSurface 3;                                          |
+|warning: clearing value of symbol x to allow access to subscripted           |
+|       : debug with expression   debug 9868   or with command line           |
+|-----------------------------------------------------------------------------|
+|variables based on it                                                        |
+|option   --debug 9868                                                        |
++-----------------------------------------------------------------------------+
+|i22 : F = koszulComplex {x_0^4*x_1 - x_2*x_3, x_0^2};                        |
++-----------------------------------------------------------------------------+
+|i23 : lambda = {2,2};                                                        |
++-----------------------------------------------------------------------------+
+|i24 : G = schurComplex(lambda, F);                                           |
++-----------------------------------------------------------------------------+
+|i25 : G.dd                                                                   |
+|                                                                             |
+|           1                                                                 |
+|o25 = 2 : R  <-------------------------------------------------------------- |
+|                {3, 1} | -x_0^2 -x_0^4x_1+x_2x_3 -x_0^2 -x_0^4x_1+x_2x_3 |   |
+|                                                                             |
+|           4                                                                 |
+|      3 : R  <---------------------------------------------------------------|
+|                {5, 1} | -x_0^4x_1+x_2x_3 -x_0^4x_1+x_2x_3 x_0^2  x_0^4x_1-x_|
+|                {4, 2} | x_0^2            2x_0^2           0      x_0^2      |
+|                {5, 1} | 0                -x_0^4x_1+x_2x_3 -x_0^2 -x_0^4x_1+x|
+|                {4, 2} | 0                0                0      -x_0^2     |
+|                                                                             |
+|           6                                                                 |
+|      4 : R  <---------------------------------------------------------------|
+|                {6, 2} | 2x_0^2          2x_0^4x_1-2x_2x_3 0                 |
+|                {6, 2} | -x_0^2          -x_0^4x_1+x_2x_3  -x_0^2            |
+|                {7, 1} | x_0^4x_1-x_2x_3 0                 -3x_0^4x_1+3x_2x_3|
+|                {6, 2} | 0               x_0^4x_1-x_2x_3   2x_0^2            |
+|                {5, 3} | 0               -x_0^2            0                 |
+|                {6, 2} | 0               0                 x_0^2             |
+|                                                                             |
+|           4                                     1                           |
+|      5 : R  <--------------------------------- R  : 6                       |
+|                {8, 2} | -3x_0^4x_1+3x_2x_3 |                                |
+|                {7, 3} | 3x_0^2             |                                |
+|                {8, 2} | -x_0^4x_1+x_2x_3   |                                |
+|                {7, 3} | x_0^2              |                                |
+|                                                                             |
+|o25 : ComplexMap                                                             |
+|-----------------------------------------------------------------------------|
+| 4                                                                           |
+|R  : 3                                                                       |
+|                                                                             |
+|                                                                             |
+|                                               6                             |
+|--------------------------------------------- R  : 4                         |
+|2x_3  0                0                  |                                  |
+|      x_0^4x_1-x_2x_3  0                  |                                  |
+|_2x_3 0                -2x_0^4x_1+2x_2x_3 |                                  |
+|      -x_0^4x_1+x_2x_3 2x_0^2             |                                  |
+|                                                                             |
+|                       4                                                     |
+|--------------------- R  : 5                                                 |
+| 0                |                                                          |
+| -x_0^4x_1+x_2x_3 |                                                          |
+| 0                |                                                          |
+| -x_0^4x_1+x_2x_3 |                                                          |
+| 3x_0^2           |                                                          |
+| x_0^4x_1-x_2x_3  |                                                          |
++-----------------------------------------------------------------------------+
+|i26 : assert isHomogeneous G                                                 |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note straightenTableau: straightenTableau, -- Straightening law for
+    Z/2Z-graded tableau
+
+For the programmer
+==================
+
+The object *note schurComplex: schurComplex, is a *note function closure:
+(Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurComplexes.m2:597:0.
+
+File: SchurComplexes.info, Node: straightenTableau, Prev: schurComplex, Up: Top
+
+straightenTableau -- Straightening law for Z/2Z-graded tableau
+**************************************************************
+
+  * Usage: 
+        S=straightenTableau(T,lambda)
+  * Inputs:
+      * T, a *note hash table: (Macaulay2Doc)HashTable,, with keys $(i,j)$
+        representing the box of the Young diagram in column $i$ and row $j$.
+        The values of T are the entries of the boxes.
+      * lambda, a *note list: (Macaulay2Doc)List,, 
+  * Outputs:
+      * S, a *note hash table: (Macaulay2Doc)HashTable,, with keys representing
+        standard tableaux and values representing the coefficients.
+
+Description
+===========
+
+This function takes a $\mathbb{Z}/2\mathbb{Z}$-graded Young tableau and
+expresses it as a linear combination of standard tableau. Positive entries in
+the tableaux correspond to even elements, and negative entries correspond to
+odd elements.
+
+The user inputs the Young tableau T in the form of a hash table, and a
+partition of the same shape as T, in the form of a list. The key $(i,j)$ in the
+hash table of T corresponds to the box of T in column $i$ and row $j$. The
+values are the entries of the boxes of T.
+
+The output is a hash table with keys representing standard tableaux and values
+representing the coefficients in the linear combination.
+
+
+
++-----------------------------------------------------------------------------+
+|i1 : T = new HashTable from {(1,1) => -3, (1,2) => -2, (1,3) => -2, (2,1) => |
+|-----------------------------------------------------------------------------|
+|1, (2,2) => 2, (2,3) => 3, (3,1) => -1, (3,2) => -1};                        |
++-----------------------------------------------------------------------------+
+|i2 : lambda = {3,3,2};                                                       |
++-----------------------------------------------------------------------------+
+|i3 : straightenTableau(T,lambda)                                             |
+|                                                                             |
+|o3 = HashTable{HashTable{(1, 1) => -3} => 1 }                                |
+|                         (1, 2) => -2                                        |
+|                         (1, 3) => -2                                        |
+|                         (2, 1) => -1                                        |
+|                         (2, 2) => -1                                        |
+|                         (2, 3) => 3                                         |
+|                         (3, 1) => 1                                         |
+|                         (3, 2) => 2                                         |
+|               HashTable{(1, 1) => -3} => -1                                 |
+|                         (1, 2) => -2                                        |
+|                         (1, 3) => -2                                        |
+|                         (2, 1) => -1                                        |
+|                         (2, 2) => -1                                        |
+|                         (2, 3) => 2                                         |
+|                         (3, 1) => 1                                         |
+|                         (3, 2) => 3                                         |
+|               HashTable{(1, 1) => -3} => 1                                  |
+|                         (1, 2) => -2                                        |
+|                         (1, 3) => -2                                        |
+|                         (2, 1) => -1                                        |
+|                         (2, 2) => -1                                        |
+|                         (2, 3) => 1                                         |
+|                         (3, 1) => 2                                         |
+|                         (3, 2) => 3                                         |
+|                                                                             |
+|o3 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+
+We compute a second example.
+
+
+
++-----------------------------------------------------------------------------+
+|i4 : T = new HashTable from {(1,1) => -1, (1,2) => -2, (1,3) => 3, (2,1) =>  |
+|-----------------------------------------------------------------------------|
+|2, (2,2) => 1, (2,3) => -3};                                                 |
++-----------------------------------------------------------------------------+
+|i5 : lambda = {2,2,2};                                                       |
++-----------------------------------------------------------------------------+
+|i6 : straightenTableau(T,lambda)                                             |
+|                                                                             |
+|o6 = HashTable{HashTable{(1, 1) => -3} => 1 }                                |
+|                         (1, 2) => -2                                        |
+|                         (1, 3) => 2                                         |
+|                         (2, 1) => -1                                        |
+|                         (2, 2) => 1                                         |
+|                         (2, 3) => 3                                         |
+|               HashTable{(1, 1) => -3} => -1                                 |
+|                         (1, 2) => -2                                        |
+|                         (1, 3) => 1                                         |
+|                         (2, 1) => -1                                        |
+|                         (2, 2) => 2                                         |
+|                         (2, 3) => 3                                         |
+|               HashTable{(1, 1) => -3} => 1                                  |
+|                         (1, 2) => -1                                        |
+|                         (1, 3) => 2                                         |
+|                         (2, 1) => -2                                        |
+|                         (2, 2) => 1                                         |
+|                         (2, 3) => 3                                         |
+|               HashTable{(1, 1) => -3} => -1                                 |
+|                         (1, 2) => -1                                        |
+|                         (1, 3) => 1                                         |
+|                         (2, 1) => -2                                        |
+|                         (2, 2) => 2                                         |
+|                         (2, 3) => 3                                         |
+|               HashTable{(1, 1) => -3} => 1                                  |
+|                         (1, 2) => -2                                        |
+|                         (1, 3) => -1                                        |
+|                         (2, 1) => 1                                         |
+|                         (2, 2) => 2                                         |
+|                         (2, 3) => 3                                         |
+|                                                                             |
+|o6 : HashTable                                                               |
++-----------------------------------------------------------------------------+
+
+See also
+========
+
+  * *note schurComplex: schurComplex, -- Schur functors of chain complexes
+
+For the programmer
+==================
+
+The object *note straightenTableau: straightenTableau, is a *note function
+closure: (Macaulay2Doc)FunctionClosure,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in SchurComplexes.m2:528:0.
+
+Tag Table:
+Node: Top242
+Node: schurComplex4650
+Node: straightenTableau38360
+
+End Tag Table

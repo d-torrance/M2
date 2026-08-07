@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>branchedToMF -- Converts a maximal Cohen-Macaulay module over a d-fold branched cover into a d-fold factorization</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="computing with matrix factorizations of different lengths" href="index.html">MatrixFactorizations</a> :: <a title="Converts a maximal Cohen-Macaulay module over a d-fold branched cover into a d-fold factorization" href="_branched__To__M__F.html">branchedToMF</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_coimage_lp__Z__Zd__Factorization__Map_rp.html">next</a> | <a href="___Basic_spinvariants_spand_spproperties.html">previous</a> | <a href="_coimage_lp__Z__Zd__Factorization__Map_rp.html">forward</a> | <a href="___Basic_spinvariants_spand_spproperties.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>branchedToMF -- Converts a maximal Cohen-Macaulay module over a d-fold branched cover into a d-fold factorization</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">branchedToMF(M)</code></dd>
+            <dd><code class="language-macaulay2">branchedToMF(M, R)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">M</span>, <span>a <a title="the class of all modules" href="../../Macaulay2Doc/html/___Module.html">module</a></span>, The input module, a MCM over the branched cover $S[z]/(z^d + f)$</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span>a <a title="the class of all ZZ/d-graded factorizations" href="___Z__Zd__Factorization.html">ZZ/d graded factorization</a></span>, A ZZ/d-graded factorization with potential $-f$.</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>This method converts a maximal Cohen-Macaulay module over a d-fold branched cover into a ZZ/d-graded factorization. This method is designed to try to order the rows and columns of the matrices in such a way that one can deduce the decomposable block structure, should one exist. We first illustrate how to obtain a factorization from a high syzygy of a module over a branched cover. In the following, the zeroOutDegrees function is used to ensure that modules over the resulting branched cover are well-behaved with respect to the pushforward along the natural map $S \to S[z]/(z^d + f)$.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : S = zeroOutDegrees (ZZ/101[a..c])
+
+o1 = S
+
+o1 : PolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : f = a^3 + b^3 + c^3;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : bS = S[z]/(z^2 + f)
+
+o3 = bS
+
+o3 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : F = freeResolution(ideal(a,b,c,z), LengthLimit => 4)
+
+       1       4       7       9       9
+o4 = bS  &lt;-- bS  &lt;-- bS  &lt;-- bS  &lt;-- bS
+                                      
+     0       1       2       3       4
+
+o4 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : C = branchedToMF F.dd_4
+
+      8      8      8
+o5 = S  &lt;-- S  &lt;-- S
+                    
+     0      1      0
+
+o5 : ZZdFactorization</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : isdFactorization C
+
+               3    3    3
+o6 = (true, - a  - b  - c )
+
+o6 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : C.dd
+
+          8                                        8
+o7 = 1 : S  &lt;------------------------------------ S  : 0
+               | 0   0  0   0   a  -b2 c2  0  |
+               | 0   0  0   0   -b -a2 0   c2 |
+               | 0   0  0   0   c  0   -a2 b2 |
+               | 0   0  0   0   0  c   b   a  |
+               | -a2 b2 -c2 0   0  0   0   0  |
+               | b   a  0   -c2 0  0   0   0  |
+               | -c  0  a   -b2 0  0   0   0  |
+               | 0   -c -b  -a2 0  0   0   0  |
+
+          8                                        8
+     0 : S  &lt;------------------------------------ S  : 1
+               | 0   0  0   0   a  -b2 c2  0  |
+               | 0   0  0   0   -b -a2 0   c2 |
+               | 0   0  0   0   c  0   -a2 b2 |
+               | 0   0  0   0   0  c   b   a  |
+               | -a2 b2 -c2 0   0  0   0   0  |
+               | b   a  0   -c2 0  0   0   0  |
+               | -c  0  a   -b2 0  0   0   0  |
+               | 0   -c -b  -a2 0  0   0   0  |
+
+o7 : ZZdFactorizationMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : K = higherHomotopyFactorization(f, koszulComplex vars S)
+
+      4      4      4
+o8 = S  &lt;-- S  &lt;-- S
+                    
+     0      1      0
+
+o8 : ZZdFactorization</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : K.dd
+
+          4                        4
+o9 = 1 : S  &lt;-------------------- S  : 0
+               | a2 -b -c  0  |
+               | b2 a  0   -c |
+               | c2 0  a   b  |
+               | 0  c2 -b2 a2 |
+
+          4                         4
+     0 : S  &lt;--------------------- S  : 1
+               | a   b   c  0  |
+               | -b2 a2  0  c  |
+               | -c2 0   a2 -b |
+               | 0   -c2 b2 a  |
+
+o9 : ZZdFactorizationMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In the above example, we see that the factorization obtained by taking a high syzygy of the residue field over the branched cover is remarkably similar to a fold of the factorization obtained by taking a high syzygy of the residue field over the original ring. We can obtain other examples of factorizations by taking other modules:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : F2 = freeResolution(trim (ideal(a,b,c,z))^2, LengthLimit => 4)
+
+        1       9       20       24       24
+o10 = bS  &lt;-- bS  &lt;-- bS   &lt;-- bS   &lt;-- bS
+                                         
+      0       1       2        3        4
+
+o10 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : C2 = branchedToMF F2.dd_4
+
+       24      24      24
+o11 = S   &lt;-- S   &lt;-- S
+                       
+      0       1       0
+
+o11 : ZZdFactorization</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : C2.dd
+
+           24                                                                                                   24
+o12 = 1 : S   &lt;----------------------------------------------------------------------------------------------- S   : 0
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    a  0  0  -b2 c2  0  0   0   0  0   ac  0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    -b 0  0  -a2 0   c2 0   0   0  0   -bc 0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    c  0  0  0   -a2 b2 0   0   0  0   c2  0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  0  c   b   a  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  a  0  0   0   0  -b2 c2  0  -ab 0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  -b 0  0   0   0  -a2 0   c2 b2  0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  c  0  0   0   0  0   -a2 b2 -bc 0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  0  0   0   0  c   b   a  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  a  0   0   0  0   0   0  -b2 c2  0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  -b 0   0   0  0   0   0  -a2 0   c2 |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  c  0   0   0  0   0   0  0   -a2 b2 |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  0  0   0   0  0   0   0  c   b   a  |
+                 | -a2 b2 -c2 0   0   0  0   0   c2  0  -ac b2c  0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   -a2 b2 -c2 0   b2  ab 0   -bc2 0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   -a2 b2 -c2 0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | b   a  0   -c2 0   0  0   0   0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | -c  0  a   -b2 0   0  0   0   0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   -c -b  -a2 0   0  0   0   0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   b   a  0   -c2 0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   -c  0  a   -b2 0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   -c -b  -a2 0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   b   a  0   -c2  0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   -c  0  a   -b2  0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   0   -c -b  -a2  0  0  0  0   0   0  0   0   0  0   0   0  |
+
+           24                                                                                                   24
+      0 : S   &lt;----------------------------------------------------------------------------------------------- S   : 1
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    a  0  0  -b2 c2  0  0   0   0  0   ac  0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    -b 0  0  -a2 0   c2 0   0   0  0   -bc 0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    c  0  0  0   -a2 b2 0   0   0  0   c2  0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  0  c   b   a  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  a  0  0   0   0  -b2 c2  0  -ab 0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  -b 0  0   0   0  -a2 0   c2 b2  0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  c  0  0   0   0  0   -a2 b2 -bc 0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  0  0   0   0  c   b   a  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  a  0   0   0  0   0   0  -b2 c2  0  |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  -b 0   0   0  0   0   0  -a2 0   c2 |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  c  0   0   0  0   0   0  0   -a2 b2 |
+                 | 0   0  0   0   0   0  0   0   0   0  0   0    0  0  0  0   0   0  0   0   0  c   b   a  |
+                 | -a2 b2 -c2 0   0   0  0   0   c2  0  -ac b2c  0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   -a2 b2 -c2 0   b2  ab 0   -bc2 0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   -a2 b2 -c2 0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | b   a  0   -c2 0   0  0   0   0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | -c  0  a   -b2 0   0  0   0   0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   -c -b  -a2 0   0  0   0   0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   b   a  0   -c2 0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   -c  0  a   -b2 0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   -c -b  -a2 0   0  0   0    0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   b   a  0   -c2  0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   -c  0  a   -b2  0  0  0  0   0   0  0   0   0  0   0   0  |
+                 | 0   0  0   0   0   0  0   0   0   -c -b  -a2  0  0  0  0   0   0  0   0   0  0   0   0  |
+
+o12 : ZZdFactorizationMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : M = toBranchedCover(C,z)
+
+o13 = | z   0  0   0   0  0   0   0  0   0  0   0   a  -b2 c2  0  |
+      | 0   z  0   0   0  0   0   0  0   0  0   0   -b -a2 0   c2 |
+      | 0   0  z   0   0  0   0   0  0   0  0   0   c  0   -a2 b2 |
+      | 0   0  0   z   0  0   0   0  0   0  0   0   0  c   b   a  |
+      | 0   0  0   0   z  0   0   0  -a2 b2 -c2 0   0  0   0   0  |
+      | 0   0  0   0   0  z   0   0  b   a  0   -c2 0  0   0   0  |
+      | 0   0  0   0   0  0   z   0  -c  0  a   -b2 0  0   0   0  |
+      | 0   0  0   0   0  0   0   z  0   -c -b  -a2 0  0   0   0  |
+      | 0   0  0   0   a  -b2 c2  0  -z  0  0   0   0  0   0   0  |
+      | 0   0  0   0   -b -a2 0   c2 0   -z 0   0   0  0   0   0  |
+      | 0   0  0   0   c  0   -a2 b2 0   0  -z  0   0  0   0   0  |
+      | 0   0  0   0   0  c   b   a  0   0  0   -z  0  0   0   0  |
+      | -a2 b2 -c2 0   0  0   0   0  0   0  0   0   -z 0   0   0  |
+      | b   a  0   -c2 0  0   0   0  0   0  0   0   0  -z  0   0  |
+      | -c  0  a   -b2 0  0   0   0  0   0  0   0   0  0   -z  0  |
+      | 0   -c -b  -a2 0  0   0   0  0   0  0   0   0  0   0   -z |
+
+             /       S[z]      \16     /       S[z]      \16
+o13 : Matrix |-----------------|   &lt;-- |-----------------|
+             | 2    3    3    3|       | 2    3    3    3|
+             \z  - a  - b  - c /       \z  - a  - b  - c /</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : liftM = sub(M, ambient ring M)
+
+o14 = | z   0  0   0   0  0   0   0  0   0  0   0   a  -b2 c2  0  |
+      | 0   z  0   0   0  0   0   0  0   0  0   0   -b -a2 0   c2 |
+      | 0   0  z   0   0  0   0   0  0   0  0   0   c  0   -a2 b2 |
+      | 0   0  0   z   0  0   0   0  0   0  0   0   0  c   b   a  |
+      | 0   0  0   0   z  0   0   0  -a2 b2 -c2 0   0  0   0   0  |
+      | 0   0  0   0   0  z   0   0  b   a  0   -c2 0  0   0   0  |
+      | 0   0  0   0   0  0   z   0  -c  0  a   -b2 0  0   0   0  |
+      | 0   0  0   0   0  0   0   z  0   -c -b  -a2 0  0   0   0  |
+      | 0   0  0   0   a  -b2 c2  0  -z  0  0   0   0  0   0   0  |
+      | 0   0  0   0   -b -a2 0   c2 0   -z 0   0   0  0   0   0  |
+      | 0   0  0   0   c  0   -a2 b2 0   0  -z  0   0  0   0   0  |
+      | 0   0  0   0   0  c   b   a  0   0  0   -z  0  0   0   0  |
+      | -a2 b2 -c2 0   0  0   0   0  0   0  0   0   -z 0   0   0  |
+      | b   a  0   -c2 0  0   0   0  0   0  0   0   0  -z  0   0  |
+      | -c  0  a   -b2 0  0   0   0  0   0  0   0   0  0   -z  0  |
+      | 0   -c -b  -a2 0  0   0   0  0   0  0   0   0  0   0   -z |
+
+                   16           16
+o14 : Matrix (S[z])   &lt;-- (S[z])</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : prune ker liftM == 0 --this implies that the cokernel is MCM over the hypersurface
+
+o15 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>This method works for d-fold factorizations with d > 2 in the same way:</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : Q = adjoinRoot(4, zeroOutDegrees (ZZ/101[a..b]), t)
+
+o16 = Q
+
+o16 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : g = a^4+b^4
+
+       4    4
+o17 = a  + b
+
+       ZZ
+o17 : ---[a..b]
+      101</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : bQ = Q[z]/(z^4 + g)
+
+o18 = bQ
+
+o18 : QuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : G = freeResolution(ideal(a,b,z), LengthLimit => 3)
+
+        1       3       4       4
+o19 = bQ  &lt;-- bQ  &lt;-- bQ  &lt;-- bQ
+                               
+      0       1       2       3
+
+o19 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : D = branchedToMF G.dd_3
+
+       8      8      8      8      8
+o20 = Q  &lt;-- Q  &lt;-- Q  &lt;-- Q  &lt;-- Q
+                                   
+      0      1      2      3      0
+
+o20 : ZZdFactorization</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : D.dd
+
+           8                                 8
+o21 = 3 : Q  &lt;----------------------------- Q  : 0
+                | 0  0   0 0 0 0 -a3 b3 |
+                | 0  0   0 0 0 0 b   a  |
+                | a  -b3 0 0 0 0 0   0  |
+                | -b -a3 0 0 0 0 0   0  |
+                | 0  0   1 0 0 0 0   0  |
+                | 0  0   0 1 0 0 0   0  |
+                | 0  0   0 0 1 0 0   0  |
+                | 0  0   0 0 0 1 0   0  |
+
+           8                                 8
+      0 : Q  &lt;----------------------------- Q  : 1
+                | 0  0   0 0 0 0 -a3 b3 |
+                | 0  0   0 0 0 0 b   a  |
+                | a  -b3 0 0 0 0 0   0  |
+                | -b -a3 0 0 0 0 0   0  |
+                | 0  0   1 0 0 0 0   0  |
+                | 0  0   0 1 0 0 0   0  |
+                | 0  0   0 0 1 0 0   0  |
+                | 0  0   0 0 0 1 0   0  |
+
+           8                                 8
+      1 : Q  &lt;----------------------------- Q  : 2
+                | 0  0   0 0 0 0 -a3 b3 |
+                | 0  0   0 0 0 0 b   a  |
+                | a  -b3 0 0 0 0 0   0  |
+                | -b -a3 0 0 0 0 0   0  |
+                | 0  0   1 0 0 0 0   0  |
+                | 0  0   0 1 0 0 0   0  |
+                | 0  0   0 0 1 0 0   0  |
+                | 0  0   0 0 0 1 0   0  |
+
+           8                                 8
+      2 : Q  &lt;----------------------------- Q  : 3
+                | 0  0   0 0 0 0 -a3 b3 |
+                | 0  0   0 0 0 0 b   a  |
+                | a  -b3 0 0 0 0 0   0  |
+                | -b -a3 0 0 0 0 0   0  |
+                | 0  0   1 0 0 0 0   0  |
+                | 0  0   0 1 0 0 0   0  |
+                | 0  0   0 0 1 0 0   0  |
+                | 0  0   0 0 0 1 0   0  |
+
+o21 : ZZdFactorizationMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In this case, we obtain something that looks like a fold of the Koszul factorization of the potential, but padded with additional identity maps so that the resulting period is 4.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="Information about the basic constructors" href="___Making_sp__Z__Zd__Factorizations.html">Making ZZdFactorizations</a> -- Information about the basic constructors</span></li>
+          <li><span><a title="Converts a d-fold matrix factorization into a maximal Cohen-Macaulay module over a d-fold branched cover of the potential" href="_to__Branched__Cover.html">toBranchedCover</a> -- Converts a d-fold matrix factorization into a maximal Cohen-Macaulay module over a d-fold branched cover of the potential</span></li>
+          <li><span><a title="Converts a d-fold matrix factorization into a maximal Cohen-Macaulay module over a d-fold branched cover of the potential" href="_to__Branched__Cover.html">zeroOutDegrees</a> -- Converts a d-fold matrix factorization into a maximal Cohen-Macaulay module over a d-fold branched cover of the potential</span></li>
+          <li><span><a title="Constructs the matrix factorization associated with a system of higher homotopies" href="_higher__Homotopy__Factorization.html">higherHomotopyFactorization</a> -- Constructs the matrix factorization associated with a system of higher homotopies</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">branchedToMF</span>:</h2>
+          <ul>
+            <li><kbd>branchedToMF(Matrix)</kbd></li>
+            <li><kbd>branchedToMF(Matrix,Ring)</kbd></li>
+            <li><kbd>branchedToMF(Module)</kbd></li>
+            <li><kbd>branchedToMF(Module,Ring)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="Converts a maximal Cohen-Macaulay module over a d-fold branched cover into a d-fold factorization" href="_branched__To__M__F.html">branchedToMF</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function.html">method function</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">MatrixFactorizations/MatrixFactorizationsDOC.m2:6166:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

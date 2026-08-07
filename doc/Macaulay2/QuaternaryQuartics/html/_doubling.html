@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>doubling -- implement the doubling construction</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="code to support the paper 'Quaternary Quartic Forms and Gorenstein Rings'" href="index.html">QuaternaryQuartics</a> :: <a title="implement the doubling construction" href="_doubling.html">doubling</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Doubling_sp__Examples.html">next</a> | <a href="___Count.html">previous</a> | <a href="___Doubling_sp__Examples.html">forward</a> | <a href="___Count.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>doubling -- implement the doubling construction</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">doubling(d, I)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">d</span>, <span>an <a title="the class of all integers" href="../../Macaulay2Doc/html/___Z__Z.html">integer</a></span>, the degree of the map</span></li>
+            <li><span><span class="tt">I</span>, <span>an <a title="the class of all ideals" href="../../Macaulay2Doc/html/___Ideal.html">ideal</a></span>, homogeneous, in a singly graded polynomial ring $S$</span></li>
+          </ul>
+        </li>
+        <li><a href="../../Macaulay2Doc/html/_using_spfunctions_spwith_spoptional_spinputs.html">Optional inputs</a>:          <ul>
+            <li><span><span class="tt">Count</span><span class="tt"> => </span><span>an <a title="the class of all integers" href="../../Macaulay2Doc/html/___Z__Z.html">integer</a></span>, <span>default value 10</span>, number of random maps to generate before giving up and returning null</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span>an <a title="the class of all ideals" href="../../Macaulay2Doc/html/___Ideal.html">ideal</a></span>, an ideal $J$ containing $I$ such that the canonical module of $S/I$ is $J/I \otimes S(-d)$, or null, if either one doesn't exist or one cannot be found</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <h2>Description</h2>
+        <div>
+          <p>Let $R = S/I$, and $w_R = \operatorname{Ext}^c(R, S^{-n-1})$, where $c$ is the codimension of $I$ and $n+1$ is the number of variables of the polynomial ring $S$.</p>
+          <p>If there exists an injective  homomorphism $f \colon w_R \to R$ of degree $d$, this function returns the ideal defining the cokernel of a random such map.  If none exist, null is returned.  If after trying the number of trials given by the optional argument <span class="tt">Count</span>, none that are injective can be found (this is very unlikely), null is also returned. Setting the global variable <a title="current debugging level" href="../../Macaulay2Doc/html/_debug__Level.html">debugLevel</a> to a positive value will let you know how many times it took to find one (if it didn't find it right away).</p>
+          <p>If $S/I$ is arithmetically Cohen-Macaulay of codimension $c$, then the cokernel of $f$ will be arithmetically Gorenstein of codimension $c+1$.</p>
+          <p>See section 2.5 of <a title="Quaternary Quartic Forms and Gorenstein rings (Kapustka, Kapustka, Ranestad, Schenck, Stillman, Yuan, 2021)" href="_%5B__Q__Q%5D.html">[QQ]</a> for more details and references.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : S = ZZ/101[a..d];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : I = pointsIdeal randomPoints(S, 6)
+
+                             2                              2   2          
+o2 = ideal (a*c - 14b*c + 43c  + 31a*d - 28b*d - 17c*d + 28d , b  + 11b*c +
+     ------------------------------------------------------------------------
+        2                              2                   2                
+     37c  - 40a*d - 45b*d - 10c*d - 23d , a*b + 35b*c - 18c  - 31a*d - 38b*d
+     ------------------------------------------------------------------------
+                 2   2              2                            2
+     + 7c*d - 35d , a  + 49b*c + 40c  - 4a*d - 22b*d - 45c*d - 5d )
+
+o2 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : betti res I
+
+            0 1 2 3
+o3 = total: 1 4 5 2
+         0: 1 . . .
+         1: . 4 2 .
+         2: . . 3 2
+
+o3 : BettiTally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : doubling(5, I)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : J = doubling(8, I)
+
+                             2                              2   2          
+o5 = ideal (a*c - 14b*c + 43c  + 31a*d - 28b*d - 17c*d + 28d , b  + 11b*c +
+     ------------------------------------------------------------------------
+        2                              2                   2                
+     37c  - 40a*d - 45b*d - 10c*d - 23d , a*b + 35b*c - 18c  - 31a*d - 38b*d
+     ------------------------------------------------------------------------
+                 2   2              2                            2   2   
+     + 7c*d - 35d , a  + 49b*c + 40c  - 4a*d - 22b*d - 45c*d - 5d , c d -
+     ------------------------------------------------------------------------
+          2       2        2      3               2        2        2    3
+     28a*d  + 9b*d  + 50c*d  + 50d , b*c*d - 15a*d  + 39b*d  - 26c*d  - d )
+
+o5 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : betti res J
+
+            0 1  2 3 4
+o6 = total: 1 6 10 6 1
+         0: 1 .  . . .
+         1: . 4  2 . .
+         2: . 2  6 2 .
+         3: . .  2 4 .
+         4: . .  . . 1
+
+o6 : BettiTally</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Here are some doublings of the Veronese surface</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : S = ZZ/101[x_0..x_5];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : M = genericSymmetricMatrix(S, 3)
+
+o8 = | x_0 x_1 x_2 |
+     | x_1 x_3 x_4 |
+     | x_2 x_4 x_5 |
+
+             3      3
+o8 : Matrix S  &lt;-- S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : I = trim minors(2, M)
+
+             2                                    2                       2
+o9 = ideal (x  - x x , x x  - x x , x x  - x x , x  - x x , x x  - x x , x  -
+             4    3 5   2 4    1 5   2 3    1 4   2    0 5   1 2    0 4   1  
+     ------------------------------------------------------------------------
+     x x )
+      0 3
+
+o9 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : doubling(4, I) -- no such map exists</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : betti res doubling(6,I)
+
+             0 1  2 3 4
+o11 = total: 1 9 16 9 1
+          0: 1 .  . . .
+          1: . 9 16 9 .
+          2: . .  . . 1
+
+o11 : BettiTally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : betti res doubling(7,I)
+
+             0 1  2 3 4
+o12 = total: 1 9 16 9 1
+          0: 1 .  . . .
+          1: . 6  8 3 .
+          2: . 3  8 6 .
+          3: . .  . . 1
+
+o12 : BettiTally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : betti res doubling(8,I)
+
+             0 1  2 3 4
+o13 = total: 1 9 16 9 1
+          0: 1 .  . . .
+          1: . 6  8 3 .
+          2: . .  . . .
+          3: . 3  8 6 .
+          4: . .  . . 1
+
+o13 : BettiTally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : J = doubling(8, I);
+
+o14 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : (dim J, degree J)
+
+o15 = (2, 14)
+
+o15 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : (dim I, degree I)
+
+o16 = (3, 4)
+
+o16 : Sequence</code></pre>
+            </td>
+          </tr>
+        </table>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : S = ZZ/101[x_0..x_8];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : M = genericMatrix(S, 3, 3)
+
+o18 = | x_0 x_3 x_6 |
+      | x_1 x_4 x_7 |
+      | x_2 x_5 x_8 |
+
+              3      3
+o18 : Matrix S  &lt;-- S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : I = trim minors(2, M)
+
+o19 = ideal (x x  - x x , x x  - x x , x x  - x x , x x  - x x , x x  - x x ,
+              5 7    4 8   2 7    1 8   5 6    3 8   4 6    3 7   2 6    0 8 
+      -----------------------------------------------------------------------
+      x x  - x x , x x  - x x , x x  - x x , x x  - x x )
+       1 6    0 7   2 4    1 5   2 3    0 5   1 3    0 4
+
+o19 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : betti res doubling(8,I)
+
+             0  1  2  3  4 5
+o20 = total: 1 10 25 25 10 1
+          0: 1  .  .  .  . .
+          1: . 10 16  9  . .
+          2: .  .  9 16 10 .
+          3: .  .  .  .  . 1
+
+o20 : BettiTally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : J = doubling(8, I);
+
+o21 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : (dim J, degree J)
+
+o22 = (4, 12)
+
+o22 : Sequence</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : (dim I, degree I)
+
+o23 = (5, 6)
+
+o23 : Sequence</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="create a random homomorphism between graded modules" href="_random__Homomorphism.html">randomHomomorphism</a> -- create a random homomorphism between graded modules</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="waystouse">
+          <h2>Ways to use <span class="tt">doubling</span>:</h2>
+          <ul>
+            <li><kbd>doubling(ZZ,Ideal)</kbd></li>
+          </ul>
+        </div>
+        <div class="waystouse">
+          <h2>For the programmer</h2>
+          <p>The object <a title="implement the doubling construction" href="_doubling.html">doubling</a> is <span>a <a title="a type of method function" href="../../Macaulay2Doc/html/___Method__Function__With__Options.html">method function with options</a></span>.</p>
+        </div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">QuaternaryQuartics.m2:817:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

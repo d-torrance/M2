@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>determinants and minors</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="index.html">Documentation </a> <br><a href="_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="Macaulay2 documentation" href="index.html">Macaulay2Doc</a> » <a href="_matrices.html">matrices</a> » <a href="_determinants_spand_spminors.html">determinants and minors</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="_exterior_sppower_spof_spa_spmatrix.html">next</a> | <a href="_rank_spof_spa_spmatrix.html">previous</a> | <a href="_trace_lp__Matrix_rp.html">forward</a> | <a href="_rank_spof_spa_spmatrix.html">backward</a> | <a href="_matrices.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>determinants and minors</h1>
+      <div>
+The command <a title="determinant of a matrix" href="_determinant.html">det</a> can be used to compute the determinant of a square matrix.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : R = ZZ[a..i];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : det matrix{{a,b},{c,d}}
+
+o2 = - b*c + a*d
+
+o2 : R</code></pre>
+            </td>
+          </tr>
+        </table>
+Macaulay2 can use three different algorithms to compute determinants: the <a href="___Cofactor.html">Cofactor</a> method, which expands a determinant using the standard cofactor approach, and <a href="___Bareiss.html">Bareiss</a> which uses a fraction-free variant of Gaussian elimination to compute a determinant. The <a href="___Dynamic.html">Dynamic</a> algorithm implements a version of cofactor expansion, with caching of intermediate results. The algorithm to use may be chosen using the optional <a title="an optional argument" href="___Strategy.html">Strategy</a> argument:        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : m = matrix{{0,a,b},{a+b,a,d},{e,f,g}}
+
+o3 = | 0   a b |
+     | a+b a d |
+     | e   f g |
+
+             3      3
+o3 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : det(m, Strategy => Cofactor)
+
+                                2     2
+o4 = - a*b*e + a*d*e + a*b*f + b f - a g - a*b*g
+
+o4 : R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : minors(2,m, Strategy => Bareiss)
+
+               2                                          2
+o5 = ideal (- a  - a*b, -a*e, - a*e + a*f + b*f, - a*b - b , -b*e, - d*e +
+     ------------------------------------------------------------------------
+     a*g + b*g, - a*b + a*d, - b*f + a*g, - d*f + a*g)
+
+o5 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : exteriorPower(2,m, Strategy => Dynamic)
+
+o6 = | -a2-ab    -ab-b2    -ab+ad |
+     | -ae       -be       -bf+ag |
+     | -ae+af+bf -de+ag+bg -df+ag |
+
+             3      3
+o6 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+One warning is in order here: the Bareiss algorithm requires division in the base ring, and so can yield the INCORRECT answer if the base ring contains zero divisors.  However, the Bareiss algorithm is often dramatically faster than the cofactor method, unless the matrix is particularly sparse.  Consequently, the default strategy for rings which are fields or are not quotients of polynomial rings is <a href="___Bareiss.html">Bareiss</a>, while the default for quotients of polynomial rings that are not (declared to be) fields is <a href="___Cofactor.html">Cofactor</a>. The <a href="___Dynamic.html">Dynamic</a> algorithm can sometimes also result in significant speedups compared to <a href="___Cofactor.html">Cofactor</a> and <a href="___Bareiss.html">Bareiss</a>, at the cost of a slight memory overhead.        <p></p>
+The command <a title="ideal generated by minors" href="_minors_lp__Z__Z_cm__Matrix_rp.html">minors</a> can be used to construct the ideal generated by the <span class="tt">n</span> by <span class="tt">n</span> minors of a matrix. Recall that the <span class="tt">n</span> by <span class="tt">n</span> minors of a matrix are the determinants of the <span class="tt">n</span> by <span class="tt">n</span> submatrices of a matrix.        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : R = QQ[x,y,z];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : f = matrix{{x,y,z},{y,z,x^2}}
+
+o8 = | x y z  |
+     | y z x2 |
+
+             2      3
+o8 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : I = minors(2,f)
+
+               2         3         2     2
+o9 = ideal (- y  + x*z, x  - y*z, x y - z )
+
+o9 : Ideal of R</code></pre>
+            </td>
+          </tr>
+        </table>
+Sometimes finer control is needed when one is computing the ideal of minors of a larger matrix.  Compute the ideal of some determinants using <a title="ideal generated by minors" href="_minors_lp__Z__Z_cm__Matrix_rp.html">minors</a> with optional arguments as in        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : R = ZZ[a..i];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : M = genericMatrix(R,a,3,3);
+
+              3      3
+o11 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : minors(2,M,First => {{0,1},{1,2}}, Limit => 3)
+
+o12 = ideal (- e*g + d*h, - f*g + d*i, - f*h + e*i)
+
+o12 : Ideal of R</code></pre>
+            </td>
+          </tr>
+        </table>
+The argument to the optional argument <a title="an optional argument" href="___First.html">First</a> is the list of row and column positions to use for the first minor.  Starting at this first minor, we then compute three minors.      </div>
+      <div>
+        <h3>Menu</h3>
+        <ul>
+          <li><span><kbd>trace</kbd> -- see <span><a title="trace of a matrix" href="_trace_lp__Matrix_rp.html">trace(Matrix)</a> -- trace of a matrix</span></span></li>
+          <li><span><kbd>minors</kbd> -- see <span><a title="ideal generated by minors" href="_minors_lp__Z__Z_cm__Matrix_rp.html">minors(ZZ,Matrix)</a> -- ideal generated by minors</span></span></li>
+          <li><span><a title="determinant of a matrix" href="_determinant.html">determinant</a> -- determinant of a matrix</span></li>
+          <li><span><a title="ideal generated by square permanents of a matrix" href="_permanents.html">permanents</a> -- ideal generated by square permanents of a matrix</span></li>
+          <li><span><a title="ideal generated by Pfaffians" href="_pfaffians.html">pfaffians</a> -- ideal generated by Pfaffians</span></li>
+          <li><span><a title="Pfaffian of a skew-symmetric matrix" href="_pfaffian.html">pfaffian</a> -- Pfaffian of a skew-symmetric matrix</span></li>
+          <li><span><a title="Fitting ideal of a module" href="_fitting__Ideal.html">fittingIdeal</a> -- Fitting ideal of a module</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Macaulay2Doc/ov_matrices.m2:641:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

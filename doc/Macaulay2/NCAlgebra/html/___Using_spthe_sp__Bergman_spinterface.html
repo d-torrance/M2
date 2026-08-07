@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Using the Bergman interface</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="data types for noncommutative algebras" href="index.html">NCAlgebra</a> » <a href="___Using_spthe_sp__Bergman_spinterface.html">Using the Bergman interface</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+next | <a href="___General_spsetup_spinformation.html">previous</a> | <a href="_-_sp__N__C__Matrix.html">forward</a> | <a href="___General_spsetup_spinformation.html">backward</a> | <a href="index.html">up</a> | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Using the Bergman interface</h1>
+      <div>
+        <div>
+          <p>Bergman is a software package for computing Groebner bases for ideals in both commutative and noncommutative polynomial rings with coefficients in Q or Z/p. Bergman was created by J. Backelin (U. of Stockholm) and its capabilities were extended by V. Ufnarovski, S. Cojocaru, and A. Podoplelov.</p>
+        </div>
+        <div>
+          <p>Though Bergman is limited in terms of the coefficients it can handle and the choice of orderings it offers, it is a very efficient (especially in terms of memory usage) open source program for computing noncommutative Groebner bases. (In the future we may add support for other Groebner basis software.) Rather than re-inventing this wheel, the NCAlgebra package makes extensive use of Bergman calls for noncommutative Groebner basis calculations. The following examples illustrate some common calculations which involve a call to Bergman. Our goal is to provide a more intuitive user experience with minimal compromises to efficiency.</p>
+        </div>
+        <div>
+          <p>Typically, the user begins by defining a noncommutative polynomial ring. By default, the ring is graded with generators in degree 1. Other gradings can be defined, see <a title="Set a nonstandard grading for a NCRing." href="_set__Weights.html">setWeights</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : A = QQ{x,y,z}
+
+o1 = A
+
+o1 : NCPolynomialRing</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Implicit in this definition is a choice of ordering for Groebner basis calculations: the ordering is degree-lexicographic with the generator symbols listed in order from smallest to largest. Ring elements are displayed with the high term listed first.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : p = y*z + z*y - x^2
+
+            2
+o2 = zy+yz-x
+
+o2 : A</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>One can try to compute Groebner bases for both homogeneous and inhomogeneous ideals. We cannot ensure Bergman computes any other than the homogeneous case correctly. We consider only homogeneous examples, the inhomogeneous case being similar.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : q = x*z + z*x - y^2
+
+         2
+o3 = zx-y +xz
+
+o3 : A</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : r = z^2 - x*y - y*x
+
+      2
+o4 = z -yx-xy
+
+o4 : A</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : I = ncIdeal {p,q,r}
+
+                             2      2      2
+o5 = Two-sided ideal {zy+yz-x , zx-y +xz, z -yx-xy}
+
+o5 : NCIdeal</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>NCAlgebra has three methods pertaining to  noncommutative Groebner bases. One is <a title="Calls Bergman to compute a two sided noncommutative Groebner Basis." href="_two__Sided__N__C__Groebner__Basis__Bergman.html">twoSidedNCGroebnerBasisBergman</a>. This command runs Bergman to compute a noncommutative Groebner basis to a certain degree. The user will recall that unlike the commutative case, noncommutative Groebner bases need not be finite, and may grow rapidly. For unfamiliar examples, we recommend initially setting a relatively low degree threshold (say, n=5). In our example, we know from experience the Groebner basis is finite so we do not specify a degree limit.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : Igb = twoSidedNCGroebnerBasisBergman I
+--Calling Bergman for NCGB calculation.
+Complete!
+
+      2    2                2
+o6 = y x-xy ; Lead Term = (y x, 1)
+       2  2                  2
+     yx -x y; Lead Term = (yx , 1)
+         2
+     zx-y +xz; Lead Term = (zx, 1)
+            2
+     zy+yz-x ; Lead Term = (zy, 1)
+      2                      2
+     z -yx-xy; Lead Term = (z , 1)
+
+o6 : NCGroebnerBasis</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>One an NCGroebner basis has been calculated, it is cached for later use. This option can be disabled. See <a title="Calls Bergman to compute a two sided noncommutative Groebner Basis." href="_two__Sided__N__C__Groebner__Basis__Bergman.html">twoSidedNCGroebnerBasisBergman</a> for more on options. We note that twoSidedNCGroebnerBasisBergman is called automatically any time the user attempts to create an <a title="Type of a noncommutative ring" href="___N__C__Quotient__Ring.html">NCQuotientRing</a>.</p>
+        </div>
+        <div>
+          <p>Another method related to Groebner bases is <a title="Compute a noncommutative Groebner basis." href="_nc__Groebner__Basis.html">ncGroebnerBasis</a>. This method creates the <a title="Type of a Groebner basis for an NCIdeal in an NCRing." href="___N__C__Groebner__Basis.html">NCGroebnerBasis</a> object. By default, this method also calls Bergman for a noncommutative Groebner basis calculation. However, by setting the option InstallGB to true, the user instructs Macaulay2 to bypass the Bergman call and accept the input list as a Groebner basis without checking it is one. This can be useful when the coefficient ring is not <a title="the class of all rational numbers" href="../../Macaulay2Doc/html/___Q__Q.html">QQ</a> or a finite prime field.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : Igb2 = ncGroebnerBasis(I,InstallGB=>true)
+
+      2                      2
+o7 = z -yx-xy; Lead Term = (z , 1)
+         2
+     zx-y +xz; Lead Term = (zx, 1)
+            2
+     zy+yz-x ; Lead Term = (zy, 1)
+
+o7 : NCGroebnerBasis</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>As mentioned above, noncommutative Groebner bases can grow rapidly both in the number and size of the terms. In some cases, it takes days to calculate a Groebner basis to the desired degree. So as not to repeat this calculation more than once, users might have a Groebner basis saved in a file. The method <a title="Read in a NCGroebnerBasis from a Bergman output file." href="_gb__From__Output__File.html">gbFromOutputFile</a> enables the user to load the Groebner basis from a file. The file should contain nothing besides a list of noncommutative polynomials in Macaulay2 readable form. (One exception: Bergman output files contain lines beginning with the &quot;%&quot; symbol. gbFromOutputFile ignores lines beginning with a &quot;%&quot;.) Bergman users: you need not alter the output file from ncpbhgroebner in any way prior to calling gbFromOutputFile. See <a title="Read in a NCGroebnerBasis from a Bergman output file." href="_gb__From__Output__File.html">gbFromOutputFile</a> for an example.</p>
+        </div>
+        <div>
+          <p>Once a Groebner basis is computed, many methods become available. The most basic calculation is to return the normal form of a given element relative to the known Groebner basis. The NCAlgebra package also provides multiple options for this calculation.</p>
+        </div>
+        <div>
+          <p>Generally speaking, Bergman is the most efficient way to reduce a ring element to normal form. Behind the scenes, the NCAlgebra package creates a Bergman-readable input file, runs a Bergman session, and interprets the output, which it displays to the user. This takes time, especially when the Groebner basis is large. The NCAlgebra package has its own normal form reduction algorithm. It is considerably slower than Bergman, but it can be faster than the time required to execute the Bergman call.</p>
+        </div>
+        <div>
+          <p>The file NCAlgebra.m2 contains two environment variables: MAXDEG and MAXSIZE. If the element to be reduced has degree less than MAXDEG and fewer than MAXSIZE terms (or if the coefficient ring is not Q or Z/p), the NCAlgebra package calls its own normal form reduction method. Otherwise, it calls <a title="Calls Bergman for a normal form calculation" href="_normal__Form__Bergman.html">normalFormBergman</a>. The user can force a Bergman call using this method.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : z^17 % Igb
+
+                                           2             2    3           3     4         4     5       5     6     6     7   7     8 8
+o8 = yxyxyxyxyxyxyxyxz+xyxyxyxyxyxyxyxyz+8x yxyxyxyxyxyxy z+8x yxyxyxyxyxy z+28x yxyxyxyxy z+28x yxyxyxy z+56x yxyxy z+56x yxy z+70x y z
+
+o8 : A</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : normalFormBergman(z^17,Igb)
+--Calling Bergman for NF calculation for 1 elements.
+Complete!
+Writing bergman input file.
+Writing bergman init file.
+
+                                           2             2    3           3     4         4     5       5     6     6     7   7     8 8
+o9 = yxyxyxyxyxyxyxyxz+xyxyxyxyxyxyxyxyz+8x yxyxyxyxyxyxy z+8x yxyxyxyxyxy z+28x yxyxyxyxy z+28x yxyxyxy z+56x yxyxy z+56x yxy z+70x y z
+
+o9 : A</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Normal form calculations are performed automatically in an <a title="Type of a noncommutative ring" href="___N__C__Quotient__Ring.html">NCQuotientRing</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : B = A/I
+
+o10 = B
+
+o10 : NCQuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : z^17
+
+                                      2               2 2               2               2 2               2 2 2             2   2             2               2 2               2 2   2           2 2 2 2           2 2 2             2   2             2   2 2           2     2           2               2 2               2 2     2         2 2   2 2         2 2   2           2 2 2 2           2 2 2 2 2         2 2 2   2         2 2 2             2   2             2   2   2         2   2 2 2         2   2 2           2     2           2     2 2         2       2         2               2 2               2 2       2       2 2     2 2       2 2     2         2 2   2 2         2 2   2 2 2       2 2   2   2       2 2   2           2 2 2 2           2 2 2 2   2       2 2 2 2 2 2       2 2 2 2 2         2 2 2   2         2 2 2   2 2       2 2 2     2       2 2 2             2   2             2   2     2       2   2   2 2       2   2   2         2   2 2 2         2   2 2 2 2       2   2 2   2       2   2 2           2     2           2     2   2       2     2 2 2       2     2 2         2       2         2       2 2       2         2       2               2 2               2 2         2     2 2       2 2     2 2       2       2 2     2 2       2 2     2 2 2     2 2     2   2     2 2     2         2 2   2 2         2 2   2 2   2     2 2   2 2 2 2     2 2   2 2 2       2 2   2   2       2 2   2   2 2     2 2   2     2     2 2   2           2 2 2 2           2 2 2 2     2     2 2 2 2   2 2     2 2 2 2   2       2 2 2 2 2 2       2 2 2 2 2 2 2     2 2 2 2 2   2     2 2 2 2 2         2 2 2   2         2 2 2   2   2     2 2 2   2 2 2     2 2 2   2 2       2 2 2     2       2 2 2     2 2     2 2 2       2     2 2 2             2   2             2   2       2     2   2     2 2     2   2     2       2   2   2 2       2   2   2 2 2     2   2   2   2     2   2   2         2   2 2 2         2   2 2 2   2     2   2 2 2 2 2     2   2 2 2 2       2   2 2   2       2   2 2   2 2     2   2 2     2     2   2 2           2     2           2     2     2     2     2   2 2     2     2   2       2     2 2 2       2     2 2 2 2     2     2 2   2     2     2 2         2       2         2       2   2     2       2 2 2     2       2 2       2         2       2         2 2     2           2     2                 2                 2           2     2         2 2     2         2       2       2 2       2       2 2 2     2       2   2     2       2         2     2 2         2     2 2   2     2     2 2 2 2     2     2 2 2       2     2   2       2     2   2 2     2     2     2     2     2           2   2 2           2   2 2     2     2   2 2   2 2     2   2 2   2       2   2 2 2 2       2   2 2 2 2 2     2   2 2 2   2     2   2 2 2         2   2   2         2   2   2   2     2   2   2 2 2     2   2   2 2       2   2     2       2   2     2 2     2   2       2     2   2             2 2 2             2 2 2       2     2 2 2     2 2     2 2 2     2       2 2 2   2 2       2 2 2   2 2 2     2 2 2   2   2     2 2 2   2         2 2 2 2 2         2 2 2 2 2   2     2 2 2 2 2 2 2     2 2 2 2 2 2       2 2 2 2   2       2 2 2 2   2 2     2 2 2 2     2     2 2 2 2           2 2   2           2 2   2     2     2 2   2   2 2     2 2   2   2       2 2   2 2 2       2 2   2 2 2 2     2 2   2 2   2     2 2   2 2         2 2     2         2 2     2   2     2 2     2 2 2     2 2     2 2       2 2       2       2 2       2 2     2 2         2     2 2                 2                 2         2       2       2 2       2       2         2     2 2         2     2 2 2       2     2   2       2     2           2   2 2           2   2 2   2       2   2 2 2 2       2   2 2 2         2   2   2         2   2   2 2       2   2     2       2   2             2 2 2             2 2 2     2       2 2 2   2 2       2 2 2   2         2 2 2 2 2         2 2 2 2 2 2       2 2 2 2   2       2 2 2 2           2 2   2           2 2   2   2       2 2   2 2 2       2 2   2 2         2 2     2         2 2     2 2       2 2       2       2 2                 2                 2       2         2     2 2         2     2           2   2 2           2   2 2 2         2   2   2         2   2             2 2 2             2 2 2   2         2 2 2 2 2         2 2 2 2           2 2   2           2 2   2 2         2 2     2         2 2                 2                 2     2           2   2 2           2   2             2 2 2             2 2 2 2           2 2   2           2 2                 2                 2   2             2 2 2             2 2                 2                 2 2                 2
+o11 = yxyxyxyxyxyxyxyxz+yxyxyxyxyxyxyx yz+yxyxyxyxyxyx y xz+yxyxyxyxyxyx yxyz+yxyxyxyxyx y xyxz+yxyxyxyxyx y x yz+yxyxyxyxyx yxy xz+yxyxyxyxyx yxyxyz+yxyxyxyx y xyxyxz+yxyxyxyx y xyx yz+yxyxyxyx y x y xz+yxyxyxyx y x yxyz+yxyxyxyx yxy xyxz+yxyxyxyx yxy x yz+yxyxyxyx yxyxy xz+yxyxyxyx yxyxyxyz+yxyxyx y xyxyxyxz+yxyxyx y xyxyx yz+yxyxyx y xyx y xz+yxyxyx y xyx yxyz+yxyxyx y x y xyxz+yxyxyx y x y x yz+yxyxyx y x yxy xz+yxyxyx y x yxyxyz+yxyxyx yxy xyxyxz+yxyxyx yxy xyx yz+yxyxyx yxy x y xz+yxyxyx yxy x yxyz+yxyxyx yxyxy xyxz+yxyxyx yxyxy x yz+yxyxyx yxyxyxy xz+yxyxyx yxyxyxyxyz+yxyx y xyxyxyxyxz+yxyx y xyxyxyx yz+yxyx y xyxyx y xz+yxyx y xyxyx yxyz+yxyx y xyx y xyxz+yxyx y xyx y x yz+yxyx y xyx yxy xz+yxyx y xyx yxyxyz+yxyx y x y xyxyxz+yxyx y x y xyx yz+yxyx y x y x y xz+yxyx y x y x yxyz+yxyx y x yxy xyxz+yxyx y x yxy x yz+yxyx y x yxyxy xz+yxyx y x yxyxyxyz+yxyx yxy xyxyxyxz+yxyx yxy xyxyx yz+yxyx yxy xyx y xz+yxyx yxy xyx yxyz+yxyx yxy x y xyxz+yxyx yxy x y x yz+yxyx yxy x yxy xz+yxyx yxy x yxyxyz+yxyx yxyxy xyxyxz+yxyx yxyxy xyx yz+yxyx yxyxy x y xz+yxyx yxyxy x yxyz+yxyx yxyxyxy xyxz+yxyx yxyxyxy x yz+yxyx yxyxyxyxy xz+yxyx yxyxyxyxyxyz+yx y xyxyxyxyxyxz+yx y xyxyxyxyx yz+yx y xyxyxyx y xz+yx y xyxyxyx yxyz+yx y xyxyx y xyxz+yx y xyxyx y x yz+yx y xyxyx yxy xz+yx y xyxyx yxyxyz+yx y xyx y xyxyxz+yx y xyx y xyx yz+yx y xyx y x y xz+yx y xyx y x yxyz+yx y xyx yxy xyxz+yx y xyx yxy x yz+yx y xyx yxyxy xz+yx y xyx yxyxyxyz+yx y x y xyxyxyxz+yx y x y xyxyx yz+yx y x y xyx y xz+yx y x y xyx yxyz+yx y x y x y xyxz+yx y x y x y x yz+yx y x y x yxy xz+yx y x y x yxyxyz+yx y x yxy xyxyxz+yx y x yxy xyx yz+yx y x yxy x y xz+yx y x yxy x yxyz+yx y x yxyxy xyxz+yx y x yxyxy x yz+yx y x yxyxyxy xz+yx y x yxyxyxyxyz+yx yxy xyxyxyxyxz+yx yxy xyxyxyx yz+yx yxy xyxyx y xz+yx yxy xyxyx yxyz+yx yxy xyx y xyxz+yx yxy xyx y x yz+yx yxy xyx yxy xz+yx yxy xyx yxyxyz+yx yxy x y xyxyxz+yx yxy x y xyx yz+yx yxy x y x y xz+yx yxy x y x yxyz+yx yxy x yxy xyxz+yx yxy x yxy x yz+yx yxy x yxyxy xz+yx yxy x yxyxyxyz+yx yxyxy xyxyxyxz+yx yxyxy xyxyx yz+yx yxyxy xyx y xz+yx yxyxy xyx yxyz+yx yxyxy x y xyxz+yx yxyxy x y x yz+yx yxyxy x yxy xz+yx yxyxy x yxyxyz+yx yxyxyxy xyxyxz+yx yxyxyxy xyx yz+yx yxyxyxy x y xz+yx yxyxyxy x yxyz+yx yxyxyxyxy xyxz+yx yxyxyxyxy x yz+yx yxyxyxyxyxy xz+yx yxyxyxyxyxyxyz+xy xyxyxyxyxyxyxz+xy xyxyxyxyxyx yz+xy xyxyxyxyx y xz+xy xyxyxyxyx yxyz+xy xyxyxyx y xyxz+xy xyxyxyx y x yz+xy xyxyxyx yxy xz+xy xyxyxyx yxyxyz+xy xyxyx y xyxyxz+xy xyxyx y xyx yz+xy xyxyx y x y xz+xy xyxyx y x yxyz+xy xyxyx yxy xyxz+xy xyxyx yxy x yz+xy xyxyx yxyxy xz+xy xyxyx yxyxyxyz+xy xyx y xyxyxyxz+xy xyx y xyxyx yz+xy xyx y xyx y xz+xy xyx y xyx yxyz+xy xyx y x y xyxz+xy xyx y x y x yz+xy xyx y x yxy xz+xy xyx y x yxyxyz+xy xyx yxy xyxyxz+xy xyx yxy xyx yz+xy xyx yxy x y xz+xy xyx yxy x yxyz+xy xyx yxyxy xyxz+xy xyx yxyxy x yz+xy xyx yxyxyxy xz+xy xyx yxyxyxyxyz+xy x y xyxyxyxyxz+xy x y xyxyxyx yz+xy x y xyxyx y xz+xy x y xyxyx yxyz+xy x y xyx y xyxz+xy x y xyx y x yz+xy x y xyx yxy xz+xy x y xyx yxyxyz+xy x y x y xyxyxz+xy x y x y xyx yz+xy x y x y x y xz+xy x y x y x yxyz+xy x y x yxy xyxz+xy x y x yxy x yz+xy x y x yxyxy xz+xy x y x yxyxyxyz+xy x yxy xyxyxyxz+xy x yxy xyxyx yz+xy x yxy xyx y xz+xy x yxy xyx yxyz+xy x yxy x y xyxz+xy x yxy x y x yz+xy x yxy x yxy xz+xy x yxy x yxyxyz+xy x yxyxy xyxyxz+xy x yxyxy xyx yz+xy x yxyxy x y xz+xy x yxyxy x yxyz+xy x yxyxyxy xyxz+xy x yxyxyxy x yz+xy x yxyxyxyxy xz+xy x yxyxyxyxyxyz+xyxy xyxyxyxyxyxz+xyxy xyxyxyxyx yz+xyxy xyxyxyx y xz+xyxy xyxyxyx yxyz+xyxy xyxyx y xyxz+xyxy xyxyx y x yz+xyxy xyxyx yxy xz+xyxy xyxyx yxyxyz+xyxy xyx y xyxyxz+xyxy xyx y xyx yz+xyxy xyx y x y xz+xyxy xyx y x yxyz+xyxy xyx yxy xyxz+xyxy xyx yxy x yz+xyxy xyx yxyxy xz+xyxy xyx yxyxyxyz+xyxy x y xyxyxyxz+xyxy x y xyxyx yz+xyxy x y xyx y xz+xyxy x y xyx yxyz+xyxy x y x y xyxz+xyxy x y x y x yz+xyxy x y x yxy xz+xyxy x y x yxyxyz+xyxy x yxy xyxyxz+xyxy x yxy xyx yz+xyxy x yxy x y xz+xyxy x yxy x yxyz+xyxy x yxyxy xyxz+xyxy x yxyxy x yz+xyxy x yxyxyxy xz+xyxy x yxyxyxyxyz+xyxyxy xyxyxyxyxz+xyxyxy xyxyxyx yz+xyxyxy xyxyx y xz+xyxyxy xyxyx yxyz+xyxyxy xyx y xyxz+xyxyxy xyx y x yz+xyxyxy xyx yxy xz+xyxyxy xyx yxyxyz+xyxyxy x y xyxyxz+xyxyxy x y xyx yz+xyxyxy x y x y xz+xyxyxy x y x yxyz+xyxyxy x yxy xyxz+xyxyxy x yxy x yz+xyxyxy x yxyxy xz+xyxyxy x yxyxyxyz+xyxyxyxy xyxyxyxz+xyxyxyxy xyxyx yz+xyxyxyxy xyx y xz+xyxyxyxy xyx yxyz+xyxyxyxy x y xyxz+xyxyxyxy x y x yz+xyxyxyxy x yxy xz+xyxyxyxy x yxyxyz+xyxyxyxyxy xyxyxz+xyxyxyxyxy xyx yz+xyxyxyxyxy x y xz+xyxyxyxyxy x yxyz+xyxyxyxyxyxy xyxz+xyxyxyxyxyxy x yz+xyxyxyxyxyxyxy xz+xyxyxyxyxyxyxyxyz
+
+o11 : B</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>We also use Bergman to compute Hilbert series of an <a title="Type of a noncommutative ring" href="___N__C__Quotient__Ring.html">NCQuotientRing</a> using the <a title="Calls Bergman to compute the Hilbert series of an NCQuotientRing" href="_hilbert__Bergman.html">hilbertBergman</a> command. By default, the Hilbert series is given to degree 10. As mentioned above, we suggest reducing the degree limit for rings whose growth is not well understood beforehand.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : hilbertBergman B
+--Calling bergman for HS computation.
+Complete!
+
+                 2      3      4      5      6      7      8      9      10
+o12 = 1 + 3T + 6T  + 10T  + 15T  + 21T  + 28T  + 36T  + 45T  + 55T  + 66T
+
+o12 : ZZ[T]</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Perhaps a major achievement of the NCAlgebra package is the method <a title="Methods for computing kernels of matrices over noncommutative rings using Bergman" href="_right__Kernel__Bergman.html">rightKernelBergman</a>. The functionality described above involves only the most basic Bergman calls, and long time Bergman users may find little reason to prefer NCAlgebra on those grounds. On the other hand, computing kernel generators for a matrix with entries in a noncommutative ring is anything but straightforward, and we reduce the call to a single command.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : B = threeDimSklyanin(QQ,{1,1,-1},{x,y,z})
+--Calling Bergman for NCGB calculation.
+Complete!
+
+o13 = B
+
+o13 : NCQuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : A = ambient B
+
+o14 = A
+
+o14 : NCPolynomialRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : g = -y^3-x*y*z+y*x*z+x^3
+
+        3          3
+o15 = -y +yxz-xyz+x
+
+o15 : A</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : C = A/(ideal B + ncIdeal g)
+--Calling Bergman for NCGB calculation.
+Complete!
+
+o16 = C
+
+o16 : NCQuotientRing</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : M = ncMatrix {{x,y,z,0}, {-y*z-2*x^2,-y*x,z*x-x*z,x},{x*y-2*y*x,x*z,-x^2,y}, {-y^2-z*x,x^2,-x*y,z}}
+
+o17 = | x          y    z         0 |
+      | -y*z-2*x^2 -y*x y^2-2*x*z x |
+      | -2*y*x+x*y x*z  -x^2      y |
+      | -2*y^2+x*z x^2  -x*y      z |
+
+o17 : NCMatrix</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>For details about matrices over noncommutative rings, see <a title="Type of a matrix over a noncommutative ring" href="___N__C__Matrix.html">NCMatrix</a>. Provided the entries of M are homogeneous and their degrees are compatible, M can be viewed as a graded (degree 0) homomorphism of graded free B-modules. For more on this degree-compatibility, see <a title="Weights entries of a matrix to make associated map of free modules graded" href="_assign__Degrees.html">assignDegrees</a>.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : assignDegrees(M,{1,0,0,0},{2,2,2,1})
+
+o18 = | x          y    z         0 |
+      | -y*z-2*x^2 -y*x y^2-2*x*z x |
+      | -2*y*x+x*y x*z  -x^2      y |
+      | -2*y^2+x*z x^2  -x*y      z |
+
+o18 : NCMatrix</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>Now, we can compute the kernel of M. It is always assumed that M determines a map of graded right modules. As always in the noncommutative case, computing generators of the kernel of a map is generally an infinite linear algebra problem. The <a title="Methods for computing kernels of matrices over noncommutative rings using Bergman" href="_right__Kernel__Bergman.html">rightKernelBergman</a> method returns a set of minimal kernel generators to degree 10, or to the degree specified by the user.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : ker1M = rightKernelBergman(M)
+--Calling Bergman for NCGB calculation.
+Complete!
+--Calling Bergman for NCGB calculation.
+Complete!
+
+o19 = | -z     -x     y            -y*z-x^2  |
+      | y      z      x            y^2       |
+      | -x     y      -z           2*y*x-x*y |
+      | -2*y^2 -2*x^2 -2*y*x+2*x*y -2*x*y*z  |
+
+o19 : NCMatrix</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : M*ker1M == 0
+
+o20 = true</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>In principle, this method can be used to compute the minimal free resolution of a finitely generated B-module with known presentation up to a specified degree.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : ker2M = rightKernelBergman(ker1M)
+--Calling Bergman for NCGB calculation.
+Complete!
+--Calling Bergman for NCGB calculation.
+Complete!
+--Calling Bergman for NCGB calculation.
+Complete!
+--Calling Bergman for NCGB calculation.
+Complete!
+
+o21 = | -y x^2  -x*z       -x*y       |
+      | x  y^2  -y*x+2*x*y -y*z+2*x^2 |
+      | z  -x*y x^2        -x*z       |
+      | 0  -z   -y         -x         |
+
+o21 : NCMatrix</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : ker3M = rightKernelBergman(ker2M)
+--Calling Bergman for NCGB calculation.
+Complete!
+--Calling Bergman for NCGB calculation.
+Complete!
+
+o22 = | 0  -2*y*x -2*y^2+2*x*z -y*x*z+x^3 |
+      | -y -z     -x           -x*y       |
+      | -z x      y            x*z        |
+      | x  y      -z           0          |
+
+o22 : NCMatrix</code></pre>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a href="___General_spsetup_spinformation.html">General setup information</a></span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">NCAlgebra/NCAlgebraDoc.m2:4104:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

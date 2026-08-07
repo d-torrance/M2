@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Strategy for free resolutions via Schreyer-Lascala -- algorithm for computing free resolutions exploiting the Schreyer frame</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <link type="text/css" rel="stylesheet" href="../../../../Macaulay2/Style/doc.css">
+
+    <link rel="stylesheet" href="../../../../Macaulay2/Style/katex/katex.min.css">
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/katex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/auto-render.min.js"></script>
+    <script>
+      var macros = {
+          "\\break": "\\\\",
+          "\\ZZ": "\\mathbb{Z}",
+          "\\NN": "\\mathbb{N}",
+          "\\QQ": "\\mathbb{Q}",
+          "\\RR": "\\mathbb{R}",
+          "\\CC": "\\mathbb{C}",
+          "\\PP": "\\mathbb{P}",
+          "\\OO": "\\mathcal{O}",
+          "\\Hom": "\\operatorname{Hom}",
+          "\\End": "\\operatorname{End}",
+          "\\Ext": "\\operatorname{Ext}",
+          "\\Tor": "\\operatorname{Tor}"
+      }, delimiters = [
+          { left: "$$",  right: "$$",  display: true},
+          { left: "\\[", right: "\\]", display: true},
+          { left: "$",   right: "$",   display: false},
+          { left: "\\(", right: "\\)", display: false}
+      ], ignoredTags = [
+	  "kbd", "var", "samp", "script", "noscript",
+	  "style", "textarea", "pre", "code", "option" ];
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, { delimiters: delimiters, macros: macros, ignoredTags: ignoredTags, trust: true });
+      });
+    </script>
+    <style>.katex { font-size: 1em; }</style>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/copy-tex.min.js"></script>
+    <script defer="defer" src="../../../../Macaulay2/Style/katex/contrib/render-a11y-string.min.js"></script>
+    <script src="../../../../Macaulay2/Style/prism.js"></script>
+    <script>var current_version = '1.26.05';</script>
+    <script src="../../../../Macaulay2/Style/version-select.js"></script>
+    <script src="../../../../Macaulay2/Style/lunr.min.js"></script>
+    <script src="../../../../Macaulay2/Style/search-data.js"></script>
+    <script src="../../../../Macaulay2/Style/search.js"></script>
+    <link type="image/x-icon" rel="icon" href="../../../../Macaulay2/Style/icon.gif">
+  </head>
+  <body>
+    <div id="buttons">
+      <div>
+<a href="https://macaulay2.com/">Macaulay2</a> <span id="version-select-container"></span> » <a title="Macaulay2 documentation" href="../../Macaulay2Doc/html/index.html">Documentation </a> <br><a href="../../Macaulay2Doc/html/_packages_spprovided_spwith_sp__Macaulay2.html">Packages</a> » <span><a title="beta testing new version of chain complexes" href="index.html">Complexes</a> :: <a title="algorithm for computing free resolutions exploiting the Schreyer frame" href="___Strategy_spfor_spfree_spresolutions_spvia_sp__Schreyer-__Lascala.html">Strategy for free resolutions via Schreyer-Lascala</a></span>      </div>
+      <div class="right">
+<div id="search-container">
+  <input id="search-input" type="search" placeholder="Search">
+  <div id="search-results"></div>
+</div>
+<a href="___Strategy_spfor_spfree_spresolutions_spvia_spsyzygies.html">next</a> | <a href="___Strategy_spfor_spfree_spresolutions_spvia_sphomogenization.html">previous</a> | <a href="___Strategy_spfor_spfree_spresolutions_spvia_spsyzygies.html">forward</a> | <a href="___Strategy_spfor_spfree_spresolutions_spvia_sphomogenization.html">backward</a> | up | <a href="master.html">index</a> | <a href="toc.html">toc</a>      </div>
+    </div>
+    <hr>
+    <div>
+      <h1>Strategy for free resolutions via Schreyer-Lascala -- algorithm for computing free resolutions exploiting the Schreyer frame</h1>
+      <ul>
+        <li>
+          <dl class="element">
+            <dt>Usage: </dt>
+            <dd><code class="language-macaulay2">freeResolution(M, Strategy => 0)</code></dd>
+            <dd><code class="language-macaulay2">freeResolution(I, Strategy => 0)</code></dd>
+          </dl>
+        </li>
+        <li>Inputs:          <ul>
+            <li><span><span class="tt">M</span>, <span>a <a title="the class of all modules" href="../../Macaulay2Doc/html/___Module.html">module</a></span>, a homogeneous module over $S$, a (quotient of a) polynomial ring</span></li>
+            <li><span><span class="tt">I</span>, <span>an <a title="the class of all ideals" href="../../Macaulay2Doc/html/___Ideal.html">ideal</a></span>, a homogeneous ideal in $S$</span></li>
+          </ul>
+        </li>
+        <li>Outputs:          <ul>
+            <li><span><span>a <a title="the class of all chain complexes" href="___Complex.html">complex</a></span>, a minimal free resolution of $M$ or $S^1/I$</span></li>
+          </ul>
+        </li>
+      </ul>
+      <div>
+        <div>
+          <h2>Description</h2>
+        </div>
+        <div>
+          <p>This is one of the algorithms in the engine of <i>Macaulay2</i> for computing minimal free resolutions.  This particular variant requires that the ring $S$ be commutative, and homogeneous over a base field.</p>
+        </div>
+        <div>
+          <p>This first example computes a minimal free resolution of the twisted cubic curve in projective $3$-space.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i1 : kk = ZZ/32003;</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i2 : S = kk[a..d];</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i3 : I = ideal(b^2-a*c, b*c - a*d, c^2-b*d)
+
+             2                    2
+o3 = ideal (b  - a*c, b*c - a*d, c  - b*d)
+
+o3 : Ideal of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i4 : M = S^1/I
+
+o4 = cokernel | b2-ac bc-ad c2-bd |
+
+                            1
+o4 : S-module, quotient of S</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i5 : F = freeResolution(M, Strategy => 0)
+
+      1      3      2
+o5 = S  &lt;-- S  &lt;-- S
+                    
+     0      1      2
+
+o5 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i6 : dd^F
+
+          1                             3
+o6 = 0 : S  &lt;------------------------- S  : 1
+               | c2-bd bc-ad b2-ac |
+
+          3                     2
+     1 : S  &lt;----------------- S  : 2
+               {2} | -b a  |
+               {2} | c  -b |
+               {2} | -d c  |
+
+o6 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i7 : betti F
+
+            0 1 2
+o7 = total: 1 3 2
+         0: 1 . .
+         1: . 3 2
+
+o7 : BettiTally</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i8 : assert isWellDefined F</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i9 : assert(isQuasiIsomorphism augmentationMap F)</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>When the input is an ideal $I$, the free resolution of $S^1/I$ is returned.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i10 : F1 = freeResolution(I, Strategy => 0)
+
+       1      3      2
+o10 = S  &lt;-- S  &lt;-- S
+                     
+      0      1      2
+
+o10 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i11 : assert(F1 == F)</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i12 : F2 = freeResolution(module I, Strategy => 0)
+
+       3      2
+o12 = S  &lt;-- S
+              
+      0      1
+
+o12 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i13 : dd^F1
+
+           1                             3
+o13 = 0 : S  &lt;------------------------- S  : 1
+                | c2-bd bc-ad b2-ac |
+
+           3                     2
+      1 : S  &lt;----------------- S  : 2
+                {2} | -b a  |
+                {2} | c  -b |
+                {2} | -d c  |
+
+o13 : ComplexMap</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i14 : dd^F2
+
+           3                     2
+o14 = 0 : S  &lt;----------------- S  : 1
+                {2} | d  c  |
+                {2} | -c -b |
+                {2} | b  a  |
+
+o14 : ComplexMap</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>This strategy also works when the underlying ring is a homogeneous quotient.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i15 : R = S/(a^3, b^3, c^3, d^3);</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i16 : J = ideal(b^2-a*c, b*c - a*d, c^2-b*d + (b^2-a*c))
+
+              2                    2          2
+o16 = ideal (b  - a*c, b*c - a*d, b  - a*c + c  - b*d)
+
+o16 : Ideal of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i17 : M = R^1/J
+
+o17 = cokernel | b2-ac bc-ad b2-ac+c2-bd |
+
+                             1
+o17 : R-module, quotient of R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i18 : C = freeResolution(M, Strategy => 0, LengthLimit => 8)
+
+       1      3      5      15      36      68      114      175      255
+o18 = R  &lt;-- R  &lt;-- R  &lt;-- R   &lt;-- R   &lt;-- R   &lt;-- R    &lt;-- R    &lt;-- R
+                                                                      
+      0      1      2      3       4       5       6        7        8
+
+o18 : Complex</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i19 : assert isWellDefined C</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i20 : betti C
+
+             0 1 2  3  4  5   6   7   8
+o20 = total: 1 3 5 15 36 68 114 175 255
+          0: 1 . .  .  .  .   .   .   .
+          1: . 3 2  .  .  .   .   .   .
+          2: . . 3  .  .  .   .   .   .
+          3: . . . 15 18  .   .   .   .
+          4: . . .  . 18 68  54   .   .
+          5: . . .  .  .  .  60 175 120
+          6: . . .  .  .  .   .   . 135
+
+o20 : BettiTally</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>The first map in the resulting complex is not necessarily given by the generators of the ideal or the relations of the module.</p>
+        </div>
+        <table class="examples">
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i21 : dd^C_1
+
+o21 = | c2-bd bc-ad b2-ac |
+
+              1      3
+o21 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i22 : gens J
+
+o22 = | b2-ac bc-ad b2-ac+c2-bd |
+
+              1      3
+o22 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre><code class="language-macaulay2">i23 : relations M
+
+o23 = | b2-ac bc-ad b2-ac+c2-bd |
+
+              1      3
+o23 : Matrix R  &lt;-- R</code></pre>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <p>This strategy is an implementation of the algorithm in Roberto La Scala and Mike Stillman, <i>Strategies for computing minimal free resolutions</i> J. Symbolic Comput. <b>26</b> (1998), no.4, 409-431.</p>
+          <p>It uses the Schreyer algorithm for free resolutions, including using induced (Schreyer) monomial orders on the free modules in the resolution, together with a method to minimize the resolution appearing in the above paper.</p>
+          <p>Both strategies 0 and 1 are implementations of this algorithm, however they use slightly different internal data structures. Moreover, strategy 0 precomputes a Groebner basis for the presentation of the module.  In contrast, strategy 1 obtains the Groebner basis as part of the algorithm.</p>
+        </div>
+      </div>
+      <div>
+        <h2>See also</h2>
+        <ul>
+          <li><span><a title="overview of the different algorithms for computing free resolutions" href="___Strategies_spfor_spfree_spresolutions.html">Strategies for free resolutions</a> -- overview of the different algorithms for computing free resolutions</span></li>
+          <li><span><a title="compute a free resolution of a module or ideal" href="_free__Resolution.html">freeResolution(Module)</a> -- compute a free resolution of a module or ideal</span></li>
+          <li><span><a title="map from a free resolution to a module regarded as a complex" href="_augmentation__Map.html">augmentationMap(Complex)</a> -- map from a free resolution to a module regarded as a complex</span></li>
+        </ul>
+      </div>
+      <div>
+        <hr>
+        <div class="waystouse">
+          <p>The source of this document is in <span class="tt">Complexes/ChainComplexDoc.m2:1394:0</span>.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

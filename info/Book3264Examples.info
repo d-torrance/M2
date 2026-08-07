@@ -1,0 +1,2126 @@
+ -*- coding: utf-8 -*- This is Book3264Examples.info, produced by Macaulay2, version 1.26.05
+
+INFO-DIR-SECTION Macaulay2 and its packages
+START-INFO-DIR-ENTRY
+* Book3264Examples: (Book3264Examples).  examples to accompany the eponymous book by Eisenbud and Harris
+END-INFO-DIR-ENTRY
+
+
+File: Book3264Examples.info, Node: Top, Next: diagrams, Up: (dir)
+
+Book3264Examples -- Examples using M2 and Schubert2 to do intersection theory
+*****************************************************************************
+
+Description
+===========
+
+This package consists almost entirely of example code for the main text and
+exercises of the book '3264 \& All That: Intersection Theory in Algebraic
+Geometry' by Eisenbud and Harris.  Most of the example code relies on the
+package *note Schubert2: (Schubert2)Top,.  The information in this package is
+best accessed via the *note help: (Macaulay2Doc)help, or *note viewHelp:
+(Macaulay2Doc)viewHelp, commands.
+
+Conventions in effect throughout:
+
+-Blackboard bold is represented in code by doubling a letter, so for example
+G(2,4) and GG(1,3) are both the Grassmannian of lines in ${\mathbb P}^3$.
+
+* Menu:
+
+
+Chapter 4
+* Intersection Theory Section 4.1: Intersection Theory Section 4_pd1.  The coordinate ring of the Grassmannian
+* Intersection Theory Section 4.2: Intersection Theory Section 4_pd2.  The Chow ring of GG(1,3)
+* Intersection Theory Section 4.3: Intersection Theory Section 4_pd3.  Schubert calculus in general
+
+Chapter 5
+* Intersection Theory Section 5.2: Intersection Theory Section 5_pd2.  Basics of vector bundles and Chern classes
+* Intersection Theory Section 5.3: Intersection Theory Section 5_pd3.  Operations on vector bundles
+* Intersection Theory Section 5.4.1-2: Intersection Theory Section 5_pd4_pd1-2.  Chern class computations on projective space
+* Intersection Theory Section 5.4.3: Intersection Theory Section 5_pd4_pd3.  Tangent bundles to hypersurfaces
+* Intersection Theory Section 5.4.4: Intersection Theory Section 5_pd4_pd4.  Bundles on Grassmannians
+
+Author
+======
+
+  * Charley Crissman (see http://math.berkeley.edu/~charleyc/ )
+    <charleyc@math.berkeley.edu>
+
+Version
+=======
+
+This documentation describes version 0.1 of Book3264Examples, released July 20,
+2010.
+
+Citation
+========
+
+If you have used this package in your research, please cite it as follows:
+
++-----------------------------------------------------------------------------+
+|@misc{Book3264ExamplesSource,                                                |
+|  title = {{Book3264Examples: examples to accompany the eponymous book by    |
+|  author = {Charley Crissman},                                               |
+|  howpublished = {A \emph{Macaulay2} package available at                    |
+|    \url{https://github.com/Macaulay2/M2/tree/stable/M2/Macaulay2/packages   |
+|}                                                                            |
+|-----------------------------------------------------------------------------|
+|Eisenbud and Harris. Version~0.1}},                                          |
+|                                                                             |
+|                                                                             |
+|}}                                                                           |
++-----------------------------------------------------------------------------+
+
+Exports
+=======
+
+  * Functions and commands
+      * *note diagrams: diagrams, -- Ferrers diagrams contained in a rectangle
+      * grassmannian (missing documentation)
+      * placeholderSchubertCycle (missing documentation)
+      * *note placeholderToSchubertBasis: placeholderToSchubertBasis, --
+        Express cycles on G(k,n) in terms of the Schubert basis
+  * Methods
+      * "diagrams(ZZ,ZZ)" -- see *note diagrams: diagrams, -- Ferrers diagrams
+        contained in a rectangle
+      * *note diagrams(ZZ,ZZ,ZZ): diagrams_lpZZ_cmZZ_cmZZ_rp, -- Partitions
+        contained in a rectangle
+      * grassmannian(ZZ,ZZ) (missing documentation)
+      * placeholderSchubertCycle(List,FlagBundle) (missing documentation)
+      * "placeholderToSchubertBasis(RingElement,FlagBundle)" -- see *note
+        placeholderToSchubertBasis: placeholderToSchubertBasis, -- Express
+        cycles on G(k,n) in terms of the Schubert basis
+
+For the programmer
+==================
+
+The object *note Book3264Examples: Top, is a *note package:
+(Macaulay2Doc)Package,, defined in Book3264Examples.m2.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:186:0.
+
+File: Book3264Examples.info, Node: Intersection Theory Section 4_pd1, Next: Intersection Theory Section 4_pd2, Up: Top
+
+Intersection Theory Section 4.1 -- The coordinate ring of the Grassmannian
+**************************************************************************
+
+Subsection 4.1.1
+
+We can use Macaulay2 to build the coordinate ring of $G(k,n)$ using the Plücker
+embedding.  Exercise 4.4 is the simplest interesting case, $G(2,4) = {\mathbb
+G}(1,3)$.  We'll start there before writing more general code for this.
+
+Exercise 4.4:
+
++-----------------------------------------------------------------------------+
+|i1 : kk = ZZ/32003 --Our base field                                          |
+|                                                                             |
+|o1 = kk                                                                      |
+|                                                                             |
+|o1 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i2 : R = kk[x_1 .. x_8]                                                      |
+|                                                                             |
+|o2 = R                                                                       |
+|                                                                             |
+|o2 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i3 : M = genericMatrix(R,x_1,2,4) -- A generic 2x4 matrix in the x_i         |
+|                                                                             |
+|o3 = | x_1 x_3 x_5 x_7 |                                                     |
+|     | x_2 x_4 x_6 x_8 |                                                     |
+|                                                                             |
+|             2      4                                                        |
+|o3 : Matrix R  <-- R                                                         |
++-----------------------------------------------------------------------------+
+|i4 : I = minors(2,M) -- The ideal of 2x2 minors of M                         |
+|                                                                             |
+|o4 = ideal (- x x  + x x , - x x  + x x , - x x  + x x , - x x  + x x , -    |
+|               2 3    1 4     2 5    1 6     4 5    3 6     2 7    1 8       |
+|     ------------------------------------------------------------------------|
+|     x x  + x x , - x x  + x x )                                             |
+|      4 7    3 8     6 7    5 8                                              |
+|                                                                             |
+|o4 : Ideal of R                                                              |
++-----------------------------------------------------------------------------+
+|i5 : P5 = kk[p_0 .. p_5] -- The coordinate ring of PP^5                      |
+|                                                                             |
+|o5 = P5                                                                      |
+|                                                                             |
+|o5 : PolynomialRing                                                          |
++-----------------------------------------------------------------------------+
+|i6 : f = map(R,P5, gens I) -- The Plücker map for GG(1,3)                    |
+|                                                                             |
+|o6 = map (R, P5, {- x x  + x x , - x x  + x x , - x x  + x x , - x x  + x x ,|
+|                     2 3    1 4     2 5    1 6     4 5    3 6     2 7    1 8 |
+|                                                                             |
+|o6 : RingMap R <-- P5                                                        |
+|-----------------------------------------------------------------------------|
+|- x x  + x x , - x x  + x x })                                               |
+|   4 7    3 8     6 7    5 8                                                 |
++-----------------------------------------------------------------------------+
+|i7 : J = saturate ker f -- The ideal of GG(1,3) in PP^3                      |
+|                                                                             |
+|o7 = ideal(p p  - p p  + p p )                                               |
+|            2 3    1 4    0 5                                                |
+|                                                                             |
+|o7 : Ideal of P5                                                             |
++-----------------------------------------------------------------------------+
+
+We see that the ideal $J$ of ${\mathbb G}(1,3)$ in ${\mathbb P}^5$ is indeed
+generated by the single relation given in the text.
+
+More generally, we can build $G(k,n)$ in its Plücker embedding for any $n$ and
+$k$:
+
++-----------------------------------------------------------------------------+
+|i8 : kk = ZZ/32003                                                           |
+|                                                                             |
+|o8 = kk                                                                      |
+|                                                                             |
+|o8 : QuotientRing                                                            |
++-----------------------------------------------------------------------------+
+|i9 : pluckerIdeal = (k,n) -> (                                               |
+|       assert (k <= n);                                                      |
+|       N := k*n; --number of variables in our generic matrix                 |
+|       R := kk[x_1 .. x_N];                                                  |
+|       M := genericMatrix(R,x_1,k,n); --the generic k-by-n matrix            |
+|       s := binomial(n,k) - 1; --the dimension of PP(Wedge^k(kk^n))          |
+|       Ps = kk[p_0 .. p_s];                                                  |
+|       f := map(R,Ps, gens minors(k,M)); --the Plücker map                   |
+|       J = saturate ker f) --the kernel of the Plücker map is the ideal we   |
+|                                                                             |
+|o9 = pluckerIdeal                                                            |
+|                                                                             |
+|o9 : FunctionClosure                                                         |
+|-----------------------------------------------------------------------------|
+|want                                                                         |
++-----------------------------------------------------------------------------+
+
+
+
+Now we can do Exercise 4.4 in one line:
+
++-------------------------------+
+|i10 : pluckerIdeal(2,4)        |
+|                               |
+|o10 = ideal(p p  - p p  + p p )|
+|             2 3    1 4    0 5 |
+|                               |
+|o10 : Ideal of Ps              |
++-------------------------------+
+
+The reader is invited to try running pluckerIdeal(4,7).  On our machine, this
+computation had not terminated after 15 minutes of runtime.
+
+We can do a little better by using the built-in function *note Grassmannian:
+(Macaulay2Doc)Grassmannian,, which computes the Plücker ideal in a more
+efficient way:
+
++-----------------------------------------------------------------------------+
+|i11 : Grassmannian(1,4)                                                      |
+|                                                                             |
+|o11 = ideal (p   p    - p   p    + p   p   , p   p    - p   p    + p   p   , |
+|              2,3 1,4    1,3 2,4    1,2 3,4   2,3 0,4    0,3 2,4    0,2 3,4  |
+|      -----------------------------------------------------------------------|
+|      p   p    - p   p    + p   p   , p   p    - p   p    + p   p   ,        |
+|       1,3 0,4    0,3 1,4    0,1 3,4   1,2 0,4    0,2 1,4    0,1 2,4         |
+|      -----------------------------------------------------------------------|
+|      p   p    - p   p    + p   p   )                                        |
+|       1,2 0,3    0,2 1,3    0,1 2,3                                         |
+|                                                                             |
+|o11 : Ideal of ZZ[p   ..p   , p   , p   , p   , p   , p   , p   , p   , p   ]|
+|                   0,1   0,2   1,2   0,3   1,3   2,3   0,4   1,4   2,4   3,4 |
++-----------------------------------------------------------------------------+
+
+The reader should try running Grassmannian(4,7) (which runs very quickly) to
+see just how large this ideal is.  Running Grasmannian(4,10), on the other
+hand, is likely to never terminate.
+
+Given how large these rings are and how difficult it is to compute in them, we
+need to simplify our computational system if we want to get answers to harder
+questions.
+
+Subsection 4.1.3
+
+It is possible to use Macaulay2 to build the universal sub- and quotient-
+bundles of the Grassmannian using explicit equations.  However, as above,
+computations very quickly become intractable.  We need some simplifications if
+we hope to compute anything. Schubert2 makes two major simplifications that
+allow us to do intersection theory with computers:
+
+1) Varieties are replaced by their Chow rings 2) Bundles are replaced by their
+(total) Chern classes (see Ch. 5)
+
+Here is Schubert code that will build the Grassmannian and its universal sub-
+and quotient bundles.
+
++-----------------------------------------------------------------------------+
+|i12 : grass = (k,n) -> flagBundle({k,n-k}) --In Schubert, we build           |
+|                                                                             |
+|o12 = grass                                                                  |
+|                                                                             |
+|o12 : FunctionClosure                                                        |
+|-----------------------------------------------------------------------------|
+|Grassmannians as special cases                                               |
++-----------------------------------------------------------------------------+
+|i13 : G = grass(2,4) -- Our favorite GG(1,3)                                 |
+|                                                                             |
+|o13 = G                                                                      |
+|                                                                             |
+|o13 : a flag bundle with subquotient ranks {2:2}                             |
++-----------------------------------------------------------------------------+
+|i14 : (S,Q) = G.Bundles -- S is the universal subbundle, Q is the universal  |
+|                                                                             |
+|o14 = (S, Q)                                                                 |
+|                                                                             |
+|o14 : Sequence                                                               |
+|-----------------------------------------------------------------------------|
+|quotient bundle                                                              |
++-----------------------------------------------------------------------------+
+|i15 : S -- Schubert tells us that S is an abstract sheaf of rank 2           |
+|                                                                             |
+|o15 = S                                                                      |
+|                                                                             |
+|o15 : an abstract sheaf of rank 2 on G                                       |
++-----------------------------------------------------------------------------+
+|i16 : Q -- And so is Q.                                                      |
+|                                                                             |
+|o16 = Q                                                                      |
+|                                                                             |
+|o16 : an abstract sheaf of rank 2 on G                                       |
++-----------------------------------------------------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:268:0.
+
+File: Book3264Examples.info, Node: Intersection Theory Section 4_pd2, Next: Intersection Theory Section 4_pd3, Prev: Intersection Theory Section 4_pd1, Up: Top
+
+Intersection Theory Section 4.2 -- The Chow ring of GG(1,3)
+***********************************************************
+
+Subsection 4.2.2
+
+Schubert2 identifies ${\mathbb G}(1,3)$ with its Chow ring.  We can see this
+directly using the command intersectionRing.
+
++-----------------------------------------------------------------------------+
+|i1 : G = flagBundle({2,2})                                                   |
+|                                                                             |
+|o1 = G                                                                       |
+|                                                                             |
+|o1 : a flag bundle with subquotient ranks {2:2}                              |
++-----------------------------------------------------------------------------+
+|i2 : intersectionRing G                                                      |
+|                                                                             |
+|                                   QQ[][H   ..H   ]                          |
+|                                         1,1   2,2                           |
+|o2 = ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H   , -H   H |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 2|
+|                                                                             |
+|o2 : QuotientRing                                                            |
+|-----------------------------------------------------------------------------|
+|---                                                                          |
+|  )                                                                          |
+|,2                                                                           |
++-----------------------------------------------------------------------------+
+
+The generators $H_{i,j}$ of the above ring are defined by the formula $H_{i,j}
+= c_j(B_i)$ where $B_i$ is the i-th bundle in the list G.Bundles (numbered
+starting with 1) and $c_j$ is the j-th Chern class, defined in Ch. 5.  The
+relationship with the Schubert classes on ${\mathbb G}(1,3)$ is as follows:
+
+$H_{2,1} = \sigma_1$ 
+ $H_{2,2} = \sigma_2$ 
+ $H_{1,1} = -\sigma_1$ 
+ $H_{1,2} = \sigma_{1,1}$
+
+The Schubert classes can also be accessed directly using the
+placeholderSchubertCycle command -- see Section 4.3 for details.
+
+As an example, we can compute $(\sigma_1)^2$:
+
++-----------------------------------------------------------------------------+
+|i3 : sigma_1 = H_(2,1)                                                       |
+|                                                                             |
+|o3 = H                                                                       |
+|      2,1                                                                    |
+|                                                                             |
+|                                   QQ[][H   ..H   ]                          |
+|                                         1,1   2,2                           |
+|o3 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H   , -H   H |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 2|
+|-----------------------------------------------------------------------------|
+|---                                                                          |
+|  )                                                                          |
+|,2                                                                           |
++-----------------------------------------------------------------------------+
+|i4 : c = (sigma_1)^2                                                         |
+|                                                                             |
+|      2                                                                      |
+|o4 = H                                                                       |
+|      2,1                                                                    |
+|                                                                             |
+|                                   QQ[][H   ..H   ]                          |
+|                                         1,1   2,2                           |
+|o4 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H   , -H   H |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 2|
+|-----------------------------------------------------------------------------|
+|---                                                                          |
+|  )                                                                          |
+|,2                                                                           |
++-----------------------------------------------------------------------------+
+
+Oops!  This just gave us $H_{2,1}^2$ back!  Schubert2 actually uses
+$\sigma_1^2$ and $\sigma_{1,1}$ as its "preferred basis" for the codimension-2
+part of the Chow ring of ${\mathbb G}(1,3)$.  To convert to the Schubert basis,
+we use the function *note placeholderToSchubertBasis:
+placeholderToSchubertBasis,:
+
++---------------------------------------------------------------+
+|i5 : placeholderToSchubertBasis(c,G)                           |
+|                                                               |
+|o5 = s       + s                                               |
+|      {1, 1}    {2, 0}                                         |
+|                                                               |
+|o5 : QQ[][s      , s      , s      , s      , s      , s      ]|
+|           {0, 0}   {1, 0}   {1, 1}   {2, 0}   {2, 1}   {2, 2} |
++---------------------------------------------------------------+
+
+We recover the formula of Theorem 4.13: $\sigma_1^2 = \sigma_2 + \sigma_{1,1}$.
+
+Subsection 4.2.4
+
+How many lines in ${\mathbb P}^3$ meet four general lines?
+
+After phrasing the problem in terms of Schubert calculus, this is easy to
+calculate both by hand and in Schubert2:
+
++-----------------------------------------------------------------------------+
+|i6 : sigma_1 = H_(2,1)                                                       |
+|                                                                             |
+|o6 = H                                                                       |
+|      2,1                                                                    |
+|                                                                             |
+|                                   QQ[][H   ..H   ]                          |
+|                                         1,1   2,2                           |
+|o6 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H   , -H   H |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 2|
+|-----------------------------------------------------------------------------|
+|---                                                                          |
+|  )                                                                          |
+|,2                                                                           |
++-----------------------------------------------------------------------------+
+|i7 : integral (sigma_1)^4                                                    |
+|                                                                             |
+|o7 = 2                                                                       |
++-----------------------------------------------------------------------------+
+
+The command integral here returns the degree of the zero-cycle $(\sigma_1)^4$,
+which is the number we want (namely, 2).
+
+Lines meeting a curve
+
+We can easily build a function which, given the degree $d$ of a space curve
+$C$, returns the cycle of lines in ${\mathbb P}^3$ meeting $C$:
+
++-----------------------------------------------------------------------------+
+|i8 : sigma_1 = H_(2,1)                                                       |
+|                                                                             |
+|o8 = H                                                                       |
+|      2,1                                                                    |
+|                                                                             |
+|                                   QQ[][H   ..H   ]                          |
+|                                         1,1   2,2                           |
+|o8 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H   , -H   H |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 2|
+|-----------------------------------------------------------------------------|
+|---                                                                          |
+|  )                                                                          |
+|,2                                                                           |
++-----------------------------------------------------------------------------+
+|i9 : linesMeetingCurve = d -> d*sigma_1                                      |
+|                                                                             |
+|o9 = linesMeetingCurve                                                       |
+|                                                                             |
+|o9 : FunctionClosure                                                         |
++-----------------------------------------------------------------------------+
+
+And now we can calculate, for example, how many lines meet four general conics:
+
++---------------------------------------+
+|i10 : integral (linesMeetingCurve(2))^4|
+|                                       |
+|o10 = 32                               |
++---------------------------------------+
+
+But we really want to answer the question once and for all: how many lines meet
+four general curves of degree $d$?  To do this, we use the *note base:
+(Schubert2)base, command, which allows us auxiliary parameters:
+
++-----------------------------------------------------------------------------+
+|i11 : S = base d --Our base variety, with one "auxiliary parameter" d        |
+|                                                                             |
+|o11 = S                                                                      |
+|                                                                             |
+|o11 : an abstract variety of dimension 0                                     |
++-----------------------------------------------------------------------------+
+|i12 : G' = flagBundle({2,2},S,VariableNames => K) --GG(1,3) with our extra   |
+|                                                                             |
+|o12 = G'                                                                     |
+|                                                                             |
+|o12 : a flag bundle with subquotient ranks {2:2}                             |
+|-----------------------------------------------------------------------------|
+|parameter                                                                    |
++-----------------------------------------------------------------------------+
+|i13 : intersectionRing G' --note the additional parameter d                  |
+|                                                                             |
+|                                   QQ[d][K   ..K   ]                         |
+|                                          1,1   2,2                          |
+|o13 = -----------------------------------------------------------------------|
+|      (- K    - K   , - K    - K   K    - K   , - K   K    - K   K   , -K   K|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|                                                                             |
+|o13 : QuotientRing                                                           |
+|-----------------------------------------------------------------------------|
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+|i14 : sigma_1 = K_(2,1)                                                      |
+|                                                                             |
+|o14 = K                                                                      |
+|       2,1                                                                   |
+|                                                                             |
+|                                   QQ[d][K   ..K   ]                         |
+|                                          1,1   2,2                          |
+|o14 : -----------------------------------------------------------------------|
+|      (- K    - K   , - K    - K   K    - K   , - K   K    - K   K   , -K   K|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|-----------------------------------------------------------------------------|
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+|i15 : linesmeetingcurve = d*sigma_1                                          |
+|                                                                             |
+|o15 = d*K                                                                    |
+|         2,1                                                                 |
+|                                                                             |
+|                                   QQ[d][K   ..K   ]                         |
+|                                          1,1   2,2                          |
+|o15 : -----------------------------------------------------------------------|
+|      (- K    - K   , - K    - K   K    - K   , - K   K    - K   K   , -K   K|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|-----------------------------------------------------------------------------|
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+|i16 : integral linesmeetingcurve^4                                           |
+|                                                                             |
+|        4                                                                    |
+|o16 = 2d                                                                     |
+|                                                                             |
+|o16 : QQ[d]                                                                  |
++-----------------------------------------------------------------------------+
+
+And we get back the answer $2d^4$, solving the problem once and for all.
+
+Chords to a Space Curve
+
+For each $d$ and $g$ we build the cycle in ${\mathbb G}(1,3)$ of lines secant
+to a general curve of degree d and genus g:
+
++-----------------------------------------------------------------------------+
+|i17 : S = base(g,d') --We use d' to avoid the d from the last example        |
+|                                                                             |
+|o17 = S                                                                      |
+|                                                                             |
+|o17 : an abstract variety of dimension 0                                     |
++-----------------------------------------------------------------------------+
+|i18 : G'' = flagBundle({2,2},S,VariableNames => L)                           |
+|                                                                             |
+|o18 = G''                                                                    |
+|                                                                             |
+|o18 : a flag bundle with subquotient ranks {2:2}                             |
++-----------------------------------------------------------------------------+
+|i19 : sigma_2 = L_(2,2)                                                      |
+|                                                                             |
+|o19 = L                                                                      |
+|       2,2                                                                   |
+|                                                                             |
+|                                 QQ[g, d'][L   ..L   ]                       |
+|                                            1,1   2,2                        |
+|o19 : -----------------------------------------------------------------------|
+|      (- L    - L   , - L    - L   L    - L   , - L   L    - L   L   , -L   L|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|-----------------------------------------------------------------------------|
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+|i20 : sigma_(1,1) = L_(1,2)                                                  |
+|                                                                             |
+|       2                                                                     |
+|o20 = L    - L                                                               |
+|       2,1    2,2                                                            |
+|                                                                             |
+|                                 QQ[g, d'][L   ..L   ]                       |
+|                                            1,1   2,2                        |
+|o20 : -----------------------------------------------------------------------|
+|      (- L    - L   , - L    - L   L    - L   , - L   L    - L   L   , -L   L|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|-----------------------------------------------------------------------------|
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+|i21 : cycleofchords = ((d'-1)*(d'-2)/2 - g)*sigma_2 + (d'*(d'-1)/2)*sigma_(1,|
+|                                                                             |
+|       1  2   1    2                                                         |
+|o21 = (-d'  - -d')L    + (- g - d' + 1)L                                     |
+|       2      2    2,1                  2,2                                  |
+|                                                                             |
+|                                 QQ[g, d'][L   ..L   ]                       |
+|                                            1,1   2,2                        |
+|o21 : -----------------------------------------------------------------------|
+|      (- L    - L   , - L    - L   L    - L   , - L   L    - L   L   , -L   L|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|-----------------------------------------------------------------------------|
+|1)                                                                           |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+
+The keynote question was: how many lines are secant to two general twisted
+cubics?  But we can do better, and answer the question: how many lines are
+secant to two general curves of degree $d$ and genus $d$?
+
++------------------------------------------------------------+
+|i22 : chordstotwocurves = integral cycleofchords^2          |
+|                                                            |
+|      1  4       2      3    2           7  2               |
+|o22 = -d'  - g*d'  - 2d'  + g  + 3g*d' + -d'  - 2g - 3d' + 1|
+|      2                                  2                  |
+|                                                            |
+|o22 : QQ[g, d']                                             |
++------------------------------------------------------------+
+
+Now if we want to answer our specific question, we just substitute in the
+desired values for $d$ and $g$:
+
++-------------------------------------------------+
+|i23 : sub(chordstotwocurves, {d' => 3, g => 0/1})|
+|                                                 |
+|o23 = 10                                         |
+|                                                 |
+|o23 : QQ                                         |
++-------------------------------------------------+
+
+WARNING: because of some ugly M2 design decisions, if you don't make at least
+one of $d'$ or $g$ a rational number, this substitute will return the wrong
+answer!  Hopefully this design will be changed in the future.
+
+Exercise 4.25 (a):
+
+If $C$ is a smooth, nondegenerate space curve and $L$ and $M$ are general lines
+in ${\mathbb P}^3$, how many chords to $C$ meet both $L$ and $M$?  Using our
+work above, we immediately compute:
+
++-----------------------------------------------------------------------------+
+|i24 : sigma_1 = L_(2,1)                                                      |
+|                                                                             |
+|o24 = L                                                                      |
+|       2,1                                                                   |
+|                                                                             |
+|                                 QQ[g, d'][L   ..L   ]                       |
+|                                            1,1   2,2                        |
+|o24 : -----------------------------------------------------------------------|
+|      (- L    - L   , - L    - L   L    - L   , - L   L    - L   L   , -L   L|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|-----------------------------------------------------------------------------|
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+|i25 : integral (cycleofchords*(sigma_1)^2)                                   |
+|                                                                             |
+|        2                                                                    |
+|o25 = d'  - g - 2d' + 1                                                      |
+|                                                                             |
+|o25 : QQ[g, d']                                                              |
++-----------------------------------------------------------------------------+
+
+
+
+Tangent Lines to a Surface
+
+Exercise 4.28:
+
+Using our Grassmannian G' with an extra base parameter $d$, we build the cycle
+of tangent lines to a general surface of degree $d$:
+
++-----------------------------------------------------------------------------+
+|i26 : sigma_1 = K_(2,1)                                                      |
+|                                                                             |
+|o26 = K                                                                      |
+|       2,1                                                                   |
+|                                                                             |
+|                                   QQ[d][K   ..K   ]                         |
+|                                          1,1   2,2                          |
+|o26 : -----------------------------------------------------------------------|
+|      (- K    - K   , - K    - K   K    - K   , - K   K    - K   K   , -K   K|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|-----------------------------------------------------------------------------|
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+|i27 : tangentcycle = d*(d-1)*sigma_1                                         |
+|                                                                             |
+|        2                                                                    |
+|o27 = (d  - d)K                                                              |
+|               2,1                                                           |
+|                                                                             |
+|                                   QQ[d][K   ..K   ]                         |
+|                                          1,1   2,2                          |
+|o27 : -----------------------------------------------------------------------|
+|      (- K    - K   , - K    - K   K    - K   , - K   K    - K   K   , -K   K|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|-----------------------------------------------------------------------------|
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+
+Now we can compute the number of lines tangent to four general surfaces of
+degree $d$:
+
++--------------------------------------------+
+|i28 : tangentlines = integral tangentcycle^4|
+|                                            |
+|        8     7      6     5     4          |
+|o28 = 2d  - 8d  + 12d  - 8d  + 2d           |
+|                                            |
+|o28 : QQ[d]                                 |
++--------------------------------------------+
+
+In particular, we calculate the number of lines tangent to four general quadric
+surfaces:
+
++---------------------------------+
+|i29 : sub(tangentlines, d => 2/1)|
+|                                 |
+|o29 = 32                         |
+|                                 |
+|o29 : QQ                         |
++---------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:401:0.
+
+File: Book3264Examples.info, Node: Intersection Theory Section 4_pd3, Next: Intersection Theory Section 5_pd2, Prev: Intersection Theory Section 4_pd2, Up: Top
+
+Intersection Theory Section 4.3 -- Schubert calculus in general
+***************************************************************
+
+Subsection 4.3.1
+
+We build arbitrary Schubert cycles using the command placeholderSchubertCycle.
+For example, on ${\mathbb G}(2,4)$, we can build the cycle $\sigma_{2,1,1}$ as
+follows:
+
++-----------------------------------------------------------------------------+
+|i1 : G24 = flagBundle({3,2})                                                 |
+|                                                                             |
+|o1 = G24                                                                     |
+|                                                                             |
+|o1 : a flag bundle with subquotient ranks {3, 2}                             |
++-----------------------------------------------------------------------------+
+|i2 : sigma_(2,1,1) = placeholderSchubertCycle({2,1,1},G24)                   |
+|                                                                             |
+|      2          2                                                           |
+|o2 = H   H    - H                                                            |
+|      2,1 2,2    2,2                                                         |
+|                                                                             |
+|                                            QQ[][H   ..H   , H   ..H   ]     |
+|                                                  1,1   1,3   2,1   2,2      |
+|o2 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H    - H   H    - H   H   , |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,3    1,2 2,1    1,1 2,2  |
+|-----------------------------------------------------------------------------|
+|---------------------------------                                            |
+|- H   H    - H   H   , -H   H   )                                            |
+|   1,3 2,1    1,2 2,2    1,3 2,2                                             |
++-----------------------------------------------------------------------------+
+
+
+
+Subsection 4.3.2
+
+Exercise 4.34
+
+How many lines meet 6 general 2-planes in ${\mathbb P}^4$?
+
+The cycle of lines meeting a 2-plane in the Grassmannian ${\mathbb G}(1,4)$ is
+the Schubert cycle $\sigma_1$, so the number of lines meeting 6 general
+2-planes is the degree of $(\sigma_1)^6$:
+
++-----------------------------------------------------------------------------+
+|i3 : G14 = flagBundle({2,3})                                                 |
+|                                                                             |
+|o3 = G14                                                                     |
+|                                                                             |
+|o3 : a flag bundle with subquotient ranks {2..3}                             |
++-----------------------------------------------------------------------------+
+|i4 : sigma_1 = placeholderSchubertCycle({1,0},G14)                           |
+|                                                                             |
+|o4 = H                                                                       |
+|      2,1                                                                    |
+|                                                                             |
+|                                            QQ[][H   ..H   , H   ..H   ]     |
+|                                                  1,1   1,2   2,1   2,3      |
+|o4 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H    - H   , |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    2,3  |
+|-----------------------------------------------------------------------------|
+|---------------------------------                                            |
+|- H   H    - H   H   , -H   H   )                                            |
+|   1,2 2,2    1,1 2,3    1,2 2,3                                             |
++-----------------------------------------------------------------------------+
+|i5 : integral (sigma_1)^6                                                    |
+|                                                                             |
+|o5 = 5                                                                       |
++-----------------------------------------------------------------------------+
+
+Note that this is the degree of ${\mathbb G}(1,4)$ in the Plücker embedding,
+since $\sigma_1$ is the hyperplane class.
+
+Exercise 4.36 (a)
+
+How many lines meet four general $k$-planes in ${\mathbb P}^{2k+1}$?
+
+The cycles of lines meeting a $k$-plane in ${\mathbb G}(1,2k+1)$ is the
+Schubert cycle $\sigma_k$.  We can build a function that calculates this value
+for any $k$, but we cannot use $k$ as a base parameter, since we need to build
+a different Grassmannian and Schubert cycle for each $k$.
+
++------------------------------------------------------+
+|i6 : numOfLines = k -> (                              |
+|          G := flagBundle({2,2*k});                   |
+|          sigma := placeholderSchubertCycle({k,0}, G);|
+|          integral sigma^4)                           |
+|                                                      |
+|o6 = numOfLines                                       |
+|                                                      |
+|o6 : FunctionClosure                                  |
++------------------------------------------------------+
+
+Now we can calculate to our hearts' content:
+
++-----------------------------------------------------------------------------+
+|i7 : for k from 1 to 5 do (                                                  |
+|          << numOfLines(k) << " lines meet four " << k << "-planes in P" <<  |
+|2 lines meet four 1-planes in P3                                             |
+|3 lines meet four 2-planes in P5                                             |
+|4 lines meet four 3-planes in P7                                             |
+|5 lines meet four 4-planes in P9                                             |
+|6 lines meet four 5-planes in P11                                            |
+|-----------------------------------------------------------------------------|
+|2*k+1 << "\n")                                                               |
++-----------------------------------------------------------------------------+
+
+Calculations slow down pretty quickly as $k$ gets large (the bottleneck is
+building the Chow ring), but we suspect the reader will have guessed the
+correct formula from the above data.
+
+Linear Spaces on Quadrics
+
+Exercise 4.43
+
+A 2-plane in ${\mathbb P}^6$ is the same as a 3-plane in a 7-dimensional space.
+According to Proposition 4.42, the cycle of 3-planes contained in the
+zero-locus of a nondegenerate quadratic form on a 7-dimensional space is
+$2^3\sigma_{3,2,1}$ in $G(3,7)$.  Hence we calculate:
+
++-----------------------------------------------------+
+|i8 : G37 = flagBundle({3,4})                         |
+|                                                     |
+|o8 = G37                                             |
+|                                                     |
+|o8 : a flag bundle with subquotient ranks {3..4}     |
++-----------------------------------------------------+
+|i9 : A37 = intersectionRing G37                      |
+|                                                     |
+|o9 = A37                                             |
+|                                                     |
+|o9 : QuotientRing                                    |
++-----------------------------------------------------+
+|i10 : sigma = 8*placeholderSchubertCycle({3,2,1},G37)|
+|                                                     |
+|                        2       2                    |
+|o10 = 8H   H   H    - 8H    - 8H   H                 |
+|        2,1 2,2 2,3     2,3     2,1 2,4              |
+|                                                     |
+|o10 : A37                                            |
++-----------------------------------------------------+
+|i11 : integral sigma^2                               |
+|                                                     |
+|o11 = 64                                             |
++-----------------------------------------------------+
+
+More generally, we can ask: given 2 general quadrics in ${\mathbb P}^{2k+2}$,
+how many $k$-planes are contained in their intersection?  We calculate:
+
++-----------------------------------------------------------------------------+
+|i12 : numOfPlanes = k -> (                                                   |
+|           G:= flagBundle({k+1,k+2});                                        |
+|           schubertlist := apply(k+1,i-> k+1-i); --the list {k+1,k,...,1}    |
+|           sigma := (2^(k+1))*placeholderSchubertCycle(schubertlist, G);     |
+|           integral sigma^2)                                                 |
+|                                                                             |
+|o12 = numOfPlanes                                                            |
+|                                                                             |
+|o12 : FunctionClosure                                                        |
++-----------------------------------------------------------------------------+
+|i13 : numOfPlanes(2) --This was Exercise 4.43                                |
+|                                                                             |
+|o13 = 64                                                                     |
++-----------------------------------------------------------------------------+
+|i14 : for k from 2 to 4 do (                                                 |
+|           << numOfPlanes(k) << " " << k << "-planes in two quadrics in P" <<|
+|64 2-planes in two quadrics in P6                                            |
+|256 3-planes in two quadrics in P8                                           |
+|1024 4-planes in two quadrics in P10                                         |
+|-----------------------------------------------------------------------------|
+|2*k+2 <<"\n")                                                                |
++-----------------------------------------------------------------------------+
+
+Exercise 4.44:
+
+Compute $\sigma_{2,1}^2$ in the Chow ring of $G(3,6)$.
+
+This is easy with the function *note placeholderToSchubertBasis:
+placeholderToSchubertBasis,, which we already saw in *note Intersection Theory
+Section 4.2: Intersection Theory Section 4_pd2,:
+
++-----------------------------------------------------------------------------+
+|i15 : G36 = flagBundle({3,3})                                                |
+|                                                                             |
+|o15 = G36                                                                    |
+|                                                                             |
+|o15 : a flag bundle with subquotient ranks {2:3}                             |
++-----------------------------------------------------------------------------+
+|i16 : c = placeholderSchubertCycle({2,1,0},G36)                              |
+|                                                                             |
+|o16 = H   H    - H                                                           |
+|       2,1 2,2    2,3                                                        |
+|                                                                             |
+|                                                                       QQ[][H|
+|                                                                             |
+|o16 : -----------------------------------------------------------------------|
+|      (- H    - H   , - H    - H   H    - H   , - H    - H   H    - H   H    |
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,3    1,2 2,1    1,1 2,2 |
+|-----------------------------------------------------------------------------|
+|   ..H   ]                                                                   |
+|1,1   2,3                                                                    |
+|---------------------------------------------------------------------------  |
+|- H   , - H   H    - H   H    - H   H   , - H   H    - H   H   , -H   H   )  |
+|   2,3     1,3 2,1    1,2 2,2    1,1 2,3     1,3 2,2    1,2 2,3    1,3 2,3   |
++-----------------------------------------------------------------------------+
+|i17 : placeholderToSchubertBasis(c^2,G36)                                    |
+|                                                                             |
+|o17 = s          + 2s          + s                                           |
+|       {2, 2, 2}     {3, 2, 1}    {3, 3, 0}                                  |
+|                                                                             |
+|o17 : QQ[][s         , s         , s         , s         , s         , s     |
+|            {0, 0, 0}   {1, 0, 0}   {1, 1, 0}   {1, 1, 1}   {2, 0, 0}   {2,  |
+|-----------------------------------------------------------------------------|
+|     , s         , s         , s         , s         , s         , s         |
+|1, 0}   {2, 1, 1}   {2, 2, 0}   {2, 2, 1}   {2, 2, 2}   {3, 0, 0}   {3, 1,   |
+|-----------------------------------------------------------------------------|
+|  , s         , s         , s         , s         , s         , s         ,  |
+|0}   {3, 1, 1}   {3, 2, 0}   {3, 2, 1}   {3, 2, 2}   {3, 3, 0}   {3, 3, 1}   |
+|-----------------------------------------------------------------------------|
+|s         , s         ]                                                      |
+| {3, 3, 2}   {3, 3, 3}                                                       |
++-----------------------------------------------------------------------------+
+
+We see that $\sigma_{3,2,1}$ occurs with coefficient $2$ in $\sigma_{2,1}^2$.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:497:0.
+
+File: Book3264Examples.info, Node: Intersection Theory Section 5_pd2, Next: Intersection Theory Section 5_pd3, Prev: Intersection Theory Section 4_pd3, Up: Top
+
+Intersection Theory Section 5.2 -- Basics of vector bundles and Chern classes
+*****************************************************************************
+
+In Schubert2, a vector bundle (or more generally, an *note AbstractSheaf:
+(Schubert2)AbstractSheaf,) is given by two pieces of data: its Chern classes
+and its rank.  Schubert2 has many built-in bundles for common varieties.  For
+example, a Grassmannian G comes with its universal subbundle and quotient
+bundle stored in G.Bundles:
+
++------------------------------------------------+
+|i1 : G = flagBundle({2,3})                      |
+|                                                |
+|o1 = G                                          |
+|                                                |
+|o1 : a flag bundle with subquotient ranks {2..3}|
++------------------------------------------------+
+|i2 : (S,Q) = G.Bundles                          |
+|                                                |
+|o2 = (S, Q)                                     |
+|                                                |
+|o2 : Sequence                                   |
++------------------------------------------------+
+|i3 : S                                          |
+|                                                |
+|o3 = S                                          |
+|                                                |
+|o3 : an abstract sheaf of rank 2 on G           |
++------------------------------------------------+
+|i4 : Q                                          |
+|                                                |
+|o4 = Q                                          |
+|                                                |
+|o4 : an abstract sheaf of rank 3 on G           |
++------------------------------------------------+
+
+The Chern classes of a vector bundle are accessed using the *note chern:
+(Schubert2)chern, command:
+
++-----------------------------------------------------------------------------+
+|i5 : chern(1,Q) -- The first Chern class of Q                                |
+|                                                                             |
+|o5 = H                                                                       |
+|      2,1                                                                    |
+|                                                                             |
+|                                            QQ[][H   ..H   , H   ..H   ]     |
+|                                                  1,1   1,2   2,1   2,3      |
+|o5 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H    - H   , |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    2,3  |
+|-----------------------------------------------------------------------------|
+|---------------------------------                                            |
+|- H   H    - H   H   , -H   H   )                                            |
+|   1,2 2,2    1,1 2,3    1,2 2,3                                             |
++-----------------------------------------------------------------------------+
+|i6 : chern Q -- The total Chern class of Q, defined as the sum of the Chern c|
+|                                                                             |
+|o6 = 1 + H    + H    + H                                                     |
+|          2,1    2,2    2,3                                                  |
+|                                                                             |
+|                                            QQ[][H   ..H   , H   ..H   ]     |
+|                                                  1,1   1,2   2,1   2,3      |
+|o6 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H    - H   , |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    2,3  |
+|-----------------------------------------------------------------------------|
+|lasses of Q.                                                                 |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|---------------------------------                                            |
+|- H   H    - H   H   , -H   H   )                                            |
+|   1,2 2,2    1,1 2,3    1,2 2,3                                             |
++-----------------------------------------------------------------------------+
+
+If we want to specify a bundle directly by its Chern classes, we can use the
+*note abstractSheaf: (Schubert2)abstractSheaf_lpAbstractVariety_cmRingElement_
+rp, command:
+
++-----------------------------------------------------------------------------+
+|i7 : Q = abstractSheaf(G,ChernClass=>1+H_(2,1)+H_(2,2)+H_(2,3),Rank=>3)      |
+|                                                                             |
+|o7 = Q                                                                       |
+|                                                                             |
+|o7 : an abstract sheaf of rank 3 on G                                        |
++-----------------------------------------------------------------------------+
+|i8 : chern Q                                                                 |
+|                                                                             |
+|o8 = 1 + H    + H    + H                                                     |
+|          2,1    2,2    2,3                                                  |
+|                                                                             |
+|                                            QQ[][H   ..H   , H   ..H   ]     |
+|                                                  1,1   1,2   2,1   2,3      |
+|o8 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H    - H   , |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    2,3  |
+|-----------------------------------------------------------------------------|
+|---------------------------------                                            |
+|- H   H    - H   H   , -H   H   )                                            |
+|   1,2 2,2    1,1 2,3    1,2 2,3                                             |
++-----------------------------------------------------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:526:0.
+
+File: Book3264Examples.info, Node: Intersection Theory Section 5_pd3, Next: Intersection Theory Section 5_pd4_pd1-2, Prev: Intersection Theory Section 5_pd2, Up: Top
+
+Intersection Theory Section 5.3 -- Operations on vector bundles
+***************************************************************
+
+Schubert2 has all of the basic operations on vector bundles and their Chern
+classes built in. A full list of all of the available operations can be found
+in the documentation for *note AbstractSheaf: (Schubert2)AbstractSheaf,.  A few
+examples:
+
+Direct Sums:
+
++-----------------------------------------------------------------------------+
+|i1 : GG24 = flagBundle({3,2})                                                |
+|                                                                             |
+|o1 = GG24                                                                    |
+|                                                                             |
+|o1 : a flag bundle with subquotient ranks {3, 2}                             |
++-----------------------------------------------------------------------------+
+|i2 : (S,Q) = GG24.Bundles                                                    |
+|                                                                             |
+|o2 = (S, Q)                                                                  |
+|                                                                             |
+|o2 : Sequence                                                                |
++-----------------------------------------------------------------------------+
+|i3 : B1 = S + Q --direct sum of S+Q                                          |
+|                                                                             |
+|o3 = B1                                                                      |
+|                                                                             |
+|o3 : an abstract sheaf of rank 5 on GG24                                     |
++-----------------------------------------------------------------------------+
+|i4 : chern B1                                                                |
+|                                                                             |
+|o4 = 1                                                                       |
+|                                                                             |
+|                                            QQ[][H   ..H   , H   ..H   ]     |
+|                                                  1,1   1,3   2,1   2,2      |
+|o4 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H    - H   H    - H   H   , |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,3    1,2 2,1    1,1 2,2  |
+|-----------------------------------------------------------------------------|
+|---------------------------------                                            |
+|- H   H    - H   H   , -H   H   )                                            |
+|   1,3 2,1    1,2 2,2    1,3 2,2                                             |
++-----------------------------------------------------------------------------+
+
+Note that the Chern class of $S+Q$ is the same as that of the trivial bundle,
+since $S$ and $Q$ fit into an exact sequence whose middle term is trivial (see
+Prop 5.5).
+
+Tensor Products:
+
++-----------------------------------------------------------------------------+
+|i5 : B2 = S ** Q --tensor product of S and Q                                 |
+|                                                                             |
+|o5 = B2                                                                      |
+|                                                                             |
+|o5 : an abstract sheaf of rank 6 on GG24                                     |
++-----------------------------------------------------------------------------+
+|i6 : chern B2                                                                |
+|                                                                             |
+|                  2                 3                      2           2     |
+|o6 = 1 + H    + (H    + H   ) + (- H    + 4H   H   ) + (- H   H    + 4H   ) -|
+|          2,1     2,1    2,2        2,1     2,1 2,2        2,1 2,2     2,2   |
+|     ------------------------------------------------------------------------|
+|           2       3                                                         |
+|     2H   H    + 2H                                                          |
+|       2,1 2,2     2,2                                                       |
+|                                                                             |
+|                                            QQ[][H   ..H   , H   ..H   ]     |
+|                                                  1,1   1,3   2,1   2,2      |
+|o6 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H    - H   H    - H   H   , |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,3    1,2 2,1    1,1 2,2  |
+|-----------------------------------------------------------------------------|
+|---------------------------------                                            |
+|- H   H    - H   H   , -H   H   )                                            |
+|   1,3 2,1    1,2 2,2    1,3 2,2                                             |
++-----------------------------------------------------------------------------+
+
+
+
+Duals:
+
++-----------------------------------------------------------------------------+
+|i7 : B3 = dual(S) ** Q                                                       |
+|                                                                             |
+|o7 = B3                                                                      |
+|                                                                             |
+|o7 : an abstract sheaf of rank 6 on GG24                                     |
++-----------------------------------------------------------------------------+
+|i8 : chern B3                                                                |
+|                                                                             |
+|                     2                3         2            2               |
+|o8 = 1 + 5H    + (11H    + H   ) + 15H    + (35H   H    - 10H   ) +          |
+|           2,1       2,1    2,2       2,1       2,1 2,2      2,2             |
+|     ------------------------------------------------------------------------|
+|            2        3                                                       |
+|     30H   H    + 10H                                                        |
+|        2,1 2,2      2,2                                                     |
+|                                                                             |
+|                                            QQ[][H   ..H   , H   ..H   ]     |
+|                                                  1,1   1,3   2,1   2,2      |
+|o8 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H    - H   H    - H   H   , |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,3    1,2 2,1    1,1 2,2  |
+|-----------------------------------------------------------------------------|
+|---------------------------------                                            |
+|- H   H    - H   H   , -H   H   )                                            |
+|   1,3 2,1    1,2 2,2    1,3 2,2                                             |
++-----------------------------------------------------------------------------+
+
+Note that B3 is the tangent bundle to $\mathbb{G}(2,4)$.
+
+Pullbacks:
+
+Currently Schubert2 has few morphisms implemented, but given a morphism of
+abstract varieties, it is easy to pull back vector bundles:
+
++-----------------------------------------------------------------------------+
+|i9 : GG13 = flagBundle({2,2})                                                |
+|                                                                             |
+|o9 = GG13                                                                    |
+|                                                                             |
+|o9 : a flag bundle with subquotient ranks {2:2}                              |
++-----------------------------------------------------------------------------+
+|i10 : f = GG13 / point -- The structure map of G13                           |
+|                                                                             |
+|o10 = f                                                                      |
+|                                                                             |
+|o10 : a map to point from GG13                                               |
++-----------------------------------------------------------------------------+
+|i11 : B = abstractSheaf(point,Rank=>2) -- The trivial vector bundle of rank 2|
+|                                                                             |
+|o11 = B                                                                      |
+|                                                                             |
+|o11 : an abstract sheaf of rank 2 on point                                   |
+|-----------------------------------------------------------------------------|
+|over point                                                                   |
++-----------------------------------------------------------------------------+
+|i12 : f^* B --Pulls back to a trivial bundle of rank 2 on G13                |
+|                                                                             |
+|o12 = a sheaf                                                                |
+|                                                                             |
+|o12 : an abstract sheaf of rank 2 on GG13                                    |
++-----------------------------------------------------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:571:0.
+
+File: Book3264Examples.info, Node: Intersection Theory Section 5_pd4_pd1-2, Next: Intersection Theory Section 5_pd4_pd3, Prev: Intersection Theory Section 5_pd3, Up: Top
+
+Intersection Theory Section 5.4.1-2 -- Chern class computations on projective space
+***********************************************************************************
+
+Subsection 5.4.1 - Universal bundles on projective space
+
+We have two different methods in Schubert2 for producing projective spaces.  We
+have already seen one method: build $\mathbb{P}^n$ as a Grassmannian:
+
++------------------------------------------------+
+|i1 : P3 = flagBundle({1,3})                     |
+|                                                |
+|o1 = P3                                         |
+|                                                |
+|o1 : a flag bundle with subquotient ranks {1, 3}|
++------------------------------------------------+
+|i2 : (S,Q) = P3.Bundles                         |
+|                                                |
+|o2 = (S, Q)                                     |
+|                                                |
+|o2 : Sequence                                   |
++------------------------------------------------+
+
+In this setting, the bundle $O(1)$ is the dual of the universal subbundle $S$.
+
++---------------------------------------------------------------------+
+|i3 : O1 = dual(S)                                                    |
+|                                                                     |
+|o3 = O1                                                              |
+|                                                                     |
+|o3 : an abstract sheaf of rank 1 on P3                               |
++---------------------------------------------------------------------+
+|i4 : chern O1                                                        |
+|                                                                     |
+|o4 = 1 + H                                                           |
+|          2,1                                                        |
+|                                                                     |
+|                          QQ[][H   , H   ..H   ]                     |
+|                                1,1   2,1   2,3                      |
+|o4 : ----------------------------------------------------------------|
+|     (- H    - H   , - H   H    - H   , - H   H    - H   , -H   H   )|
+|         1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3    1,1 2,3 |
++---------------------------------------------------------------------+
+
+Now, Schubert2 also comes with a built-in function *note
+abstractProjectiveSpace: (Schubert2)abstractProjectiveSpace, for making
+projective spaces.  Using {/tt abstractProjectiveSpace} to build $\mathbb{P}^n$
+is nice, because the resulting Chow ring is presented as a truncated polynomial
+ring in one variable, rather than as a ring with $n+1$ generators.  But, be
+careful: this built-in actually produces the projective space of 1-quotients.
+For example:
+
++------------------------------------------------------------+
+|i5 : P3' = abstractProjectiveSpace 3                        |
+|                                                            |
+|o5 = P3'                                                    |
+|                                                            |
+|o5 : a flag bundle with subquotient ranks {1, 3}            |
++------------------------------------------------------------+
+|i6 : (S',Q') = P3'.Bundles                                  |
+|                                                            |
+|o6 = (S', Q')                                               |
+|                                                            |
+|o6 : Sequence                                               |
++------------------------------------------------------------+
+|i7 : chern S'                                               |
+|                                                            |
+|o7 = 1 - H                                                  |
+|          2,1                                               |
+|                                                            |
+|                       QQ[][h, H   ..H   ]                  |
+|                                2,1   2,3                   |
+|o7 : -------------------------------------------------------|
+|     (- h - H   , - h*H    - H   , - h*H    - H   , -h*H   )|
+|             2,1       2,1    2,2       2,2    2,3      2,3 |
++------------------------------------------------------------+
+|i8 : chern Q' -- Q' is O(1) on P3'                          |
+|                                                            |
+|o8 = 1 + H    + H    + H                                    |
+|          2,1    2,2    2,3                                 |
+|                                                            |
+|                       QQ[][h, H   ..H   ]                  |
+|                                2,1   2,3                   |
+|o8 : -------------------------------------------------------|
+|     (- h - H   , - h*H    - H   , - h*H    - H   , -h*H   )|
+|             2,1       2,1    2,2       2,2    2,3      2,3 |
++------------------------------------------------------------+
+
+
+
+For the rest of this section, we will use the flagBundle method to produce
+$\mathbb{P}^n$, in order to be consistent with the choices in the book.
+
+Subsection 5.4.2
+
+The tangent bundle to projective space comes built-in in Schubert2.  It can be
+accessed via the *note tangentBundle: (Schubert2)tangentBundle, method:
+
++----------------------------------------------------------------------+
+|i9 : T = tangentBundle(P3)                                            |
+|                                                                      |
+|o9 = T                                                                |
+|                                                                      |
+|o9 : an abstract sheaf of rank 3 on P3                                |
++----------------------------------------------------------------------+
+|i10 : chern T                                                         |
+|                                                                      |
+|o10 = 1 + 4H    + 6H    + 4H                                          |
+|            2,1     2,2     2,3                                       |
+|                                                                      |
+|                           QQ[][H   , H   ..H   ]                     |
+|                                 1,1   2,1   2,3                      |
+|o10 : ----------------------------------------------------------------|
+|      (- H    - H   , - H   H    - H   , - H   H    - H   , -H   H   )|
+|          1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3    1,1 2,3 |
++----------------------------------------------------------------------+
+
+We can also produce the tangent bundle to $\mathbb{P}^n$ ourselves by using the
+Euler exact sequence:
+
++---------------------------------------+
+|i11 : TP3 = (4 * O1) - 1               |
+|                                       |
+|o11 = T                                |
+|                                       |
+|o11 : an abstract sheaf of rank 3 on P3|
++---------------------------------------+
+|i12 : chern T == chern TP3             |
+|                                       |
+|o12 = true                             |
++---------------------------------------+
+|i13 : rank T == rank TP3               |
+|                                       |
+|o13 = true                             |
++---------------------------------------+
+
+Note how Schubert2 treats integers in a bundle computation as copies of a
+trivial bundle.  See *note AbstractSheaf * AbstractSheaf:
+(Schubert2)AbstractSheaf _st AbstractSheaf, and *note AbstractSheaf -
+AbstractSheaf: (Schubert2)AbstractSheaf - AbstractSheaf,, for example, for more
+information.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:627:0.
+
+File: Book3264Examples.info, Node: Intersection Theory Section 5_pd4_pd3, Next: Intersection Theory Section 5_pd4_pd4, Prev: Intersection Theory Section 5_pd4_pd1-2, Up: Top
+
+Intersection Theory Section 5.4.3 -- Tangent bundles to hypersurfaces
+*********************************************************************
+
+Subsection 5.4.3
+
+To treat tangent bundles to hypersurfaces in Schubert2, we have to be a little
+more careful. If $X$ is a hypersurface in ${\mathbb P}^n$, we cannot hope to
+construct the Chow ring to $X$. Even for the case of an elliptic curve $E$ (a
+degree-3 hypersurface in $\mathbb{P}^2$), the construction of $A^1(E)$ amounts
+to completely understanding the group law on $E$ and all points of $E$ (so in
+particular, this ring is never finitely generated over $\mathbb{C}$), and the
+situation quickly gets worse for higher dimensions and degrees.
+
+However, for classes on $X$ which are obtained by restricting classes on
+${\mathbb P}^n$ to $X$, we can easily understand a great deal via the
+projection formula, which in this particular case tells us that if $i:X
+\rightarrow {\mathbb P}^n$ is the inclusion, then
+
+$$i_*(\alpha|_X) = \alpha \cap [X]$$
+
+So, if for example we are interested in calculating the degree of $\alpha|_X$,
+we can equivalently calculate the degree of $\alpha \cap [X]$.  In this way we
+``push the problem forward'' to ${\mathbb P}^n$.
+
+As an example, if we want to calculate the degree of the top Chern class of the
+tangent bundle to a hypersurface $X$ of degree $4$ in ${\mathbb P}^3$, we can
+compute:
+
++---------------------------------------------------------------------+
+|i1 : P3 = flagBundle({1,3})                                          |
+|                                                                     |
+|o1 = P3                                                              |
+|                                                                     |
+|o1 : a flag bundle with subquotient ranks {1, 3}                     |
++---------------------------------------------------------------------+
+|i2 : O1 = dual(P3.Bundles#0)                                         |
+|                                                                     |
+|o2 = O1                                                              |
+|                                                                     |
+|o2 : an abstract sheaf of rank 1 on P3                               |
++---------------------------------------------------------------------+
+|i3 : T = tangentBundle(P3)                                           |
+|                                                                     |
+|o3 = T                                                               |
+|                                                                     |
+|o3 : an abstract sheaf of rank 3 on P3                               |
++---------------------------------------------------------------------+
+|i4 : NX = O1^**4 -- the fourth tensor power of O(1), i.e. O(4)       |
+|                                                                     |
+|o4 = NX                                                              |
+|                                                                     |
+|o4 : an abstract sheaf of rank 1 on P3                               |
++---------------------------------------------------------------------+
+|i5 : X = chern(1,NX) -- the fundamental class [X] of X               |
+|                                                                     |
+|o5 = 4H                                                              |
+|       2,1                                                           |
+|                                                                     |
+|                          QQ[][H   , H   ..H   ]                     |
+|                                1,1   2,1   2,3                      |
+|o5 : ----------------------------------------------------------------|
+|     (- H    - H   , - H   H    - H   , - H   H    - H   , -H   H   )|
+|         1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3    1,1 2,3 |
++---------------------------------------------------------------------+
+|i6 : TX = chern(T - NX) * X                                          |
+|                                                                     |
+|o6 = 4H    + 24H                                                     |
+|       2,1      2,3                                                  |
+|                                                                     |
+|                          QQ[][H   , H   ..H   ]                     |
+|                                1,1   2,1   2,3                      |
+|o6 : ----------------------------------------------------------------|
+|     (- H    - H   , - H   H    - H   , - H   H    - H   , -H   H   )|
+|         1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3    1,1 2,3 |
++---------------------------------------------------------------------+
+|i7 : integral TX -- The Euler characteristic of a quartic surface    |
+|                                                                     |
+|o7 = 24                                                              |
++---------------------------------------------------------------------+
+
+This works because we have $$c(T_X) = \frac{c(T_P)|_X}{c(N_X)} =
+\frac{c(T_P)}{c(O_P(X))}|_X.$$
+
+More generally, we can compute the Euler characteristic of a degree-$d$
+hypersurface in $\mathbb{P}^n$ as in the book.  We can even compute a closed
+formula for all $d$ and fixed $n$ using *note base: (Schubert2)base,.
+
++-----------------------------------------------------------------------------+
+|i8 : eulerChar = n -> (                                                      |
+|          S := base d;                                                       |
+|          Pn := flagBundle({1,n},S);                                         |
+|          TPn := tangentBundle(Pn);                                          |
+|          O1 := dual(Pn.Bundles#0);                                          |
+|          NX := O1^**d;                                                      |
+|          TX := chern(TPn - NX)*chern(1,NX);                                 |
+|          integral TX)                                                       |
+|                                                                             |
+|o8 = eulerChar                                                               |
+|                                                                             |
+|o8 : FunctionClosure                                                         |
++-----------------------------------------------------------------------------+
+|i9 : eulerChar(4) -- The Euler characteristic of a degree-d hypersurface in  |
+|                                                                             |
+|        4     3      2                                                       |
+|o9 = - d  + 5d  - 10d  + 10d                                                 |
+|                                                                             |
+|o9 : QQ[d]                                                                   |
+|-----------------------------------------------------------------------------|
+|P4                                                                           |
++-----------------------------------------------------------------------------+
+|i10 : sub(eulerChar(4),{d=>4/1}) -- The Euler characteristic of quartic      |
+|                                                                             |
+|o10 = -56                                                                    |
+|                                                                             |
+|o10 : QQ                                                                     |
+|-----------------------------------------------------------------------------|
+|threefold                                                                    |
++-----------------------------------------------------------------------------+
+
+And now we can similarly calculate a formula for the middle Betti number of
+such a hypersurface:
+
++-----------------------------------------------------------------------------+
+|i11 : middleBetti = n -> (                                                   |
+|           euC := eulerChar(n);                                              |
+|           ((-1)^(n-1)) * (euC - 2*ceiling((n-1)/2)))                        |
+|                                                                             |
+|o11 = middleBetti                                                            |
+|                                                                             |
+|o11 : FunctionClosure                                                        |
++-----------------------------------------------------------------------------+
+|i12 : middleBetti(4) -- The middle Betti number of a degree-d hypersurface in|
+|                                                                             |
+|       4     3      2                                                        |
+|o12 = d  - 5d  + 10d  - 10d + 4                                              |
+|                                                                             |
+|o12 : QQ[d]                                                                  |
+|-----------------------------------------------------------------------------|
+|P4                                                                           |
++-----------------------------------------------------------------------------+
+|i13 : sub(middleBetti(4), {d => 5/1}) -- The middle Betti number of a quintic|
+|                                                                             |
+|o13 = 204                                                                    |
+|                                                                             |
+|o13 : QQ                                                                     |
+|-----------------------------------------------------------------------------|
+|threefold                                                                    |
++-----------------------------------------------------------------------------+
+
+Using this, we easily reproduce the table given in the text:
+
++-----------------------------------------------------------------------------+
+|i14 : for n from 3 to 5 do (                                                 |
+|           for e from 2 to 5 do (                                            |
+|                euC := sub(eulerChar(n),{d=>e/1});                           |
+|                midB := sub(middleBetti(n),{d=>e/1});                        |
+|                << "n: " << n << " d: " << e << " chi: " << euC << " middle  |
+|n: 3 d: 2 chi: 4 middle Betti: 2                                             |
+|n: 3 d: 3 chi: 9 middle Betti: 7                                             |
+|n: 3 d: 4 chi: 24 middle Betti: 22                                           |
+|n: 3 d: 5 chi: 55 middle Betti: 53                                           |
+|n: 4 d: 2 chi: 4 middle Betti: 0                                             |
+|n: 4 d: 3 chi: -6 middle Betti: 10                                           |
+|n: 4 d: 4 chi: -56 middle Betti: 60                                          |
+|n: 4 d: 5 chi: -200 middle Betti: 204                                        |
+|n: 5 d: 2 chi: 6 middle Betti: 2                                             |
+|n: 5 d: 3 chi: 27 middle Betti: 23                                           |
+|n: 5 d: 4 chi: 188 middle Betti: 184                                         |
+|n: 5 d: 5 chi: 825 middle Betti: 821                                         |
+|-----------------------------------------------------------------------------|
+|Betti: " << midB << endl))                                                   |
++-----------------------------------------------------------------------------+
+
+
+
+Exercise 5.11: Betti numbers of smooth complete intersections
+
+In the same way as for hypersurfaces, we compute that if $X$ is a complete
+intersection of hypersurfaces of degrees $d_1, \ldots, d_k$ in $P = {\mathbb
+P}^n$, then $$c(T_X) = c(T_P)/(\prod_{i=1}^k c(O_P(d_i)))|_X$$ We can use then
+Schubert2 to produce a closed-form formula for the degree of the top Chern
+class of the tangent bundle to a complete intersection of $k$ hypersurfaces in
+${\mathbb P}^n$:
+
++-----------------------------------------------------------------------------+
+|i15 : eulerChar = (n,k) -> (                                                 |
+|           S := base(e_1 .. e_k);                                            |
+|           Pn := flagBundle({1,n},S);                                        |
+|           TPn := tangentBundle(Pn);                                         |
+|           O1 := dual(Pn.Bundles#0);                                         |
+|           N := sum(1..k, i-> O1^**(e_i)); --the denominator in the above    |
+|           X := product(1..k, i->chern(1,O1^**(e_i))); --fundamental class   |
+|           TX := chern(TPn - N) * X;                                         |
+|           integral TX)                                                      |
+|                                                                             |
+|o15 = eulerChar                                                              |
+|                                                                             |
+|o15 : FunctionClosure                                                        |
+|-----------------------------------------------------------------------------|
+|formula                                                                      |
+| of X                                                                        |
++-----------------------------------------------------------------------------+
+|i16 : eulerChar(4,2) -- Euler char of a complete intersection surface in P4  |
+|                                                                             |
+|       3      2 2      3     2         2                                     |
+|o16 = e e  + e e  + e e  - 5e e  - 5e e  + 10e e                             |
+|       1 2    1 2    1 2     1 2     1 2      1 2                            |
+|                                                                             |
+|o16 : QQ[e ..e ]                                                             |
+|          1   2                                                              |
++-----------------------------------------------------------------------------+
+
+And from here we can compute the middle Betti numbers:
+
++-----------------------------------------------------+
+|i17 : middleBetti = (n,k) -> (                       |
+|           euC := eulerChar(n,k);                    |
+|           ((-1)^(n-k)) * (euC - 2*ceiling((n-k)/2)))|
+|                                                     |
+|o17 = middleBetti                                    |
+|                                                     |
+|o17 : FunctionClosure                                |
++-----------------------------------------------------+
+
+Now our particular problem is easy:
+
++-----------------------------------------------------------------------------+
+|i18 : sub(middleBetti(4,2),{e_1=>2,e_2=>3/1}) -- complete intersection of a  |
+|                                                                             |
+|o18 = 22                                                                     |
+|                                                                             |
+|o18 : QQ                                                                     |
+|-----------------------------------------------------------------------------|
+|quadric and cubic in P4                                                      |
++-----------------------------------------------------------------------------+
+|i19 : sub(middleBetti(5,3),{e_1=>2,e_2=>2,e_3=>2/1}) -- three quadrics in P5 |
+|                                                                             |
+|o19 = 22                                                                     |
+|                                                                             |
+|o19 : QQ                                                                     |
++-----------------------------------------------------------------------------+
+
+For good measure, we'll also compute the Euler characteristics:
+
++-----------------------------------------------------------------------------+
+|i20 : sub(eulerChar(4,2),{e_1=>2,e_2=>3/1}) -- complete intersection of a    |
+|                                                                             |
+|o20 = 24                                                                     |
+|                                                                             |
+|o20 : QQ                                                                     |
+|-----------------------------------------------------------------------------|
+|quadric and cubic in P4                                                      |
++-----------------------------------------------------------------------------+
+|i21 : sub(eulerChar(5,3),{e_1=>2,e_2=>2,e_3=>2/1}) -- three quadrics in P5   |
+|                                                                             |
+|o21 = 24                                                                     |
+|                                                                             |
+|o21 : QQ                                                                     |
++-----------------------------------------------------------------------------+
+
+
+
+Exercise 5.12: Betti numbers of the quadric line complex
+
+The only interesting Betti number is the middle one, which we compute
+immediately from the above:
+
++---------------------------------------------+
+|i22 : sub(middleBetti(5,2),{e_1=>2,e_2=>2/1})|
+|                                             |
+|o22 = 4                                      |
+|                                             |
+|o22 : QQ                                     |
++---------------------------------------------+
+
+
+
+Exercise 5.13: Calculate the Euler characteristic of a smooth hypersurface of
+bidegree $(a,b)$ in ${\mathbb P}^m \times {\mathbb P}^n$
+
+Working on ${\mathbb P}^m \times {\mathbb P}^n$ in Schubert2 is easy using
+relative flag bundles (or relative projective spaces): this space is the same
+as the projectivization of a trivial rank-$n+1$ bundle on ${\mathbb P}^m$.  So,
+for example, to build ${\mathbb P}^2 \times {\mathbb P}^3$:
+
++----------------------------------------------------------------------+
+|i23 : P2 = flagBundle({1,2})                                          |
+|                                                                      |
+|o23 = P2                                                              |
+|                                                                      |
+|o23 : a flag bundle with subquotient ranks {1..2}                     |
++----------------------------------------------------------------------+
+|i24 : P2xP3 = flagBundle({1,3},P2,VariableNames => K)                 |
+|                                                                      |
+|o24 = P2xP3                                                           |
+|                                                                      |
+|o24 : a flag bundle with subquotient ranks {1, 3}                     |
++----------------------------------------------------------------------+
+|i25 : intersectionRing(P2xP3)                                         |
+|                                                                      |
+|                   QQ[][H   , H   ..H   ]                             |
+|                         1,1   2,1   2,2                              |
+|       ---------------------------------------------[K   , K   ..K   ]|
+|       (- H    - H   , - H   H    - H   , -H   H   )  1,1   2,1   2,3 |
+|           1,1    2,1     1,1 2,1    2,2    1,1 2,2                   |
+|o25 = ----------------------------------------------------------------|
+|      (- K    - K   , - K   K    - K   , - K   K    - K   , -K   K   )|
+|          1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3    1,1 2,3 |
+|                                                                      |
+|o25 : QuotientRing                                                    |
++----------------------------------------------------------------------+
+
+Note that if we didn't use the VariableNames options this ring would be
+horrible to look at, since classes pulled back from ${\mathbb P}^2$ and
+${\mathbb P}^3$ would both be named $H$.
+
+We can calculate a closed-form formula for the Euler characteristic of a smooth
+hypersurface of bidegree $(a,b)$ once we have fixed $m$ and $n$, but we cannot
+use $m$ and $n$ as base parameters themselves.
+
++-----------------------------------------------------------------------------+
+|i26 : eulerChar = (n,m) -> (                                                 |
+|           S := base(a,b);                                                   |
+|           Pn := flagBundle({1,n},S);                                        |
+|           PnxPm := flagBundle({1,m},Pn);                                    |
+|           T := tangentBundle(PnxPm);                                        |
+|           O1Pn := dual(Pn.Bundles#0);                                       |
+|           f := PnxPm / Pn; -- the first projection map from P2xP3 to P2     |
+|           O10 := f^* O1Pn; -- we pull back O_P2(1) to get O(1,0)            |
+|           O01 := dual(PnxPm.Bundles#0); -- O(0,1)                           |
+|           NX := (O10^**a)**(O01^**b); -- O(a,b)                             |
+|           X := chern(1,NX); -- Chow class of divisor of type (a,b)          |
+|           TX := chern(T - NX) * X; -- pushed-forward total Chern class of   |
+|           integral TX) -- chi of a smooth hypersurface of bidegree (a,b)    |
+|                                                                             |
+|o26 = eulerChar                                                              |
+|                                                                             |
+|o26 : FunctionClosure                                                        |
+|-----------------------------------------------------------------------------|
+| tangent bundle to X                                                         |
+|in PnxPm                                                                     |
++-----------------------------------------------------------------------------+
+|i27 : eulerChar(4,4) -- chi of a smooth hypersurface of bidegree (a,b) in P4x|
+|                                                                             |
+|           4 4       4 3       3 4       4 2       3 3       2 4      4      |
+|o27 = - 70a b  + 175a b  + 175a b  - 150a b  - 500a b  - 150a b  + 50a b +   |
+|      -----------------------------------------------------------------------|
+|          3 2       2 3        4     4       3        2 2         3     4    |
+|      500a b  + 500a b  + 50a*b  - 5a  - 200a b - 600a b  - 200a*b  - 5b  +  |
+|      -----------------------------------------------------------------------|
+|         3       2          2      3      2               2                  |
+|      25a  + 300a b + 300a*b  + 25b  - 50a  - 200a*b - 50b  + 50a + 50b      |
+|                                                                             |
+|o27 : QQ[a..b]                                                               |
+|-----------------------------------------------------------------------------|
+|P4                                                                           |
++-----------------------------------------------------------------------------+
+|i28 : sub(eulerChar(2,3),{a=>1,b=>0/1}) -- is P1xP3, should be 8 by Kunneth  |
+|                                                                             |
+|o28 = 8                                                                      |
+|                                                                             |
+|o28 : QQ                                                                     |
++-----------------------------------------------------------------------------+
+|i29 : sub(eulerChar(1,1),{a=>1,b=>1/1}) -- a conic in P2, should be 2        |
+|                                                                             |
+|o29 = 2                                                                      |
+|                                                                             |
+|o29 : QQ                                                                     |
++-----------------------------------------------------------------------------+
+|i30 : sub(eulerChar(1,1),{a=>2,b=>1/1}) -- a twisted cubic, should be 2      |
+|                                                                             |
+|o30 = 2                                                                      |
+|                                                                             |
+|o30 : QQ                                                                     |
++-----------------------------------------------------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:783:0.
+
+File: Book3264Examples.info, Node: Intersection Theory Section 5_pd4_pd4, Prev: Intersection Theory Section 5_pd4_pd3, Up: Top
+
+Intersection Theory Section 5.4.4 -- Bundles on Grassmannians
+*************************************************************
+
+We already know everything necessary to calculate Chern classes of bundles on
+Grassmannians.
+
+As an example, we can do:
+
+Exercise 5.17: Calculate the Chern classes of the tangent bundle to ${\mathbb
+G}(1,3)$ in two different ways.
+
+We calculate directly:
+
++-----------------------------------------------------------------------------+
+|i1 : G13 = flagBundle({2,2})                                                 |
+|                                                                             |
+|o1 = G13                                                                     |
+|                                                                             |
+|o1 : a flag bundle with subquotient ranks {2:2}                              |
++-----------------------------------------------------------------------------+
+|i2 : T = tangentBundle(G13)                                                  |
+|                                                                             |
+|o2 = T                                                                       |
+|                                                                             |
+|o2 : an abstract sheaf of rank 4 on G13                                      |
++-----------------------------------------------------------------------------+
+|i3 : chern T                                                                 |
+|                                                                             |
+|                   2                    2                                    |
+|o3 = 1 + 4H    + 7H    + 12H   H    + 6H                                     |
+|           2,1     2,1      2,1 2,2     2,2                                  |
+|                                                                             |
+|                                   QQ[][H   ..H   ]                          |
+|                                         1,1   2,2                           |
+|o3 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H   , -H   H |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 2|
+|-----------------------------------------------------------------------------|
+|---                                                                          |
+|  )                                                                          |
+|,2                                                                           |
++-----------------------------------------------------------------------------+
+
+The above amounts to using the splitting principle.
+
+We also can calculate the total Chern class of the tangent bundle of $G =
+{\mathbb G}(1,3)$ by realizing $G$ as a smooth quadric in ${\mathbb P}^5$.  The
+plan is the following: first, we'll calculate the total Chern class of the
+tangent bundle in terms of powers of the hyperplane section of $G$ in ${\mathbb
+P}^5$.  Then, we'll substitute $\sigma_1$ into this polynomial, since we know
+$\sigma_1$ is the hyperplane section.
+
++-----------------------------------------------------------------------------+
+|i4 : P5 = flagBundle({1,5})                                                  |
+|                                                                             |
+|o4 = P5                                                                      |
+|                                                                             |
+|o4 : a flag bundle with subquotient ranks {1, 5}                             |
++-----------------------------------------------------------------------------+
+|i5 : TP5 = tangentBundle(P5)                                                 |
+|                                                                             |
+|o5 = TP5                                                                     |
+|                                                                             |
+|o5 : an abstract sheaf of rank 5 on P5                                       |
++-----------------------------------------------------------------------------+
+|i6 : O1 = dual(P5.Bundles#0)                                                 |
+|                                                                             |
+|o6 = O1                                                                      |
+|                                                                             |
+|o6 : an abstract sheaf of rank 1 on P5                                       |
++-----------------------------------------------------------------------------+
+|i7 : O2 = O1^**2                                                             |
+|                                                                             |
+|o7 = O2                                                                      |
+|                                                                             |
+|o7 : an abstract sheaf of rank 1 on P5                                       |
++-----------------------------------------------------------------------------+
+|i8 : TG = chern(TP5 - O2) -- total Chern class of TG in terms of the hyperpla|
+|                                                                             |
+|o8 = 1 + 4H    + 7H    + 6H    + 3H                                          |
+|           2,1     2,2     2,3     2,4                                       |
+|                                                                             |
+|                                             QQ[][H   , H   ..H   ]          |
+|                                                   1,1   2,1   2,5           |
+|o8 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H   H    - H   , - H   H    - H   , - H   H    - H   ,|
+|         1,1    2,1     1,1 2,1    2,2     1,1 2,2    2,3     1,1 2,3    2,4 |
+|-----------------------------------------------------------------------------|
+|ne section                                                                   |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|------------------------------                                               |
+| - H   H    - H   , -H   H   )                                               |
+|    1,1 2,4    2,5    1,1 2,5                                                |
++-----------------------------------------------------------------------------+
+|i9 : sigma_1 = chern(1,G13.Bundles#1)                                        |
+|                                                                             |
+|o9 = H                                                                       |
+|      2,1                                                                    |
+|                                                                             |
+|                                   QQ[][H   ..H   ]                          |
+|                                         1,1   2,2                           |
+|o9 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H   H    - H   H   , -H   H |
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 2|
+|-----------------------------------------------------------------------------|
+|---                                                                          |
+|  )                                                                          |
+|,2                                                                           |
++-----------------------------------------------------------------------------+
+|i10 : 1 + sum(1..4, i -> coefficient(chern(i,P5.Bundles#1),TG) * ((sigma_1)^i|
+|                                                                             |
+|                    2                    2                                   |
+|o10 = 1 + 4H    + 7H    + 12H   H    + 6H                                    |
+|            2,1     2,1      2,1 2,2     2,2                                 |
+|                                                                             |
+|                                    QQ[][H   ..H   ]                         |
+|                                          1,1   2,2                          |
+|o10 : -----------------------------------------------------------------------|
+|      (- H    - H   , - H    - H   H    - H   , - H   H    - H   H   , -H   H|
+|          1,1    2,1     1,2    1,1 2,1    2,2     1,2 2,1    1,1 2,2    1,2 |
+|-----------------------------------------------------------------------------|
+|))                                                                           |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|                                                                             |
+|----                                                                         |
+|   )                                                                         |
+|2,2                                                                          |
++-----------------------------------------------------------------------------+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:821:0.
+
+File: Book3264Examples.info, Node: diagrams, Next: diagrams_lpZZ_cmZZ_cmZZ_rp, Prev: Top, Up: Top
+
+diagrams -- Ferrers diagrams contained in a rectangle
+*****************************************************
+
+  * Usage: 
+        diagrams(k,n)
+  * Inputs:
+      * k, an *note integer: (Macaulay2Doc)ZZ,, maximum size of each entry in
+        diagram
+      * n, an *note integer: (Macaulay2Doc)ZZ,, number of entries in diagram
+  * Outputs:
+      * a list of lists of integers $\{a_1, \dots, a_n\}$ such that $k \geq a_1
+        \geq ... \geq a_n \geq 0$
+
+Ways to use diagrams:
+=====================
+
+  * "diagrams(ZZ,ZZ)"
+  * *note diagrams(ZZ,ZZ,ZZ): diagrams_lpZZ_cmZZ_cmZZ_rp, -- Partitions
+    contained in a rectangle
+
+For the programmer
+==================
+
+The object *note diagrams: diagrams, is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:136:0.
+
+File: Book3264Examples.info, Node: diagrams_lpZZ_cmZZ_cmZZ_rp, Next: grassmannian, Prev: diagrams, Up: Top
+
+diagrams(ZZ,ZZ,ZZ) -- Partitions contained in a rectangle
+*********************************************************
+
+  * Function: *note diagrams: diagrams,
+  * Usage: 
+        diagrams(k,n,d)
+  * Inputs:
+      * k, an *note integer: (Macaulay2Doc)ZZ,, maximum size of each entry in
+        partitions
+      * n, an *note integer: (Macaulay2Doc)ZZ,, number of entries in partition
+      * d, an *note integer: (Macaulay2Doc)ZZ,, number being partitioned
+  * Outputs:
+      * a list of lists of integers $\{a_1, \dots, a_n\}$ such that $k \geq a_1
+        \geq ... \geq a_n \geq 0$ and $\sum_{i=1}^n a_i = d$
+
+Ways to use this method:
+========================
+
+  * *note diagrams(ZZ,ZZ,ZZ): diagrams_lpZZ_cmZZ_cmZZ_rp, -- Partitions
+    contained in a rectangle
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:157:0.
+
+File: Book3264Examples.info, Node: grassmannian, Next: placeholderSchubertCycle, Prev: diagrams_lpZZ_cmZZ_cmZZ_rp, Up: Top
+
+grassmannian
+************
+
+Ways to use grassmannian:
+=========================
+
+  * grassmannian(ZZ,ZZ) (missing documentation)
+
+For the programmer
+==================
+
+The object grassmannian (missing documentation) is a *note method function:
+(Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: Book3264Examples.info, Node: placeholderSchubertCycle, Next: placeholderToSchubertBasis, Prev: grassmannian, Up: Top
+
+placeholderSchubertCycle
+************************
+
+Ways to use placeholderSchubertCycle:
+=====================================
+
+  * placeholderSchubertCycle(List,FlagBundle) (missing documentation)
+
+For the programmer
+==================
+
+The object placeholderSchubertCycle (missing documentation) is a *note method
+function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in currentString:1:382.
+
+File: Book3264Examples.info, Node: placeholderToSchubertBasis, Prev: placeholderSchubertCycle, Up: Top
+
+placeholderToSchubertBasis -- Express cycles on G(k,n) in terms of the Schubert basis
+*************************************************************************************
+
+  * Usage: 
+        placeholderToSchubertBasis(c,G)
+  * Inputs:
+      * G, an *note abstract flag bundle: (Schubert2)FlagBundle,, Any
+        grassmannian (i.e. one-step flag variety) of $k$-dimensional subspaces
+        of a rank-$n$ bundle
+      * c, a *note ring element: (Macaulay2Doc)RingElement,, An element of the
+        intersection ring of G
+  * Outputs:
+      * An element $c'$ of a polynomial ring $B[s_\lambda]$ where $B$ is the
+        base ring of G and $\lambda$ runs over all diagrams in a $k\times n$
+        rectangle.  The element $c'$ is the representation of $c$ in terms of
+        the Schubert basis of the intersection ring of G over B.
+
+Description
+===========
+
++-----------------------------------------------------------------------------+
+|i1 : A = flagBundle({3,3},VariableNames => H)                                |
+|                                                                             |
+|o1 = A                                                                       |
+|                                                                             |
+|o1 : a flag bundle with subquotient ranks {2:3}                              |
++-----------------------------------------------------------------------------+
+|i2 : S = A.Bundles#0                                                         |
+|                                                                             |
+|o2 = S                                                                       |
+|                                                                             |
+|o2 : an abstract sheaf of rank 3 on A                                        |
++-----------------------------------------------------------------------------+
+|i3 : G = flagBundle({1,2},S,VariableNames => K)                              |
+|                                                                             |
+|o3 = G                                                                       |
+|                                                                             |
+|o3 : a flag bundle with subquotient ranks {1..2}                             |
++-----------------------------------------------------------------------------+
+|i4 : c = H_(2,3)*((K_(2,1))^2) + H_(1,1)*K_(2,2)                             |
+|                                                                             |
+|                                              2                              |
+|o4 = - H   K    + (H   K    - H   H   K    - H   H    + H   H   )            |
+|        2,1 2,2     2,3 2,2    2,1 2,3 2,1    2,1 2,3    2,2 2,3             |
+|                                                                             |
+|                                                                      QQ[][H |
+|                                                                            1|
+|     ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H    - H   H    - H   H    -|
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,3    1,2 2,1    1,1 2,2  |
+|o4 : ------------------------------------------------------------------------|
+|                                                                             |
+|                                         (- K    - K    - H   , - K   K    - |
+|                                             1,1    2,1    2,1     1,1 2,1   |
+|-----------------------------------------------------------------------------|
+|  ..H   ]                                                                    |
+|,1   2,3                                                                     |
+|--------------------------------------------------------------------------[K |
+| H   , - H   H    - H   H    - H   H   , - H   H    - H   H   , -H   H   )  1|
+|  2,3     1,3 2,1    1,2 2,2    1,1 2,3     1,3 2,2    1,2 2,3    1,3 2,3    |
+|-----------------------------------------------------------------------------|
+|        2                         3                                          |
+|K    + H    - H   , - K   K    - H    + 2H   H    - H   )                    |
+| 2,2    2,1    2,2     1,1 2,2    2,1     2,1 2,2    2,3                     |
+|-----------------------------------------------------------------------------|
+|  , K   ..K   ]                                                              |
+|,1   2,1   2,2                                                               |
+|                                                                             |
+|---------------                                                              |
++-----------------------------------------------------------------------------+
+|i5 : placeholderToSchubertBasis(c,G)                                         |
+|                                                                             |
+|         2                                                                   |
+|o5 = (- H   H    + H   H   )s    - H   H   s    + (H    - H   )s             |
+|         2,1 2,3    2,2 2,3  {0}    2,1 2,3 {1}     2,3    2,1  {2}          |
+|                                                                             |
+|                                                                      QQ[][H |
+|                                                                            1|
+|o5 : ------------------------------------------------------------------------|
+|     (- H    - H   , - H    - H   H    - H   , - H    - H   H    - H   H    -|
+|         1,1    2,1     1,2    1,1 2,1    2,2     1,3    1,2 2,1    1,1 2,2  |
+|-----------------------------------------------------------------------------|
+|  ..H   ]                                                                    |
+|,1   2,3                                                                     |
+|--------------------------------------------------------------------------[s |
+| H   , - H   H    - H   H    - H   H   , - H   H    - H   H   , -H   H   )  {|
+|  2,3     1,3 2,1    1,2 2,2    1,1 2,3     1,3 2,2    1,2 2,3    1,3 2,3    |
+|-----------------------------------------------------------------------------|
+|  , s   , s   ]                                                              |
+|0}   {1}   {2}                                                               |
++-----------------------------------------------------------------------------+
+
+Ways to use placeholderToSchubertBasis:
+=======================================
+
+  * "placeholderToSchubertBasis(RingElement,FlagBundle)"
+
+For the programmer
+==================
+
+The object *note placeholderToSchubertBasis: placeholderToSchubertBasis, is a
+*note method function: (Macaulay2Doc)MethodFunction,.
+
+-------------------------------------------------------------------------------
+
+The source of this document is in Book3264Examples.m2:117:0.
+
+Tag Table:
+Node: Top284
+Node: Intersection Theory Section 4_pd14601
+Node: Intersection Theory Section 4_pd217230
+Node: Intersection Theory Section 4_pd345964
+Node: Intersection Theory Section 5_pd260317
+Node: Intersection Theory Section 5_pd367459
+Node: Intersection Theory Section 5_pd4_pd1-277684
+Node: Intersection Theory Section 5_pd4_pd385746
+Node: Intersection Theory Section 5_pd4_pd4111145
+Node: diagrams121478
+Node: diagrams_lpZZ_cmZZ_cmZZ_rp122480
+Node: grassmannian123493
+Node: placeholderSchubertCycle124031
+Node: placeholderToSchubertBasis124651
+
+End Tag Table

@@ -1,0 +1,148 @@
+-- -*- M2-comint -*- hash: 18056351207782927201
+
+i1 : setRandomSeed 0
+ -- setting random seed to 0
+
+o1 = 0
+
+i2 : c = 2;
+
+i3 : S = ZZ/101[x_1..x_c, a_(1,1)..a_(c,c)];
+
+i4 : X = matrix{{x_1..x_c}};
+
+             1      2
+o4 : Matrix S  <-- S
+
+i5 : ff = X*map(source X, , genericMatrix(S,a_(1,1),c,c));
+
+             1      2
+o5 : Matrix S  <-- S
+
+i6 : R = S/ideal ff;
+
+i7 : mbound = mfBound coker (R**X)
+
+o7 = 2
+
+i8 : F = freeResolution(coker (R**X) , LengthLimit =>mbound+1);
+
+i9 : M = coker F.dd_(mbound+1);
+
+i10 : MF = matrixFactorization(ff,M)
+
+o10 = {{2} | a_(1,1) -a_(1,2) a_(2,1) -a_(2,2) |, {3} | x_1  a_(1,2) 0   
+       {2} | x_2     x_1      0       0        |  {3} | -x_2 a_(1,1) 0   
+       {2} | 0       0        x_2     x_1      |  {3} | 0    0       x_1 
+                                                  {3} | 0    0       -x_2
+      -----------------------------------------------------------------------
+      a_(2,2) 0       |, {2} | 0 0 1 |}
+      a_(2,1) 0       |  {2} | 0 1 0 |
+      a_(1,2) a_(2,2) |  {2} | 1 0 0 |
+      a_(1,1) a_(2,1) |
+
+o10 : List
+
+i11 : netList BRanks MF
+
+      +-+-+
+o11 = |2|2|
+      +-+-+
+      |1|2|
+      +-+-+
+
+i12 : netList ARanks MF
+
+      +-+-+
+o12 = |2|2|
+      +-+-+
+      |3|4|
+      +-+-+
+
+i13 : netList bMaps MF
+
+      +------------------------+
+o13 = |{2} | a_(1,1) -a_(1,2) ||
+      |{2} | x_2     x_1      ||
+      +------------------------+
+      |{2} | x_2 x_1 |         |
+      +------------------------+
+
+i14 : netList dMaps MF
+
+      +-----------------------------------------+
+o14 = |{2} | a_(1,1) -a_(1,2) |                 |
+      |{2} | x_2     x_1      |                 |
+      +-----------------------------------------+
+      |{2} | a_(1,1) -a_(1,2) a_(2,1) -a_(2,2) ||
+      |{2} | x_2     x_1      0       0        ||
+      |{2} | 0       0        x_2     x_1      ||
+      +-----------------------------------------+
+
+i15 : netList psiMaps MF
+
+      +------------------------+
+o15 = |{2} | a_(2,1) -a_(2,2) ||
+      |{2} | 0       0        ||
+      +------------------------+
+
+i16 : netList hMaps MF
+
+      +----------------------------+
+o16 = |{3} | x_1  a_(1,2) |        |
+      |{3} | -x_2 a_(1,1) |        |
+      +----------------------------+
+      |{3} | 0    a_(2,2) 0       ||
+      |{3} | 0    a_(2,1) 0       ||
+      |{3} | x_1  a_(1,2) a_(2,2) ||
+      |{3} | -x_2 a_(1,1) a_(2,1) ||
+      +----------------------------+
+
+i17 : betti freeResolution(M, LengthLimit => 7)
+
+             0 1 2 3 4 5 6  7
+o17 = total: 3 4 5 6 7 8 9 10
+          2: 3 4 5 6 7 8 9 10
+
+o17 : BettiTally
+
+i18 : infiniteBettiNumbers(MF,7)
+
+o18 = {3, 4, 5, 6, 7, 8, 9, 10}
+
+o18 : List
+
+i19 : betti freeResolution pushForward(map(R,S),M)
+
+             0 1 2
+o19 = total: 3 5 2
+          2: 3 4 .
+          3: . 1 2
+
+o19 : BettiTally
+
+i20 : finiteBettiNumbers MF
+
+o20 = {3, 5, 2}
+
+o20 : List
+
+i21 : G = makeFiniteResolution (ff,MF)
+
+       3      5      2
+o21 = S  <-- S  <-- S
+                     
+      0      1      2
+
+o21 : Complex
+
+i22 : G' = freeResolution(pushForward(map(R,S),M))
+
+       3      5      2
+o22 = S  <-- S  <-- S
+                     
+      0      1      2
+
+o22 : Complex
+
+i23 : 
