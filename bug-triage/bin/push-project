@@ -23,6 +23,22 @@ A block is only ever *replaced* on a real issue, never introduced.  An issue on
 the board carrying no block was not filed from this catalog, and appending our
 triage to someone else's issue is not ours to do.
 
+Drafts and real issues get different layouts, deliberately:
+
+* A draft keeps the original bug file at the top with a trailing block appended.
+  It is internal, the file is already in files/, and rewriting 375 of them buys
+  nothing.
+* A real issue is rendered whole, by issue_body_for: provenance and the Claude
+  attribution first, then the original file *fenced*, then prose from
+  issues/<path>.md, then the verdict fields small in a footer.  The old layout
+  published the note column as a blockquote, which is one line of internal
+  shorthand -- no reproduction, no code, wrong register for a stranger.  Fencing
+  also fixes a real hazard: bugs/dan/1-dot-dot has email addresses at column zero
+  that GitHub was turning into mailto links.
+
+Because the whole body is ours there, the marker is what proves authorship: see
+OURS_RE, which reaches back only from a marker we wrote.
+
 Nothing here creates items, deletes items, or creates fields.
 
     ./bin/push-project                 # show what would change
@@ -123,6 +139,105 @@ def block_for(row, self_issue=None):
     return "\n".join(lines)
 
 
+ISSUES = os.path.join(catalog.ROOT, "issues")
+
+# Everything up to and including the end marker belongs to us on an issue we
+# filed, because the verbatim bug file we put above the marker is ours too.  The
+# whole-body layout replaces all of it; anything a human added after the marker
+# survives.
+OURS_RE = re.compile(r"\A.*?" + re.escape(END), re.S)
+
+
+def summary_for(path):
+    """Hand-written prose for the issue body, or None if nobody wrote any.
+
+    The note column cannot serve here.  It is one TSV line of internal shorthand
+    written for the catalog -- "both halves unmet, and the second is measurable
+    without the first" -- and publishing it as a blockquote was the old format's
+    weakness: no reproduction, no code, no paragraphs, wrong register for someone
+    meeting the bug for the first time.  So prose lives beside the row instead:
+
+        issues/bugs/dan/1-map.md
+
+    A missing file is not an error; the note is used instead, which is what makes
+    it possible to restructure the already-filed issues without writing 87
+    summaries first.  bin/file-issues reports which rows still lack one.
+    """
+    filename = os.path.join(ISSUES, path + ".md")
+    if not os.path.exists(filename):
+        return None
+    with open(filename, encoding="utf-8") as f:
+        text = f.read().strip()
+    return text or None
+
+
+def fenced(path):
+    """The original bug file, fenced so it survives GitHub's markdown.
+
+    Unfenced was actively harmful: bugs/dan/1-dot-dot carries two email addresses
+    at column zero, which GitHub turns into mailto links, and every M2 transcript
+    in the tree renders as run-together prose.  The fence is grown longer than any
+    backtick run inside the file so a file containing ``` cannot break out.
+    """
+    with open(os.path.join(catalog.FILES, path), encoding="utf-8",
+              errors="replace") as f:
+        text = f.read().rstrip("\n")
+    ticks = "```"
+    while ticks in text:
+        ticks += "`"
+    lang = "m2" if path.endswith(".m2") else "text"
+    body = "%s%s\n%s\n%s" % (ticks, lang, text, ticks)
+    # A 211-line reproducer would bury the commentary below it.
+    if len(text.split("\n")) > 50:
+        return ("<details>\n<summary>The original file, verbatim "
+                "(%d lines)</summary>\n\n%s\n</details>"
+                % (len(text.split("\n")), body))
+    return "### The original file, verbatim\n\n" + body
+
+
+def issue_body_for(row, number=None):
+    """The whole body of an issue filed from this catalog.
+
+    Ordered so a reader meets the provenance and the attribution before any
+    content, then the untouched original, then our commentary.  Drafts keep the
+    older trailing-block layout: they are internal, the original is already in
+    files/, and rewriting 375 of them buys nothing.
+    """
+    fields = []
+    for column, label in (("verdict", ""), ("disposition", "disposition"),
+                          ("fix", "fix"), ("issue", "issue")):
+        if column == "issue" and number and row["issue"] == "#%s" % number:
+            continue
+        if not row[column]:
+            continue
+        value = linkify(row[column]) if column in ("issue", "fix") else "`%s`" % row[column]
+        fields.append(("%s %s" % (label, value)).strip())
+    lines = [
+        BEGIN, "",
+        "This issue was triaged from `%s`, one of the 857 files removed from the "
+        "pre-GitHub `bugs/` tree by %s and catalogued in [#36](%s/issues/36).  "
+        "**The commentary below was written by Claude (Claude Opus 5, via Claude "
+        "Code)**, not by @d-torrance, whose account posted it -- please weigh it "
+        "accordingly." % (row["path"], linkify("d2c8d27826"), REPO_URL),
+        "", fenced(row["path"]), "",
+        "### Where it stands today", "",
+        summary_for(row["path"]) or (
+            "*No summary has been written for this row yet; the catalogue's own "
+            "note follows, which is internal shorthand rather than prose.*\n\n> "
+            + linkify(row["note"])), "",
+        "<sub>%s &middot; source of truth: [`bug-triage/catalog.tsv`](%s)</sub>"
+        % (" &middot; ".join(fields), CATALOG_URL),
+        END]
+    return "\n".join(lines)
+
+
+def merged_issue_body(old, body):
+    """Swap in the new body, keeping anything a human added after our marker."""
+    if OURS_RE.search(old or ""):
+        return OURS_RE.sub(lambda _: body, old, count=1)
+    return body
+
+
 def merged_body(old, block):
     """Replace an existing block, or append one, leaving the bug file intact."""
     old = old or ""
@@ -219,13 +334,16 @@ def main():
             # catalog.tsv for good, which is how #4514, #4528 and #4529 came to
             # sit closed while still publishing "Verdict: open".
             #
-            # Only ever *replace* a block here, never introduce one.  An issue on
-            # the board with no block was not filed from this catalog -- someone
-            # added it by hand -- and appending our triage to a stranger's issue
-            # is not ours to do.
+            # Only ever *replace* here, never introduce.  An issue on the board
+            # with no marker was not filed from this catalog -- someone added it by
+            # hand -- and rewriting a stranger's issue body is not ours to do.
+            # This is also what makes the whole-body layout safe: the marker is the
+            # proof of authorship, and OURS_RE only reaches back from it.
+            body = issue_body_for(r, item["content"]["number"])
+            new = merged_issue_body(old, body)
             if new != old:
                 issue_edits.append((r["path"], item["content"]["id"],
-                                    item["content"]["number"], new, block))
+                                    item["content"]["number"], new, body))
         else:
             foreign.append(r["path"])
 

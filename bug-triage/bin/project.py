@@ -277,7 +277,14 @@ def check_labels(wanted, known):
 # The triage block bin/push-project writes names the file it came from.  That
 # survives conversion to an issue and any later retitling, which makes it the most
 # durable key we have -- we wrote it, so it cannot drift.
-TRIAGED_FROM = re.compile(r"Triaged from `(bugs/[^`]+)`")
+#
+# Case-insensitive on the first letter because the phrase moved.  The old layout
+# put "Triaged from `path`" in a footer; the issue layout says "This issue was
+# triaged from `path`" in its opening sentence, and matching a capital T silently
+# orphaned four filed issues whose verdict was no longer open -- #4514, #4528,
+# #4501 and #4529, three of which this docstring already cites as the reason the
+# key exists.  Keep any future rewording matching this pattern.
+TRIAGED_FROM = re.compile(r"[Tt]riaged from `(bugs/[^`]+)`")
 
 
 def key_of(item):
