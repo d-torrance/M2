@@ -1509,15 +1509,55 @@ Cheap rule: any formula going into an issue body gets evaluated against the impl
 on enough cases to catch an off-by-one seed. It is three lines of M2 and it is the difference
 between a filed feature request and a filed mistake.
 
+## Prose for a stranger is not the note column
+
+The note is one TSV line written for the catalog -- "both halves unmet, and the second is measurable
+without the first" -- and for a long time the filed issues published exactly that, in a blockquote,
+under the unfenced bug file. It reads as shorthand because it is shorthand.
+
+So issue bodies now come from `issues/<path>.md`, hand-written, in the same shape as `comments/`.
+The layout is provenance and attribution first, the original file **fenced**, then the prose, then the
+verdict fields small in a footer. Drafts keep the old trailing-block layout.
+
+Fencing was not cosmetic. `bugs/dan/1-dot-dot` carries email addresses at column zero that GitHub was
+turning into mailto links, and every M2 transcript in the tree rendered as run-together prose. I had
+been working around that by hand when writing comments.
+
+Two things learned writing the first 85:
+
+- **Writing the prose finds errors the note hid.** `1-map`'s note said `map` rejects option-style
+  destinations. Expanding it meant reading `ringmap.m2:495-501`, which shows the form *works* for
+  endomorphisms and is gated on `R === S`. The issue that got filed is narrower and truer than the note,
+  and a claim I had invented about arity checking turned out to be false.
+- **Say when your own earlier reasoning was wrong.** Two summaries record a first attempt that failed --
+  a gcd counterexample that passed by coincidence, a hash identity that used the wrong constants. A
+  reader comparing the issue with the catalog would otherwise wonder which to believe.
+
+## A layout change can silently orphan rows from the board
+
+`key_of` finds a row's board item by searching the body for ``Triaged from `bugs/...` ``, and
+`project.py` calls that "the most durable key we have". The new issue layout moved the phrase into an
+opening sentence reading "This issue was *t*riaged from" -- lowercase -- and the regex wanted a capital
+T.
+
+Four filed issues went unmatched: #4514, #4528, #4501 and #4529. Three of them are the very examples
+`project.py`'s docstring cites as the reason the key exists. Nothing was lost, because matching ran
+against the old bodies before they were rewritten, but a later verdict revision would have failed to
+reach them and the catalog would have gone on disagreeing with the tracker.
+
+The tell was in the dry run: `unmatched` went from 1 to 6. **Read that number after any change to what
+goes in a body.** It is the only signal that the join between catalog and board still holds, and it does
+not look like an error.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-363 are settled and **494 are left**:
+375 are settled and **482 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 142 |
+| `dan`, priority `1` | 130 |
 | `mike` | 206 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
@@ -1527,8 +1567,8 @@ Take one author at a time. Their file conventions differ -- Dan's are prose note
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
 number down -- and switching between them means relearning the format every few rows.
 
-The mix of kinds differs too, and it decides how a bucket feels. **228 of Dan's 243 remaining are
-prose notes, against only 15 reproducers**; Mike's 206 are 139 reproducers to 67 notes. So Dan's
+The mix of kinds differs too, and it decides how a bucket feels. **218 of Dan's 231 remaining are
+prose notes, against only 13 reproducers**; Mike's 206 are 139 reproducers to 67 notes. So Dan's
 remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
 running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
 applying to most of it. `dan/0.4`–`0.9` was 28 notes and 0 reproducers, which is what the rest of
