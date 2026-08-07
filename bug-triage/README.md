@@ -1454,15 +1454,70 @@ a `.tmp` suffix. And prefer measuring the direction you *can* measure soundly �
 M2 installing into a layout-2 prefix gave 73 links and 0 broken, which is real evidence about the
 cross-layout machinery, while the confounded run was evidence about nothing.
 
+## A decision can live in a merged pull request
+
+Two rows in one batch turned on discussions no search here could see, because
+`bin/fetch-issues` dropped pull requests. Both were found only because the maintainer pointed at
+them.
+
+- `1-list-of-ideals-of-R` wants `intersect` of an empty list of ideals of `R` to answer `ideal 1_R`.
+  It was written up `open` — and the question had been settled in **PR #3328** (merged 2024-06-29),
+  which added the 0-argument forms for `gcd`, `lcm` and `union` and left `intersect` out on purpose.
+  Mike Stillman, in a comment there: *"I would prefer not to have the ring default to ZZ for tensor
+  and intersect. We have that in other cases (e.g. `ideal()`), and it causes hard to find bugs."*
+- `1-loadPackage` is answered by **PR #3852** (merged 2025-06-01), which added
+  `warning: reloading ...; recreate instances of types from this package`.
+
+The cache now keeps PRs (each item carries `pull_request`), and `bin/suggest-issues` filters them
+back out. **But comments are still not cached**, and in the #3328 case the decisive sentence was in
+a comment. So the search gets you to the right thread, not to the decision inside it: when a hit
+looks like it might be the deciding thread, open it.
+
+The wider point is that "no issue mentions this" is a weaker statement than it sounds. A closed PR
+is where a "no" usually gets recorded, and a `wontfix` that cites the maintainer who said no is
+worth ten that cite an absence of evidence.
+
+## An example can fail for a reason other than the one you are testing
+
+The mirror of "an example can pass by accident", and it produced a wrong `reproduces` here.
+
+`1-loadPackage`'s transcript ends with `flagBundle({2,2}, V)` failing after a package reload, where
+`V = OO_pt^2`. Running exactly that, it failed — and I recorded the row as reproducing. It does
+reproduce, but not for that reason: **rank 2 cannot carry a `{2,2}` flag**, so the call is invalid
+today on mathematical grounds (`Schubert2.m2:608`, *"expected rank of bundle to be not less than the
+sum of the bundle ranks"*), and it fails identically with no reload at all.
+
+Two things hid it. `try ... else "no method"` swallowed the message and replaced it with the label
+the 2010 file used, so the transcript agreed with itself. And there was no control: the whole claim
+was "this fails after a reload", with nothing establishing that it succeeds without one.
+
+So for any row of the form "X fails under condition C": run X *without* C in the same session, and
+never label a caught error — print it. Here the corrected experiment needs rank 4, and then all
+three cells are informative: no reload works, stale objects fail with the dispatch error the file
+describes, objects created after the reload work.
+
+## Check an identity before you put it in an issue
+
+`1-join-hash` proposes deriving a joined list's hash from its inputs. Whether that is possible is an
+arithmetic question, and my first answer was wrong: I read `seqHashSeed`/`seqHashMult`
+(`d/basic.d:8-9`), derived `h(L++M) = mult^|M|·(h_L − seed) + h_M`, and it failed all five test
+cases. Those constants belong to the *Sequence* fold. `hash(x:List)` at `:82-85` is a different
+function — multiplier `1299833`, seed `x.Class.hash + 23407` — and with those the identity passes
+seven cases including both empty sides, mixed element types and nested lists.
+
+Cheap rule: any formula going into an issue body gets evaluated against the implementation first,
+on enough cases to catch an off-by-one seed. It is three lines of M2 and it is the difference
+between a filed feature request and a filed mistake.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
 and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-351 are settled and **506 are left**:
+363 are settled and **494 are left**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 154 |
+| `dan`, priority `1` | 142 |
 | `mike` | 206 |
 | `dan`, priority `2` and beyond, plus unnumbered | 101 |
 | `anton` | 34 |
@@ -1472,8 +1527,8 @@ Take one author at a time. Their file conventions differ -- Dan's are prose note
 transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
 number down -- and switching between them means relearning the format every few rows.
 
-The mix of kinds differs too, and it decides how a bucket feels. **239 of Dan's 255 remaining are
-prose notes, against only 16 reproducers**; Mike's 206 are 139 reproducers to 67 notes. So Dan's
+The mix of kinds differs too, and it decides how a bucket feels. **228 of Dan's 243 remaining are
+prose notes, against only 15 reproducers**; Mike's 206 are 139 reproducers to 67 notes. So Dan's
 remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
 running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
 applying to most of it. `dan/0.4`–`0.9` was 28 notes and 0 reproducers, which is what the rest of
