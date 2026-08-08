@@ -1549,6 +1549,37 @@ The tell was in the dry run: `unmatched` went from 1 to 6. **Read that number af
 goes in a body.** It is the only signal that the join between catalog and board still holds, and it does
 not look like an error.
 
+## Reusing one input across variants measures the cache, not the variants
+
+`1-new-res-options` asks for the resolution strategy flags to get names, so checking it meant trying
+eight spellings of `Strategy` and `SortStrategy`. Built one module and ran all eight against it. All
+eight "worked", including `SortStrategy => 12345`.
+
+`freeResolution` caches on the module -- `M.cache.ResolutionObject`, consulted at
+`Complexes/FreeResolution.m2:75-95` -- so calls two through eight returned the first result and never
+reached the engine. With a fresh module per call the answer is informative and half of them error,
+which is the actual finding.
+
+This is the mirror of [order the transcript the way the file
+wrote it](#order-the-transcript-the-way-the-file-wrote-it): there a *previous* call populated a memo
+table and made a broken thing look fixed; here the harness's own previous call made every variant
+look supported. Both are the same failure, and the general form is worth stating once: **a comparison
+across variants needs a fresh subject per variant, because anything M2 caches on the subject will
+answer for all of them.** Rings, modules, packages and `vars` all memoize. The tell is a table with no
+variation in it -- if every row of a comparison agrees, suspect the harness before believing the
+result.
+
+### `GF 4 =!= GF 4`, and other constructors that do not return the same object
+
+In the same batch, a table of `k ** k[x,y]` across six coefficient rings reported `GF 4` as failing.
+It does not. The script built the field twice -- once for `k` and once inside `k[x,y]` -- and each
+`GF` call makes a new field, so it was testing two unrelated rings. Bound once, it works.
+
+That produced a wrong claim in a message to the maintainer before it was caught, and it would have
+produced a wrong sentence in a filed issue. Binding every constructed object to a name exactly once
+and reusing the name costs nothing and removes the failure mode; building it inline twice looks like
+the same expression and is not.
+
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
