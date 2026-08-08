@@ -1198,6 +1198,32 @@ needing no `flattenRing` at all, and it is what made the row worth filing.
 nonzero, that the loop body ran, that the result is what you expected. A benchmark has no failure
 mode of its own; it will happily report the speed of nothing.
 
+### Build the operands outside the loop, or you will time their construction
+
+The same trap in its commonest form, and it manufactured a finding rather than hiding one.
+`1-slow-gcd` needed `gcd` timed across several rings, so each case was a closure:
+
+```m2
+zzt("gcd(t, t+1) in QQ[t]", 2000, () -> gcd(S1_0, S1_0 + 1))
+```
+
+That reported 36.7 microseconds for one variable against 17.1 for two -- `QQ[t]` apparently *slower*
+than `QQ[a,b]`, which is backwards and interesting, and was about to be written up as the row's most
+suspicious data point. The `S1_0 + 1` is inside the timed closure. Hoisted out, it is 19.9 against
+18.7 and the anomaly is gone; the real result is a flat ~6x ratio across every ring, which is a much
+duller and entirely different conclusion.
+
+Two things make this worth its own note beyond the general rule above:
+
+- **A comparison across cases is where it bites**, because the per-case setup differs. Timing one
+  thing badly gives a number that is merely too big; timing several things badly gives a *ranking*,
+  and a ranking is what gets reported as a finding.
+- **The tell is an ordering that makes no sense** -- fewer variables costing more, a smaller input
+  costing more than a larger one. Treat any such inversion as a bug in the harness until proven
+  otherwise, because it almost always is. The same instinct caught the `sort` numbers in the same
+  batch, where `toList(0..49999)` had to be hoisted before the 45-second measurement could be
+  trusted; there it survived, at 0.008 s against 45.7.
+
 ## A queue that reports zero cannot tell you which zero it means
 
 The comment on #3887 was written, `bin/comment-issues` was run, and it said `0 comments to post`.
