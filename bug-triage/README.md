@@ -1298,6 +1298,12 @@ form "remember which directory you are in" will fail eventually.
 removes the failure mode instead of asking anyone to notice it. Three earlier lessons in this
 file tried to teach noticing; this one replaces it with a habit that cannot silently fail.
 
+**It is not only `git`.** A later batch ran `./bin/render` and got
+`/bin/bash: ./bin/render: No such file or directory`, because the tool call before it had ended in the
+repository root rather than here. Same cause, and the same fix extends: set `B=.../bug-triage` and
+write `$B/bin/render`, `$B/catalog.tsv`. Every relative path in this directory is a latent version of
+this, and unlike a bad pathspec it at least fails loudly.
+
 ## Bound anything exploratory, and sweep for strays when the batch ends
 
 A `GF(3,582)` probe from the previous batch was still running **55 minutes** later at 99% of a
@@ -1476,6 +1482,33 @@ looks like it might be the deciding thread, open it.
 The wider point is that "no issue mentions this" is a weaker statement than it sounds. A closed PR
 is where a "no" usually gets recorded, and a `wontfix` that cites the maintainer who said no is
 worth ten that cite an absence of evidence.
+
+### The ad-hoc search helper filters PRs out, and it will keep doing so
+
+Fixing the cache did not fix the searches. Every ad-hoc scan written since has opened with
+
+```python
+items = [i for i in d if not i.get('pull_request')]
+```
+
+because the question being asked is usually "is this already an issue", where excluding PRs is
+right. That line then silently answers a *different* question wrongly: "is anyone working on this".
+`1-pushForward1` was written up `wontfix` on an issue-only search, and the maintainer asked whether
+PRs had been checked. Three were open or freshly merged on that exact function.
+
+The verdict survived — Joel Dodge's #4366, #4435 and #4465 widen *which finite maps* Core
+`pushForward` accepts, and the row's map fails an earlier gate — but that was luck, not method, and
+establishing it took a second pass over five rows.
+
+So: **search both, and say in the note that you did.** Two habits that cost nothing:
+
+- Print the kind alongside each hit (`PR` / `iss`) rather than filtering. A PR in the output is
+  information; a PR silently absent is not.
+- When a row touches a function under active development, the relevant question is not "has this been
+  reported" but "is this the axis someone is already working on" — and those have different answers.
+  Read the open PR's own failing example: #4435's is `unexpected degree map of ring map`, which is a
+  different gate from the `no applicable strategy` the row hit, and that comparison is what settled
+  it.
 
 ## An example can fail for a reason other than the one you are testing
 
