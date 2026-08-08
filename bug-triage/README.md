@@ -1479,6 +1479,36 @@ back out. **But comments are still not cached**, and in the #3328 case the decis
 a comment. So the search gets you to the right thread, not to the decision inside it: when a hit
 looks like it might be the deciding thread, open it.
 
+### `gh search issues` reads comments; the cache cannot, so use both
+
+Knowing comments are uncached is not enough, because the failure does not look like a gap — it looks
+like a clean negative. `1-real-output` was written up with "searched issues and PRs: nothing on this",
+and the maintainer replied that he was almost certain there was an open issue he had worked on,
+mentioning Grisu and Ryu *in the comments*. There was: **#708**, open since 2017, whose own body ends
+with the same `toExternalString` call the row is about.
+
+Two things had to go wrong together, and both will recur:
+
+- The decisive text was in a comment, so no scan over `cache/issues.json` could see it.
+- **#708 is titled "floating point weirdness"**, which shares no word with the row, so no keyword worth
+  guessing would have reached it by title or body either.
+
+The fix is one command, and it is not a cache scan:
+
+```sh
+gh search issues --repo Macaulay2/M2 ryu --json number,title,state,isPullRequest
+```
+
+GitHub indexes comment text, so a term that only ever appeared in discussion is findable. Run it for
+the row's *subject-matter jargon* — algorithm names, library function names, anything a maintainer
+would type while thinking aloud — not just for the row's own vocabulary. `mpfr_get_str`, `Grisu`,
+`Dragon4` would each have found #708; `toExternalString` and `shortest` did not.
+
+And the general lesson about negatives applies here in its strongest form: this catalog's verdicts rest
+on "nothing tracks this" constantly, and there are now three distinct ways that sentence can be false —
+a PR the scan filtered out, a comment the cache never had, and a title that shares no vocabulary. Say
+in the note which searches were run, so the next reader knows what the negative covers.
+
 The wider point is that "no issue mentions this" is a weaker statement than it sounds. A closed PR
 is where a "no" usually gets recorded, and a `wontfix` that cites the maintainer who said no is
 worth ten that cite an absence of evidence.
