@@ -1112,6 +1112,35 @@ to issue 0. A bare `#N` now needs no word character in front of it (`project.ISS
 a reference format is generated rather than typed, test it against text that merely looks like
 one** — M2 code is full of `#`.
 
+### A quoted title defeats that guard, because English puts a space before the `#`
+
+The `v#0` fix keys on the character *before* the `#`: a word character means code, so leave it
+alone. That covers `v#0`, `sym#1`, `commandLine#0`, `LLLBases.Dictionary#"LLL"` — everything the
+rule was written for. It does not cover the other way a `#N` arrives without being a reference,
+which is **inside a quoted title**, where the preceding character is an ordinary space.
+
+A note in `2-doc-command-line-options` cited the commit that fixed it as *"PR #3745, 'Organizing
+Macaulay2Doc #5'"*. The `#5` is part of somebody's PR title — the fifth in a series — and it was
+published as a link to Macaulay2/M2 `#5`, which resolves: Anton's merged pull request *"ARingRRR
+tests and promote"*, unrelated to anything in that note. (`/issues/5` redirects to `/pull/5`, so a
+generated issue link lands on a PR without complaining.)
+
+It is exactly the `M2-emacs#102` failure from the opposite direction: there the guard was too loose
+about what precedes a `#`, here the text genuinely looks like a reference and no guard can tell.
+
+So this one is not fixable in `linkify`, and two habits stand in for it:
+
+- **Read the dry run's rendered block, not the TSV.** The note in `catalog.tsv` is plain text and
+  looks fine; the link only exists after `linkify` runs, so `bin/push-project` without `--apply` is
+  the only place it is visible. The same batch's `#4569` title had been misquoted with an invented
+  word in it, and that too was only caught by reading the rendered output next to `gh issue view`.
+- **Paraphrase a title containing a `#N` rather than quoting it** — "the fifth of the Organizing
+  Macaulay2Doc series" carries the same information and cannot mislink.
+
+The general form is worth stating once, because both halves have now cost something: a reference
+detector has two error modes, and testing it only against *code that resembles a reference* finds
+one of them. Also test it against *prose that contains a real reference to something else*.
+
 ## Reproducible documentation is a constraint on how errors may be formatted
 
 `1-error-file-paths` asks for absolute paths in error messages, "because the notion of current
