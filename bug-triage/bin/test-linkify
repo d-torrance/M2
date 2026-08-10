@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+"""Regression test for project.linkify's reference detection.
+
+There is no other test here, and this one exists because the same defect shipped
+twice: an M2 subscript, "<expression>#<integer>", published as a link to an
+issue.  It was "v#0" the first time and "(x+1)#0" the second, the second sitting
+live on the board for weeks before a dry run was read closely enough to catch it.
+
+A reference detector has two error modes and they need separate cases: text that
+merely looks like a reference must not be linked, and a real reference must not
+be missed.  Both lists below are drawn from notes that actually exist in
+catalog.tsv rather than invented.
+
+    bin/test-linkify        # exits nonzero on failure, silent on success
+    bin/test-linkify -v     # print every case
+"""
+
+import importlib.util
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+spec = importlib.util.spec_from_file_location(
+    "project", os.path.join(HERE, "project.py"))
+project = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(project)
+
+# (text, the reference that must come out as a link)
+LINKED = [
+    ("see #4610 for details", "#4610"),
+    ("#36 opens the batch", "#36"),
+    ("(#2130) is the closed one", "#2130"),
+    ("PR #3748, merged 2026-03-17", "#3748"),
+    ("closed as a duplicate of #101.", "#101"),
+    ("Macaulay2/M2-emacs#102 is somebody else's", "Macaulay2/M2-emacs#102"),
+]
+
+# Text that must survive untouched.  Every one of these is M2 code.
+NOT_LINKED = [
+    "the fix applies it to v#0, the underlying matrix",
+    "packages.m2:437 tests class sym#1 and reports nam",
+    'commandLine#0 | " --help"',
+    "the length is 1 and (x+1)#0 is the RawRingElement",
+    'B := ((value getGlobalSymbol "fourierMotzkin") A)#0, replacing them',
+    'value LLLBases.Dictionary#"LLL"',
+    "peek gives R{x+1}, and {1,2,3}#2 is 3",
+    "an array [1,2,3]#0 is 1",
+]
+
+# Known and accepted: "/" is excluded from the lookbehind, so in a
+# slash-separated list only the first reference becomes a link.  Three notes
+# spell one that way ("#4576/#4578/#4583", "#1061/#1067").  Left alone
+# deliberately -- widening the class would start linkifying URL fragments.
+KNOWN_UNLINKED = ["#4576/#4578/#4583 share a shape"]
+
+
+def main():
+    verbose = "-v" in sys.argv
+    failures = []
+    for text, ref in LINKED:
+        out = project.linkify(text)
+        ok = ("[%s](" % ref) in out
+        if not ok:
+            failures.append("expected a link for %s in %r -> %s" % (ref, text, out))
+        if verbose:
+            print("%s  %r" % ("ok  " if ok else "FAIL", text))
+    for text in NOT_LINKED:
+        out = project.linkify(text)
+        ok = "/issues/" not in out
+        if not ok:
+            failures.append("linkified M2 code: %r -> %s" % (text, out))
+        if verbose:
+            print("%s  %r" % ("ok  " if ok else "FAIL", text))
+    for text in KNOWN_UNLINKED:
+        out = project.linkify(text)
+        if verbose:
+            print("note  only the first is linked: %s" % out)
+    for f in failures:
+        print("FAIL: %s" % f, file=sys.stderr)
+    if failures:
+        print("%d failure(s)" % len(failures), file=sys.stderr)
+        return 1
+    if verbose:
+        print("all %d cases pass" % (len(LINKED) + len(NOT_LINKED)))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

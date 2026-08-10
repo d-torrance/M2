@@ -175,10 +175,18 @@ ATTRIBUTION = (
 # is required rather than optional so a bare "M2-emacs#102" cannot be guessed at.
 FOREIGN_REF = re.compile(r"\b([A-Za-z0-9._-]+/[A-Za-z0-9._-]+)#(\d+)\b")
 
-# A bare "#123".  The lookbehind is what keeps it off "v#0", which is M2 code for
-# the first slot of a Vector -- in bugs/dan/0-toString-Vector's note -- and not a
-# reference to issue 0.  That link was live on the board until this was added.
-ISSUE_REF = re.compile(r"(?<![\w/.-])#(\d+)\b")
+# A bare "#123".  The lookbehind is what keeps it off M2 subscripting, which is
+# "<expression>#<integer>" and not a reference to an issue.
+#
+# A word character covers the common spelling, "v#0" for the first slot of a
+# Vector -- in bugs/dan/0-toString-Vector's note -- and that was the whole of the
+# class until "(x+1)#0" and "((value getGlobalSymbol \"fourierMotzkin\") A)#0"
+# turned up in two more notes, the second of them live on the board for weeks.
+# The subscripted thing is an expression, so it ends in a closing bracket as
+# readily as in a name; ) ] } are therefore excluded too.  Nothing is lost by it,
+# because a genuine reference never follows a closing bracket with no space --
+# "(#2130)" keeps its link, since what precedes the # there is "(".
+ISSUE_REF = re.compile(r"(?<![\w/.\-)\]}])#(\d+)\b")
 
 SHA_REF = re.compile(r"\b([0-9a-f]{7,40})\b")
 

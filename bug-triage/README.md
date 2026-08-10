@@ -1112,6 +1112,36 @@ to issue 0. A bare `#N` now needs no word character in front of it (`project.ISS
 a reference format is generated rather than typed, test it against text that merely looks like
 one** — M2 code is full of `#`.
 
+#### The subscripted thing is an expression, so a word character was too narrow
+
+That guard shipped covering `v#0`, and it was not enough: `(x+1)#0` and
+`((value getGlobalSymbol "fourierMotzkin") A)#0` both slipped through it, and the second was live
+on the board for weeks. Obvious in hindsight — M2 subscripting is `<expression>#<integer>`, and an
+expression ends in a closing bracket as readily as in a name. `)`, `]` and `}` are excluded now
+too, and nothing is lost by it, because a real reference never follows a closing bracket with no
+space; `(#2130)` keeps its link, since what precedes the `#` there is `(`.
+
+Two things this cost that were avoidable:
+
+- **A regression test would have been cheaper than the second occurrence.** There is one now,
+  `bin/test-linkify`, and it is the only test in this directory. It carries both error modes —
+  text that merely looks like a reference must not be linked, real references must not be missed —
+  with cases taken from notes that actually exist rather than invented. It fails against the
+  pre-fix regex on three of them, which is the check that it is guarding something.
+- **The sweep is one command and finds every instance at once.** Rather than fixing the one the dry
+  run showed, ask what else matches:
+
+  ```sh
+  awk -F'\t' 'NR>1 && $7!="todo" {print $1"\t"$11}' catalog.tsv | grep -oE '[^A-Za-z0-9_ ]#[0-9]+'
+  ```
+
+  That turned up the `1-packages` one, from a batch long since pushed, which reading the current
+  dry run could not have shown because that row was already in sync.
+
+One known gap left deliberately: `/` is in the exclusion class, so in a slash-separated list like
+`#4576/#4578/#4583` only the first becomes a link. Three notes are spelled that way. Widening the
+class would start linkifying URL fragments, and the numbers are still readable, so it stays.
+
 ### A quoted title defeats that guard, because English puts a space before the `#`
 
 The `v#0` fix keys on the character *before* the `#`: a word character means code, so leave it
