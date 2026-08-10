@@ -43,8 +43,22 @@ def logfile(path):
     return os.path.join(catalog.CACHE, "runlog", path + ".log")
 
 
+# An "end" statement on a line of its own, allowing the trailing semicolon and
+# the comment these files habitually put after it: "end", "end--", "end;",
+# "end -- paste the rest by hand".  The word boundary is what keeps it off
+# "endPackage" and "endl", which are ordinary identifiers and appear constantly.
+#
+# The exact-match version this replaces read lines[i] == "end", which missed
+# every variant and so recorded eight reproducers as "pass" when the script had
+# stopped and run none of its content -- three in LAcore, five in anton,
+# including three memory-leak demonstrations, where a false pass is least
+# recoverable because a leak demo that never ran looks exactly like one that ran
+# clean.
+END_STATEMENT = re.compile(r"^end\b\s*;?\s*(--.*|-\*.*)?$")
+
+
 def truncated(path):
-    """True if a bare "end" line stops the script before its real content ends.
+    """True if an "end" line stops the script before its real content ends.
 
     "end" halts a script and still exits 0, so these files report a pass having
     executed only their first few lines.  Many of these bug files park the actual
@@ -63,7 +77,7 @@ def truncated(path):
     body = [i for i, l in enumerate(lines) if l]
     if not body:
         return False
-    return any(lines[i] == "end" for i in body[:-1])
+    return any(END_STATEMENT.match(lines[i]) for i in body[:-1])
 
 
 def limiter(megabytes):

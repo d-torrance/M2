@@ -241,15 +241,30 @@ error: no method for binary operator == applied to objects: ... (of class Matrix
 
 which says nothing at all about the `decompose` bug it was reporting.
 
-There is a second trap, and it is the bigger one. A bare `end` line halts an M2 script *and
-still exits 0*. Seventy-one of the 229 reproducers park the actual demonstration after an `end`
+There is a second trap, and it is the bigger one. An `end` line halts an M2 script *and
+still exits 0*. Of the 229 reproducers, 48 park the actual demonstration after an `end`
 so it can be pasted in by hand -- `bugs/anton/MISC/standardPairs.m2` runs three lines, hits
 `end`, and never reaches its `assert`. Counting that as a pass would be wrong, so those are
-recorded as **`pass-partial`**. Of the 85 scripts that exit 0, only 44 actually run to
-completion.
+recorded as **`pass-partial`**, leaving 37 that exit 0 having actually run to completion.
 
 (A leading `restart` needs no such treatment: under `--script` it is a no-op and execution
 continues.)
+
+**The predicate for that was wrong for a long time, and the shape of the error is worth having.**
+`truncated()` tested `lines[i] == "end"` -- an exact match on the stripped line -- so `end--`,
+`end;` and `end -- paste the rest in by hand` were all invisible, and eight reproducers were
+recorded `pass` having run nothing. Three were in `LAcore` and five in `anton`, including three
+memory-leak demonstrations, which is the worst place for it: a leak demo that never ran looks
+exactly like one that ran clean. It is now `^end\b\s*;?\s*(--.*|-\*.*)?$`, and `bin/selftest`
+carries both directions -- the variants above must match, and `endPackage`, `endl`, `ending` and
+`end3` must not, since those are ordinary identifiers appearing constantly.
+
+Two general points, both of which have now cost something here. **A predicate over text needs its
+negative cases tested, not just its positive ones** -- `lines[i] == "end"` is obviously right for
+the case you have in front of you and obviously incomplete the moment you write down a second one.
+And **`--reclassify` is the cheap way to find out how far a classification error reached**: it
+redoes the split from the files alone without rerunning M2, so after any change to `truncated()`
+the honest move is to run it and read the count.
 
 So: `fail` means *a human should read this*; `pass` means *the script no longer trips, which
 might be a fix or might be that the assertion stopped being checked*; `pass-partial` means
@@ -1124,10 +1139,10 @@ space; `(#2130)` keeps its link, since what precedes the `#` there is `(`.
 Two things this cost that were avoidable:
 
 - **A regression test would have been cheaper than the second occurrence.** There is one now,
-  `bin/test-linkify`, and it is the only test in this directory. It carries both error modes —
-  text that merely looks like a reference must not be linked, real references must not be missed —
-  with cases taken from notes that actually exist rather than invented. It fails against the
-  pre-fix regex on three of them, which is the check that it is guarding something.
+  `bin/selftest`. It carries both error modes — text that merely looks like a reference must not be
+  linked, real references must not be missed — with cases taken from notes that actually exist
+  rather than invented. It fails against the pre-fix regex on three of them, which is the check
+  that it is guarding something.
 - **The sweep is one command and finds every instance at once.** Rather than fixing the one the dry
   run showed, ask what else matches:
 

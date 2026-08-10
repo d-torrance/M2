@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""Regression tests for the two predicates here that have shipped wrong.
+
+Neither is complicated, and that is the point: both are one-line rules over text,
+both looked obviously right, and both were wrong in a way no dry run showed until
+something had already been published or recorded.
+
+    project.ISSUE_REF   decides whether "#123" is an issue reference or M2 code.
+                        Shipped matching only word characters before the "#", so
+                        "(x+1)#0" was published as a link to issue 0 -- twice,
+                        the second time live on the board for weeks.
+
+    run-repros.truncated  decides whether a script stopped at an "end" line before
+                        its real content.  Shipped as an exact match on "end", so
+                        "end--" was invisible and eight reproducers were recorded
+                        "pass" having run nothing.
+
+Both lists below are drawn from files that actually exist in this catalog rather
+than invented, and both carry the two error modes a predicate has: it must fire
+when it should, and stay quiet when it shouldn't.
+
+    bin/selftest        # silent on success, nonzero exit on failure
+    bin/selftest -v     # print every case
+"""
+
+import importlib.machinery
+import importlib.util
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def load(name, filename):
+    """Import a sibling script by path.
+
+    The loader has to be given explicitly: the scripts here have no .py suffix,
+    and spec_from_file_location returns None rather than raising when it cannot
+    guess one, so the failure arrives later as 'NoneType has no attribute loader'.
+    """
+    path = os.path.join(HERE, filename)
+    loader = importlib.machinery.SourceFileLoader(name, path)
+    spec = importlib.util.spec_from_loader(name, loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+project = load("project", "project.py")
+runrepros = load("runrepros", "run-repros")
+
+# ---------------------------------------------------------------- linkify
+
+# (text, the reference that must come out as a link)
+LINKED = [
+    ("see #4610 for details", "#4610"),
+    ("#36 opens the batch", "#36"),
+    ("(#2130) is the closed one", "#2130"),
+    ("PR #3748, merged 2026-03-17", "#3748"),
+    ("closed as a duplicate of #101.", "#101"),
+    ("Macaulay2/M2-emacs#102 is somebody else's", "Macaulay2/M2-emacs#102"),
+]
+
+# Text that must survive untouched.  Every one of these is M2 code.
+NOT_LINKED = [
+    "the fix applies it to v#0, the underlying matrix",
+    "packages.m2:437 tests class sym#1 and reports nam",
+    'commandLine#0 | " --help"',
+    "the length is 1 and (x+1)#0 is the RawRingElement",
+    'B := ((value getGlobalSymbol "fourierMotzkin") A)#0, replacing them',
+    'value LLLBases.Dictionary#"LLL"',
+    "peek gives R{x+1}, and {1,2,3}#2 is 3",
+    "an array [1,2,3]#0 is 1",
+]
+
+# Known and accepted: "/" is excluded from the lookbehind, so in a
+# slash-separated list only the first reference becomes a link.  Three notes
+# spell one that way ("#4576/#4578/#4583", "#1061/#1067").  Left alone
+# deliberately -- widening the class would start linkifying URL fragments.
+KNOWN_UNLINKED = ["#4576/#4578/#4583 share a shape"]
+
+# ---------------------------------------------------------------- truncated
+
+# Lines that ARE an "end" statement and must stop the script.
+END_LINES = [
+    "end",
+    "end--",
+    "end;",
+    "end -- paste the rest in by hand",
+    "end;  -- and a comment too",
+    "end -* block comment *-",
+]
+
+# Lines that merely start with those three letters and must not.
+NOT_END_LINES = [
+    "endPackage",
+    'endPackage "Foo"',
+    "endl",
+    '<< "done" << endl',
+    "ending = true",
+    "end3 = 7",
+]
+
+
+def main():
+    verbose = "-v" in sys.argv
+    failures = []
+
+    def check(ok, label, detail=""):
+        if not ok:
+            failures.append(label + (("  -> " + detail) if detail else ""))
+        if verbose:
+            print("%s  %s" % ("ok  " if ok else "FAIL", label))
+
+    for text, ref in LINKED:
+        out = project.linkify(text)
+        check(("[%s](" % ref) in out, "link %s in %r" % (ref, text), out)
+    for text in NOT_LINKED:
+        out = project.linkify(text)
+        check("/issues/" not in out, "no link in %r" % text, out)
+    for text in KNOWN_UNLINKED:
+        if verbose:
+            print("note  only the first is linked: %s" % project.linkify(text))
+
+    for line in END_LINES:
+        check(bool(runrepros.END_STATEMENT.match(line)), "end statement %r" % line)
+    for line in NOT_END_LINES:
+        check(not runrepros.END_STATEMENT.match(line), "not an end statement %r" % line)
+
+    for f in failures:
+        print("FAIL: %s" % f, file=sys.stderr)
+    if failures:
+        print("%d failure(s)" % len(failures), file=sys.stderr)
+        return 1
+    if verbose:
+        n = len(LINKED) + len(NOT_LINKED) + len(END_LINES) + len(NOT_END_LINES)
+        print("all %d cases pass" % n)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
