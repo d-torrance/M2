@@ -29,17 +29,24 @@ BLOCK_RE = re.compile(re.escape(BEGIN) + ".*?" + re.escape(END), re.S)
 
 
 def gh(query, **variables):
-    cmd = ["gh", "api", "graphql", "-f", "query=" + query]
-    for k, v in variables.items():
-        if isinstance(v, (list, tuple)):
-            # gh spells a list variable as repeated key[]=value.  An empty list
-            # cannot be spelled at all, so callers must not send one.
-            if not v:
-                raise ValueError("empty list for GraphQL variable %r" % k)
-            cmd += sum((["-f", "%s[]=%s" % (k, x)] for x in v), [])
-        else:
-            cmd += ["-F" if isinstance(v, int) else "-f", "%s=%s" % (k, v)]
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    """Run one GraphQL request, sending it as a JSON body on stdin.
+
+    The variables are *not* passed as `-f key=value` arguments.  Linux caps a
+    single argument at MAX_ARG_STRLEN, 128 KiB, and a draft body carries the bug
+    file verbatim -- bugs/mike/0-fgeiss-memleak.m2 is 253 KiB, most of it one
+    hard-coded subquotient -- so pushing that row died with
+
+        OSError: [Errno 7] Argument list too long: 'gh'
+
+    after 668 rows had gone through without trouble.  A JSON body has no such
+    limit, and it also carries types properly: ints stay ints and lists stay
+    lists, where the argument form needed -F for one and repeated key[]=value
+    for the other, and could not express an empty list at all.
+    """
+    body = json.dumps({"query": query, "variables": variables})
+    p = subprocess.run(["gh", "api", "graphql", "--input", "-"],
+                       input=body.encode("utf-8"),
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.returncode != 0:
         err = p.stderr.decode("utf-8", "replace")
         if "read:project" in err or "INSUFFICIENT_SCOPES" in err:
