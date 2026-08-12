@@ -353,13 +353,24 @@ recommendations, not instructions to write the file now.
 **Fixed?** `verdict=fixed`, the commit or PR in `fix`, and `disposition=drop`.
 
 In practice that is the only answer a fixed row gets. `test` names a destination under
-`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 327 settled rows it has been
+`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 741 settled rows it has been
 used **zero times**, including on the fourteen `anton/*/RESOLVED/*.m2` reproducers where it looks
 most tempting. Promoting a reproducer is writing code in the Macaulay2 sources, which is not what
 this branch does, and recommending it per-row invites exactly that confusion -- the recommendation
 reads as a task. If a fixed reproducer really is worth keeping, say so in the `note` and leave the
 column at `drop`; deciding the fate of that class is one pass for a maintainer, not a field on 857
 rows.
+
+**It has already happened twice without this branch's help, which is the other reason not to
+recommend it.** `bugs/mike/1-mingens-subquotient.m2` *is* `tests/normal/mingens2.m2`: Dan added
+assertions to the bug file in `d92f2512eb` (2008-02-05, "adding assertions to a bug report file,
+it's becoming a test file now that the bug is fixed") and copied them into the test suite two days
+later in `f5b4e85d62`. `bugs/mike/1-joswig`'s non-terminating half went to
+`tests/goals/joswig.m2` in `1b8a3b8e46`, a week after `03cd92424c` fixed its crash. So when a
+reproducer was worth keeping, the maintainers moved it at the time; a `test` disposition twenty
+years later is proposing work that the record shows already gets done when it is warranted. Both
+of those rows are settled `fixed` with the promoting commit in `fix` and `disposition=drop`, which
+is the pattern to follow.
 
 Whoever eventually promotes one keeps a comment naming where it came from. That directory's
 `Makefile.in` globs `*.m2`, so dropping the file in is enough, and the existing convention is:
@@ -381,39 +392,61 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the first 327 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** Of the 741 settled:
 
-| verdict | | |
-| --- | ---: | ---: |
-| `fixed` | 137 | 42% |
-| `open` | 89 | 27% |
-| `obsolete` | 37 | 11% |
-| `duplicate` | 35 | 11% |
-| `wontfix` | 29 | 9% |
+| verdict | | | at 327 |
+| --- | ---: | ---: | ---: |
+| `fixed` | 363 | 49% | 42% |
+| `open` | 133 | 18% | 27% |
+| `wontfix` | 103 | 14% | 9% |
+| `duplicate` | 70 | 9% | 11% |
+| `obsolete` | 62 | 8% | 11% |
+| `stale-repro` | 10 | 1% | -- |
 
-So `obsolete` and `wontfix` together are 20%, not "most", and the largest single outcome by far
-is that the bug was quietly fixed years ago and nobody closed the file. The shape has held
-steady: it was the same to within a point at every count from 167 settled onward, so the next bucket is
-unlikely to move it much either.
+So `obsolete` and `wontfix` together are 22%, not "most", and the largest single outcome by far
+is that the bug was quietly fixed years ago and nobody closed the file.
+
+**The claim that used to sit here -- that the shape had held steady to within a point at every
+count from 167 settled onward, so later buckets were unlikely to move it -- did not survive.** The
+last column above is what it looked like at 327. `fixed` has gained 7 points and `open` has lost 9,
+which is the largest movement in the table and in the direction that matters most, since `open` is
+the column that turns into other people's work. Two identifiable causes, both of them about method
+rather than about the files:
+
+- **Rows that would once have been filed are now being measured first.** `bugs/mike/1-local-bug.m2`
+  and `bugs/mike/1-mult-trun` were both written up as filable and both ended `wontfix` after a trace
+  and a benchmark respectively -- see [the swell note](#a-slow-local-normal-form-can-be-expression-swell-not-a-defect)
+  and [the parked-wishlist section](#the-wishlist-files-are-parked-on-purpose). `wontfix` gaining 5
+  points is mostly this.
+- **The duplicate search got wider.** Adding the comment search -- `gh search issues`, which the
+  cache cannot do -- moves rows from `open` to `duplicate` that a title scan called new.
+
+The general lesson is the one this whole file keeps relearning: a statistic that has been stable
+for a while is not thereby a law, and "the next bucket is unlikely to move it" was a prediction
+dressed as an observation. Quote the figure with the count it was measured at, as the table now
+does, and let the next reader see the drift.
 
 Grepping the *unsettled* files says the same thing rather than merely reflecting which ones got
 done first: of the 704 still `todo` at 167, only 33 mentioned any retired subsystem at
 all, and of 25 that looked like candidates, 14 held up. The dead-platform material is a real
 seam but a thin one.
 
-Two cautions on those numbers. They are not a random sample -- they are `dan/0`, `dan/0.1`,
-`dan/0.4`–`0.9`, the start of `dan/1` and a deliberate sweep for retired subsystems, and `dan/0`
-was Dan's own highest-priority bucket, which may well be where the real bugs that later got fixed
-are concentrated. And `fixed` at 43% is itself a finding about the tree rather than about the files:
-it means the common case is reading a fifteen-year-old report, running it, and finding it simply
-works now.
+One caution on those numbers, weaker than it used to be. They were not a random sample while the
+settled set was `dan/0`, `dan/0.1`, `dan/0.4`–`0.9`, the start of `dan/1` and a deliberate sweep for
+retired subsystems -- `dan/0` being Dan's own highest-priority bucket, which may well be where the
+real bugs that later got fixed are concentrated. At 741 of 857, with `dan`, `anton`, `LAcore`,
+`gfurnish` and the root files complete, the remaining bias is one author: everything left is
+`bugs/mike`, which is 83 reproducers to 33 notes and so likely to move `fixed` and `stale-repro`
+rather than the prose-note verdicts. And `fixed` at 49% is itself a finding about the tree rather
+than about the files: it means the common case is reading a fifteen-year-old report, running it, and
+finding it simply works now.
 
 A third caution the `0.4`–`0.9` bucket added: `fixed` is not the same as *fixed on purpose*. Of
 its eleven `fixed` rows only five carry a pointer at all, and two of those settled the file's ask
 as a side effect -- #772 reversed `Tally` and `VirtualTally` while fixing #690, and #3983 got the
 source rpm by rewriting the packaging script. The other six simply drifted into correctness with
 no identifiable commit: an API grew a new spelling, a check stopped firing, a doc node was
-written. Do not read the 42% as a record of anyone responding to these files.
+written. Do not read the 49% as a record of anyone responding to these files.
 
 ## Relationship to [project 46](https://github.com/orgs/Macaulay2/projects/46)
 
@@ -1298,6 +1331,59 @@ Two things make this worth its own note beyond the general rule above:
   batch, where `toList(0..49999)` had to be hoisted before the 45-second measurement could be
   trusted; there it survived, at 0.008 s against 45.7.
 
+## A slow local normal form can be expression swell, not a defect
+
+`bugs/mike/1-local-bug.m2` was written up as a filable engine bug and it is not one. The measurement
+looked conclusive: over `ZZ/101[t,x,y,z, MonomialOrder => Weights => 4:-1, Global => false]`, the
+full Gröbner basis of its harder example is 7 elements in 8 ms, and of the 13 lead-term syzygies of
+that basis -- every one an element of the ideal by construction, so every remainder must be `0` --
+nine reduce in under a millisecond while four exceed 90 s, the minimal case exceeding 1500 s. The
+four are `S_2`, `S_5`, `S_8`, `S_11`, **exactly the four the file marks**. Neither input size nor
+ecart predicts them: `S_11` is the largest at 133 terms and slow, `S_12` at 121 is fast, and `S_8`
+has the lowest ecart of all thirteen and is slow.
+
+All of that is real and none of it is a bug. `gbTrace = 15` settles it in three ways:
+
+- **17,639 reduction steps in 60 s, every intermediate polynomial distinct.** No cycle. A correct
+  reduction never revisits a state, and this one does not.
+- **The intermediate grows monotonically, 7 terms → 1,160 → 4,019 → 6,951.** Textbook intermediate
+  expression swell.
+- **Mora's own termination measure descends** -- `h_alpha` goes 6, 5, ... 2 -- while the chosen
+  reducer is always `t*z` at ecart 2 rather than `t^7` at ecart 6, which is the correct
+  minimum-ecart choice. The algorithm makes legal monotone progress throughout.
+
+The cause is visible in the reducer: `t*z + 4*t^2*z + 3*z^3 + 6*t*z^3` has a tail of *higher* degree
+than its lead term, so every cancellation against it introduces terms. The slow four are the
+syzygies whose lead terms force repeated reduction by it.
+
+Four things to carry forward, because each of them nearly produced a wrong verdict:
+
+- **Flat resident memory reads as a cycle and is not.** RSS sat at ~300 MB for the whole run, which
+  was taken as evidence of a bounded state being revisited. 7,000 terms is a few hundred KB --
+  memory cannot see this swell at all. Count terms, not bytes.
+- **Ruling out the obvious cost proxies is not evidence of a defect.** Size and ecart were both
+  excluded, and that felt like closing in on a bug. It only meant the cost was driven by something
+  else.
+- **A pattern reproducing exactly across twenty years is not damning; deterministic code makes the
+  same choices twice.** The 4-of-13 match with Mike's own annotation was the single most persuasive
+  thing in the write-up and it carries no information about correctness.
+- **Read the annotation, including its parenthetical.** `S_2 % gb1; -- this one is bad, at least for
+  this choice (min alpha, min size)` names the reducer-selection strategy being *tuned*. The file is
+  Mike's working notes on that heuristic, which is why it opens by pointing at `test/localgb-nn.m2`
+  "for actual tests". It was never a defect report.
+
+In a local order this is expected mathematics rather than a failure: the order is not a well-ordering
+on monomials -- `1 > x > x^2 > ...` descends forever -- so reduction has no descending-chain argument
+to terminate on, and Mora's ecart restriction is what recovers termination. "Reduction over a local
+order did not finish" is therefore never by itself a bug report. Standing wishlist for the subsystem
+is #293; the real defects in it are #568 and #569, Mora returning non-minimal generators and a
+non-minimal basis.
+
+One practical note from the same row: **`alarm` does not interrupt the engine's reduction**, so
+`try (alarm 60; f % gb1) else ...` ran past 79 s and in-process timing is unusable here. That is the
+#1392 and #3371 family. Use one process per case under an external `timeout` and read the exit code
+-- 124 is a bound you can cite, where a live `ps` reading is not.
+
 ## A queue that reports zero cannot tell you which zero it means
 
 The comment on #3887 was written, `bin/comment-issues` was run, and it said `0 comments to post`.
@@ -1746,30 +1832,28 @@ the same expression and is not.
 ## Where to start
 
 `bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
-and the same one `d3ec491953` drew from. It is done, as are `0.1` and `0.4`–`0.9`. Of the 857,
-375 are settled and **482 are left**:
+and the same one `d3ec491953` drew from. **`dan`, `anton`, `LAcore`, `gfurnish` and the root files
+are now all settled.** Of the 857, 741 are settled and **116 are left, every one of them
+`bugs/mike`**:
 
 | | |
 | --- | ---: |
-| `dan`, priority `1` | 130 |
-| `mike` | 206 |
-| `dan`, priority `2` and beyond, plus unnumbered | 101 |
-| `anton` | 34 |
-| `LAcore`, `gfurnish`, root | 11 |
+| `mike`, priority `1` | 33 |
+| `mike`, priority `2`–`9` | 25 |
+| `mike`, unnumbered | 58 |
 
-Take one author at a time. Their file conventions differ -- Dan's are prose notes with
-transcripts, `anton` settles files by moving them into `RESOLVED/` rather than writing an issue
-number down -- and switching between them means relearning the format every few rows.
+"Take one author at a time" was the advice while there were five; there is one now, so the axis
+that remains is priority, and Mike numbered only half his files. The 58 unnumbered ones carry no
+signal about his own ranking, which the numbered buckets do.
 
-The mix of kinds differs too, and it decides how a bucket feels. **218 of Dan's 231 remaining are
-prose notes, against only 13 reproducers**; Mike's 206 are 139 reproducers to 67 notes. So Dan's
-remainder is read-and-verify work where `autorun` says nothing at all and every verdict rests on
-running the claim yourself, while Mike's will be slower per row with the `autorun` caveat above
-applying to most of it. `dan/0.4`–`0.9` was 28 notes and 0 reproducers, which is what the rest of
-Dan looks like.
+The mix of kinds is **83 reproducers to 33 notes**, the reverse of Dan's remainder, so this bucket
+is slower per row and the `autorun` caveat above applies to most of it: 45 `fail`, 20
+`pass-partial`, 11 `pass`, 7 `timeout`, 33 `n/a`. Read that column as a hint about where to look
+first and never as a verdict -- `pass-partial` in particular means almost nothing.
 
-To list a bucket:
+To list what is left, or a slice of it:
 
 ```sh
-awk -F'\t' 'NR>1 && $2=="dan" && $3=="1" && $7=="todo" {print $1}' catalog.tsv
+awk -F'\t' 'NR>1 && $7=="todo" {print $1}' catalog.tsv
+awk -F'\t' 'NR>1 && $2=="mike" && $3=="1" && $7=="todo" {print $1}' catalog.tsv
 ```
