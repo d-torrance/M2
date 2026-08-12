@@ -901,6 +901,36 @@ bin/push-project --apply           # those rows now go to In progress
 The second push is not redundant: `file-issues` writes the new issue number into the catalog, and
 that is what moves the row from Ready to In progress.
 
+## Bring one row at a time, and explain the mechanism
+
+**Ask about one potential issue per question, not a batch.** A summary of nine verdicts with a single
+"shall I file these?" gets rejected, and rightly: the maintainer is being asked to underwrite nine
+separate claims at once, and the one that is wrong is invisible among the eight that are right. Every
+time a batch has been presented whole here, the reply has been to take them individually.
+
+Two things make the question answerable:
+
+- **State the mechanism before the choice.** Not "`coimage` is missing options, file it?" but: `coimage
+  RingMap` is one expression over `kernel f` at `ringmap.m2:375` with no option table, so `kernel`'s
+  `DegreeLimit`, `SubringLimit` and `Strategy` cannot be reached through it. A verdict is only as good
+  as the reason under it, and the reason is what is being checked.
+- **Say what the measurement does *not* establish.** `1-res-slow-andreic.m2` measures 2192 s against a
+  reported 4 minutes in 0.9.2 — but that regression predates both surviving code paths, so nothing
+  here can confirm it. Volunteering that is what lets a maintainer stop you cheaply.
+
+The corollary is that the answer arrives per row, so **do not carry one row's answer to the next**.
+"File it" for the row in front of you is not "file the rest", and see
+[`--apply` is not yours to give yourself](#--apply-is-not-yours-to-give-yourself) for the separate
+question of whether to publish at all.
+
+Where a row's symptom is time or memory, the question to answer before asking anything is *is this
+slow because the problem is big, or because it is a bug?* — see
+[a slow local normal form can be expression swell](#a-slow-local-normal-form-can-be-expression-swell-not-a-defect).
+Across three batches, every such row settled `fixed` or `wontfix`, while both genuine defects found in
+the same span — [#4632](https://github.com/Macaulay2/M2/issues/4632) and
+[#4633](https://github.com/Macaulay2/M2/issues/4633) — came from reading the source, in minutes. Give
+the slow rows one bounded run, then decide.
+
 ## `--apply` is not yours to give yourself
 
 That runbook is a description of the order, not a licence to run it. **Every `--apply` here, and
