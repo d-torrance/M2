@@ -8,17 +8,17 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 
 ## Progress
 
-**782 of 857 triaged (91.2%)**
+**783 of 857 triaged (91.4%)**
 
 | verdict | count | |
 | --- | ---: | --- |
 | `open` -- Still broken | 134 | `####........................` |
 | `stale-repro` -- Reproducer needs rewriting before it says anything | 11 | `............................` |
 | `duplicate` -- Already tracked by an open issue | 71 | `##..........................` |
-| `fixed` -- Fixed | 386 | `#############...............` |
+| `fixed` -- Fixed | 387 | `#############...............` |
 | `wontfix` -- Won't fix | 117 | `####........................` |
 | `obsolete` -- Obsolete | 63 | `##..........................` |
-| `todo` -- Not yet triaged | 75 | `##..........................` |
+| `todo` -- Not yet triaged | 74 | `##..........................` |
 
 ### Reproducer runs
 
@@ -37,7 +37,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | directory | files | triaged |
 | --- | ---: | ---: |
 | `bugs/dan` | 582 | 582 |
-| `bugs/mike` | 215 | 140 |
+| `bugs/mike` | 215 | 141 |
 | `bugs/anton` | 49 | 49 |
 | `bugs/LAcore` | 9 | 9 |
 | `bugs/(root)` | 1 | 1 |
@@ -274,7 +274,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/mike/git-issue291.m2` | [#291](https://github.com/Macaulay2/M2/issues/291) | &nbsp; | drop | #291 is still open |
 | &nbsp; | `bugs/mike/git-issue604.m2` | [#604](https://github.com/Macaulay2/M2/issues/604) | &nbsp; | drop | #604 is still open |
 
-## Fixed -- `fixed` (386)
+## Fixed -- `fixed` (387)
 
 | prio | file | issue | fix | disposition | note |
 | ---: | --- | --- | --- | --- | --- |
@@ -598,6 +598,7 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | 3 | `bugs/dan/3-nullary-methods` | &nbsp; | [`880c73acf1`](https://github.com/Macaulay2/M2/commit/880c73acf1) | drop | four lines: 'i1 : source() := print' answering 'expected 1, 2, 3, or 4 parameter types'. It returns print, a FunctionClosure, now. Fixed by 880c73acf1 (2026-01-13, 'Add syntactic sugar for installing nullary methods', PR #4091, merged 2026-01-14) -- seven months ago, and twenty years after the note |
 | 3 | `bugs/dan/3-rational-approximation` | &nbsp; | &nbsp; | drop | both halves of the thread, and both verified numerically rather than by inspection. Mike's question, whether to allow the rational reconstruction algorithm between QQ and ZZ/p, is answered: liftZZmodQQ at quotring.m2:64 is installed as lift(S,QQ) at :108, and lift(37_(ZZ/101), QQ) returns 10/3, which checks out -- 3 inverse mod 101 is 34, so 10*34 = 340 = 37 + 3*101. The engine carries the machinery under its own name, cra.hpp and interface/cra.h being headed 'Chinese remaindering and rational reconstruction'. Dan's addendum, 'lifting QQ --> RRR or RR can be done with continued fractions, we should do that too', is met by lift(RR,QQ) at reals.m2:228 via rawToRational: lift(0.1,QQ) is 1/10 and lift(1/3.0,QQ) is 1/3, neither of which is the exact binary value, and lift(sqrt 2, QQ) is 209064253/147830751 -- a convergent, where the exact value would have denominator near 2^52. No fix commit recorded: both arrived piecewise and I could not tie either to one change |
 | 3 | `bugs/dan/3-sockets-fail` | &nbsp; | &nbsp; | drop | a 2005 transcript from Macaulay 2 version 0.9.20 on a 2.4.22 kernel, where getWWW answered 'can't open socket : Servname not supported for ai_socktype'. getWWW "https://macaulay2.com/" returns 16569 bytes today. The error is a getaddrinfo failure on the service name, i.e. environment rather than logic, so no fix commit is recorded; the row is settled on the observation that the call works |
+| 3 | `bugs/mike/3-andersbuch-subring.m2` | &nbsp; | [`96c5fd61c3`](https://github.com/Macaulay2/M2/commit/96c5fd61c3) | drop | the rare case where a benchmark file in here demonstrably changed the engine, and it guessed as much without knowing. Anders Buch's example, arrived via sourceforge: a ring map on eighteen variables over ZZ/2003 whose kernel is the subring, then the same problem hand-written as an elimination ideal J in ZZ/2003[X_0..X_35] with MonomialOrder => Eliminate{18}, MonomialSize => 8, a supplied Hilbert numerator hf of degree 36 installed as (cokernel gens J).cache.poincare, and a series of timed gb calls. Beside one of them the file says 'this one might be the example referred to in gbA.cpp'. It is. gbA.cpp is now e/groebner-computations/gb-default.cpp, renamed by 96c5fd61c3 (2007-01-10, 'renamed gbA to gb'), and the tuning block at the head of gbA::initialize, lines 104-110, names this file three times: 'max_reduction_count: default was 10', '1 is best possible for 3-anderbuch!', '5 is: (114.64 sec, 494 MB)', '10 is best so far (125.33 sec, 527 MB virtual)', '50 is faster/smaller than 100, and 1000 was awful, on 3-andersbuch'. Those seconds and megabytes are this file's own output, the author's name is misspelled two different ways, and the file's driver carries the matching gb(J, MaxReductionCount => 1). So the benchmark was consumed and the default it produced is still in force. Timed today at the default MaxReductionCount, with the file's Hilbert hint in place: gens gb J takes 37.6 s against the 125.33 s recorded in that comment. The hint is load-bearing and worth recording separately -- a first attempt that rebuilt the ideal as ideal(J_*), discarding the cached poincare, exceeded 400 s, so hf is worth better than tenfold and any rerun must keep it. Nothing in the file is asserted and nothing is claimed incorrect; it is a benchmark that did its job. |
 | 4 | `bugs/dan/4-check-package` | &nbsp; | &nbsp; | drop | 'check PACKAGE doesn't work if the doc has been bypassed in loading the package.' Ran exactly that: loadPackage("FirstPackage", LoadDocumentation => false) followed by check FirstPackage prints ' -- warning: reloading FirstPackage; recreate instances of types from this package' and then passes. check loads the documentation itself rather than requiring the caller to have loaded it, which is the same mechanism the README records for Posets under 'inspecting a precondition is not calling the function'. No fix commit recorded -- check has been rewritten more than once and I could not tie the reload to a single change |
 | 4 | `bugs/dan/4-documentation-documentation` | &nbsp; | &nbsp; | drop | Dan's documentation-writing tutorial to Amelia Taylor, and the advice in it ended up on the wiki rather than in the tree -- checked there first, per the rule that a documentation request may be answered somewhere git grep cannot see. The Package Writing Style Guide covers it nearly item for item: 'The "usage" forms for functions don't need to be in the form of assignment statements' is his change from Usage => "g = universalEmbedding(I,f)" to Usage => "universalEmbedding(I,f)"; 'In the "Outputs" and "Usage" sections, there is no reason to assign the value returned by the sample code to a variable' is his 'the name g is sort of irrelevant'; 'The "headline" of a documentation node should be a single brief phrase (not a complete sentence)' is his 'eliminate periods from headlines'; and 'Don't use Macaulay2 identifiers as English words. Learn how to use ofClass in this connection' is his ofClass hint. The one thing not there is his emacs macro for wrapping a selection in TT, which is a personal tool and would belong to M2-emacs in any case. No fix commit: the wiki is not in git, so the page is the pointer |
 | 4 | `bugs/dan/4-res-image.m2` | &nbsp; | &nbsp; | drop | three complaints and all three are gone. The file opens 'I gave this bug to Mike, as 1-res-change-basis', and that row -- bugs/mike/1-res-change-basis, still todo in a bucket not yet started -- is the assertion form: its transcript shows assert(M == HH_0 C) failing twice over QQ[x]. Today M == HH_0 C is true for coker matrix(R,{{1},{0}}). The central ask, 'when we give the user a resolution C of a module M, we are failing to give the user the map M <--- C_0 that comes with the resolution ... I should put it somewhere the user can get it', is augmentationMap, which is present, isWellDefined, and has M in degree 0 of its target -- the same answer that settled 2-cached-maps and 3-maps-prune-res-trim. The opening question, why the columns of a resolution are sorted differently from the columns of a gb, no longer has a subject: for g = matrix{{x^3,x^2},{y^3,y^2}} over QQ[x,y], degrees C_0 and degrees source g are both {{3},{2}} in the same order. Mike's row is left for its own turn, since nothing here needs filing |
@@ -855,11 +856,10 @@ Settling all of these is [#36](https://github.com/Macaulay2/M2/issues/36).
 | &nbsp; | `bugs/dan/allVars` | &nbsp; | &nbsp; | drop | the function it was to be built on has itself been removed. The note asks that ringmap.m2 use 'f allVars source f' instead of 'f vars source f', 'after we implement allVars based on allGenerators'. allVars never appeared -- the only match in the tree is a local variable in ConnectionMatrices -- and allGenerators is gone too: calling it errors with 'no method for adjacent objects: allGenerators (of class Symbol)', and its entire documentation sits inside a -* block comment at generators-doc.m2:165-215 headed '-- TODO: salvage the examples and tests below' and '-- this function has been replaced by the CoefficientRing option to "generators"'. The capability survives under the new spelling: generators zzB is {zzb} where generators(zzB, CoefficientRing => QQ) is {zzb, zza}, and matrix{generators(zzB, CoefficientRing => QQ)} is the allVars matrix in one expression, though vars itself takes no such option. And ringmap.m2 is not misbehaving: id_B is the identity on a tower and map(B,B,{b^2}) sends a*b to a*b^2, checked with toString after a first reading was misled by superscripts being dropped from grep output |
 | &nbsp; | `bugs/dan/monoid-method-caching-and-use` | &nbsp; | &nbsp; | drop | the premise is gone. The file exists because 'the monoid is cached now in S.cache#monoid, so this code in quotring.m2 is broken', and that move was reverted: cache#monoid matches nothing in the tree, the monoid is back at .monoid, with monoid PolynomialRing := o -> R -> R.monoid at polyrings.m2:40 and R.monoid.Options used directly at :17-20. So the second half, 'audit use of .monoid versus .cache#monoid for correctness', has no subject. The first half was acted on independently: the eighteen lines of S.use the file quotes are still at quotring.m2:200-215 and every one of them is commented out, leaving S.use = x -> ( ) -- an empty function wrapping dead code, which answers 'Do we need it? Do we care? No one else cares!' by disabling rather than deleting. That residue is housekeeping with no user-visible effect and is recorded rather than filed |
 
-## Not yet triaged -- `todo` (75)
+## Not yet triaged -- `todo` (74)
 
 | prio | file | kind | autorun | candidate issue |
 | ---: | --- | --- | --- | --- |
-| 3 | `bugs/mike/3-andersbuch-subring.m2` | repro | pass-partial | &nbsp; |
 | 3 | `bugs/mike/3-big-syz-aknaton` | note | n/a | &nbsp; |
 | 3 | `bugs/mike/3-primary-decomposition.m2` | repro | timeout | &nbsp; |
 | 3 | `bugs/mike/3-res-degreelimit.m2` | repro | pass | &nbsp; |
