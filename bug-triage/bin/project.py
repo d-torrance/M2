@@ -301,9 +301,21 @@ def check_labels(wanted, known):
 # key exists.  Keep any future rewording matching this pattern.
 TRIAGED_FROM = re.compile(r"[Tt]riaged from `(bugs/[^`]+)`")
 
+# An issue filed from one ask inside a wishlist file, by bin/file-asks.  Written
+# as a marker rather than inferred from the prose because the prose is not safe to
+# rely on: an ask body naturally says "triaged from ... `bugs/dan/IDEAS`", which
+# TRIAGED_FROM matches, and by_key would then hand the *file's* key to the ask's
+# issue.  Whichever item came back from the API first would win that key, and if
+# the ask won it, bin/push-project would rewrite its body with the file-level
+# layout -- burying a targeted request under all 26 lines of IDEAS -- and set its
+# status from the file row's verdict.  Nothing in the output would have looked
+# wrong.  The ask key contains "::", which no catalog path does, so returning it
+# keeps such an item permanently distinguishable from the file it came from.
+ASK_MARKER = re.compile(r"<!--\s*bug-triage-ask:\s*(\S+?)\s*-->")
+
 
 def key_of(item):
-    """The catalog path an item refers to.
+    """The catalog path an item refers to, or an ask key for a per-ask issue.
 
     Prefer the path recorded in the item's own triage block.  Filing an issue
     renames the item to something readable, which destroys the title-derived key,
@@ -315,7 +327,13 @@ def key_of(item):
     are titled with the path, minus the bugs/ prefix.
     """
     content = item["content"] or {}
-    found = TRIAGED_FROM.search(content.get("body") or "")
+    body = content.get("body") or ""
+    # Checked first: an ask body also satisfies TRIAGED_FROM, and losing that race
+    # is the failure described at ASK_MARKER.
+    found = ASK_MARKER.search(body)
+    if found:
+        return found.group(1)
+    found = TRIAGED_FROM.search(body)
     if found:
         return found.group(1)
     title = (content.get("title") or "").strip()

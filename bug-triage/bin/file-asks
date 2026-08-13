@@ -1,0 +1,327 @@
+#!/usr/bin/env python3
+"""File one issue per *ask* from a wishlist file.  DRY RUN BY DEFAULT.
+
+bin/file-issues converts the board's draft item into an issue, and a draft can
+only be converted once, so it can file at most one issue per catalog row.  That
+is the right shape for 843 of the 857 rows.  It is the wrong shape for the
+fourteen wishlist files, which is why those sat parked: bugs/dan/IDEAS is ten
+unrelated asks in 26 lines, and one issue covering all ten is one nobody can
+close.  So those files are split into asks in asks.tsv, and this files them.
+
+Two differences from bin/file-issues, both deliberate.
+
+*The issue is created, not converted.*  There is no draft per ask -- the board has
+one card per file -- so this calls createIssue and then adds the new issue to the
+board as its own item.  The file's own card stays where it is; its body lists the
+issues its asks produced on the next bin/push-project run.
+
+*The body is built here rather than carried over.*  bin/push-project owns issue
+bodies through its issue_body_for, but that lives in the script and not in
+project.py, so sharing it means refactoring the machinery that has already filed
+123 issues correctly.  Refactoring proven code before the new format has met a
+real ask is the wrong order, so this carries its own builder and the two layouts
+are deliberately parallel.  Fold them together once the format has settled --
+that is a real debt, not a design.
+
+The layout differs in one way that matters: an ask fences *the ask*, not the
+whole file.  bugs/dan/0-bugs-stillman.m2 is 307 lines, and reproducing all of it
+in each of its issues would bury the request.  The whole file is linked instead.
+
+An ask is filed only when its row says verdict=open, disposition=issue, the issue
+column is empty, a title exists under "path::n" in issue-titles.tsv, and prose
+exists at issues/<path>::<n>.md.  Anything short of that is reported, not guessed.
+
+    ./bin/file-asks              # show exactly what would be created
+    ./bin/file-asks --apply      # create them
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import catalog
+import project
+
+ISSUES = os.path.join(catalog.ROOT, "issues")
+FILES_URL = ("https://github.com/d-torrance/M2/blob/bug-triage"
+             "/bug-triage/files")
+
+CREATE = """
+mutation($repo:ID!, $title:String!, $body:String!, $labels:[ID!]) {
+  createIssue(input:{repositoryId:$repo, title:$title, body:$body, labelIds:$labels}) {
+    issue { id number url }
+  }
+}
+"""
+
+ADD_TO_BOARD = """
+mutation($project:ID!, $content:ID!) {
+  addProjectV2ItemById(input:{projectId:$project, contentId:$content}) {
+    item { id }
+  }
+}
+"""
+
+# A freshly added item has no field values at all, so it lands outside every
+# column of the board rather than in one.  bin/push-project will not fix that:
+# it drives status from catalog rows, and an ask has no catalog row of its own.
+# So set it here.  "In progress" is what want_status gives an open row that names
+# an issue, which is exactly what a just-filed ask is.
+SET_STATUS = """
+mutation($project:ID!, $item:ID!, $field:ID!, $value:String!) {
+  updateProjectV2ItemFieldValue(input:{
+    projectId:$project, itemId:$item, fieldId:$field,
+    value:{singleSelectOptionId:$value}}) { projectV2Item { id } }
+}
+"""
+
+STATUS_FILED = "In progress"
+
+
+def prose_for(key):
+    """The hand-written body for an ask, or None.
+
+    Never generated from the note column.  A note is one TSV line of internal
+    shorthand; bin/push-project's summary_for explains at length why publishing
+    that is the wrong register, and the same applies here.
+    """
+    filename = os.path.join(ISSUES, key + ".md")
+    if not os.path.exists(filename):
+        return None
+    with open(filename, encoding="utf-8") as f:
+        return f.read().strip() or None
+
+
+def body_for(ask, prose):
+    """The whole body of an issue filed from one ask.
+
+    Provenance and attribution first, then the ask verbatim, then the commentary
+    -- the same order bin/push-project uses, for the same reason: a reader has to
+    know who wrote this before weighing it.
+    """
+    fields = []
+    for column, label in (("verdict", ""), ("disposition", "disposition"),
+                          ("fix", "fix")):
+        if ask.get(column):
+            value = (project.linkify(ask[column]) if column == "fix"
+                     else "`%s`" % ask[column])
+            fields.append(("%s %s" % (label, value)).strip())
+    fields.append("ask %s of [`%s`](%s/%s)"
+                  % (ask["n"], ask["path"], FILES_URL, ask["path"]))
+
+    return "\n".join([
+        project.BEGIN, "",
+        # Machine-readable, and load-bearing: project.key_of reads this to keep the
+        # ask's issue distinguishable from its file's draft on the board.  Without
+        # it the prose below satisfies TRIAGED_FROM and the two can collide -- see
+        # the comment at project.ASK_MARKER.
+        "<!-- bug-triage-ask: %s -->" % catalog.ask_key(ask), "",
+        "---", "",
+        "This issue was triaged from one request inside `%s`, one of the 857 files "
+        "removed from the pre-GitHub `bugs/` tree by %s and catalogued in "
+        "[#36](%s/issues/36).  That file is a wishlist holding several unrelated "
+        "requests, so its asks were split apart and filed separately rather than "
+        "as one issue nobody could close.  **The commentary below was written by "
+        "Claude (Claude Opus 5, via Claude Code)**, not by %s, whose account "
+        "posted it -- please weigh it accordingly."
+        % (ask["path"], project.linkify("d2c8d27826"), project.REPO_URL,
+           project.ACCOUNT),
+        "", "### The request, verbatim", "",
+        "> " + "\n> ".join((ask["ask"] or "").split("\n")), "",
+        "The rest of the file is unrelated to this request; it is linked in the "
+        "footer below.", "",
+        "### Where it stands today", "",
+        project.linkify(prose), "",
+        "<sub>%s &middot; source of truth: [`bug-triage/asks.tsv`](%s)</sub>"
+        % (" &middot; ".join(fields),
+           project.CATALOG_URL.replace("catalog.tsv", "asks.tsv")),
+        project.END])
+
+
+def roll_up(asks, rows):
+    """What each file row's "issue" column should say, given its asks.
+
+    A wishlist file's row is the summary of its asks, so the issues it names are
+    derived: the ordered union of every issue its asks point at.  That covers
+    both directions -- asks we filed, and asks settled as duplicates of issues
+    that already existed.  The second is the reason this is a roll-up and not a
+    side effect of filing: a duplicate is identified during triage, long before
+    and often instead of anything being created, so nothing at filing time would
+    ever notice it.
+
+    Returns (changes, problems).  A number already in the column that no ask
+    accounts for is reported and kept, never dropped: it may be a cross-reference
+    somebody added by hand, and silently discarding it would be worse than
+    carrying it.
+    """
+    by_path = catalog.by_path(rows)
+    changes, problems = [], []
+    for path, group in sorted(catalog.asks_by_path(asks).items()):
+        if path not in by_path:
+            problems.append((path, "no catalog row -- is the path in asks.tsv a typo?"))
+            continue
+        row = by_path[path]
+        wanted, seen = [], set()
+        for a in group:
+            for number in a["issue"].split():
+                if number not in seen:
+                    seen.add(number)
+                    wanted.append(number)
+        extra = [n for n in row["issue"].split() if n not in seen]
+        if extra:
+            problems.append((path, "names %s, which no ask accounts for -- kept"
+                             % " ".join(extra)))
+        new = " ".join(wanted + extra)
+        if new != row["issue"]:
+            changes.append((path, row["issue"], new, row))
+    return changes, problems
+
+
+def report_roll_up(changes, problems, apply_now):
+    for path, why in problems:
+        print("  NOTE     %-46s %s" % (path, why))
+    if problems:
+        print()
+    if not changes:
+        print("every file row already names exactly the issues its asks do")
+        return
+    print("%d file row(s) to update:\n" % len(changes))
+    for path, old, new, _ in changes:
+        print("  %s" % path)
+        print("      was: %s" % (old or "(nothing)"))
+        print("      now: %s" % new)
+    if apply_now:
+        print("\nrolled up %d file row(s) in catalog.tsv" % len(changes))
+    else:
+        print("\ndry run -- catalog.tsv not touched.  Re-run with --apply to write "
+              "these.")
+
+
+def sync(args):
+    """Recompute the file rows' issue columns from asks.tsv.  Files nothing."""
+    asks = catalog.read_asks()
+    if not asks:
+        raise SystemExit("asks.tsv holds no rows -- nothing has been split yet")
+    rows = catalog.read()
+    changes, problems = roll_up(asks, rows)
+    report_roll_up(changes, problems, args.apply)
+    if args.apply and changes:
+        for _, _, new, row in changes:
+            row["issue"] = new
+        catalog.write(rows)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--apply", action="store_true",
+                    help="actually create the issues, or write the roll-up")
+    ap.add_argument("--sync", action="store_true",
+                    help="only roll the asks' issue numbers up onto their file "
+                         "rows, creating nothing; use after settling an ask as a "
+                         "duplicate")
+    args = ap.parse_args()
+
+    if args.sync:
+        return sync(args)
+
+    asks = catalog.read_asks()
+    if not asks:
+        raise SystemExit("asks.tsv holds no rows -- nothing has been split yet")
+    titles = catalog.read_titles()
+
+    wanted = [a for a in asks if a["verdict"] == "open"
+              and a["disposition"] == "issue" and not a["issue"]]
+    if not wanted:
+        raise SystemExit("no asks are open, marked disposition=issue, and untracked")
+
+    plan, blocked = [], []
+    for a in wanted:
+        key = catalog.ask_key(a)
+        entry = titles.get(key)
+        prose = prose_for(key)
+        if not entry or not entry["title"]:
+            blocked.append((key, "no title in issue-titles.tsv under %r" % key))
+        elif prose is None:
+            blocked.append((key, "no prose at issues/%s.md" % key))
+        elif not (a["ask"] or "").strip():
+            blocked.append((key, "the ask column is empty -- nothing to quote"))
+        else:
+            plan.append((a, key, entry["title"],
+                         [project.LABEL] + entry["labels"], prose))
+
+    # Before anything is created, not after, and in the dry run too, so the
+    # output that gets read is the output that ran.
+    known = project.all_labels()
+    project.check_labels({k: ls for _, k, _, ls, _ in plan}, known)
+
+    print("%d asks to file, %d blocked\n" % (len(plan), len(blocked)))
+    for key, why in blocked:
+        print("  BLOCKED  %-46s %s" % (key, why))
+    if blocked:
+        print()
+    for a, key, title, labels, prose in plan:
+        body = body_for(a, prose)
+        print("=" * 72)
+        print("%s  ->  new issue" % key)
+        print("-" * 72)
+        print("  title:  %s" % title)
+        print("  labels: %s" % ", ".join(labels))
+        print("  body:   %d chars, built here" % len(body))
+        print()
+        for line in body.split("\n"):
+            print("  > %s" % line)
+        print()
+
+    if not args.apply:
+        print("dry run -- nothing created.  Re-run with --apply to open these "
+              "issues in %s/%s and add them to the board."
+              % (project.ORG, project.REPO))
+        return
+
+    repo = project.repo_id()
+    proj, fields = project.fetch_project()
+    status = fields[project.STATUS_FIELD.lower()]
+    options = {o["name"].lower(): o["id"] for o in status["options"]}
+    if STATUS_FILED.lower() not in options:
+        raise SystemExit("the board has no %r status; it has: %s"
+                         % (STATUS_FILED, ", ".join(sorted(options))))
+
+    filed = {}
+    for i, (a, key, title, labels, prose) in enumerate(plan, 1):
+        data = project.gh(CREATE, repo=repo, title=title,
+                          body=body_for(a, prose),
+                          labels=[known[n] for n in labels])
+        issue = data["data"]["createIssue"]["issue"]
+        added = project.gh(ADD_TO_BOARD, project=proj["id"], content=issue["id"])
+        project.gh(SET_STATUS, project=proj["id"],
+                   item=added["data"]["addProjectV2ItemById"]["item"]["id"],
+                   field=status["id"], value=options[STATUS_FILED.lower()])
+        filed[key] = "#%d" % issue["number"]
+        print("[%d/%d] %s -> %s  (board: %s)"
+              % (i, len(plan), key, issue["url"], STATUS_FILED))
+
+    # Write the numbers back immediately: an ask that is open with no issue looks
+    # unfiled, and a second run would file it again.
+    asks = catalog.read_asks()
+    for a in asks:
+        if catalog.ask_key(a) in filed:
+            a["issue"] = filed[catalog.ask_key(a)]
+    catalog.write_asks(asks)
+
+    # Then the same roll-up --sync performs, rather than appending just what was
+    # filed here.  One code path, so a file row cannot end up naming the issues
+    # this run created while missing one an earlier run settled as a duplicate.
+    rows = catalog.read()
+    changes, problems = roll_up(asks, rows)
+    for _, _, new, row in changes:
+        row["issue"] = new
+    catalog.write(rows)
+
+    print("\nfiled %d issues and recorded them in asks.tsv" % len(filed))
+    print()
+    report_roll_up(changes, problems, True)
+
+
+if __name__ == "__main__":
+    main()

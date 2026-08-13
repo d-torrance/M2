@@ -37,7 +37,38 @@ TSV = os.path.join(ROOT, "catalog.tsv")
 # labels that put it in front of whoever works on that part of M2.  Kept out of
 # catalog.tsv because they apply to the handful of rows that become issues, not
 # to all 857.
+#
+# Keys are catalog paths, and additionally ask keys of the form "path::n" -- see
+# asks.tsv below.  Nothing here needs to know the difference: a key is a string.
 TITLES = os.path.join(ROOT, "issue-titles.tsv")
+
+# One row per *ask* inside a file, for the wishlist files that hold many
+# unrelated requests.  Those rows sat "parked" in catalog.tsv -- verdict=open
+# with a blank disposition, so bin/file-issues skips them -- precisely because a
+# file is not the thing that corresponds to an issue: bugs/dan/IDEAS is ten
+# unrelated asks in 26 lines, and filing it whole would produce an issue nobody
+# can close.
+#
+# So the file keeps its catalog row as a summary and the asks get their own rows
+# here.  A file's catalog row then carries every issue its asks produced, space
+# separated in the "issue" column, which the format already allowed -- see
+# bugs/dan/0-degrees-of-maps, which names "#607 #1060".
+#
+# "n" is the ask's number within its file, 1-based and stable: renumbering would
+# silently repoint an already-filed issue at a different ask.  "ask" is a short
+# label for reading the TSV, not for publishing.
+ASKS = os.path.join(ROOT, "asks.tsv")
+
+ASK_COLUMNS = ["path", "n", "ask", "verdict", "issue", "fix", "disposition", "note"]
+
+
+def ask_key(row):
+    """The key an ask uses in issue-titles.tsv and under issues/.
+
+    Deliberately not a path that could collide with a real file: no file in the
+    bugs/ tree contains "::".
+    """
+    return "%s::%s" % (row["path"], row["n"])
 
 # Priority prefix on the filename, e.g. "0-decompose.m2" or "0.5-debian-script".
 PRIO_RE = re.compile(r"^([0-9]+(?:\.[0-9]+)?)-")
@@ -95,6 +126,72 @@ def write(rows, path=TSV):
                 values.append(v)
             f.write("\t".join(values) + "\n")
     os.replace(tmp, path)
+
+
+def read_asks(path=ASKS):
+    """Rows from asks.tsv, or [] if nobody has split a file into asks yet."""
+    if not os.path.exists(path):
+        return []
+    rows = []
+    with open(path, encoding="utf-8") as f:
+        header = f.readline().rstrip("\n").split("\t")
+        for line in f:
+            if not line.strip():
+                continue
+            values = line.rstrip("\n").split("\t")
+            values += [""] * (len(header) - len(values))
+            rows.append(dict(zip(header, values)))
+    return rows
+
+
+def write_asks(rows, path=ASKS):
+    """Write ask rows sorted by path then ask number.
+
+    Validated harder than catalog.tsv is, because these rows are written entirely
+    by hand and a duplicate or non-numeric "n" would misfile an issue: the ask
+    number is what ties a row to its title and its draft body.
+    """
+    def sort_key(r):
+        return (r["path"], int(r["n"]))
+
+    seen = set()
+    for r in rows:
+        if not r.get("n", "").isdigit() or int(r["n"]) < 1:
+            raise ValueError("ask number must be a positive integer, got %r in %s"
+                             % (r.get("n"), r.get("path")))
+        key = (r["path"], int(r["n"]))
+        if key in seen:
+            raise ValueError("duplicate ask %s" % ask_key(r))
+        seen.add(key)
+        if r.get("verdict", "") not in VERDICTS:
+            raise ValueError("unknown verdict %r in %s" % (r.get("verdict"), ask_key(r)))
+        if r.get("disposition", "") not in DISPOSITIONS:
+            raise ValueError("unknown disposition %r in %s"
+                             % (r.get("disposition"), ask_key(r)))
+
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write("\t".join(ASK_COLUMNS) + "\n")
+        for r in sorted(rows, key=sort_key):
+            values = []
+            for c in ASK_COLUMNS:
+                v = r.get(c, "")
+                if "\t" in v or "\n" in v:
+                    raise ValueError(
+                        "tab or newline in %s of %s: %r" % (c, ask_key(r), v))
+                values.append(v)
+            f.write("\t".join(values) + "\n")
+    os.replace(tmp, path)
+
+
+def asks_by_path(rows):
+    """path -> [ask rows], each list in ask-number order."""
+    out = {}
+    for r in rows:
+        out.setdefault(r["path"], []).append(r)
+    for v in out.values():
+        v.sort(key=lambda r: int(r["n"]))
+    return out
 
 
 def read_titles(path=TITLES):

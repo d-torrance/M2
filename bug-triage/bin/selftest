@@ -31,6 +31,18 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+# Paths for the ask-key round trip below.  Drawn from the catalog, and chosen for
+# the characters that could plausibly break a split: dots, hyphens, digits, a
+# subdirectory, and a name that already ends in a digit.
+ASK_KEY_PATHS = [
+    "bugs/dan/IDEAS",
+    "bugs/dan/0-bugs-decker.m2",
+    "bugs/mike/gbB-refactor-gb/gb-one-minute.m2",
+    "bugs/mike/git-issue242-243-244.m2",
+    "bugs/anton/NumericalAG/_numericalID_example.m2",
+]
+
+
 def load(name, filename):
     """Import a sibling script by path.
 
@@ -48,6 +60,7 @@ def load(name, filename):
 
 project = load("project", "project.py")
 runrepros = load("runrepros", "run-repros")
+catalog = load("catalog", "catalog.py")
 
 # ---------------------------------------------------------------- linkify
 
@@ -102,6 +115,26 @@ NOT_END_LINES = [
 ]
 
 
+# ---------------------------------------------------------------- key_of
+#
+# An ask's issue body says "triaged from one request inside `bugs/dan/IDEAS`",
+# which project.TRIAGED_FROM matches.  by_key uses setdefault, so if the ask's
+# issue reached that key before the file's own draft did, bin/push-project would
+# rewrite the ask with the file-level layout and set its status from the file
+# row.  The marker has to win, whatever the prose says.
+ASK_BODIES = [
+    "<!-- bug-triage-ask: bugs/dan/IDEAS::3 -->\n\ntriaged from `bugs/dan/IDEAS`",
+    "<!--bug-triage-ask:bugs/dan/IDEAS::3-->\n\nTriaged from `bugs/dan/IDEAS`",
+    "<!-- bug-triage-ask:  bugs/dan/IDEAS::3  -->\n\nno path prose at all",
+]
+
+# A file-level body must still resolve to its path, marker absent.
+FILE_BODIES = [
+    ("Triaged from `bugs/dan/IDEAS`; see #36.", "bugs/dan/IDEAS"),
+    ("triaged from `bugs/mike/gbB-refactor-gb/master-f4`", "bugs/mike/gbB-refactor-gb/master-f4"),
+]
+
+
 def main():
     verbose = "-v" in sys.argv
     failures = []
@@ -127,13 +160,36 @@ def main():
     for line in NOT_END_LINES:
         check(not runrepros.END_STATEMENT.match(line), "not an end statement %r" % line)
 
+    # bin/file-asks recovers a path from an ask key by splitting on the LAST
+    # "::", and writes the resulting issue number onto that path's catalog row.
+    # Get it wrong and an issue is recorded against the wrong file -- silently,
+    # because every path here is real and by_path would not raise.  The rule is
+    # sound only while no path contains "::", which is checked below against the
+    # live catalog rather than assumed.
+    for path in ASK_KEY_PATHS:
+        key = catalog.ask_key({"path": path, "n": "7"})
+        check(key.rsplit("::", 1)[0] == path, "ask key round-trips %r" % path, key)
+        check(key.rsplit("::", 1)[1] == "7", "ask number survives %r" % path, key)
+    live = [r["path"] for r in catalog.read() if "::" in r["path"]]
+    check(not live, "no catalog path contains '::'", ", ".join(live[:3]))
+
+    # The marker must beat the prose, and must not disturb file-level bodies.
+    for body in ASK_BODIES:
+        got = project.key_of({"content": {"body": body, "title": "a readable title"}})
+        check(got == "bugs/dan/IDEAS::3", "ask marker wins over prose", repr(got))
+    for body, want in FILE_BODIES:
+        got = project.key_of({"content": {"body": body, "title": "a readable title"}})
+        check(got == want, "file body still keys on %r" % want, repr(got))
+
     for f in failures:
         print("FAIL: %s" % f, file=sys.stderr)
     if failures:
         print("%d failure(s)" % len(failures), file=sys.stderr)
         return 1
     if verbose:
-        n = len(LINKED) + len(NOT_LINKED) + len(END_LINES) + len(NOT_END_LINES)
+        n = (len(LINKED) + len(NOT_LINKED) + len(END_LINES) + len(NOT_END_LINES)
+             + 2 * len(ASK_KEY_PATHS) + 1
+             + len(ASK_BODIES) + len(FILE_BODIES))
         print("all %d cases pass" % n)
     return 0
 
