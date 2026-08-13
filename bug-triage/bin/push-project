@@ -82,7 +82,7 @@ def is_closed(item):
     return (item["content"] or {}).get("state") == "CLOSED"
 
 
-def want_status(row, item):
+def want_status(row, item, split=()):
     """Where this row belongs on the board.
 
     A closed issue is already Done: the board's "Item closed" workflow put it
@@ -90,7 +90,20 @@ def want_status(row, item):
     shove a settled bug back into the work queue on every push, and --check would
     never converge.  Defer to the tracker and report the row instead -- only a
     human can say whether it closed as fixed, wontfix or duplicate.
+
+    A row split into asks is Done whatever its verdict says, which is the same
+    kind of override.  Those fourteen wishlist files hold many unrelated requests
+    each, so the file is not the unit of work: once it is split, its own triage is
+    finished and the requests are tracked as issues of their own, listed in the
+    body by the roll-up.  Leaving the card open would park it here for years
+    waiting on issues that have nothing further to do with the file, and would
+    count the same work twice -- once as the card, once as the issues.  The
+    verdict still says open, because the catalog's job is to record that work
+    traceable to this file is outstanding; the board's job is to say whether
+    anyone still needs to look at the file, and nobody does.
     """
+    if row["path"] in split:
+        return STATUS_SETTLED
     if row["verdict"] == "todo":
         return STATUS_TODO
     if row["verdict"] == "open":
@@ -304,6 +317,10 @@ def main():
     print("%d items on the board, %d matched to catalog rows\n"
           % (len(items), len(by_key)))
 
+    # Paths that have been split into asks: their cards are Done regardless of
+    # verdict.  See want_status.
+    split = set(catalog.asks_by_path(catalog.read_asks()))
+
     body_edits, issue_edits, status_edits = [], [], []
     unmatched, foreign, stale = [], [], []
     for r in rows:
@@ -315,7 +332,7 @@ def main():
         if r["verdict"] == "open" and is_closed(item):
             stale.append((r["path"], r["issue"]))
 
-        want = want_status(r, item)
+        want = want_status(r, item, split)
         if project.status_of(item) != want:
             status_edits.append((r["path"], item["id"], options[want.lower()], want))
 

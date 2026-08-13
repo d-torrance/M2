@@ -10,10 +10,12 @@ close.  So those files are split into asks in asks.tsv, and this files them.
 
 Two differences from bin/file-issues, both deliberate.
 
-*The issue is created, not converted.*  There is no draft per ask -- the board has
-one card per file -- so this calls createIssue and then adds the new issue to the
-board as its own item.  The file's own card stays where it is; its body lists the
-issues its asks produced on the next bin/push-project run.
+*The issue is created, not converted, and it does not join the board.*  There is
+no draft per ask, so createIssue is called directly.  The new issue is
+deliberately NOT added as a board item: the board holds one card per removed file
+and exists to burn that number down, so growing it is backwards -- see the long
+comment below.  The file's own card carries the numbers instead, through the
+--sync roll-up and bin/push-project.
 
 *The body is built here rather than carried over.*  bin/push-project owns issue
 bodies through its issue_body_for, but that lives in the script and not in
@@ -55,28 +57,20 @@ mutation($repo:ID!, $title:String!, $body:String!, $labels:[ID!]) {
 }
 """
 
-ADD_TO_BOARD = """
-mutation($project:ID!, $content:ID!) {
-  addProjectV2ItemById(input:{projectId:$project, contentId:$content}) {
-    item { id }
-  }
-}
-"""
-
-# A freshly added item has no field values at all, so it lands outside every
-# column of the board rather than in one.  bin/push-project will not fix that:
-# it drives status from catalog rows, and an ask has no catalog row of its own.
-# So set it here.  "In progress" is what want_status gives an open row that names
-# an issue, which is exactly what a just-filed ask is.
-SET_STATUS = """
-mutation($project:ID!, $item:ID!, $field:ID!, $value:String!) {
-  updateProjectV2ItemFieldValue(input:{
-    projectId:$project, itemId:$item, fieldId:$field,
-    value:{singleSelectOptionId:$value}}) { projectV2Item { id } }
-}
-"""
-
-STATUS_FILED = "In progress"
+# Deliberately NOT added to the project board.
+#
+# The board holds exactly one item per file removed from the bugs/ tree, 857 of
+# them, and its whole purpose is to burn that number down.  Filing from a catalog
+# row *converts* that row's draft, so one item goes in and one comes out and the
+# count never moves.  An ask has no draft to convert, so adding its issue as a
+# card would grow the board instead -- which is backwards for a project whose
+# point is to empty it.  Three such cards were added before this was noticed and
+# have been removed; the issues themselves are untouched and stay findable by the
+# "bugs directory" label.
+#
+# The board reference survives where it belongs: the file's own draft carries every
+# issue its asks produced, rolled up into the issue column by --sync and rendered
+# by bin/push-project.  See the decker draft, which reads "Issue: #4640 #4641".
 
 
 def prose_for(key):
@@ -275,31 +269,19 @@ def main():
 
     if not args.apply:
         print("dry run -- nothing created.  Re-run with --apply to open these "
-              "issues in %s/%s and add them to the board."
+              "issues in %s/%s.  They are not added to the\n              board -- see the comment above."
               % (project.ORG, project.REPO))
         return
 
     repo = project.repo_id()
-    proj, fields = project.fetch_project()
-    status = fields[project.STATUS_FIELD.lower()]
-    options = {o["name"].lower(): o["id"] for o in status["options"]}
-    if STATUS_FILED.lower() not in options:
-        raise SystemExit("the board has no %r status; it has: %s"
-                         % (STATUS_FILED, ", ".join(sorted(options))))
-
     filed = {}
     for i, (a, key, title, labels, prose) in enumerate(plan, 1):
         data = project.gh(CREATE, repo=repo, title=title,
                           body=body_for(a, prose),
                           labels=[known[n] for n in labels])
         issue = data["data"]["createIssue"]["issue"]
-        added = project.gh(ADD_TO_BOARD, project=proj["id"], content=issue["id"])
-        project.gh(SET_STATUS, project=proj["id"],
-                   item=added["data"]["addProjectV2ItemById"]["item"]["id"],
-                   field=status["id"], value=options[STATUS_FILED.lower()])
         filed[key] = "#%d" % issue["number"]
-        print("[%d/%d] %s -> %s  (board: %s)"
-              % (i, len(plan), key, issue["url"], STATUS_FILED))
+        print("[%d/%d] %s -> %s" % (i, len(plan), key, issue["url"]))
 
     # Write the numbers back immediately: an ask that is open with no issue looks
     # unfiled, and a second run would file it again.
