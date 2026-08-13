@@ -326,7 +326,14 @@ def check_labels(wanted, known):
 # orphaned four filed issues whose verdict was no longer open -- #4514, #4528,
 # #4501 and #4529, three of which this docstring already cites as the reason the
 # key exists.  Keep any future rewording matching this pattern.
-TRIAGED_FROM = re.compile(r"[Tt]riaged from `(bugs/[^`]+)`")
+# The optional "[" matters: issue bodies now write the path as a markdown link,
+# "triaged from [`bugs/dan/IDEAS`](url)", so a pattern demanding a backtick
+# immediately after "from " stops matching and every such issue falls back to
+# the title-derived key -- which for a filed issue is a readable sentence, so the
+# row goes unmatched and push-project can never update it again.  That happened to
+# 108 issues between one --apply and the next --check; the unmatched count going
+# from 2 to 7 is what showed it.
+TRIAGED_FROM = re.compile(r"[Tt]riaged from \[?`(bugs/[^`]+)`")
 
 # An issue filed from one ask inside a wishlist file, by bin/file-asks.  Written
 # as a marker rather than inferred from the prose because the prose is not safe to
