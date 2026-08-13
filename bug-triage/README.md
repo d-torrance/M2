@@ -276,6 +276,34 @@ from the files alone, without rerunning M2.
 Reproducers run with a 4 GB address-space cap (`--memory`), because several of them are
 memory-leak demonstrations that allocate without bound.
 
+### `--script` and stdin fail in opposite directions, so neither is a safe way to re-check
+
+`bin/run-repros` uses `M2 --script`. That is the right choice, but it has one blind spot, and the
+obvious workaround has a worse one. **Do not switch a row to stdin without checking for `restart`.**
+
+- **Under `--script`, `oo` is not populated.** It is a bare `Symbol`, so `assert( degree oo == {7} )`
+  dies with `no method found for applying degree to: oo (of class Symbol)` — a failure that says
+  nothing about the bug. `tests/normal/overflow.m2` fails this way and passes when fed on stdin, which
+  is how the test harness runs it; its own `compile-command` comment names an `overflow.out` target.
+  This is narrow in practice: of the thirteen `todo` rows whose `autorun` is `fail` and which mention
+  `oo` at all, exactly **one** fails under `--script` and succeeds as an input file.
+- **Fed on stdin, a `restart` silently ends the session with exit 0.** Nothing after it runs — not the
+  rest of the file, not an `error` placed there deliberately — and the exit status is clean, so it
+  looks like a pass. **109 of the 229 reproducers carry an uncommented `restart`**, because `restart`
+  is idiomatic in M2 and these files are working transcripts, so this is the common case rather than
+  the exception.
+
+Under `--script` a `restart` is a documented no-op, which is why the harness is safe as it stands and
+the trap is only in the re-check. If a row needs `oo`, the choices are to run it on stdin *after*
+confirming it has no `restart`, to comment the `restart` out and accept that anything depending on a
+fresh session — `needsPackage` after a reload, for one — may then fail for a new reason, or to rewrite
+the `oo` line. Say in the `note` which you did.
+
+The general shape is the one this file keeps returning to: **an exit status is a measurement of the
+harness as much as of the code.** A clean exit deserves the same suspicion as a suspiciously fast
+benchmark, and `bugs/mike/1-yang.sing` is the extreme case — undecoded quoted-printable, so
+`groebner` had nothing to compute, and the file's own timing line printed `0`.
+
 ## Attributing a fix
 
 Every row marked `fixed` should end up with a pointer in the `fix` column, so project 46 can
