@@ -24,6 +24,7 @@ when it should, and stay quiet when it shouldn't.
 """
 
 import importlib.machinery
+import subprocess
 import importlib.util
 import os
 import sys
@@ -171,6 +172,15 @@ def main():
     check(len(project.REMOVAL_PARENT) == 40 and
           all(c in "0123456789abcdef" for c in project.REMOVAL_PARENT),
           "REMOVAL_PARENT is a full sha", project.REMOVAL_PARENT)
+    # Shape is not enough now that ~180 published links depend on this commit.  If
+    # history were ever rewritten past it they would all break at once, so check
+    # the object is really here and really has the bugs/ tree under it.
+    for probe in ("bugs/dan/IDEAS", "bugs/mike/0-GF-division.m2",
+                  "bugs/gfurnish/TODO"):
+        ok = subprocess.run(
+            ["git", "cat-file", "-e", "%s:%s" % (project.REMOVAL_PARENT, probe)],
+            cwd=HERE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+        check(ok, "REMOVAL_PARENT still has %s" % probe)
 
     for text in ALREADY_LINKED:
         out = project.linkify(text)
@@ -213,7 +223,7 @@ def main():
     if verbose:
         n = (len(LINKED) + len(NOT_LINKED) + len(END_LINES) + len(NOT_END_LINES)
              + 2 * len(ASK_KEY_PATHS) + 1
-             + len(ASK_BODIES) + len(FILE_BODIES) + len(ALREADY_LINKED) + 4)
+             + len(ASK_BODIES) + len(FILE_BODIES) + len(ALREADY_LINKED) + 7)
         print("all %d cases pass" % n)
     return 0
 
