@@ -106,9 +106,24 @@ def body_for(path):
     text = text.strip()
     if not text:
         return None, None
-    body = "%s\n\n%s\n\n<sub>From `%s` in the pre-GitHub `bugs/` tree, being triaged in [#36](%s/issues/36).  Source of truth: [`bug-triage/catalog.tsv`](%s).</sub>\n%s" % (
-        project.ATTRIBUTION, text, path, project.REPO_URL, project.CATALOG_URL,
-        marker_for(path))
+    # An ask key is "path::n" -- one request inside a wishlist file, see asks.tsv.
+    # Its provenance line has to name the ask, not just the file: a reader landing
+    # on a comment sourced from one line of bugs/dan/IDEAS should not be sent to
+    # all 26 of them, and the source of truth is asks.tsv rather than catalog.tsv.
+    if "::" in path:
+        file_path, n = path.rsplit("::", 1)
+        origin = ("From ask %s of `%s` in the pre-GitHub `bugs/` tree, being triaged "
+                  "in [#36](%s/issues/36).  Source of truth: "
+                  "[`bug-triage/asks.tsv`](%s)."
+                  % (n, file_path, project.REPO_URL,
+                     project.CATALOG_URL.replace("catalog.tsv", "asks.tsv")))
+    else:
+        origin = ("From `%s` in the pre-GitHub `bugs/` tree, being triaged in "
+                  "[#36](%s/issues/36).  Source of truth: "
+                  "[`bug-triage/catalog.tsv`](%s)."
+                  % (path, project.REPO_URL, project.CATALOG_URL))
+    body = "%s\n\n%s\n\n<sub>%s</sub>\n%s" % (
+        project.ATTRIBUTION, text, origin, marker_for(path))
     return body, targets
 
 
@@ -146,14 +161,23 @@ def main():
     args = p.parse_args()
 
     rows = catalog.require(catalog.read())
+
+    # Ask rows post the same way file rows do.  Their key is "path::n", which every
+    # helper here already handles because each takes a plain string -- the comment
+    # lives at comments/<path>::<n>.md and carries its own marker.  Without this a
+    # comment written for one request inside a wishlist file is silently never
+    # posted, which is the failure the orphan check below exists to catch.
+    keyed = [(r["path"], r) for r in rows]
+    keyed += [(catalog.ask_key(a), a) for a in catalog.read_asks()]
+
     plan, skipped = [], []
 
-    for r in rows:
+    for key, r in keyed:
         if not r["issue"]:
             continue
-        body, targets = body_for(r["path"])
+        body, targets = body_for(key)
         if body is None:
-            skipped.append(r["path"])
+            skipped.append(key)
             continue
         # "#568 #569" means the file covers both; each gets its own comment.
         for ref in (targets or r["issue"].split()):
@@ -161,14 +185,14 @@ def main():
             issue = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
                                number=number)["data"]["repository"]["issue"]
             if issue is None:
-                print("  SKIP  %s -> #%d does not exist" % (r["path"], number))
+                print("  SKIP  %s -> #%d does not exist" % (key, number))
                 continue
             existing = next((c for c in issue["comments"]["nodes"]
-                             if marker_for(r["path"]) in c["body"]), None)
+                             if marker_for(key) in c["body"]), None)
             if existing and existing["body"] == body:
-                print("  ok    %s -> #%d already current" % (r["path"], number))
+                print("  ok    %s -> #%d already current" % (key, number))
                 continue
-            plan.append((r["path"], issue, existing, body))
+            plan.append((key, issue, existing, body))
 
     print("\n%d comments to post or update, %d rows naming an issue have no "
           "comment file\n" % (len(plan), len(skipped)))
@@ -180,7 +204,7 @@ def main():
     # and no way to say it".  1-flattenRing hit this: an open row whose comment
     # belonged on someone else's issue (#3887), written, ignored, and only noticed
     # because the queue came back empty when it should not have.
-    postable = {r["path"] for r in rows if r["issue"]}
+    postable = {key for key, r in keyed if r["issue"]}
     orphans = sorted(p for p in comment_paths() if p not in postable)
     # This does not check whether the comment was posted by hand afterwards, so an
     # orphan stays listed once it has been dealt with.  Verifying would mean an API
