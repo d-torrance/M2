@@ -39,6 +39,7 @@ exists at issues/<path>::<n>.md.  Anything short of that is reported, not guesse
 
 import argparse
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -46,8 +47,6 @@ import catalog
 import project
 
 ISSUES = os.path.join(catalog.ROOT, "issues")
-FILES_URL = ("https://github.com/d-torrance/M2/blob/bug-triage"
-             "/bug-triage/files")
 
 CREATE = """
 mutation($repo:ID!, $title:String!, $body:String!, $labels:[ID!]) {
@@ -71,6 +70,84 @@ mutation($repo:ID!, $title:String!, $body:String!, $labels:[ID!]) {
 # The board reference survives where it belongs: the file's own draft carries every
 # issue its asks produced, rolled up into the issue column by --sync and rendered
 # by bin/push-project.  See the decker draft, which reads "Issue: #4640 #4641".
+
+
+ISSUE_BY_NUMBER = """
+query($owner:String!, $name:String!, $number:Int!) {
+  repository(owner:$owner, name:$name) {
+    issue(number:$number) { id number body }
+  }
+}
+"""
+
+SET_ISSUE_BODY = """
+mutation($issue:ID!, $body:String!) {
+  updateIssue(input:{id:$issue, body:$body}) { issue { number } }
+}
+"""
+
+# Everything up to and including our end marker is ours, exactly as in
+# bin/push-project: the body was generated here, so replacing that span leaves
+# anything a human appended afterwards intact.
+OURS_RE = re.compile(r"\A.*?" + re.escape(project.END), re.S)
+
+
+def refresh(args):
+    """Rewrite the bodies of already-filed asks from their current prose.
+
+    Needed because an ask's issue is not on the board, so bin/push-project -- which
+    refreshes the bodies of issues filed from catalog rows -- cannot see it.  Without
+    this, editing prose under issues/ after filing leaves the published issue stale
+    for good, and a bug in the body generator stays published.  That is not
+    hypothetical: linkify was re-linking references already written as markdown
+    links, putting "[[#4621](url)](url)" into four issues.
+    """
+    # Only asks we filed ourselves: disposition=issue.  A duplicate ask names
+    # somebody else's issue -- #150 and #2582 so far -- and rewriting a stranger's
+    # body is not ours to do.  The OURS_RE check below would also stop it, since
+    # those bodies carry no triage block, but relying on a marker to protect other
+    # people's issues is too thin.  Two guards, deliberately.
+    asks = [a for a in catalog.read_asks()
+            if a["issue"] and a["disposition"] == "issue"]
+    if not asks:
+        raise SystemExit("no ask filed from here names an issue yet -- "
+                         "nothing to refresh")
+    plan = []
+    for a in asks:
+        key = catalog.ask_key(a)
+        prose = prose_for(key)
+        if prose is None:
+            print("  SKIP  %-46s no prose at issues/%s.md" % (key, key))
+            continue
+        body = body_for(a, prose)
+        for ref in a["issue"].split():
+            number = int(ref.lstrip("#"))
+            issue = project.gh(ISSUE_BY_NUMBER, owner=project.ORG, name=project.REPO,
+                               number=number)["data"]["repository"]["issue"]
+            if issue is None:
+                print("  SKIP  %-46s #%d does not exist" % (key, number))
+                continue
+            old = issue["body"] or ""
+            if not OURS_RE.search(old):
+                # Not filed from here, or hand-rewritten past recognition.  Never
+                # introduce our block into a body that does not already carry it.
+                print("  SKIP  %-46s #%d has no triage block" % (key, number))
+                continue
+            new = OURS_RE.sub(lambda _: body, old, count=1)
+            if new == old:
+                print("  ok    %-46s #%d already current" % (key, number))
+                continue
+            plan.append((key, issue, number, new))
+
+    print("\n%d issue body(ies) to rewrite\n" % len(plan))
+    for key, _, number, _ in plan:
+        print("  %s -> #%d" % (key, number))
+    if not args.apply:
+        print("\ndry run -- nothing rewritten.")
+        return
+    for i, (key, issue, number, new) in enumerate(plan, 1):
+        project.gh(SET_ISSUE_BODY, issue=issue["id"], body=new)
+        print("[%d/%d] rewrote #%d from %s" % (i, len(plan), number, key))
 
 
 def prose_for(key):
@@ -101,8 +178,8 @@ def body_for(ask, prose):
             value = (project.linkify(ask[column]) if column == "fix"
                      else "`%s`" % ask[column])
             fields.append(("%s %s" % (label, value)).strip())
-    fields.append("ask %s of [`%s`](%s/%s)"
-                  % (ask["n"], ask["path"], FILES_URL, ask["path"]))
+    fields.append("ask %s of [`%s`](%s)"
+                  % (ask["n"], ask["path"], project.file_url(ask["path"])))
 
     return "\n".join([
         project.BEGIN, "",
@@ -210,12 +287,17 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--apply", action="store_true",
                     help="actually create the issues, or write the roll-up")
+    ap.add_argument("--refresh", action="store_true",
+                    help="rewrite the bodies of already-filed asks from their "
+                         "current prose, creating nothing")
     ap.add_argument("--sync", action="store_true",
                     help="only roll the asks' issue numbers up onto their file "
                          "rows, creating nothing; use after settling an ask as a "
                          "duplicate")
     args = ap.parse_args()
 
+    if args.refresh:
+        return refresh(args)
     if args.sync:
         return sync(args)
 

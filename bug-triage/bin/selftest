@@ -86,6 +86,14 @@ NOT_LINKED = [
     "an array [1,2,3]#0 is 1",
 ]
 
+# Already a markdown link: must survive untouched.  Linkifying these again gave
+# "[[#4621](url)](url)" in four filed issues -- see the comment at ISSUE_REF.
+ALREADY_LINKED = [
+    "see [#4621](https://github.com/Macaulay2/M2/issues/4621) for the engine side",
+    "[#150](https://github.com/Macaulay2/M2/issues/150) and [#4459](https://github.com/Macaulay2/M2/pull/4459)",
+    "closes [#36](https://github.com/Macaulay2/M2/issues/36).",
+]
+
 # Known and accepted: "/" is excluded from the lookbehind, so in a
 # slash-separated list only the first reference becomes a link.  Three notes
 # spell one that way ("#4576/#4578/#4583", "#1061/#1067").  Left alone
@@ -151,6 +159,22 @@ def main():
     for text in NOT_LINKED:
         out = project.linkify(text)
         check("/issues/" not in out, "no link in %r" % text, out)
+    # A bug file link must point into Macaulay2/M2 at the pre-removal commit, not
+    # into the fork's bug-triage/files/, which is gitignored and 404s.  Four filed
+    # issues carried the dead form.  Also checks the sha is a full 40 characters:
+    # an abbreviated one would work today and could go ambiguous later.
+    u = project.file_url("bugs/dan/IDEAS")
+    check(u.startswith("https://github.com/Macaulay2/M2/blob/"),
+          "file_url points at the canonical repository", u)
+    check(u.endswith("/bugs/dan/IDEAS"), "file_url keeps the catalog path", u)
+    check("bug-triage/files" not in u, "file_url avoids the gitignored copy", u)
+    check(len(project.REMOVAL_PARENT) == 40 and
+          all(c in "0123456789abcdef" for c in project.REMOVAL_PARENT),
+          "REMOVAL_PARENT is a full sha", project.REMOVAL_PARENT)
+
+    for text in ALREADY_LINKED:
+        out = project.linkify(text)
+        check(out == text, "already-linked text is untouched: %r" % text, out)
     for text in KNOWN_UNLINKED:
         if verbose:
             print("note  only the first is linked: %s" % project.linkify(text))
@@ -189,7 +213,7 @@ def main():
     if verbose:
         n = (len(LINKED) + len(NOT_LINKED) + len(END_LINES) + len(NOT_END_LINES)
              + 2 * len(ASK_KEY_PATHS) + 1
-             + len(ASK_BODIES) + len(FILE_BODIES))
+             + len(ASK_BODIES) + len(FILE_BODIES) + len(ALREADY_LINKED) + 4)
         print("all %d cases pass" % n)
     return 0
 

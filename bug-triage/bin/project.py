@@ -153,6 +153,25 @@ REPO_URL = "https://github.com/%s/%s" % (ORG, REPO)
 CATALOG_URL = ("https://github.com/d-torrance/M2/blob/bug-triage"
                "/bug-triage/catalog.tsv")
 
+
+# Where a reader can see an original bug file: in Macaulay2/M2 at the commit just
+# before d2c8d27826 removed the tree.  Catalog paths are exactly the paths those
+# files had, so the URL is this prefix plus the path.
+#
+# NOT bug-triage/files/, which is where they sit locally: that directory is the
+# first line of bug-triage/.gitignore, being extracts of blobs already in git
+# history, so a link into it 404s.  Four filed issues carried such a link before
+# Doug noticed.  Linking into the canonical repository is better anyway -- it is
+# permanent, it does not depend on a fork or a branch surviving, and it shows the
+# file where it actually lived.
+REMOVAL_PARENT = "388c1ff0ce30d83751dea7bc7eac77fdc1305dd7"
+FILES_URL = "%s/blob/%s" % (REPO_URL, REMOVAL_PARENT)
+
+
+def file_url(path):
+    """A permalink to a bug file as it was just before the tree was removed."""
+    return "%s/%s" % (FILES_URL, path)
+
 # The account these run under, named in the attribution so a reader knows the
 # text is not that person's.  Change it if someone else picks the tooling up.
 ACCOUNT = "@d-torrance"
@@ -193,7 +212,15 @@ FOREIGN_REF = re.compile(r"\b([A-Za-z0-9._-]+/[A-Za-z0-9._-]+)#(\d+)\b")
 # readily as in a name; ) ] } are therefore excluded too.  Nothing is lost by it,
 # because a genuine reference never follows a closing bracket with no space --
 # "(#2130)" keeps its link, since what precedes the # there is "(".
-ISSUE_REF = re.compile(r"(?<![\w/.\-)\]}])#(\d+)\b")
+# "[" is in the exclusion set so that a reference already written as a markdown
+# link is left alone.  Without it, linkifying text that contains
+# "[#4621](https://github.com/Macaulay2/M2/issues/4621)" matches the "#4621"
+# inside the link *text* -- "[" was not excluded -- and yields
+# "[[#4621](url)](url)", which renders as a stray "[#4621]" beside the real link.
+# Nine of those reached four filed issues before Doug spotted it.  Hand-written
+# prose under issues/ and comments/ routinely contains such links, so any caller
+# that linkifies prose rather than a bare TSV column needs this.
+ISSUE_REF = re.compile(r"(?<![\w/.\-)\]}\[])#(\d+)\b")
 
 SHA_REF = re.compile(r"\b([0-9a-f]{7,40})\b")
 
