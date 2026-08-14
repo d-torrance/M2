@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+"""Comment on, then close, the issues we have agreed to close.
+
+DRY RUN BY DEFAULT.
+
+Three gates, all required, and the third is where this project is deliberately
+stricter than the first one:
+
+    1  verdict is in issues.CLOSABLE
+    2  action == "close"
+    3  a hand-written comments/issues/<N>.md exists
+
+bin/comment-issues treated the comment as optional, because there the question was
+whether a comment added anything to somebody else's live issue.  Here the comment
+*is* the close: an issue that shuts with no visible reason is what makes a triage
+sweep read as a bot run, and it is what gets the whole sweep reverted by a
+maintainer who cannot tell which of the closes were thought about.  So this script
+refuses to close an issue it cannot explain.
+
+Verdict and action are separate columns on purpose.  "fixed" is a finding about
+M2; "close" is a decision about somebody else's issue, and the decision does not
+follow from the finding -- a `wontfix` may deserve to stay open under discussion,
+and a `not-reproducible` on a platform we cannot test is not ours to shut.  Nothing
+here infers one from the other.
+
+**Comment first, then close.**  If the comment fails, the issue stays open.  A
+close notification arriving with no visible reason is exactly the thing to avoid,
+and doing it in this order means the failure mode is a comment with no close, which
+is harmless and obvious.
+
+Duplicates use GitHub's own relationship -- stateReason DUPLICATE with
+duplicateIssueId -- rather than a hand-written cross-reference, so both issues
+render "duplicate of #N" natively.  The `dup` column names the *older* issue, and
+bin/issues.py re-checks that on every write; the older one survives.  A comment on
+the older issue is still worth writing, because otherwise its watchers never learn
+a second report existed, and that goes in comments/issues/<older>.md as its own row.
+
+    ./bin/close-issues                # show the exact text of every comment
+    ./bin/close-issues --apply        # post and close
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+import project
+
+# Which reason GitHub records.  "not planned" is the honest one for everything we
+# are declining rather than fixing; "completed" claims the thing asked for
+# happened, which for not-reproducible is a claim about the world rather than
+# about us, and the comment has to say the cause is unknown and invite reopening.
+STATE_REASON = {
+    "fixed": "COMPLETED",
+    "not-reproducible": "COMPLETED",
+    "duplicate": "DUPLICATE",
+    "not-a-bug": "NOT_PLANNED",
+    "wontfix": "NOT_PLANNED",
+    "obsolete": "NOT_PLANNED",
+}
+
+ISSUE_QUERY = """
+query($owner:String!, $name:String!, $number:Int!) {
+  repository(owner:$owner, name:$name) {
+    issue(number:$number) {
+      id number state title
+      comments(first:100) { nodes { id body } }
+    }
+  }
+}
+"""
+
+ADD_COMMENT = """
+mutation($subject:ID!, $body:String!) {
+  addComment(input:{subjectId:$subject, body:$body}) {
+    commentEdge { node { url } }
+  }
+}
+"""
+
+UPDATE_COMMENT = """
+mutation($id:ID!, $body:String!) {
+  updateIssueComment(input:{id:$id, body:$body}) { issueComment { url } }
+}
+"""
+
+# isSuggestion is deliberately not passed.  It files the close as a suggestion for
+# somebody else to act on rather than performing it, and this script should either
+# close an issue or leave it alone.
+CLOSE = """
+mutation($id:ID!, $reason:IssueClosedStateReason!, $dup:ID) {
+  closeIssue(input:{issueId:$id, stateReason:$reason, duplicateIssueId:$dup}) {
+    issue { number url stateReason }
+  }
+}
+"""
+
+
+def marker_for(number):
+    return "<!-- issue-triage:%s -->" % number
+
+
+def comment_file(number):
+    return os.path.join(issuestsv.COMMENTS, "%s.md" % number)
+
+
+def body_for(row):
+    """The comment to post on this issue, or None if nobody has written one."""
+    number = int(row["issue"])
+    path = comment_file(number)
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        text = f.read().strip()
+    if not text:
+        return None
+
+    # Attribution first, above the text, never in a footer.  A disclosure placed
+    # after the content is read after the content, which is too late to be the
+    # thing it exists to be.  See "Put the attribution above the text" in
+    # README-bugs-directory.md.
+    parts = [project.ATTRIBUTION, "", text, "",
+             "<sub>Triaged in a sweep of the open issues; source of truth: "
+             "[`bug-triage/issues.tsv`](%s).</sub>" % ISSUES_URL,
+             "", marker_for(number)]
+    return "\n".join(parts)
+
+
+ISSUES_URL = ("https://github.com/d-torrance/M2/blob/bug-triage"
+              "/bug-triage/issues.tsv")
+
+
+def plan(rows, only=None):
+    out, missing = [], []
+    by_number = issuestsv.by_number(rows)
+    for r in rows:
+        n = int(r["issue"])
+        if only and n not in only:
+            continue
+        if r["action"] != "close":
+            continue
+        if r["verdict"] not in issuestsv.CLOSABLE:
+            raise SystemExit(
+                "#%s says action=close but verdict=%r, which is not a verdict "
+                "that closes anything" % (r["issue"], r["verdict"]))
+        if r["verdict"] == "duplicate" and not r["dup"]:
+            raise SystemExit("#%s is a duplicate of nothing -- fill in dup"
+                             % r["issue"])
+        body = body_for(r)
+        if body is None:
+            missing.append(n)
+            continue
+        out.append((r, body))
+    if missing:
+        raise SystemExit(
+            "no comment written for %s.\n\nEvery close needs one: an issue that "
+            "shuts with no visible reason is\nindistinguishable from a bot run.  "
+            "Write %s"
+            % (", ".join("#%d" % n for n in missing),
+               ", ".join(comment_file(n) for n in missing)))
+    return out
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--apply", action="store_true",
+                   help="actually comment and close (default: dry run)")
+    p.add_argument("--only", type=int, nargs="*", metavar="N",
+                   help="only these issue numbers")
+    p.add_argument("--max", type=int, default=10,
+                   help="refuse to act on more than this many at once "
+                        "(default: 10)")
+    args = p.parse_args()
+
+    rows = issuestsv.require(issuestsv.read())
+    work = plan(rows, set(args.only or []))
+    if not work:
+        print("nothing to close -- no row has action=close")
+        return
+    if len(work) > args.max:
+        raise SystemExit(
+            "%d issues would be closed, over the --max of %d.  These land in "
+            "strangers'\ninboxes and cannot be taken back quietly; do them in "
+            "batches." % (len(work), args.max))
+
+    for r, body in work:
+        dup = issuestsv.dup_number(r)
+        print("=" * 72)
+        print("#%s  %s -> %s%s"
+              % (r["issue"], r["verdict"], STATE_REASON[r["verdict"]],
+                 "  (duplicate of #%d)" % dup if dup else ""))
+        print("=" * 72)
+        print(body)
+        print()
+
+    print("%d issue(s) to comment on and close." % len(work))
+    if not args.apply:
+        print("dry run -- rerun with --apply")
+        return
+
+    for r, body in work:
+        number = int(r["issue"])
+        issue = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
+                           number=number)["data"]["repository"]["issue"]
+        if issue is None:
+            print("#%d: no such issue, skipped" % number, file=sys.stderr)
+            continue
+        if issue["state"] != "OPEN":
+            print("#%d: already closed, skipped" % number, file=sys.stderr)
+            continue
+
+        # Idempotent by marker: rerunning edits the comment already there rather
+        # than stacking a second one onto the issue.
+        marker = marker_for(number)
+        existing = next((c for c in issue["comments"]["nodes"]
+                         if marker in (c["body"] or "")), None)
+        if existing:
+            project.gh(UPDATE_COMMENT, id=existing["id"], body=body)
+        else:
+            project.gh(ADD_COMMENT, subject=issue["id"], body=body)
+
+        dup = issuestsv.dup_number(r)
+        dup_id = None
+        if dup is not None:
+            other = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
+                               number=dup)["data"]["repository"]["issue"]
+            if other is None:
+                print("#%d: dup #%d does not exist, left open"
+                      % (number, dup), file=sys.stderr)
+                continue
+            dup_id = other["id"]
+
+        project.gh(CLOSE, id=issue["id"],
+                   reason=STATE_REASON[r["verdict"]], dup=dup_id)
+        print("#%d closed (%s)" % (number, STATE_REASON[r["verdict"]]))
+
+    print("\nRun bin/init-issues to drop the closed rows from the catalog.")
+
+
+if __name__ == "__main__":
+    main()

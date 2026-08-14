@@ -286,7 +286,7 @@ def all_labels():
         cursor = page["pageInfo"]["endCursor"]
 
 
-def check_labels(wanted, known):
+def check_labels(wanted, known, existing=None):
     """Validate the labels chosen for each row.  wanted maps key -> [name].
 
     Rejects a name that does not exist, one that only belongs on a pull request,
@@ -294,6 +294,16 @@ def check_labels(wanted, known):
     before anything is created or edited: a typo should stop the run, not leave a
     batch of half-labelled issues to go back over by hand.  GitHub errors on an
     unknown name rather than creating it, but by then the run is part-applied.
+
+    "existing" maps the same keys to the labels the issue *already* carries, and
+    the exclusion test has to include them.  Without it the test was right only
+    because of an accident of the first project: it labelled issues it had just
+    created, so there were never any prior labels to conflict with.  This one
+    labels issues that have been open for years -- 87 already carry "bug" and 40
+    already carry "feature request" -- and adding "bug" to an issue that already
+    says "feature request" passed cleanly and left GitHub holding both, which is
+    exactly the dodged judgment the rule exists to catch.  Drop the other one
+    through rmlabels in the same operation.
     """
     names = {n for ls in wanted.values() for n in ls}
     unknown = sorted(n for n in names if n not in known)
@@ -308,12 +318,31 @@ def check_labels(wanted, known):
             "these label(s) belong on a pull request, not on an issue: %s"
             % ", ".join(repr(n) for n in wrong))
     for group in EXCLUSIVE:
-        both = sorted(k for k, ls in wanted.items() if len(group & set(ls)) > 1)
+        both = sorted(k for k, ls in wanted.items()
+                      if len(group & (set(ls) | set((existing or {}).get(k, [])))) > 1)
         if both:
             raise SystemExit(
-                "at most one of %s may go on an issue; these rows claim more "
-                "than one:\n  %s"
+                "at most one of %s may go on an issue; these rows would end up "
+                "with more than one:\n  %s"
                 % (", ".join(repr(n) for n in sorted(group)), "\n  ".join(both)))
+
+
+# Labels that are a claim about people or process rather than about content, and
+# so are never proposed mechanically.  "good beginners' project" asserts how hard
+# something is; "stale" asserts nobody cares; "under discussion" asserts a
+# conversation is happening.  No amount of body text supports any of those, and a
+# suggester that guessed at them would be putting words in a maintainer's mouth.
+# Warned about rather than rejected: a human may still mean it.
+JUDGMENT_ONLY = {
+    "community",
+    "contributions welcome",
+    "good beginners' project",
+    "M2@GT26",
+    "seeking a volunteer",
+    "stale",
+    "under discussion",
+    "waiting for update",
+}
 
 
 # The triage block bin/push-project writes names the file it came from.  That

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for the two predicates here that have shipped wrong.
+"""Regression tests for the predicates here that have shipped wrong, or would.
 
 Neither is complicated, and that is the point: both are one-line rules over text,
 both looked obviously right, and both were wrong in a way no dry run showed until
@@ -18,6 +18,20 @@ something had already been published or recorded.
 Both lists below are drawn from files that actually exist in this catalog rather
 than invented, and both carry the two error modes a predicate has: it must fire
 when it should, and stay quiet when it shouldn't.
+
+The open-issue sweep adds five more, each guarding a failure that is silent:
+
+    CRLF bodies         a fence regex under re.M matches nothing when a "\r" sits
+                        before the "\n", and reports "this issue has no code
+                        block" -- true-looking, and wrong for two thirds of them.
+    transcript parsing  a prompt line whose input is dropped yields a script that
+                        runs clean because it never reached the bug.
+    output tokens       the rule M2 draws across a wrapped value must not survive
+                        as a "-" token, and "<---" must compare equal to "<--".
+    check_labels        the exclusion test has to see the labels an issue already
+                        carries, or "bug" lands on a "feature request".
+    dup direction       "dup" names the older issue.  Backwards closes the one
+                        that should have survived, and nothing else would notice.
 
     bin/selftest        # silent on success, nonzero exit on failure
     bin/selftest -v     # print every case
@@ -61,6 +75,10 @@ def load(name, filename):
 
 project = load("project", "project.py")
 runrepros = load("runrepros", "run-repros")
+extract = load("extractrepros", "extract-repros")
+runissues = load("runissuerepros", "run-issue-repros")
+sys.path.insert(0, HERE)
+import issues as issuestsv
 catalog = load("catalog", "catalog.py")
 pushproject = load("pushproject", "push-project")
 
@@ -176,11 +194,58 @@ FILE_BODIES = [
 ]
 
 
+# ----------------------------------------------------------- open-issue sweep
+
+# A body exactly as GitHub returns one from a browser textarea.  The "\r" is the
+# whole point: written with real CRLF, not escaped, so a future reformat that
+# "tidies" it also removes what it tests.
+CRLF_BODY = ("Here is the problem.\r\n"
+             "\r\n"
+             "```\r\n"
+             "R = QQ[x]\r\n"
+             "mingens ideal(x)\r\n"
+             "```\r\n")
+
+# One pasted session, carrying every line class the parser has to tell apart:
+# a banner, a prompt with inline input, a prompt whose input is on the indented
+# line below it, an "oN =" value with an indented continuation, an "oN :" type
+# line, a diagnostic, and an unindented line that is neither -- which must be
+# commented rather than guessed at.
+TRANSCRIPT = """Macaulay2, version 1.26.06
+with packages: Core
+i1 : R = QQ[x,y];
+
+i2 :
+     A = matrix {{1,2},{3,4}}
+
+o2 = | 1 2 |
+     | 3 4 |
+
+o2 : Matrix
+
+i3 : mingens ideal(x)
+stdio:3:1:(3): error: no method for mingens
+196884 = 196883 + 1
+"""
+
+# Recorded output blocks as bin/extract-repros collects them, with the rule M2
+# draws across a wrap and the arrow it used to spell with three dashes.
+OUTPUT_BLOCKS = [
+    ["o1 = | a b",
+     "     --------------------------------------------------",
+     "     c d |"],
+    ["o1 : Matrix R  <--- R"],
+]
+
+
 def main():
     verbose = "-v" in sys.argv
     failures = []
 
+    ran = []
+
     def check(ok, label, detail=""):
+        ran.append(label)
         if not ok:
             failures.append(label + (("  -> " + detail) if detail else ""))
         if verbose:
@@ -258,17 +323,92 @@ def main():
         got = pushproject.want_status(row, item, split)
         check(got == want, "want_status(%s, %r asks) is %s" % (verdict, ask_verdicts, want), got)
 
+    # --- CRLF: the fence has to be found through the carriage returns -------
+    body = issuestsv.lf(CRLF_BODY)
+    check("\r" not in body, "lf() removes every carriage return")
+    bs = extract.blocks(body)
+    check(len(bs) == 1, "a CRLF body still yields its fenced block", str(len(bs)))
+    check(bs and "mingens" in bs[0].text, "the block keeps its content")
+    check(not extract.blocks(CRLF_BODY),
+          "and the raw CRLF body finds nothing, which is why lf() is not optional")
+
+    # --- transcript parsing --------------------------------------------------
+    script, expected, doubtful, outputs = extract.transcript_to_script(TRANSCRIPT)
+    lines = [l for l in script.split("\n") if l.strip()]
+    check("R = QQ[x,y];" in lines, "inline input after a prompt is kept", script)
+    check("A = matrix {{1,2},{3,4}}" in lines,
+          "indented input under a bare prompt is kept", script)
+    check("mingens ideal(x)" in lines, "input before a diagnostic is kept", script)
+    check(not any(l.startswith("i1") or l.startswith("i2") for l in lines),
+          "no prompt survives into the script", script)
+    check(not any("| 1 2 |" in l for l in lines if not l.startswith("--")),
+          "output does not survive into the script", script)
+    check(not any("Macaulay2, version" in l for l in lines),
+          "the banner is dropped", script)
+    check(expected == ["error: no method for mingens"],
+          "the diagnostic is captured with its position stripped", repr(expected))
+    check(doubtful == ["196884 = 196883 + 1"],
+          "the line the parser cannot place is flagged", repr(doubtful))
+    check(any(l.startswith("-- ??") for l in lines),
+          "and is commented out rather than dropped or guessed at", script)
+    check(len(outputs) == 2, "both output blocks are recorded", str(len(outputs)))
+
+    # --- output tokens: layout is not the claim ------------------------------
+    toks = extract.tokens(OUTPUT_BLOCKS)
+    check(toks == ["| a b c d |", "Matrix R <- R"],
+          "wrap rule dropped, arrow normalized, oN prefix removed", repr(toks))
+    check(all("-" not in t.split() for t in toks),
+          "no bare dash token survives a wrapped value", repr(toks))
+
+    # --- expected_recurred: longest match, not any ---------------------------
+    check(runissues.expected_recurred(
+              ["error: no method for mingens"],
+              "stdio:9:1:(3): error: no method for mingens"),
+          "a recorded diagnostic is recognized despite a different position")
+    check(not runissues.expected_recurred(
+              ["error: no method for mingens"], "error: assertion failed"),
+          "an unrelated failure is not scored as a reproduction")
+    check(not runissues.expected_recurred(["error:"], "error: anything at all"),
+          "a message too short to discriminate never matches")
+
+    # --- check_labels sees what the issue already carries --------------------
+    known = {"bug": "1", "feature request": "2", "Engine": "3"}
+    try:
+        project.check_labels({"1": ["bug"]}, known,
+                             existing={"1": ["feature request"]})
+        check(False, "adding 'bug' to a 'feature request' issue must be refused")
+    except SystemExit:
+        check(True, "adding 'bug' to a 'feature request' issue is refused")
+    try:
+        project.check_labels({"1": ["bug"]}, known, existing={"1": ["Engine"]})
+        check(True, "a non-exclusive existing label is fine")
+    except SystemExit:
+        check(False, "a non-exclusive existing label must not be refused")
+    try:
+        project.check_labels({"1": ["bug"]}, known)
+        check(True, "the two-argument call still works for bin/file-issues")
+    except SystemExit:
+        check(False, "the two-argument call must keep working")
+
+    # --- dup direction, on the live catalog ----------------------------------
+    backwards = [r["issue"] for r in issuestsv.read()
+                 if (issuestsv.dup_number(r) or 0) >= int(r["issue"])]
+    check(not backwards, "every dup in issues.tsv names an older issue",
+          ", ".join("#" + n for n in backwards[:5]))
+    try:
+        issuestsv.check_dup({"issue": "100", "dup": "#200"})
+        check(False, "a backwards dup must be refused")
+    except ValueError:
+        check(True, "a backwards dup is refused")
+
+
     for f in failures:
         print("FAIL: %s" % f, file=sys.stderr)
     if failures:
         print("%d failure(s)" % len(failures), file=sys.stderr)
         return 1
     if verbose:
-        n = (len(LINKED) + len(NOT_LINKED) + len(END_LINES) + len(NOT_END_LINES)
-             + 2 * len(ASK_KEY_PATHS) + 1
-             + len(ASK_BODIES) + len(FILE_BODIES) + len(ALREADY_LINKED)
-             + len(WANT_STATUS) + 7)
-        print("all %d cases pass" % n)
+        print("all %d cases pass" % len(ran))
     return 0
 
 

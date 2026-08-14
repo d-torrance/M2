@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+"""Shortlist candidate duplicates among the open issues.
+
+Runs entirely against cache/issues.json and cache/comments.json, so it costs no
+API calls and can be rerun freely.  It is advisory and never writes the "dup"
+column: keyword overlap cannot tell "same bug" from "same subsystem", and the
+distinction is the entire content of the judgement.
+
+Three outputs, in increasing order of how much reading they save:
+
+    cache/dup-adjacent.tsv   same author, same day, adjacent numbers
+    cache/dup-pairs.tsv      every pair scoring above --cut, older issue first
+    cache/dup-families.txt   those pairs closed into connected components
+
+The arithmetic is not the problem.  897 issues make 400k pairs and the whole scan
+takes well under a second; what costs is a human reading the result.  So the
+design is aimed at reading time, and the families file is the part that matters.
+False positives here are not scattered -- they arrive as one shape repeated.  Eight
+issues about `check` running out of memory on i386 generate twenty pairs of the
+same non-decision, and read pairwise that is twenty judgements.  Read as a family
+it is one, and it retires all twenty.
+
+Duplicate direction is fixed by construction: the "old" column is always the lower
+number.  The older issue survives, so a pair printed the other way round would
+invite closing the wrong one.  bin/issues.py re-checks it on every write.
+"""
+
+import argparse
+import collections
+import json
+import math
+import os
+import re
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+from importlib.machinery import SourceFileLoader
+import importlib.util
+
+
+def _load(name, filename):
+    loader = SourceFileLoader(name, os.path.join(HERE, filename))
+    spec = importlib.util.spec_from_loader(name, loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+suggest = _load("suggestissues", "suggest-issues")
+fetchcomments = _load("fetchcomments", "fetch-comments")
+
+# Reused verbatim from bin/suggest-issues: the tokenizer and its stop list were
+# tuned against this exact corpus.
+WORD = suggest.WORD
+STOP = suggest.STOP
+tokens = suggest.tokens
+
+# A term appearing in more than this many of the 897 open issues names a
+# subsystem, not a subject.  "ring", "matrix", "package" and "documentation" each
+# occur in dozens of unrelated reports, and left in they dominate every score --
+# the pairs that come back are then all "both about rings", which is true and
+# useless.  Dropping them costs nothing, because a term that common carries almost
+# no idf anyway; what it buys is that the surviving score is made of specifics.
+FAMILY_DF = 40
+
+# Filed by this directory's own first project.  Kept as duplicate *targets* -- a
+# 2015 issue may well duplicate one filed last week, and then the 2015 one is the
+# survivor -- but never used as a query, since each was checked against the whole
+# tracker at filing time.  See README.md.
+SKIP_LABEL = "bugs directory"
+
+
+def open_issues(cache):
+    return [i for i in cache
+            if i["state"] == "open" and not i.get("pull_request")]
+
+
+def build(issues, comments, body_chars):
+    """Token multiset per issue, and idf over the open corpus."""
+    docs, df = {}, collections.Counter()
+    for i in issues:
+        n = i["number"]
+        # Title tokens count triple: a title is the reporter's own summary and is
+        # the closest thing in the corpus to a statement of what the issue is.
+        bag = collections.Counter()
+        for t in tokens(i["title"]):
+            bag[t] += 3
+        for t in tokens((i["body"] or "")[:body_chars]):
+            bag[t] += 1
+        for t in tokens(fetchcomments.text_for(comments, n)[:body_chars]):
+            bag[t] += 1
+        docs[n] = bag
+        for t in bag:
+            df[t] += 1
+
+    n = len(issues)
+    idf = {t: math.log(n / (1 + c)) for t, c in df.items()}
+    return docs, idf, df
+
+
+def pairs(docs, idf, df, queries):
+    """Cosine similarity over the inverted index, skipping subsystem-wide terms.
+
+    Accumulating through the index rather than comparing every pair against every
+    other is what keeps this instant: a term appears in a handful of issues, and
+    only those issues can share it.
+    """
+    weight, norm = {}, {}
+    for n, bag in docs.items():
+        w = {t: c * idf.get(t, 0.0) for t, c in bag.items() if df[t] <= FAMILY_DF}
+        weight[n] = w
+        norm[n] = math.sqrt(sum(v * v for v in w.values())) or 1.0
+
+    index = collections.defaultdict(list)
+    for n, w in weight.items():
+        for t in w:
+            index[t].append(n)
+
+    acc = collections.Counter()
+    for t, ns in index.items():
+        if len(ns) < 2:
+            continue
+        for a in range(len(ns)):
+            for b in range(a + 1, len(ns)):
+                x, y = ns[a], ns[b]
+                if x not in queries and y not in queries:
+                    continue
+                lo, hi = (x, y) if x < y else (y, x)
+                acc[(lo, hi)] += weight[x][t] * weight[y][t]
+
+    out = []
+    for (lo, hi), dot in acc.items():
+        out.append((dot / (norm[lo] * norm[hi]), lo, hi))
+    out.sort(key=lambda p: (-p[0], p[1], p[2]))
+    return out, weight
+
+
+def shared(weight, lo, hi, k=5):
+    """The terms that actually drove the score -- what lets a pair be dismissed."""
+    a, b = weight[lo], weight[hi]
+    common = [(min(a[t], b[t]), t) for t in a if t in b]
+    common.sort(reverse=True)
+    return " ".join(t for _, t in common[:k])
+
+
+def families(scored, cut):
+    """Union-find over the pairs above the cut."""
+    parent = {}
+
+    def find(x):
+        parent.setdefault(x, x)
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for s, lo, hi in scored:
+        if s < cut:
+            continue
+        a, b = find(lo), find(hi)
+        if a != b:
+            parent[b] = a
+
+    groups = collections.defaultdict(list)
+    for n in parent:
+        groups[find(n)].append(n)
+    return sorted((sorted(v) for v in groups.values() if len(v) > 1),
+                  key=lambda g: (-len(g), g[0]))
+
+
+def adjacent(issues):
+    """Same author, same day, and filed next to each other.
+
+    Nearly free, and it is where the real duplicates concentrate: the top-scoring
+    pair in the whole corpus is #290/#291, filed by one person on one afternoon as
+    two symptoms of one thing.  Somebody who splits a problem into two reports does
+    it in one sitting.
+    """
+    by_author = collections.defaultdict(list)
+    for i in issues:
+        by_author[i["author"]].append(i)
+    out = []
+    for author, group in by_author.items():
+        group.sort(key=lambda i: i["number"])
+        for a, b in zip(group, group[1:]):
+            if a["created_at"][:10] == b["created_at"][:10]:
+                out.append((a, b))
+    return sorted(out, key=lambda p: p[0]["number"])
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--cut", type=float, default=0.30,
+                   help="minimum cosine to list as a pair (default: 0.30)")
+    p.add_argument("--family-cut", type=float, default=0.50,
+                   help="minimum cosine to join two issues into a family "
+                        "(default: 0.50)")
+    p.add_argument("--chars", type=int, default=8000,
+                   help="body and comment characters to index (default: 8000)")
+    p.add_argument("--all", action="store_true",
+                   help="query from every open issue, not only untriaged ones")
+    args = p.parse_args()
+
+    with open(os.path.join(issuestsv.CACHE, "issues.json"), encoding="utf-8") as f:
+        cache = json.load(f)
+    comments = fetchcomments.load()
+    if not comments:
+        print("warning: no cache/comments.json -- run bin/fetch-comments, or this "
+              "search reads bodies only", file=sys.stderr)
+
+    issues = open_issues(cache)
+    rows = issuestsv.by_number(issuestsv.require(issuestsv.read()))
+    titles = {i["number"]: i["title"] for i in issues}
+    created = {i["number"]: i["created_at"][:10] for i in issues}
+
+    queries = {i["number"] for i in issues
+               if SKIP_LABEL not in (i["labels"] or [])
+               and (args.all
+                    or rows.get(i["number"], {}).get("verdict", "todo") == "todo")}
+
+    docs, idf, df = build(issues, comments, args.chars)
+    scored, weight = pairs(docs, idf, df, queries)
+
+    out = os.path.join(issuestsv.CACHE, "dup-pairs.tsv")
+    kept = 0
+    with open(out, "w", encoding="utf-8") as f:
+        f.write("score\told\told_created\tnew\tnew_created\tshared\t"
+                "old_title\tnew_title\n")
+        for s, lo, hi in scored:
+            if s < args.cut:
+                break
+            kept += 1
+            f.write("%.3f\t#%d\t%s\t#%d\t%s\t%s\t%s\t%s\n"
+                    % (s, lo, created[lo], hi, created[hi],
+                       shared(weight, lo, hi),
+                       titles[lo].replace("\t", " "),
+                       titles[hi].replace("\t", " ")))
+
+    fam = families(scored, args.family_cut)
+    famfile = os.path.join(issuestsv.CACHE, "dup-families.txt")
+    with open(famfile, "w", encoding="utf-8") as f:
+        f.write("# Connected components of the pairs.  Read a family once and\n"
+                "# decide once: the false positives in this corpus are not\n"
+                "# scattered, they are one shape repeated, and a family that is\n"
+                "# 'all about the same subsystem' retires every pair in it.\n"
+                "#\n"
+                "# Joined at %.2f, well above the %.2f the pairs file lists at.\n"
+                "# Union-find chains, and every weak link merges two components\n"
+                "# for good: at 0.22 one family swallowed 290 of the 897 issues.\n"
+                "# The cut has to be high enough that a single link means\n"
+                "# something, because one is all it takes.\n\n"
+                % (args.family_cut, args.cut))
+        for g in fam:
+            f.write("== %d issues ==\n" % len(g))
+            for n in g:
+                f.write("  #%-6d %s  %s\n" % (n, created[n], titles[n]))
+            f.write("\n")
+
+    adj = adjacent(issues)
+    adjfile = os.path.join(issuestsv.CACHE, "dup-adjacent.tsv")
+    with open(adjfile, "w", encoding="utf-8") as f:
+        f.write("author\told\tnew\tcreated\told_title\tnew_title\n")
+        for a, b in adj:
+            f.write("%s\t#%d\t#%d\t%s\t%s\t%s\n"
+                    % (a["author"], a["number"], b["number"],
+                       a["created_at"][:10],
+                       a["title"].replace("\t", " "),
+                       b["title"].replace("\t", " ")))
+
+    print("%d pairs at or above %.2f -> %s" % (kept, args.cut, out))
+    print("%d families covering %d issues -> %s"
+          % (len(fam), sum(len(g) for g in fam), famfile))
+    print("%d same-author-same-day pairs -> %s" % (len(adj), adjfile))
+    for cut in (0.40, 0.35, 0.30, 0.25, 0.20):
+        print("   at %.2f: %d pairs" % (cut, sum(1 for s, _, _ in scored if s >= cut)))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,415 @@
+#!/usr/bin/env python3
+"""Turn issue bodies into runnable scripts, and record what they are expected to do.
+
+Writes, per issue with anything runnable in it:
+
+    cache/repros/<N>/repro.m2     the M2 to run
+    cache/repros/<N>/expected.txt one diagnostic per line, as reported
+    cache/repros/<N>/meta.json    block classes and hazard flags
+
+and fills the "repro" column of issues.tsv with one of:
+
+    transcript  at least one block is a pasted M2 session
+    m2          M2 source, no prompts
+    shell       configure/make/cmake -- a build issue, not something to run here
+    foreign     C++, a backtrace, a diff: not runnable, but a strong topic signal
+    opaque      a fenced block matching nothing above
+    prose       no fenced block and no transcript
+    none        no body at all
+
+The point of expected.txt is that "did it exit 0" is almost never the question.
+These are bug *reports*, and most of them report a wrong answer rather than a
+crash: #113 prints incorrect substitutions and exits 0, and #290 errors on a helper
+the reporter never defined, which says nothing about the Gröbner basis bug it is
+about.  What makes a re-run mean anything is having the diagnostics the reporter
+saw, so the runner can ask whether *those* recurred rather than whether anything
+went wrong.
+"""
+
+import argparse
+import json
+import os
+import re
+import shutil
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+
+# Filed by this directory's own first project: their bodies hold our transcripts
+# and our attribution paragraph, and re-running them re-runs work already done.
+SKIP_LABEL = "bugs directory"
+
+# Backreference on the opener, so a 4-backtick fence wrapping a 3-backtick block
+# does not close at the inner one; tildes because some bodies use them; leading
+# whitespace allowed because some bodies indent the fence inside a list item.
+FENCE = re.compile(
+    r"^[ \t]*(`{3,}|~{3,})[ \t]*([A-Za-z0-9_+.-]*)[ \t]*\n(.*?)^[ \t]*\1[ \t]*$",
+    re.M | re.S)
+
+# re.M matters for the .search() calls, which ask "is there a prompt anywhere in
+# this block": without it "^" only matches at position 0, every pasted session whose
+# first line is prose gets classified as source, and the prompts end up in the
+# script as syntax errors.  The .match() calls are per-line and do not care.
+PROMPT = re.compile(r"^(i+)\s*(\d+)\s*:\s?(.*)$", re.M)
+OUTPUT = re.compile(r"^o+\s*\d+\s*[=:]", re.M)
+
+BANNER = re.compile(
+    r"^(Macaulay2, version|Type \"help\"|with packages:|--loading|"
+    r"--using configuration|GC Warning|--\*\* |Warning: unable to load)")
+
+# Every shape M2 uses to say something went wrong.  These are dropped from the
+# script and kept in expected.txt.
+DIAGNOSTIC = re.compile(
+    r"^(stdio:\d|\S+\.m2:\d+:\d+|error:|warning:|--warning:|--error:|"
+    r"Internal error|Aborted|Segmentation fault|Bus error|-- SIGSEGV|"
+    r"-\*- stack trace|\S+\.m2:\d+:\d+-\d+:\d+:)")
+
+# The position prefix M2 puts on a diagnostic.  Stripping prompts renumbers every
+# line, so the positions recorded in an issue are guaranteed not to match a re-run;
+# only the message can be compared.
+POSITION = re.compile(
+    r"^(?:stdio|\S+\.m2):\d+:\d+(?:-\d+:\d+)?(?::\(\d+\))?(?::\[\d+\])?:\s*")
+
+LANG_M2 = {"m2", "macaulay2"}
+LANG_SHELL = {"sh", "bash", "shell", "console", "zsh", "dockerfile", "makefile",
+              "make", "cmake", "yaml", "yml", "ini", "conf"}
+LANG_FOREIGN = {"c", "cpp", "c++", "cc", "h", "hpp", "diff", "patch", "js",
+                "javascript", "java", "python", "py", "json", "xml", "html",
+                "lisp", "elisp", "emacs-lisp"}
+
+SHELL_FIRST = {"make", "cmake", "./configure", "configure", "autoreconf", "sudo",
+               "apt", "apt-get", "brew", "git", "docker", "ninja", "gcc", "g++",
+               "clang", "clang++", "conda", "pip", "pip3", "meson", "cd", "ls",
+               "export", "tar", "wget", "curl", "dpkg", "rpm", "yum", "dnf",
+               "pacman", "nix-build", "M2", "./M2", "valgrind", "gdb", "lldb"}
+
+CXX = re.compile(
+    r"#include\s*[<\"]|\bstd::|boost::|^\s*#\d+\s+0x[0-9a-f]+|"
+    r"at /usr/include/|^\s*0x[0-9a-f]+ in |\bnamespace\s+\w+\s*\{|"
+    r"^\s*(In file included from|\S+\.(cpp|hpp|cc|hh|c|h):\d+:\d+:\s+(error|warning|note):)",
+    re.M)
+
+M2ISH = re.compile(
+    r"\bneedsPackage\b|\bloadPackage\b|\binstallPackage\b|\bbeginDocumentation\b|"
+    r"\b(QQ|ZZ|RR|CC|GF)\s*[\[\(/]|\bideal\b|\bmatrix\b|\bmodule\b|\bres\b|"
+    r"\bgb\b|\bassert\b|\bdegree\b|\bmap\b|:=|=>|\bnew\s+\w+\s+from\b|\bmethod\b")
+
+# Hazards that make a run meaningless whatever it prints.
+OO_RE = re.compile(r"(?<![\w.])(oo+|o\d+)(?![\w(])")
+RESTART_RE = re.compile(r"(?<![\w.])restart(?![\w(])")
+EXIT_RE = re.compile(r"(?<![\w.])(exit|quit)\s*(\(|\d|$)", re.M)
+
+
+def dedent(text):
+    """Strip the indentation the whole block shares, keeping what differs.
+
+    Some bodies indent an entire pasted session, usually because it arrived inside
+    a list item or was hand-spaced to look like a quote.  That is fatal twice over:
+    "^i1 :" never matches, so the block is classified as source rather than a
+    transcript, and the state machine below reads *every* line as a continuation
+    because every line is indented.  Relative indentation is the signal and is
+    preserved; the shared prefix carries no information.
+    """
+    lines = text.split("\n")
+    widths = [len(l) - len(l.lstrip(" \t")) for l in lines if l.strip()]
+    n = min(widths) if widths else 0
+    return "\n".join(l[n:] if l.strip() else l for l in lines)
+
+
+class Block(object):
+    def __init__(self, lang, text, start):
+        self.lang = (lang or "").lower()
+        self.text = dedent(text)
+        self.start = start
+        self.kind = classify(self)
+
+
+def blocks(body):
+    """Fenced blocks in document order, plus any unfenced transcript after them."""
+    out = []
+    for m in FENCE.finditer(body):
+        out.append(Block(m.group(2), m.group(3), m.start()))
+
+    # An unbalanced fence -- an opener with no closer -- would otherwise swallow
+    # nothing at all, so the block it opened is invisible.  Only four bodies do
+    # this, but each is a whole reproducer.
+    fences = len(re.findall(r"^[ \t]*(?:`{3,}|~{3,})", body, re.M))
+    if fences % 2 == 1 and out:
+        tail = body[max(b.start for b in out):]
+        m = re.search(r"^[ \t]*(?:`{3,}|~{3,})[^\n]*\n(.*)\Z", tail, re.M | re.S)
+        if m and m.group(1).strip():
+            out.append(Block("", m.group(1), len(body)))
+    elif fences % 2 == 1:
+        m = re.search(r"^[ \t]*(?:`{3,}|~{3,})[^\n]*\n(.*)\Z", body, re.M | re.S)
+        if m and m.group(1).strip():
+            out.append(Block("", m.group(1), m.start()))
+
+    # A transcript pasted with no fence at all.  Look only at what the fences did
+    # not already cover, or every transcript gets counted twice.
+    rest = FENCE.sub("", body)
+    if PROMPT.search(rest) and not any(b.kind == "transcript" for b in out):
+        run = []
+        for line in rest.split("\n"):
+            if PROMPT.match(line) or OUTPUT.match(line) or (run and
+                    (not line.strip() or line[:1] in " \t")):
+                run.append(line)
+            elif run:
+                break
+        if any(PROMPT.match(l) for l in run):
+            out.append(Block("", "\n".join(run) + "\n", len(body)))
+    return out
+
+
+def classify(block):
+    """First match wins, and the order is the whole content of this function.
+
+    The transcript test runs *before* the language tag because tags lie in the one
+    direction that matters: 27 blocks are tagged `macaulay2` and hold a pasted
+    session rather than source, and `text`-tagged blocks do it constantly.  A
+    transcript treated as source is a script full of "i1 :" syntax errors.
+    """
+    text = block.text
+    if PROMPT.search(text):
+        return "transcript"
+    if block.lang in LANG_M2:
+        return "m2"
+    if block.lang in LANG_SHELL:
+        return "shell"
+    if block.lang in LANG_FOREIGN:
+        return "foreign"
+
+    lines = [l for l in text.split("\n") if l.strip()]
+    if not lines:
+        return "opaque"
+    first = lines[0].strip()
+    if first.startswith("$ ") or first.startswith("# ") or first.startswith("% "):
+        return "shell"
+    words = first.split()
+    if words and words[0] in SHELL_FIRST:
+        return "shell"
+    if CXX.search(text):
+        return "foreign"
+    if M2ISH.search(text):
+        return "m2"
+    return "opaque"
+
+
+def strip_position(line):
+    """Drop the stdio:L:C: prefix; keep the message, which is all that compares."""
+    return POSITION.sub("", line).strip()
+
+
+def transcript_to_script(text):
+    """Split a pasted session into input, expected diagnostics, and doubt.
+
+    The state machine turns on one fact about M2's echo: after a prompt, an
+    indented line is a continuation of the *input*; after an "oN =" line, an
+    indented line is a continuation of the *output*.  Indentation alone does not
+    say which, but indentation plus what preceded it does, and that resolves the
+    great majority of these bodies.
+
+    What it does not resolve is an unindented line that is neither a prompt, an
+    output header, nor a recognized diagnostic.  Printed side-effect output and a
+    de-indented multi-line input are the same shape there, and guessing wrong is
+    the worst failure available to this tooling: drop a line that was input and the
+    script runs clean because it never reached the bug, which reads as "fixed" and
+    closes a live issue.  So the line is emitted commented, with a marker, and the
+    issue is flagged for hand review instead.
+    """
+    script, expected, doubtful, outputs = [], [], [], []
+    state = None  # None | "input" | "output"
+
+    for line in text.split("\n"):
+        if BANNER.match(line):
+            continue
+        m = PROMPT.match(line)
+        if m:
+            state = "input"
+            rest = m.group(3).rstrip()
+            if rest:
+                script.append(rest)
+            continue
+        if OUTPUT.match(line):
+            state = "output"
+            outputs.append([line])
+            continue
+        if DIAGNOSTIC.match(line.strip()) or DIAGNOSTIC.match(line):
+            msg = strip_position(line.strip())
+            if msg:
+                expected.append(msg)
+            state = "output"
+            continue
+        if not line.strip():
+            continue                      # neutral: does not change state
+        if line[:1] in " \t":
+            if state == "input":
+                script.append(line.strip())
+            elif outputs:
+                outputs[-1].append(line)  # wrapped or stacked output continuation
+            continue
+        doubtful.append(line)
+        script.append("-- ?? " + line)
+    return "\n".join(script), expected, doubtful, outputs
+
+
+OUTPUT_PREFIX = re.compile(r"^o+\s*\d+\s*[=:]\s?")
+WRAP_RULE = re.compile(r"^\s*-{6,}\s*$")
+ARROW = re.compile(r"-{2,}")
+
+
+def tokens(blocks):
+    """Recorded output as one whitespace-insensitive stream, for comparison.
+
+    The recorded output of a transcript is the *reported* behavior -- and for the
+    large class of issues that are about a wrong answer rather than a crash, it is
+    the only thing that says whether anything changed.  Under `--script` M2 prints
+    nothing at all for a bare expression, so #94, whose whole content is that
+    `mingens` returns nine generators where it should return four, produces an
+    empty log and exits 0.  Compared against what the reporter pasted, it says
+    something.
+
+    Compared *loosely*, because the layout is not the claim.  M2 wraps to the
+    terminal width and rules the wrap with a line of dashes, stacks exponents on
+    the line above the thing they belong to, and has since changed "<---" to
+    "<--".  None of that is the behavior under discussion, so collapse whitespace
+    and dash runs and compare the tokens that survive.
+    """
+    out = []
+    for block in blocks:
+        if not block:
+            continue
+        # Drop the rule M2 draws across a wrap before joining, or it survives as a
+        # stray "-" token in the middle of the value.  M2 wraps at token
+        # boundaries, so joining the segments with a space is faithful.
+        lines = [l for l in block if not WRAP_RULE.match(l)]
+        if not lines:
+            continue
+        # The "oN" number itself is meaningless here: dropping prompts renumbers
+        # everything, so the label cannot match even when the value does.
+        text = " ".join([OUTPUT_PREFIX.sub("", lines[0])] + list(lines[1:]))
+        text = ARROW.sub("-", text)      # "<---" in 2014, "<--" today
+        text = " ".join(text.split())
+        if text:
+            out.append(text)
+    return out
+
+
+def hazards(script):
+    out = []
+    if OO_RE.search(script):
+        # Under --script there is no output history, so "oo" and "o3" are bare
+        # symbols.  The script will run and mean nothing.
+        out.append("oo")
+    if RESTART_RE.search(script):
+        # restart ends the session, and the exit status is 0.  A script that
+        # restarts before it reaches the bug looks exactly like one that passed.
+        out.append("restart")
+    if EXIT_RE.search(script):
+        out.append("exit")
+    return out
+
+
+def extract(issue):
+    """(repro kind, script, expected, meta) for one cached issue record."""
+    body = issue.get("body") or ""
+    if not body.strip():
+        return "none", "", [], {}
+
+    bs = blocks(body)
+    kinds = [b.kind for b in bs]
+    meta = {"blocks": kinds}
+
+    parts, expected, doubtful, outputs = [], [], [], []
+    for b in bs:
+        if b.kind == "transcript":
+            s, e, d, o = transcript_to_script(b.text)
+            if s.strip():
+                parts.append(s)
+            expected.extend(e)
+            doubtful.extend(d)
+            outputs.extend(o)
+        elif b.kind == "m2":
+            parts.append(b.text.rstrip())
+
+    if parts:
+        kind = "transcript" if "transcript" in kinds else "m2"
+        script = "\n\n".join(parts) + "\n"
+        meta["doubtful"] = doubtful
+        meta["hazards"] = hazards(script)
+        meta["output"] = tokens(outputs)
+        return kind, script, expected, meta
+
+    for k in ("shell", "foreign", "opaque"):
+        if k in kinds:
+            return k, "", [], meta
+    return "prose", "", [], meta
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--dry-run", action="store_true",
+                   help="report the distribution without writing anything")
+    p.add_argument("--only", type=int, nargs="*", metavar="N",
+                   help="restrict to these issue numbers, for spot checks")
+    args = p.parse_args()
+
+    with open(os.path.join(issuestsv.CACHE, "issues.json"), encoding="utf-8") as f:
+        cache = {i["number"]: i for i in json.load(f)}
+
+    rows = issuestsv.require(issuestsv.read())
+    counts, hazardous, doubted = {}, [], []
+
+    for row in rows:
+        n = int(row["issue"])
+        if args.only and n not in args.only:
+            continue
+        issue = cache.get(n)
+        if issue is None:
+            continue
+        if SKIP_LABEL in (issue.get("labels") or []):
+            row["repro"] = "skip"
+            counts["skip"] = counts.get("skip", 0) + 1
+            continue
+
+        kind, script, expected, meta = extract(issue)
+        row["repro"] = kind
+        counts[kind] = counts.get(kind, 0) + 1
+
+        if meta.get("hazards"):
+            hazardous.append((n, meta["hazards"]))
+        if meta.get("doubtful"):
+            doubted.append((n, len(meta["doubtful"])))
+
+        if args.dry_run:
+            continue
+
+        d = os.path.join(issuestsv.REPROS, str(n))
+        if not script:
+            shutil.rmtree(d, ignore_errors=True)
+            continue
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, "repro.m2"), "w", encoding="utf-8") as f:
+            f.write(script)
+        with open(os.path.join(d, "expected.txt"), "w", encoding="utf-8") as f:
+            f.write("\n".join(expected) + ("\n" if expected else ""))
+        with open(os.path.join(d, "meta.json"), "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=1)
+
+    if not args.dry_run and not args.only:
+        issuestsv.write(rows)
+
+    for k in sorted(counts, key=lambda k: -counts[k]):
+        print("%-11s %4d" % (k, counts[k]))
+    print("\n%d runnable, %d with hazards (oo/restart/exit), "
+          "%d with lines the parser would not guess at"
+          % (counts.get("transcript", 0) + counts.get("m2", 0),
+             len(hazardous), len(doubted)))
+    if hazardous:
+        print("hazards: " + " ".join("#%d(%s)" % (n, ",".join(h))
+                                     for n, h in hazardous[:20])
+              + (" ..." if len(hazardous) > 20 else ""))
+
+
+if __name__ == "__main__":
+    main()

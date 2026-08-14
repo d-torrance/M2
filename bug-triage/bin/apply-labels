@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""Add and remove the labels named in issues.tsv.
+
+DRY RUN BY DEFAULT.
+
+Work is derived, not recorded: the "labels" column holds what GitHub had at the
+last bin/init-issues, so the plan is `addlabels - labels` and `rmlabels & labels`,
+and a row whose labels are already right produces nothing.  That is why there is no
+"applied" column.  Somebody will relabel one of these issues by hand -- they are
+other people's issues and several are a decade old -- and a stored flag would go on
+claiming a sync that had stopped being true.  Refresh and the plan corrects itself.
+
+Labels notify nobody, which makes this the safest of the three ways this directory
+touches GitHub and the one that can go in batches of forty rather than one at a
+time.  It does not make --apply self-service; see "`--apply` is not yours to give
+yourself" in README-bugs-directory.md.
+
+Validation runs against the whole plan before any of it is sent.  A typo should
+stop the run, not leave half a batch labelled and the other half to find by hand.
+The exclusion check now sees the labels the issue already carries, which is what
+keeps "bug" off an issue that already says "feature request" -- use rmlabels to
+drop the other one in the same operation.
+
+    ./bin/apply-labels                 # show the plan
+    ./bin/apply-labels --apply         # do it
+    ./bin/apply-labels --before 2020-01-01   # just the oldest cohort
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+import project
+
+ISSUE_ID_QUERY = """
+query($owner:String!, $name:String!, $number:Int!) {
+  repository(owner:$owner, name:$name) {
+    issue(number:$number) { id number state labels(first:50){nodes{name}} }
+  }
+}
+"""
+
+ADD = """
+mutation($id:ID!, $labels:[ID!]!) {
+  addLabelsToLabelable(input:{labelableId:$id, labelIds:$labels}) {
+    labelable { ... on Issue { number labels(first:50){nodes{name}} } }
+  }
+}
+"""
+
+REMOVE = """
+mutation($id:ID!, $labels:[ID!]!) {
+  removeLabelsFromLabelable(input:{labelableId:$id, labelIds:$labels}) {
+    labelable { ... on Issue { number labels(first:50){nodes{name}} } }
+  }
+}
+"""
+
+
+def plan(rows, before=None, only=None):
+    """[(row, [to add], [to remove])] for every row with work to do."""
+    out = []
+    for r in rows:
+        n = int(r["issue"])
+        if only and n not in only:
+            continue
+        if before and r["created"] >= before:
+            continue
+        have = set(issuestsv.labels_of(r, "labels"))
+        add = [l for l in issuestsv.labels_of(r, "addlabels") if l not in have]
+        rm = [l for l in issuestsv.labels_of(r, "rmlabels") if l in have]
+        both = set(add) & set(rm)
+        if both:
+            raise SystemExit("#%s both adds and removes %s"
+                             % (r["issue"], ", ".join(sorted(both))))
+        if add or rm:
+            out.append((r, add, rm))
+    return out
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--apply", action="store_true",
+                   help="actually change labels (default: dry run)")
+    p.add_argument("--before", metavar="YYYY-MM-DD",
+                   help="only issues created before this date")
+    p.add_argument("--only", type=int, nargs="*", metavar="N",
+                   help="only these issue numbers")
+    args = p.parse_args()
+
+    rows = issuestsv.require(issuestsv.read())
+    work = plan(rows, args.before, set(args.only or []))
+    if not work:
+        print("nothing to do -- no row has an addlabels or rmlabels entry that "
+              "differs from what GitHub already has")
+        return
+
+    known = project.all_labels()
+    project.check_labels(
+        {r["issue"]: add for r, add, _ in work},
+        known,
+        existing={r["issue"]: issuestsv.labels_of(r, "labels") for r, _, _ in work})
+
+    judgment = sorted({l for _, add, _ in work for l in add
+                       if l in project.JUDGMENT_ONLY})
+    if judgment:
+        print("note: %s %s a claim about people or process rather than about "
+              "content.\n      Fine if you mean it -- see project.JUDGMENT_ONLY.\n"
+              % (", ".join(repr(l) for l in judgment),
+                 "is" if len(judgment) == 1 else "are"))
+
+    for r, add, rm in work:
+        print("#%-6s %s" % (r["issue"], r["note"] or ""))
+        if add:
+            print("        + " + ", ".join(add))
+        if rm:
+            print("        - " + ", ".join(rm))
+
+    print("\n%d issue(s): %d label additions, %d removals"
+          % (len(work), sum(len(a) for _, a, _ in work),
+             sum(len(x) for _, _, x in work)))
+    if not args.apply:
+        print("dry run -- rerun with --apply")
+        return
+
+    for r, add, rm in work:
+        number = int(r["issue"])
+        issue = project.gh(ISSUE_ID_QUERY, owner=project.ORG, name=project.REPO,
+                           number=number)["data"]["repository"]["issue"]
+        if issue is None:
+            print("#%d: no such issue, skipped" % number, file=sys.stderr)
+            continue
+        if issue["state"] != "OPEN":
+            # Somebody closed it since the last fetch.  Labelling a closed issue
+            # is not wrong, but it is not what this row was written about.
+            print("#%d: closed since the last fetch, skipped -- rerun "
+                  "bin/init-issues" % number, file=sys.stderr)
+            continue
+        if add:
+            project.gh(ADD, id=issue["id"], labels=[known[l] for l in add])
+        if rm:
+            project.gh(REMOVE, id=issue["id"], labels=[known[l] for l in rm])
+        print("#%d ok" % number)
+
+    print("\nRun bin/init-issues to pull the new labels back into the catalog.")
+
+
+if __name__ == "__main__":
+    main()

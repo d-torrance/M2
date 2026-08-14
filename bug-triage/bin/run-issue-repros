@@ -1,0 +1,439 @@
+#!/usr/bin/env python3
+"""Run the extracted reproducers and record the outcome in the "run" column.
+
+The process discipline here -- capped output, address-space limit, timeout, a
+small pool, partial results on interrupt -- is bin/run-repros', unchanged, and for
+the same reasons.  What is different is the classification, and the difference is
+not cosmetic.
+
+bin/run-repros answered "does this still fail", because a bug *file* that stopped
+erroring had been fixed.  A bug *report* mostly is not about erroring.  #113 prints
+wrong substitutions and exits 0.  #290 exits 1, but on a helper the reporter never
+defined, which says nothing about the Gröbner basis bug.  #3356 pasted three inputs
+under one prompt, so the extractor commented two of them out and the script now
+fails on an undefined name.  All three exit statuses are true and none of them is
+about the issue.
+
+So the question asked here is narrower and answerable: **did the diagnostics the
+reporter recorded come back?**  bin/extract-repros saves them in expected.txt, and
+"clean" means the script ran to completion and none of them appeared.  That is a
+candidate for reading, never a verdict -- an issue about a wrong answer will run
+clean whether or not it is fixed, because nothing in it was ever going to error.
+
+For a transcript that pasted its output, there is a better question still.  Fed
+on stdin rather than through --script, M2 echoes prompts and values exactly the way
+the reporter's session did, so the values can be compared against what was pasted:
+"same-output" means nothing about this issue has changed since it was filed, and
+"differs" means something did and it is worth reading.  That recovers the whole
+wrong-answer class, which --script renders mute -- #94 is four lines about mingens
+returning nine generators instead of four, and under --script it prints nothing at
+all and exits 0.
+
+Positions are stripped before comparing.  Removing the "iN :" prompts renumbers
+every line, so the stdio:L:C: in a fifteen-year-old transcript cannot match a
+re-run by construction; only the message text can.
+"""
+
+import argparse
+import concurrent.futures
+import difflib
+import json
+import os
+import re
+import resource
+import subprocess
+import sys
+import threading
+from itertools import zip_longest
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+from importlib.machinery import SourceFileLoader
+import importlib.util
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _load(name, filename):
+    loader = SourceFileLoader(name, os.path.join(HERE, filename))
+    spec = importlib.util.spec_from_loader(name, loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+runrepros = _load("runrepros", "run-repros")
+extract = _load("extractrepros", "extract-repros")
+
+# Reused verbatim -- see bin/run-repros for why each cap is the size it is.
+Capped = runrepros.Capped
+limiter = runrepros.limiter
+END_STATEMENT = runrepros.END_STATEMENT
+STALE_PATTERNS = runrepros.STALE_PATTERNS
+
+# Shapes that mean the *extractor* failed, not M2.  A parse error at the very
+# start, or a name the script never bound, is evidence about this tooling and must
+# never be read as evidence about the issue.
+SYNTAX = re.compile(
+    r"syntax error|error: unmatched|error: expected \)|"
+    r"error: no such file or directory", re.I)
+
+MISSING_PACKAGE = re.compile(
+    r"error: (cannot find|could not load) package|"
+    r"error: .*\bpackage\b.*not (found|installed)|"
+    r"cannot open file", re.I)
+
+CRASH = re.compile(
+    r"Segmentation fault|SIGSEGV|SIGABRT|Internal error|Aborted|Bus error|"
+    r"-\*- stack trace", re.I)
+
+ERROR_LINE = re.compile(r"^.*\berror:\s*(.*)$", re.M)
+
+# The issue is about a platform this machine is not.  A clean run on x86-64 Ubuntu
+# is not evidence about an aarch64 build failure, and "build issue" is one of the
+# largest labels in the corpus.
+PLATFORM_LABELS = {"build issue", "arm"}
+
+
+def logfile(number):
+    return os.path.join(issuestsv.CACHE, "runlog", "%s.log" % number)
+
+
+def repro_dir(number):
+    return os.path.join(issuestsv.REPROS, str(number))
+
+
+def read_expected(number):
+    path = os.path.join(repro_dir(number), "expected.txt")
+    try:
+        with open(path, encoding="utf-8") as f:
+            return [l.strip() for l in f if l.strip()]
+    except OSError:
+        return []
+
+
+def read_meta(number):
+    try:
+        with open(os.path.join(repro_dir(number), "meta.json"),
+                  encoding="utf-8") as f:
+            return json.load(f)
+    except OSError:
+        return {}
+
+
+def normalize(msg):
+    """Compare messages, not positions, and not the names of temporaries."""
+    msg = extract.POSITION.sub("", msg).strip().lower()
+    msg = re.sub(r"\s+", " ", msg)
+    return msg
+
+
+def expected_recurred(expected, output):
+    """True if the longest diagnostic the reporter recorded appears again.
+
+    Longest, not any: short messages like "error: assertion failed" match almost
+    any failing script, so requiring the most specific one keeps a script that
+    broke for an unrelated reason from being scored as a reproduction.
+    """
+    if not expected:
+        return False
+    text = normalize(output)
+    for want in sorted((normalize(e) for e in expected), key=len, reverse=True):
+        if len(want) >= 12 and want in text:
+            return True
+    return False
+
+
+def truncated(number):
+    """An "end" line stops the script early and still exits 0 -- see run-repros."""
+    try:
+        with open(os.path.join(repro_dir(number), "repro.m2"),
+                  encoding="utf-8", errors="replace") as f:
+            lines = [l.strip() for l in f]
+    except OSError:
+        return False
+    body = [i for i, l in enumerate(lines) if l]
+    if not body:
+        return False
+    return any(END_STATEMENT.match(lines[i]) for i in body[:-1])
+
+
+def classify(row, returncode, output, expected, meta, mode="script"):
+    """One of the states documented in README.md.  Order is load-bearing."""
+    labels = set(issuestsv.labels_of(row))
+    hazards = meta.get("hazards") or []
+
+    if returncode is None:
+        return "timeout"
+    if returncode < 0 or CRASH.search(output):
+        return "crash"
+    if SYNTAX.search(output) or meta.get("doubtful"):
+        # The parser told us it could not read part of this body.  Whatever M2
+        # then did, the script is not the reproducer the reporter wrote.
+        return "syntax"
+    if MISSING_PACKAGE.search(output):
+        return "missing-package"
+    if expected_recurred(expected, output):
+        return "reproduces"
+
+    if returncode != 0:
+        if any(p.search(output) for p in STALE_PATTERNS):
+            return "drift"
+        return "different-error"
+
+    # Exit 0 from here down.  Everything below is a reason a clean exit proves
+    # less than it looks like it does.
+    # A hazard is a hazard *for a mode*, not in general, and conflating the two
+    # threw away 24 usable reproducers.  "oo" is a bare Symbol under --script and
+    # is exactly what stdin populates -- that is the whole content of "--script
+    # and stdin fail in opposite directions" -- so it is fatal here and harmless
+    # there.  "restart" and "exit" are the reverse: a documented no-op under
+    # --script, and under stdin they end the session with status 0 having run none
+    # of what follows, which is indistinguishable from a pass.
+    fatal = {"restart", "exit"} if mode == "stdin" else {"oo"}
+    if set(hazards) & fatal:
+        return "syntax"
+    if truncated(number_of(row)):
+        return "clean-partial"
+    if labels & PLATFORM_LABELS:
+        return "n/a-platform"
+    return "clean"
+
+
+def number_of(row):
+    return int(row["issue"])
+
+
+def replayable(row, meta):
+    """Whether to feed this one on stdin rather than through --script.
+
+    Never, if the script carries `restart` or `exit`.  Under `--script` a restart
+    is a documented no-op; fed on stdin it silently ends the session with status 0
+    having run none of what follows, which is indistinguishable from a pass.  That
+    is the trap the first project wrote up under "`--script` and stdin fail in
+    opposite directions", and it is why stdin is opt-in per row.
+
+    Otherwise, for either of two reasons:
+
+    - there is recorded output to diff against, which is the strong signal; or
+    - the script uses `oo`, which is a bare Symbol under `--script` and populated
+      on stdin.  Nothing to diff in that case, but the run at least means
+      something, where under --script it could not.
+    """
+    hazards = set(meta.get("hazards") or [])
+    if hazards & {"restart", "exit"}:
+        return False
+    return "oo" in hazards or diffable(row, meta)
+
+
+def diffable(row, meta):
+    """Whether the replayed values can be compared against the recorded ones.
+
+    Needs a transcript that pasted its output, and needs the parser to have had no
+    line it refused to guess at: a script missing an input prints a different
+    sequence for a reason that is ours, not M2's, and scoring that as "differs"
+    would be reporting our own bug as a finding about the issue.
+    """
+    return (row["repro"] == "transcript"
+            and bool(meta.get("output"))
+            and not meta.get("doubtful"))
+
+
+def replay(output):
+    """Pull the values back out of an echoed stdin session, as token streams."""
+    _, _, _, blocks = extract.transcript_to_script(output)
+    return extract.tokens(blocks)
+
+
+def run_one(row, m2, timeout, memory):
+    n = number_of(row)
+    d = repro_dir(n)
+    meta = read_meta(n)
+    mode = "stdin" if replayable(row, meta) else "script"
+    capped = Capped()
+    returncode = 0
+    try:
+        if mode == "stdin":
+            script = open(os.path.join(d, "repro.m2"), "rb")
+            # -q so the user's init file cannot change what gets printed;
+            # --no-debug so an error does not open the debugger and eat the rest
+            # of the input as debugger commands.
+            p = subprocess.Popen(
+                [m2, "-q", "--no-debug"],
+                cwd=d, stdin=script,
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                preexec_fn=limiter(memory))
+            script.close()
+        else:
+            p = subprocess.Popen(
+                [m2, "--script", "repro.m2"],
+                cwd=d,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                preexec_fn=limiter(memory))
+        reader = threading.Thread(target=capped.consume, args=(p.stdout,))
+        reader.start()
+        try:
+            returncode = p.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            p.wait()
+            returncode = None
+        reader.join()
+        p.stdout.close()
+        output = capped.value().decode("utf-8", "replace")
+    except OSError as e:
+        return n, "syntax", ("bug-triage: could not run %s: %s" % (m2, e))
+
+    status = classify(row, returncode, output, read_expected(n), meta, mode)
+
+    # A replay can say more than the exit status ever could, so it overrides --
+    # but only the two states where the exit status was uninformative anyway.
+    # A crash, a timeout or a recurring diagnostic is already the answer.
+    if mode == "stdin" and diffable(row, meta) and status in ("clean", "different-error"):
+        got = replay(output)
+        want = meta["output"]
+        # Compare the streams joined, not block by block.  How the values group
+        # into "oN" blocks is layout, not behavior: M2 stacks an exponent on the
+        # line above its base, so whether "3" lands at the end of one block or the
+        # start of the next depends on where the wrap fell, and pasted transcripts
+        # from twelve years of releases do not agree about it.
+        ratio = difflib.SequenceMatcher(None, want, got).ratio()
+        status = "same-output" if " ".join(got) == " ".join(want) else "differs"
+        with open(os.path.join(d, "replayed.txt"), "w", encoding="utf-8") as f:
+            f.write("# %s -- %d%% of the reported output stream matches.\n"
+                    "# Read down: layout drift (a stacked exponent, a wrap in a\n"
+                    "# different place) looks like a difference and is not one.\n"
+                    % (status, round(100 * ratio)))
+            for a, b in zip_longest(want, got):
+                f.write("%s\n  reported: %s\n  now:      %s\n"
+                        % ("same" if a == b else "DIFFERS", a, b))
+
+    out = logfile(n)
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(output)
+    return n, status, output
+
+
+def write_clean_report(rows):
+    """The shortlist to read, rebuilt from the whole catalog every time.
+
+    Named for what it holds, not for the old project's cache/stale-candidates.txt:
+    the polarity is inverted here -- there a *failure* was the thing to look at,
+    here it is a clean run -- and a file whose name says the opposite of its
+    contents will be read wrong exactly once.
+    """
+    report = os.path.join(issuestsv.CACHE, "clean-runs.txt")
+    os.makedirs(issuestsv.CACHE, exist_ok=True)
+    clean = [r for r in rows if r["run"] == "clean" and r["verdict"] == "todo"]
+    with open(report, "w", encoding="utf-8") as f:
+        f.write("# Ran to completion, and none of the diagnostics the reporter\n"
+                "# recorded came back.  A candidate for reading, not a verdict:\n"
+                "# an issue about a wrong answer runs clean either way, because\n"
+                "# nothing in it was ever going to error.  Read the body and\n"
+                "# cache/runlog/<N>.log before writing anything.\n")
+        for r in sorted(clean, key=number_of):
+            f.write("#%-6s %s  %s\n"
+                    % (r["issue"], r["created"],
+                       "no expected diagnostics" if not read_expected(number_of(r))
+                       else "%d expected, none recurred"
+                            % len(read_expected(number_of(r)))))
+    return report, len(clean)
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--m2", default="/usr/bin/M2",
+                   help="M2 executable (default: /usr/bin/M2, a clean build; the "
+                        "in-tree build under M2/BUILD is a sanitizer build and "
+                        "prints before it runs anything)")
+    p.add_argument("--timeout", type=int, default=180,
+                   help="seconds per script (default: 180)")
+    p.add_argument("--jobs", type=int, default=4,
+                   help="parallel M2 processes (default: 4)")
+    p.add_argument("--memory", type=int, default=4096,
+                   help="address-space cap in MB per script (default: 4096)")
+    p.add_argument("--only", type=int, nargs="*", metavar="N",
+                   help="only these issue numbers")
+    p.add_argument("--before", metavar="YYYY-MM-DD",
+                   help="only issues created before this date")
+    p.add_argument("--rerun", action="store_true",
+                   help="also rerun reproducers that already have a result")
+    p.add_argument("--reclassify", action="store_true",
+                   help="redo the classification from the saved logs, without "
+                        "running M2")
+    args = p.parse_args()
+
+    rows = issuestsv.require(issuestsv.read())
+    index = issuestsv.by_number(rows)
+
+    if args.reclassify:
+        changed = 0
+        for r in rows:
+            n = number_of(r)
+            if not os.path.exists(logfile(n)):
+                continue
+            with open(logfile(n), encoding="utf-8", errors="replace") as f:
+                output = f.read()
+            # The saved log cannot tell us the exit status, so infer the two
+            # cases that matter and leave the rest alone.
+            meta = read_meta(n)
+            rc = 1 if ERROR_LINE.search(output) else 0
+            want = classify(r, rc, output, read_expected(n), meta,
+                            "stdin" if replayable(r, meta) else "script")
+            if r["run"] != want:
+                r["run"] = want
+                changed += 1
+        issuestsv.write(rows)
+        report, clean = write_clean_report(rows)
+        print("reclassified %d rows; %d clean runs in %s" % (changed, clean, report))
+        return
+
+    todo = []
+    for r in rows:
+        n = number_of(r)
+        if not os.path.isdir(repro_dir(n)):
+            if r["repro"] in ("prose", "shell", "foreign", "opaque", "none"):
+                r["run"] = "n/a"
+            continue
+        if args.only and n not in args.only:
+            continue
+        if args.before and r["created"] >= args.before:
+            continue
+        if r["run"] and not args.rerun:
+            continue
+        todo.append(r)
+
+    if not todo:
+        issuestsv.write(rows)
+        print("nothing to run (use --rerun to redo finished reproducers)")
+        return
+
+    print("running %d reproducers, %d at a time, %ds timeout, against %s"
+          % (len(todo), args.jobs, args.timeout, args.m2))
+
+    counts, done = {}, 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        futures = [pool.submit(run_one, r, args.m2, args.timeout, args.memory)
+                   for r in todo]
+        try:
+            for fut in concurrent.futures.as_completed(futures):
+                n, status, _ = fut.result()
+                index[n]["run"] = status
+                counts[status] = counts.get(status, 0) + 1
+                done += 1
+                print("[%d/%d] %-16s #%d" % (done, len(todo), status, n))
+        except KeyboardInterrupt:
+            print("\ninterrupted -- saving partial results", file=sys.stderr)
+            for fut in futures:
+                fut.cancel()
+
+    issuestsv.write(rows)
+    print("\n" + "  ".join("%s %d" % (k, counts[k]) for k in sorted(counts)))
+    report, clean = write_clean_report(rows)
+    print("%d clean runs to read -- see %s" % (clean, report))
+
+
+if __name__ == "__main__":
+    main()

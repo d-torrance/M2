@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""Propose topic labels for the open issues, and score the rules against reality.
+
+Writes cache/label-suggestions.tsv -- advisory, never the "addlabels" column.  A
+suggester that writes into the source of truth stops being a suggester, which is
+why bin/suggest-issues never wrote the "issue" column either.
+
+With --score it does the other half: replays the rules against the issues that
+already carry labels and reports precision and recall per label.  That number is
+the whole argument for why nothing here is applied automatically, and it should be
+re-checked rather than believed -- if a rule drifts, this is what says so.
+
+Issues filed by this directory's first project are excluded from scoring.  They
+were labelled by this directory, so scoring against them measures whether the
+rules agree with our own habits, and reports that back as if it were evidence
+about the corpus.
+"""
+
+import argparse
+import collections
+import json
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+import labels as labelrules
+import project
+
+SKIP_LABEL = "bugs directory"
+
+
+def load(cache_only=False):
+    with open(os.path.join(issuestsv.CACHE, "issues.json"), encoding="utf-8") as f:
+        cache = json.load(f)
+    return {i["number"]: i for i in cache
+            if i["state"] == "open" and not i.get("pull_request")}
+
+
+def score(open_issues):
+    """Precision and recall per label, over the issues somebody else labelled."""
+    tp = collections.Counter()
+    fp = collections.Counter()
+    fn = collections.Counter()
+    n = 0
+    for i in open_issues.values():
+        have = set(i["labels"] or [])
+        if SKIP_LABEL in have:
+            continue
+        if not have:
+            continue          # unlabelled: no ground truth, so no evidence either way
+        n += 1
+        want = {l for l, _, _ in labelrules.suggest(i, "")}
+        for l in want & have:
+            tp[l] += 1
+        for l in want - have:
+            fp[l] += 1
+        for l in have - want:
+            fn[l] += 1
+
+    print("scored against %d labelled issues (excluding the %r cohort)\n" % (n, SKIP_LABEL))
+    print("%-30s %5s %5s %5s   %-9s %s" % ("label", "tp", "fp", "fn", "precision", "recall"))
+    for l in sorted(set(tp) | set(fp) | set(fn),
+                    key=lambda l: -(tp[l] + fn[l])):
+        p = tp[l] / (tp[l] + fp[l]) if tp[l] + fp[l] else 0.0
+        r = tp[l] / (tp[l] + fn[l]) if tp[l] + fn[l] else 0.0
+        print("%-30s %5d %5d %5d   %-9.2f %.2f" % (l, tp[l], fp[l], fn[l], p, r))
+    print("\nPrecision is the number that matters: a wrong label sends the issue\n"
+          "to the wrong person and then looks settled.  Nothing here is applied\n"
+          "without someone reading the issue.")
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--score", action="store_true",
+                   help="report precision and recall instead of writing suggestions")
+    p.add_argument("--tier", type=int, default=2,
+                   help="highest tier to include (default: 2)")
+    p.add_argument("--all", action="store_true",
+                   help="include rows that already have a verdict")
+    args = p.parse_args()
+
+    open_issues = load()
+    if args.score:
+        score(open_issues)
+        return
+
+    rows = issuestsv.require(issuestsv.read())
+    out = os.path.join(issuestsv.CACHE, "label-suggestions.tsv")
+    os.makedirs(issuestsv.CACHE, exist_ok=True)
+
+    counts, n = collections.Counter(), 0
+    with open(out, "w", encoding="utf-8") as f:
+        f.write("issue\tlabel\ttier\thas\twhy\ttitle\n")
+        for row in rows:
+            num = int(row["issue"])
+            issue = open_issues.get(num)
+            if issue is None or SKIP_LABEL in (issue["labels"] or []):
+                continue
+            if not args.all and row["verdict"] != "todo":
+                continue
+            have = set(issue["labels"] or [])
+            wrote = False
+            for label, tier, why in labelrules.suggest(issue, row["repro"]):
+                if tier > args.tier:
+                    continue
+                if label in project.JUDGMENT_ONLY:
+                    continue          # never proposed; see project.JUDGMENT_ONLY
+                counts[label] += 1
+                wrote = True
+                f.write("%s\t%s\t%d\t%s\t%s\t%s\n"
+                        % (row["issue"], label, tier,
+                           "yes" if label in have else "",
+                           why, issue["title"].replace("\t", " ")))
+            n += 1 if wrote else 0
+
+    print("wrote %s: suggestions for %d issues\n" % (out, n))
+    for label in sorted(counts, key=lambda l: -counts[l]):
+        print("%6d  %s" % (counts[label], label))
+    print("\nAdvisory.  Read the issue before moving any of these into the\n"
+          "addlabels column -- run --score to see how often each rule is wrong.")
+
+
+if __name__ == "__main__":
+    main()
