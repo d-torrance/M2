@@ -56,6 +56,24 @@ author. So:
   describes. A batch of six proposed closures presented as one plan is not six decisions,
   it is one decision about a list.
 
+### Retitle an issue whose scope has moved
+
+Rare, and never quietly.  #290 was the first: filed in 2015 as "bug in gb over ZZ ? (using
+custom ordering)", the wrong answer it reported was fixed by *forbidding the input*, so what
+it tracks now is the capability that removal took away.  The title described a symptom
+nobody will ever see again, and leaving it would mean the issue reads as a stale bug report
+for as long as it stays open.
+
+The test is a change of **scope**, not of wording.  A title that could be clearer is not a
+reason; a title that describes something that no longer exists is.  This comes up most on
+old issues, because they have had the most time to be overtaken by their own resolutions.
+
+`bin/retitle` is separate from `bin/apply-types` even though both go through `updateIssue`,
+so a retitle cannot ride along unnoticed in a batch of eight type changes.  It refuses to
+run without a hand-written comment for the issue, because a title changing under somebody
+with no reason given is worse than a stale title.  Retitling needs the maintainer's
+go-ahead, like a close does.
+
 ### Ask of every row: would a comment materially improve it?
 
 A fourth question, alongside the three the sweep is named for, and it applies to issues

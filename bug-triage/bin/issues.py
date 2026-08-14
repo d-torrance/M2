@@ -18,10 +18,11 @@ import re
 
 # Machine-generated columns, rewritten freely by the tools from cache/issues.json.
 GENERATED = ["issue", "created", "updated", "author", "comments", "type",
-             "labels", "repro", "run"]
+             "labels", "repro", "run", "title"]
 
 # Human columns, never overwritten once non-empty.
-HUMAN = ["verdict", "dup", "settype", "addlabels", "rmlabels", "action", "note"]
+HUMAN = ["verdict", "dup", "settype", "settitle", "addlabels", "rmlabels",
+         "action", "note"]
 
 COLUMNS = GENERATED + HUMAN
 
@@ -71,6 +72,15 @@ TYPES = [
 CLOSABLE = ["fixed", "not-reproducible", "duplicate", "not-a-bug", "wontfix",
             "obsolete"]
 
+# Retitling is for an issue whose *scope* has moved, not one whose wording could
+# be better.  #290 is the case that prompted it: filed in 2015 as "bug in gb over
+# ZZ ? (using custom ordering)", it now tracks the capability that was removed to
+# fix that bug, so the title describes a symptom nobody will see again.  Leaving
+# it would mean the issue reads as a stale bug report forever.
+#
+# Rarely, and never quietly: it changes what everyone who has the issue bookmarked
+# or in an email thread sees, so it belongs with a comment explaining the re-scope
+# and needs the maintainer's go-ahead like a close does.
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, "cache")
 REPROS = os.path.join(CACHE, "repros")
