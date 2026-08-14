@@ -444,7 +444,7 @@ rather than about the files:
 - **Rows that would once have been filed are now being measured first.** `bugs/mike/1-local-bug.m2`
   and `bugs/mike/1-mult-trun` were both written up as filable and both ended `wontfix` after a trace
   and a benchmark respectively -- see [the swell note](#a-slow-local-normal-form-can-be-expression-swell-not-a-defect)
-  and [the parked-wishlist section](#the-wishlist-files-are-parked-on-purpose). `wontfix` gaining 5
+  and [the wishlist section](#the-wishlist-files-are-split-into-asks-and-none-of-them-stays-parked). `wontfix` gaining 5
   points is mostly this.
 - **The duplicate search got wider.** Adding the comment search -- `gh search issues`, which the
   cache cannot do -- moves rows from `open` to `duplicate` that a title scan called new.
@@ -1049,7 +1049,7 @@ nothing in the result signals that the test was invalid. Prefer a check whose fa
 visibly different from its success -- `class`, a count, an actual call -- over one that returns
 something either way.
 
-## The wishlist files are parked, on purpose
+## The wishlist files are split into asks, and none of them stays parked
 
 Seven files open with "Place bugs that you find in here" -- `0-bugs-ataylor.m2`,
 `-caviglia`, `-decker`, `-eisenbud`, `-iswanson`, `-kummini`, `-lgold`, `-popescu`,
@@ -1057,15 +1057,38 @@ Seven files open with "Place bugs that you find in here" -- `0-bugs-ataylor.m2`,
 correspond to one issue, and filing them whole would produce issues that cannot be closed until
 every item in them is done. That is how these files survived twenty-five years in the first place.
 
-They are triaged normally -- verdict, and a note recording which specific asks were confirmed
-still live -- but left with `disposition` blank, so `bin/file-issues` skips them and they rest at
-**Ready**. Deal with the class in one pass once the rest of the backlog is settled, rather than
-re-deciding it per file. `0-document-packages` and `0-interrupts` are parked there for the same
-reason: several asks, partly done.
+So the file is not the unit of work: it is split into `asks.tsv`, one row per ask, each carrying
+its own verdict and its own issue, and `bin/file-asks` files them one issue at a time. The
+`disposition` on the file's own row stays blank, which is what keeps `bin/file-issues` from
+converting a draft whose asks have already been filed separately -- and the `issue` column takes
+several references at once (`bugs/mike/git-issue-568-569.m2` carries `#568 #569`), so
+`bin/file-asks --sync` rolls up whatever the asks produced.
 
-When that pass happens, note that the `issue` column already takes several references --
-`bugs/mike/git-issue-568-569.m2` carries `#568 #569` -- so a row can be settled by filing one
-issue per live ask and recording them all.
+**Blank `disposition` is not parking, and no file stays parked.** This section used to say the
+class would be dealt with in one pass "once the rest of the backlog is settled", and the pass is
+what these last batches are. A wishlist file is finished when **every** ask in it has a verdict --
+some met, some filed, some `wontfix` -- and at that point its card goes to **Done**, because the
+question the board asks is whether anyone still needs to *look at the file*, and nobody does. The
+issues its asks produced are tracked in the tracker, are not board items, and have nothing further
+to do with the file. `0-document-packages` and `0-interrupts` were on this list too and are settled.
+
+A file whose asks all come out `fixed` or `wontfix` needs no ask issues at all, and its own row
+should say so rather than sitting at `open`: `0-bugs-kummini.m2` is `fixed`, `disposition=drop`,
+its seven asks six fixed and one withdrawn by its reporter in an `AFTERTHOUGHT` the same afternoon.
+
+### The card is Done when the asks are settled, not when the file is split
+
+`want_status` in `bin/push-project` implements that, and the first version of it was keyed on the
+wrong thing: *the path appears in `asks.tsv`*. Splitting a file is one edit and triaging its asks
+is a week's work, so that card would have gone to Done the moment the first ask row was typed --
+publishing "this file is triaged" over a set of asks that all still said `todo`.
+
+It never misfired, which is the part worth keeping. Every ask written up to that point was already
+settled before the roll-up ran, so the two conditions agreed on every input they ever saw. A
+predicate that is wrong only about states you have not reached yet leaves no trace in any dry run,
+and `--check` converges just the same. It is now `all(a["verdict"] not in ("", "todo") ...)`, with
+the part-split cases in `bin/selftest` -- a part-split row falls through to the ordinary mapping
+and reads its own verdict, so it sits at Backlog or Ready like anything else unfinished.
 
 ### Do not park a row just because it resists a verdict
 
@@ -1121,8 +1144,10 @@ Two practical guards:
   blank `disposition` is not. Where the call is a judgment rather than a finding, say so in the
   `note` (`1-doc-top` does) so a maintainer can overrule it cheaply.
 
-Parking is for [the wishlist files](#the-wishlist-files-are-parked-on-purpose) — one row holding
-many unrelated asks — and nothing else has joined them.
+Blank `disposition` is for [the wishlist files](#the-wishlist-files-are-split-into-asks-and-none-of-them-stays-parked)
+— one row holding many unrelated asks, filed through `asks.tsv` instead — and nothing else has
+joined them. Even there it is not parking: those rows are finished when every ask in them has a
+verdict, and nothing is left waiting for a later pass.
 
 ## A fix can be taken back by a commit that was not about it
 

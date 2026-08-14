@@ -82,7 +82,7 @@ def is_closed(item):
     return (item["content"] or {}).get("state") == "CLOSED"
 
 
-def want_status(row, item, split=()):
+def want_status(row, item, split={}):
     """Where this row belongs on the board.
 
     A closed issue is already Done: the board's "Item closed" workflow put it
@@ -91,18 +91,25 @@ def want_status(row, item, split=()):
     never converge.  Defer to the tracker and report the row instead -- only a
     human can say whether it closed as fixed, wontfix or duplicate.
 
-    A row split into asks is Done whatever its verdict says, which is the same
-    kind of override.  Those fourteen wishlist files hold many unrelated requests
-    each, so the file is not the unit of work: once it is split, its own triage is
-    finished and the requests are tracked as issues of their own, listed in the
-    body by the roll-up.  Leaving the card open would park it here for years
-    waiting on issues that have nothing further to do with the file, and would
-    count the same work twice -- once as the card, once as the issues.  The
-    verdict still says open, because the catalog's job is to record that work
-    traceable to this file is outstanding; the board's job is to say whether
-    anyone still needs to look at the file, and nobody does.
+    A row whose asks are all settled is Done whatever its verdict says, which is
+    the same kind of override.  Those fourteen wishlist files hold many unrelated
+    requests each, so the file is not the unit of work: once every ask has a
+    verdict, its own triage is finished and the requests are tracked as issues of
+    their own, listed in the body by the roll-up.  Leaving the card open would
+    park it here for years waiting on issues that have nothing further to do with
+    the file, and would count the same work twice -- once as the card, once as
+    the issues.  The verdict still says open, because the catalog's job is to
+    record that work traceable to this file is outstanding; the board's job is to
+    say whether anyone still needs to look at the file, and nobody does.
+
+    "Settled" is per ask, not per file.  Splitting a file is one edit and
+    triaging its asks is a week's work, so a row keyed on the split alone would
+    reach Done the moment the first ask row is typed -- announcing a file as
+    triaged while every ask in it still says todo.  A part-split file therefore
+    falls through to the ordinary mapping, which reads its own verdict.
     """
-    if row["path"] in split:
+    if row["path"] in split and all(
+            a["verdict"] not in ("", "todo") for a in split[row["path"]]):
         return STATUS_SETTLED
     if row["verdict"] == "todo":
         return STATUS_TODO
@@ -324,9 +331,9 @@ def main():
     print("%d items on the board, %d matched to catalog rows\n"
           % (len(items), len(by_key)))
 
-    # Paths that have been split into asks: their cards are Done regardless of
-    # verdict.  See want_status.
-    split = set(catalog.asks_by_path(catalog.read_asks()))
+    # Paths that have been split into asks: once every ask is settled, the card
+    # is Done regardless of verdict.  See want_status.
+    split = catalog.asks_by_path(catalog.read_asks())
 
     body_edits, issue_edits, status_edits = [], [], []
     unmatched, foreign, stale = [], [], []

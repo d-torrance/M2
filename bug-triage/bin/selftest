@@ -62,6 +62,30 @@ def load(name, filename):
 project = load("project", "project.py")
 runrepros = load("runrepros", "run-repros")
 catalog = load("catalog", "catalog.py")
+pushproject = load("pushproject", "push-project")
+
+# ------------------------------------------------------- want_status on a split
+#
+# A wishlist file's card is Done once every ask in it is settled -- that is what
+# "we have successfully triaged this file" means, and it is the only way those
+# cards ever leave the board.  The condition first shipped as "the path appears
+# in asks.tsv at all", which is a different claim: splitting a file is one edit
+# and triaging its asks is a week's work, so the card would have announced itself
+# triaged while every ask in it still said todo.  It made no difference at the
+# time, because every ask then in the file was already settled -- which is
+# exactly the state in which a wrong predicate leaves no trace.
+#
+# (row verdict, row issue, ask verdicts, expected status)
+WANT_STATUS = [
+    ("open", "#4640 #4641", ["open", "open"],          "Done"),
+    ("fixed", "",           ["fixed", "wontfix"],      "Done"),
+    ("todo", "",            ["fixed", "todo"],         "Backlog"),
+    ("open", "#4644",       ["fixed", "todo"],         "In progress"),
+    ("open", "",            ["todo"],                  "Ready"),
+    ("open", "",            [],                        "Ready"),
+    ("open", "#4644",       [],                        "In progress"),
+    ("wontfix", "",         [],                        "Done"),
+]
 
 # ---------------------------------------------------------------- linkify
 
@@ -223,6 +247,17 @@ def main():
         got = project.key_of({"content": {"body": body, "title": "a readable title"}})
         check(got == want, "file body still keys on %r" % want, repr(got))
 
+    # An open item, so is_closed stays false and the tracker override never fires;
+    # the closed-issue case is covered by the board's own "Item closed" workflow.
+    item = {"content": {"state": "OPEN"}}
+    for verdict, issue, ask_verdicts, want in WANT_STATUS:
+        row = {"path": "bugs/dan/0-bugs-decker.m2", "verdict": verdict, "issue": issue}
+        split = ({row["path"]: [{"n": str(i + 1), "verdict": v}
+                                for i, v in enumerate(ask_verdicts)]}
+                 if ask_verdicts else {})
+        got = pushproject.want_status(row, item, split)
+        check(got == want, "want_status(%s, %r asks) is %s" % (verdict, ask_verdicts, want), got)
+
     for f in failures:
         print("FAIL: %s" % f, file=sys.stderr)
     if failures:
@@ -231,7 +266,8 @@ def main():
     if verbose:
         n = (len(LINKED) + len(NOT_LINKED) + len(END_LINES) + len(NOT_END_LINES)
              + 2 * len(ASK_KEY_PATHS) + 1
-             + len(ASK_BODIES) + len(FILE_BODIES) + len(ALREADY_LINKED) + 7)
+             + len(ASK_BODIES) + len(FILE_BODIES) + len(ALREADY_LINKED)
+             + len(WANT_STATUS) + 7)
         print("all %d cases pass" % n)
     return 0
 
