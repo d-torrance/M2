@@ -362,3 +362,46 @@ They are still in `issues.tsv`, because the asymmetry matters and is easy to get
   attribution paragraph, and running them re-runs work already done.
 - **Not used to train the label suggester**, which would otherwise learn this directory's
   labelling habits and report them back as corpus evidence.
+
+## Finding the commit: ask the timeline before you ask the log
+
+A `fixed` verdict is supposed to name the commit or PR. For #603, #604 and #606 I first
+wrote all three comments saying the commit could not be identified, and Doug asked how hard
+I had looked. The answer was one `git log --grep` and one `git log -S` between the three of
+them, and for #606 nothing at all. All three were then found in about ten minutes. The order
+that worked, cheapest first:
+
+1. **The issue's own timeline.**
+   `gh api repos/Macaulay2/M2/issues/<N>/timeline --jq '.[]|select(.event=="cross-referenced")'`
+   GitHub already records every PR that mentioned the issue. This alone found #603 → PR
+   #3149, titled *"Attempted fix for bug in quotient for matrices over finite field"* — the
+   reporter had fixed his own issue and nobody closed it. **Run this first, always.** It is
+   one request and it is the only source that knows about links the commit messages don't.
+2. **PR search on the symptom**, not on the issue number:
+   `gh api -X GET search/issues -f q='repo:Macaulay2/M2 type:pr submatrix'`. This found #604 →
+   PR #2766, *"fixed bug in submatrix with repeated rows"*, whose title is the issue's
+   symptom verbatim. Fixes here are usually **not** linked with `fixes #N`, so searching the
+   number finds nothing while searching the words finds it immediately.
+3. **`git log -L <start>,<end>:<file>`** on the lines that implement the behaviour. This is
+   the one I never reached for and it is the strongest of the four: for #606 it returned the
+   entire arc of `applyUniformMethod` in one command — stash-into-the-object (2006), Dan's
+   `27dc87a5f5` "stop caching direct sums" (2020, first shipped in **1.17.1**, confirming his
+   in-thread "the caching ended in version 1.17" from memory), @mahrud's `1bcdc743f7`
+   reinstating it into `Y.cache` (2024), and the generalisation in 2025. `--grep` and `-S`
+   had found none of it.
+4. **`git log -S`** last, and **when it returns a commit, read that commit's whole PR.** My
+   `-S 'rawSubmatrix'` run for #604 *did* return `0ae41503cf`. I dismissed it because its
+   message said "non-free sources and targets" rather than repeated rows — and it is the
+   sibling commit, one day and one line apart, of the actual fix, in the same PR. The pickaxe
+   points at a neighbourhood, not at a commit; a hit is a cue to open
+   `gh api repos/.../commits/<sha>/pulls` and read the rest.
+
+The failure mode this guards against is not a missing citation. It is a **false negative
+written up as a finding**: "I could not identify the commit, so this closes on behaviour"
+reads like diligence and is indistinguishable, to a later reader, from a genuinely
+undocumented fix. Two of the three had ordinary, well-titled, test-carrying PRs. Prefer
+saying nothing about attribution to asserting that none exists.
+
+And the attribution is worth the ten minutes on its own merits: #603 closes much better as
+*"@moorewf implemented @mahrud's suggested fix, with tests"* than as *"it doesn't happen any
+more."*
