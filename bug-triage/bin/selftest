@@ -77,6 +77,7 @@ project = load("project", "project.py")
 runrepros = load("runrepros", "run-repros")
 extract = load("extractrepros", "extract-repros")
 runissues = load("runissuerepros", "run-issue-repros")
+publish = load("publishverdicts", "publish-verdicts")
 sys.path.insert(0, HERE)
 import issues as issuestsv
 catalog = load("catalog", "catalog.py")
@@ -389,6 +390,33 @@ def main():
         check(True, "the two-argument call still works for bin/file-issues")
     except SystemExit:
         check(False, "the two-argument call must keep working")
+
+    # --- follow-up comments post below, not over, the originals --------------
+    # The failure this guards is silent: a single per-issue marker makes a
+    # correction overwrite the comment it corrects, and the result reads as an
+    # apology for something invisible.
+    import tempfile, shutil
+    tmp = tempfile.mkdtemp()
+    try:
+        for name in ("77.md", "77.2.md", "77.3.md", "78.md"):
+            open(os.path.join(tmp, name), "w").write("body of " + name)
+        saved = issuestsv.COMMENTS
+        issuestsv.COMMENTS = tmp
+        got = publish.comment_files(77)
+        check([k for k, _ in got] == ["77", "77.2", "77.3"],
+              "follow-ups are found in order", repr([k for k, _ in got]))
+        check([k for k, _ in publish.comment_files(78)] == ["78"],
+              "an issue with no follow-up yields one comment")
+        check(publish.marker_for("77") != publish.marker_for("77.2"),
+              "each comment carries its own marker")
+        check(publish.marker_for("77") in publish.build_body(77, "77", "x"),
+              "the marker is embedded in the body it identifies")
+        open(os.path.join(tmp, "77.5.md"), "w").write("gap")
+        check([k for k, _ in publish.comment_files(77)] == ["77", "77.2", "77.3"],
+              "numbering stops at the first gap rather than skipping it")
+    finally:
+        issuestsv.COMMENTS = saved
+        shutil.rmtree(tmp, ignore_errors=True)
 
     # --- dup direction, on the live catalog ----------------------------------
     backwards = [r["issue"] for r in issuestsv.read()

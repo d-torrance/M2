@@ -56,6 +56,22 @@ author. So:
   describes. A batch of six proposed closures presented as one plan is not six decisions,
   it is one decision about a list.
 
+### A correction goes *below* the thing it corrects
+
+`comments/issues/<N>.md` is the first comment; `<N>.2.md`, `<N>.3.md` are follow-ups, each
+posted separately and each idempotent under its own `<!-- issue-triage:<N>.<k> -->` marker.
+
+This exists because the obvious thing is wrong.  Rewriting `<N>.md` does not add a
+correction, it **edits the published comment in place** -- so a correction written that way
+apologises for a claim that is no longer visible to anyone reading.  Doug caught this on
+#290 before it was posted.  And quietly rewriting a published claim is the wrong instinct
+regardless: the wrong claim should stay up, with the correction under it, which is what a
+reader needs in order to trust either.
+
+The marker was always meant to stop *accidental* re-posting of the same comment, not to
+forbid a deliberate second one.  Numbered rather than dated so the order is visible in the
+filename and a correction cannot be posted before what it corrects.
+
 ### Retitle an issue whose scope has moved
 
 Rare, and never quietly.  #290 was the first: filed in 2015 as "bug in gb over ZZ ? (using

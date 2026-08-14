@@ -110,24 +110,57 @@ mutation($id:ID!, $reason:IssueClosedStateReason!, $dup:ID) {
 """
 
 
-def marker_for(number):
-    return "<!-- issue-triage:%s -->" % number
+def marker_for(key):
+    """key is "290" or "290.2" -- one marker per comment, not per issue.
+
+    A correction has to be able to sit *below* the thing it corrects.  Editing the
+    original in place, which is what a single per-issue marker forces, produces a
+    comment apologising for a claim that is no longer visible anywhere -- and
+    quietly rewriting a published claim is the wrong instinct besides.  The marker
+    exists to stop accidental re-posting, not to forbid a deliberate second
+    comment, so it carries the sequence number.
+    """
+    return "<!-- issue-triage:%s -->" % key
+
+
+def comment_files(number):
+    """[(key, path)] for one issue: <N>.md, then <N>.2.md, <N>.3.md, ... in order.
+
+    Numbered rather than dated so the order is explicit in the filename and a
+    correction cannot be posted before the thing it corrects.
+    """
+    out = []
+    first = os.path.join(issuestsv.COMMENTS, "%s.md" % number)
+    if os.path.exists(first):
+        out.append((str(number), first))
+    n = 2
+    while True:
+        key = "%s.%d" % (number, n)
+        path = os.path.join(issuestsv.COMMENTS, "%s.md" % key)
+        if not os.path.exists(path):
+            break
+        out.append((key, path))
+        n += 1
+    return out
 
 
 def comment_file(number):
     return os.path.join(issuestsv.COMMENTS, "%s.md" % number)
 
 
-def body_for(row):
-    """The comment to post on this issue, or None if nobody has written one."""
+def bodies_for(row):
+    """[(key, body)] for every comment written for this issue, in order."""
     number = int(row["issue"])
-    path = comment_file(number)
-    if not os.path.exists(path):
-        return None
-    with open(path, encoding="utf-8") as f:
-        text = f.read().strip()
-    if not text:
-        return None
+    out = []
+    for key, path in comment_files(number):
+        with open(path, encoding="utf-8") as f:
+            text = f.read().strip()
+        if text:
+            out.append((key, build_body(number, key, text)))
+    return out
+
+
+def build_body(number, key, text):
 
     # Attribution first, above the text, never in a footer.  A disclosure placed
     # after the content is read after the content, which is too late to be the
@@ -136,7 +169,7 @@ def body_for(row):
     parts = [project.ATTRIBUTION, "", text, "",
              "<sub>Triaged in a sweep of the open issues; source of truth: "
              "[`bug-triage/issues.tsv`](%s).</sub>" % ISSUES_URL,
-             "", marker_for(number)]
+             "", marker_for(key)]
     return "\n".join(parts)
 
 
@@ -161,11 +194,11 @@ def plan(rows, only=None):
             if r["verdict"] == "duplicate" and not r["dup"]:
                 raise SystemExit("#%s is a duplicate of nothing -- fill in dup"
                                  % r["issue"])
-        body = body_for(r)
-        if body is None:
+        bodies = bodies_for(r)
+        if not bodies:
             missing.append(n)
             continue
-        out.append((r, body))
+        out.append((r, bodies))
     if missing:
         raise SystemExit(
             "no comment written for %s.\n\nEvery close needs one: an issue that "
@@ -200,7 +233,7 @@ def main():
             "batches." % (len(work), args.max))
 
     closes = 0
-    for r, body in work:
+    for r, bodies in work:
         dup = issuestsv.dup_number(r)
         print("=" * 72)
         if r["action"] == "close":
@@ -211,9 +244,13 @@ def main():
         else:
             print("#%s  %s -> comment only, issue stays open"
                   % (r["issue"], r["verdict"]))
+        if len(bodies) > 1:
+            print("%d comments: %s" % (len(bodies),
+                                       ", ".join(k for k, _ in bodies)))
         print("=" * 72)
-        print(body)
-        print()
+        for key, body in bodies:
+            print(body)
+            print()
 
     print("%d issue(s): %d comment-only, %d comment then close."
           % (len(work), len(work) - closes, closes))
@@ -221,7 +258,7 @@ def main():
         print("dry run -- rerun with --apply")
         return
 
-    for r, body in work:
+    for r, bodies in work:
         number = int(r["issue"])
         issue = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
                            number=number)["data"]["repository"]["issue"]
@@ -232,15 +269,17 @@ def main():
             print("#%d: already closed, skipped" % number, file=sys.stderr)
             continue
 
-        # Idempotent by marker: rerunning edits the comment already there rather
-        # than stacking a second one onto the issue.
-        marker = marker_for(number)
-        existing = next((c for c in issue["comments"]["nodes"]
-                         if marker in (c["body"] or "")), None)
-        if existing:
-            project.gh(UPDATE_COMMENT, id=existing["id"], body=body)
-        else:
-            project.gh(ADD_COMMENT, subject=issue["id"], body=body)
+        # Idempotent per comment, not per issue: rerunning edits each keyed
+        # comment already there and appends only the ones that are new, so a
+        # follow-up lands below the comment it follows rather than replacing it.
+        for key, body in bodies:
+            marker = marker_for(key)
+            existing = next((c for c in issue["comments"]["nodes"]
+                             if marker in (c["body"] or "")), None)
+            if existing:
+                project.gh(UPDATE_COMMENT, id=existing["id"], body=body)
+            else:
+                project.gh(ADD_COMMENT, subject=issue["id"], body=body)
 
         if r["action"] != "close":
             print("#%d commented, left open" % number)

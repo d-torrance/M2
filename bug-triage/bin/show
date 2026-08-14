@@ -129,6 +129,27 @@ def show(number, cache, comments, rows, args):
         for l, t, w in sug:
             print("  tier %d  %-28s %s" % (t, l, w))
 
+    # Same author, same day.  Shown before the scored pairs and never truncated,
+    # because this is the list that was already right about #290/#291/#292/#293
+    # and went unread while a TF-IDF shortlist that did not contain #292 got used
+    # instead.  Somebody who splits one problem into several reports does it in
+    # one sitting, so these are worth more per line than any similarity score.
+    adj = []
+    apath = os.path.join(issuestsv.CACHE, "dup-adjacent.tsv")
+    if os.path.exists(apath):
+        with open(apath, encoding="utf-8") as f:
+            f.readline()
+            for line in f:
+                c = line.rstrip("\n").split("\t")
+                if len(c) >= 6 and ("#%d" % number) in (c[1], c[2]):
+                    other = c[2] if c[1] == "#%d" % number else c[1]
+                    title = c[5] if c[1] == "#%d" % number else c[4]
+                    adj.append((other, c[3], title))
+    if adj:
+        print("\n-- SAME AUTHOR, SAME DAY " + "-" * 51)
+        for other, when, title in adj:
+            print("  %-7s %s  %s" % (other, when, title[:52]))
+
     cands = dup_candidates(number,
                            os.path.join(issuestsv.CACHE, "dup-pairs.tsv"))
     if cands:
