@@ -56,6 +56,30 @@ author. So:
   describes. A batch of six proposed closures presented as one plan is not six decisions,
   it is one decision about a list.
 
+### Ask of every row: would a comment materially improve it?
+
+A fourth question, alongside the three the sweep is named for, and it applies to issues
+that are staying **open** -- which is most of them.  A comment earns its notifications when
+it carries something a reader of the issue cannot get from the issue:
+
+- **a measurement**, where the thread has an unconfirmed claim.  #143 had numbers from a
+  machine called "habanero" in 2014 and none since; it now has 1.78x against a 4.0x control.
+- **a mechanism**, located.  #212's debug info is extracted and never linked, because
+  `--add-gnu-debuglink` sits in the `else` branch of a conditional that is never taken on
+  GNU binutils.
+- **an answer to a question nobody answered.**  #256 had "What is the issue here exactly?"
+  from 2024; #133 had a contributor offering wording in 2026 and getting no reply.
+- **history that changes the reading.**  #133's message improved as a side effect of
+  hookification, not because anyone acted on the issue -- which is what its asker needed
+  to know.
+- **work already done elsewhere.**  #248 asks to automate two files the previous project
+  had already verified.
+
+And it does not, when the only content is "still true".  #187, #241 and #247 were all
+confirmed still true in the same batch and got nothing, because saying so adds a
+notification and no information.  The test is not "is this issue interesting", it is
+"would the next person to open this be better off".
+
 **Read the labels an issue already has, not only the ones it lacks.**  The question is
 "does it have appropriate labels", and a label that is wrong misleads harder than a
 missing one: it tells a reader the issue has been classified.  #58 carried
