@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
-"""Comment on, then close, the issues we have agreed to close.
+"""Post the comments we have written, and close what we have agreed to close.
 
 DRY RUN BY DEFAULT.
 
-Three gates, all required, and the third is where this project is deliberately
-stricter than the first one:
+Two actions, one code path, because they share everything that matters -- the
+attribution, the provenance footer, the marker that makes a rerun edit rather than
+duplicate:
+
+    action == "comment"   post the comment, leave the issue open
+    action == "close"     post the comment, then close
+
+Gates.  A comment needs a hand-written comments/issues/<N>.md and nothing else.  A
+close needs all three of:
 
     1  verdict is in issues.CLOSABLE
     2  action == "close"
-    3  a hand-written comments/issues/<N>.md exists
+    3  that same comment file
 
 bin/comment-issues treated the comment as optional, because there the question was
 whether a comment added anything to somebody else's live issue.  Here the comment
@@ -16,6 +23,12 @@ whether a comment added anything to somebody else's live issue.  Here the commen
 sweep read as a bot run, and it is what gets the whole sweep reverted by a
 maintainer who cannot tell which of the closes were thought about.  So this script
 refuses to close an issue it cannot explain.
+
+An issue that stays open can still be worth a comment.  #72 is the case that
+prompted this: the behaviour should not change after twenty years, but the naming
+history and the alternatives to `decompose` are worth recording where whoever
+updates the documentation will find them.  That is `action = comment` -- a verdict
+of `stands` and a note to a stranger, with no close attached.
 
 Verdict and action are separate columns on purpose.  "fixed" is a finding about
 M2; "close" is a decision about somebody else's issue, and the decision does not
@@ -35,8 +48,8 @@ bin/issues.py re-checks that on every write; the older one survives.  A comment 
 the older issue is still worth writing, because otherwise its watchers never learn
 a second report existed, and that goes in comments/issues/<older>.md as its own row.
 
-    ./bin/close-issues                # show the exact text of every comment
-    ./bin/close-issues --apply        # post and close
+    ./bin/publish-verdicts            # show the exact text of every comment
+    ./bin/publish-verdicts --apply    # post, and close where action = close
 """
 
 import argparse
@@ -138,15 +151,16 @@ def plan(rows, only=None):
         n = int(r["issue"])
         if only and n not in only:
             continue
-        if r["action"] != "close":
+        if r["action"] not in ("close", "comment"):
             continue
-        if r["verdict"] not in issuestsv.CLOSABLE:
-            raise SystemExit(
-                "#%s says action=close but verdict=%r, which is not a verdict "
-                "that closes anything" % (r["issue"], r["verdict"]))
-        if r["verdict"] == "duplicate" and not r["dup"]:
-            raise SystemExit("#%s is a duplicate of nothing -- fill in dup"
-                             % r["issue"])
+        if r["action"] == "close":
+            if r["verdict"] not in issuestsv.CLOSABLE:
+                raise SystemExit(
+                    "#%s says action=close but verdict=%r, which is not a verdict "
+                    "that closes anything" % (r["issue"], r["verdict"]))
+            if r["verdict"] == "duplicate" and not r["dup"]:
+                raise SystemExit("#%s is a duplicate of nothing -- fill in dup"
+                                 % r["issue"])
         body = body_for(r)
         if body is None:
             missing.append(n)
@@ -177,25 +191,32 @@ def main():
     rows = issuestsv.require(issuestsv.read())
     work = plan(rows, set(args.only or []))
     if not work:
-        print("nothing to close -- no row has action=close")
+        print("nothing to publish -- no row has action=comment or action=close")
         return
     if len(work) > args.max:
         raise SystemExit(
-            "%d issues would be closed, over the --max of %d.  These land in "
+            "%d issues would be posted to, over the --max of %d.  These land in "
             "strangers'\ninboxes and cannot be taken back quietly; do them in "
             "batches." % (len(work), args.max))
 
+    closes = 0
     for r, body in work:
         dup = issuestsv.dup_number(r)
         print("=" * 72)
-        print("#%s  %s -> %s%s"
-              % (r["issue"], r["verdict"], STATE_REASON[r["verdict"]],
-                 "  (duplicate of #%d)" % dup if dup else ""))
+        if r["action"] == "close":
+            closes += 1
+            print("#%s  %s -> close, %s%s"
+                  % (r["issue"], r["verdict"], STATE_REASON[r["verdict"]],
+                     "  (duplicate of #%d)" % dup if dup else ""))
+        else:
+            print("#%s  %s -> comment only, issue stays open"
+                  % (r["issue"], r["verdict"]))
         print("=" * 72)
         print(body)
         print()
 
-    print("%d issue(s) to comment on and close." % len(work))
+    print("%d issue(s): %d comment-only, %d comment then close."
+          % (len(work), len(work) - closes, closes))
     if not args.apply:
         print("dry run -- rerun with --apply")
         return
@@ -220,6 +241,10 @@ def main():
             project.gh(UPDATE_COMMENT, id=existing["id"], body=body)
         else:
             project.gh(ADD_COMMENT, subject=issue["id"], body=body)
+
+        if r["action"] != "close":
+            print("#%d commented, left open" % number)
+            continue
 
         dup = issuestsv.dup_number(r)
         dup_id = None
