@@ -405,3 +405,38 @@ saying nothing about attribution to asserting that none exists.
 And the attribution is worth the ten minutes on its own merits: #603 closes much better as
 *"@moorewf implemented @mahrud's suggested fix, with tests"* than as *"it doesn't happen any
 more."*
+
+## Close last: the write-backs are order-dependent
+
+The end-of-batch sequence is
+
+    bin/apply-types  --apply
+    bin/apply-labels --apply
+    bin/publish-verdicts --only <numbers> --apply     # closes; must be last
+
+and the order is not cosmetic. Both `apply-types` and `apply-labels` skip an issue that is
+not `OPEN`:
+
+```python
+        if issue["state"] != "OPEN":
+            print("#%d: closed since the last fetch, skipped" % number, ...)
+```
+
+That guard is right — an issue closed by somebody else between the fetch and the run is no
+longer ours to annotate. But it cannot tell *their* close from *ours*, so running
+`publish-verdicts` first means every issue in the batch is closed by the time the annotators
+reach it, and the whole batch is skipped as if a stranger had closed it. In batch 12 that
+took the type and label off #603, #604 and #606, and the skip messages scrolled past under a
+`tail -4`.
+
+`publish-verdicts` now refuses rather than relying on the operator's memory: before posting
+anything it compares the row's `settype` and `addlabels` against the live issue and, if any
+are still missing, declines the close with the command to run first. `pending_annotations()`
+is a plain function so `bin/selftest` covers it — including the two cases that matter for
+false positives, a row asking for no annotations at all, and a label somebody else added
+that we never requested.
+
+The general shape, worth remembering beyond this one script: **an idempotency guard keyed on
+observable state cannot distinguish your own recent write from a third party's.** Anywhere
+two scripts in a sequence both read the same state, the second one's safety check will read
+the first one's effect as somebody else's edit.

@@ -430,6 +430,32 @@ def main():
         check(True, "a backwards dup is refused")
 
 
+    # ------------------------------------------- close must not outrun the labels
+    # apply-types and apply-labels skip closed issues, so publish-verdicts has to
+    # refuse a close whose annotations have not landed.  Closing first cost #603,
+    # #604 and #606 their type and label and needed a hand repair.
+    def gh_issue(type_name=None, labels=()):
+        return {"issueType": {"name": type_name} if type_name else None,
+                "labels": {"nodes": [{"name": l} for l in labels]}}
+
+    row = {"action": "close", "settype": "Bug", "addlabels": "Core, Engine"}
+    check(publish.pending_annotations(row, gh_issue("Bug", ["Core", "Engine"])) == [],
+          "nothing pending once the type and both labels are on the issue")
+    check(publish.pending_annotations(row, gh_issue(None, ["Core", "Engine"]))
+          == ["type Bug"], "an unset type is pending")
+    check(publish.pending_annotations(row, gh_issue("Bug", ["Core"]))
+          == ["label(s) Engine"], "a missing label is pending")
+    check(len(publish.pending_annotations(row, gh_issue(None, []))) == 2,
+          "a bare issue has both the type and the labels pending")
+    check(publish.pending_annotations(row, gh_issue("Task", ["Core", "Engine"]))
+          == ["type Bug"], "a type that disagrees with settype is pending")
+    check(publish.pending_annotations(
+              {"action": "close", "settype": "", "addlabels": ""},
+              gh_issue(None, [])) == [],
+          "a row that asks for no annotation blocks nothing")
+    check(publish.pending_annotations(row, gh_issue("Bug", ["Core", "Engine", "stale"]))
+          == [], "an extra label somebody else added is not pending")
+
     for f in failures:
         print("FAIL: %s" % f, file=sys.stderr)
     if failures:

@@ -78,6 +78,8 @@ query($owner:String!, $name:String!, $number:Int!) {
   repository(owner:$owner, name:$name) {
     issue(number:$number) {
       id number state title
+      issueType { name }
+      labels(first:50) { nodes { name } }
       comments(first:100) { nodes { id body } }
     }
   }
@@ -209,6 +211,25 @@ def plan(rows, only=None):
     return out
 
 
+def pending_annotations(row, issue):
+    """Which of this row's settype/addlabels have not reached GitHub yet.
+
+    apply-types and apply-labels both refuse to touch a closed issue, on the
+    theory that somebody else closed it and it is no longer ours to annotate.
+    That guard cannot tell their close from ours, so closing first silently
+    strips the type and labels off every issue in the batch -- which is what
+    happened to #603, #604 and #606, and had to be repaired by hand afterwards.
+    """
+    pending = []
+    if row["settype"] and row["settype"] != (issue["issueType"] or {}).get("name"):
+        pending.append("type %s" % row["settype"])
+    have = {n["name"] for n in issue["labels"]["nodes"]}
+    missing = [l for l in issuestsv.labels_of(row, "addlabels") if l not in have]
+    if missing:
+        pending.append("label(s) " + ", ".join(missing))
+    return pending
+
+
 def main():
     p = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -268,6 +289,22 @@ def main():
         if issue["state"] != "OPEN":
             print("#%d: already closed, skipped" % number, file=sys.stderr)
             continue
+
+        # apply-types and apply-labels both refuse to touch a closed issue, on
+        # the theory that somebody else closed it and it is no longer ours to
+        # annotate.  That guard cannot tell their close from ours, so closing
+        # first silently strips the type and labels off every issue in the
+        # batch -- which is what happened to #603, #604 and #606, and had to be
+        # repaired by hand afterwards.  Refuse the close instead of racing it.
+        if r["action"] == "close":
+            pending = pending_annotations(r, issue)
+            if pending:
+                print("#%d: not closing -- %s still unapplied.  Run "
+                      "bin/apply-types --apply and bin/apply-labels --apply "
+                      "first; they skip closed issues, so closing now would "
+                      "lose them." % (number, "; ".join(pending)),
+                      file=sys.stderr)
+                continue
 
         # Idempotent per comment, not per issue: rerunning edits each keyed
         # comment already there and appends only the ones that are new, so a
