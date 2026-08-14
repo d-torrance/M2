@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""Set the GitHub issue type named in the "settype" column.
+
+DRY RUN BY DEFAULT.
+
+Issue types are a second taxonomy alongside labels: single-valued, org-level, and
+on Macaulay2 they are Bug, Feature and Task.  They were splitting this corpus in
+half before anyone noticed -- 93 open issues carried the type "Feature" and 130
+others carried the "bug" or "feature request" *label*, with no overlap at all.
+
+Derived, not recorded, exactly as bin/apply-labels is: the "type" column holds
+what GitHub had at the last bin/init-issues, so a row whose type is already right
+produces nothing and a type changed by hand is respected on the next refresh.
+
+Retyping an issue that already has one is expected here rather than exceptional.
+All 93 existing assignments were made in a single pass on 2025-05-13 under a
+two-way reading -- everything that was not a defect became a Feature -- so a
+C++ template reorganisation (#9) and an internal caching inconsistency (#252) are
+both currently filed as "a request, idea, or new functionality".  Task is what
+those want, and it had never been used.
+
+    ./bin/apply-types                  # show the plan
+    ./bin/apply-types --apply          # do it
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+import project
+
+TYPES_QUERY = """
+query($owner:String!, $name:String!) {
+  repository(owner:$owner, name:$name) {
+    issueTypes(first:20) { nodes { id name isEnabled } }
+  }
+}
+"""
+
+ISSUE_QUERY = """
+query($owner:String!, $name:String!, $number:Int!) {
+  repository(owner:$owner, name:$name) {
+    issue(number:$number) { id number state issueType { name } }
+  }
+}
+"""
+
+SET_TYPE = """
+mutation($id:ID!, $type:ID) {
+  updateIssue(input:{id:$id, issueTypeId:$type}) {
+    issue { number issueType { name } }
+  }
+}
+"""
+
+
+def repo_types():
+    """name -> node id, for the types the repository has enabled."""
+    data = project.gh(TYPES_QUERY, owner=project.ORG, name=project.REPO)
+    return {n["name"]: n["id"]
+            for n in data["data"]["repository"]["issueTypes"]["nodes"]
+            if n["isEnabled"]}
+
+
+def plan(rows, before=None, only=None):
+    out = []
+    for r in rows:
+        n = int(r["issue"])
+        if only and n not in only:
+            continue
+        if before and r["created"] >= before:
+            continue
+        want = r.get("settype", "")
+        if not want or want == r.get("type", ""):
+            continue
+        out.append((r, r.get("type", "") or "(none)", want))
+    return out
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--apply", action="store_true",
+                   help="actually set types (default: dry run)")
+    p.add_argument("--before", metavar="YYYY-MM-DD",
+                   help="only issues created before this date")
+    p.add_argument("--only", type=int, nargs="*", metavar="N")
+    args = p.parse_args()
+
+    rows = issuestsv.require(issuestsv.read())
+    work = plan(rows, args.before, set(args.only or []))
+    if not work:
+        print("nothing to do -- no row has a settype differing from GitHub's")
+        return
+
+    known = repo_types()
+    missing = sorted({w for _, _, w in work if w not in known})
+    if missing:
+        raise SystemExit(
+            "not an enabled issue type on %s/%s: %s\n\nEnabled:\n  %s"
+            % (project.ORG, project.REPO, ", ".join(repr(m) for m in missing),
+               "\n  ".join(sorted(known))))
+
+    changes = sum(1 for _, had, _ in work if had != "(none)")
+    for r, had, want in work:
+        print("#%-6s %-10s -> %-8s  %s"
+              % (r["issue"], had, want, r["note"][:44]))
+    print("\n%d issue(s): %d newly typed, %d retyped"
+          % (len(work), len(work) - changes, changes))
+    if not args.apply:
+        print("dry run -- rerun with --apply")
+        return
+
+    for r, _, want in work:
+        number = int(r["issue"])
+        issue = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
+                           number=number)["data"]["repository"]["issue"]
+        if issue is None:
+            print("#%d: no such issue, skipped" % number, file=sys.stderr)
+            continue
+        if issue["state"] != "OPEN":
+            print("#%d: closed since the last fetch, skipped" % number,
+                  file=sys.stderr)
+            continue
+        project.gh(SET_TYPE, id=issue["id"], type=known[want])
+        print("#%d -> %s" % (number, want))
+
+    print("\nRun bin/init-issues to pull the new types back into the catalog.")
+
+
+if __name__ == "__main__":
+    main()

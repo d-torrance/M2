@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""Write the human columns of one row, with the validation issues.py enforces.
+
+Editing issues.tsv in an editor works and stays supported.  This exists because a
+897-row TSV is a bad place to land on the right line by hand, and because a typo in
+"verdict" or a backwards "dup" should be refused at the moment it is typed rather
+than at the moment bin/close-issues acts on it.
+
+    bin/set-verdict 62 --verdict stands --add Interpreter,bug \\
+        --note "toList instance fixed by 8c4655f (#2433); reverse/drop/join still bare"
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("issue", type=int)
+    p.add_argument("--verdict", choices=issuestsv.VERDICTS)
+    p.add_argument("--action", choices=issuestsv.ACTIONS)
+    p.add_argument("--dup", help="the OLDER issue this duplicates")
+    p.add_argument("--type", choices=[t for t in issuestsv.TYPES if t],
+                   help="GitHub issue type: Bug, Feature or Task")
+    p.add_argument("--add", help="labels to add, comma separated")
+    p.add_argument("--rm", help="labels to remove, comma separated")
+    p.add_argument("--note", help="one line, internal shorthand")
+    args = p.parse_args()
+
+    rows = issuestsv.require(issuestsv.read())
+    index = issuestsv.by_number(rows)
+    row = index.get(args.issue)
+    if row is None:
+        raise SystemExit("#%d is not a row in issues.tsv" % args.issue)
+
+    for field, value in (("verdict", args.verdict), ("action", args.action),
+                         ("dup", args.dup), ("settype", args.type),
+                         ("addlabels", args.add),
+                         ("rmlabels", args.rm), ("note", args.note)):
+        if value is not None:
+            row[field] = value
+
+    issuestsv.write(rows)          # validates verdict, action and dup direction
+    print("#%(issue)s  %(verdict)s  %(action)s  type=%(type)s->%(settype)s  "
+          "dup=%(dup)s  +%(addlabels)s  -%(rmlabels)s\n  %(note)s" % row)
+
+
+if __name__ == "__main__":
+    main()

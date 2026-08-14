@@ -145,6 +145,14 @@ PR_ONLY = {
 # genuinely are neither, so this is not a requirement that one be present.
 EXCLUSIVE = [{"bug", "feature request"}]
 
+# Superseded by GitHub issue types (Bug / Feature / Task), which say the same
+# thing, single-valued, and which Macaulay2 has enabled.  The two vocabularies had
+# split the corpus cleanly in half -- 93 issues typed, 130 labelled, no overlap --
+# so the labels are no longer proposed and are dropped as rows are triaged.  Not
+# in PR_ONLY: they are legal on an issue, just not what we write any more, so
+# check_labels warns rather than refusing.
+SUPERSEDED_BY_TYPE = {"bug": "Bug", "feature request": "Feature"}
+
 REPO_URL = "https://github.com/%s/%s" % (ORG, REPO)
 
 # Where a reader can actually see the catalog.  It is not in Macaulay2/M2 yet, so

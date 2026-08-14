@@ -13,7 +13,9 @@ finished. This one goes through the tracker, answering three questions per issue
 
 1. **Is it still an issue?** If not, close it.
 2. **Is it a duplicate?** If so, close the newer and cross-reference the older.
-3. **Does it have the right labels?** If not, fix them.
+3. **Does it have the right labels?** If not, fix them — and its
+   [issue type](#types-not-the-bug-and-feature-request-labels), which turned out to be
+   half the answer to that question.
 
 `issues.tsv` is the output, plus the labels applied and the issues closed. As before,
 **nothing here modifies the Macaulay2 sources.** Acting on a verdict — writing the fix,
@@ -61,16 +63,16 @@ make `bin/apply-labels --apply` self-service — see
 
 ## `issues.tsv` is the source of truth
 
-Tab-separated, one row per open issue, keyed on the issue number. Fourteen columns.
+Tab-separated, one row per open issue, keyed on the issue number. Sixteen columns.
 
 | column | filled by |
 | --- | --- |
-| `issue`, `created`, `updated`, `author`, `comments`, `labels` | `bin/init-issues`, from the cache |
+| `issue`, `created`, `updated`, `author`, `comments`, `type`, `labels` | `bin/init-issues`, from the cache |
 | `repro` | `bin/extract-repros` |
 | `run` | `bin/run-issue-repros` |
-| `verdict`, `dup`, `addlabels`, `rmlabels`, `action`, `note` | you |
+| `verdict`, `dup`, `settype`, `addlabels`, `rmlabels`, `action`, `note` | you |
 
-Columns 1–8 are machine-generated and rewritten freely; columns 9–14 are yours and survive
+Columns 1–9 are machine-generated and rewritten freely; columns 10–16 are yours and survive
 regeneration. `bin/init-issues` merges on `issue`, so re-running it never clobbers a
 verdict you typed.
 
@@ -157,6 +159,48 @@ Test against `/usr/bin/M2`, which is a clean development build. The in-tree buil
 prints anything else — see
 [A build tree in mid-build is not a test platform](README-bugs-directory.md#a-build-tree-in-mid-build-is-not-a-test-platform-and-the-tell-is-a-tmp),
 which is the same mistake wearing a different hat.
+
+## Types, not the `bug` and `feature request` labels
+
+Macaulay2 has GitHub **issue types** enabled -- `Bug`, `Feature`, `Task` -- and they
+are a second taxonomy running alongside labels: single-valued, org-level, and shown
+next to the title rather than in the label row.  They were quietly splitting this
+corpus in half.  93 open issues carried the type `Feature`, 130 others carried the
+`bug` or `feature request` **label**, and the two sets did not overlap by a single
+issue.  Two vocabularies for one distinction, each holding part of the answer.
+
+The types win.  They are single-valued, which is what `project.EXCLUSIVE` was
+faking for those two labels anyway, and the labels turn out to have almost no
+history to lose: `feature request` has never been on a closed issue, and `bug` on
+only eleven.
+
+| | count | what happens |
+| --- | ---: | --- |
+| no type, no label | 674 | set a type |
+| no type, carries `bug` or `feature request` | 130 | set the type, drop the label |
+| typed `Feature` already | 93 | **re-read** -- see below |
+| | 897 | |
+
+**All three types get used, Task included.**  A great deal of this tracker is
+neither a defect nor a request for functionality: internal refactors, build and
+packaging chores, test-suite work, documentation cleanups.  The 93 existing
+assignments were all made in one pass on 2025-05-13 under a two-way reading --
+anything that was not a defect became a `Feature` -- so [#9](https://github.com/Macaulay2/M2/issues/9),
+a C++ template reorganisation, is currently filed as "a request, idea, or new
+functionality", and so is [#62](https://github.com/Macaulay2/M2/issues/62), which
+silently accepts `reverse Matrix := ...` and then errors when you use it.  Those
+are a `Task` and a `Bug`.  So the 93 are re-read rather than skipped.
+
+`bin/apply-types` sets the type; `settype` in the catalog holds the proposal and
+`type` holds what GitHub has, so the work is derived by difference exactly as
+`bin/apply-labels` derives its own.  Neither label is proposed any more --
+`project.SUPERSEDED_BY_TYPE` names them, and `bin/apply-labels` says so if one ever
+turns up in `addlabels`.
+
+**The label definitions stay in the repository until the sweep ends.**  Deleting
+`bug` now would strip it from all 88 carriers at once, including the ones nothing
+has looked at yet.  It comes off one issue at a time, through `rmlabels`, and the
+label itself goes only when no open issue carries it.
 
 ## Rules carried over
 

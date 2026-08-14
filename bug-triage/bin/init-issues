@@ -63,14 +63,17 @@ def main():
             "updated": (i.get("updated_at") or "")[:10],
             "author": i.get("author") or "",
             "comments": str(i.get("comments") or 0),
+            "type": i.get("type") or "",
             "labels": ",".join(sorted(i.get("labels") or [])),
             # repro and run are owned by bin/extract-repros and
             # bin/run-issue-repros; preserve whatever they recorded.
-            "repro": old["repro"] if old else "",
-            "run": old["run"] if old else "",
+            "repro": old.get("repro", "") if old else "",
+            "run": old.get("run", "") if old else "",
         }
+        # .get, not [], so adding a column to the schema does not fail the merge
+        # against every row already on disk -- which is how "settype" arrived.
         for c in issuestsv.HUMAN:
-            row[c] = old[c] if old else ""
+            row[c] = old.get(c, "") if old else ""
 
         if old is None:
             added += 1

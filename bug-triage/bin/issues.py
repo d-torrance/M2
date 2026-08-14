@@ -17,11 +17,11 @@ import os
 import re
 
 # Machine-generated columns, rewritten freely by the tools from cache/issues.json.
-GENERATED = ["issue", "created", "updated", "author", "comments", "labels",
-             "repro", "run"]
+GENERATED = ["issue", "created", "updated", "author", "comments", "type",
+             "labels", "repro", "run"]
 
 # Human columns, never overwritten once non-empty.
-HUMAN = ["verdict", "dup", "addlabels", "rmlabels", "action", "note"]
+HUMAN = ["verdict", "dup", "settype", "addlabels", "rmlabels", "action", "note"]
 
 COLUMNS = GENERATED + HUMAN
 
@@ -42,6 +42,29 @@ VERDICTS = [
 # What gets done about the verdict, which is a separate decision and not ours to
 # infer: "fixed" is a finding, "close" is an action, and the second needs a human.
 ACTIONS = ["", "close", "comment", "label-only", "keep"]
+
+# GitHub issue types: single-valued, org-level, and a second taxonomy running
+# alongside labels.  Macaulay2 has three enabled, and the split was doing real
+# damage before anyone noticed it: 93 open issues carried the type "Feature" and
+# 130 others carried the "bug" or "feature request" *label*, with no overlap at
+# all -- two vocabularies for one distinction, each holding half the corpus.
+#
+# The types win, on the maintainer's call.  They are single-valued, which is what
+# project.EXCLUSIVE was faking for "bug" and "feature request" anyway, and the
+# labels turn out to carry almost no history to lose: "feature request" has never
+# been on a closed issue and "bug" on only eleven.
+#
+# All three get used, including Task.  A great deal of this corpus is neither a
+# defect nor a request -- #9 is a C++ template reorganisation, and there are build
+# chores and test-suite cleanups by the dozen -- and a rule of "not a Bug, so a
+# Feature" is exactly how the existing 93 came to describe #9 as "a request, idea,
+# or new functionality".
+TYPES = [
+    "",         # untyped: nobody has classified it, which is honest
+    "Bug",      # M2 does the wrong thing
+    "Feature",  # a request for functionality M2 does not have
+    "Task",     # work on the project that is neither -- refactors, chores, docs
+]
 
 # Verdicts bin/close-issues will act on at all.  A verdict outside this set can
 # never produce a close, however the "action" column is filled in.
@@ -114,6 +137,10 @@ def write(rows, path=TSV):
             raise ValueError("unknown verdict %r on #%s" % (r.get("verdict"), n))
         if r.get("action", "") not in ACTIONS:
             raise ValueError("unknown action %r on #%s" % (r.get("action"), n))
+        if r.get("settype", "") not in TYPES:
+            raise ValueError("unknown issue type %r on #%s -- one of %s"
+                             % (r.get("settype"), n,
+                                ", ".join(repr(t) for t in TYPES if t)))
         check_dup(r)
 
     tmp = path + ".tmp"

@@ -124,10 +124,28 @@ HPC = _rx(r"\bhigh[- ]performance\b|\bMPI\b|\bOpenMP\b|\bGPU\b|\bcluster\b")
 INFRASTRUCTURE = _rx(r"\bgithub actions?\b|\bworkflow\b|\b\.github/\b|"
                      r"\bCI\b|\bappveyor\b|\btravis\b|\bdocker\b")
 
+# --------------------------------------------------- issue types, not labels
+#
+# Macaulay2 classifies Bug / Feature / Task through GitHub issue types now, not
+# through the "bug" and "feature request" labels, so these three feed the
+# "settype" column and the two labels are never proposed.  Same three tiers apply:
+# this is a prompt for reading, and Bug in particular scored 0.14 precision as a
+# label rule because every issue in the corpus contains the word "error".
 FEATURE = _rx(r"\bfeature request\b|\bit would be (nice|good|useful)\b|"
               r"\bwould be nice\b|\bwish ?list\b|\bproposed feature\b|"
               r"\bplease add\b|\bshould (be able to|support|have)\b|"
               r"\bcould we\b|\bnice to have\b|\brequest for\b")
+
+# Task: work on the project that is neither a defect nor a request for
+# functionality.  Refactors, build and packaging chores, test-suite work, CI,
+# documentation cleanups.  Never guessed from a body alone -- these read exactly
+# like features unless you know the subject is M2's own machinery, which is why
+# the existing 93 typed issues put a C++ template reorganisation under "a
+# request, idea, or new functionality".
+TASK = _rx(r"\breorganiz|\brefactor|\bclean ?up\b|\brewrite\b|\bmove .* to\b|"
+           r"\btest ?suite\b|\bregression test\b|\bpackaging\b|"
+           r"\bgithub actions?\b|\bworkflow\b|\bmaintain|\btechnical debt\b|"
+           r"\bshould be (merged|split|renamed|removed|deleted)\b")
 
 # Neither "error" nor "fails" survives here.  Both appear in almost every issue in
 # the corpus, including every feature request, so a rule containing them proposes
@@ -188,14 +206,6 @@ def suggest(issue, repro):
     hit("high-performance computing", 2, HPC)
     hit("Infrastructure", 2, INFRASTRUCTURE)
 
-    # bug vs feature request is the one exclusion project.EXCLUSIVE enforces, so
-    # never propose both: if the body asks for something, that reading wins, since
-    # a feature request also describes what M2 currently does not do and so trips
-    # every "fails"/"should" pattern the bug rule looks for.
-    if FEATURE.search(text):
-        out.append(("feature request", 2, "asks for something M2 does not do"))
-    elif BUG.search(text):
-        out.append(("bug", 2, "reports M2 doing the wrong thing"))
 
     # Dedupe, keeping the first (lowest-tier, most specific) reason for each.
     seen, uniq = set(), []
@@ -204,3 +214,28 @@ def suggest(issue, repro):
             seen.add(label)
             uniq.append((label, tier, why))
     return uniq
+
+
+def suggest_type(issue):
+    """(type, why) for one cached issue record, or (None, None).
+
+    Single-valued, so this picks one, and the order is the judgement.  Bug first:
+    a report that M2 does the wrong thing is a Bug even when it also asks for
+    something.  Task before Feature, because work on M2's own machinery describes
+    what M2 does not do yet and so trips every Feature pattern -- that ordering is
+    the whole difference between filing #9 as a Task and filing it, as the tracker
+    currently does, as "a request, idea, or new functionality".
+
+    Tier 2 in every case: proposed, never applied without reading.
+    """
+    text = (issue["title"] or "") + "\n" + (issue["body"] or "")[:20000]
+    m = BUG.search(text)
+    if m:
+        return "Bug", "reports M2 doing the wrong thing (%r)" % m.group(0).strip()
+    m = TASK.search(text)
+    if m:
+        return "Task", "work on M2 itself (%r)" % m.group(0).strip()
+    m = FEATURE.search(text)
+    if m:
+        return "Feature", "asks for something M2 does not do (%r)" % m.group(0).strip()
+    return None, None

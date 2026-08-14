@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+"""Everything needed to triage one issue, on one screen, from the caches.
+
+Costs no API calls.  The whole point is that the decision on a row should be made
+against the body, the replies, what a rerun did, and what else in the tracker looks
+like it -- all at once.  Fetching those one at a time is how a row gets settled on
+the body alone, which is how a duplicate gets missed.
+
+    bin/show 94              # one issue
+    bin/show --batch 10      # the ten oldest untriaged, in order
+"""
+
+import argparse
+import json
+import os
+import sys
+import textwrap
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+import labels as labelrules
+import project
+from importlib.machinery import SourceFileLoader
+import importlib.util
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _load(name, filename):
+    loader = SourceFileLoader(name, os.path.join(HERE, filename))
+    spec = importlib.util.spec_from_loader(name, loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+fetchcomments = _load("fetchcomments", "fetch-comments")
+
+RULE = "=" * 78
+
+
+def wrap(text, indent="  ", width=76):
+    out = []
+    for para in (text or "").split("\n"):
+        if not para.strip():
+            out.append("")
+        elif para.startswith(("    ", "\t", "|", "o", "i")) or "```" in para:
+            out.append(indent + para)      # code and transcript: never rewrapped
+        else:
+            out.extend(textwrap.wrap(para, width, initial_indent=indent,
+                                     subsequent_indent=indent) or [""])
+    return "\n".join(out)
+
+
+def dup_candidates(number, path):
+    out = []
+    if not os.path.exists(path):
+        return out
+    with open(path, encoding="utf-8") as f:
+        f.readline()
+        for line in f:
+            c = line.rstrip("\n").split("\t")
+            if len(c) < 8:
+                continue
+            if c[1] == "#%d" % number or c[3] == "#%d" % number:
+                other, otitle = ((c[3], c[7]) if c[1] == "#%d" % number
+                                 else (c[1], c[6]))
+                out.append((float(c[0]), other, c[5], otitle))
+    return sorted(out, reverse=True)
+
+
+def show(number, cache, comments, rows, args):
+    issue = cache.get(number)
+    row = rows.get(number, {})
+    if issue is None:
+        print("#%d is not an open issue in the cache" % number)
+        return
+
+    print("\n" + RULE)
+    print("#%-6d %s" % (number, issue["title"]))
+    print(RULE)
+    print("  %s by %-16s  %d comment(s)   %s/issues/%d"
+          % (issue["created_at"][:10], issue["author"], issue["comments"],
+             project.REPO_URL, number))
+    print("  type:   %-12s labels: %s"
+          % (issue.get("type") or "(none)", ", ".join(issue["labels"]) or "(none)"))
+    print("  repro:  %-12s run: %s" % (row.get("repro", "?"), row.get("run") or "-"))
+
+    print("\n-- body " + "-" * 70)
+    print(wrap(issue["body"] or "(empty)"))
+
+    for c in comments.get(number, []):
+        print("\n-- %s, %s " % (c["author"], c["created_at"][:10]) + "-" * 50)
+        print(wrap(c["body"]))
+
+    d = os.path.join(issuestsv.REPROS, str(number))
+    log = os.path.join(issuestsv.CACHE, "runlog", "%d.log" % number)
+    for name, path in (("expected", os.path.join(d, "expected.txt")),
+                       ("replay", os.path.join(d, "replayed.txt"))):
+        if os.path.exists(path):
+            text = open(path, encoding="utf-8").read().strip()
+            if text:
+                print("\n-- %s " % name + "-" * 66)
+                print(wrap(text[:args.chars]))
+    if os.path.exists(log) and args.log:
+        text = open(log, encoding="utf-8", errors="replace").read().strip()
+        if text:
+            print("\n-- run log " + "-" * 66)
+            print(wrap(text[:args.chars]))
+
+    meta = {}
+    if os.path.exists(os.path.join(d, "meta.json")):
+        meta = json.load(open(os.path.join(d, "meta.json"), encoding="utf-8"))
+    if meta.get("doubtful"):
+        print("\n-- the extractor could not place these lines " + "-" * 32)
+        for l in meta["doubtful"][:10]:
+            print("  ?? " + l[:74])
+    if meta.get("hazards"):
+        print("\n  hazards: %s" % ", ".join(meta["hazards"]))
+
+    want, why = labelrules.suggest_type(issue)
+    if want and want != (issue.get("type") or ""):
+        print("\n  suggested type: %-8s %s" % (want, why))
+
+    sug = [(l, t, w) for l, t, w in labelrules.suggest(issue, row.get("repro", ""))
+           if l not in (issue["labels"] or []) and l not in project.JUDGMENT_ONLY]
+    if sug:
+        print("\n-- suggested labels " + "-" * 56)
+        for l, t, w in sug:
+            print("  tier %d  %-28s %s" % (t, l, w))
+
+    cands = dup_candidates(number,
+                           os.path.join(issuestsv.CACHE, "dup-pairs.tsv"))
+    if cands:
+        print("\n-- issues that share vocabulary " + "-" * 44)
+        for s, other, terms, title in cands[:6]:
+            print("  %.2f  %-7s %-46.46s [%s]" % (s, other, title, terms))
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("numbers", type=int, nargs="*")
+    p.add_argument("--batch", type=int, metavar="N",
+                   help="the N oldest untriaged issues instead")
+    p.add_argument("--before", metavar="YYYY-MM-DD", default="2020-01-01",
+                   help="cohort boundary for --batch (default: 2020-01-01)")
+    p.add_argument("--chars", type=int, default=3000)
+    p.add_argument("--log", action="store_true", help="include the run log")
+    args = p.parse_args()
+
+    with open(os.path.join(issuestsv.CACHE, "issues.json"), encoding="utf-8") as f:
+        cache = {i["number"]: i for i in json.load(f)
+                 if i["state"] == "open" and not i["pull_request"]}
+    comments = fetchcomments.load()
+    rows = issuestsv.by_number(issuestsv.require(issuestsv.read()))
+
+    numbers = args.numbers
+    if args.batch:
+        numbers = [int(r["issue"]) for r in issuestsv.read()
+                   if r["verdict"] == "todo" and r["created"] < args.before][:args.batch]
+        print("batch: %s" % " ".join("#%d" % n for n in numbers))
+    for n in numbers:
+        show(n, cache, comments, rows, args)
+
+
+if __name__ == "__main__":
+    main()
