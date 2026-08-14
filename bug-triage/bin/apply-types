@@ -103,6 +103,20 @@ def main():
             % (project.ORG, project.REPO, ", ".join(repr(m) for m in missing),
                "\n  ".join(sorted(known))))
 
+    stale = []
+    for r, _, want in work:
+        have = set(issuestsv.labels_of(r, "labels"))
+        going = set(issuestsv.labels_of(r, "rmlabels"))
+        left = sorted((have & set(project.SUPERSEDED_BY_TYPE)) - going)
+        if left:
+            stale.append((r["issue"], left))
+    if stale:
+        print("warning: these are being typed but keep the label the type "
+              "replaces --\n         put it in rmlabels and run bin/apply-labels:")
+        for n, left in stale:
+            print("           #%-6s %s" % (n, ", ".join(left)))
+        print()
+
     changes = sum(1 for _, had, _ in work if had != "(none)")
     for r, had, want in work:
         print("#%-6s %-10s -> %-8s  %s"

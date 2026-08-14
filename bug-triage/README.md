@@ -56,8 +56,24 @@ author. So:
   describes. A batch of six proposed closures presented as one plan is not six decisions,
   it is one decision about a list.
 
-Labels are the exception in the other direction: they notify nobody and they are trivially
-reversible, so they are decided while reading and applied a batch at a time. That does not
+**Read the labels an issue already has, not only the ones it lacks.**  The question is
+"does it have appropriate labels", and a label that is wrong misleads harder than a
+missing one: it tells a reader the issue has been classified.  #58 carried
+`under discussion`, which sounds like a live conversation and turned out to have been
+applied in 2020 as a swap for a now-deleted `just do` label, seven years after the last
+comment on the thread.  Nothing in the body would ever have said so -- the timeline did.
+An existing label that should come off goes in `rmlabels` and is **proposed for approval
+like a close is**, because removing somebody else's label is a judgement about their
+judgement.
+
+The one removal that is not a judgement call is `bug` and `feature request` on an issue
+being given the matching type; that is bookkeeping, and `bin/set-verdict` and
+`bin/apply-types` both warn when a row is typed and keeps the label anyway.  #44 went in
+as `type=Bug` still carrying `bug`, and neither `apply-types` nor `apply-labels` would
+have noticed on its own: each sees only its own half.
+
+Labels are otherwise the exception in the other direction: they notify nobody and they are
+trivially reversible, so they are decided while reading and applied a batch at a time. That does not
 make `bin/apply-labels --apply` self-service — see
 [`--apply` is not yours to give yourself](README-bugs-directory.md#--apply-is-not-yours-to-give-yourself).
 

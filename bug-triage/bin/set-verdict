@@ -16,6 +16,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import issues as issuestsv
+import project
 
 
 def main():
@@ -44,6 +45,21 @@ def main():
                          ("rmlabels", args.rm), ("note", args.note)):
         if value is not None:
             row[field] = value
+
+    # The check that catches the mistake this script exists to make easy: setting a
+    # type and forgetting that the issue still carries the label the type replaces.
+    # #44 went in as type=Bug with the "bug" label left on it, and nothing else in
+    # the pipeline would ever have said so -- apply-types and apply-labels each see
+    # only their own half.
+    have = set(issuestsv.labels_of(row, "labels"))
+    going = set(issuestsv.labels_of(row, "rmlabels"))
+    stale = sorted((have & set(project.SUPERSEDED_BY_TYPE)) - going)
+    if row.get("settype") and stale:
+        print("warning: #%s is typed %s but still carries the label %s.\n"
+              "         That label is what the type replaces -- add --rm %s"
+              % (row["issue"], row["settype"],
+                 ", ".join(repr(l) for l in stale), ",".join(stale)),
+              file=sys.stderr)
 
     issuestsv.write(rows)          # validates verdict, action and dup direction
     print("#%(issue)s  %(verdict)s  %(action)s  type=%(type)s->%(settype)s  "
