@@ -90,6 +90,31 @@ run without a hand-written comment for the issue, because a title changing under
 with no reason given is worse than a stale title.  Retitling needs the maintainer's
 go-ahead, like a close does.
 
+### A measurement is only evidence if the comparison is valid
+
+Three times in this sweep I have produced a number, drawn a conclusion, and had the
+conclusion turn out to rest on a comparison that did not hold.  The number was right every
+time; the control was not.
+
+- **#569** — local-order reduction takes 15s where the same element under a *global* order
+  takes under a second, which reads as a regression until you remember a local order is not
+  a well-ordering.  `1 > x > x^2 > ...` descends forever, so reduction there relies on
+  Mora's ecart restriction to terminate at all and is expected to be dear.  The previous
+  project had already settled this on `bugs/mike/1-local-bug.m2` as expression swell,
+  verdict `wontfix`.  See
+  [A slow local normal form can be expression swell](README-bugs-directory.md#a-slow-local-normal-form-can-be-expression-swell-not-a-defect).
+- **#330** — the rank-3 Segre pushforward disagreeing with `segre F` looks like a defect
+  until the rank-2 case is recognised as the coincidence, and until you notice `segre`
+  carries a dual of its own.
+- **#527** — `DegreeLimit=>3` returning `ideal()` looks like a broken option until the same
+  map, graded so it is homogeneous, obeys the documentation exactly.
+
+The habit that would have caught all three: before reporting a gap, state what the two sides
+have in common and check that the *only* difference is the one being blamed.  A global order
+and a local order do not have termination in common.  A graded map and an ungraded one do
+not have a shared notion of degree.  Where a control cannot be constructed, say the
+measurement is unexplained rather than calling it a finding.
+
 ### Ask of every row: would a comment materially improve it?
 
 A fourth question, alongside the three the sweep is named for, and it applies to issues
