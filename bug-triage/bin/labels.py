@@ -101,9 +101,13 @@ PACKAGES = {
     "Linear Algebra": _rx(r"\bLU ?decomposition\b|\beigenvalues?\b|"
                           r"\bsingular values?\b|\bmutable ?matrix\b|"
                           r"\brawLinAlg\w*\b|\bsolve\s*\(\s*[A-Za-z]"),
+    # Not a bare "singular": it fired on "singular locus" and "singular curve"
+    # in #158, which is about isNormal and has nothing to do with the computer
+    # algebra system.  Require the capitalised program name, or a context word.
     "Interfaces": _rx(r"\bpolymake\b|\b4ti2\b|\btopcom\b|\bnormaliz\b|"
-                      r"\bmagma\b|\bsingular\b|\bmaple\b|\bcohomCalg\b|"
-                      r"\bphcpack\b|\bbertini\b|\bmsolve\b|\bnauty\b"),
+                      r"\bmagma\b|\bmaple\b|\bcohomCalg\b|\bphcpack\b|"
+                      r"\bbertini\b|\bmsolve\b|\bnauty\b|"
+                      r"\bSingular\b(?! (locus|curve|point|values?|matrix))"),
 }
 
 # ---------------------------------------------------------------- tier 2
