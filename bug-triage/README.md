@@ -21,6 +21,62 @@ finished. This one goes through the tracker, answering three questions per issue
 **nothing here modifies the Macaulay2 sources.** Acting on a verdict — writing the fix,
 promoting a reproducer into `M2/Macaulay2/tests/` — is separate work in a separate branch.
 
+## Nothing public happens without Doug saying so, first, every time
+
+**Every action visible outside this working copy requires his explicit authorization in
+advance.** Not a general go-ahead for the project, not a workflow step agreed earlier, not
+approval of a neighbouring action — an instruction, for that action, before it runs.
+
+That covers all of these, with no "safe" tier:
+
+| action | command |
+| --- | --- |
+| pushing the branch | `git push personal bug-triage` |
+| posting a comment | `bin/publish-verdicts --apply` |
+| closing an issue | `bin/publish-verdicts --apply` |
+| setting an issue type | `bin/apply-types --apply` |
+| adding or removing a label | `bin/apply-labels --apply` |
+| retitling an issue | `bin/retitle --apply` |
+
+Types and labels are on that list deliberately. An earlier draft of this file reasoned that
+labels notify nobody and were therefore the safest write-back, fit for larger batches. That
+is not the standard. They appear on someone else's issue under Doug's account, and whether a
+change is *quiet* has nothing to do with whether it is *his to authorize*.
+
+**Committing locally is free. Everything in the table above is not.** Work as far as the
+commit, then stop and say what is queued.
+
+### The ways this has actually gone wrong
+
+Four times, and never through ignorance of the rule — each time through a different seam:
+
+- **Momentum.** Having just settled the rows, publishing them felt like the same action. It
+  is not; settling a verdict and publishing it are different decisions.
+- **A checkpoint read as a licence.** *"Before we push, let's finish this file"* names
+  something to do first and implies coming back. It is a stronger signal to stop than
+  silence would be, not a conditional approval that unlocks.
+- **A kind mistaken for an instance.** Agreeing that comments are part of the workflow is
+  not agreeing to post any particular comment. Four were drafted, two were withdrawn once he
+  asked what they added — so the per-item gate is not a formality, it is where the work
+  gets better.
+- **A `&&`.** `git commit -m "..." && git push personal bug-triage` ran as one call, so the
+  push never surfaced as a decision at all. **Never chain a push onto another command.**
+  Give it its own invocation so it is always visible as a choice.
+
+### Why the push is public too, and not undoable
+
+It is tempting to file `git push` under housekeeping. It is not. `project.CATALOG_URL` points
+every published comment's provenance line at
+`d-torrance/M2/blob/bug-triage/bug-triage/issues.tsv`, so once comments are live the branch is
+the cited source of truth for text on the tracker — and a force-push to unwind it breaks the
+links in comments that are already out. **The push cannot be quietly taken back**, which is
+exactly why it needs to be asked for rather than assumed.
+
+Scope, finally: authorization is for the batch and the runs named, at that moment. It does
+not carry to rows settled later in the same session, and approval of a GitHub-side publish
+says nothing about the git remote. See
+[`--apply` is not yours to give yourself](README-bugs-directory.md#--apply-is-not-yours-to-give-yourself).
+
 ## Quick start
 
 ```sh
@@ -155,10 +211,12 @@ being given the matching type; that is bookkeeping, and `bin/set-verdict` and
 as `type=Bug` still carrying `bug`, and neither `apply-types` nor `apply-labels` would
 have noticed on its own: each sees only its own half.
 
-Labels are otherwise the exception in the other direction: they notify nobody and they are
-trivially reversible, so they are decided while reading and applied a batch at a time. That does not
-make `bin/apply-labels --apply` self-service — see
-[`--apply` is not yours to give yourself](README-bugs-directory.md#--apply-is-not-yours-to-give-yourself).
+Label *additions* are otherwise decided while reading rather than brought over one at a time,
+and they accumulate in `addlabels` as a batch. **That is about how the decision is reached, not
+about whether it may be published.** Applying them is
+[a public action like any other](#nothing-public-happens-without-doug-saying-so-first-every-time)
+and needs its own authorization; that they notify nobody and are trivially reversible does not
+enter into it.
 
 ## `issues.tsv` is the source of truth
 
@@ -408,11 +466,14 @@ more."*
 
 ## Close last: the write-backs are order-dependent
 
-The end-of-batch sequence is
+Once Doug has
+[authorized the batch](#nothing-public-happens-without-doug-saying-so-first-every-time) — each
+of these being a public action he has to ask for — the sequence is
 
     bin/apply-types  --apply
     bin/apply-labels --apply
     bin/publish-verdicts --only <numbers> --apply     # closes; must be last
+    git push personal bug-triage                      # separately, and only if asked
 
 and the order is not cosmetic. Both `apply-types` and `apply-labels` skip an issue that is
 not `OPEN`:
