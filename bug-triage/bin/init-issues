@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Build (or refresh) issues.tsv from the cache written by bin/fetch-issues.
+
+Re-running is safe: rows are keyed on the issue number, and the human columns of an
+existing row are carried over untouched.  Only the machine-generated metadata is
+recomputed, and rows for newly filed issues are added.
+
+Unlike bin/init-catalog, the far side of this merge moves on its own.  A file in
+files/ only stopped existing if we deleted it; an issue stops being open because
+somebody closed it, and over a project measured in weeks that will happen
+constantly.  A row whose issue closed under us is *reported*, not just kept: if we
+had already written a verdict for it, that verdict was about a live issue and may
+no longer be the right thing to say.  See --report-closed.
+"""
+
+import argparse
+import json
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+
+# Filed by this directory's first project, verified against current M2 and labelled
+# at filing time within the last two weeks.  Seeded settled rather than re-read --
+# the asymmetry (targets yes, queries no) is spelled out in README.md.
+FILED_LABEL = "bugs directory"
+FILED_NOTE = "filed under #36 by the bugs/ sweep; verified and labelled at filing"
+
+
+def load_cache():
+    path = os.path.join(issuestsv.CACHE, "issues.json")
+    if not os.path.exists(path):
+        raise SystemExit("no %s -- run bin/fetch-issues first" % path)
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def open_issues(cache):
+    """Open, and not a pull request.  PRs are a different corpus with different
+    questions -- a stale PR is a rebase problem, not a bug that got fixed."""
+    return [i for i in cache
+            if i["state"] == "open" and not i["pull_request"]]
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--dry-run", action="store_true",
+                   help="report what would change without writing")
+    args = p.parse_args()
+
+    cache = load_cache()
+    existing = issuestsv.by_number(issuestsv.read())
+    rows = []
+    added = 0
+
+    for i in open_issues(cache):
+        n = i["number"]
+        old = existing.get(n)
+        row = {
+            "issue": str(n),
+            "created": (i.get("created_at") or "")[:10],
+            "updated": (i.get("updated_at") or "")[:10],
+            "author": i.get("author") or "",
+            "comments": str(i.get("comments") or 0),
+            "labels": ",".join(sorted(i.get("labels") or [])),
+            # repro and run are owned by bin/extract-repros and
+            # bin/run-issue-repros; preserve whatever they recorded.
+            "repro": old["repro"] if old else "",
+            "run": old["run"] if old else "",
+        }
+        for c in issuestsv.HUMAN:
+            row[c] = old[c] if old else ""
+
+        if old is None:
+            added += 1
+            if FILED_LABEL in (i.get("labels") or []):
+                row["verdict"] = "stands"
+                row["action"] = "keep"
+                row["note"] = FILED_NOTE
+            else:
+                row["verdict"] = "todo"
+
+        rows.append(row)
+
+    live = {int(r["issue"]) for r in rows}
+    closed = sorted(set(existing) - live)
+    triaged = [n for n in closed if existing[n]["verdict"] not in ("", "todo")]
+
+    if args.dry_run:
+        print("would write %d rows (%d new, %d closed since the last fetch)"
+              % (len(rows), added, len(closed)))
+    else:
+        issuestsv.write(rows)
+        print("wrote %s: %d rows (%d new)"
+              % (issuestsv.TSV, len(rows), added))
+
+    # Dropped, not kept.  This is the opposite of bin/init-catalog's choice, and
+    # deliberately so: there the row was the only record of a deleted file, so
+    # keeping it preserved the work.  Here the issue itself is the record and it
+    # still exists on GitHub -- closed, which is a state this catalog does not
+    # model.  Keeping the row would put an issue in a file whose every consumer
+    # assumes "open", starting with bin/apply-labels.
+    for n in closed:
+        note = existing[n].get("note", "")
+        print("closed since the last fetch, row dropped: #%s (%s)%s"
+              % (n, existing[n]["verdict"] or "todo",
+                 " -- " + note if note else ""),
+              file=sys.stderr)
+    if triaged:
+        print("\n%d of those already carried a verdict: %s\n"
+              "Check git log for issues.tsv before assuming the verdict was ours."
+              % (len(triaged), " ".join("#%d" % n for n in triaged)),
+              file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

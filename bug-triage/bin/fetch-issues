@@ -28,9 +28,15 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import catalog
+import issues as issuestsv
 
 REPO = "Macaulay2/M2"
-KEEP = ["number", "title", "state", "created_at", "closed_at", "html_url"]
+KEEP = ["number", "title", "state", "state_reason", "created_at", "updated_at",
+        "closed_at", "html_url", "comments"]
+
+# Bodies are stored with LF endings only; see issues.lf for why that matters and
+# why both fetchers have to go through the same function.
+lf = issuestsv.lf
 
 
 def fetch():
@@ -58,9 +64,16 @@ def fetch():
         row = {k: i.get(k) for k in KEEP}
         row["pull_request"] = "pull_request" in i
         row["labels"] = [l["name"] for l in i.get("labels", [])]
-        # Generous cap: bin/suggest-issues needs to see a whole file listing to
-        # recognize one, and truncating mid-listing would defeat that check.
-        row["body"] = (i.get("body") or "")[:20000]
+        row["author"] = (i.get("user") or {}).get("login") or ""
+        row["assignees"] = [a["login"] for a in i.get("assignees") or []]
+        row["milestone"] = (i.get("milestone") or {}).get("title") or ""
+        row["title"] = lf(row["title"])
+        # Cap raised from 20000: bin/suggest-issues only needed enough to
+        # recognize a file listing, but bin/extract-repros has to reach the end of
+        # a transcript, and a body cut off mid-transcript yields a reproducer that
+        # stops short of the line the issue is about -- which runs clean, for the
+        # wrong reason.  Two open bodies were already sitting at the old cap.
+        row["body"] = lf(i.get("body"))[:issuestsv.BODY_CAP]
         out.append(row)
     return out
 

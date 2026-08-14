@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+"""Cache every issue comment locally, keyed by issue number.
+
+The rule from the first project is that a duplicate search has to read comment
+text, because the answer is often in a reply rather than in the body -- see
+"`gh search issues` reads comments; the cache cannot, so use both" in
+README-bugs-directory.md.  There the answer was to run `gh search issues` per row,
+because that project was matching 857 *files* against the tracker and the tracker
+was the far side of the comparison.
+
+Here the tracker is both sides, which changes the arithmetic completely.  The
+repo-wide comments endpoint returns every comment on every issue in one paginated
+sweep -- about 17,000 comments in some 170 requests against a 5000/hour budget --
+so fetching it once buys offline comment text for every later duplicate scan, label
+scan and grep, at no further cost.  The search API's 30-requests-a-minute limit
+stops being the constraint it was.
+
+That does not retire `gh search issues`.  It retires it as the *bulk* mechanism.
+The residual case is a term nobody would have guessed from a body -- "Grisu",
+"mpfr_get_str" -- and for that, search still reaches text this cache reproduces
+only if the term was actually written down somewhere we fetched.  Use both.
+
+Comments arrive oldest first within an issue and are stored that way, because a
+duplicate search reads oldest first and the first reply is usually the one that
+says "this is the same as #N".
+"""
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+
+REPO = "Macaulay2/M2"
+KEEP = ["id", "created_at", "updated_at", "html_url"]
+
+
+def issue_number(comment):
+    """Comments name their issue only by URL: .../repos/O/R/issues/1234."""
+    url = comment.get("issue_url") or ""
+    tail = url.rstrip("/").rsplit("/", 1)[-1]
+    return int(tail) if tail.isdigit() else None
+
+
+def fetch():
+    p = subprocess.run(
+        ["gh", "api", "--paginate",
+         "repos/%s/issues/comments?per_page=100" % REPO],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if p.returncode != 0:
+        raise SystemExit("gh api failed:\n" + p.stderr.decode("utf-8", "replace"))
+
+    # --paginate concatenates one JSON array per page, so parse them in sequence.
+    decoder = json.JSONDecoder()
+    text = p.stdout.decode("utf-8", "replace")
+    comments, pos = [], 0
+    while pos < len(text):
+        while pos < len(text) and text[pos].isspace():
+            pos += 1
+        if pos >= len(text):
+            break
+        page, pos = decoder.raw_decode(text, pos)
+        comments.extend(page)
+
+    by_issue = {}
+    dropped = 0
+    for c in comments:
+        n = issue_number(c)
+        if n is None:
+            dropped += 1
+            continue
+        row = {k: c.get(k) for k in KEEP}
+        row["author"] = (c.get("user") or {}).get("login") or ""
+        row["body"] = issuestsv.lf(c.get("body"))[:issuestsv.BODY_CAP]
+        by_issue.setdefault(str(n), []).append(row)
+
+    for rows in by_issue.values():
+        rows.sort(key=lambda r: r["created_at"] or "")
+    return by_issue, len(comments), dropped
+
+
+def load(path=None):
+    """{issue number (int): [comment rows]}, or {} if nobody has fetched yet."""
+    path = path or os.path.join(issuestsv.CACHE, "comments.json")
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding="utf-8") as f:
+        return {int(k): v for k, v in json.load(f).items()}
+
+
+def text_for(comments, number):
+    """All comment text on one issue, oldest first, joined for scanning."""
+    return "\n\n".join(c["body"] for c in comments.get(number, []))
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--refresh", action="store_true",
+                   help="refetch even if the cache already exists")
+    args = p.parse_args()
+
+    path = os.path.join(issuestsv.CACHE, "comments.json")
+    if os.path.exists(path) and not args.refresh:
+        have = load(path)
+        print("%s already has %d comments on %d issues (use --refresh)"
+              % (path, sum(len(v) for v in have.values()), len(have)))
+        return
+
+    by_issue, total, dropped = fetch()
+    os.makedirs(issuestsv.CACHE, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(by_issue, f, indent=1)
+
+    print("wrote %s: %d comments on %d issues%s"
+          % (path, sum(len(v) for v in by_issue.values()), len(by_issue),
+             "" if not dropped else " (%d with no issue_url dropped)" % dropped))
+
+
+if __name__ == "__main__":
+    main()
