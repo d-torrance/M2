@@ -381,7 +381,7 @@ recommendations, not instructions to write the file now.
 **Fixed?** `verdict=fixed`, the commit or PR in `fix`, and `disposition=drop`.
 
 In practice that is the only answer a fixed row gets. `test` names a destination under
-`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across 741 settled rows it has been
+`M2/Macaulay2/tests/normal/` and exists in the vocabulary, but across all 857 rows it has been
 used **zero times**, including on the fourteen `anton/*/RESOLVED/*.m2` reproducers where it looks
 most tempting. Promoting a reproducer is writing code in the Macaulay2 sources, which is not what
 this branch does, and recommending it per-row invites exactly that confusion -- the recommendation
@@ -420,26 +420,27 @@ as `disposition=quarantine` or `goals` and leave the file where it is. Both dire
 
 This section used to predict that most of the 857 would land here, on the grounds that a lot of
 them are about cygwin, xemacs, MPIR, `dumpdata`, and the Debian packaging that used to live in
-`distributions/deb`. **That was wrong, and by a wide margin.** Of the 741 settled:
+`distributions/deb`. **That was wrong, and by a wide margin.** All 857 are settled, and this is
+where they landed:
 
-| verdict | | | at 327 |
-| --- | ---: | ---: | ---: |
-| `fixed` | 363 | 49% | 42% |
-| `open` | 133 | 18% | 27% |
-| `wontfix` | 103 | 14% | 9% |
-| `duplicate` | 70 | 9% | 11% |
-| `obsolete` | 62 | 8% | 11% |
-| `stale-repro` | 10 | 1% | -- |
+| verdict | at 857 | | at 741 | at 327 |
+| --- | ---: | ---: | ---: | ---: |
+| `fixed` | 414 | 48% | 49% | 42% |
+| `wontfix` | 142 | 17% | 14% | 9% |
+| `open` | 131 | 15% | 18% | 27% |
+| `obsolete` | 82 | 10% | 8% | 11% |
+| `duplicate` | 77 | 9% | 9% | 11% |
+| `stale-repro` | 11 | 1% | 1% | -- |
 
-So `obsolete` and `wontfix` together are 22%, not "most", and the largest single outcome by far
+So `obsolete` and `wontfix` together are 27%, not "most", and the largest single outcome by far
 is that the bug was quietly fixed years ago and nobody closed the file.
 
 **The claim that used to sit here -- that the shape had held steady to within a point at every
 count from 167 settled onward, so later buckets were unlikely to move it -- did not survive.** The
-last column above is what it looked like at 327. `fixed` has gained 7 points and `open` has lost 9,
-which is the largest movement in the table and in the direction that matters most, since `open` is
-the column that turns into other people's work. Two identifiable causes, both of them about method
-rather than about the files:
+last two columns are what it looked like at 741 and at 327. Over the whole run `open` lost 12 points
+and `wontfix` gained 8, which is the largest movement in the table and in the direction that matters
+most, since `open` is the column that turns into other people's work. Two identifiable causes, both
+of them about method rather than about the files:
 
 - **Rows that would once have been filed are now being measured first.** `bugs/mike/1-local-bug.m2`
   and `bugs/mike/1-mult-trun` were both written up as filable and both ended `wontfix` after a trace
@@ -459,22 +460,19 @@ done first: of the 704 still `todo` at 167, only 33 mentioned any retired subsys
 all, and of 25 that looked like candidates, 14 held up. The dead-platform material is a real
 seam but a thin one.
 
-One caution on those numbers, weaker than it used to be. They were not a random sample while the
-settled set was `dan/0`, `dan/0.1`, `dan/0.4`–`0.9`, the start of `dan/1` and a deliberate sweep for
-retired subsystems -- `dan/0` being Dan's own highest-priority bucket, which may well be where the
-real bugs that later got fixed are concentrated. At 741 of 857, with `dan`, `anton`, `LAcore`,
-`gfurnish` and the root files complete, the remaining bias is one author: everything left is
-`bugs/mike`, which is 83 reproducers to 33 notes and so likely to move `fixed` and `stale-repro`
-rather than the prose-note verdicts. And `fixed` at 49% is itself a finding about the tree rather
-than about the files: it means the common case is reading a fifteen-year-old report, running it, and
-finding it simply works now.
+The caution that used to sit here -- that these were not a random sample, since the settled set was
+`dan/0` and its neighbours plus a deliberate sweep for retired subsystems -- has expired. All 857
+are settled, so the table is the population rather than an estimate of it, and the sampling worry it
+recorded turned out to be worth about three points. `fixed` at 48% is itself a finding about the
+tree rather than about the files: the common case is reading a fifteen-year-old report, running it,
+and finding it simply works now.
 
 A third caution the `0.4`–`0.9` bucket added: `fixed` is not the same as *fixed on purpose*. Of
 its eleven `fixed` rows only five carry a pointer at all, and two of those settled the file's ask
 as a side effect -- #772 reversed `Tally` and `VirtualTally` while fixing #690, and #3983 got the
 source rpm by rewriting the packaging script. The other six simply drifted into correctness with
 no identifiable commit: an API grew a new spelling, a check stopped firing, a doc node was
-written. Do not read the 49% as a record of anyone responding to these files.
+written. Do not read the 48% as a record of anyone responding to these files.
 
 ## Relationship to [project 46](https://github.com/orgs/Macaulay2/projects/46)
 
@@ -1912,31 +1910,33 @@ produced a wrong sentence in a filed issue. Binding every constructed object to 
 and reusing the name costs nothing and removes the failure mode; building it inline twice looks like
 the same expression and is not.
 
-## Where to start
+## Where it ended
 
-`bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket,
-and the same one `d3ec491953` drew from. **`dan`, `anton`, `LAcore`, `gfurnish` and the root files
-are now all settled.** Of the 857, 741 are settled and **116 are left, every one of them
-`bugs/mike`**:
+`bugs/dan` priority `0` was the place to start -- 118 files, Dan's own highest-priority bucket, and
+the same one `d3ec491953` drew from. It went `dan`, then `anton`, `LAcore`, `gfurnish` and the root
+files, then all of `bugs/mike`, and finally the fourteen wishlist files, which hold many unrelated
+requests each and were split into `asks.tsv` rather than settled whole.
 
-| | |
-| --- | ---: |
-| `mike`, priority `1` | 33 |
-| `mike`, priority `2`–`9` | 25 |
-| `mike`, unnumbered | 58 |
+**All 857 rows and all 191 asks now carry a verdict.** Nothing is `todo`, and no row is left with a
+blank `disposition`: the "parked" class described [above](#the-wishlist-files-are-split-into-asks-and-none-of-them-stays-parked)
+is empty, and every board card is at Backlog, Ready, In progress or Done according to its own row.
 
-"Take one author at a time" was the advice while there were five; there is one now, so the axis
-that remains is priority, and Mike numbered only half his files. The 58 unnumbered ones carry no
-signal about his own ranking, which the numbered buckets do.
+What #36 asked for was that these be gone through and the live ones filed. They were. 131 rows came
+out `open`; 130 of them name an issue, and the catalog cites 223 issue references in total across
+all verdicts, most of them existing issues that a row turned out to duplicate rather than new ones.
 
-The mix of kinds is **83 reproducers to 33 notes**, the reverse of Dan's remainder, so this bucket
-is slower per row and the `autorun` caveat above applies to most of it: 45 `fail`, 20
-`pass-partial`, 11 `pass`, 7 `timeout`, 33 `n/a`. Read that column as a hint about where to look
-first and never as a verdict -- `pass-partial` in particular means almost nothing.
-
-To list what is left, or a slice of it:
+To check that state rather than trust this paragraph:
 
 ```sh
-awk -F'\t' 'NR>1 && $7=="todo" {print $1}' catalog.tsv
-awk -F'\t' 'NR>1 && $2=="mike" && $3=="1" && $7=="todo" {print $1}' catalog.tsv
+awk -F'\t' 'NR>1 && $7=="todo" {print $1}' catalog.tsv          # should print nothing
+awk -F'\t' 'NR>1 && $10==""   {print $1}' catalog.tsv          # likewise
+awk -F'\t' 'NR>1 && $4=="todo" {print $1"::"$2}' asks.tsv       # likewise
+./bin/push-project --check                                      # board agrees with the catalog
 ```
+
+Two things a later reader will want and should not have to rediscover. The `note` column is the only
+place the reasoning lives, and it is greppable -- `awk -F'\t' 'tolower($11) ~ /saturate/' catalog.tsv`
+is how you find out whether a subsystem has already been looked at here. And the `issue` column on a
+`duplicate` row points at the *older* issue, not at anything this catalog filed, so a sweep keyed on
+that column alone will not find the issues that came out of this work; the
+[`bugs directory`](https://github.com/Macaulay2/M2/labels/bugs%20directory) label will.
