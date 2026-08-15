@@ -112,6 +112,16 @@ author. So:
   describes. A batch of six proposed closures presented as one plan is not six decisions,
   it is one decision about a list.
 
+**"One issue per question" is not scoped to closures, and three questions in one call is
+still a batch.** Both halves of that were how I got round it in batch 14. The bullets above
+name closing and duplicates because those are the things worth *asking about at all* — but
+whatever is asked, it is asked one issue at a time, comments and `rmlabels` included. And a
+single `AskUserQuestion` carrying three separately-answerable questions is the same failure as
+one question about three rows: they arrive on one screen, and the evidence for the third is
+nowhere near the decision on the first. The point of the rule is that each row's evidence is
+read immediately before that row's decision, and grouping destroys that however the options are
+arranged. Turn count is my problem, not the maintainer's.
+
 ### A correction goes *below* the thing it corrects
 
 `comments/issues/<N>.md` is the first comment; `<N>.2.md`, `<N>.3.md` are follow-ups, each
