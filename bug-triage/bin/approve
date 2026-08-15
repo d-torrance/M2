@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+"""Record that Doug has approved a specific payload for publication.
+
+    bin/approve comment 927        one comment, or several if <N>.2.md exists
+    bin/approve close 944
+    bin/approve type 364 944
+    bin/approve labels 364
+    bin/approve title 290
+    bin/approve --list             what is on file
+
+Run this *after* he has said yes to that item, never before and never to unblock
+a run.  The payload is recomputed here from issues.tsv and the comment files --
+it is not passed in -- so what gets hashed is what the publishing script would
+send, and this cannot approve something that does not exist.
+
+It prints the full payload it is recording.  That is deliberate: if this is ever
+run without the conversation that should precede it, the thing that was published
+is at least visible in the transcript next to the claim that it was approved.
+
+See bin/approvals.py for why a forgeable gate is worth having anyway.
+"""
+
+import argparse
+import importlib.machinery
+import importlib.util
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import approvals
+import issues as issuestsv
+
+
+def load(name, filename):
+    """Import a sibling script by path -- they have no .py suffix."""
+    path = os.path.join(HERE, filename)
+    loader = importlib.machinery.SourceFileLoader(name, path)
+    spec = importlib.util.spec_from_loader(name, loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+def entries_for(action, numbers, rows):
+    """[(action, number, key, payload)] recomputed from the catalog."""
+    by_number = issuestsv.by_number(rows)
+    out = []
+    for n in numbers:
+        row = by_number.get(n)
+        if row is None:
+            raise SystemExit("#%d is not in issues.tsv" % n)
+
+        if action == "comment":
+            publish = load("publishverdicts", "publish-verdicts")
+            bodies = publish.bodies_for(row)
+            if not bodies:
+                raise SystemExit(
+                    "#%d has no comment written -- there is nothing to approve.  "
+                    "Write\ncomments/issues/%d.md first." % (n, n))
+            for key, body in bodies:
+                out.append(("comment", n, key, body))
+
+        elif action == "close":
+            publish = load("publishverdicts", "publish-verdicts")
+            if row["action"] != "close":
+                raise SystemExit(
+                    "#%d has action=%r, not 'close' -- approve what the row "
+                    "actually says." % (n, row["action"]))
+            if row["verdict"] not in issuestsv.CLOSABLE:
+                raise SystemExit("#%d has verdict=%r, which closes nothing"
+                                 % (n, row["verdict"]))
+            dup = issuestsv.dup_number(row)
+            out.append(("close", n, "",
+                        approvals.close_payload(
+                            publish.STATE_REASON[row["verdict"]], dup)))
+
+        elif action == "type":
+            applytypes = load("applytypes", "apply-types")
+            work, _ = applytypes.plan(rows, only={n})
+            if not work:
+                raise SystemExit(
+                    "#%d has no type change pending -- settype is empty or "
+                    "already matches GitHub." % n)
+            out.append(("type", n, "", work[0][2]))
+
+        elif action == "labels":
+            applylabels = load("applylabels", "apply-labels")
+            work = applylabels.plan(rows, only={n})
+            if not work:
+                raise SystemExit(
+                    "#%d has no label change pending." % n)
+            _, add, rm = work[0]
+            out.append(("labels", n, "", approvals.labels_payload(add, rm)))
+
+        elif action == "title":
+            retitle = load("retitle", "retitle")
+            work = retitle.plan(rows, only={n})
+            if not work:
+                raise SystemExit("#%d has no settitle differing from GitHub's" % n)
+            out.append(("title", n, "", work[0][2]))
+
+        else:
+            raise SystemExit("unknown action %r -- one of %s"
+                             % (action, ", ".join(approvals.ACTIONS)))
+    return out
+
+
+def show(entries):
+    for action, number, key, payload in entries:
+        print("=" * 72)
+        print("%s  #%s%s" % (action, number, "  (%s)" % key if key else ""))
+        print("=" * 72)
+        print(payload)
+        print()
+
+
+def main():
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("action", nargs="?", choices=approvals.ACTIONS)
+    p.add_argument("issues", nargs="*", type=int, metavar="N")
+    p.add_argument("--list", action="store_true", help="print the ledger")
+    p.add_argument("--dry-run", action="store_true",
+                   help="show the payload without recording it")
+    args = p.parse_args()
+
+    if args.list:
+        ledger = approvals.read()
+        if not ledger:
+            print("nothing approved yet")
+            return
+        for r in ledger:
+            print("%s  %-8s #%-6s %-8s %s"
+                  % (r["date"], r["action"], r["issue"], r["key"] or "",
+                     r["sha256"][:12]))
+        return
+
+    if not args.action or not args.issues:
+        p.error("an action and at least one issue number, or --list")
+
+    rows = issuestsv.require(issuestsv.read())
+    entries = entries_for(args.action, args.issues, rows)
+    show(entries)
+
+    if args.dry_run:
+        print("dry run -- nothing recorded")
+        return
+
+    already = [e for e in entries if not approvals.missing([e])]
+    if already:
+        print("%d already approved with this exact payload, not recorded again"
+              % len(already))
+    fresh = approvals.missing(entries)
+    if not fresh:
+        return
+    approvals.record(fresh)
+    print("recorded %d approval(s) in %s"
+          % (len(fresh), os.path.relpath(approvals.LEDGER, issuestsv.ROOT)))
+
+
+if __name__ == "__main__":
+    main()

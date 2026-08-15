@@ -10,6 +10,13 @@ what their mail threads no longer match, and what a bookmark resolves to.  Givin
 it a separate command means it cannot ride along unnoticed in a batch of eight
 type changes.
 
+**--apply needs Doug's go-ahead for that issue, at that moment**, like a close
+does, and is refused without a matching row in approved.tsv -- run bin/approve
+title <N> after he has said yes.  The comment file this already insists on is a
+separate requirement and does not stand in for the approval: writing an
+explanation is something I do alone, and deciding a stranger's issue should be
+renamed is not.
+
 Only for a genuine change of scope, and always with a comment saying so.  #290
 was the first: filed in 2015 as "bug in gb over ZZ ? (using custom ordering)",
 the wrong answer it reported was fixed by *disallowing the input*, so what the
@@ -26,6 +33,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import approvals
 import issues as issuestsv
 import project
 
@@ -86,9 +94,20 @@ def main():
         print("   was: %s" % old)
         print("   now: %s" % new)
     print("\n%d issue(s) to retitle." % len(work))
+
+    wanted = [("title", int(r["issue"]), "", new) for r, _, new in work]
     if not args.apply:
         print("dry run -- rerun with --apply")
+        unapproved = approvals.missing(wanted)
+        if unapproved:
+            print("\n%d not approved yet: %s"
+                  % (len(unapproved),
+                     ", ".join("#%s" % n for _, n, _, _ in unapproved)))
         return
+
+    unapproved = approvals.missing(wanted)
+    if unapproved:
+        raise SystemExit(approvals.refuse(unapproved))
 
     for r, _, new in work:
         number = int(r["issue"])

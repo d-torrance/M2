@@ -10,12 +10,26 @@ duplicate:
     action == "comment"   post the comment, leave the issue open
     action == "close"     post the comment, then close
 
-Gates.  A comment needs a hand-written comments/issues/<N>.md and nothing else.  A
-close needs all three of:
+**Nothing here may be run with --apply unless Doug has approved that item, at that
+moment.**  Not the batch, not the workflow, not the row beside it -- the comment,
+by its text.  Writing a comment is free and unilateral; posting it is neither, and
+those are two decisions rather than two stages of one.  The gate is enforced:
+bin/approvals.py hashes the payload as sent and this script refuses any item
+without a matching row in approved.tsv.  See "Nothing public happens without Doug
+saying so, first, every time" in README.md.
+
+Gates.  A comment needs a hand-written comments/issues/<N>.md *and* an approval on
+file for exactly that text.  A close needs all four of:
 
     1  verdict is in issues.CLOSABLE
     2  action == "close"
     3  that same comment file
+    4  approvals for both the comment and the close, separately
+
+The comment and the close are approved separately because they are separately
+refusable: he may want the finding published and the issue left open, which is
+what action=comment means, and an approval of the text is not an approval of
+shutting somebody's issue with it.
 
 bin/comment-issues treated the comment as optional, because there the question was
 whether a comment added anything to somebody else's live issue.  Here the comment
@@ -57,6 +71,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import approvals
 import issues as issuestsv
 import project
 
@@ -211,6 +226,26 @@ def plan(rows, only=None):
     return out
 
 
+def wanted_approvals(work):
+    """[(action, number, key, payload)] this run would need approved.
+
+    One entry per comment rather than per issue, keyed the same way the marker is,
+    so a follow-up written after the first was approved needs its own go-ahead
+    instead of riding along on the approval of the comment above it.
+    """
+    wanted = []
+    for r, bodies in work:
+        number = int(r["issue"])
+        for key, body in bodies:
+            wanted.append(("comment", number, key, body))
+        if r["action"] == "close":
+            wanted.append(("close", number, "",
+                           approvals.close_payload(
+                               STATE_REASON[r["verdict"]],
+                               issuestsv.dup_number(r))))
+    return wanted
+
+
 def pending_annotations(row, issue):
     """Which of this row's settype/addlabels have not reached GitHub yet.
 
@@ -277,7 +312,21 @@ def main():
           % (len(work), len(work) - closes, closes))
     if not args.apply:
         print("dry run -- rerun with --apply")
+        unapproved = approvals.missing(wanted_approvals(work))
+        if unapproved:
+            print("\n%d of these are not approved yet: %s"
+                  % (len(unapproved),
+                     ", ".join("%s #%s" % (a, n) for a, n, _, _ in unapproved)))
+            print("This dry run is what you show Doug to ask.  It is not the "
+                  "asking.")
         return
+
+    # Checked over the whole plan before anything is sent.  Half a batch published
+    # and the other half refused is worse than either outcome, and it is the half
+    # that went out that cannot be taken back.
+    unapproved = approvals.missing(wanted_approvals(work))
+    if unapproved:
+        raise SystemExit(approvals.refuse(unapproved))
 
     for r, bodies in work:
         number = int(r["issue"])

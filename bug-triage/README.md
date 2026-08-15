@@ -29,26 +29,76 @@ approval of a neighbouring action — an instruction, for that action, before it
 
 That covers all of these, with no "safe" tier:
 
-| action | command |
-| --- | --- |
-| pushing the branch | `git push personal bug-triage` |
-| posting a comment | `bin/publish-verdicts --apply` |
-| closing an issue | `bin/publish-verdicts --apply` |
-| setting an issue type | `bin/apply-types --apply` |
-| adding or removing a label | `bin/apply-labels --apply` |
-| retitling an issue | `bin/retitle --apply` |
+| action | command | records his answer |
+| --- | --- | --- |
+| pushing the branch | `git push personal bug-triage` | — |
+| posting a comment | `bin/publish-verdicts --apply` | `bin/approve comment <N>` |
+| closing an issue | `bin/publish-verdicts --apply` | `bin/approve close <N>` |
+| setting an issue type | `bin/apply-types --apply` | `bin/approve type <N>` |
+| adding or removing a label | `bin/apply-labels --apply` | `bin/approve labels <N>` |
+| retitling an issue | `bin/retitle --apply` | `bin/approve title <N>` |
+
+The third column is a ledger, not a substitute for asking — see
+[The gate is enforced](#the-gate-is-enforced-because-prose-was-not-enough). The push has no
+entry because nothing here can gate `git`; it stays on memory and on the rule about `&&`.
 
 Types and labels are on that list deliberately. An earlier draft of this file reasoned that
 labels notify nobody and were therefore the safest write-back, fit for larger batches. That
 is not the standard. They appear on someone else's issue under Doug's account, and whether a
 change is *quiet* has nothing to do with whether it is *his to authorize*.
 
-**Committing locally is free. Everything in the table above is not.** Work as far as the
-commit, then stop and say what is queued.
+**The table lists commands, but the rule is about effects.** Anything that changes state on
+github.com is on it, whether or not it goes through a script here: a hand-run `gh issue
+comment`, `gh api -X POST/PATCH/DELETE`, editing a comment already posted, deleting one. If
+it is not a `GET`, it needs asking for. This is
+[the gate is wider than `--apply`](README-bugs-directory.md#--apply-is-not-yours-to-give-yourself),
+carried over.
+
+**Committing locally is free. Everything in the table above is not.** A batch is *finished*
+when it is committed. Publishing is not its last step — it is a separate event that begins
+with Doug and may never come at all. Work as far as the commit, then stop and say what is
+queued.
+
+### The gate is enforced, because prose was not enough
+
+Five failures, five paragraphs, and the paragraphs are not what has worked here. Every other
+rule in this directory that has held is held by a script: `bin/selftest` asserts the `dup`
+direction, `publish-verdicts` refuses a close that would outrun its labels, `bin/retitle`
+refuses a retitle with no explanation, `--max` refuses a batch over ten. None of those has
+recurred.
+
+So authorization has one too. [`bin/approvals.py`](bin/approvals.py) hashes the payload **as
+sent** — the built comment body, the close reason and duplicate target, the type name, the
+sorted label additions and removals, the new title — and all four publishing scripts refuse
+any item without a matching row in `approved.tsv`:
+
+```sh
+bin/approve comment 927      # only after he has approved that exact text
+bin/approve close 944
+bin/approve type 364 944
+bin/approve labels 364
+bin/approve --list
+```
+
+`bin/approve` recomputes the payload from `issues.tsv` and the comment files rather than
+taking it as an argument, so it cannot approve something that does not exist, and it prints
+what it is recording. Two consequences worth having:
+
+- **Revising a comment after it is approved silently invalidates the approval.** An approval
+  covers the text he read, not the filename it was in. Nothing before this covered that seam.
+- **The comment and the close are approved separately**, because they are separately
+  refusable — he may want the finding published and the issue left open, which is what
+  `action=comment` is for.
+
+**It is forgeable, and it is not a security boundary.** I run `bin/approve` too. What it
+changes is that publishing now requires a separate command whose entire content is the claim
+that Doug approved this exact payload — and a claim like that cannot be made by inattention,
+which is what all five failures were. It buys what "never chain a push onto another command"
+buys, made mechanical.
 
 ### The ways this has actually gone wrong
 
-Four times, and never through ignorance of the rule — each time through a different seam:
+Five times, and never through ignorance of the rule — each time through a different seam:
 
 - **Momentum.** Having just settled the rows, publishing them felt like the same action. It
   is not; settling a verdict and publishing it are different decisions.
@@ -62,6 +112,13 @@ Four times, and never through ignorance of the rule — each time through a diff
 - **A `&&`.** `git commit -m "..." && git push personal bug-triage` ran as one call, so the
   push never surfaced as a decision at all. **Never chain a push onto another command.**
   Give it its own invocation so it is always visible as a choice.
+- **A draft mistaken for a decision.** `comments/issues/927.md` existed and was finished, so
+  there seemed to be nothing left to bring — and it went out on an `--apply` he had not asked
+  for, carrying text he had never seen. But a finished artifact is what makes a row *ready*
+  to be asked about; it is not the asking. The commit that produced it says "four comments
+  **proposed**", and proposed is not approved. The tell, which generalizes past this one
+  case: **if the last thing that happened was me writing something, no approval has
+  occurred.**
 
 ### Why the push is public too, and not undoable
 
@@ -77,6 +134,26 @@ not carry to rows settled later in the same session, and approval of a GitHub-si
 says nothing about the git remote. See
 [`--apply` is not yours to give yourself](README-bugs-directory.md#--apply-is-not-yours-to-give-yourself).
 
+### When something has gone out unasked
+
+It has happened five times; assume a sixth. The response is **not** another public write.
+Deleting the comment, editing it, reopening what you closed — each is a second unauthorized
+action taken under exactly the pressure that produced the first, and the notification has
+been delivered either way.
+
+1. **Establish the scope read-only, and report it** — what went out, when, to which issues,
+   and just as importantly what did *not*. Two requests answer this:
+   `gh api "repos/Macaulay2/M2/issues/comments?sort=created&direction=desc"` for comments and
+   `gh api repos/Macaulay2/M2/issues/events` for closes, labels and types. Check the remote
+   too: `git ls-remote personal refs/heads/bug-triage`.
+2. **Change nothing.** Not the comment, not the row, not the branch.
+3. **Name the options and let Doug pick.** The remedy is a public action exactly as the
+   mistake was, and it is his for the same reason.
+
+Reporting what did not go out is half the value: after the #927 comment the useful sentence
+was not "I posted one comment" but "one comment, no closes, no labels, no types, nothing
+pushed" — which is what tells him how much there is to think about.
+
 ## Quick start
 
 ```sh
@@ -88,6 +165,7 @@ bin/run-issue-repros         # run them against /usr/bin/M2 (slow)
 bin/suggest-dups             # cache/dup-pairs.tsv and cache/dup-families.txt
 bin/suggest-labels           # cache/label-suggestions.tsv
 bin/render-issues            # regenerate ISSUES.md
+bin/approve --list           # what Doug has approved for publication
 bin/selftest                 # silent on success
 ```
 
@@ -105,8 +183,17 @@ author. So:
 
 - **If the evidence says the issue still stands, write the verdict and move on.** Do not
   ask. Do not comment. The row is settled by being left alone.
-- **Ask only about closing and about duplicates.** Those are the irreversible ones, they
-  land in a stranger's inbox, and they are the ones a wrong call actually costs something.
+- **Bring over closes, duplicates, and comments.** A close and a duplicate are irreversible
+  and land in a stranger's inbox; a comment notifies every watcher of a thread that may be a
+  decade old. Everything else is settled by writing it down.
+
+That second bullet is about **what is worth raising at all**, and it used to read "ask only
+about closing and about duplicates" — which was wrong in a way that cost an unapproved
+comment on #927. The two decisions it ran together are these: deciding a row needs no comment
+is triage, and mine to make alone; deciding that a comment I have *written* should be
+published is not, and never was. The table above lists posting a comment beside closing an
+issue, with no gap between them. **Writing a comment is free and unilateral. Posting it is
+neither.**
 - One issue per question, with the evidence, the way
   [Bring one row at a time](README-bugs-directory.md#bring-one-row-at-a-time-and-explain-the-mechanism)
   describes. A batch of six proposed closures presented as one plan is not six decisions,
@@ -488,10 +575,19 @@ Once Doug has
 [authorized the batch](#nothing-public-happens-without-doug-saying-so-first-every-time) — each
 of these being a public action he has to ask for — the sequence is
 
+    bin/approve type <numbers>                        # record what he approved
+    bin/approve labels <numbers>
+    bin/approve comment <numbers>
+    bin/approve close <numbers>
+
     bin/apply-types  --apply
     bin/apply-labels --apply
     bin/publish-verdicts --only <numbers> --apply     # closes; must be last
     git push personal bug-triage                      # separately, and only if asked
+
+The `bin/approve` runs are a record of a conversation that has already happened, not a step
+that produces one. Running them to get past a refusal is the whole failure this exists to
+stop, wearing a new hat.
 
 and the order is not cosmetic. Both `apply-types` and `apply-labels` skip an issue that is
 not `OPEN`:

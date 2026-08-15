@@ -12,6 +12,12 @@ Derived, not recorded, exactly as bin/apply-labels is: the "type" column holds
 what GitHub had at the last bin/init-issues, so a row whose type is already right
 produces nothing and a type changed by hand is respected on the next refresh.
 
+**--apply needs Doug's go-ahead for these issues, at that moment**, and is refused
+without a matching row in approved.tsv -- run bin/approve type <N>... after he has
+said yes.  A type appears on somebody else's issue under his account, next to the
+title.  That it notifies nobody is not the question; whether it is his to
+authorize is, and it is.  See README.md.
+
 Retyping an issue that already has one is expected here rather than exceptional.
 All 93 existing assignments were made in a single pass on 2025-05-13 under a
 two-way reading -- everything that was not a defect became a Feature -- so a
@@ -28,6 +34,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import approvals
 import issues as issuestsv
 import project
 
@@ -146,9 +153,20 @@ def main():
     print("\n%d issue(s): %d newly typed, %d retyped"
           % (len(work), len(work) - changes, changes))
     report_kept()
+
+    wanted = [("type", int(r["issue"]), "", want) for r, _, want in work]
     if not args.apply:
         print("dry run -- rerun with --apply")
+        unapproved = approvals.missing(wanted)
+        if unapproved:
+            print("\n%d not approved yet: %s"
+                  % (len(unapproved),
+                     ", ".join("#%s" % n for _, n, _, _ in unapproved)))
         return
+
+    unapproved = approvals.missing(wanted)
+    if unapproved:
+        raise SystemExit(approvals.refuse(unapproved))
 
     for r, _, want in work:
         number = int(r["issue"])

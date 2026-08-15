@@ -10,10 +10,17 @@ and a row whose labels are already right produces nothing.  That is why there is
 other people's issues and several are a decade old -- and a stored flag would go on
 claiming a sync that had stopped being true.  Refresh and the plan corrects itself.
 
-Labels notify nobody, which makes this the safest of the three ways this directory
-touches GitHub and the one that can go in batches of forty rather than one at a
-time.  It does not make --apply self-service; see "`--apply` is not yours to give
-yourself" in README-bugs-directory.md.
+Labels notify nobody, which is why the *decision* can be reached while reading and
+accumulated in addlabels a batch at a time rather than brought over one by one.
+
+**It is not why --apply is safe, because --apply is not safe.**  These labels go
+on somebody else's issue under Doug's account, and quiet has nothing to do with
+whose call it is.  --apply needs his go-ahead for these issues, at that moment,
+and is refused without a matching row in approved.tsv -- run bin/approve labels
+<N>... after he has said yes.  Removing a label somebody else applied is a
+judgement about their judgement and is brought over one at a time like a close is;
+see README.md, and "`--apply` is not yours to give yourself" in
+README-bugs-directory.md.
 
 Validation runs against the whole plan before any of it is sent.  A typo should
 stop the run, not leave half a batch labelled and the other half to find by hand.
@@ -31,6 +38,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import approvals
 import issues as issuestsv
 import project
 
@@ -130,9 +138,21 @@ def main():
     print("\n%d issue(s): %d label additions, %d removals"
           % (len(work), sum(len(a) for _, a, _ in work),
              sum(len(x) for _, _, x in work)))
+
+    wanted = [("labels", int(r["issue"]), "", approvals.labels_payload(add, rm))
+              for r, add, rm in work]
     if not args.apply:
         print("dry run -- rerun with --apply")
+        unapproved = approvals.missing(wanted)
+        if unapproved:
+            print("\n%d not approved yet: %s"
+                  % (len(unapproved),
+                     ", ".join("#%s" % n for _, n, _, _ in unapproved)))
         return
+
+    unapproved = approvals.missing(wanted)
+    if unapproved:
+        raise SystemExit(approvals.refuse(unapproved))
 
     for r, add, rm in work:
         number = int(r["issue"])
