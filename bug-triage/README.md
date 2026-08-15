@@ -258,6 +258,14 @@ other people's issues and they will be edited underneath us.
 over the live TSV, because getting the direction backwards closes the surviving issue and
 nothing else in the pipeline would notice.
 
+The one exception is spelled out longhand, `dup = "supersedes #N"`, and closes an issue into
+a **newer** one. It is for the case where the old issue states a problem and a later issue
+states the design the thread settled on: #776 (documentation databases stay open, one per
+package) into #1643 (use a single database), where closing the newer would have thrown away
+the agreed solution and kept the complaint. Requiring the word is the whole safeguard — a
+bare `#N` still refuses every backwards direction, so the accident the check exists for is
+caught exactly as before, and only a sentence nobody types by mistake gets through.
+
 ### Verdicts
 
 ```

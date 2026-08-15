@@ -169,6 +169,7 @@ def write(rows, path=TSV):
 
 
 DUP_RE = re.compile(r"^#?(\d+)$")
+SUPERSEDES_RE = re.compile(r"^supersedes\s+#?(\d+)$")
 
 
 def check_dup(row):
@@ -178,22 +179,41 @@ def check_dup(row):
     invisible afterwards: swap the two numbers and bin/close-issues closes the
     issue that should have survived and points it at the one that should not have.
     Nothing downstream re-derives which is which, so it has to be checked here.
+
+    The exception is written out longhand: "supersedes #N" closes this issue into a
+    *newer* one.  It comes up when the old issue states a problem and a later one
+    states the design the thread settled on -- #776 (documentation databases stay
+    open) into #1643 (use a single database), where closing the newer would throw
+    away the agreed solution and keep the complaint.  Requiring the word means the
+    bare "#N" form still refuses every backwards dup, so the accident this function
+    exists to catch is caught exactly as before; only a sentence nobody types by
+    mistake gets through.
     """
     dup = row.get("dup", "").strip()
     if not dup:
         return
+    if SUPERSEDES_RE.match(dup):
+        return
     m = DUP_RE.match(dup)
     if not m:
-        raise ValueError("dup must be #N or N, got %r on #%s" % (dup, row["issue"]))
+        raise ValueError(
+            "dup must be #N, N, or \"supersedes #N\", got %r on #%s"
+            % (dup, row["issue"]))
     if int(m.group(1)) >= int(row["issue"]):
         raise ValueError(
-            "dup #%s is not older than #%s -- the older issue survives"
-            % (m.group(1), row["issue"]))
+            "dup #%s is not older than #%s -- the older issue survives.  If you mean "
+            "to close this one into the newer issue, write \"supersedes #%s\"."
+            % (m.group(1), row["issue"], m.group(1)))
 
 
 def dup_number(row):
-    """The integer in the "dup" column, or None."""
-    m = DUP_RE.match(row.get("dup", "").strip())
+    """The integer in the "dup" column, or None.
+
+    Both forms resolve to the surviving issue, which is what every caller wants:
+    publish-verdicts passes it to GitHub as duplicateIssueId, and render links it.
+    """
+    dup = row.get("dup", "").strip()
+    m = SUPERSEDES_RE.match(dup) or DUP_RE.match(dup)
     return int(m.group(1)) if m else None
 
 

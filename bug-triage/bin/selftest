@@ -419,15 +419,31 @@ def main():
         shutil.rmtree(tmp, ignore_errors=True)
 
     # --- dup direction, on the live catalog ----------------------------------
+    # A bare dup must name an older issue; "supersedes #N" is the longhand that
+    # deliberately closes into a newer one, so it is exempt from the sweep.
     backwards = [r["issue"] for r in issuestsv.read()
-                 if (issuestsv.dup_number(r) or 0) >= int(r["issue"])]
-    check(not backwards, "every dup in issues.tsv names an older issue",
+                 if not issuestsv.SUPERSEDES_RE.match(r.get("dup", "").strip())
+                 and (issuestsv.dup_number(r) or 0) >= int(r["issue"])]
+    check(not backwards, "every bare dup in issues.tsv names an older issue",
           ", ".join("#" + n for n in backwards[:5]))
     try:
         issuestsv.check_dup({"issue": "100", "dup": "#200"})
         check(False, "a backwards dup must be refused")
     except ValueError:
         check(True, "a backwards dup is refused")
+    # The exemption has to be opt-in by spelling, or it is not a guard at all.
+    issuestsv.check_dup({"issue": "100", "dup": "supersedes #200"})
+    check(issuestsv.dup_number({"issue": "100", "dup": "supersedes #200"}) == 200,
+          "\"supersedes #N\" is allowed and resolves to the survivor")
+    issuestsv.check_dup({"issue": "100", "dup": "#50"})
+    check(issuestsv.dup_number({"issue": "100", "dup": "#50"}) == 50,
+          "a bare older dup still resolves to the survivor")
+    for bad in ("supersedes", "supersedes #", "see #200", "#200 supersedes"):
+        try:
+            issuestsv.check_dup({"issue": "100", "dup": bad})
+            check(False, "dup %r must be refused" % bad)
+        except ValueError:
+            check(True, "dup %r is refused" % bad)
 
 
     # ------------------------------------------- close must not outrun the labels
