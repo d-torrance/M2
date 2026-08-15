@@ -445,6 +445,34 @@ def main():
         except ValueError:
             check(True, "dup %r is refused" % bad)
 
+    # --- apply-types counts the rows it is NOT changing -----------------------
+    # A batch of ten reported as "7 issue(s)" hides whether the other three were
+    # pre-typed and re-read, or never opened.  Doug caught that by subtraction on
+    # batch 15; the second list exists so nobody has to.
+    applytypes = load("applytypes", "apply-types")
+    row = lambda n, **kw: dict({"issue": str(n), "created": "2018-01-01", "type": "",
+                                "settype": "", "verdict": "todo", "note": ""}, **kw)
+    work, kept = applytypes.plan([
+        row(1, settype="Bug"),                                  # untyped -> typed
+        row(2, type="Feature", settype="Bug"),                  # retyped
+        row(3, type="Feature", verdict="reproduces"),           # re-read, kept
+        row(4, type="Feature", settype="Feature",
+            verdict="stands"),                                  # asked for what it has
+        row(5, type="Feature"),                                 # pre-typed, untriaged
+        row(6, verdict="stands"),                               # triaged, still untyped
+    ], None, None)
+    check(sorted(int(r["issue"]) for r, _, _ in work) == [1, 2],
+          "plan proposes only rows whose settype differs")
+    check(sorted(int(r["issue"]) for r, _ in kept) == [3, 4],
+          "kept holds triaged rows that already carry the type they want",
+          sorted(int(r["issue"]) for r, _ in kept))
+    # #5 is the one that must stay out: untriaged, so its type is unexamined rather
+    # than confirmed, and counting it would assert a re-read that never happened.
+    check(5 not in [int(r["issue"]) for r, _ in kept],
+          "an untriaged pre-typed row is not reported as left as is")
+    check(6 not in [int(r["issue"]) for r, _ in kept],
+          "a triaged row with no type at all is not reported as left as is")
+
 
     # ------------------------------------------- close must not outrun the labels
     # apply-types and apply-labels skip closed issues, so publish-verdicts has to

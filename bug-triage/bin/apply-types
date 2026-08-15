@@ -65,7 +65,16 @@ def repo_types():
 
 
 def plan(rows, before=None, only=None):
-    out = []
+    """Rows needing a type set, and rows that already carry one.
+
+    The second list is why this returns a pair.  A row that was pre-typed in the
+    2025-05-13 bulk pass and re-read without change looks, from here, exactly like a
+    row nobody has opened -- both have an empty "settype".  Reporting only the work
+    makes a batch of ten come out as "7 issue(s)", and the three that are missing are
+    silently either confirmed or unexamined.  Naming them puts the arithmetic back
+    where it can be checked.
+    """
+    out, kept = [], []
     for r in rows:
         n = int(r["issue"])
         if only and n not in only:
@@ -74,9 +83,13 @@ def plan(rows, before=None, only=None):
             continue
         want = r.get("settype", "")
         if not want or want == r.get("type", ""):
+            # Only interesting once somebody has looked: an untriaged row without a
+            # type is just work not yet done, not a type left deliberately alone.
+            if r.get("type", "") and r.get("verdict", "todo") != "todo":
+                kept.append((r, r.get("type", "")))
             continue
         out.append((r, r.get("type", "") or "(none)", want))
-    return out
+    return out, kept
 
 
 def main():
@@ -90,9 +103,18 @@ def main():
     args = p.parse_args()
 
     rows = issuestsv.require(issuestsv.read())
-    work = plan(rows, args.before, set(args.only or []))
+    work, kept = plan(rows, args.before, set(args.only or []))
+
+    def report_kept():
+        if not kept:
+            return
+        print("\n%d already typed, left as is:" % len(kept))
+        for r, had in kept:
+            print("  #%-6s %-8s  %s" % (r["issue"], had, r["note"][:56]))
+
     if not work:
         print("nothing to do -- no row has a settype differing from GitHub's")
+        report_kept()
         return
 
     known = repo_types()
@@ -123,6 +145,7 @@ def main():
               % (r["issue"], had, want, r["note"][:44]))
     print("\n%d issue(s): %d newly typed, %d retyped"
           % (len(work), len(work) - changes, changes))
+    report_kept()
     if not args.apply:
         print("dry run -- rerun with --apply")
         return
