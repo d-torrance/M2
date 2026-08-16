@@ -464,6 +464,16 @@ turns up in `addlabels`.
 has looked at yet.  It comes off one issue at a time, through `rmlabels`, and the
 label itself goes only when no open issue carries it.
 
+**An issue being closed is not a reason to skip its type and label.**  Setting them
+is one of the three questions this sweep exists to answer, and a closed issue is
+still a searchable record -- somebody looking for the build-tooling work, or for
+every `Documentation` issue whether open or shut, should find it.  So "close it
+without bothering to type it" is never the shortcut it looks like, and it should
+not be offered as an option.  This is the reason the write-back order in
+[Close last](#close-last-the-write-backs-are-order-dependent) is what it is: the
+close goes after the annotations because the annotations are wanted, not merely
+because `apply-types` happens to skip closed issues.
+
 ## Rules carried over
 
 These were learned on the first project and are not restated here. They apply unchanged.
