@@ -271,8 +271,25 @@ measurement is unexplained rather than calling it a finding.
 ### Ask of every row: would a comment materially improve it?
 
 A fourth question, alongside the three the sweep is named for, and it applies to issues
-that are staying **open** -- which is most of them.  A comment earns its notifications when
-it carries something a reader of the issue cannot get from the issue:
+that are staying **open** -- which is most of them.
+
+**A comment is what is left over.** It is the disposition for a row that is *not fixed*, is
+*not a duplicate*, and about which I have turned up something that genuinely adds to the
+conversation for whoever reads the issue next.  Those exclusions come first and they are
+ordinary triage work: **every row gets checked for being already fixed and for being a
+duplicate**, every time, and neither check is optional or unusual.  Only once both come back
+negative is there a comment question to ask at all.
+
+**And the question is asked before the comment is written, not after.**  This is the order I
+got wrong on #957: I reproduced the bug, located the mechanism across four files, drafted
+sixty lines, and only then asked -- at which point the row turned out to be a duplicate of
+#431 and the right comment was four sentences on a different issue.  Writing first is not a
+harmless head start.  It builds a case for publishing that did not exist before, and the
+sunk work is exactly what makes the answer feel obvious when it is not.  Investigate as far
+as the verdict; then ask; then write what was approved.
+
+A comment earns its notifications when it carries something a reader of the issue cannot get
+from the issue:
 
 - **a measurement**, where the thread has an unconfirmed claim.  #143 had numbers from a
   machine called "habanero" in 2014 and none since; it now has 1.78x against a 4.0x control.
