@@ -574,22 +574,49 @@ These were learned on the first project and are not restated here. They apply un
 **Scope.** [A row can belong to another repository's tracker](README-bugs-directory.md#a-row-can-belong-to-another-repositorys-tracker) ·
 [A consumer of M2's behavior may live in another repository](README-bugs-directory.md#a-consumer-of-m2s-behavior-may-live-in-another-repository)
 
-## The 138 issues this directory filed are in the corpus, but not for triage
+## The 138 issues this directory filed are triaged like any others
 
 The first project filed 138 issues that are still open, all carrying the
-[`bugs directory`](https://github.com/Macaulay2/M2/labels/bugs%20directory) label. They were
-verified against current M2 within the last two weeks and labelled at filing time, so they
-are seeded `verdict=stands, action=keep` and are not re-read.
+[`bugs directory`](https://github.com/Macaulay2/M2/labels/bugs%20directory) label.
 
-They are still in `issues.tsv`, because the asymmetry matters and is easy to get backwards:
+**They were originally seeded `verdict=stands, action=keep` and excluded from `--batch`**, on the
+reasoning that they had been verified against current M2 and labelled within the fortnight before
+this sweep began, so re-reading them would be redoing fresh work. That was wrong twice over, and
+both faults surfaced in batch 19.
 
-- **As duplicate *targets*, yes.** A 2015 issue may well duplicate one filed last week —
-  though when it does, the *older* one survives, which here means the 2015 one.
-- **As duplicate *queries*, no.** They were checked against the tracker at filing time.
-- **Not extracted, not run.** Their bodies contain our own transcripts and our own
-  attribution paragraph, and running them re-runs work already done.
-- **Not used to train the label suggester**, which would otherwise learn this directory's
-  labelling habits and report them back as corpus evidence.
+- **A duplicate is only visible from one side.** #4504 is our own filing of Dan's
+  *"rename `minimalPresentation` to `minimizePresentation`"*. Triaging #1013 -- eisenbud, 2019,
+  *"maybe call this something other than minimalPresentation"* -- showed the two are the same ask,
+  with #1013 seven years older and therefore the survivor. Nothing about #4504 could have revealed
+  that, because the older issue had not been read yet when #4504 was filed. Excluding the newer
+  side means the pairing is found only by luck.
+- **They were labelled at filing, but never typed.** All 138 carried no GitHub issue type at all.
+  Types are one of the three questions this sweep exists to answer, so 138 rows were being skipped
+  on a question that had never been asked of them.
+
+They are now `todo` like everything else, with their filing notes preserved. Doug's call, and the
+argument for it is that the cost is low -- the verification behind them is recent and holds -- while
+the thing being bought is the half of duplicate detection that only works from the newer side.
+
+What stays true from the original reasoning:
+
+- **As duplicate *targets*, they always counted.** When one pairs with an older issue, the *older*
+  one survives, which will usually mean the pre-2020 issue rather than ours.
+- **Not extracted, not run.** Their bodies contain this project's own transcripts and attribution
+  paragraph, and running them re-runs work already done.
+- **Not used to train the label suggester**, which would otherwise learn this directory's labelling
+  habits and report them back as corpus evidence.
+
+### `--batch` has a cohort boundary, and it will run out
+
+`bin/show --batch` selects rows with `verdict == "todo"` **and `created < --before`**, where
+`--before` defaults to `2020-01-01`. That is a deliberate oldest-first strategy, but it is silent
+when it runs dry: the batch simply comes back short rather than saying why. At the end of batch 19
+it returned seven issues instead of ten, with 586 untriaged rows sitting on the far side of the
+boundary -- and all 138 of the reinstated filings are dated 2026, so they are on that side too.
+
+Moving the boundary (`--before 2030-01-01`) fills the batch again. Worth knowing before reading a
+short batch as "nearly finished".
 
 ## Finding the commit: ask the timeline before you ask the log
 
