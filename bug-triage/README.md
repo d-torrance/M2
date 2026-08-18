@@ -149,7 +149,7 @@ This one is now refused rather than described. See
 Two additions to `bin/approve`, both aimed at an authorization that was real once being counted
 twice:
 
-- **`--said "<quote>"` is required, and must contain the word "authorize".** The words he used go
+- **`--said "<quote>"` is required, and must contain "authorize" or "approve".** The words he used go
   into `approved.tsv` beside the hash. Requiring the *quote* was not enough on its own: the seventh
   failure went out under `--said "Please use it for this batch for now"`, a sentence that grants
   nothing and that I typed into the authorization field myself. Requiring a word he would only type
