@@ -309,6 +309,44 @@ confirmed still true in the same batch and got nothing, because saying so adds a
 notification and no information.  The test is not "is this issue interesting", it is
 "would the next person to open this be better off".
 
+### Size the comment for the person it addresses, not for the finding
+
+The test above is about content -- is it true, is it new.  It says nothing about whether the
+person it is addressed to will read it, and that turns out to be a separate failure.
+
+#133 is the case.  A contributor had come to a 2014 issue about an error message, asked which of
+two wordings was wanted, and got no reply for three months.  The comment written in response ran
+about 450 words: a transcript, an attributed commit for why the message had changed, a bolded
+argument about why naming the coefficient ring would go stale, and a cross-reference to #1518.
+Every claim in it held up -- it was rechecked afterwards and nothing needed correcting.
+
+It still failed.  The reply said the text was not something they could follow, read the issue as
+deprecated, and declined to work through it -- somebody who had arrived offering to help came away
+thinking the thing was dead.  Doug then answered the same question in about sixty words -- we fall
+back on this message when no hook claims the map, and it is not even true that a field is required,
+since #4222 -- and closed it.
+
+**The reply is not quoted here and the asker is not named.**  Somebody saying a wall of text lost
+them is doing us a favour, and a document that preserves the moment for them to find later would
+be a poor way to take it.  The number is enough to find the thread; the lesson does not need the
+person.
+
+So: **a comment addressed to a named non-maintainer is a reply to a person, and it has a budget.**
+The register that is right for Mike on #985, who wrote the engine and wants the commit numbers, is
+wrong for somebody passing through who asked a one-sentence question.  Two habits follow.
+
+- **Lead with the answer to what they actually asked.**  #133's asker wanted to know which wording
+  to use.  That answer was in the comment, in the fourth paragraph, under a heading about method
+  tables.
+- **If the finding needs 450 words, the issue is not the place for all of them.**  Put the answer
+  on the thread and leave the reconstruction in `note`, which is what that column is for.  Nothing
+  is lost -- the catalog is cited from every comment's provenance line.
+
+The counter-case is real and worth keeping straight: #984's comment is long on purpose, because
+its reader is whoever picks up an engine build-time project and the finding that saves them a day
+is a compiler error four paragraphs in.  Length is not the fault.  Length aimed at the wrong reader
+is.
+
 **Read the labels an issue already has, not only the ones it lacks.**  The question is
 "does it have appropriate labels", and a label that is wrong misleads harder than a
 missing one: it tells a reader the issue has been classified.  #58 carried
