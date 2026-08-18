@@ -34,6 +34,7 @@ another command" buys, made mechanical.
 import datetime
 import hashlib
 import os
+import re
 
 import issues as issuestsv
 
@@ -53,6 +54,29 @@ APPLIED = os.path.join(issuestsv.ROOT, "applied.tsv")
 # are separate because publish-verdicts does both in one run and they are two
 # decisions: a comment can be approved and the close it was written for declined.
 ACTIONS = ["comment", "close", "type", "labels", "title"]
+
+
+# The word Doug has to actually say.  --said used to accept any text, and the
+# sixth failure went out under the quote "Please use it for this batch for now",
+# which authorizes nothing and which I typed into the authorization field myself.
+# A specific, rarely-typed word cannot be produced by paraphrase: either he wrote
+# it or the quote is fabricated, and fabricating is a different act from inferring.
+AUTHORIZING = re.compile(r"\bauthoriz|\bauthoris", re.I)
+
+# ...but he also says it when asking whether he ever did.  "When did I authorize
+# --apply?" is the sentence that immediately preceded this check being written.
+NOT_AUTHORIZING = re.compile(
+    r"\?|\b(did|do|does|didn'?t|don'?t|doesn'?t|never|when|whether|if|unless|"
+    r"was|were|had|would|should|not)\b[^.]{0,40}\bauthoriz", re.I)
+
+
+def authorizing(said):
+    """Does this quote actually authorize, rather than ask or deny?"""
+    if not AUTHORIZING.search(said or ""):
+        return False, ("the word \"authorize\" does not appear in it")
+    if NOT_AUTHORIZING.search(said or ""):
+        return False, ("it reads as a question or a denial, not a grant")
+    return True, ""
 
 
 def digest(payload):
