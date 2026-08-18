@@ -46,11 +46,18 @@ ROW_FIELDS = [
 ]
 
 
+# run.sh truncates compiler messages to a fixed width, which can cut a UTF-8
+# sequence in half -- GCC quotes identifiers with U+2018/U+2019.  Decode
+# leniently and drop whatever fragment is left over.
+def read_text(path):
+    with open(path, encoding="utf-8", errors="replace") as f:
+        return f.read().replace("\ufffd", "")
+
+
 def read_rows(root):
     rows = []
     for path in sorted(glob.glob(os.path.join(root, "*", "row.tsv"))):
-        with open(path) as f:
-            fields = f.read().rstrip("\n").split("\t")
+        fields = read_text(path).rstrip("\n").split("\t")
         fields += [""] * (len(ROW_FIELDS) - len(fields))
         row = dict(zip(ROW_FIELDS, fields))
         row["probes"] = read_probes(os.path.join(os.path.dirname(path), "probes.tsv"))
@@ -64,11 +71,10 @@ def read_probes(path):
     probes = {}
     if not os.path.exists(path):
         return probes
-    with open(path) as f:
-        for line in f:
-            parts = line.rstrip("\n").split("\t")
-            if len(parts) >= 3:
-                probes[parts[0]] = (parts[1], parts[2], parts[3] if len(parts) > 3 else "")
+    for line in read_text(path).splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 3:
+            probes[parts[0]] = (parts[1], parts[2], parts[3] if len(parts) > 3 else "")
     return probes
 
 
