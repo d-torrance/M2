@@ -1,0 +1,167 @@
+# Evidence for the compiler-portability claims in
+# https://github.com/Macaulay2/M2/pull/4643.
+#
+# Every row builds gfan 0.8beta twice -- once as shipped, once with
+# M2/libraries/gfan/patch-0.8beta applied -- and runs gfan's own test suite on
+# the result.  Before that it compiles eleven small probes, one per blocker
+# listed in the PR comment, because gfan's src/log.h starts with
+# #include <execution> and is pulled into 110 translation units, so an
+# unpatched build can only ever fail on that one blocker.
+#
+# This workflow is not part of the PR.  It lives on its own branch so that the
+# run can be linked from a comment without adding CI to a patch-only change.
+
+name: gfan compiler matrix
+
+on:
+  push:
+    branches: [ gfan-compiler-matrix ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Fetch the sources once rather than having fifteen jobs hit a university
+  # web server at the same moment.  Hashes are the ones M2 checks against, in
+  # M2/libraries/gfan/Makefile.in and M2/libraries/cddlib/Makefile.in.
+  tarballs:
+    name: Fetch tarballs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and verify
+        run: |
+          mkdir tarballs && cd tarballs
+          curl -fsSLO https://users-math.au.dk/~jensen/software/gfan/gfan0.8beta.tar.gz
+          curl -fsSLO https://github.com/cddlib/cddlib/releases/download/0.94n/cddlib-0.94n.tar.gz
+          echo 'fa7884e5f317c50f8fb4f37bcf5d419f0fd5f7b90d6037349d1957ea73cebbee  gfan0.8beta.tar.gz' > SHA256SUMS
+          echo 'b87ee07ba2c1d0ab92a3e4eccacdf568f981a095a392e3b9efd7e7e4a9e125b1  cddlib-0.94n.tar.gz' >> SHA256SUMS
+          sha256sum -c SHA256SUMS
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tarballs
+          path: tarballs
+          retention-days: 1
+
+  gfan:
+    name: ${{ matrix.row }}
+    needs: tarballs
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # -- old toolchains, run as docker images on a modern runner.  A
+          #    top-level container: block is not usable here: actions/checkout
+          #    needs a node that will not run against Ubuntu 18.04's glibc.
+          - row: ubuntu-18.04-gcc7
+            runs-on: ubuntu-latest
+            image: ubuntu:18.04
+          - row: ubuntu-18.04-gcc8
+            runs-on: ubuntu-latest
+            image: ubuntu:18.04
+            pkgs: g++-8
+            cc: gcc-8
+            cxx: g++-8
+          - row: rocky-8-gcc8
+            runs-on: ubuntu-latest
+            image: rockylinux/rockylinux:8
+          - row: ubuntu-20.04-gcc9
+            runs-on: ubuntu-latest
+            image: ubuntu:20.04
+          - row: ubuntu-20.04-gcc10
+            runs-on: ubuntu-latest
+            image: ubuntu:20.04
+            pkgs: g++-10
+            cc: gcc-10
+            cxx: g++-10
+          - row: debian-bullseye-gcc10
+            runs-on: ubuntu-latest
+            image: debian:bullseye
+          - row: ubuntu-26.04-gcc15
+            runs-on: ubuntu-latest
+            image: ubuntu:26.04
+
+          # -- current toolchains, on the runner itself
+          - row: ubuntu-22.04-gcc11
+            runs-on: ubuntu-22.04
+          - row: ubuntu-22.04-clang14
+            runs-on: ubuntu-22.04
+            pkgs: clang-14
+            cc: clang-14
+            cxx: clang++-14
+          - row: ubuntu-24.04-gcc13
+            runs-on: ubuntu-24.04
+          - row: ubuntu-24.04-clang18-libc++
+            runs-on: ubuntu-24.04
+            pkgs: clang-18 libc++-18-dev libc++abi-18-dev
+            cc: clang-18
+            cxx: clang++-18
+            cxxextra: -stdlib=libc++
+
+          # -- aarch64, where -march=native has no business being passed
+          - row: arm64-gcc13
+            runs-on: ubuntu-24.04-arm
+          - row: arm64-clang18
+            runs-on: ubuntu-24.04-arm
+            pkgs: clang-18
+            cc: clang-18
+            cxx: clang++-18
+
+          # -- macOS, where gfan's Makefile pins Homebrew's gcc-15.  cc/cxx are
+          #    left unset on purpose so the pin gets its chance; run.sh forces
+          #    the system compiler for a second unpatched attempt.
+          - row: macos-15-arm64
+            runs-on: macos-15
+          - row: macos-15-intel
+            runs-on: macos-15-intel
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: tarballs
+          path: tarballs
+
+      - name: Build and test gfan
+        env:
+          ROW: ${{ matrix.row }}
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+          PKGS: ${{ matrix.pkgs }}
+          CXXEXTRA: ${{ matrix.cxxextra }}
+        run: |
+          if [ -n "${{ matrix.image }}" ] ; then
+            docker run --rm -v "$PWD:/w" -w /w \
+              -e ROW -e CC -e CXX -e PKGS -e CXXEXTRA \
+              "${{ matrix.image }}" bash .github/gfan-matrix/run.sh
+          else
+            bash .github/gfan-matrix/run.sh
+          fi
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: results-${{ matrix.row }}
+          path: results/${{ matrix.row }}
+          retention-days: 7
+
+  report:
+    name: Report
+    needs: gfan
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: results-*
+          path: artifacts
+      - name: Render the tables
+        run: python3 .github/gfan-matrix/report.py artifacts report.md
+      - uses: actions/upload-artifact@v7
+        with:
+          name: report
+          path: report.md
