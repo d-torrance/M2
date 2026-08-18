@@ -565,6 +565,30 @@ def main():
     check("bin/approve" in approvals.refuse([("comment", 927, "927", body)]),
           "the refusal names the command that records an approval")
 
+    # The authorizing-word check.  Every one of these is a real sentence from the
+    # transcript, and the seventh failure went out under the first refusal case.
+    grants = ["I approve.  Please apply and push",
+              "I approve -- please apply/push",
+              "I authorize you to apply and push",
+              "you are authorized to apply",
+              "I approve, no need to ask again"]
+    refusals = ["Please use it for this batch for now",
+                "Next batch please",
+                "Ok, let's file both. But before we push, let's finish this file.",
+                "When did I authorize --apply?",
+                "Did I approve this?",
+                "I did not approve that",
+                "cannot approve", "I can't approve that", "won't approve",
+                "I refuse to approve", "decline to authorize",
+                "no need to approve", "I'm withholding approval",
+                "couldn't approve that", "shouldn't approve"]
+    check(all(approvals.authorizing(g)[0] for g in grants),
+          "a real grant passes the authorizing check",
+          str([g for g in grants if not approvals.authorizing(g)[0]]))
+    check(not any(approvals.authorizing(r)[0] for r in refusals),
+          "a paraphrase, question or denial does not",
+          str([r for r in refusals if approvals.authorizing(r)[0]]))
+
     for f in failures:
         print("FAIL: %s" % f, file=sys.stderr)
     if failures:

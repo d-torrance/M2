@@ -65,9 +65,15 @@ AUTHORIZING = re.compile(r"\bauthoriz|\bauthoris|\bapprov", re.I)
 
 # ...but he also says it when asking whether he ever did.  "When did I authorize
 # --apply?" is the sentence that immediately preceded this check being written.
+# Anything that turns a grant into a question, a denial or a refusal, when it
+# appears *before* the authorizing word and close enough to govern it.  Written
+# out longhand rather than cleverly: a missed negator here publishes something.
+NEGATORS = (r"did|do|does|didn'?t|don'?t|doesn'?t|never|when|whether|if|unless|"
+            r"was|were|had|would|should|not|cannot|can'?t|won'?t|shan'?t|"
+            r"ain'?t|couldn'?t|wouldn'?t|shouldn'?t|refus\w*|declin\w*|"
+            r"reject\w*|withhold\w*|no")
 NOT_AUTHORIZING = re.compile(
-    r"\?|\b(did|do|does|didn'?t|don'?t|doesn'?t|never|when|whether|if|unless|"
-    r"was|were|had|would|should|not)\b[^.]{0,40}\b(authoriz|authoris|approv)", re.I)
+    r"\?|\b(%s)\b[^.]{0,40}\b(authoriz|authoris|approv)" % NEGATORS, re.I)
 
 
 def authorizing(said):

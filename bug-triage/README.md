@@ -156,7 +156,12 @@ twice:
   deliberately is what closes that — it cannot be produced by paraphrase, so either he wrote it or
   the quote is fabricated, and fabricating is a different act from inferring. `approvals.authorizing`
   also refuses questions and denials, because *"When did I authorize `--apply`?"* is the sentence
-  that immediately preceded this being written.
+  that immediately preceded this being written. The negator list is written out longhand — `not`,
+  `cannot`, `can't`, `won't`, `refuse`, `decline`, `reject`, `withhold`, `no` and the rest — because
+  a missed one publishes something, and probing it turned up four gaps at once: *"cannot approve"*,
+  *"can't approve"*, *"won't approve"* and *"I refuse to approve"* all passed on the first attempt.
+  `bin/selftest` now carries twenty real sentences from the transcript, five that must pass and
+  fifteen that must not.
 - **`--new-authorization` is required when a publish run has happened since the last approval.**
   Every completed `--apply` appends to `applied.tsv`; `approvals.since_last_apply()` compares that
   against the newest row in the ledger. If an apply came later, whatever authorized it is spent and
