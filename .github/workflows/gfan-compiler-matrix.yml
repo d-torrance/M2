@@ -117,6 +117,13 @@ jobs:
           - row: macos-15-intel
             runs-on: macos-15-intel
 
+    env:
+      ROW: ${{ matrix.row }}
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+      PKGS: ${{ matrix.pkgs }}
+      CXXEXTRA: ${{ matrix.cxxextra }}
+
     steps:
       - uses: actions/checkout@v6
 
@@ -125,21 +132,33 @@ jobs:
           name: tarballs
           path: tarballs
 
-      - name: Build and test gfan
-        env:
-          ROW: ${{ matrix.row }}
-          CC: ${{ matrix.cc }}
-          CXX: ${{ matrix.cxx }}
-          PKGS: ${{ matrix.pkgs }}
-          CXXEXTRA: ${{ matrix.cxxextra }}
+      # Kept alive for the whole job so that each phase below can be its own
+      # step and still see what the previous one installed.
+      - name: Start the container
+        if: matrix.image != ''
         run: |
-          if [ -n "${{ matrix.image }}" ] ; then
-            docker run --rm -v "$PWD:/w" -w /w \
-              -e ROW -e CC -e CXX -e PKGS -e CXXEXTRA \
-              "${{ matrix.image }}" bash .github/gfan-matrix/run.sh
-          else
-            bash .github/gfan-matrix/run.sh
-          fi
+          docker run -d --name gfan-row -v "$PWD:/w" -w /w \
+            -e ROW -e CC -e CXX -e PKGS -e CXXEXTRA \
+            --entrypoint sleep "${{ matrix.image }}" infinity
+
+      - name: Install dependencies
+        run: sh .github/gfan-matrix/in-env.sh deps
+
+      - name: Probe the toolchain for each blocker
+        run: sh .github/gfan-matrix/in-env.sh probes
+
+      - name: Build gfan 0.8beta as shipped
+        run: sh .github/gfan-matrix/in-env.sh unpatched
+
+      - name: Build gfan 0.8beta with patch-0.8beta
+        run: sh .github/gfan-matrix/in-env.sh patched
+
+      - name: Run the gfan test suite
+        run: sh .github/gfan-matrix/in-env.sh check
+
+      - name: Summarise the row
+        if: always()
+        run: sh .github/gfan-matrix/in-env.sh summary
 
       - uses: actions/upload-artifact@v7
         if: always()
