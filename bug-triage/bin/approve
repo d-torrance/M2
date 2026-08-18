@@ -8,6 +8,15 @@
     bin/approve title 290
     bin/approve --list             what is on file
 
+Two things it insists on, both aimed at the same failure -- an authorization that
+was real once being spent twice:
+
+  --said "<quote>"        the words he used.  Recorded in the ledger, so a later
+                          reader can judge whether they cover the item.
+  --new-authorization     required when a publish run has happened since the last
+                          approval, because whatever authorized *that* run is
+                          spent and this is a fresh ask.
+
 Run this *after* he has said yes to that item, never before and never to unblock
 a run.  The payload is recomputed here from issues.tsv and the comment files --
 it is not passed in -- so what gets hashed is what the publishing script would
@@ -123,6 +132,11 @@ def main():
     p.add_argument("--list", action="store_true", help="print the ledger")
     p.add_argument("--dry-run", action="store_true",
                    help="show the payload without recording it")
+    p.add_argument("--said", metavar="QUOTE", default="",
+                   help="the words Doug used to authorize this")
+    p.add_argument("--new-authorization", action="store_true",
+                   help="confirm he has given a fresh go-ahead since the last "
+                        "--apply run")
     args = p.parse_args()
 
     if args.list:
@@ -147,6 +161,28 @@ def main():
         print("dry run -- nothing recorded")
         return
 
+    if not args.said:
+        raise SystemExit(
+            "refusing: --said is required.\n\n"
+            "Quote the words he used.  This is not paperwork -- it is the one\n"
+            "field that cannot be filled in by momentum, and it goes in the\n"
+            "ledger so a later reader can judge whether they cover this item.\n\n"
+            '    bin/approve %s %s --said "..."'
+            % (args.action, " ".join(str(n) for n in args.issues)))
+
+    if not approvals.since_last_apply() and not args.new_authorization:
+        applied = approvals.last_applied()
+        raise SystemExit(
+            "refusing: a publish run has happened since the last approval.\n\n"
+            "    last --apply:  %s   %s   #%s\n\n"
+            "Whatever authorized that run is spent.  An approval recorded now is\n"
+            "a *new* authorization event, and needs him to have said yes again --\n"
+            "for this item, after that run.  This is the sixth failure's exact\n"
+            "shape: an \"apply/push\" that named a finished batch, reused minutes\n"
+            "later for a row settled afterwards.\n\n"
+            "If he has said so, say which words and pass --new-authorization."
+            % (applied[0], applied[1], applied[2]))
+
     already = [e for e in entries if not approvals.missing([e])]
     if already:
         print("%d already approved with this exact payload, not recorded again"
@@ -154,7 +190,7 @@ def main():
     fresh = approvals.missing(entries)
     if not fresh:
         return
-    approvals.record(fresh)
+    approvals.record(fresh, said=args.said)
     print("recorded %d approval(s) in %s"
           % (len(fresh), os.path.relpath(approvals.LEDGER, issuestsv.ROOT)))
 

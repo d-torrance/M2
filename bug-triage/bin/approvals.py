@@ -39,7 +39,15 @@ import issues as issuestsv
 
 LEDGER = os.path.join(issuestsv.ROOT, "approved.tsv")
 
-COLUMNS = ["date", "action", "issue", "key", "sha256"]
+# Appended-to, never reordered: rows written before "time" and "said" existed
+# have five fields and read() pads them, so the old ledger stays readable.
+COLUMNS = ["date", "action", "issue", "key", "sha256", "time", "said"]
+
+# Every completed --apply run appends here.  bin/approve reads it to tell a
+# *continuation* of the authorization it is already working under from a *new*
+# one: if a publish run has happened since the last approval, whatever Doug said
+# to authorize that run is spent, and the next item needs him to say so again.
+APPLIED = os.path.join(issuestsv.ROOT, "applied.tsv")
 
 # One per public effect, matching the table in README.md.  "comment" and "close"
 # are separate because publish-verdicts does both in one run and they are two
@@ -75,14 +83,15 @@ def read(path=LEDGER):
     return rows
 
 
-def record(entries, path=LEDGER):
+def record(entries, said="", path=LEDGER):
     """Append (action, issue, key, payload) tuples.  Appended, never rewritten.
 
     The ledger is history, not state.  A superseded approval stays in it with its
     old hash, because "this text was approved on that date and then changed" is
     exactly what somebody auditing a published comment needs to be able to see.
     """
-    today = datetime.date.today().isoformat()
+    now = datetime.datetime.now()
+    today, clock = now.date().isoformat(), now.strftime("%H:%M:%S")
     new = not os.path.exists(path)
     with open(path, "a", encoding="utf-8") as f:
         if new:
@@ -91,7 +100,8 @@ def record(entries, path=LEDGER):
             if action not in ACTIONS:
                 raise ValueError("unknown action %r" % action)
             f.write("\t".join([today, action, str(number), key or "",
-                               digest(payload)]) + "\n")
+                               digest(payload), clock,
+                               (said or "").replace("\t", " ")]) + "\n")
 
 
 def approved(action, number, key, payload, ledger=None):
@@ -138,3 +148,49 @@ def refuse(unapproved):
         "failing, and it is\nworking: an approval covers the text he read, not the "
         "file name it was in.")
     return "\n".join(lines)
+
+
+def stamp(row):
+    """'YYYY-MM-DD HH:MM:SS' for ordering.  Old rows have no time; treat them as
+    the start of their day, which is right -- they all predate this mechanism."""
+    return "%s %s" % (row.get("date", ""), row.get("time") or "00:00:00")
+
+
+def record_applied(action, numbers, path=APPLIED):
+    """Note that a publish run completed.  Called by every --apply."""
+    now = datetime.datetime.now()
+    new = not os.path.exists(path)
+    with open(path, "a", encoding="utf-8") as f:
+        if new:
+            f.write("date\ttime\taction\tissues\n")
+        f.write("\t".join([now.date().isoformat(), now.strftime("%H:%M:%S"),
+                           action, ",".join(str(n) for n in numbers)]) + "\n")
+
+
+def last_applied(path=APPLIED):
+    """(stamp, action, issues) of the most recent --apply, or None."""
+    if not os.path.exists(path):
+        return None
+    rows = read(path)
+    if not rows:
+        return None
+    last = max(rows, key=stamp)
+    return (stamp(last), last.get("action", ""), last.get("issues", ""))
+
+
+def since_last_apply(ledger=None):
+    """True if no publish run has happened since the newest approval on file.
+
+    False means the authorization in force was consumed by an --apply, so the
+    next approval is a *new* authorization event and needs Doug to have said so
+    again.  This is the seam that produced the sixth failure: an "apply/push"
+    that named a batch was reused, minutes later, for a row settled afterwards.
+    """
+    if ledger is None:
+        ledger = read()
+    applied = last_applied()
+    if applied is None:
+        return True
+    if not ledger:
+        return False
+    return max(stamp(r) for r in ledger) > applied[0]

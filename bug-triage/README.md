@@ -98,7 +98,7 @@ buys, made mechanical.
 
 ### The ways this has actually gone wrong
 
-Five times, and never through ignorance of the rule — each time through a different seam:
+Six times, and never through ignorance of the rule — each time through a different seam:
 
 - **Momentum.** Having just settled the rows, publishing them felt like the same action. It
   is not; settling a verdict and publishing it are different decisions.
@@ -119,6 +119,40 @@ Five times, and never through ignorance of the rule — each time through a diff
   **proposed**", and proposed is not approved. The tell, which generalizes past this one
   case: **if the last thing that happened was me writing something, no approval has
   occurred.**
+
+- **A spent authorization, reused on a row added afterwards.** *"I approve of these changes.
+  Please apply/push"* named batch 21 **as it then stood** — nine settled rows, with #1144 sitting at
+  `todo` because he had said to skip it. That batch was applied and pushed. He then said #1144
+  should be finished after all and suggested how to measure it; I asked how the row should go, he
+  chose a disposition, and I published it under the earlier sentence. Two errors in one step:
+  **choosing a disposition in a question settles what the row *says*, not that it may be sent**, and
+  **an "apply/push" is spent the moment that batch is applied.** He confirmed afterwards that he
+  would have approved it — *"I would have approved it, but please remember to always ask first
+  before doing anything public-facing"* — which is the point: the content was never the problem.
+
+This one is now refused rather than described. See
+[The gate knows when its authorization was spent](#the-gate-knows-when-its-authorization-was-spent).
+
+### The gate knows when its authorization was spent
+
+Two additions to `bin/approve`, both aimed at an authorization that was real once being counted
+twice:
+
+- **`--said "<quote>"` is required.** The words he used go into `approved.tsv` beside the hash, so a
+  later reader can judge whether they cover the item. It is the one field that cannot be filled in
+  by momentum — every previous failure would have needed a sentence typed out that visibly did not
+  say what it was being used to say.
+- **`--new-authorization` is required when a publish run has happened since the last approval.**
+  Every completed `--apply` appends to `applied.tsv`; `approvals.since_last_apply()` compares that
+  against the newest row in the ledger. If an apply came later, whatever authorized it is spent and
+  the next approval is a *fresh* event, so the flag has to be passed on purpose.
+
+The second one fires at the start of every batch, which is correct: every batch *is* a new
+authorization. It costs one flag per batch and refuses exactly the shape of the sixth failure.
+
+Neither is a security boundary — `bin/approve` is still run by me, and both can be typed without the
+conversation that should precede them. What they buy is what the rest of this gate buys: the claim
+has to be made deliberately, and it is in the record afterwards.
 
 ### Why the push is public too, and not undoable
 
@@ -689,10 +723,13 @@ Once Doug has
 [authorized the batch](#nothing-public-happens-without-doug-saying-so-first-every-time) — each
 of these being a public action he has to ask for — the sequence is
 
-    bin/approve type <numbers>                        # record what he approved
-    bin/approve labels <numbers>
-    bin/approve comment <numbers>
-    bin/approve close <numbers>
+    bin/approve type <numbers> --said "..." --new-authorization
+    bin/approve labels <numbers> --said "..."
+    bin/approve comment <numbers> --said "..."
+    bin/approve close <numbers> --said "..."
+
+`--new-authorization` is needed on the first of these in a batch, because the previous batch's
+`--apply` is logged and the gate can see that the authorization in force was spent by it.
 
     bin/apply-types  --apply
     bin/apply-labels --apply

@@ -168,6 +168,7 @@ def main():
     if unapproved:
         raise SystemExit(approvals.refuse(unapproved))
 
+    touched = []
     for r, _, want in work:
         number = int(r["issue"])
         issue = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
@@ -180,8 +181,12 @@ def main():
                   file=sys.stderr)
             continue
         project.gh(SET_TYPE, id=issue["id"], type=known[want])
+        touched.append(number)
         print("#%d -> %s" % (number, want))
 
+    # Note the run, so bin/approve can tell a continuation of the
+    # authorization in force from a new one.  See approvals.since_last_apply.
+    approvals.record_applied("apply-types", touched)
     print("\nRun bin/init-issues to pull the new types back into the catalog.")
 
 

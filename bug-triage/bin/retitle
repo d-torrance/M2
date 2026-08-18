@@ -109,6 +109,7 @@ def main():
     if unapproved:
         raise SystemExit(approvals.refuse(unapproved))
 
+    touched = []
     for r, _, new in work:
         number = int(r["issue"])
         issue = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
@@ -117,8 +118,12 @@ def main():
             print("#%d: no such issue, skipped" % number, file=sys.stderr)
             continue
         project.gh(SET_TITLE, id=issue["id"], title=new)
+        touched.append(number)
         print("#%d retitled" % number)
 
+    # Note the run, so bin/approve can tell a continuation of the
+    # authorization in force from a new one.  See approvals.since_last_apply.
+    approvals.record_applied("retitle", touched)
     print("\nRun bin/init-issues to pull the new titles back into the catalog.")
 
 

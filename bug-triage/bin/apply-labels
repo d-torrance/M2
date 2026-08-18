@@ -128,6 +128,7 @@ def main():
               % (", ".join(repr(l) for l in judgment),
                  "is" if len(judgment) == 1 else "are"))
 
+    touched = []
     for r, add, rm in work:
         print("#%-6s %s" % (r["issue"], r["note"] or ""))
         if add:
@@ -171,8 +172,12 @@ def main():
             project.gh(ADD, id=issue["id"], labels=[known[l] for l in add])
         if rm:
             project.gh(REMOVE, id=issue["id"], labels=[known[l] for l in rm])
+        touched.append(number)
         print("#%d ok" % number)
 
+    # Note the run, so bin/approve can tell a continuation of the
+    # authorization in force from a new one.  See approvals.since_last_apply.
+    approvals.record_applied("apply-labels", touched)
     print("\nRun bin/init-issues to pull the new labels back into the catalog.")
 
 

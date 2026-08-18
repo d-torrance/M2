@@ -328,6 +328,7 @@ def main():
     if unapproved:
         raise SystemExit(approvals.refuse(unapproved))
 
+    touched = []
     for r, bodies in work:
         number = int(r["issue"])
         issue = project.gh(ISSUE_QUERY, owner=project.ORG, name=project.REPO,
@@ -384,8 +385,12 @@ def main():
 
         project.gh(CLOSE, id=issue["id"],
                    reason=STATE_REASON[r["verdict"]], dup=dup_id)
+        touched.append(number)
         print("#%d closed (%s)" % (number, STATE_REASON[r["verdict"]]))
 
+    # Note the run, so bin/approve can tell a continuation of the
+    # authorization in force from a new one.  See approvals.since_last_apply.
+    approvals.record_applied("publish-verdicts", touched)
     print("\nRun bin/init-issues to drop the closed rows from the catalog.")
 
 
