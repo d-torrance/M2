@@ -584,12 +584,15 @@ reasoning that they had been verified against current M2 and labelled within the
 this sweep began, so re-reading them would be redoing fresh work. That was wrong twice over, and
 both faults surfaced in batch 19.
 
-- **A duplicate is only visible from one side.** #4504 is our own filing of Dan's
+- **A duplicate search that ran, and missed.** #4504 is our own filing of Dan's
   *"rename `minimalPresentation` to `minimizePresentation`"*. Triaging #1013 -- eisenbud, 2019,
   *"maybe call this something other than minimalPresentation"* -- showed the two are the same ask,
-  with #1013 seven years older and therefore the survivor. Nothing about #4504 could have revealed
-  that, because the older issue had not been read yet when #4504 was filed. Excluding the newer
-  side means the pairing is found only by luck.
+  with #1013 seven years older and therefore the survivor. The first draft of this section excused
+  that as an asymmetry, on the grounds that the older issue had not been read yet. **That is wrong,
+  and Doug corrected it**: the bugs/ project searched for duplicates on every file, and
+  `gh search issues --repo Macaulay2/M2 "minimalPresentation"` returns #1013 today, seventh in the
+  list. The search ran and the candidate was in its output. See
+  [A near-miss title is the way a duplicate hides](#a-near-miss-title-is-the-way-a-duplicate-hides).
 - **They were labelled at filing, but never typed.** All 138 carried no GitHub issue type at all.
   Types are one of the three questions this sweep exists to answer, so 138 rows were being skipped
   on a question that had never been asked of them.
@@ -606,6 +609,25 @@ What stays true from the original reasoning:
   paragraph, and running them re-runs work already done.
 - **Not used to train the label suggester**, which would otherwise learn this directory's labelling
   habits and report them back as corpus evidence.
+
+### A near-miss title is the way a duplicate hides
+
+#1013 was in the search results and was passed over, and the reason is visible the moment you open
+it: **its body is empty.** The entire ask lives in a one-line comment underneath -- *"this can
+return an ideal in a different ring. Maybe call this something other than minimalPresentation"* --
+and the title reads *"(minimalPresentation Ideal) is confusing"*, which announces a complaint about
+behaviour, not a proposal to rename anything. Scanning a result list by title, it does not look
+like a match for *"rename minimalPresentation to minimizePresentation"*. It is one.
+
+This sharpens
+[`gh search issues` reads comments; the cache cannot](README-bugs-directory.md#gh-search-issues-reads-comments-the-cache-cannot-so-use-both).
+Searching comments is not enough if the *reading* of the results is done on titles. 267 issues in
+this corpus have no code in the body at all and a good number have no body either, so for those the
+title is all a scan sees, and the title is the part written before the author knew what they meant.
+
+The habit: **when a search returns a candidate on the right subject, open it -- do not filter it out
+on the title.** Cheap, because the candidate list is short by the time a specific term has been
+chosen; and it is the only step that would have caught this one.
 
 ### `--batch` has a cohort boundary, and it will run out
 
