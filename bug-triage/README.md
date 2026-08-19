@@ -577,7 +577,33 @@ script), but `testing.m2` adds a mechanism that does not exist upstream at all:
 numbers** — #1064, #1392, #1456, #1539, #1563, #1579, #1581, #1707, #1746, #1834, #1903, #1984,
 #2162, #2183, #2205, #2319, #2704, #2923, #3179, #3238, #3239, #3646, #3820, #3988, #4413, #4429.
 Twenty-two of those are rows in this corpus. Every one of them is a test that the reference build
-has been patched to skip, on precisely the platforms the issue is about.
+has been patched to skip.
+
+**But not "on precisely the platforms the issue is about" — that phrasing was wrong.** Most of the
+skips are *blanket*. Separating Doug's packaging patches from markers that are upstream in the M2
+repository:
+
+| | issues named |
+| --- | --- |
+| Debian patch, blanket `no-check-flag` | 17 — #1064 #1539 #1563 #1579 #1581 #1746 #1903 #1984 #2162 #2183 #2205 #2319 #2704 #2923 #3179 #3238 #3239 |
+| Debian patch, granular `no-check-architecture:` | 14 — #390 #686 #1456 #1539 #1707 #1834 #2162 #2704 #3171 #3646 #3820 #3988 #4413 #4429 |
+| upstream, blanket | 3 — #1392 #3628 #3985 |
+
+`captureTestResult` honours `no-check-flag` on **every** architecture, so those seventeen tests do
+not run here at all. The reason is historical, and Doug's: he skipped everything when he started
+writing these patches, added the architecture-level mechanism later, and never went back to narrow
+the old ones. The numbers agree — thirteen of the seventeen blanket entries are under #2400, while
+the granular set carries the newer numbers, and #1539, #2162 and #2704 appear in both, which is what
+a partial migration looks like.
+
+**So a blanket skip is not a maintainer's judgement that the test fails everywhere.** Do not read it
+as evidence about scope, and do not report it as one. #2183 is the case: the skip is
+`no-check-flag`, the failure was only ever seen on the Debian armhf builder, and extracting the test
+body and running it here passes.
+
+The four rows still untriaged whose tests are blanket-skipped are **#2205, #2319, #2923 and #3238**.
+For those, `check` on this machine establishes nothing and the bodies have to be run directly, as
+was done for #1903 and #1984.
 
 Two consequences:
 
