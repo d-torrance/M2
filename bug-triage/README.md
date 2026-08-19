@@ -79,6 +79,15 @@ And there is no committed before-state to diff against if something goes out una
 [establishing the scope read-only](#when-something-has-gone-out-unasked) leans entirely on the API
 and on `applied.tsv`, which is where it should have leaned anyway.
 
+**For a row closed in the same batch, the commit message is the only record — so write it in full.**
+`bin/init-issues` drops closed rows from `issues.tsv`, and that now happens *before* the batch's
+single commit, so a closed row's `note` is never committed anywhere. Under the old two-commit shape
+the triage commit had already captured it. This is not a loss worth undoing — Doug's view, and it is
+right: the row is leaving the file regardless, so keeping its note there buys nothing. But it does
+make the message load-bearing rather than decorative. A batch with closes must carry each closed
+row's reasoning in the commit, at the length it would have had in the `note` column, because there
+is nowhere else for it to live.
+
 ### The gate is enforced, because prose was not enough
 
 Five failures, five paragraphs, and the paragraphs are not what has worked here. Every other
