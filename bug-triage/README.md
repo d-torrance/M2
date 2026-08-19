@@ -525,11 +525,62 @@ n/a-platform     the issue is about a platform this machine is not
 has 16 open issues; a clean run on x86-64 Ubuntu is not evidence about an aarch64 build
 failure, and a row carrying either label must never reach `not-reproducible` on a run alone.
 
-Test against `/usr/bin/M2`, which is a clean development build. The in-tree build under
-`M2/BUILD/build/usr-dist/` is currently a UBSan build that prints sanitizer output before it
-prints anything else — see
+Test against `/usr/bin/M2`, which is a development build — but not an unpatched one; see
+[the reference build is patched](#the-reference-build-is-patched-and-the-patches-are-on-the-rows-we-care-about)
+below. The in-tree build under `M2/BUILD/build/usr-dist/` is currently a UBSan build that prints
+sanitizer output before it prints anything else — see
 [A build tree in mid-build is not a test platform](README-bugs-directory.md#a-build-tree-in-mid-build-is-not-a-test-platform-and-the-tell-is-a-tmp),
 which is the same mistake wearing a different hat.
+
+### The reference build is patched, and the patches are on the rows we care about
+
+This file said "a clean development build" for thirty batches. It is not, and the divergence is
+concentrated exactly where a triage sweep is most likely to be misled.
+
+`/usr/bin/M2` comes from `macaulay2-common`, built from Doug's PPA, which carries Debian/Ubuntu
+packaging patches on top of a `development` snapshot. Against `origin/development`, **4 of 103
+`Core` scripts and 24 of 300 packages differ.** Two of the Core diffs are cosmetic packaging
+(`code.m2` looks for `startup.m2` rather than `startup.m2.in`; `html.m2` drops the version-select
+script), but `testing.m2` adds a mechanism that does not exist upstream at all:
+
+```m2
+    if (m := regex("(?<=no-check-architecture:)[^(\\n]*", teststring)) =!= null
+    then (
+	badarchs := apply(separate(", ", substring(m#0, teststring)),
+	    s -> replace("^\\s*|\\s*$", "", s));
+	if isMember(version#"architecture", badarchs) then (
+	    checkmsg("skipping", desc);
+	    return true));
+```
+
+**21 packages then carry `no-check-architecture:` or `no-check-flag` markers naming 26 M2 issue
+numbers** — #1064, #1392, #1456, #1539, #1563, #1579, #1581, #1707, #1746, #1834, #1903, #1984,
+#2162, #2183, #2205, #2319, #2704, #2923, #3179, #3238, #3239, #3646, #3820, #3988, #4413, #4429.
+Twenty-two of those are rows in this corpus. Every one of them is a test that the reference build
+has been patched to skip, on precisely the platforms the issue is about.
+
+Two consequences:
+
+- **A `check` that passes here may be passing because it was skipped.** `checkmsg("skipping", ...)`
+  says so in the output, but only if you read it; the line scrolls past under a `tail`.
+- **A package's own source may not be the source you tested.** #1707 is the sharp case: the
+  installed `Topcom.m2` is the [#4166](https://github.com/Macaulay2/M2/pull/4166) draft, adding
+  `--memopt` to every `checkregularity`, `points2finetriang` and `points2nflips` call. A run
+  against it would have said the out-of-memory issue was gone, when what is actually true is that
+  an unmerged draft by the reporter mitigates it downstream.
+
+The check is cheap and worth running whenever a row turns on package or `check` behaviour:
+
+```sh
+git archive origin/development M2/Macaulay2/packages | tar -x -C /tmp/pkgs
+diff /tmp/pkgs/M2/Macaulay2/packages/Topcom.m2 /usr/share/Macaulay2/Topcom.m2
+grep -l "no-check-architecture\|no-check-flag" /usr/share/Macaulay2/*.m2
+```
+
+This is [the flag that makes M2 convenient to test with can be the flag that hides the
+bug](README-bugs-directory.md#the-flag-that-makes-m2-convenient-to-test-with-can-be-the-flag-that-hides-the-bug)
+one level up: not an option passed at the prompt, but a patch applied at build time by the person
+whose account this sweep publishes under.
 
 ## Types, not the `bug` and `feature request` labels
 
