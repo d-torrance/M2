@@ -54,10 +54,30 @@ it is not a `GET`, it needs asking for. This is
 [the gate is wider than `--apply`](README-bugs-directory.md#--apply-is-not-yours-to-give-yourself),
 carried over.
 
-**Committing locally is free. Everything in the table above is not.** A batch is *finished*
-when it is committed. Publishing is not its last step — it is a separate event that begins
-with Doug and may never come at all. Work as far as the commit, then stop and say what is
-queued.
+**Committing locally is free. Everything in the table above is not.** Publishing is a separate
+event that begins with Doug and may never come at all.
+
+**One commit per batch, and it comes last.** Triage the rows, ask him about every close, comment
+and label removal, write the comment files — then **stop, uncommitted**, and say what is queued.
+The commit happens after the write-backs, and records the triage and its publication together.
+
+This replaced a two-commit shape — a "Triage batch N" commit, then a "Batch N applied" one — at
+his request, and the reason is the first item on the list of
+[ways this has actually gone wrong](#the-ways-this-has-actually-gone-wrong). A commit saying
+"close proposed", sitting beside three finished comment files, makes the batch feel done; the
+only thing left resembles a keystroke rather than a decision. Committing last means the artifact
+that feels like completion cannot exist before he has said yes.
+
+The argument against — that un-approved work stops being durable — mostly does not hold, and Doug
+made the point himself: **the single commit can carry the whole discussion.** Everything a
+"Triage batch N" message would have said, including the rows he declined and why, goes in the one
+commit that lands afterwards. Nothing is lost by writing it later instead of earlier.
+
+What is left of the objection is narrow. If a batch is abandoned outright — declined and not
+applied — its findings stay in the working tree and have to be carried in the reply or re-derived.
+And there is no committed before-state to diff against if something goes out unasked, so
+[establishing the scope read-only](#when-something-has-gone-out-unasked) leans entirely on the API
+and on `applied.tsv`, which is where it should have leaned anyway.
 
 ### The gate is enforced, because prose was not enough
 
@@ -806,6 +826,12 @@ of these being a public action he has to ask for — the sequence is
     bin/apply-labels --apply
     bin/publish-verdicts --only <numbers> --apply     # closes; must be last
     git push personal bug-triage                      # separately, and only if asked
+
+then `bin/fetch-issues --refresh`, `bin/init-issues` and `bin/render-issues` to pull the new types
+and labels back and drop the closed rows, and *then* the batch's
+[one and only commit](#nothing-public-happens-without-doug-saying-so-first-every-time), carrying
+both the triage and what was published. The push is the last thing and is still its own
+invocation, never chained.
 
 The `bin/approve` runs are a record of a conversation that has already happened, not a step
 that produces one. Running them to get past a refusal is the whole failure this exists to
