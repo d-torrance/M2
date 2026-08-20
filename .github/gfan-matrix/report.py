@@ -43,6 +43,7 @@ ORDER = [
 ROW_FIELDS = [
     "row", "kernel", "arch", "compiler", "std",
     "unpatched", "unpatched_msg", "unpatched_clang", "patched", "tests",
+    "m2", "m2tests",
 ]
 
 
@@ -149,6 +150,27 @@ def main():
         L.append("| `%s` | %s | %s | `%s` | %s | %s | %s |" % (
             r["row"], r["arch"], escape(r["compiler"]), r["std"],
             unpatched, patched, r["tests"] or "—"))
+    L.append("")
+
+    L.append("### Does M2 work with the gfan the patch produces?\n")
+    L.append("Each row installs a released Macaulay2 from a binary package the way "
+             "a user of that system would — `ppa:macaulay2/macaulay2` on Ubuntu, "
+             "`macaulay2.com/Repositories` on Debian and Rocky, `Macaulay2/tap` on "
+             "macOS — puts the gfan built above where `gfanInterface` will find it, "
+             "and runs that package's tests.  No M2 is built from source: the only "
+             "thing that differs from a stock install is the gfan underneath it.\n")
+    L.append("| System | M2 | `check gfanInterface` |")
+    L.append("|---|---|---|")
+    for r in rows:
+        m2tests = r["m2tests"] or "—"
+        # a clean pass is "n/n"; everything else is a result worth looking at
+        parts = m2tests.split("/")
+        if len(parts) != 2 or parts[0] != parts[1]:
+            m2tests = "**%s**" % m2tests
+        else:
+            m2tests = "%s passed" % m2tests
+        L.append("| `%s` | %s | %s |" % (
+            r["row"], escape(r["m2"]) or "—", m2tests))
     L.append("")
 
     L.append("<details><summary>First error from each unpatched build</summary>\n")

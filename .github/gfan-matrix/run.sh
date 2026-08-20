@@ -10,6 +10,7 @@
 #   unpatched  build gfan 0.8beta as shipped        (never fails the step)
 #   patched    build it with M2's patch-0.8beta applied
 #   check      run gfan's own test suite
+#   m2check    install a released M2 and run gfanInterface's tests against it
 #   summary    write the row of the results table
 # Each phase is a separate step in the workflow so that its output is easy to
 # find; state is carried between them in $OUTDIR/state.sh.
@@ -35,6 +36,7 @@ TARBALLS=${TARBALLS:-$TOP/tarballs}
 OUTDIR=${OUTDIR:-$TOP/results/$ROW}
 WORK=${WORK:-$TOP/work/$ROW}
 DEPS=$WORK/deps
+GFANBIN=$WORK/gfan-bin
 STATE=$OUTDIR/state.sh
 
 GFAN_TARBALL=gfan0.8beta.tar.gz
@@ -62,6 +64,8 @@ load() {
     UNPATCHED_CLANG=${UNPATCHED_CLANG:-n/a}
     PATCHED=${PATCHED:-}
     TESTS=${TESTS:-n/a}
+    M2VERSION=${M2VERSION:-n/a}
+    M2TESTS=${M2TESTS:-n/a}
     # Pass the row's compiler on the make command line, where it beats the
     # assignments inside gfan's own Makefile.  Rows that leave CXX unset are
     # deliberately letting gfan choose, which on macOS means the gcc-15 pin.
@@ -87,9 +91,15 @@ njobs() {
 # <execution> backend.  M2 never supplies TBB to gfan either way.
 # --------------------------------------------------------------------------
 
-apt_get() {
-    if [ "$(id -u)" = 0 ]; then apt-get "$@"; else sudo apt-get "$@"; fi
+# Docker rows run as root and have no sudo; rows on a bare runner are the other
+# way round.
+as_root() {
+    if [ "$(id -u)" = 0 ]; then "$@"; else sudo "$@"; fi
 }
+
+# sudo does not pass the environment through, so name the frontend here rather
+# than exporting it and hoping.
+apt_get() { as_root env DEBIAN_FRONTEND=noninteractive apt-get "$@"; }
 
 install_deps() {
     if [ "$(uname -s)" = Darwin ]; then
@@ -379,11 +389,148 @@ phase_check() {
     return 1
 }
 
+# --------------------------------------------------------------------------
+# m2check.  A gfan that builds and passes its own tests is only useful to M2 if
+# M2 can drive it, so install a released Macaulay2 the way a user of this system
+# would -- the PPA on Ubuntu, macaulay2.com's repositories on Debian and RHEL,
+# the Homebrew tap on macOS -- point its gfanInterface at the binary the patched
+# build just produced, and run that package's tests.
+#
+# Nothing is compiled in this phase.  M2 comes from a binary package, so what is
+# under test is the one thing that changed: gfan.  That also means the M2 here is
+# the last release rather than this branch, which is what we want -- the patch
+# has to work with the M2 people are running, not only with the tree it sits in.
+# --------------------------------------------------------------------------
+
+install_m2() {
+    if [ "$(uname -s)" = Darwin ]; then
+        brew tap Macaulay2/tap || return 1
+        # newer Homebrew will not install from a third-party tap without this;
+        # older ones have no such command, and neither may ask us anything
+        brew trust Macaulay2/tap < /dev/null || true
+        brew install Macaulay2/tap/M2
+        return
+    fi
+    . /etc/os-release
+    case $ID in
+        ubuntu)
+            apt_get install -y --no-install-recommends \
+                ca-certificates gnupg dirmngr software-properties-common &&
+                as_root add-apt-repository -y ppa:macaulay2/macaulay2 &&
+                apt_get update &&
+                apt_get install -y --no-install-recommends macaulay2
+            ;;
+        debian)
+            # a flat repository per suite, described by a deb822 .sources file
+            apt_get install -y --no-install-recommends ca-certificates curl &&
+                as_root curl -fsSLo \
+                    /usr/share/keyrings/macaulay2-archive-key.asc \
+                    https://macaulay2.com/Repositories/Debian/macaulay2-archive-key.asc &&
+                as_root curl -fsSLo \
+                    /etc/apt/sources.list.d/macaulay2.sources \
+                    "https://macaulay2.com/Repositories/Debian/$VERSION_CODENAME/macaulay2.sources" &&
+                apt_get update &&
+                apt_get install -y --no-install-recommends macaulay2
+            ;;
+        rocky | rhel | almalinux | centos)
+            # $releasever in the .repo file selects the el8 packages here
+            as_root curl -fsSLo /etc/yum.repos.d/Macaulay2.repo \
+                https://macaulay2.com/Repositories/Scientific/Macaulay2.repo &&
+                as_root dnf -y install Macaulay2
+            ;;
+        *)
+            echo "no Macaulay2 packages known for $ID" >&2
+            return 1
+            ;;
+    esac
+}
+
+# findProgram looks in programPaths, then in M2's own programs directory, then
+# along PATH.  m2check.m2 sets the first; move anything sitting in the second
+# aside, so that the tests check runs in a subprocess -- where programPaths does
+# not survive, but the prepended PATH does -- cannot reach past our directory to
+# the gfan the distribution shipped.
+shadow_installed_gfan() {
+    local dir
+    dir=$(M2 -q --no-readline -e \
+        'print("PROGRAMSDIR " | prefixDirectory | currentLayout#"programs"); exit 0' \
+        2> /dev/null | sed -n 's/^PROGRAMSDIR //p' | tail -1)
+    [ -n "$dir" ] && [ -e "$dir/gfan" ] || return 0
+    echo "moving $dir/gfan aside"
+    as_root mv "$dir/gfan" "$dir/gfan.shipped"
+}
+
+phase_m2check() {
+    if [ "$PATCHED" != built ]; then
+        say "skipping the M2 tests: no gfan binary"
+        save M2VERSION "n/a"
+        save M2TESTS "n/a"
+        return 1
+    fi
+
+    say "installing Macaulay2"
+    if ! install_m2 > "$OUTDIR/m2-install.log" 2>&1; then
+        tail -30 "$OUTDIR/m2-install.log"
+        say "could not install Macaulay2"
+        save M2VERSION "install failed"
+        save M2TESTS "n/a"
+        return 1
+    fi
+    M2VERSION=$(M2 --version 2>&1 | tail -1)
+    save M2VERSION "$M2VERSION"
+    echo "Macaulay2 $M2VERSION at $(command -v M2)"
+
+    mkdir -p "$GFANBIN"
+    cp "$WORK/patched/$GFAN_DIR/gfan" "$GFANBIN/gfan"
+    shadow_installed_gfan
+
+    say "check gfanInterface"
+    local status used result
+    GFAN_BIN_DIR=$GFANBIN PATH=$GFANBIN:$PATH \
+        M2 --script "$HERE/m2check.m2" > "$OUTDIR/m2check.log" 2>&1
+    status=$?
+    cat "$OUTDIR/m2check.log"
+
+    # If M2 found some other gfan, or would not accept ours, then whatever the
+    # tests did says nothing about this row.
+    used=$(sed -n 's/^-- GFANPATH //p' "$OUTDIR/m2check.log" | tail -1)
+    if [ -z "$used" ]; then
+        say "M2 would not accept the gfan in $GFANBIN"
+        save M2TESTS "gfan rejected"
+        return 1
+    fi
+    if [ "${used%/}" != "$GFANBIN" ]; then
+        say "M2 resolved gfan to $used, not $GFANBIN"
+        save M2TESTS "wrong gfan"
+        return 1
+    fi
+
+    result=$(sed -n 's/^-- RESULT //p' "$OUTDIR/m2check.log" | tail -1)
+    if [ -z "$result" ]; then
+        say "m2check.m2 printed no result"
+        save M2TESTS "no result"
+        return 1
+    fi
+    if [ "$result" = load-failed ]; then
+        say "gfanInterface would not load"
+        save M2TESTS "load failed"
+        return 1
+    fi
+    if [ "$status" -eq 0 ]; then
+        save M2TESTS "$result"
+        say "gfanInterface: $result tests passed"
+        return 0
+    fi
+    save M2TESTS "$result FAILED"
+    say "gfanInterface: $result -- some tests FAILED"
+    return 1
+}
+
 phase_summary() {
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
         "$ROW" "$(uname -s)" "$(uname -m)" "$CXXVERSION" "$BEST_STD" \
         "$UNPATCHED_STOCK" "$UNPATCHED_STOCK_MSG" "$UNPATCHED_CLANG" \
-        "$PATCHED" "$TESTS" > "$OUTDIR/row.tsv"
+        "$PATCHED" "$TESTS" "$M2VERSION" "$M2TESTS" > "$OUTDIR/row.tsv"
     say "row"
     cat "$OUTDIR/row.tsv"
 }
@@ -394,6 +541,7 @@ case ${1:-all} in
     unpatched) load && phase_unpatched ;;
     patched) load && phase_patched ;;
     check) load && phase_check ;;
+    m2check) load && phase_m2check ;;
     summary) load && phase_summary ;;
     all)
         phase_deps &&
@@ -401,10 +549,11 @@ case ${1:-all} in
             load && phase_unpatched
         load && phase_patched
         load && phase_check
+        load && phase_m2check
         load && phase_summary
         ;;
     *)
-        echo "usage: $0 {deps|probes|unpatched|patched|check|summary|all}" >&2
+        echo "usage: $0 {deps|probes|unpatched|patched|check|m2check|summary|all}" >&2
         exit 2
         ;;
 esac

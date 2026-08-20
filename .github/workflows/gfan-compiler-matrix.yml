@@ -8,6 +8,11 @@
 # #include <execution> and is pulled into 110 translation units, so an
 # unpatched build can only ever fail on that one blocker.
 #
+# Each row then installs a released Macaulay2 from a binary package -- the PPA on
+# Ubuntu, macaulay2.com on Debian and Rocky, the Homebrew tap on macOS -- points
+# its gfanInterface at the gfan the patched build just produced, and runs that
+# package's tests.  No M2 is built from source anywhere in here.
+#
 # This workflow is not part of the PR.  It lives on its own branch so that the
 # run can be linked from a comment without adding CI to a patch-only change.
 
@@ -155,6 +160,12 @@ jobs:
 
       - name: Run the gfan test suite
         run: sh .github/gfan-matrix/in-env.sh check
+
+      # Independent of the step above: a row where gfan's own tests fail is
+      # still worth asking the question of.
+      - name: Install M2 and check gfanInterface against the patched gfan
+        if: ${{ !cancelled() }}
+        run: sh .github/gfan-matrix/in-env.sh m2check
 
       - name: Summarise the row
         if: always()
