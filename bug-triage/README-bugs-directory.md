@@ -518,12 +518,25 @@ becomes permanently unmatched and `--check` can never confirm it is current. Don
 state. Deleting is worse still: it is irreversible, and the draft would have to be recreated from
 `catalog.tsv` and `bin/extract`.
 
+One card was deleted, and it is the exception that shows what the rule protects.
+`mike/gbB-refactor-gb` named a **directory**, not a bug file -- `git cat-file -t` says `tree` at
+every commit that path appears in -- so it had no catalog row, no verdict, and, alone among the
+857, an empty body: the board's original build (mahrud, 2026-02-24) walked into the directory,
+emitted a card for it at 20:56:44Z, and emitted its nine files over the seconds that followed --
+there is nothing to read out of a directory, so the body came out blank. There was no
+triage block to destroy and nothing that could recreate it, because `bin/init-catalog` walks files
+and would never produce that path. Deleting it removed a card that stood for nothing; deleting a
+settled draft removes the published reasoning for a real file. Doug removed it on 2026-08-22, which
+is why the board reads 856 and its Backlog column is empty.
+
 A trap when checking this from a script: because archived items are not returned, `isArchived` is
 always false on what you get back, and an archived draft is indistinguishable from a deleted one
 by item count alone. Three drafts archived on 2026-08-03 (`mike/git-issue-568-569.m2`,
 `mike/git-issue291.m2`, `mike/git-issue604.m2`) made the board read 854 items, exactly as three
-deletions would have. They have since been unarchived and read Done, so the board is back to 857
-and matches the catalog -- but the count is what misled, and it would mislead again.
+deletions would have. They have since been unarchived and read Done, so nothing on the board is
+hidden -- but the count is what misled, and it would mislead again. It read 857 at the time and
+reads 856 now, for the reason just given, so check a suspicious count against the paragraph below
+rather than against a number remembered from here.
 
 The reason not to make the board the only surface: draft issues are project-local. They do not
 appear in issue search, cannot be referenced from a commit or PR, cannot be closed by
@@ -537,7 +550,7 @@ not just the first: it now edits public issues as well as drafts. Reading it is 
 the bar; see [`--apply` is not yours to give yourself](#--apply-is-not-yours-to-give-yourself)
 for the other half.
 
-The board (`PVT_kwDOAC6Xfc4BQEgX`, "bugs directory", 857 items) carries only the stock
+The board (`PVT_kwDOAC6Xfc4BQEgX`, "bugs directory", 856 items) carries only the stock
 project-template fields -- Status, Priority, Size, Estimate, Start/Target date, plus the
 built-ins. There is nowhere to put a verdict, an issue number, a fix, or a note. Rather than add
 five custom fields to a board other people use, the script writes:
@@ -609,6 +622,15 @@ duplicate, and its block still reads `Issue: #101`, which is the whole value of 
 
 Archived items are not returned by the API at all, so rows settled by archiving show up
 permanently as unmatched -- that is expected, not a failure.
+
+**`unmatched: 2` is the resting value.** Two rows have no board item and never will, so `--check`
+reports them on every run. `bugs/README` is the only file sitting directly in `bugs/`, and the
+board's original build missed it, so the 856 cards cover the other 856 files, one apiece.
+`bugs/anton/MISC/standardPairs.m2` has no draft either, because its draft is the one that was
+converted in error into [#4492](https://github.com/Macaulay2/M2/issues/4492); the row settled as a
+`duplicate` of #114, and `match()`'s issue-number fallback deliberately covers only `open` rows
+with `disposition=issue`, so it does not reach across to #4492. Neither is worth repairing. A third
+unmatched row is a signal.
 
 ## When an existing issue is close but not the same
 
@@ -1931,7 +1953,8 @@ requests each and were split into `asks.tsv` rather than settled whole.
 
 **All 857 rows and all 191 asks now carry a verdict.** Nothing is `todo`, and no row is left with a
 blank `disposition`: the "parked" class described [above](#the-wishlist-files-are-split-into-asks-and-none-of-them-stays-parked)
-is empty, and every board card is at Backlog, Ready, In progress or Done according to its own row.
+is empty, and the board has nothing left in Backlog or Ready: of its 856 cards, 733 are Done and
+123 are In progress, each of those naming an issue that is still open.
 
 What #36 asked for was that these be gone through and the live ones filed. They were. 131 rows came
 out `open`; 130 of them name an issue, and the catalog cites 223 issue references in total across
@@ -1943,7 +1966,7 @@ To check that state rather than trust this paragraph:
 awk -F'\t' 'NR>1 && $7=="todo" {print $1}' catalog.tsv          # should print nothing
 awk -F'\t' 'NR>1 && $10==""   {print $1}' catalog.tsv          # likewise
 awk -F'\t' 'NR>1 && $4=="todo" {print $1"::"$2}' asks.tsv       # likewise
-./bin/push-project --check                                      # board agrees with the catalog
+./bin/push-project --check                                      # in sync; 856 items, 2 unmatched
 ```
 
 Two things a later reader will want and should not have to rediscover. The `note` column is the only
