@@ -14,11 +14,8 @@ on:
     branches:
       - stable
       - development
-  push:
-    branches:
-      - development # seed cache after merging a PR
   schedule:
-    - cron: '0 6 * * SUN' # runs tests on the main branch every Sunday at 06:00 UTC
+    - cron: '0 6 * * SUN' # runs the full regression sweep every Sunday at 06:00 UTC
 
 concurrency:
   # Cancel in-progress runs when a new workflow with the same group name is triggered
@@ -29,18 +26,20 @@ defaults:
   run:
     working-directory: M2/BUILD/build
 
-env:
-  # skip documentation & tests when seeding cache
-  SEED_CACHE_ONLY: ${{ github.event_name == 'push' }}
-
 jobs:
   build:
     if: github.repository == 'Macaulay2/M2' || contains(github.ref, 'global')
-    name: ${{ matrix.build-system }}-${{ matrix.os }}
+    name: ${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        # A scheduled workflow always runs on the repository's default branch,
+        # which is stable, so the Sunday build has only ever re-tested the last
+        # release.  Give the sweep an explicit ref, and keep stable in the list
+        # so that it does not silently stop being built.  Every other event
+        # builds the ref it was triggered on, which is what "" means here.
+        ref: ${{ github.event_name == 'schedule' && fromJSON('[ "development", "stable" ]') || fromJSON('[ "" ]') }}
         build-system:
           - autotools
           - cmake
@@ -56,6 +55,8 @@ jobs:
       COMPILER: ${{ matrix.build-system == 'cmake' && startsWith(matrix.os, 'macos') && 'brew-clang' || 'default' }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.ref }}
 
 # ----------------------
 #   Install missing tools and libraries for macOS
@@ -131,7 +132,11 @@ jobs:
         with:
           key: ${{ matrix.build-system }}-${{ matrix.os }}-${{ env.COMPILER }}
           evict-old-files: job
-          save: ${{ github.event_name == 'push' }} # to development on merge
+          # Pull request runs restore but never write: a cache written under
+          # refs/pull/N/merge is invisible to every other pull request anyway,
+          # and fork pull requests get a read-only token.  The stable row stays
+          # silent so the two scheduled rows do not fight over one key.
+          save: ${{ github.event_name != 'pull_request' && matrix.ref != 'stable' }}
 
 # ----------------------
 #   Configure and build M2 using CMake
@@ -157,7 +162,7 @@ jobs:
           cmake --build . --target M2-core M2-emacs
 
       - name: Install packages using Ninja
-        if: matrix.build-system == 'cmake' && env.SEED_CACHE_ONLY != 'true'
+        if: matrix.build-system == 'cmake'
         run: |
           cmake --build . --target install-packages
           if [[ "${{ runner.os }}" == "Linux" ]]; then
@@ -189,7 +194,7 @@ jobs:
           make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu) PACKAGES=
 
       - name: Install packages using Make
-        if: matrix.build-system == 'autotools' && env.SEED_CACHE_ONLY != 'true'
+        if: matrix.build-system == 'autotools'
         run: |
           make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)
 
@@ -198,7 +203,7 @@ jobs:
 # ----------------------
 
       - name: Run Tests using CTest
-        if: matrix.build-system == 'cmake' && runner.os == 'macOS' && env.SEED_CACHE_ONLY != 'true'
+        if: matrix.build-system == 'cmake' && runner.os == 'macOS'
         run: |
           set -xe
           ./M2 -q --check 1
@@ -212,13 +217,13 @@ jobs:
           # TODO: add Macaulay2/tests/engine when https://github.com/Macaulay2/M2/issues/1213 is fixed
 
       - name: Run Tests using Autotools
-        if: matrix.build-system == 'autotools' && runner.os == 'Linux' && env.SEED_CACHE_ONLY != 'true'
+        if: matrix.build-system == 'autotools' && runner.os == 'Linux'
         run: |
           make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu) check -o check-in-libraries
           make -C Macaulay2/html-check-links check
 
       - name: Validate HTML documentation
-        if: matrix.build-system == 'autotools' && runner.os == 'Linux' && env.SEED_CACHE_ONLY != 'true'
+        if: matrix.build-system == 'autotools' && runner.os == 'Linux'
         run: |
           pipx install html5validator
           if test ${{ github.event_name }} = pull_request
@@ -246,7 +251,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-           name: ${{ matrix.build-system }}-${{ matrix.os }}-logs
+           name: ${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}-logs
            path: |
              # Autotools
              M2/BUILD/build/config.log
@@ -268,7 +273,7 @@ jobs:
              M2/BUILD/build/Macaulay2/tests/*/*.errors
 
       - name: Upload Macaulay2 package for Ubuntu (x86_64)
-        if: matrix.build-system == 'cmake' && runner.os == 'Linux' && success() && env.SEED_CACHE_ONLY != 'true'
+        if: matrix.build-system == 'cmake' && runner.os == 'Linux' && success()
         uses: actions/upload-artifact@v7
         with:
           name: Macaulay2-${{ env.GIT_COMMIT }}-ubuntu-x86_64
