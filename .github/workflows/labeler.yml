@@ -1,0 +1,31 @@
+# Label a pull request according to the paths it touches; see
+# .github/labeler.yml for the mapping.
+#
+# This has to be its own workflow, triggered by pull_request_target rather than
+# pull_request, because a pull_request run from a fork gets a read-only token
+# and cannot write labels — and most pull requests here come from forks.
+# pull_request_target runs in the base repository's context with a writable
+# token, so the usual caution applies: this workflow must never check out or
+# execute anything from the pull request.  It doesn't; actions/labeler reads
+# the configuration from the base ref and asks the API which files changed.
+
+name: Label pull requests
+
+on:
+  pull_request_target:
+    types: [ opened, synchronize, reopened ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    if: github.repository == 'Macaulay2/M2'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v7
+        with:
+          # Add labels, never take them away: a label somebody applied by hand
+          # should survive a push that no longer matches its paths.
+          sync-labels: false
