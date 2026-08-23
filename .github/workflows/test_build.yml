@@ -4,6 +4,19 @@
 #
 #    See https://help.github.com/en/actions for the documentation.
 #
+#  The work is split into three kinds of job:
+#
+#    build     compiles the interpreter and uploads the whole workspace as an
+#              artifact.  One per build system and platform.
+#    install   installs the distributed packages, which runs their documentation
+#              examples, and checks the resulting documentation.
+#    check     runs the packages' TEST blocks and the engine's unit tests.
+#
+#  install and check both consume the artifact from build rather than compiling
+#  their own interpreter.  Neither needs anything from the other: a package's
+#  tests are read from the source tree, not from the staging area, so the two
+#  phases are independent given the binary.
+#
 ################################################################################
 
 name: Build and Test Macaulay2
@@ -22,23 +35,33 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 defaults:
   run:
     working-directory: M2/BUILD/build
 
 jobs:
+
+# ------------------------------------------------------------------------------
+#   Compile the interpreter, once per build system and platform
+# ------------------------------------------------------------------------------
+
   build:
     if: github.repository == 'Macaulay2/M2' || contains(github.ref, 'global')
-    name: ${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}
+    name: build-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         # A scheduled workflow always runs on the repository's default branch,
-        # which is stable, so the Sunday build has only ever re-tested the last
-        # release.  Give the sweep an explicit ref, and keep stable in the list
-        # so that it does not silently stop being built.  Every other event
-        # builds the ref it was triggered on, which is what "" means here.
+        # which is stable, so until now the Sunday build has only ever tested
+        # the last release.  Give the sweep an explicit ref instead, and keep
+        # stable so that it does not silently stop being built.  Every other
+        # event builds the ref it was triggered on, which is what "" means to
+        # actions/checkout.
         ref: ${{ github.event_name == 'schedule' && fromJSON('[ "development", "stable" ]') || fromJSON('[ "" ]') }}
         build-system:
           - autotools
@@ -47,85 +70,27 @@ jobs:
           - ubuntu-24.04
           - macos-15
     env:
-      # The compiler is a function of the other two axes rather than an axis of
-      # its own, which keeps it out of the matrix's include and exclude lists:
-      # there was one of each, cancelling out, and an include row does not pick
-      # up axes added later.  The cmake macOS cell tests Homebrew Clang because
-      # cmake with AppleClang is excluded here (keep).
+      # cmake with AppleClang is excluded upstream, so the cmake macOS cell
+      # tests Homebrew Clang instead.  The compiler axis belongs in the
+      # binary-only platform sweep rather than here, since installing and
+      # checking packages runs the same interpreted code either way.
       COMPILER: ${{ matrix.build-system == 'cmake' && startsWith(matrix.os, 'macos') && 'brew-clang' || 'default' }}
     steps:
+      # The composite action below is a local action, so it is read from the
+      # workspace: check out the workflow's own ref first, then the ref under
+      # test.  Otherwise a scheduled run of an older branch would look for the
+      # action in a tree that predates it.
       - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-build
+        with:
+          compiler: ${{ env.COMPILER }}
+
+      - name: Check out the ref under test
+        if: matrix.ref != ''
+        uses: actions/checkout@v6
         with:
           ref: ${{ matrix.ref }}
-
-# ----------------------
-#   Install missing tools and libraries for macOS
-# ----------------------
-
-      - name: Install requirements for macOS
-        if: runner.os == 'macOS'
-        run: |
-          brew config
-          brew update
-          brew trust macaulay2/tap
-          brew tap macaulay2/tap
-          brew install automake bison boost libtool tbb ccache ctags llvm make yasm libffi msolve googletest fplll eigen jansson r palp
-          brew install texinfo || true # sometimes post-install step fails
-          brew install --only-dependencies macaulay2/tap/M2
-          brew link factory --force
-
-# ----------------------
-#   Install missing tools and libraries for Linux
-# ----------------------
-
-      - name: Install requirements for Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo add-apt-repository -y -n ppa:macaulay2/macaulay2
-          sudo apt-get update
-          sudo apt-get install -y -q --no-install-recommends clang-16 gfortran libtool-bin ninja-build yasm ccache
-          sudo apt-get install -y -q --no-install-recommends liblzma-dev libboost-stacktrace-dev \
-                  libncurses-dev libncurses5-dev libreadline-dev libeigen3-dev libopenblas-dev libxml2-dev \
-                  libgc-dev libgdbm-dev libglpk-dev libgmp3-dev libgtest-dev libmpfr-dev libmpfi-dev libntl-dev gfan \
-                  libgivaro-dev libboost-regex-dev fflas-ffpack libflint-dev libmps-dev libfrobby-dev \
-                  libsingular-dev singular-data libcdd-dev cohomcalg topcom 4ti2 libnormaliz-dev normaliz coinor-csdp \
-                  libnauty-dev nauty lrslib polymake pipx phcpack w3c-markup-validator libtbb-dev qepcad libomp-16-dev \
-                  msolve libfplll-dev libjansson-dev r-base palp
-
-# ----------------------
-#   Steps common to all build variants
-# ----------------------
-
-      - name: Set up compiler
-        run: |
-          case "${{ env.COMPILER }}" in
-            default)
-              echo "Using default compiler"
-              ;;
-            brew-clang)
-              echo "Using Homebrew Clang"
-              echo "CC=clang"    >> $GITHUB_ENV
-              echo "CXX=clang++" >> $GITHUB_ENV
-              echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
-              # https://github.com/Macaulay2/M2/issues/3967
-              # maybe remove after some future llvm release?
-              SDKROOT=$(xcrun --show-sdk-path)
-              echo "CXXFLAGS=-nostdinc++ -isystem $SDKROOT/usr/include/c++/v1 -isystem $SDKROOT/usr/include" >> $GITHUB_ENV
-              ;;
-          esac
-
-      - name: Prepare build environment
-        run: |
-          if [[ "${{ runner.os }}" == "Linux" ]]
-          then echo "/usr/lib/ccache"                     >> $GITHUB_PATH
-               echo "/home/linuxbrew/.linuxbrew/bin"      >> $GITHUB_PATH
-          else echo `brew --prefix ccache`/libexec        >> $GITHUB_PATH
-               echo `brew --prefix make  `/libexec/gnubin >> $GITHUB_PATH
-               echo `brew --prefix libtool`/libexec/gnubin >> $GITHUB_PATH
-               echo `brew --prefix bison`/bin             >> $GITHUB_PATH
-               echo "CPPFLAGS=-I$(brew --prefix)/include -I$(brew --prefix libomp)/include -I$(brew --prefix readline)/include" >> $GITHUB_ENV
-               echo "LDFLAGS= -L$(brew --prefix)/lib     -L$(brew --prefix libomp)/lib     -L$(brew --prefix readline)/lib"     >> $GITHUB_ENV
-          fi
 
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2.23
@@ -134,8 +99,8 @@ jobs:
           evict-old-files: job
           # Pull request runs restore but never write: a cache written under
           # refs/pull/N/merge is invisible to every other pull request anyway,
-          # and fork pull requests get a read-only token.  The stable row stays
-          # silent so the two scheduled rows do not fight over one key.
+          # and fork pull requests get a read-only token.  The stable row is
+          # silent so that the two scheduled rows do not fight over one key.
           save: ${{ github.event_name != 'pull_request' && matrix.ref != 'stable' }}
 
 # ----------------------
@@ -161,16 +126,6 @@ jobs:
         run: |
           cmake --build . --target M2-core M2-emacs
 
-      - name: Install packages using Ninja
-        if: matrix.build-system == 'cmake'
-        run: |
-          cmake --build . --target install-packages
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
-              sudo apt-get install -y -q --no-install-recommends dpkg-dev
-              echo "GIT_COMMIT=`git describe --dirty --always --match HEAD`" >> $GITHUB_ENV
-              cpack -G DEB
-          fi
-
 # ----------------------
 #   Configure and build M2 using Autotools
 # ----------------------
@@ -193,33 +148,114 @@ jobs:
         run: |
           make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu) PACKAGES=
 
+# ----------------------
+#   Hand the tree to the install and check jobs
+# ----------------------
+
+      # The source tree travels with the build tree, so that the consumers do
+      # not check out sources with fresh timestamps and send make or ninja off
+      # to recompile everything they were handed.  .git is dropped: consumers
+      # take theirs from their own checkout.
+      - name: Pack the build tree
+        run: |
+          tar -cf - -C "$GITHUB_WORKSPACE" --exclude=.git . |
+            zstd -T0 -o "$RUNNER_TEMP/build-tree.tar.zst"
+          ls -l "$RUNNER_TEMP/build-tree.tar.zst"
+
+      - name: Upload the build tree
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-tree-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}
+          path: ${{ runner.temp }}/build-tree.tar.zst
+          compression-level: 0 # already compressed
+          retention-days: 1
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}-logs
+          # Comments cannot go inside the block scalar below: it is literal, so
+          # they would be passed to the action as path patterns.
+          #
+          #   Autotools: config.log, include/*, libraries/*/build/*/config.log
+          #   CMake:     CMakeCache.txt, CMakeFiles/*
+          path: |
+            M2/BUILD/build/config.log
+            M2/BUILD/build/check-configure/tmp/config.log
+            M2/BUILD/build/include/*
+            M2/BUILD/build/libraries/*/build/*/config.log
+            M2/BUILD/build/CMakeCache.txt
+            M2/BUILD/build/CMakeFiles/CMakeError.log
+            M2/BUILD/build/CMakeFiles/CMakeOutput.log
+            M2/BUILD/build/CMakeFiles/CMakeConfigureLog.yaml
+            M2/BUILD/build/libraries/*/build/config.log
+
+# ------------------------------------------------------------------------------
+#   Install the distributed packages, which runs their documentation examples
+# ------------------------------------------------------------------------------
+
+  # needs: is per-job, not per-matrix-cell, so every install job waits for every
+  # build job — including the slow macOS ones.  That costs a few minutes of wall
+  # time and there is no way to express the finer dependency; the alternative,
+  # four self-sufficient jobs, costs three redundant compiles instead.
+  install:
+    needs: build
+    name: install-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        ref: ${{ github.event_name == 'schedule' && fromJSON('[ "development", "stable" ]') || fromJSON('[ "" ]') }}
+        build-system:
+          - autotools
+          - cmake
+        os:
+          - ubuntu-24.04
+          - macos-15
+    env:
+      COMPILER: ${{ matrix.build-system == 'cmake' && startsWith(matrix.os, 'macos') && 'brew-clang' || 'default' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-build
+        with:
+          compiler: ${{ env.COMPILER }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: build-tree-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}
+          path: ${{ runner.temp }}
+
+      # This restores the build job's copy of the sources over the checkout
+      # above, timestamps included, so that make and ninja both see a tree they
+      # have nothing left to do in.
+      - name: Unpack the build tree
+        run: |
+          zstd -dc "$RUNNER_TEMP/build-tree.tar.zst" | tar -xf - -C "$GITHUB_WORKSPACE"
+
+      - name: Install packages using Ninja
+        if: matrix.build-system == 'cmake'
+        run: |
+          cmake --build . --target install-packages
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+              sudo apt-get install -y -q --no-install-recommends dpkg-dev
+              echo "GIT_COMMIT=`git describe --dirty --always --match HEAD`" >> $GITHUB_ENV
+              cpack -G DEB
+          fi
+
       - name: Install packages using Make
         if: matrix.build-system == 'autotools'
         run: |
           make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)
 
-# ----------------------
-#   Run tests
-# ----------------------
-
-      - name: Run Tests using CTest
-        if: matrix.build-system == 'cmake' && runner.os == 'macOS'
-        run: |
-          set -xe
-          ./M2 -q --check 1
-          ./M2 -q --check 2
-          ./M2 -q --check 3
-          cmake --build . --target M2-tests
-          cmake --build . --target M2-unit-tests
-          cmake --build . --target memtailor-unit-tests mathic-unit-tests mathicgb-unit-tests
-          ctest -j1 --output-on-failure -R "unit-tests"
-          ctest -j4 --output-on-failure -R "ComputationsBook"
-          # TODO: add Macaulay2/tests/engine when https://github.com/Macaulay2/M2/issues/1213 is fixed
-
-      - name: Run Tests using Autotools
+      # Redundant when the documentation is built as html, since then "all"
+      # already ran the link checker; kept for the configurations where it is
+      # not in SUBDIRS.
+      - name: Check documentation links
         if: matrix.build-system == 'autotools' && runner.os == 'Linux'
         run: |
-          make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu) check -o check-in-libraries
           make -C Macaulay2/html-check-links check
 
       - name: Validate HTML documentation
@@ -243,34 +279,16 @@ jobs:
             make validate-html
           fi
 
-# ----------------------
-#   Upload build artifacts
-# ----------------------
-
-      - name: Upload build logs
+      - name: Upload install logs
         if: always()
         uses: actions/upload-artifact@v7
         with:
-           name: ${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}-logs
-           path: |
-             # Autotools
-             M2/BUILD/build/config.log
-             M2/BUILD/build/check-configure/tmp/config.log
-             M2/BUILD/build/include/*
-             M2/BUILD/build/libraries/*/build/*/config.log
-             # CMake
-             M2/BUILD/build/CMakeCache.txt
-             M2/BUILD/build/CMakeFiles/CMakeError.log
-             M2/BUILD/build/CMakeFiles/CMakeOutput.log
-             M2/BUILD/build/CMakeFiles/CMakeConfigureLog.yaml
-             M2/BUILD/build/libraries/*/build/config.log
-             # package example errors
-             M2/BUILD/build/usr-dist/common/share/doc/Macaulay2/*/example-output/*.errors
-             # package test errors under Ubuntu
-             /tmp/M2-*/*.tmp
-             /tmp/M2-*/*.m2
-             # Test errors
-             M2/BUILD/build/Macaulay2/tests/*/*.errors
+          name: install-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}-logs
+          # See the note on the build job's log upload: no comments inside the
+          # block scalar.  These are the errors installPackage leaves behind
+          # when a documentation example fails.
+          path: |
+            M2/BUILD/build/usr-dist/common/share/doc/Macaulay2/*/example-output/*.errors
 
       - name: Upload Macaulay2 package for Ubuntu (x86_64)
         if: matrix.build-system == 'cmake' && runner.os == 'Linux' && success()
@@ -280,3 +298,90 @@ jobs:
           path: |
             M2/BUILD/build/Macaulay2-*
           retention-days: 1
+
+# ------------------------------------------------------------------------------
+#   Run the tests, which need the interpreter and Core but no installed packages
+# ------------------------------------------------------------------------------
+
+  check:
+    needs: build
+    name: check-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        ref: ${{ github.event_name == 'schedule' && fromJSON('[ "development", "stable" ]') || fromJSON('[ "" ]') }}
+        build-system:
+          - autotools
+          - cmake
+        os:
+          - ubuntu-24.04
+          - macos-15
+        exclude:
+          # These two combinations run no test step today.  Adding package
+          # checks on autotools/macOS is a separate piece of work; the cmake
+          # side has a check-packages target that no workflow has ever invoked.
+          - build-system: autotools
+            os: macos-15
+          - build-system: cmake
+            os: ubuntu-24.04
+    env:
+      COMPILER: ${{ matrix.build-system == 'cmake' && startsWith(matrix.os, 'macos') && 'brew-clang' || 'default' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-build
+        with:
+          compiler: ${{ env.COMPILER }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: build-tree-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}
+          path: ${{ runner.temp }}
+
+      - name: Unpack the build tree
+        run: |
+          zstd -dc "$RUNNER_TEMP/build-tree.tar.zst" | tar -xf - -C "$GITHUB_WORKSPACE"
+
+      - name: Run Tests using CTest
+        if: matrix.build-system == 'cmake'
+        run: |
+          set -xe
+          ./M2 -q --check 1
+          ./M2 -q --check 2
+          ./M2 -q --check 3
+          cmake --build . --target M2-tests
+          cmake --build . --target M2-unit-tests
+          cmake --build . --target memtailor-unit-tests mathic-unit-tests mathicgb-unit-tests
+          ctest -j1 --output-on-failure -R "unit-tests"
+          ctest -j4 --output-on-failure -R "ComputationsBook"
+          # TODO: add Macaulay2/tests/engine when https://github.com/Macaulay2/M2/issues/1213 is fixed
+
+      # -j2 rather than -j$(nproc): each M2 check already uses about 1.3 cores,
+      # so four of them on a four-core runner oversubscribe.  --output-sync is
+      # not optional, since the check failure log works by echoing the failing
+      # input line and that is unreadable when several packages interleave.
+      # Use target, not recurse: with recurse the whole sub-make's output is
+      # held until it exits, which here would mean half an hour of silence.
+      #
+      # check-in-html-check-links is still in this recursion, but it is a no-op
+      # here: no packages are installed, so there is no HTML to walk.  The link
+      # check that matters happens in the install job, where "all" runs it.
+      - name: Run Tests using Autotools
+        if: matrix.build-system == 'autotools'
+        run: |
+          make -j2 --output-sync=target check -o check-in-libraries
+
+      - name: Upload check logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: check-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}-logs
+          # See the note on the build job's log upload: no comments inside the
+          # block scalar.  The /tmp entries are the files a failing package
+          # test leaves behind; the last line is Macaulay2/tests.
+          path: |
+            /tmp/M2-*/*.tmp
+            /tmp/M2-*/*.m2
+            M2/BUILD/build/Macaulay2/tests/*/*.errors
