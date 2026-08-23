@@ -36,7 +36,7 @@ env:
 jobs:
   build:
     if: github.repository == 'Macaulay2/M2' || contains(github.ref, 'global')
-    name: ${{ matrix.build-system }}-${{ matrix.os }}-${{ matrix.compiler }}
+    name: ${{ matrix.build-system }}-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -47,17 +47,13 @@ jobs:
         os:
           - ubuntu-24.04
           - macos-15
-        compiler:
-          - default
-        include:
-          # This build tests Clang rather than AppleClang (keep)
-          - build-system: cmake
-            os: macos-15
-            compiler: brew-clang
-        exclude:
-          - build-system: cmake
-            os: macos-15
-            compiler: default
+    env:
+      # The compiler is a function of the other two axes rather than an axis of
+      # its own, which keeps it out of the matrix's include and exclude lists:
+      # there was one of each, cancelling out, and an include row does not pick
+      # up axes added later.  The cmake macOS cell tests Homebrew Clang because
+      # cmake with AppleClang is excluded here (keep).
+      COMPILER: ${{ matrix.build-system == 'cmake' && startsWith(matrix.os, 'macos') && 'brew-clang' || 'default' }}
     steps:
       - uses: actions/checkout@v6
 
@@ -101,7 +97,7 @@ jobs:
 
       - name: Set up compiler
         run: |
-          case "${{ matrix.compiler }}" in
+          case "${{ env.COMPILER }}" in
             default)
               echo "Using default compiler"
               ;;
@@ -133,7 +129,7 @@ jobs:
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2.23
         with:
-          key: ${{ matrix.build-system }}-${{ matrix.os }}-${{ matrix.compiler }}
+          key: ${{ matrix.build-system }}-${{ matrix.os }}-${{ env.COMPILER }}
           evict-old-files: job
           save: ${{ github.event_name == 'push' }} # to development on merge
 
@@ -216,7 +212,7 @@ jobs:
           # TODO: add Macaulay2/tests/engine when https://github.com/Macaulay2/M2/issues/1213 is fixed
 
       - name: Run Tests using Autotools
-        if: matrix.build-system == 'autotools' && runner.os == 'Linux' && matrix.compiler == 'default' && env.SEED_CACHE_ONLY != 'true'
+        if: matrix.build-system == 'autotools' && runner.os == 'Linux' && env.SEED_CACHE_ONLY != 'true'
         run: |
           make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu) check -o check-in-libraries
           make -C Macaulay2/html-check-links check
@@ -250,7 +246,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-           name: ${{ matrix.build-system }}-${{ matrix.os }}-${{ matrix.compiler }}-logs
+           name: ${{ matrix.build-system }}-${{ matrix.os }}-logs
            path: |
              # Autotools
              M2/BUILD/build/config.log
