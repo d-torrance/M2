@@ -19,10 +19,27 @@ package file, i.e. the case this review is about.
   seeding runs stop after building the binary.  Validated on a fork first; see
   §2.1's "Measured on a trial run" below.
 
-Everything else below is unstarted.  §3.5-§3.7 supersede the "reduce the matrix
-from 4 jobs to 1" framing of the original draft: the reduction is a shared
-`build` producer feeding package jobs dimensioned by platform and harness, with
-the compiler axis moved to §8's sweep.
+§3.5-§3.7 supersede the "reduce the matrix from 4 jobs to 1" framing of the
+original draft: the reduction is a shared `build` producer feeding package jobs
+dimensioned by platform and harness, with the compiler axis moved to §8's sweep.
+
+**Status, 2026-08-23 (later).**  Steps 3 and 4 of §12 are implemented on the
+`ci-overhaul` branch, on top of cherry-picks of both open pull requests:
+
+- §2.3 — the weekly sweep gets an explicit `ref` matrix axis carrying
+  `development` and `stable`, ccache `save:` extended to non-pull-request
+  events with only the `development` row writing, and the `push: [ development ]`
+  seeding plus `SEED_CACHE_ONLY` reverted.  `package-review@master` unpinned.
+- §2.2a/§3.5/§3.6 — `test_build.yml` split into `build`, `install` and `check`
+  jobs, with `.github/actions/setup-build` holding the setup the three share
+  and the build tree travelling between them as one zstd tarball.  §2.2's
+  `-j2 --output-sync=target` now applied to `make check`.
+- §11's free items: `permissions: contents: read`, `timeout-minutes`, the
+  comments moved out of the `upload-artifact` block scalars, `lint.yml` no
+  longer triggered by `push`.
+- §13 (new) — path-based pull request labelling.
+
+Steps 5 onward are unstarted.
 
 ---
 
@@ -2069,6 +2086,11 @@ moved to the front because the rest now rests on it.
 12. **Cache the apt and Homebrew installs (§10)** — last, ~2 min ceiling and
     Linux only, for a container image that needs a staleness check.
 
+Out of sequence, because it depends on nothing above and costs nothing:
+**label pull requests from their paths (§13)**.  It is a separate workflow with
+its own `pull_request_target` trigger, so it neither blocks nor is blocked by
+any of the twelve.
+
 Steps 1-4 need no design decisions and no path filtering at all, and between
 them would take the current 7 h 48 m of runner time per PR down by well over
 half.  Steps 6-7 are what take a one-package PR from 7 h 48 m to roughly 25
@@ -2082,3 +2104,66 @@ compiled on the newest Ubuntu and the newest macOS".  Their cost is bounded by
 being binary-only — sixteen jobs of roughly four minutes warm, on the ~22% of
 PRs that touch the binary — which is still less runner time than a single one of
 today's jobs spends installing packages.
+
+---
+
+## 13. Labelling pull requests from their paths
+
+Doug's suggestion, and the repository is unusually well set up for it: of the 38
+labels defined, nine are topical — they say *which part of Macaulay2* a change
+touches — and every one of those nine is decidable from the changed paths alone.
+
+| label | its description in the repo | paths |
+|---|---|---|
+| `Engine` | `Macaulay2/e` | `M2/Macaulay2/e/**` |
+| `Interpreter` | — | `M2/Macaulay2/{c,d,bin}/**` |
+| `threads` | `Macaulay2/system` | `M2/Macaulay2/system/**` |
+| `Core` | Issues involving the Core scripts | `M2/Macaulay2/m2/**`, `Macaulay2Doc` |
+| `Documentation` | — | `Macaulay2Doc`, `M2/Macaulay2/man/**`, `**/*.md` |
+| `editors` | — | `M2/Macaulay2/editors/**` |
+| `Infrastructure` | GitHub workflows, etc. | `.github/**`, `M2/{BUILD,cmake,m4}/**`, `configure.ac`, `**/Makefile*.in`, `**/CMakeLists.txt` |
+| `dependencies` | Pull requests that update a dependency file | `M2/libraries/**`, `M2/submodules/**`, `.gitmodules` |
+| `javascript` | Pull requests that update Javascript code | `**/*.js` |
+
+**This is not the §3.2 classification wearing a different hat**, which is worth
+saying because the instinct is to have the filter job emit both from one place.
+The two are different functions of the same input.  §3.2 asks "how much CI does
+this need", and collapses `e/`, `d/`, `c/`, `system/` and `bin/` into a single
+bucket — `binary`.  The labels want those distinguished, because a reviewer
+looking for engine work does not want interpreter pull requests.  Conversely
+§3.2 needs the reverse-dependency closure of a package, which no label wants.
+So a standalone path-to-label mapping (`.github/labeler.yml`, consumed by
+`actions/labeler`) is the right factoring, and it can land now rather than
+waiting on step 6.
+
+**It has to be its own workflow, triggered by `pull_request_target`.**  A
+`pull_request` run from a fork gets a read-only `GITHUB_TOKEN`, and
+`permissions: pull-requests: write` cannot raise it — so labelling from inside
+`test_build.yml` would work for maintainers' branches and silently do nothing
+for everyone else, which is most pull requests here.  `pull_request_target`
+runs in the base repository's context with a writable token.  That is the
+trigger with the well-known footgun, so the mitigation has to be stated rather
+than assumed: this workflow checks out nothing and runs nothing from the pull
+request.  `actions/labeler` reads its configuration from the base ref and asks
+the API which files changed; no code from the branch is executed.
+
+**`sync-labels: false`**, which is the default but worth setting explicitly.
+With it on, the action removes a label when the paths that earned it stop
+matching — including labels a human applied deliberately, and including all the
+process labels (`under discussion`, `waiting for review`, `contributions
+welcome`) that share the namespace.  Additive only.
+
+Three judgment calls left for Doug rather than guessed at:
+
+- **`threads` for all of `Macaulay2/system/**`.**  The label's description says
+  exactly that, so the mapping above follows it, but the *name* suggests a
+  narrower meaning and a change to, say, `system/supervisor.cpp` may not be
+  about threading at all.
+- **`new package` and `update to existing package(s)`.**  Both are useful and
+  `M2/Macaulay2/packages/**` is unambiguous, but telling the two apart needs a
+  file's *status*, not its path, and `actions/labeler` matches paths only.
+  Applying `update to existing package(s)` to every packages change would
+  mislabel every new-package pull request, so both are omitted for now.  A
+  small `gh api` step could do it properly by looking for `status: added`.
+- **`AI-generated`.**  Not path-derivable, and self-declared by the author
+  anyway.
