@@ -88,9 +88,12 @@ cohomCalgProgram = null
 -- Also, cohomcalg has a limit of 1024 computations at a time
 cohomCalg0 = (X,pneeded,issilent) -> (
     if cohomCalgProgram === null then
+	-- the sample input is an auxiliary file of this package, so locate it
+	-- relative to the package rather than under prefixDirectory: the latter
+	-- is empty in a build tree where CohomCalg has not been installed yet,
+	-- which makes findProgram report that it could not find cohomcalg
         cohomCalgProgram = findProgram("cohomcalg",
-	    "cohomcalg " | prefixDirectory |
-	    replace("PKG", "CohomCalg", currentLayout#"package") | "dP1.in");
+	    "cohomcalg " | CohomCalg#"source directory" | "./CohomCalg/dP1.in");
     -- X: NormalToricVariety
     -- pneeded: list of multi-degrees, of size <= 1024
     -- issilent: Boolean, whether to quiet the output of cohomcalg.
