@@ -1294,22 +1294,51 @@ build lands in well under an hour.  That is what makes the unconditional
 Worth stating plainly, because it is easy to misremember and it constrains the
 matrix-trimming in §3.
 
+**Corrected 2026-08-23**, when splitting the jobs forced a reading of what
+`--check n` actually does (`m2/startup.m2.in:513-527`, `m2/testing.m2:136`):
+
+| `--check` | is | needs |
+|---|---|---|
+| 1 | `runBasicTests()` — the files in `m2/basictests/` | binary only |
+| 2 | `check("Core")`, whose tests are loaded from `Macaulay2/tests/normal/` | **a staged distribution**, see below |
+| 3 | `checkAllPackages()` — `check(pkg)` over all 299 packages | binary + Core |
+
+So the row below labelled "Core basic tests" was three different things, and the
+third of them is the whole package test suite.
+
 | | autotools Linux | cmake Linux | autotools macOS | cmake macOS |
 |---|---|---|---|---|
 | install 299 packages → **doc examples run** | yes | yes | yes | yes |
-| `make check` → package **`TEST` blocks** | yes | — | — | — |
-| `M2 --check 1/2/3` (Core basic tests) | — | — | — | yes |
+| package **`TEST` blocks** — via `make check` | yes | — | — | — |
+| package **`TEST` blocks** — via `M2 --check 3` | — | — | — | **yes** |
+| `M2 --check 1` (basic tests) | — | — | — | yes |
+| `Macaulay2/tests/normal` — via `make check` | yes | — | — | — |
+| `Macaulay2/tests/normal` — via `M2 --check 2` | — | — | — | yes |
 | engine + memtailor/mathic/mathicgb unit tests | — | — | — | yes |
 | ComputationsBook | — | — | — | yes |
 | `html-check-links`, `validate-html` | yes | — | — | — |
 
-Two observations fall out of that table.
+**Package tests already run on both platforms**, then — which reverses what an
+earlier draft of this section said, and it matters because §7.1 below and §9.5
+were both written on the assumption that macOS had no package test coverage.
+`checkAllPackages` runs the same `check(pkg)` the autotools `check-$i` rules do;
+the two harnesses reach it by different routes and neither workflow says so.
+What *is* missing on macOS is `make check`'s per-package granularity — a single
+`--check 3` is one serial process with no `PACKAGES=` and no `-j`, so §7.1's
+recommendation stands, but as "replace the blunt instrument", not "add the
+missing coverage".
 
-**Packages *are* exercised on macOS — by their examples, not their tests.**
-Every package's documentation examples run in the 1h15m `install-packages` step
-on all four jobs.  What is Linux-only is `check`, i.e. the `TEST` blocks.  So
-"we test packages on macOS" is half true, and the half that's missing is the
-half written by package authors as tests.
+**`Macaulay2/tests/normal` is not install-independent**, unlike the per-package
+checks.  `release-checklist.m2` there loads every distributed package's
+documentation: a cheap gdbm lookup once the packages are staged, and a
+load-each-package-in-process disaster when they are not.  Splitting install
+from check without noticing this produces `out of memory trying to allocate
+61625 bytes` rather than a legible failure.  So §2.2a's independence result
+covers `check-$i` and *not* the `check` recursion as a whole, which also visits
+`Macaulay2/tests`.  Note also that `-o` is not passed to a sub-make
+(`check-in-packages` is declared one level down), so there is no way to skip
+that subdirectory from a top-level `make check`: recurse into
+`Macaulay2/packages` directly instead.
 
 **Two of the four jobs run no test step at all** — the observation that
 motivated §3.6.  `cmake-ubuntu` and
@@ -1682,8 +1711,6 @@ Sketch, reusing the filter job from §3.1:
           compiler: ${{ matrix.config.cc }}
           # native, or: docker run --rm -v "$PWD":/src -w /src ${{ matrix.config.image }}
       - run: ./M2 -q --no-preload --check 1
-      - run: ./M2 -q --no-preload --check 2
-      - run: ./M2 -q --no-preload --check 3
       - run: <build and run the engine unit tests>   # moved here per §3.6
 ```
 
@@ -1715,8 +1742,12 @@ home for the PPA lines above.
 **`M2 --check 1` is free, so run it.**  Measured on a local build: 0.1 s.  It
 catches a binary that compiles and links but cannot start, which is most of
 what actually goes wrong on an unusual platform and is invisible to a
-build-only job.  Do not reach for `--check 2` as a smoke test — it ran past ten
-minutes locally before I stopped it.
+build-only job.  It is also the *only* one of the three that belongs in a
+binary-only job: `--check 3` needs Core installed and takes as long as the
+whole package suite, and `--check 2` cannot run there at all — per §7 it loads
+`Macaulay2/tests/normal`, whose `release-checklist.m2` exhausts the runner's
+memory without a staged distribution.  (An earlier draft of the sketch above
+ran all three; it would have failed on every sweep cell.)
 
 **Expect old platforms to break for reasons that aren't yours.**  EOL mirrors
 move, PPAs get rebuilt, upstream tarball URLs die.  A tier-1 job that fails in
