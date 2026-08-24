@@ -250,6 +250,34 @@ jobs:
         run: |
           make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)
 
+# ----------------------
+#   Tests that need the distribution installed, and so cannot go in the check
+#   job.  Macaulay2/tests/normal is loaded as Core's own test suite -- it is
+#   what M2 --check 2 runs -- and release-checklist.m2 there loads every
+#   distributed package's documentation.  With the packages staged that is a
+#   cheap lookup in a gdbm database; without them it has to load each package
+#   in process, which runs the runner out of memory.  (The Makefile already
+#   hints at the cost: release-checklist.out carries its own TLIMIT = 180,
+#   "often takes longer than 90s in GitHub builds".)
+#
+#   The per-package checks in the check job are a different matter: check-$i
+#   has no prerequisites and reads its tests from the source tree.
+# ----------------------
+
+      - name: Run the Core test suite using Autotools
+        if: matrix.build-system == 'autotools' && runner.os == 'Linux'
+        run: |
+          make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu) -C Macaulay2/tests check
+
+      - name: Run the Core test suite using CTest
+        if: matrix.build-system == 'cmake' && runner.os == 'macOS'
+        run: |
+          set -xe
+          ./M2 -q --check 2
+          cmake --build . --target M2-tests
+          ctest -j4 --output-on-failure -R "ComputationsBook"
+          # TODO: add Macaulay2/tests/engine when https://github.com/Macaulay2/M2/issues/1213 is fixed
+
       # Redundant when the documentation is built as html, since then "all"
       # already ran the link checker; kept for the configurations where it is
       # not in SUBDIRS.
@@ -307,7 +335,7 @@ jobs:
     needs: build
     name: check-${{ matrix.build-system }}-${{ matrix.os }}${{ matrix.ref && format('-{0}', matrix.ref) || '' }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
@@ -344,19 +372,19 @@ jobs:
         run: |
           zstd -dc "$RUNNER_TEMP/build-tree.tar.zst" | tar -xf - -C "$GITHUB_WORKSPACE"
 
+      # --check 1 is runBasicTests(), and --check 3 is checkAllPackages(), which
+      # runs check(pkg) for each distributed package -- the same thing the
+      # autotools check target does, so it needs no installed packages either.
+      # --check 2 is check("Core"), which does; it is in the install job.
       - name: Run Tests using CTest
         if: matrix.build-system == 'cmake'
         run: |
           set -xe
           ./M2 -q --check 1
-          ./M2 -q --check 2
           ./M2 -q --check 3
-          cmake --build . --target M2-tests
           cmake --build . --target M2-unit-tests
           cmake --build . --target memtailor-unit-tests mathic-unit-tests mathicgb-unit-tests
           ctest -j1 --output-on-failure -R "unit-tests"
-          ctest -j4 --output-on-failure -R "ComputationsBook"
-          # TODO: add Macaulay2/tests/engine when https://github.com/Macaulay2/M2/issues/1213 is fixed
 
       # -j2 rather than -j$(nproc): each M2 check already uses about 1.3 cores,
       # so four of them on a four-core runner oversubscribe.  --output-sync is
@@ -365,13 +393,15 @@ jobs:
       # Use target, not recurse: with recurse the whole sub-make's output is
       # held until it exits, which here would mean half an hour of silence.
       #
-      # check-in-html-check-links is still in this recursion, but it is a no-op
-      # here: no packages are installed, so there is no HTML to walk.  The link
-      # check that matters happens in the install job, where "all" runs it.
+      # Recurse into packages directly rather than running the top level check
+      # target: that one also visits Macaulay2/tests, which needs the
+      # distribution installed, and -o does not propagate to a sub-make so
+      # there is no way to skip it from the top.  The other subdirectories'
+      # check targets are no-ops or trivial.
       - name: Run Tests using Autotools
         if: matrix.build-system == 'autotools'
         run: |
-          make -j2 --output-sync=target check -o check-in-libraries
+          make -j2 --output-sync=target -C Macaulay2/packages check
 
       - name: Upload check logs
         if: always()
