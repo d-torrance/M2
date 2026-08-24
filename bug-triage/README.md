@@ -582,11 +582,26 @@ script), but `testing.m2` adds a mechanism that does not exist upstream at all:
 	    return true));
 ```
 
-**21 packages then carry `no-check-architecture:` or `no-check-flag` markers naming 26 M2 issue
+**36 packages then carry `no-check-architecture:` or `no-check-flag` markers naming 29 M2 issue
 numbers** — #1064, #1392, #1456, #1539, #1563, #1579, #1581, #1707, #1746, #1834, #1903, #1984,
-#2162, #2183, #2205, #2319, #2704, #2923, #3179, #3238, #3239, #3646, #3820, #3988, #4413, #4429.
-Twenty-two of those are rows in this corpus. Every one of them is a test that the reference build
-has been patched to skip.
+#2162, #2183, #2205, #2319, #2704, #2923, #3171, #3179, #3238, #3239, #3646, #3820, #3985, #3988,
+#4413, #4429, #4436. Every one of them is a test that the reference build has been patched to skip.
+
+**Re-derive this list rather than trusting it; it is a moving target.** `/usr/bin/M2` comes from a
+development PPA that Doug rebuilds often, so markers appear and disappear between batches. Counted
+on 2026-08-24, all 26 numbers this paragraph originally listed were still present, #4436 was new,
+and #390 and #686 — named in the granular row below when it was written — no longer carry markers
+anywhere.
+
+**And count them recursively.** The command this file used to give,
+`grep -l ... /usr/share/Macaulay2/*.m2`, finds 21 files; the recursive form finds **41**. The 20 it
+misses are exactly the ones most likely to matter, because a package's tests usually live in a
+subdirectory: `Msolve/tests.m2`, `RInterface/tests/*.m2`, `Core/tests/alarm.m2`,
+`Complexes/FreeResolutionTests.m2`, `EngineTests/*.m2` and a dozen more. This is not hypothetical —
+in batch 69 the non-recursive glob was used on #3988, found nothing, and produced a confident
+written claim that the marker did not exist and that this table was wrong. Both were false: the
+marker is at `Msolve/tests.m2:116`, granular, naming `arm, i686`, which is precisely the two
+platforms the issue reports. The table was right and the glob was wrong.
 
 **But not "on precisely the platforms the issue is about" — that phrasing was wrong.** Most of the
 skips are *blanket*. Separating Doug's packaging patches from markers that are upstream in the M2
@@ -629,7 +644,10 @@ The check is cheap and worth running whenever a row turns on package or `check` 
 ```sh
 git archive origin/development M2/Macaulay2/packages | tar -x -C /tmp/pkgs
 diff /tmp/pkgs/M2/Macaulay2/packages/Topcom.m2 /usr/share/Macaulay2/Topcom.m2
-grep -l "no-check-architecture\|no-check-flag" /usr/share/Macaulay2/*.m2
+grep -rl "no-check-architecture\|no-check-flag" /usr/share/Macaulay2/   # -r, not *.m2
+
+# and for one issue, exactly -- substring matching turns #3646 into a hit for #646
+grep -rE "no-check[^#]*\(#3988\)|no-check-flag #3988" /usr/share/Macaulay2/
 ```
 
 This is [the flag that makes M2 convenient to test with can be the flag that hides the
