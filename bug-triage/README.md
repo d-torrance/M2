@@ -758,6 +758,20 @@ turns up in `addlabels`.
 has looked at yet.  It comes off one issue at a time, through `rmlabels`, and the
 label itself goes only when no open issue carries it.
 
+**The swap does not need asking about, row by row.**  Doug's instruction, batch 76:
+*"Everything `bug` label should be replaced with the `Bug` type. Same with
+`feature request` => `Feature`."*  So when a row carries either label, the triage is
+`--type Bug --rm bug` (or `--type Feature --rm "feature request"`) as one move, and
+it goes into the batch's approval with everything else rather than as its own
+question.  `bin/set-verdict` warns when a type and its superseded label coexist,
+which is the reminder.
+
+No back-fill is needed, which is worth knowing before anyone plans one: when the
+instruction was given, **2** already-triaged rows still carried `bug` -- #4356 and
+#4368, both in that same batch -- against **78** untriaged carriers, and `feature
+request` was 0 triaged against 42 untriaged.  Every remaining case arrives through
+an ordinary batch.
+
 **An issue being closed is not a reason to skip its type and label.**  Setting them
 is one of the three questions this sweep exists to answer, and a closed issue is
 still a searchable record -- somebody looking for the build-tooling work, or for
