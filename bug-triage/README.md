@@ -930,6 +930,31 @@ And the attribution is worth the ten minutes on its own merits: #603 closes much
 *"@moorewf implemented @mahrud's suggested fix, with tests"* than as *"it doesn't happen any
 more."*
 
+### `gh api` is snake_case; `gh pr view --json` is camelCase
+
+A misspelled `jq` field prints `null`, and `null` is indistinguishable from a real negative. In
+batch 76 I ran
+
+    gh api repos/Macaulay2/M2/commits/<sha>/pulls -q '.[] | "merged=\(.mergedAt)"'
+
+got `merged=null`, and reported that PR #4347 was unmerged and that the engine restructure had
+reached `development` "by some route other than that PR". Doug: **"#4347 was absolutely merged..."**
+It was — 2026-06-06. The REST API returns `merged_at`; `mergedAt` is the GraphQL spelling that
+`gh pr view --json` uses, and asking the REST endpoint for it yields nothing at all rather than an
+error.
+
+**When a merge query says null, confirm it with the other tool before writing it down.** Two rows
+earlier in the same session went through the identical wrong query — #4224 for `shuffle` and #4269
+for list equality — and survived only because I happened to follow up with `gh pr view`, which
+returned the real dates. The one time I published the raw null, it was wrong.
+
+The general form, and the reason this sits under
+[Finding the commit](#finding-the-commit-ask-the-timeline-before-you-ask-the-log): a tool that
+answers "no" because it did not understand the question looks exactly like a tool that answers "no"
+because the answer is no. `git log -S` on a renamed path, `grep` for a symbol that moved
+directories, a jq field from the wrong API — all three produce a confident negative. Prefer a
+second, differently-shaped query over a single clean "nothing found".
+
 ## Close last: the write-backs are order-dependent
 
 Once Doug has
