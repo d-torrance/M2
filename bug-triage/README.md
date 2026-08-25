@@ -292,6 +292,38 @@ nowhere near the decision on the first. The point of the rule is that each row's
 read immediately before that row's decision, and grouping destroys that however the options are
 arranged. Turn count is my problem, not the maintainer's.
 
+### The evidence goes *above* the question, not inside the options
+
+"With the evidence" above means in the message, before the question is put — not compressed
+into the answer options. Doug's words, after the third time in one batch that he had to ask
+for more before deciding: **"please provide more context before asking me questions. I'm not
+a mind-reader."**
+
+The failure mode is specific and it looks efficient from the inside. An `AskUserQuestion`
+option has room for a few lines, so the temptation is to put the finding there — *"Yes, post
+it: trim returns a strict subideal, T == I is false"* — and let the option carry the argument.
+That is backwards. Options are for **naming the choices**; they are read as a menu, at the
+moment of deciding, by someone who has not seen the transcript. A finding that only exists
+inside option (a) has not been presented at all, it has been *offered as a reason to pick
+(a)*, which is a different and worse thing.
+
+So before every asking call: state what was run, what came back, what is already on the
+issue, and what is genuinely new — in the reply, in the open. Then ask, with options that
+are short and distinguish the dispositions rather than argue for one.
+
+Two things this also buys, both of which happened the day it was written:
+
+- **It exposes thin findings before they are asked about.** Laying out #4151 in full made it
+  obvious that the control I was proposing to publish was one mahrud had already stated
+  himself in the issue's last line, so the comment was withdrawn instead of asked about a
+  second time.
+- **It gets better answers.** On #4095 the first ask was declined for want of context; the
+  material that came out of gathering it — that `trim` loses generators on a *proper* ideal
+  too, so the unit-ideal framing was wrong — changed what the comment said.
+
+Related, and the reason "with the evidence" was not enough on its own:
+[Bring one row at a time, and explain the mechanism](README-bugs-directory.md#bring-one-row-at-a-time-and-explain-the-mechanism).
+
 ### A correction goes *below* the thing it corrects
 
 `comments/issues/<N>.md` is the first comment; `<N>.2.md`, `<N>.3.md` are follow-ups, each
