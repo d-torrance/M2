@@ -839,16 +839,24 @@ The habit: **when a search returns a candidate on the right subject, open it -- 
 on the title.** Cheap, because the candidate list is short by the time a specific term has been
 chosen; and it is the only step that would have caught this one.
 
-### `--batch` has a cohort boundary, and it will run out
+### `--batch`'s cohort boundary is now opt-in
 
-`bin/show --batch` selects rows with `verdict == "todo"` **and `created < --before`**, where
-`--before` defaults to `2020-01-01`. That is a deliberate oldest-first strategy, but it is silent
-when it runs dry: the batch simply comes back short rather than saying why. At the end of batch 19
-it returned seven issues instead of ten, with 586 untriaged rows sitting on the far side of the
-boundary -- and all 138 of the reinstated filings are dated 2026, so they are on that side too.
+`bin/show --batch` selects rows with `verdict == "todo"`, oldest first, and `--before` narrows
+that to rows `created` before a date. **It has no default.** Rows in `issues.tsv` are already in
+ascending `created` order, so oldest-first comes from the ordering, not from the boundary; the
+boundary only caps the far end.
 
-Moving the boundary (`--before 2030-01-01`) fills the batch again. Worth knowing before reading a
-short batch as "nearly finished".
+It used to default to `2020-01-01`, which was the pre-2020 cohort this sweep opened on. That
+default was silent when it ran dry: the batch came back short rather than saying why. At the end
+of batch 19 it returned seven issues instead of ten, with 586 untriaged rows sitting on the far
+side of the boundary, and all 138 of the reinstated filings are dated 2026, so they were on that
+side too. By batch 71 every remaining `todo` row was created in 2026 and the default returned
+nothing at all -- an empty batch that looked like a finished project. Removing it also matches
+`bin/apply-types`, `bin/apply-labels` and `bin/run-issue-repros`, where `--before` has always
+been an opt-in filter with no default.
+
+Pass `--before` when you deliberately want a cohort, e.g. `--before 2020-01-01` to reread the
+oldest rows. A short batch now means the `todo` rows really have run out.
 
 ## Finding the commit: ask the timeline before you ask the log
 

@@ -164,8 +164,8 @@ def main():
     p.add_argument("numbers", type=int, nargs="*")
     p.add_argument("--batch", type=int, metavar="N",
                    help="the N oldest untriaged issues instead")
-    p.add_argument("--before", metavar="YYYY-MM-DD", default="2020-01-01",
-                   help="cohort boundary for --batch (default: 2020-01-01)")
+    p.add_argument("--before", metavar="YYYY-MM-DD",
+                   help="cohort boundary for --batch (default: no boundary)")
     p.add_argument("--chars", type=int, default=3000)
     p.add_argument("--log", action="store_true", help="include the run log")
     args = p.parse_args()
@@ -179,7 +179,8 @@ def main():
     numbers = args.numbers
     if args.batch:
         numbers = [int(r["issue"]) for r in issuestsv.read()
-                   if r["verdict"] == "todo" and r["created"] < args.before][:args.batch]
+                   if r["verdict"] == "todo"
+                   and (not args.before or r["created"] < args.before)][:args.batch]
         print("batch: %s" % " ".join("#%d" % n for n in numbers))
     for n in numbers:
         show(n, cache, comments, rows, args)
