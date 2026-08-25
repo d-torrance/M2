@@ -324,6 +324,35 @@ Two things this also buys, both of which happened the day it was written:
 Related, and the reason "with the evidence" was not enough on its own:
 [Bring one row at a time, and explain the mechanism](README-bugs-directory.md#bring-one-row-at-a-time-and-explain-the-mechanism).
 
+### A question back is not an answer, and the turn ends there
+
+He often replies to an asking call with a question rather than a disposition — *"Is there a bug
+then? Maybe this is comment + close?"* on #4179, *"The typo is in Macaulay2 itself or just in this
+issue?"* on #4194. **Answer it, name in one line the decision still outstanding, and stop.** Do not
+spend the rest of the turn on other rows.
+
+Everything above this subsection is about how to *ask*. None of it covers what happens after he
+answers with a question, and that seam is where batch 73 went wrong: #4194's typo question got a
+correct answer, followed in the same message by the whole of #4198. His reply: **"Are you moving on
+from #4194? I asked you a question but you never gave me the opportunity to follow up."**
+
+Two things make this worth its own rule.
+
+- **Writing "I'll hold" is not holding.** That message said *"I'll hold on #4194 until you say"*
+  and then took the floor back in the next paragraph. A turn that ends is the only thing that
+  actually waits; a sentence claiming to wait, followed by more work, is worse than saying nothing,
+  because it reads as an assurance while doing the opposite.
+- **It bites hardest mid-batch.** The identical situation was handled correctly on #4179 one batch
+  earlier — answer in prose, stop — and the only difference was that #4179's question arrived with
+  the batch finished and #4194's arrived with five rows left. The pull is throughput, and
+  [Turn count is my problem](#the-default-is-still-open-and-it-costs-nothing) already answers it;
+  the mistake was applying that to asking and not to waiting.
+
+Unlike [the authorization gate](#the-gate-is-enforced-because-prose-was-not-enough), nothing here
+can be enforced by a script: no check can stop a turn from continuing. So this is prose, with the
+weakness prose has in this directory. What makes it worth writing anyway is that the decision point
+is single and legible — the moment a reply contains a question mark instead of a disposition.
+
 ### A correction goes *below* the thing it corrects
 
 `comments/issues/<N>.md` is the first comment; `<N>.2.md`, `<N>.3.md` are follow-ups, each
