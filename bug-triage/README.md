@@ -412,6 +412,40 @@ and a local order do not have termination in common.  A graded map and an ungrad
 not have a shared notion of degree.  Where a control cannot be constructed, say the
 measurement is unexplained rather than calling it a finding.
 
+#### Defining a second ring rebinds the variable names, and the test then proves nothing
+
+The M2-specific version of the same failure, and it is silent. `R = QQ[x,y]` binds `x` and
+`y` to *R's* generators; a later `S = QQ[x,y]` rebinds them to *S's*. So a test written in
+this order examines the wrong object and passes:
+
+```m2
+R = QQ[x,y]; S = QQ[x,y];        -- x and y now belong to S
+sub(ideal(x-y), {R_0 => S_0})    -- an ideal of S; substitution is vacuous; "works"
+```
+
+while the same three statements with the ideal formed *before* `S` fail, which is the actual
+behaviour under test:
+
+```m2
+R = QQ[x,y]; I = ideal(x-y); S = QQ[x,y];
+sub(I, {R_0 => S_0})             -- error: expected substitution values and omitted
+                                 -- generators to be in compatible rings
+```
+
+On #4602 I made this mistake twice in one row, concluded the issue did not reproduce *and*
+that our own filing's claim was false, told Doug so, and he decided to close it on that
+basis. Dan's original transcript had the correct order all along; reading it more carefully
+than my reconstruction would have caught it. Nothing had been published, so reverting cost
+only the retraction.
+
+**The rule: when a test involves two rings with the same variable names, form every object
+in the first ring before the second ring exists** -- or use `use R` to rebind deliberately.
+And when a reconstruction contradicts the reporter, suspect the reconstruction first: the
+reporter ran their transcript, and the sweep has now twice found the reporter right and the
+reconstruction wrong (#4570's ordering, this one). Relates to
+[the same shadowing mechanism in #4510](#the-ways-this-has-actually-gone-wrong), where
+`R_0..R_3` degrades only after a second ring reuses the symbols.
+
 ### Ask of every row: would a comment materially improve it?
 
 A fourth question, alongside the three the sweep is named for, and it applies to issues
