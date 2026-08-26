@@ -41,6 +41,7 @@ The open-issue sweep adds five more, each guarding a failure that is silent:
     bin/selftest -v     # print every case
 """
 
+import collections
 import importlib.machinery
 import subprocess
 import importlib.util
@@ -87,6 +88,9 @@ import approvals
 import issues as issuestsv
 catalog = load("catalog", "catalog.py")
 pushproject = load("pushproject", "push-project")
+indexfiles = load("indexfiles", "index-files")
+scoring = load("scoring", "score")
+clustering = load("clustering", "cluster")
 
 # ------------------------------------------------------- want_status on a split
 #
@@ -588,6 +592,89 @@ def main():
     check(not any(approvals.authorizing(r)[0] for r in refusals),
           "a paraphrase, question or denial does not",
           str([r for r in refusals if approvals.authorizing(r)[0]]))
+
+    # --------------------------------------------- the fix project's four predicates
+    #
+    # Each of these was wrong on first writing and each was caught only by reading
+    # the output against issues I already knew the answer for.  All four fail
+    # silently: a mis-resolved path sends someone to the wrong file, and a
+    # mis-scored axis just reorders a ranking nobody can check by eye.
+
+    # index-files: a bare basename that ties with its own regression test must
+    # resolve to the implementation.  Untiered, "ringmap.m2" tied with
+    # tests/normal/ringmap.m2 and SEVEN issues silently left the index.
+    suffixes = indexfiles.build_suffix_map([
+        "M2/Macaulay2/m2/ringmap.m2", "M2/Macaulay2/tests/normal/ringmap.m2",
+        "M2/Macaulay2/m2/matrix2.m2", "M2/Macaulay2/e/basic-rings/aring.cpp",
+        "M2/Macaulay2/e/interface/aring.cpp"])
+    check(indexfiles.resolve("ringmap.m2", suffixes)[0]
+          == "M2/Macaulay2/m2/ringmap.m2",
+          "a basename shared with a test resolves to the implementation")
+    check(indexfiles.resolve("tests/normal/ringmap.m2", suffixes)[0]
+          == "M2/Macaulay2/tests/normal/ringmap.m2",
+          "naming the test path explicitly still reaches the test")
+    # A genuine tie inside one tier must stay unresolved rather than pick one.
+    check(indexfiles.resolve("aring.cpp", suffixes)[0] is None,
+          "two implementation files with one basename stay ambiguous")
+    # M2 reports Core scripts as "Core/matrix2.m2"; they live in m2/.
+    check(indexfiles.resolve("Core/matrix2.m2", suffixes)[0]
+          == "M2/Macaulay2/m2/matrix2.m2",
+          "the Core/ path M2 prints resolves to the m2/ source")
+    # "ZZ/101[a..d]" is a ring, not a file ending in .d.
+    check(indexfiles.resolve("a..d", suffixes)[1] == "not-a-file",
+          "a..d is a variable range, not an interpreter source")
+    check([lines for _, lines in indexfiles.mentions("matrix2.m2:228-230 and :281")]
+          == ["228-230"],
+          "a line range is captured whole")
+
+    # score: the negation guards.  Both directions, because the notes cancel a
+    # severity word before it ("no longer segfaults") and after it ("a wrong
+    # answer that can no longer occur") -- and a backwards-only guard scored the
+    # second one 4, which is exactly upside down.
+    dropped = collections.Counter()
+    def sev(note):
+        return scoring.severity({"note": note, "title": ""}, dropped)[1]
+    check(sev("trim returns a strictly smaller ideal") == "wrong-answer",
+          "an uncancelled wrong answer scores as one")
+    check(sev("describes a wrong answer that can no longer occur") == "",
+          "a severity word cancelled AFTER it does not count")
+    check(sev("this no longer segfaults on the reporter's input") == "",
+          "a severity word cancelled BEFORE it does not count")
+    check(sev("rawLinAlgDeterminant segfaults and corrupts the heap") == "crash",
+          "an uncancelled crash scores as one")
+
+    # score: "unanswered" means a pending decision only when the triage did not
+    # answer it.  #256's note reads "Answers mahrud's unanswered 2024 question",
+    # and left in, this axis penalised a row for having been diagnosed well.
+    def settled(note):
+        return scoring.settled({"note": note, "title": "", "labels": "",
+                                "verdict": "reproduces"})
+    check(settled("Dan's 2020 follow-up 'we could do the same thing for method "
+                  "functions' is also unanswered") == -2,
+          "a genuinely pending question scores down")
+    # ...and "design question" is the harder rule, so it outranks the softer one.
+    check(settled("Dan's design question is unanswered, 0 comments in 11 years") == -3,
+          "a pending question that is explicitly a design question scores -3")
+    check(settled("Answers mahrud's unanswered 2024 question") == 0,
+          "a question the triage answered does not")
+    check(settled("built a case that separates the three candidate behaviors") == -3,
+          "a disputed right answer scores down hardest")
+
+    # cluster: the line-span bound.  Plain transitive closure over an 80-line
+    # window walked matrix2.m2 from :10 to :358 and called the whole file one
+    # group, which is the opposite of a shared fix site.
+    index = {("f", "1"): "10", ("f", "2"): "80", ("f", "3"): "150",
+             ("f", "4"): "220", ("f", "5"): "600"}
+    check(clustering.span_of(["1", "4"], index, "f") == 210,
+          "a group's span is measured end to end, not pairwise")
+    check(clustering.near(clustering.lines_of("228-230"),
+                          clustering.lines_of("281")),
+          "the unsound code and the guard that misses it are one neighbourhood")
+    check(not clustering.near(clustering.lines_of("10"),
+                              clustering.lines_of("358")),
+          "opposite ends of a long file are not")
+    check(clustering.lines_of("228-230,281") == [(228, 230), (281, 281)],
+          "a multi-pinpoint cell parses into both neighbourhoods")
 
     for f in failures:
         print("FAIL: %s" % f, file=sys.stderr)

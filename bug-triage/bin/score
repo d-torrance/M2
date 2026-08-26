@@ -1,0 +1,241 @@
+#!/usr/bin/env python3
+"""Score every open issue on six axes, one column each, into scores.tsv.
+
+There is no composite.  Six numbers go out and the weighting is applied by
+bin/cluster, in the open, where it can be argued with -- a single ranking number
+computed here would bury the one judgement in this file that is actually contested.
+
+The axes, and why each is shaped the way it is:
+
+severity (0-4)
+    Leads, ahead of type.  A feature request saying "the documented behaviour does
+    not exist" costs a user an afternoon; a wrong answer costs them a false theorem
+    they will never know about, because a strictly smaller ideal is not an error.
+    Wrong answer 4, crash 3, hang 3, leak 2, misleading error 1.
+
+    Negation is checked, because the notes are full of "used to crash" and "no
+    longer segfaults" -- #815's whole point is that the symptom is gone and the bug
+    is not.  A match preceded by a negating phrase does not count, and the run
+    reports how many it dropped so the guard itself can be audited.
+
+type (0-2)
+    Bug 2, Task 1, Feature 0.  Doug's stated priority, and it orders groups rather
+    than thinning them: a Task in a file you are already inside is nearly free.
+
+reach (0-3)
+    Who hits it.  Subsystem labels give the base -- 485 of 747 are Core, Engine,
+    Interpreter, Gröbner bases or Linear Algebra -- and a curated list of everyday
+    commutative-algebra entry points adds to it.  The list is the judgement here and
+    it is deliberately short: it separates "every user of M2" from "every user of
+    SubalgebraBases", and both are worth fixing.
+
+readiness (0-3)
+    How much of the fix is already written down.  A note carrying `file.m2:LINE` is
+    most of a diagnosis; a repro that was extracted and actually ran is most of a
+    test.  This is why the backlog is cheap to work: 433 mentions carry a line.
+
+age (0-2)
+    Newer first.  `bugs directory` rows score 0 regardless of their created date:
+    all 135 were filed in August 2026 by this directory's own first project, and
+    they are pre-GitHub old.  Treating them as new would put the oldest bugs in the
+    tracker at the front of a queue sorted by recency.
+
+settled (0 or -3)
+    A negative axis, and the one triage never needed.  #4308's note says it "built a
+    case that separates the three candidate behaviors" -- nobody can write that fix
+    until a maintainer rules on which is correct.  A row like that stalls an early
+    group however severe it is, so it scores down and gets parked.
+"""
+
+import argparse
+import collections
+import os
+import re
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+
+SEVERITY = [
+    ("wrong-answer", 4, r"wrong answer|silently wrong|silently discard|silently return"
+                        r"|incorrect (?:result|answer|output|kernel|computation)"
+                        r"|wrong result|mathematically wrong|returns the wrong"
+                        r"|strictly smaller|proper subideal|not minimal|off by"
+                        r"|WRONG ANSWER"),
+    ("crash", 3, r"segfault|segmentation fault|\bcrash(?:es|ed|ing)?\b|core dump"
+                 r"|assertion fail|SIGSEGV|\babort(?:s|ed)?\b|corrupts the heap"
+                 r"|heap corruption|internal error"),
+    ("hang", 3, r"\bhangs?\b|\bhanging\b|does not (?:finish|terminate|complete)"
+                r"|did not finish|infinite loop|never (?:returns|terminates|finishes)"
+                r"|runs forever|still running when"),
+    ("leak", 2, r"memory leak|leaks memory|leaking memory"),
+    ("bad-error", 1, r"misleading error|confusing error|unhelpful error"
+                     r"|error message (?:is|says) wrong|wrong error"),
+]
+
+# A severity word inside one of these does not count.  Two thirds of the false
+# positives are the notes doing their job: recording that a reported symptom is
+# gone, or that a guard exists precisely to stop the crash.
+NEGATED = re.compile(
+    r"(?:no longer|used to|does not|doesn't|did not|didn't|never|not|without|avoids?"
+    r"|prevents?|stops?|guards? against|cannot|can't|would)\W+(?:\w+\W+){0,3}$",
+    re.I)
+
+# The cancellation can also follow the word rather than precede it.  #1051's note
+# reads "describes a wrong answer that can no longer occur" -- a backwards-only
+# guard scores that 4, which is exactly upside down.
+CANCELLED = re.compile(
+    r"^\W*(?:\w+\W+){0,6}?(?:that )?(?:can no longer|no longer|is gone|are gone"
+    r"|was fixed|has been fixed|does not (?:occur|happen)|cannot (?:occur|happen))",
+    re.I)
+
+# The everyday entry points of computational commutative algebra and algebraic
+# geometry.  Short on purpose: this is the reach judgement, and a long list makes
+# every issue "high reach", which is the same as no list at all.
+EVERYDAY = r"""
+    ideal saturate saturation quotient radical decompose minimalPrimes isPrime
+    res resolution freeResolution betti minimalBetti Ext Tor Hom
+    kernel ker coimage image cokernel coker substitute sub map RingMap
+    trim mingens prune minimalPresentation basis hilbertSeries hilbertFunction
+    gb gens groebner monomialIdeal intersect tensor syz
+    matrix module homogenize degree degrees dim codim
+"""
+EVERYDAY = re.compile(r"\b(%s)\b" % "|".join(EVERYDAY.split()))
+
+CORE_LABELS = {"Core", "Engine", "Interpreter", "Gröbner bases", "Linear Algebra"}
+
+# Line-pinpoint and PR mentions, reused by bin/cluster.
+PINPOINT = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_/.+-]*\.(?:m2|dd?|cpp|hpp|cc|hh|c|h):\d+")
+PR = re.compile(r"(?:PR|pull request) #(\d+)")
+
+# The repro actually ran and said something.  "syntax" means the *extractor* failed
+# and says nothing about the issue; "clean" is a candidate, never a finding.
+RAN = {"reproduces", "differs", "same-output", "different-error", "crash", "timeout"}
+
+# Language that says nobody can write the fix until a maintainer rules on what the
+# right behaviour *is*.  This runs at -3, and it is deliberately narrow.
+BLOCKED = re.compile(
+    r"candidate behavio|separates the three|which is correct|needs a decision"
+    r"|design (?:question|decision)|not our call|needs a maintainer",
+    re.I)
+
+# A pending question to a maintainer is weaker evidence and runs at -2, because it
+# is often just silence rather than a real dispute.
+PENDING = re.compile(r"unanswered|never answered|no answer|two questions to", re.I)
+
+# ...but only when the triage did not answer it.  Half the "unanswered" hits are
+# notes taking credit for closing the gap -- #256's reads "Answers mahrud's
+# unanswered 2024 question", which is the opposite of a blocker.  Left in, this axis
+# penalised a row precisely for having been diagnosed thoroughly.
+ANSWERED = re.compile(r"\banswer(?:s|ed)\b", re.I)
+
+
+def severity(row, dropped):
+    text = (row["note"] or "") + "  " + (row["title"] or "")
+    best, kind = 0, ""
+    for name, weight, pattern in SEVERITY:
+        for match in re.finditer(pattern, text, re.I):
+            if (NEGATED.search(text[max(0, match.start() - 60):match.start()])
+                    or CANCELLED.match(text[match.end():match.end() + 80])):
+                dropped[name] += 1
+                continue
+            if weight > best:
+                best, kind = weight, name
+            break
+    return best, kind
+
+
+def reach(row):
+    labels = set(issuestsv.labels_of(row))
+    score = 2 if labels & CORE_LABELS else 1
+    hits = set(EVERYDAY.findall(row["title"] or ""))
+    if not hits:
+        hits = set(EVERYDAY.findall(row["note"] or ""))
+        score += 1 if len(hits) >= 2 else 0
+    else:
+        score += 1
+    return min(score, 3)
+
+
+def readiness(row):
+    score = 0
+    if PINPOINT.search(row["note"] or ""):
+        score += 2
+    if row["repro"] in ("m2", "transcript") and row["run"] in RAN:
+        score += 1
+    return score
+
+
+def age(row):
+    if "bugs directory" in issuestsv.labels_of(row):
+        return 0
+    year = int(row["created"][:4])
+    return 2 if year >= 2025 else 1 if year >= 2021 else 0
+
+
+def settled(row):
+    text = (row["note"] or "") + "  " + (row["title"] or "")
+    if (BLOCKED.search(text)
+            or "under discussion" in issuestsv.labels_of(row)
+            or row["verdict"] == "needs-reporter"):
+        return -3
+    for match in PENDING.finditer(text):
+        if not ANSWERED.search(text[max(0, match.start() - 40):match.start()]):
+            return -2
+    return 0
+
+
+def score_rows(rows, dropped=None):
+    dropped = collections.Counter() if dropped is None else dropped
+    out = []
+    for row in rows:
+        sev, kind = severity(row, dropped)
+        out.append({
+            "issue": row["issue"],
+            "severity": sev,
+            "kind": kind,
+            "type": {"Bug": 2, "Task": 1}.get(row["type"], 0),
+            "reach": reach(row),
+            "readiness": readiness(row),
+            "age": age(row),
+            "settled": settled(row),
+            "pr": ",".join(sorted(set(PR.findall(row["note"] or "")), key=int)),
+        })
+    return out
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--dropped", action="store_true",
+                        help="report how many severity matches the negation guard ate")
+    args = parser.parse_args()
+
+    rows = issuestsv.require(issuestsv.read())
+    dropped = collections.Counter()
+    scored = score_rows(rows, dropped)
+
+    dest = os.path.join(issuestsv.ROOT, "scores.tsv")
+    columns = ["issue", "severity", "kind", "type", "reach", "readiness",
+               "age", "settled", "pr"]
+    with open(dest, "w", encoding="utf-8") as f:
+        f.write("\t".join(columns) + "\n")
+        for s in scored:
+            f.write("\t".join(str(s[c]) for c in columns) + "\n")
+
+    kinds = collections.Counter(s["kind"] for s in scored if s["kind"])
+    print("%d rows -> %s" % (len(scored), dest))
+    print("severity: " + ", ".join("%s %d" % kv for kv in kinds.most_common())
+          + ", none %d" % sum(1 for s in scored if not s["kind"]))
+    print("settled down-weighted: %d" % sum(1 for s in scored if s["settled"]))
+    print("readiness 3: %d   2: %d   0: %d"
+          % (sum(1 for s in scored if s["readiness"] == 3),
+             sum(1 for s in scored if s["readiness"] == 2),
+             sum(1 for s in scored if s["readiness"] == 0)))
+    print("with an open-PR mention: %d" % sum(1 for s in scored if s["pr"]))
+    if args.dropped:
+        print("negation guard dropped: "
+              + ", ".join("%s %d" % kv for kv in dropped.most_common()))
+
+
+if __name__ == "__main__":
+    main()

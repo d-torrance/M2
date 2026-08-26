@@ -1,0 +1,323 @@
+#!/usr/bin/env python3
+"""Propose candidate work-groups: 4-8 related issues someone could sit down with.
+
+Reads cache/file-index.tsv (bin/index-files) and scores.tsv (bin/score), and prints
+a ranked list of candidate groups with the score broken out per axis.  Nothing here
+writes issues.tsv, and nothing here decides anything.
+
+Two things this deliberately is not.
+
+It is not a whole-file listing.  Thirteen issues naming ringmap.m2 is not a few
+days' work, and the fourteen naming packages.m2 are probably three unrelated causes
+wearing one filename.  So each file is split by *affinity*: shared pinpointed lines
+first, shared note vocabulary second.  Two issues whose notes both land on
+matrix2.m2:228-281 are almost certainly one fix; two that merely share the filename
+are a coincidence with a large file.
+
+It is not a verdict.  A candidate group is a hypothesis about a shared cause, and
+the confirmation is a human reading the notes -- which is the whole reason the
+per-axis breakdown is printed instead of one number.  If the top candidate does not
+survive that reading it drops and the next is examined; the ranking is a reading
+order.  The weights are exposed with --weights for the same reason: a ranking you
+cannot argue with is a ranking you have to take on faith.
+
+Affinity is deliberately dominated by one signal: two notes pinpointing lines within
+LINE_WINDOW of each other in the same file.  That is the strongest available evidence
+of a shared fix site, and it is available -- 433 of the 627 indexed mentions carry a
+line.  Vocabulary overlap between two M2 bug notes is much weaker evidence (every
+note in matrix2.m2 talks about matrices and generators), so it only forms an edge on
+its own above COSINE_EDGE, which is high enough that it almost never fires alone.
+
+The line window is wide (80) on purpose.  #747 names matrix2.m2:228-230 for the
+unsound code and :281 for the guard that fails to cover it; a tight window would call
+those two different neighbourhoods and split the one diagnosis in half.
+
+Groups are *connected components* of that graph, not neighbourhoods of a seed.  The
+evidence chains: in matrix2.m2, #747 sits at :228, #105 at :245, #278 at :257-272,
+#837 at :301 and #4015 at :315-320, and no two of the outer pair are within the
+window even though every consecutive pair is.  A seed-and-satellites shape would keep
+whichever three happened to surround the highest-scoring row and throw the rest away.
+"""
+
+import argparse
+import collections
+import importlib.util
+import math
+import os
+import re
+import sys
+from importlib.machinery import SourceFileLoader
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import issues as issuestsv
+
+
+def _load(name, filename):
+    loader = SourceFileLoader(name, os.path.join(HERE, filename))
+    spec = importlib.util.spec_from_loader(name, loader)
+    mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(mod)
+    return mod
+
+
+suggest = _load("suggestissues", "suggest-issues")
+tokens = suggest.tokens
+
+project = _load("project", "project.py")
+# Reused rather than rewritten: the lookbehind in project.ISSUE_REF exists because
+# M2 subscripting writes (x+1)#0, and a naive \#(\d+) files that as issue 0.
+ISSUE_REF = project.ISSUE_REF
+
+# Two pinpoints this far apart in the same file are treated as one neighbourhood.
+LINE_WINDOW = 80
+
+# Cosine similarity high enough to join two issues that do not share a
+# neighbourhood.  Measured against matrix2.m2, where unrelated pairs sit between
+# 0.03 and 0.23: this is well clear of them, and it fires on its own only where the
+# notes are genuinely about the same thing.
+COSINE_EDGE = 0.30
+
+# How far a group may reach through one file before it stops being a fix site.  150
+# lines keeps matrix2.m2's trim/mingens neighbourhood (:170 through :320) whole while
+# refusing to bridge it to :10 or :358.
+MAX_SPAN = 150
+
+# Default weights.  severity leads; settled is already negative in scores.tsv.
+WEIGHTS = {"severity": 3.0, "type": 2.0, "reach": 1.5,
+           "readiness": 1.5, "age": 1.0, "settled": 1.0}
+
+# Files that are indexes rather than subjects.  A note naming Core.m2 or exports.m2
+# is usually saying "the symbol is exported here", which is true of every symbol and
+# groups nothing.
+NOT_A_SUBJECT = {"M2/Macaulay2/m2/exports.m2", "M2/Macaulay2/m2/Core.m2",
+                 "M2/Macaulay2/m2/methods.m2"}
+
+
+def cited_by(group, rows):
+    """Open issues a group's notes point at, that the group does not already hold.
+
+    A pinpointed line is not the only evidence of a shared fix.  #747's note ends
+    "forcing gens gb first fixes both this and #4095" -- one sentence asserting that
+    two issues have one fix -- and #4095 carries no line number of its own, so no
+    amount of line arithmetic will ever put them together.  These are offered, not
+    merged: a note may cite an issue to distinguish itself from it just as easily as
+    to join it, and #747's own note cites #146 to say it now passes.
+    """
+    seen = set(group)
+    out = []
+    for n in group:
+        for other in ISSUE_REF.findall(rows[n]["note"] or ""):
+            if other in rows and other not in seen:
+                seen.add(other)
+                out.append((other, n))
+    return out
+
+
+def read_tsv(path):
+    with open(path, encoding="utf-8") as f:
+        header = f.readline().rstrip("\n").split("\t")
+        return [dict(zip(header, line.rstrip("\n").split("\t")))
+                for line in f if line.strip()]
+
+
+def lines_of(cell):
+    """"228-230,281" -> [(228, 230), (281, 281)]."""
+    out = []
+    for chunk in (cell or "").split(","):
+        if not chunk:
+            continue
+        parts = chunk.split("-")
+        try:
+            lo = int(parts[0])
+            hi = int(parts[-1]) if len(parts) > 1 else lo
+        except ValueError:
+            continue
+        out.append((lo, hi))
+    return out
+
+
+def near(a, b):
+    for lo1, hi1 in a:
+        for lo2, hi2 in b:
+            if lo1 - LINE_WINDOW <= hi2 and lo2 - LINE_WINDOW <= hi1:
+                return True
+    return False
+
+
+def idf_vectors(notes):
+    docs = {n: collections.Counter(tokens(t)) for n, t in notes.items()}
+    df = collections.Counter()
+    for counts in docs.values():
+        df.update(counts.keys())
+    total = max(len(docs), 1)
+    vectors = {}
+    for n, counts in docs.items():
+        vec = {w: (1 + math.log(c)) * math.log(total / df[w])
+               for w, c in counts.items() if df[w] > 1}
+        norm = math.sqrt(sum(v * v for v in vec.values())) or 1.0
+        vectors[n] = {w: v / norm for w, v in vec.items()}
+    return vectors
+
+
+def cosine(u, v):
+    if len(u) > len(v):
+        u, v = v, u
+    return sum(w * v.get(t, 0.0) for t, w in u.items())
+
+
+def weighted(score, weights):
+    return sum(weights[k] * int(score[k]) for k in weights)
+
+
+def edge(a, b, index, vectors, path):
+    """(is_edge, why).  Line adjacency first; vocabulary only as a fallback."""
+    la, lb = lines_of(index[(path, a)]), lines_of(index[(path, b)])
+    if la and lb and near(la, lb):
+        return True, "lines"
+    if cosine(vectors[a], vectors[b]) >= COSINE_EDGE:
+        return True, "notes"
+    return False, ""
+
+
+def span_of(members, index, path):
+    """Distance from the first pinpointed line to the last, over a whole group."""
+    bounds = [b for n in members for b in lines_of(index[(path, n)])]
+    if not bounds:
+        return 0
+    return max(hi for _, hi in bounds) - min(lo for lo, _ in bounds)
+
+
+def group_file(path, members, index, vectors, scores, weights, lo, hi):
+    """Components of the affinity graph, bounded by how far they reach in the file.
+
+    Plain transitive closure over an 80-line window chains: in matrix2.m2 it walks
+    :10 -> :176 -> :228 -> :245 -> :257 -> :301 -> :315 -> :358 and calls the whole
+    file one group, which is the opposite of what a shared fix site means.  So a
+    merge is refused once the merged footprint would exceed MAX_SPAN, and edges are
+    considered closest-first so the tightest neighbourhoods form before the loose
+    ones can bridge them.
+    """
+    parent = {n: n for n in members}
+    held = {n: [n] for n in members}
+
+    def find(n):
+        while parent[n] != n:
+            parent[n] = parent[parent[n]]
+            n = parent[n]
+        return n
+
+    edges = []
+    for i, a in enumerate(members):
+        for b in members[i + 1:]:
+            joined, why = edge(a, b, index, vectors, path)
+            if joined:
+                edges.append((span_of([a, b], index, path), a, b, why))
+    edges.sort()
+
+    for _, a, b, why in edges:
+        ra, rb = find(a), find(b)
+        if ra == rb:
+            continue
+        merged = held[ra] + held[rb]
+        if why == "lines" and span_of(merged, index, path) > MAX_SPAN:
+            continue
+        parent[ra] = rb
+        held[rb] = merged
+
+    components = collections.defaultdict(list)
+    for n in members:
+        components[find(n)].append(n)
+
+    groups = []
+    for component in components.values():
+        if len(component) < lo:
+            continue
+        # An oversized component is a real finding -- it usually means one long file
+        # with several unrelated neighbourhoods that the window bridged -- but it is
+        # not a work-group.  Keep the highest-scoring hi of them and say so.
+        component.sort(key=lambda n: -weighted(scores[n], weights))
+        groups.append((component[:hi], len(component)))
+    return groups
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--min", type=int, default=4, dest="lo")
+    parser.add_argument("--max", type=int, default=8, dest="hi")
+    parser.add_argument("--top", type=int, default=12,
+                        help="how many candidate groups to print")
+    parser.add_argument("--weights", default="",
+                        help="override, e.g. severity=4,age=0")
+    parser.add_argument("--all-files", action="store_true",
+                        help="include index files like exports.m2")
+    args = parser.parse_args()
+
+    weights = dict(WEIGHTS)
+    for item in filter(None, args.weights.split(",")):
+        key, _, value = item.partition("=")
+        if key not in weights:
+            sys.exit("unknown axis %r; known: %s"
+                     % (key, ", ".join(sorted(weights))))
+        weights[key] = float(value)
+
+    # Keyed by the string form throughout, because that is what the two TSVs this
+    # reads carry; issuestsv.by_number keys on int and would need converting at
+    # every lookup.
+    rows = {r["issue"]: r for r in issuestsv.require(issuestsv.read())}
+    scores = {s["issue"]: s for s in read_tsv(os.path.join(issuestsv.ROOT,
+                                                           "scores.tsv"))}
+    indexed = read_tsv(os.path.join(issuestsv.CACHE, "file-index.tsv"))
+
+    by_file = collections.defaultdict(list)
+    lines = {}
+    for row in indexed:
+        if not args.all_files and row["path"] in NOT_A_SUBJECT:
+            continue
+        by_file[row["path"]].append(row["issue"])
+        lines[(row["path"], row["issue"])] = row["lines"]
+
+    notes = {n: (r["note"] or "") + " " + (r["title"] or "")
+             for n, r in rows.items()}
+    vectors = idf_vectors(notes)
+
+    candidates = []
+    for path, members in by_file.items():
+        if len(members) < args.lo:
+            continue
+        for group, whole in group_file(path, members, lines, vectors, scores,
+                                       weights, args.lo, args.hi):
+            mean = sum(weighted(scores[n], weights) for n in group) / len(group)
+            candidates.append((mean, path, group, whole))
+    candidates.sort(key=lambda c: -c[0])
+
+    axes = ["severity", "type", "reach", "readiness", "age", "settled"]
+    for mean, path, group, whole in candidates[:args.top]:
+        trimmed = ("   [component has %d; showing the top %d]" % (whole, len(group))
+                   if whole > len(group) else "")
+        print("\n%-58s  score %.1f   %d issues%s"
+              % (path, mean, len(group), trimmed))
+        pinned = sorted({lines[(path, n)] for n in group if lines[(path, n)]})
+        if pinned:
+            print("  lines: %s" % "  ".join(pinned))
+        print("  %-6s %-5s %-4s %-5s %-5s %-4s %-4s %-4s %s"
+              % ("issue", "sev", "type", "reach", "ready", "age", "set", "sum",
+                 "title"))
+        for n in sorted(group, key=lambda n: -weighted(scores[n], weights)):
+            s = scores[n]
+            print("  #%-5s %-5s %-4s %-5s %-5s %-4s %-4s %-4.0f %s"
+                  % (n, "%s(%s)" % (s["severity"], s["kind"][:4] or "-"),
+                     s["type"], s["reach"], s["readiness"], s["age"],
+                     s["settled"], weighted(s, weights),
+                     rows[n]["title"][:60]))
+        for other, by in cited_by(group, rows):
+            print("  cited by #%-5s -> #%-5s %s"
+                  % (by, other, rows[other]["title"][:55]))
+
+    print("\n%d candidate groups over %d files; weights %s"
+          % (len(candidates), len(by_file),
+             " ".join("%s=%g" % kv for kv in sorted(weights.items()))))
+
+
+if __name__ == "__main__":
+    main()

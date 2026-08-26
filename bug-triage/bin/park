@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+"""Record an issue seen while working a group, for a later group.
+
+The queue has to refill itself or this project ends with one dossier.  Working a
+group means reading notes that name issues outside it -- #747's note names #4095 and
+#146, #3738's names three more -- and those pointers are the cheapest grouping
+evidence there is, because a human already judged the two related.  Without somewhere
+to put them they are read once and lost, and the next group starts from `bin/cluster`
+with nothing learned.
+
+parking.tsv is that place.  Four columns:
+
+    issue     the open issue, or empty for something not filed anywhere yet
+    seen      the group being worked when it turned up
+    cluster   a guess at where it belongs, free text
+    reason    why it might group, and why it is not in the current group
+
+An empty "issue" is deliberate and is the interesting case: cause (b) of the first
+group turned up a reproducible anomaly in getChangeMatrix that is nobody's issue yet.
+A parking lot that could only hold issue numbers would have dropped it.
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+
+TSV = os.path.join(issuestsv.ROOT, "parking.tsv")
+COLUMNS = ["issue", "seen", "cluster", "reason"]
+
+
+def read(path=TSV):
+    if not os.path.exists(path):
+        return []
+    with open(path, encoding="utf-8") as f:
+        header = f.readline().rstrip("\n").split("\t")
+        return [dict(zip(header, line.rstrip("\n").split("\t")))
+                for line in f if line.strip()]
+
+
+def write(rows, path=TSV):
+    for row in rows:
+        for column in COLUMNS:
+            if "\t" in row.get(column, "") or "\n" in row.get(column, ""):
+                raise SystemExit("tab or newline in %s: %r" % (column, row[column]))
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write("\t".join(COLUMNS) + "\n")
+        for row in rows:
+            f.write("\t".join(row.get(c, "") for c in COLUMNS) + "\n")
+    os.replace(tmp, path)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--issue", default="", help="open issue number, or omit")
+    parser.add_argument("--seen", help="group being worked")
+    parser.add_argument("--cluster", default="", help="guess at where it belongs")
+    parser.add_argument("--reason", help="why it might group")
+    parser.add_argument("--list", action="store_true", help="print and exit")
+    args = parser.parse_args()
+
+    rows = read()
+    if args.list:
+        for row in rows:
+            print("%-6s %-24s %-28s %s" % ("#" + row["issue"] if row["issue"] else "-",
+                                           row["seen"], row["cluster"], row["reason"]))
+        return
+
+    if not args.seen or not args.reason:
+        parser.error("--seen and --reason are required unless --list")
+
+    if args.issue:
+        known = {r["issue"] for r in issuestsv.require(issuestsv.read())}
+        if args.issue not in known:
+            sys.exit("#%s is not an open row in issues.tsv" % args.issue)
+        if any(r["issue"] == args.issue for r in rows):
+            sys.exit("#%s is already parked" % args.issue)
+    elif any(not r["issue"] and r["reason"] == args.reason for r in rows):
+        # An unfiled row has no key, so identical reasons are the only handle on it.
+        # Without this a re-run duplicates every unfiled finding silently.
+        sys.exit("an unfiled row with that reason is already parked")
+
+    rows.append({"issue": args.issue, "seen": args.seen,
+                 "cluster": args.cluster, "reason": args.reason})
+    write(rows)
+    print("parked %s (%d rows)" % ("#" + args.issue if args.issue else "unfiled",
+                                   len(rows)))
+
+
+if __name__ == "__main__":
+    main()

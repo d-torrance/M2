@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+"""Invert the note column: build a source file -> issues index.
+
+The open-issue sweep left 747 notes averaging 850 characters, and 442 of them name
+a Macaulay2 source file while 334 pinpoint a `file.ext:LINE`.  That is the most
+valuable thing in issues.tsv for anyone about to *fix* something, and it is stored
+in exactly the wrong direction: you can ask "what is wrong with #747" instantly and
+"what else touches matrix2.m2" not at all.  README-bugs-directory.md documents the
+awk one-liner people used instead, which scans the note column for a substring --
+fine for one lookup, useless for clustering.
+
+So this writes cache/file-index.tsv, one row per (issue, file) mention.
+
+Resolution against the real tree is the point, not decoration.  Notes name files the
+way a person would -- "matrix2.m2", "m2/ringmap.m2", "Complexes/FreeResolution.m2",
+"e/interface/cone.cpp" -- and a fix project needs the path it can open.  Every
+mention is matched by longest path suffix against `git ls-files`, so "m2/ringmap.m2"
+resolves to M2/Macaulay2/m2/ringmap.m2 and the bare basename does too whenever it is
+unique.  130 basenames in the tree are not unique (there are several `main.cpp`s),
+and for those a bare mention stays *unresolved* rather than guessing: a wrong path
+sends someone to the wrong file, which is worse than sending them nowhere.
+
+Two deliberate limits:
+
+  - Documentation sources are real files and are indexed, but they cluster
+    differently from code and the caller can drop them with --no-docs.
+  - A mention inside a note is not a claim that the bug *is* there.  Some notes name
+    a file to say it is fine ("isWeylAlgebra is available at rings.m2:64 and already
+    used at quotring.m2:28").  The index cannot tell those apart and does not try;
+    it is a reading aid, and the confirmation is a human's.
+"""
+
+import argparse
+import collections
+import os
+import re
+import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import issues as issuestsv
+
+# Suffixes worth indexing.  ".d" and ".dd" are the interpreter's own language; ".m2"
+# covers Core scripts, packages and documentation sources alike.
+SUFFIXES = (".m2", ".d", ".dd", ".cpp", ".hpp", ".cc", ".hh", ".c", ".h")
+
+# A path-ish token ending in one of those suffixes, optionally followed by a line
+# number or a line range.  The leading class requires the first character to be
+# alphanumeric so that sentence fragments do not start a match.
+MENTION = re.compile(
+    r"\b([A-Za-z0-9_][A-Za-z0-9_/.+-]*(?:%s))"
+    r"(?::(\d+(?:\s*-\s*\d+)?))?" % "|".join(re.escape(s) for s in SUFFIXES))
+
+# Tokens that end in a code suffix but are not files.  "a..d" comes from notes that
+# write a polynomial ring as ZZ/101[a..d]; without this it indexes as a ".d" source
+# and lands four issues in a phantom interpreter file.
+NOT_A_FILE = re.compile(r"^[a-z]\.\.[a-z]$|^\d+\.\d+$")
+
+# M2 reports a Core script's location as "Core/matrix2.m2", which is where the
+# interpreter thinks it is and not where it lives; sixteen notes copy that form
+# straight out of an error message or a `locate`.  The scripts are in m2/.
+CORE_ALIAS = re.compile(r"^Core/")
+
+# Candidate paths are tiered, and the best non-empty tier decides.  Without this,
+# every Core script whose name is reused by its own regression test -- basis.m2,
+# ringmap.m2, gb.m2 -- resolves to nothing, because "m2/basis.m2" and
+# "tests/normal/basis.m2" tie.  They are not a real tie: a triage note pinpointing
+# "ringmap.m2:236" is naming the implementation, and if it meant the test it would
+# have said tests/normal/.  Ties *within* a tier stay unresolved, because
+# "aring.cpp" really is two different engine files and guessing helps nobody.
+TIERS = [
+    # implementation
+    lambda p: (p.startswith("M2/Macaulay2/")
+               and not re.search(r"/(tests|html|doc|docs|DOC|TST|EXA)/", p)),
+    # documentation sources
+    lambda p: p.startswith("M2/Macaulay2/") and re.search(r"/(doc|docs|DOC)/", p),
+    # tests, examples, and everything outside the Macaulay2 tree
+    lambda p: True,
+]
+
+
+def tier(path):
+    for level, matches in enumerate(TIERS):
+        if matches(path):
+            return level
+    return len(TIERS)
+
+
+def tracked(root):
+    """Every tracked source path in the repository."""
+    out = subprocess.run(["git", "-C", root, "ls-files"],
+                         capture_output=True, text=True, check=True).stdout
+    return [p for p in out.splitlines() if p.endswith(SUFFIXES)]
+
+
+def build_suffix_map(paths):
+    """Map every path suffix starting at a component boundary to its paths.
+
+    "M2/Macaulay2/m2/ringmap.m2" contributes "ringmap.m2", "m2/ringmap.m2",
+    "Macaulay2/m2/ringmap.m2" and the whole path, so a note may name as much or as
+    little of it as the author found natural.
+    """
+    index = collections.defaultdict(list)
+    for path in paths:
+        parts = path.split("/")
+        for i in range(len(parts)):
+            index["/".join(parts[i:])].append(path)
+    return index
+
+
+def resolve(mention, suffixes):
+    """Return (path, why).  path is None when the mention is not usable."""
+    if NOT_A_FILE.match(mention):
+        return None, "not-a-file"
+    hits = suffixes.get(mention)
+    if not hits and CORE_ALIAS.match(mention):
+        hits = suffixes.get(CORE_ALIAS.sub("m2/", mention))
+    if not hits:
+        return None, "untracked"
+    best = min(tier(p) for p in hits)
+    hits = [p for p in hits if tier(p) == best]
+    if len(hits) > 1:
+        return None, "ambiguous"
+    return hits[0], "ok"
+
+
+def mentions(note):
+    """Yield (text, lines) for every file-ish token in a note, in order."""
+    for match in MENTION.finditer(note or ""):
+        yield match.group(1), (match.group(2) or "").replace(" ", "")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--no-docs", action="store_true",
+                        help="drop documentation sources from the index")
+    parser.add_argument("--unresolved", action="store_true",
+                        help="list the mentions that did not resolve, and why")
+    args = parser.parse_args()
+
+    root = os.path.dirname(issuestsv.ROOT)
+    suffixes = build_suffix_map(tracked(root))
+    rows = issuestsv.require(issuestsv.read())
+
+    out = []
+    misses = collections.Counter()
+    missed_text = collections.defaultdict(set)
+    naming = set()
+
+    for row in rows:
+        seen = {}
+        for text, lines in mentions(row["note"]):
+            path, why = resolve(text, suffixes)
+            if path is None:
+                misses[why] += 1
+                missed_text[why].add(text)
+                continue
+            if args.no_docs and "Doc" in path:
+                continue
+            naming.add(row["issue"])
+            # One row per (issue, file); line numbers accumulate in order of first
+            # appearance, because a note that says ":228-230 ... :281" is naming the
+            # unsound code and then the guard that fails to cover it, and losing
+            # that pairing loses the diagnosis.
+            seen.setdefault(path, [])
+            if lines and lines not in seen[path]:
+                seen[path].append(lines)
+        for path, lines in seen.items():
+            out.append((path, row["issue"], ",".join(lines), row["type"],
+                        row["verdict"], row["title"]))
+
+    out.sort(key=lambda r: (r[0], int(r[1])))
+    dest = os.path.join(issuestsv.CACHE, "file-index.tsv")
+    os.makedirs(issuestsv.CACHE, exist_ok=True)
+    with open(dest, "w", encoding="utf-8") as f:
+        f.write("path\tissue\tlines\ttype\tverdict\ttitle\n")
+        for row in out:
+            f.write("\t".join(str(c).replace("\t", " ") for c in row) + "\n")
+
+    per_file = collections.Counter(r[0] for r in out)
+    withline = sum(1 for r in out if r[2])
+    print("%d mentions resolved across %d files, from %d of %d issues -> %s"
+          % (len(out), len(per_file), len(naming), len(rows), dest))
+    print("%d of those carry a line number" % withline)
+    if misses:
+        print("unresolved: " + ", ".join("%s %d" % (w, n)
+                                         for w, n in misses.most_common()))
+    if args.unresolved:
+        for why in misses:
+            print("\n-- %s" % why)
+            for text in sorted(missed_text[why]):
+                print("   %s" % text)
+    print("\ntop files:")
+    for path, n in per_file.most_common(20):
+        bugs = sum(1 for r in out if r[0] == path and r[3] == "Bug")
+        print("  %-58s %2d  (%d Bug)" % (path, n, bugs))
+
+
+if __name__ == "__main__":
+    main()
