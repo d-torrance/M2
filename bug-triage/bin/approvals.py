@@ -50,7 +50,7 @@ COLUMNS = ["date", "action", "issue", "key", "sha256", "time", "said"]
 # to authorize that run is spent, and the next item needs him to say so again.
 APPLIED = os.path.join(issuestsv.ROOT, "applied.tsv")
 
-# One per public effect, matching the table in README.md.  "comment" and "close"
+# One per public effect, matching the table in README-open-issues.md.  "comment" and "close"
 # are separate because publish-verdicts does both in one run and they are two
 # decisions: a comment can be approved and the close it was written for declined.
 ACTIONS = ["comment", "close", "type", "labels", "title"]

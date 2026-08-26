@@ -8,7 +8,7 @@
 > worked on any more; it is kept because the reasoning is not recoverable from the TSV.
 >
 > The directory now hosts a second project — triaging the open issues on the tracker —
-> which shares this one's tooling. See [`README.md`](README.md). Sections here that are
+> which shares this one's tooling. See [`README-open-issues.md`](README-open-issues.md). Sections here that are
 > not about the deleted files are cited from there by name rather than copied, so **edit
 > them here, not there.**
 

@@ -1,6 +1,43 @@
 # Triaging the open issues
 
-Macaulay2/M2 has **897 open issues**. The oldest,
+> **This project is complete**, and this file is its record. The sweep opened with 897 open
+> issues and every one of them was read. **150 were closed** — 145 of them by this project, and
+> five (#133, #2505, #2743, #4104, #4107) by other people while it ran — leaving
+> **747 rows in `issues.tsv`, all carrying a verdict**: 375 `reproduces`, 355 `stands`, 5
+> `fixed`, 4 `needs-reporter`, 3 `not-reproducible`, 3 `not-a-bug`, 2 `stale-repro`. Those 747
+> are typed 378 `Bug`, 231 `Feature`, 138 `Task` — every open issue in the tracker now has a
+> type, where 674 had none when this began. 178 issues received a comment. Neither the `bug`
+> nor the `feature request` label is on an open issue any more.
+>
+> The verdict counts above are the *surviving* distribution, and it is worth saying why they
+> look so one-sided: `duplicate`, `obsolete` and most `fixed` rows led to a close, and closed
+> issues drop out of `issues.tsv` on the next `bin/init-issues`. So the 150 rows that left
+> are exactly the ones whose verdicts are missing from that list. Read it as "what is still
+> open, and why" rather than as a census of the original 897.
+>
+> **Do not attribute a close from `approved.tsv`, and do not attribute one from the GitHub
+> timeline.** Only 110 of the 150 have a `close` row in the ledger, because the approval gate was
+> [added on day two](#the-gate-is-enforced-because-prose-was-not-enough) — `bin/approve` landed
+> 2026-08-15 and the sweep began 2026-08-14, so every close before that is unrecorded. And the
+> timeline names `d-torrance` as the closing actor on all 40 of the unrecorded ones, which
+> establishes nothing: **every public action this project takes runs as Doug's account, so the
+> actor field cannot distinguish him from the tooling.** What settles it is this project's own
+> commit messages, which name what each apply run closed (`Apply batch 3: eight typed, six
+> labelled, three comments, #151 closed`). 35 of the 40 are named there. The five that are not
+> are the five above, and #133 is corroborated independently: the *other* project's batch 18
+> commit records it as "closed by other people since the last fetch".
+>
+> That took three attempts and Doug caught the first two — "closed by other people" for all 40,
+> then "closed by Doug by hand" for all 40. The general lesson is worth more than the number: a
+> ledger gap is evidence about the ledger, not about the world, and an actor field is evidence
+> about a token, not about a person. Attribute from the artifact that had to be written *because*
+> the action was taken — here, the commit.
+>
+> Nothing below is being worked on any more; it is kept because the reasoning is not
+> recoverable from the TSV. The companion record for this directory's first project is
+> [`README-bugs-directory.md`](README-bugs-directory.md).
+
+Macaulay2/M2 had **897 open issues** when this began. The oldest,
 [#9](https://github.com/Macaulay2/M2/issues/9), was filed in March 2013 and has never had a
 comment. **467 of them carry no label at all.** Nobody has been through the tracker as a
 whole, and an issue list that large stops being a work queue and becomes an archive: the
@@ -800,11 +837,25 @@ it goes into the batch's approval with everything else rather than as its own
 question.  `bin/set-verdict` warns when a type and its superseded label coexist,
 which is the reminder.
 
-No back-fill is needed, which is worth knowing before anyone plans one: when the
+No back-fill was needed *for the rows already triaged*, and that much held: when the
 instruction was given, **2** already-triaged rows still carried `bug` -- #4356 and
 #4368, both in that same batch -- against **78** untriaged carriers, and `feature
-request` was 0 triaged against 42 untriaged.  Every remaining case arrives through
-an ordinary batch.
+request` was 0 triaged against 42 untriaged.
+
+**A back-fill was needed anyway, and it was for rows triaged after that.**  Twelve rows
+-- #4509, #4518, #4526, #4534, #4543, #4549, #4561, #4572, #4580, #4589, #4590, #4595 --
+were given a type and never had the superseded label taken off, and every one of them is
+above #4398, the highest issue triaged on the day the instruction was given.  So the
+failure was not in the rows that predated the rule; it was in applying the rule after it
+was made.  How that happened is [below](#a-warning-piped-into-tail--1-is-a-warning-you-did-not-write),
+and it is worth reading, because it is not a lapse of attention and cannot be fixed by
+resolving to be more careful.
+
+**Both labels are now off every open issue.**  `feature request` has no carriers at all,
+open or closed, so its definition can be deleted with nothing lost.  `bug` has none open
+and **12 closed**, so deleting that one takes it off those twelve.  Neither deletion was
+done here: it is destructive, outward-facing and irreversible, and it wants its own
+decision rather than riding along with the last batch.
 
 **An issue being closed is not a reason to skip its type and label.**  Setting them
 is one of the three questions this sweep exists to answer, and a closed issue is
@@ -934,6 +985,47 @@ been an opt-in filter with no default.
 
 Pass `--before` when you deliberately want a cohort, e.g. `--before 2020-01-01` to reread the
 oldest rows. A short batch now means the `todo` rows really have run out.
+
+### A warning piped into `tail -1` is a warning you did not write
+
+Twelve rows -- #4509 through #4595 -- were typed and kept the label the type replaces. The
+guard for exactly that mistake exists, works, and fired on all twelve. `bin/set-verdict:57-63`:
+
+```
+warning: #4509 is typed Feature but still carries the label 'feature request'.
+         That label is what the type replaces -- add --rm feature request
+```
+
+It prints to **stderr**. Every `set-verdict` call in these batches was written as
+
+```sh
+./bin/set-verdict 4509 --verdict stands --type Feature --note "..." 2>&1 | tail -1
+```
+
+The `--note` arguments run to a paragraph, and `set-verdict` echoes the whole row back, so
+`| tail -1` was there to keep the transcript readable. `2>&1` merges stderr into stdout, and
+`tail -1` then keeps only the last line -- which is always the note echo. The warning was
+raised twelve times and discarded twelve times, by the shape of the command rather than by
+anyone deciding to ignore it.
+
+**The lesson is not "read the warnings."** It is that a guard which reports through a channel
+the caller routinely suppresses is not a guard. Three things follow, in decreasing order of
+how much they help:
+
+* **Prefer a check that runs on the whole file to one that runs on the call.** `bin/selftest`
+  reads `issues.tsv` in its entirety and cannot be told to look away; a per-call warning can
+  be silenced by a pipe the author added for an unrelated reason. Any invariant worth warning
+  about at write time is worth asserting over the corpus.
+* **If a script must warn, make the warning change the exit status.** `&&` and `set -e` are
+  suppressed by nothing, whereas `2>&1 | tail -n` swallows both streams at once.
+* **`2>&1 | tail`, `| head`, `| grep` and `>/dev/null` are all the same hazard.** The moment
+  output is filtered for readability, every diagnostic the script emits is filtered with it.
+  Filter *stdout* -- `| tail -1` alone leaves stderr on the terminal -- and merge the streams
+  only when you actually want the errors in the pipeline.
+
+The same shape is worth watching for elsewhere in this directory: `bin/apply-labels` prints
+its `superseded by the issue type(s)` note the same way, and every `bin/*` script reports
+refusals on stderr.
 
 ## Finding the commit: ask the timeline before you ask the log
 
