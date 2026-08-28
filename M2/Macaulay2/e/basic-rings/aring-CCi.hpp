@@ -244,6 +244,14 @@ class ARingCCi : public SimpleARing<ARingCCi>
     {
       return a.im;
     }
+  void set_real_part_from_doubles(ElementType& c, double left, double right) const
+  {
+    mpfi_interv_d(&c.re, left, right);
+  }
+  void set_imaginary_part_from_doubles(ElementType& c, double left, double right) const
+  {
+    mpfi_interv_d(&c.im, left, right);
+  }
   void set_real_part(ElementType& c, ARingRRi::ElementType& a) const
     {
       mpfi_set(&c.re, &a);

@@ -148,7 +148,13 @@ class ARingRRi : public SimpleARing<ARingRRi>
     mpfi_set_d(&result, a);
     return true;
   }
-    
+
+  bool set_from_doubles(ElementType &result, double left, double right) const
+  {
+    mpfi_interv_d(&result, left, right);
+    return true;
+  }
+
   bool set(ElementType &result, gmp_RR a) const
   {
     mpfi_set_fr(&result, a);
