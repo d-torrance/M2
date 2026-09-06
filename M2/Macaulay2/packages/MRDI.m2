@@ -210,6 +210,7 @@ addSaveMethod(Type, Function, Function) := o -> (T, paramsf, dataf) -> (
     T#{o.Namespace, UseID} = o.UseID;)
 
 addSaveMethod(ZZ, identity)
+addSaveMethod(QQ, x -> {numerator x, denominator x})
 
 addSaveMethod(Ring,
     R -> (
@@ -233,23 +234,23 @@ addSaveMethod(PolynomialRing,
 	"variables" => toString \ gens R},
     UseID => true)
 
-mrdiCoefficient = method()
-mrdiCoefficient ZZ := identity
-mrdiCoefficient QQ := x -> {numerator x, denominator x}
-
-mrdiListForm = f -> apply(listForm f,
-    (mon, coeff) -> {mon, mrdiCoefficient coeff})
-
 addSaveMethod(RingElement,
-    ring,
-    mrdiListForm,
-    Name => "RingElement")
+              ring,
+              f -> apply(listForm f, (mon, coeff) -> {mon, OnlyData {coeff}}),
+              Name => "RingElement")
 
 addSaveMethod(Ideal,
-    ring,
-    I -> apply(I_*, mrdiListForm))
+              ring,
+              I -> apply(I_*, f -> OnlyData {f}))
 
-addSaveMethod(Matrix, ring, A -> apply(entries A, row -> mrdiListForm \ row))
+addSaveMethod(Matrix,
+              ring,
+              A -> apply(entries A,
+                         row -> apply(row,
+                                      entry -> OnlyData {entry})))
+addSaveMethod(List,
+              x -> apply(x, y -> OnlyType {y}),
+              x -> apply(x, y -> OnlyData {y}))
 
 -------------
 -- loading --
