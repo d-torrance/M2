@@ -33,6 +33,10 @@ newPackage(
     Keywords => {"System"})
 
 export {
+    -- classes
+    "OnlyData",
+    "OnlyType",
+
     -- methods
     "addLoadMethod",
     "addNamespace",
@@ -107,6 +111,13 @@ saveMRDI Thing := o -> x -> (
     if o.FileName =!= null then o.FileName << r << endl << close;
     r)
 
+-- evaluate the thunk that's stored under {ns, saveMRDI}
+-- to get its type and data functions for serialization
+getMRDIFuncs = (ns, x, refs) -> (
+    if (f := lookup({ns, saveMRDI}, class x)) === null
+    then error noMethod({ns, saveMRDI}, x,)
+    else f())
+
 -- low-level unexported function
 -- input: ns: string (namespace)
 --        x: the object to serialize
@@ -115,15 +126,11 @@ saveMRDI Thing := o -> x -> (
 -- side effect: new refs are added to refs
 -- use addSaveMethod to define for a given class
 toMRDI = (ns, x, refs) -> (
-    if (f := lookup({ns, saveMRDI}, class x)) === null
-    then error noMethod({ns, saveMRDI}, x,)
-    else (
-        (type, data) := (
-            (typef, dataf) := f();
-            typef(x, refs), dataf(x, refs));
-        hashTable {
-            "_type" => type,
-            if data =!= null then "data" => data}))
+    (typef, dataf) := getMRDIFuncs(ns, x, refs);
+    (type, data) := (typef(x, refs), dataf(x, refs));
+    hashTable {
+        "_type" => type,
+        if data =!= null then "data" => data})
 
 useID = (ns, x) -> (
     if (u := lookup({ns, UseID}, class x)) === null
@@ -133,13 +140,17 @@ useID = (ns, x) -> (
 	" to be true or false")
     else u)
 
-toMRDIorUuid = (ns, x, refs) -> (
-    r := toMRDI(ns, x, refs);
+maybeUuid = (ns, x, refs) -> (
     if useID(ns, x) then (
-	i := thingToUuid x;
-	refs#i = r;
-	i)
-    else r)
+        i := thingToUuid x;
+        refs#i ??= toMRDI(ns, x, refs);
+        i))
+
+toMRDIorUuid = (ns, x, refs) -> (
+    maybeUuid(ns, x, refs) ?? toMRDI(ns, x, refs))
+
+OnlyType = new SelfInitializingType of BasicList
+OnlyData = new SelfInitializingType of BasicList
 
 -- low-level unexported method
 -- same interface as toMRDI, but attempts to separate out objects we'd like
@@ -156,7 +167,16 @@ processMRDI(String, List, MutableHashTable) := (ns, x, refs) -> (
 processMRDI(String, HashTable, MutableHashTable) := (ns, x, refs) -> (
     if class x === HashTable then applyValues(x, v -> processMRDI(ns, v, refs))
     else toMRDIorUuid(ns, x, refs))
-
+processMRDI(String, OnlyType, MutableHashTable) :=  (ns, x, refs) -> (
+    i := maybeUuid(ns, x#0, refs);
+    if i =!= null then refs#i#"_type"
+    else (
+        (typef,) := getMRDIFuncs(ns, x#0, refs);
+        typef(x#0, refs)))
+processMRDI(String, OnlyData, MutableHashTable) := (ns, x, refs) -> (
+    maybeUuid(ns, x#0, refs) ?? (
+        (,dataf) := getMRDIFuncs(ns, x#0, refs);
+        dataf(x#0, refs)))
 
 addSaveMethod = method(Options => {
 	UseID => false,
