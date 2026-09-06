@@ -253,8 +253,8 @@ fromMRDI(String, HashTable) := (ns, r) -> (
 	    else (r#"_type", null));
 	if not loadMethods#ns#?name then error ("unknown type: ", name);
 	loadMethods#ns#name(
-	    if params =!= null then fromMRDI(ns, params),
-	    if r#?"data" then fromMRDI(ns, r#"data")))
+	    fromMRDI(ns, params),
+	    fromMRDI(ns, ?? r#"data")))
     -- otherwise, de-serialize its values
     else applyValues(r, fromMRDI_ns))
 fromMRDI(String, String) := (ns, s) -> (
@@ -266,6 +266,7 @@ fromMRDI(String, String) := (ns, s) -> (
     -- otherwise, just return the string
     else s)
 fromMRDI(String, List) := (ns, x) -> apply(x, fromMRDI_ns)
+fromMRDI(String, Nothing) := (ns, x) -> null
 
 -- input function takes two args: params (de-serialized) & data
 addLoadMethod = method(Options => {Namespace => "Macaulay2"})
