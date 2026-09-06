@@ -117,7 +117,13 @@ saveMRDI Thing := o -> x -> (
 toMRDI = (ns, x, refs) -> (
     if (f := lookup({ns, saveMRDI}, class x)) === null
     then error noMethod({ns, saveMRDI}, x,)
-    else f(x, refs))
+    else (
+        (type, data) := (
+            (typef, dataf) := f();
+            typef(x, refs), dataf(x, refs));
+        hashTable {
+            "_type" => type,
+            if data =!= null then "data" => data}))
 
 useID = (ns, x) -> (
     if (u := lookup({ns, UseID}, class x)) === null
@@ -167,17 +173,20 @@ addSaveMethod Type := o -> T -> (
 addSaveMethod(Type, Function) := o -> (T, dataf) -> (
     addSaveMethod(T, nullf, dataf, o))
 addSaveMethod(Type, Function, Function) := o -> (T, paramsf, dataf) -> (
-    T#{o.Namespace, saveMRDI} = (x, refs) -> (
-	if o.UseID then thingToUuid x; -- save uuid
-	params := processMRDI(o.Namespace, paramsf x, refs);
-	data := processMRDI(o.Namespace, dataf x, refs);
-	hashTable {
-	    "_type" => (
-		if params =!= null then hashTable {
-		    "name" => getType(o.Name, x),
-		    "params" => params}
-		else getType(o.Name, x)),
-	    if data =!= null then "data" => data});
+    typefun := (x, refs) -> (
+        if o.UseID then thingToUuid x; -- save uuid
+        name := getType(o.Name, x);
+        params := processMRDI(o.Namespace, paramsf x, refs);
+        if params =!= null then hashTable {
+            "name" => name,
+            "params" => params}
+        else name);
+    datafun := (x, refs) -> (
+        if o.UseID then thingToUuid x; -- save uuid
+        data := processMRDI(o.Namespace, dataf x, refs);
+        if data =!= null then data);
+    -- thunk that returns a pair of functions so that "methods" works
+    T#{o.Namespace, saveMRDI} = () -> (typefun, datafun);
     T#{o.Namespace, UseID} = o.UseID;)
 
 addSaveMethod(ZZ, identity)
