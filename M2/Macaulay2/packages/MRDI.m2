@@ -36,6 +36,7 @@ export {
     -- classes
     "OnlyData",
     "OnlyType",
+    "TypeAndParams",
 
     -- methods
     "addLoadMethod",
@@ -46,7 +47,9 @@ export {
     "validateMRDI",
 
     -- symbols
+    "Instance",
     "Namespace",
+    "Params",
     "ToString",
     "UseID",
     }
@@ -79,11 +82,13 @@ isUuid = i -> match("^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$", i)
 
 namespaces =  new MutableHashTable
 loadMethods = new MutableHashTable
+uuidsToCreate = new MutableHashTable
 
 addNamespace = method()
 addNamespace(String, String, String) := (ns, url, v) -> (
     namespaces#ns = {url, v};
     loadMethods#ns = new MutableHashTable;
+    uuidsToCreate#ns = new MutableHashTable;
     Thing#{ns, UseID} = false;)
 
 addNamespace("Macaulay2", "https://macaulay2.com", version#"VERSION")
@@ -113,7 +118,7 @@ saveMRDI Thing := o -> x -> (
 
 -- evaluate the thunk that's stored under {ns, saveMRDI}
 -- to get its type and data functions for serialization
-getMRDIFuncs = (ns, x, refs) -> (
+getMRDIFuncs = (ns, x) -> (
     if (f := lookup({ns, saveMRDI}, class x)) === null
     then error noMethod({ns, saveMRDI}, x,)
     else f())
@@ -126,7 +131,7 @@ getMRDIFuncs = (ns, x, refs) -> (
 -- side effect: new refs are added to refs
 -- use addSaveMethod to define for a given class
 toMRDI = (ns, x, refs) -> (
-    (typef, dataf) := getMRDIFuncs(ns, x, refs);
+    (typef, dataf) := getMRDIFuncs(ns, x);
     (type, data) := (typef(x, refs), dataf(x, refs));
     hashTable {
         "_type" => type,
@@ -171,11 +176,11 @@ processMRDI(String, OnlyType, MutableHashTable) :=  (ns, x, refs) -> (
     i := maybeUuid(ns, x#0, refs);
     if i =!= null then refs#i#"_type"
     else (
-        (typef,) := getMRDIFuncs(ns, x#0, refs);
+        (typef,) := getMRDIFuncs(ns, x#0);
         typef(x#0, refs)))
 processMRDI(String, OnlyData, MutableHashTable) := (ns, x, refs) -> (
     maybeUuid(ns, x#0, refs) ?? (
-        (,dataf) := getMRDIFuncs(ns, x#0, refs);
+        (,dataf) := getMRDIFuncs(ns, x#0);
         dataf(x#0, refs)))
 
 addSaveMethod = method(Options => {
@@ -256,7 +261,35 @@ addSaveMethod(List,
 -- loading --
 -------------
 
-uuidsToCreate = new MutableHashTable
+-- each TypeAndParams object is a hash table with two keys:
+-- Type: type object itself
+-- Params: the load method for deserializing an instance of the type
+TypeAndParams = new SelfInitializingType of HashTable
+protect Params
+
+-- check if we've already deserialized the object
+isJSON = x -> isMember(class x,
+                       {String, List, HashTable, ZZ, RR, Boolean, Nothing})
+
+new TypeAndParams from (String, Type, Thing) := (T, ns, type, params) -> (
+    type#{ns, TypeAndParams} ??= T {
+        symbol Type => type,
+        Params => params,
+        Instance => x -> (
+            if isJSON x
+            then (
+                inst := lookup({ns, Instance}, type);
+                if inst =!= null
+                then loadMethods#ns#inst(type#{ns, TypeAndParams}, x)
+                else error("no 'Instance' declared for ", type))
+            else x)})
+new TypeAndParams from (String, String, Thing) := (T, ns, name, params) -> T {
+    symbol Type => null,
+    Params => params,
+    Instance => x -> (
+        if isJSON x
+        then loadMethods#ns#name(params, x)
+        else x)}
 
 loadMRDI = method()
 -- TODO: schema validation
@@ -265,74 +298,102 @@ loadMRDI HashTable := r -> (
     ns := first keys r#"_ns";
     if not loadMethods#?ns then error("unknown namespace: ", ns);
     -- save info about refs we haven't created yet
-    if r#?"_refs" then scanPairs(r#"_refs",
-	(i, s) -> if not thingsByUuid#?i then uuidsToCreate#i = s);
+    if r#?"_refs" then scanPairs(r#"_refs", (i, s) -> uuidsToCreate#ns#i ??= s);
     if r#?"id" then uuidToThing(r#"id", () -> fromMRDI(ns, r))
     else fromMRDI(ns, r))
 
 -- unexported helper function
 -- inputs: string (namespace) and object to de-serialize
+--         Params: whether to possibly return a TypeAndParams object
 -- outputs: a de-serialized M2 object
-fromMRDI = method()
-fromMRDI(String, HashTable) := (ns, r) -> (
+fromMRDI = method(Options => {Params => false})
+fromMRDI(String, HashTable) := o -> (ns, r) -> (
     -- if it has a _type key, then it's an object to de-serialize
     if r#?"_type" then (
-	(name, params) := (
-	    if instance(r#"_type", HashTable)
-	    then (r#"_type"#"name", r#"_type"#"params")
-	    else (r#"_type", null));
-	if not loadMethods#ns#?name then error ("unknown type: ", name);
-	loadMethods#ns#name(
-	    fromMRDI(ns, params),
-	    fromMRDI(ns, ?? r#"data")))
+        (name, params) := (
+            if instance(r#"_type", HashTable)
+            then (r#"_type"#"name", r#"_type"#"params")
+            else (r#"_type", null));
+        if not loadMethods#ns#?name then error ("unknown type: ", name);
+        x := loadMethods#ns#name(
+            fromMRDI(ns, params, Params => true),
+            fromMRDI(ns, ?? r#"data"));
+        if o.Params and instance(x, Type)
+        then TypeAndParams(ns, x, fromMRDI(ns, params, Params => true))
+        else x)
+    else if o.Params and r#?"name"
+    then TypeAndParams(ns, r#"name",
+                       if r#?"params"
+                       then fromMRDI(ns, r#"params", Params => true))
     -- otherwise, de-serialize its values
     else applyValues(r, fromMRDI_ns))
-fromMRDI(String, String) := (ns, s) -> (
+fromMRDI(String, String) := o -> (ns, s) -> (
     -- if the string is a uuid, then return the corresponding object
-    if isUuid s then uuidToThing(s, () -> (
-	    if uuidsToCreate#?s
-	    then fromMRDI(ns, remove(uuidsToCreate, s))
-	    else error("unknown uuid: ", s)))
+    if isUuid s then (
+        x := uuidToThing(s, () -> (
+            if uuidsToCreate#ns#?s
+            then fromMRDI(ns, uuidsToCreate#ns#s)
+            else error("unknown uuid: ", s)));
+        if o.Params and instance(x, Type)
+        then TypeAndParams(
+            ns, x, (
+                type := uuidsToCreate#ns#s#"_type";
+                if instance(type, HashTable) and type#?"params"
+                then fromMRDI(ns, type#"params", Params => true)))
+        else x)
+    -- if o.Params = true, then it's probably a type name, e.g., "ZZ"
+    else if o.Params then TypeAndParams(ns, s,)
     -- otherwise, just return the string
     else s)
-fromMRDI(String, List) := (ns, x) -> apply(x, fromMRDI_ns)
-fromMRDI(String, Nothing) := (ns, x) -> null
+fromMRDI(String, List) := o -> (ns, x) -> apply(x, y -> fromMRDI(ns, y, o))
+fromMRDI(String, Nothing) := o -> (ns, x) -> null
 
 -- input function takes two args: params (de-serialized) & data
-addLoadMethod = method(Options => {Namespace => "Macaulay2"})
+addLoadMethod = method(Options => {Namespace => "Macaulay2",
+                                   Instance => null})
 addLoadMethod(String, Function) := o -> (type, f) -> (
     if not loadMethods#?(o.Namespace)
     then error("unknown namespace: ", o.Namespace);
+    if o.Instance =!= null then (o.Instance)#{o.Namespace, Instance} = type;
     loadMethods#(o.Namespace)#type = f)
 addLoadMethod(List, Function) := o -> (types, f) -> (
     scan(types, type -> addLoadMethod(type, f, o)))
 
-addLoadMethod("ZZ", (params, data) -> value data)
-addLoadMethod("Ring", (params, data) -> (
-	if data == "ZZ" then ZZ
-	else if data == "QQ" then QQ
-	else error "unknown ring"))
-addLoadMethod("QuotientRing", (params, data) -> ZZ/(value data))
-addLoadMethod("GaloisField", (params, data) -> (
+addLoadMethod("ZZ",
+              (type, data) -> value data,
+              Instance => ZZ)
+addLoadMethod("QQ",
+              (type, data) -> value data#0 / value data#1,
+              Instance => QQ)
+addLoadMethod("Ring",
+              (type, data) -> (
+                  if data == "ZZ" then ZZ
+                  else if data == "QQ" then QQ
+                  else error "unknown ring"))
+addLoadMethod("QuotientRing", (type, data) -> ZZ/(value data))
+addLoadMethod("GaloisField", (type, data) -> (
 	GF(value data#"char", value data#"degree")))
-addLoadMethod("PolynomialRing", (params, data) -> (
-	params[Variables => data#"variables"]))
+addLoadMethod("PolynomialRing",
+              (type, data) -> type.Type[Variables => data#"variables"])
 
-mrdiToCoefficient = method(Dispatch => Type)
-mrdiToCoefficient ZZ := R -> value
-mrdiToCoefficient QQ := R -> a -> value a#0 / value a#1
+-- RingElement is a catch-all instance type for a bunch of different rings
+loadRingElement = method()
+loadRingElement PolynomialRing := R -> (
+    R.cache.loadRingElement ??= ((type, data) -> (
+        if #data == 0 then 0_R
+        else sum(data, term -> times(
+            type.Params.Instance term#1,
+            R_(value \ toList term#0))))))
 
-mrdiToPolynomial = (R, f) -> (
-    if #f == 0 then 0_R
-    else sum(f, term -> times(
-	    (mrdiToCoefficient coefficientRing R) term#1,
-	    R_(value \ toList term#0))))
-addLoadMethod("RingElement", (params, data) -> (
-	mrdiToPolynomial(params, data)))
-addLoadMethod("Ideal", (params, data) -> (
-	ideal apply(data, mrdiToPolynomial_params)))
-addLoadMethod("Matrix", (params, data) -> (
-	matrix applyTable(data, mrdiToPolynomial_params)))
+addLoadMethod("RingElement",
+              (type, data) -> (loadRingElement(type.Type))(type, data),
+              Instance => RingElement)
+addLoadMethod("Ideal",
+              (type, data) -> ideal apply(data, f -> type.Instance f))
+addLoadMethod("Matrix",
+              (type, data) -> matrix applyTable(data, f -> type.Instance f))
+
+addLoadMethod("List", (type, data) -> apply(type, data, (T, x) -> T.Instance x))
 
 -- for debugging w/ "methods"
 LoadMethod = new SelfInitializingType of List
@@ -389,33 +450,36 @@ addSaveMethod(RingElement,
     Name => "MPolyRingElem",
     Namespace => "Oscar")
 
-addLoadMethod("Base.Int", (params, data) -> value data, Namespace => "Oscar")
+addLoadMethod("Base.Int", (type, data) -> value data, Namespace => "Oscar")
 addLoadMethod("ZZRingElem",
-    (params, data) -> value data,
-    Namespace => "Oscar")
+              (type, data) -> value data,
+              Instance => ZZ,
+              Namespace => "Oscar")
 addLoadMethod("QQFieldElem",
-    (params, data) -> (
-	x := separate("//", data);
-	if #x == 2 then value x#0 / value x#1
-	else value x#0 / 1),
-    Namespace => "Oscar")
-addLoadMethod("String", (params, data) -> data, Namespace => "Oscar")
-addLoadMethod("Float64", (params, data) -> value data, Namespace => "Oscar")
-addLoadMethod("ZZRing", (params, data) -> ZZ, Namespace => "Oscar")
-addLoadMethod("QQField", (params, data) -> QQ, Namespace => "Oscar")
+              (type, data) -> (
+                  x := separate("//", data);
+                  if #x == 2 then value x#0 / value x#1
+                  else value x#0 / 1),
+              Instance => QQ,
+              Namespace => "Oscar")
+addLoadMethod("String", (type, data) -> data, Namespace => "Oscar")
+addLoadMethod("Float64", (type, data) -> value data, Namespace => "Oscar")
+addLoadMethod("ZZRing", (type, data) -> ZZ, Namespace => "Oscar")
+addLoadMethod("QQField", (type, data) -> QQ, Namespace => "Oscar")
 addLoadMethod("FiniteField",
-    (params, data) -> (
-	if params =!= null then error "not implemented yet"
+    (type, data) -> (
+	if type =!= null then error "not implemented yet"
 	else ZZ/(value data)),
     Namespace => "Oscar")
 addLoadMethod({"PolyRing", "MPolyRing"},
-    (params, data) -> (
+    (type, data) -> (
 	-- TODO: handled indexed variables, e.g., x[1], x[2], x[3]
-	params[Variables => data#"symbols"]),
+	type.Type[Variables => data#"symbols"]),
     Namespace => "Oscar")
 addLoadMethod({"PolyRingElem", "MPolyRingElem"},
-    (params, data) -> mrdiToPolynomial(params, data),
-    Namespace => "Oscar")
+              (type, data) -> (loadRingElement(type.Type))(type, data),
+              Namespace => "Oscar",
+              Instance => RingElement)
 
 ----------------
 -- validating --
@@ -781,7 +845,7 @@ Inputs
     of the MRDI JSON, or a list of strings to add multiple
     load methods at the same time
   f:Function
-    a function @TT "(params, data) -> Thing"@ that
+    a function @TT "(type, data) -> Thing"@ that
     reconstructs the object
   Namespace => String
     the namespace to register this method under
@@ -802,10 +866,7 @@ Description
     arguments:
 
     @UL {
-	LI {TT "params", ": For parametric types (e.g., ", TO RingElement,
-	    "), this is the already-deserialized parameter (e.g., the parent ",
-	    "ring).  For non-parametric types (e.g., ", TO ZZ, "), this is ",
-	    TO null, "."},
+	LI {TT "type", ": UPDATE ME"},
 	LI {TT "data", ":  The contents of the ", TT "data", " field from the ",
 	    "JSON, recursively deserialized."}}@
 
@@ -817,7 +878,7 @@ Description
   Example
     addNamespace("MySystem", "https://example.com", "1.0")
     addLoadMethod("MyInt",
-        (params, data) -> value data,
+        (type, data) -> value data,
         Namespace => "MySystem")
     loadMRDI "{\"_ns\":{\"MySystem\":[\"https://example.com\",\"1.0\"]},\"_type\":\"MyInt\",\"data\":\"42\"}"
 SeeAlso
@@ -850,7 +911,7 @@ Description
   Example
     addNamespace("MySystem", "https://example.com", "1.0")
     addLoadMethod("MyInt",
-        (params, data) -> value data,
+        (type, data) -> value data,
         Namespace => "MySystem")
     loadMRDI "{\"_ns\":{\"MySystem\":[\"https://example.com\",\"1.0\"]},\"_type\":\"MyInt\",\"data\":\"42\"}"
 ///
@@ -962,6 +1023,19 @@ checkMRDI id_(R^3)
 checkMRDI 0_R
 checkMRDI ideal 0_R
 checkMRDI map(R^2, R^3, 0)
+-- lists
+checkMRDI {1, 2, 3}
+checkMRDI {x^2, y}
+checkMRDI {{1, 2}, {3}}
+checkMRDI {}
+checkMRDI {ZZ, QQ}
+checkMRDI {1, x^2, QQ}
+checkMRDI {GF(2,3)}
+checkMRDI {R, R}
+checkMRDI {R, x^2}
+-- matrices
+checkMRDI matrix {{1, 2}, {3, 4}}
+checkMRDI matrix {{1/2, 3/4}, {5/6, 7/8}}
 ///
 
 -* code to generate strings for the next test:
@@ -1044,7 +1118,7 @@ TEST ///
 -- custom namespace
 addNamespace("TestSystem", "https://example.com/test", "0.1")
 addSaveMethod(ZZ, identity, Name => "TestInt", Namespace => "TestSystem")
-addLoadMethod("TestInt", (params, data) -> value data, Namespace => "TestSystem")
+addLoadMethod("TestInt", (type, data) -> value data, Namespace => "TestSystem")
 s = saveMRDI(99, Namespace => "TestSystem")
 validateMRDI s
 assert Equation(99, loadMRDI s)
