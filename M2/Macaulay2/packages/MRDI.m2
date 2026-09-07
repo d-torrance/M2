@@ -92,7 +92,7 @@ addNamespace(String, String, String) := (ns, url, v) -> (
     Thing#{ns, UseID} = false;)
 
 addNamespace("Macaulay2", "https://macaulay2.com", version#"VERSION")
-addNamespace("Oscar", "https://github.com/oscar-system/Oscar.jl", "1.6.0")
+addNamespace("Oscar", "https://github.com/oscar-system/Oscar.jl", "1.8.2")
 
 saveMRDI = method(
     Dispatch => Thing,
@@ -163,7 +163,8 @@ OnlyData = new SelfInitializingType of BasicList
 -- other objects
 processMRDI = method()
 processMRDI(String, Thing, MutableHashTable) := toMRDIorUuid
-processMRDI(String, String, MutableHashTable) := (ns, x, refs) -> x
+processMRDI(String, Boolean, MutableHashTable) :=
+processMRDI(String, String,  MutableHashTable) := (ns, x, refs) -> x
 processMRDI(String, Nothing, MutableHashTable) := (ns, x, refs) -> null
 processMRDI(String, ZZ, MutableHashTable) := (ns, x, refs) -> toString x
 processMRDI(String, List, MutableHashTable) := (ns, x, refs) -> (
@@ -220,7 +221,7 @@ addSaveMethod(List, Function) := o -> (Ts, dataf) -> (
 addSaveMethod(List, Function, Function) := o -> (Ts, paramsf, dataf) -> (
     scan(Ts, T -> addSaveMethod(T, paramsf, dataf, o)))
 
-addSaveMethod(ZZ, identity)
+addSaveMethod({ZZ, Boolean}, identity)
 addSaveMethod(QQ, x -> {numerator x, denominator x})
 
 addSaveMethod(Ring,
@@ -352,6 +353,7 @@ fromMRDI(String, String) := o -> (ns, s) -> (
     -- otherwise, just return the string
     else s)
 fromMRDI(String, List) := o -> (ns, x) -> apply(x, y -> fromMRDI(ns, y, o))
+fromMRDI(String, Boolean) := o -> (ns, x) -> x
 fromMRDI(String, Nothing) := o -> (ns, x) -> null
 
 -- input function takes two args: params (de-serialized) & data
@@ -365,6 +367,8 @@ addLoadMethod(String, Function) := o -> (type, f) -> (
 addLoadMethod(List, Function) := o -> (types, f) -> (
     scan(types, type -> addLoadMethod(type, f, o)))
 
+addLoadMethod("Boolean",
+              (type, data) -> data)
 addLoadMethod("ZZ",
               (type, data) -> value data,
               Instance => ZZ)
@@ -421,6 +425,11 @@ methods List := x -> (
 -- Oscar --
 -----------
 
+addSaveMethod(Boolean,
+              identity,
+              Name => "Bool",
+              Namespace => "Oscar")
+
 oscarRings = hashTable {
     ZZ => "ZZRing",
     QQ => "QQField",
@@ -456,6 +465,12 @@ addSaveMethod(RingElement,
     Name => "MPolyRingElem",
     Namespace => "Oscar")
 
+addLoadMethod("Bool",
+              (type, data) -> (
+                  if instance(data, String)
+                  then value data -- basic v1
+                  else data),     -- basic v2
+              Namespace => "Oscar")
 addLoadMethod("Base.Int", (type, data) -> value data, Namespace => "Oscar")
 addLoadMethod("ZZRingElem",
               (type, data) -> value data,
@@ -1020,6 +1035,7 @@ checkMRDI = x -> (
     h := saveMRDI(x, ToString => false);
     assert instance(h, HashTable);
     assert BinaryOperation(symbol ===, loadMRDI h, x))
+checkMRDI true
 checkMRDI 5
 checkMRDI ZZ
 checkMRDI QQ
@@ -1044,6 +1060,7 @@ checkMRDI 0_R
 checkMRDI ideal 0_R
 checkMRDI map(R^2, R^3, 0)
 -- lists
+checkMRDI {true, false}
 checkMRDI {1, 2, 3}
 checkMRDI {x^2, y}
 checkMRDI {{1, 2}, {3}}
@@ -1064,18 +1081,19 @@ printWidth = 0
 getFormattedMRDI = x -> (
     format replace(regexQuote version#"VERSION", "@VERSION@", saveMRDI x))
 scan({
-	5,
-	ZZ,
-	QQ,
-	ZZ/101,
-	GF(2, 3),
-	QQ[x],
-	QQ[x][y][z],
-	(R = QQ[x,y,z,w]; I = monomialCurveIdeal(R, {1, 2, 3}); I_0),
-	I,
-	gens I
-	}, x -> << "checkMRDI " << getFormattedMRDI x << endl)
-
+        true,
+        5,
+        ZZ,
+        QQ,
+        ZZ/101,
+        GF(2, 3),
+        QQ[x],
+        QQ[x][y][z],
+        (R = QQ[x,y,z,w]; I = monomialCurveIdeal(R, {1, 2, 3}); I_0),
+        I,
+        gens I,
+        {true, false}
+        }, x -> << "checkMRDI " << getFormattedMRDI x << endl)
 *-
 
 TEST ///
@@ -1085,6 +1103,7 @@ checkMRDI = x -> (
     x = replace("@VERSION@", version#"VERSION", x);
     y := saveMRDI loadMRDI x;
     assert BinaryOperation(symbol ===, fromJSON x, fromJSON y))
+checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Boolean\", \"data\": true}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"ZZ\", \"data\": \"5\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"ZZ\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"QQ\"}"
@@ -1095,12 +1114,14 @@ checkMRDI "{\"_type\": {\"params\": \"8731803f-89bd-4ff7-a599-79375b33cf4c\", \"
 checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"name\": \"RingElement\"}, \"data\": [[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
 checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"name\": \"Ideal\"}, \"data\": [[[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"1\", \"1\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"2\", \"0\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"1\", \"0\"], [\"-1\", \"1\"]]]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
 checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"name\": \"Matrix\"}, \"data\": [[[[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"1\", \"1\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"2\", \"0\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"1\", \"0\"], [\"-1\", \"1\"]]]]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
+checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": {\"params\": [\"Boolean\", \"Boolean\"], \"name\": \"List\"}, \"data\": [true, false]}"
 ///
 
 TEST ///
 -- save/load Oscar objects
 checkMRDI = x -> assert BinaryOperation(symbol ===,
     loadMRDI saveMRDI(x, Namespace => "Oscar"), x)
+checkMRDI true
 checkMRDI ZZ
 checkMRDI QQ
 checkMRDI 5
@@ -1116,6 +1137,16 @@ checkLoad(3.14, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl
 checkLoad(ZZ/101, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"FiniteField\",\"data\":\"101\"}")
 checkLoad(3/4, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":{\"name\":\"QQFieldElem\",\"params\":{\"_type\":\"QQField\"}},\"data\":\"3//4\"}")
 checkLoad(7_QQ, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":{\"name\":\"QQFieldElem\",\"params\":{\"_type\":\"QQField\"}},\"data\":\"7\"}")
+///
+
+TEST ///
+-- Oscar round-trip: MRDI -> M2 object -> MRDI
+needsPackage "JSON"
+checkMRDI = x -> (
+    y := saveMRDI(loadMRDI x, Namespace => "Oscar");
+    assert BinaryOperation(symbol ===, fromJSON x, fromJSON y))
+-- save(stdout, true)
+checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Bool","data":true}////
 ///
 
 TEST ///
@@ -1155,6 +1186,7 @@ TEST ///
 checkMRDI = x -> (
     validateMRDI saveMRDI x;
     validateMRDI saveMRDI(x, ToString => false))
+checkMRDI true
 checkMRDI 5
 checkMRDI ZZ
 checkMRDI QQ
