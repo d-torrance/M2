@@ -213,6 +213,12 @@ addSaveMethod(Type, Function, Function) := o -> (T, paramsf, dataf) -> (
     -- thunk that returns a pair of functions so that "methods" works
     T#{o.Namespace, saveMRDI} = () -> (typefun, datafun);
     T#{o.Namespace, UseID} = o.UseID;)
+addSaveMethod(List) := o -> Ts -> (
+    scan(Ts, T -> addSaveMethod(T, nullf, nullf, o)))
+addSaveMethod(List, Function) := o -> (Ts, dataf) -> (
+    scan(Ts, T -> addSaveMethod(T, nullf, dataf, o)))
+addSaveMethod(List, Function, Function) := o -> (Ts, paramsf, dataf) -> (
+    scan(Ts, T -> addSaveMethod(T, paramsf, dataf, o)))
 
 addSaveMethod(ZZ, identity)
 addSaveMethod(QQ, x -> {numerator x, denominator x})
