@@ -221,7 +221,11 @@ addSaveMethod(List, Function) := o -> (Ts, dataf) -> (
 addSaveMethod(List, Function, Function) := o -> (Ts, paramsf, dataf) -> (
     scan(Ts, T -> addSaveMethod(T, paramsf, dataf, o)))
 
-addSaveMethod({ZZ, Boolean}, identity)
+-----------------------
+-- saving M2 objects --
+-----------------------
+
+addSaveMethod({ZZ, Boolean, String}, identity)
 addSaveMethod(QQ, x -> {numerator x, denominator x})
 
 addSaveMethod(Ring,
@@ -367,7 +371,11 @@ addLoadMethod(String, Function) := o -> (type, f) -> (
 addLoadMethod(List, Function) := o -> (types, f) -> (
     scan(types, type -> addLoadMethod(type, f, o)))
 
-addLoadMethod("Boolean",
+------------------------
+-- loading M2 objects --
+------------------------
+
+addLoadMethod({"Boolean", "String"},
               (type, data) -> data)
 addLoadMethod("ZZ",
               (type, data) -> value data,
@@ -421,13 +429,24 @@ methods List := x -> (
 	    ?? {}))
     else oldmethods x)
 
------------
--- Oscar --
------------
+-------------------------------------
+-------------------------------------
+--   ___   ___   ___    _    ____  --
+--  / _ \ / __\ / __\  / \  |  _ \ --
+-- | |_| |\__ \| |__  / ^ \ |  ´ / --
+--  \___/ \___/ \___//_/ \_\|_|\_\ --
+-------------------------------------
+-------------------------------------
+
+-- saving
 
 addSaveMethod(Boolean,
               identity,
               Name => "Bool",
+              Namespace => "Oscar")
+
+addSaveMethod(String,
+              identity,
               Namespace => "Oscar")
 
 oscarRings = hashTable {
@@ -465,12 +484,16 @@ addSaveMethod(RingElement,
     Name => "MPolyRingElem",
     Namespace => "Oscar")
 
+-- loading
+
 addLoadMethod("Bool",
               (type, data) -> (
                   if instance(data, String)
                   then value data -- basic v1
                   else data),     -- basic v2
               Namespace => "Oscar")
+addLoadMethod("String", (type, data) -> data, Namespace => "Oscar")
+
 addLoadMethod("Base.Int", (type, data) -> value data, Namespace => "Oscar")
 addLoadMethod("ZZRingElem",
               (type, data) -> value data,
@@ -1037,6 +1060,7 @@ checkMRDI = x -> (
     assert BinaryOperation(symbol ===, loadMRDI h, x))
 checkMRDI true
 checkMRDI 5
+checkMRDI "foo"
 checkMRDI ZZ
 checkMRDI QQ
 checkMRDI(ZZ/101)
@@ -1083,6 +1107,7 @@ getFormattedMRDI = x -> (
 scan({
         true,
         5,
+        "foo",
         ZZ,
         QQ,
         ZZ/101,
@@ -1094,6 +1119,7 @@ scan({
         gens I,
         {true, false}
         }, x -> << "checkMRDI " << getFormattedMRDI x << endl)
+
 *-
 
 TEST ///
@@ -1105,6 +1131,7 @@ checkMRDI = x -> (
     assert BinaryOperation(symbol ===, fromJSON x, fromJSON y))
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Boolean\", \"data\": true}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"ZZ\", \"data\": \"5\"}"
+checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"String\", \"data\": \"foo\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"ZZ\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"QQ\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"QuotientRing\", \"data\": \"101\"}"
@@ -1122,6 +1149,7 @@ TEST ///
 checkMRDI = x -> assert BinaryOperation(symbol ===,
     loadMRDI saveMRDI(x, Namespace => "Oscar"), x)
 checkMRDI true
+checkMRDI "foo"
 checkMRDI ZZ
 checkMRDI QQ
 checkMRDI 5
@@ -1147,6 +1175,8 @@ checkMRDI = x -> (
     assert BinaryOperation(symbol ===, fromJSON x, fromJSON y))
 -- save(stdout, true)
 checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Bool","data":true}////
+-- save(stdout, "foo")
+checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"String","data":"foo"}////
 ///
 
 TEST ///
