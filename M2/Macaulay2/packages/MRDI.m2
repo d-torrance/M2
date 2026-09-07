@@ -1150,25 +1150,100 @@ assert(h#"_ns"#?"TestSystem")
 
 TEST ///
 -- validation
-validateMRDI saveMRDI 5
-validateMRDI saveMRDI ZZ
-validateMRDI saveMRDI QQ
-validateMRDI saveMRDI (ZZ/101)
-validateMRDI saveMRDI GF(2, 3)
-validateMRDI saveMRDI (QQ[x])
-validateMRDI saveMRDI (QQ[x][y][z])
+-- everything we generate should be valid MRDI, whether we generate a
+-- string or a hash table
+checkMRDI = x -> (
+    validateMRDI saveMRDI x;
+    validateMRDI saveMRDI(x, ToString => false))
+checkMRDI 5
+checkMRDI ZZ
+checkMRDI QQ
+checkMRDI(ZZ/101)
+checkMRDI GF(2, 3)
+checkMRDI(QQ[x])
+checkMRDI(QQ[x][y][z])
 R = QQ[x,y,z,w]
 I = monomialCurveIdeal(R, {1, 2, 3})
-validateMRDI saveMRDI I_0
-validateMRDI saveMRDI I
-validateMRDI saveMRDI gens I
-validateMRDI saveMRDI(ZZ, Namespace => "Oscar")
-validateMRDI saveMRDI(QQ, Namespace => "Oscar")
-validateMRDI saveMRDI(5, Namespace => "Oscar")
-validateMRDI saveMRDI(1/2, Namespace => "Oscar")
+checkMRDI I_0
+checkMRDI I
+checkMRDI gens I
+-- rational coefficients
+checkMRDI((1/2)*x + (3/4)*y - 7/3)
+-- identity and zero elements, whose data contains empty arrays
+checkMRDI 1_R
+checkMRDI id_(R^3)
+checkMRDI 0_R
+checkMRDI ideal 0_R
+checkMRDI map(R^2, R^3, 0)
+-- lists, whose "params" may be an empty array, an array of type
+-- names, or an array of type descriptors and whole MRDI objects
+checkMRDI {}
+checkMRDI {1, 2, 3}
+checkMRDI {ZZ, QQ}
+checkMRDI {{1, 2}, {3}}
+checkMRDI {1, x^2, QQ}
+checkMRDI {R, x^2}
+checkMRDI {GF(2, 3)}
+-- matrices over ZZ and QQ
+checkMRDI matrix {{1, 2}, {3, 4}}
+checkMRDI matrix {{1/2, 3/4}, {5/6, 7/8}}
+-- the Oscar namespace
+checkMRDI = x -> validateMRDI saveMRDI(x, Namespace => "Oscar")
+checkMRDI ZZ
+checkMRDI QQ
+checkMRDI 5
+checkMRDI(1/2)
 R = ZZ[x,y,z,w]
-validateMRDI saveMRDI(R, Namespace => "Oscar")
-validateMRDI saveMRDI(random(3, R), Namespace => "Oscar")
+checkMRDI R
+checkMRDI random(3, R)
+///
+
+TEST ///
+-- validation of things the schema allows but that we don't generate
+
+-- OSCAR writes "attrs" (by default) and "meta" (with its "metadata"
+-- option); neither is in the schema, but it has no
+-- "additionalProperties": false, so extra keys are allowed
+validateMRDI("{\"_ns\":{\"Oscar\":[\"https://oscar-system.org\"," |
+    "\"1.8.0\"]},\"_type\":\"FiniteField\",\"data\":\"2\"," |
+    "\"attrs\":{\"is_finite\":{\"_type\":\"Bool\",\"data\":true}}," |
+    "\"meta\":{\"name\":\"F2\"}}")
+-- "attrs" may appear inside "_refs" as well
+validateMRDI("{\"_type\":\"T\",\"_refs\":{\"39c5ec0e-4b25-4d09-9b3b-" |
+    "6ee6be2b1a6c\":{\"_type\":\"T\",\"attrs\":{}}}}")
+-- when several types share a name, OSCAR adds an "_instance" key
+validateMRDI("{\"_type\":{\"name\":\"FiniteField\"," |
+    "\"_instance\":\"fpField\"},\"data\":\"2\"}")
+-- the keys of "_refs" are constrained only by "patternProperties", so
+-- non-UUID's are allowed (their values must still be valid MRDI)
+validateMRDI("{\"_type\":\"T\",\"_refs\":{\"foo\":{\"_type\":\"T\"}}}")
+-- "_ns" is not required
+validateMRDI "{\"_type\":\"T\",\"data\":\"5\"}"
+-- booleans and nulls are valid data
+validateMRDI("{\"_type\":\"T\",\"data\":[true,null,\"5\"," |
+    "{\"foo\":[false]}]}")
+-- the schema's "patternProperties" for the keys of a data object,
+-- "^[a-zA-Z0-9_]*", matches every string, so keys are unconstrained
+validateMRDI "{\"_type\":\"T\",\"data\":{\"not alphanumeric!\":\"5\"}}"
+
+-- "params" is more permissive than "data": besides everything data
+-- allows, it may contain type descriptors and entire MRDI objects,
+-- which in turn may have their own "_ns"
+validateMRDI("{\"_type\":{\"name\":\"PolynomialRing\",\"params\":" |
+    "{\"_ns\":{\"Macaulay2\":[\"https://macaulay2.com\",\"1.0\"]}," |
+    "\"_type\":\"Ring\",\"data\":\"QQ\"}},\"data\":{}}")
+-- named params, as OSCAR writes for MPolyRing
+validateMRDI("{\"_type\":{\"name\":\"MPolyRing\",\"params\":" |
+    "{\"base_ring\":\"39c5ec0e-4b25-4d09-9b3b-6ee6be2b1a6c\"," |
+    "\"symbols\":[\"x\"]}},\"data\":\"5\"}")
+-- nested type descriptors, as OSCAR writes for Polyhedron
+validateMRDI("{\"_type\":{\"name\":\"Polyhedron\",\"params\":" |
+    "{\"pm_params\":{\"name\":\"Dict\",\"params\":{\"POINTED\":" |
+    "\"Bool\",\"FACETS\":{\"name\":\"MatElem\",\"params\":" |
+    "\"39c5ec0e-4b25-4d09-9b3b-6ee6be2b1a6c\"}}}}},\"data\":\"5\"}")
+-- an object without a "name" key is still a valid map of params
+validateMRDI("{\"_type\":{\"name\":\"T\",\"params\":" |
+    "{\"params\":\"foo\"}},\"data\":\"5\"}")
 ///
 
 TEST ///
@@ -1188,6 +1263,37 @@ checkError(
 checkError(
     "[1,2,3]",
     "expected an object, but got a(n) list")
+checkError(
+    "{\"_type\":{\"params\":\"foo\"}}",
+    "expected '_type' to have a 'name' key")
+checkError(
+    "{\"_type\":{\"name\":5}}",
+    "expected value of 'name' to be a string")
+checkError(
+    "{\"_type\":\"ZZ\",\"_refs\":{\"39c5ec0e-4b25-4d09-9b3b-" |
+    "6ee6be2b1a6c\":{\"data\":\"5\"}}}",
+    "expected a '_type' key")
+checkError(
+    "{\"_type\":\"ZZ\",\"id\":\"not-a-uuid\"}",
+    "expected value of \"id\" to be a UUID")
+-- data may not contain MRDI objects; they belong in "_refs"
+checkError(
+    "{\"_type\":\"ZZ\",\"data\":{\"foo\":{\"_ns\":{}}}}",
+    "data cannot have a '_ns' key")
+checkError(
+    "{\"_type\":\"ZZ\",\"data\":{\"foo\":{\"_type\":\"ZZ\"}}}",
+    "data cannot have a '_type' key")
+-- integers must be serialized as strings
+checkError(
+    "{\"_type\":\"ZZ\",\"data\":[\"1\",[2]]}",
+    "invalid data: 2")
+checkError(
+    "{\"_type\":{\"name\":\"T\",\"params\":5}}",
+    "invalid data: 5")
+-- JSON objects must have string keys
+checkError(
+    hashTable {(1, "ZZ")},
+    "expected all keys to be strings, but got 1")
 ///
 
 -- Save-path error: only ZZ, QQ, and finite prime fields are currently
