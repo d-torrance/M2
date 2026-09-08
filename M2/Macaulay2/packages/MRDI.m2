@@ -274,6 +274,10 @@ addSaveMethod(List,
               x -> apply(x, y -> OnlyType {y}),
               x -> apply(x, y -> OnlyData {y}))
 
+addSaveMethod(Set,
+              x -> apply(elements x, y -> OnlyType {y}),
+              x -> apply(elements x, y -> OnlyData {y}))
+
 -------------
 -- loading --
 -------------
@@ -430,6 +434,8 @@ addLoadMethod("Matrix",
               (params, data) -> matrix applyTable(data, f -> params.Instance f))
 
 addLoadMethod("List", (params, data) -> apply(params, data, (T, x) -> T.Instance x))
+addLoadMethod("Set", (params, data) -> set apply(params, data,
+                                                 (T, x) -> T.Instance x))
 
 -- for debugging w/ "methods"
 LoadMethod = new SelfInitializingType of List
@@ -532,6 +538,15 @@ addSaveMethod(HashTable,
               Name => "Dict",
               Namespace => "Oscar")
 
+addSaveMethod(Set,
+              x -> (
+                  if #x == 0 then error "expected a nonempty set";
+                  if #(class \ x) > 1
+                  then error "expected elements of the same type";
+                  OnlyType {first elements x}),
+              x -> apply(elements x, y -> OnlyData {y}),
+              Namespace => "Oscar")
+
 -- only supported for Hom between free modules (matrix space)
 addSaveMethod(Module,
               ring,
@@ -606,6 +621,9 @@ addLoadMethod("Vector",
               Namespace => "Oscar")
 addLoadMethod("Tuple",
               (params, data) -> apply(params, data, (T, x) -> T.Instance x),
+              Namespace => "Oscar")
+addLoadMethod("Set",
+              (params, data) -> set apply(data, x -> params.Instance x),
               Namespace => "Oscar")
 
 addLoadMethod("Dict",
@@ -1212,6 +1230,7 @@ checkMRDI {1, x^2, QQ}
 checkMRDI {GF(2,3)}
 checkMRDI {R, R}
 checkMRDI {R, x^2}
+checkMRDI set {1, 2, 3}
 -- matrices
 checkMRDI matrix {{1, 2}, {3, 4}}
 checkMRDI matrix {{1/2, 3/4}, {5/6, 7/8}}
@@ -1237,7 +1256,8 @@ scan({
         (R = QQ[x,y,z,w]; I = monomialCurveIdeal(R, {1, 2, 3}); I_0),
         I,
         gens I,
-        {true, false}
+        {true, false},
+        set {1, 2, 3}
         }, x -> << "checkMRDI " << getFormattedMRDI x << endl)
 
 *-
@@ -1264,6 +1284,7 @@ checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"
 checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"name\": \"Ideal\"}, \"data\": [[[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"1\", \"1\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"2\", \"0\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"1\", \"0\"], [\"-1\", \"1\"]]]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
 checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"name\": \"Matrix\"}, \"data\": [[[[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"1\", \"1\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"2\", \"0\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"1\", \"0\"], [\"-1\", \"1\"]]]]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": {\"params\": [\"Boolean\", \"Boolean\"], \"name\": \"List\"}, \"data\": [true, false]}"
+checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": {\"params\": [\"ZZ\", \"ZZ\", \"ZZ\"], \"name\": \"Set\"}, \"data\": [\"1\", \"2\", \"3\"]}"
 ///
 
 TEST ///
@@ -1282,6 +1303,8 @@ checkMRDI random(3, R)
 checkMRDI {1, "some text", true}
 checkMRDI hashTable {("a", 1), ("b", 2)}
 checkMRDI hashTable {("x", x)}
+checkMRDI set {1, 2, 3}
+checkMRDI set {x, x^2}
 checkMRDI matrix(QQ, {{12, 31, 24, 78}, {51, 63, 17, 35}, {23, 99, 19, 34}})
 
 -- objects we can load but can't save
