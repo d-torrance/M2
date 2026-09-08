@@ -241,10 +241,11 @@ addSaveMethod(QuotientRing,
 	else error "not implemented yet"))
 
 addSaveMethod(GaloisField,
-    F -> hashTable {
-	"char"   => F.char,
-	"degree" => F.degree},
-    UseID => true)
+              F -> if F.degree > 1 then ambient ambient F,
+              F -> (
+                  if F.degree == 1 then F.char
+                  else OnlyData {(ideal ambient F)_0}),
+              UseID => true)
 
 addSaveMethod(PolynomialRing,
     coefficientRing,
@@ -257,6 +258,9 @@ addSaveMethod(RingElement,
               f -> (
                   R := ring f;
                   if isFinitePrimeField R then f^ZZ
+                  else if instance(R, GaloisField)
+                  then apply(listForm f^(ambient R),
+                             (mon, coeff) -> {mon, OnlyData {coeff}})
                   else apply(listForm f,
                              (mon, coeff) -> {mon, OnlyData {coeff}})),
               Name => "RingElement")
@@ -401,8 +405,14 @@ addLoadMethod("Ring",
                   else if data == "QQ" then QQ
                   else error "unknown ring"))
 addLoadMethod("QuotientRing", (params, data) -> ZZ/(value data))
-addLoadMethod("GaloisField", (params, data) -> (
-	GF(value data#"char", value data#"degree")))
+addLoadMethod("GaloisField",
+              (params, data) -> (
+                  -- GF(p)
+                  if instance(data, String) then GF value data
+                  -- GF(p^n)
+                  else (
+                      f := params.Instance data;
+                      GF(ring f / f))))
 addLoadMethod("PolynomialRing",
               (params, data) -> params.Type[Variables => data#"variables"])
 
@@ -423,7 +433,9 @@ loadRingElement GaloisField := R -> (
     R.cache.loadRingElement ??= (
         if isFinitePrimeField R
         then (params, data) -> (value data)_R
-        else notImplemented()))
+        else (params, data) -> (
+            if #data == 0 then 0_R
+            else (params.Params.Instance data)_R)))
 
 addLoadMethod("RingElement",
               (params, data) -> (loadRingElement(params.Type))(params, data),
@@ -504,6 +516,14 @@ addSaveMethod(PolynomialRing,
     Name => "MPolyRing",
     UseID => true,
     Namespace => "Oscar")
+
+addSaveMethod(GaloisField,
+              F -> if F.degree > 1 then ambient ambient F,
+              F -> (
+                  if F.degree == 1 then F.char
+                  else OnlyData {(ideal ambient F)_0}),
+              UseID => true,
+              Namespace => "Oscar")
 
 addSaveMethod(RingElement,
     ring,
@@ -1201,6 +1221,7 @@ checkMRDI ZZ
 checkMRDI QQ
 checkMRDI(ZZ/101)
 checkMRDI GF(2, 3)
+checkMRDI (a + 1)
 checkMRDI(QQ[x])
 checkMRDI(QQ[x][y][z])
 R = QQ[x,y,z,w]
@@ -1251,6 +1272,7 @@ scan({
         QQ,
         ZZ/101,
         GF(2, 3),
+        a + 1,
         QQ[x],
         QQ[x][y][z],
         (R = QQ[x,y,z,w]; I = monomialCurveIdeal(R, {1, 2, 3}); I_0),
@@ -1272,12 +1294,12 @@ checkMRDI = x -> (
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Boolean\", \"data\": true}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"ZZ\", \"data\": \"5\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": {\"params\": {\"_type\": \"QuotientRing\", \"data\": \"7\"}, \"name\": \"RingElement\"}, \"data\": \"-2\"}"
-checkMRDI "{\"_type\": {\"params\": \"3418b053-7741-4db2-96ff-b7e9b6b7f858\", \"name\": \"RingElement\"}, \"data\": \"-2\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"3418b053-7741-4db2-96ff-b7e9b6b7f858\": {\"_type\": \"GaloisField\", \"data\": {\"degree\": \"1\", \"char\": \"7\"}}}}"
+checkMRDI "{\"_type\": {\"params\": \"aadb5efe-8527-4625-be6c-57639489d0f5\", \"name\": \"GaloisField\"}, \"data\": [[[\"3\"], \"1\"], [[\"1\"], \"1\"], [[\"0\"], \"1\"]], \"id\": \"3cadb043-2df7-4057-8ec5-b3b20b3d6433\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"aadb5efe-8527-4625-be6c-57639489d0f5\": {\"_type\": {\"params\": {\"_type\": \"QuotientRing\", \"data\": \"2\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"a\"]}}}}"
+checkMRDI "{\"_type\": {\"params\": \"3cadb043-2df7-4057-8ec5-b3b20b3d6433\", \"name\": \"RingElement\"}, \"data\": [[[\"1\"], \"1\"], [[\"0\"], \"1\"]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"3cadb043-2df7-4057-8ec5-b3b20b3d6433\": {\"_type\": {\"params\": \"aadb5efe-8527-4625-be6c-57639489d0f5\", \"name\": \"GaloisField\"}, \"data\": [[[\"3\"], \"1\"], [[\"1\"], \"1\"], [[\"0\"], \"1\"]]}, \"aadb5efe-8527-4625-be6c-57639489d0f5\": {\"_type\": {\"params\": {\"_type\": \"QuotientRing\", \"data\": \"2\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"a\"]}}}}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"String\", \"data\": \"foo\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"ZZ\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"QQ\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"QuotientRing\", \"data\": \"101\"}"
-checkMRDI "{\"_type\": \"GaloisField\", \"data\": {\"degree\": \"3\", \"char\": \"2\"}, \"id\": \"366eef8c-095b-4675-bc4c-c815a6706f52\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}}"
 checkMRDI "{\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\"]}, \"id\": \"31292984-9503-4034-9a78-7badbc3d5710\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}}"
 checkMRDI "{\"_type\": {\"params\": \"8731803f-89bd-4ff7-a599-79375b33cf4c\", \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"z\"]}, \"id\": \"27447205-6c41-4ed5-91ba-f7b96c0a65ce\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"8731803f-89bd-4ff7-a599-79375b33cf4c\": {\"_type\": {\"params\": \"81e005bb-a348-423a-a627-e96ff29a3597\", \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"y\"]}}, \"81e005bb-a348-423a-a627-e96ff29a3597\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\"]}}}}"
 checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"name\": \"RingElement\"}, \"data\": [[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
