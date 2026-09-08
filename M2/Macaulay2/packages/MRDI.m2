@@ -252,7 +252,11 @@ addSaveMethod(PolynomialRing,
 
 addSaveMethod(RingElement,
               ring,
-              f -> apply(listForm f, (mon, coeff) -> {mon, OnlyData {coeff}}),
+              f -> (
+                  R := ring f;
+                  if isFinitePrimeField R then f^ZZ
+                  else apply(listForm f,
+                             (mon, coeff) -> {mon, OnlyData {coeff}})),
               Name => "RingElement")
 
 addSaveMethod(Ideal,
@@ -404,6 +408,16 @@ loadRingElement PolynomialRing := R -> (
         else sum(data, term -> times(
             type.Params.Instance term#1,
             R_(value \ toList term#0))))))
+loadRingElement QuotientRing := R -> (
+    R.cache.loadRingElement ??= (
+        if isFinitePrimeField R
+        then (type, data) -> (value data)_R
+        else notImplemented()))
+loadRingElement GaloisField := R -> (
+    R.cache.loadRingElement ??= (
+        if isFinitePrimeField R
+        then (type, data) -> (value data)_R
+        else notImplemented()))
 
 addLoadMethod("RingElement",
               (type, data) -> (loadRingElement(type.Type))(type, data),
@@ -1121,6 +1135,8 @@ checkMRDI = x -> (
     assert BinaryOperation(symbol ===, loadMRDI h, x))
 checkMRDI true
 checkMRDI 5
+checkMRDI 5_(ZZ/7)
+checkMRDI 5_(GF 7)
 checkMRDI "foo"
 checkMRDI ZZ
 checkMRDI QQ
@@ -1168,6 +1184,8 @@ getFormattedMRDI = x -> (
 scan({
         true,
         5,
+        5_(ZZ/7),
+        5_(GF 7),
         "foo",
         ZZ,
         QQ,
@@ -1192,6 +1210,8 @@ checkMRDI = x -> (
     assert BinaryOperation(symbol ===, fromJSON x, fromJSON y))
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Boolean\", \"data\": true}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"ZZ\", \"data\": \"5\"}"
+checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": {\"params\": {\"_type\": \"QuotientRing\", \"data\": \"7\"}, \"name\": \"RingElement\"}, \"data\": \"-2\"}"
+checkMRDI "{\"_type\": {\"params\": \"3418b053-7741-4db2-96ff-b7e9b6b7f858\", \"name\": \"RingElement\"}, \"data\": \"-2\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"3418b053-7741-4db2-96ff-b7e9b6b7f858\": {\"_type\": \"GaloisField\", \"data\": {\"degree\": \"1\", \"char\": \"7\"}}}}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"String\", \"data\": \"foo\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"ZZ\"}"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"QQ\"}"
@@ -1326,6 +1346,8 @@ checkMRDI = x -> (
     validateMRDI saveMRDI(x, ToString => false))
 checkMRDI true
 checkMRDI 5
+checkMRDI 5_(ZZ/7)
+checkMRDI 5_(GF 7)
 checkMRDI ZZ
 checkMRDI QQ
 checkMRDI(ZZ/101)
