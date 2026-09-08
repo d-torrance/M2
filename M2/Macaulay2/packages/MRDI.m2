@@ -495,7 +495,8 @@ addLoadMethod("Bool",
 addLoadMethod("String", (type, data) -> data, Namespace => "Oscar")
 
 addLoadMethod({"Base.Int", "Int8", "UInt8", "Int16", "UInt16", "Int32",
-               "UInt32", "Int64", "UInt64", "Int128", "UInt128", "BigInt"},
+               "UInt32", "Int64", "UInt64", "Int128", "UInt128", "BigInt",
+               "Float16", "Float32", "Float64"},
               (type, data) -> value data, Namespace => "Oscar")
 
 addLoadMethod("ZZRingElem",
@@ -1189,6 +1190,14 @@ checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.
 checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"UInt128","data":"5"}////)
 -- save(stdout, BigInt(5))
 checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"BigInt","data":"5"}////)
+
+-- Julia floating-point types
+-- save(stdout, Float16(5))
+checkLoad(5.0, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Float16","data":"5.0"}////)
+-- save(stdout, Float32(5))
+checkLoad(5.0, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Float32","data":"5.0"}////)
+-- save(stdout, Float64(5))
+checkLoad(5.0, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Float64","data":"5.0"}////)
 
 checkLoad("hello", "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"String\",\"data\":\"hello\"}")
 checkLoad(3.14, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"Float64\",\"data\":\"3.14\"}")
