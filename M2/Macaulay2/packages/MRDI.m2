@@ -282,8 +282,10 @@ protect Params
 isJSON = x -> isMember(class x,
                        {String, List, HashTable, ZZ, RR, Boolean, Nothing})
 
+new TypeAndParams from (String, ImmutableType, Thing) :=
 new TypeAndParams from (String, Type, Thing) := (T, ns, type, params) -> (
-    type#{ns, TypeAndParams} ??= T {
+    memo := if instance(type, ImmutableType) then type.cache else type;
+    memo#{ns, TypeAndParams} ??= T {
         symbol Type => type,
         Params => params,
         Instance => x -> (
@@ -329,7 +331,7 @@ fromMRDI(String, HashTable) := o -> (ns, r) -> (
         x := loadMethods#ns#name(
             fromMRDI(ns, params, Params => true),
             fromMRDI(ns, ?? r#"data"));
-        if o.Params and instance(x, Type)
+        if o.Params and (instance(x, Type) or instance(x, ImmutableType))
         then TypeAndParams(ns, x, fromMRDI(ns, params, Params => true))
         else x)
     else if o.Params and r#?"name"
@@ -345,7 +347,7 @@ fromMRDI(String, String) := o -> (ns, s) -> (
             if uuidsToCreate#ns#?s
             then fromMRDI(ns, uuidsToCreate#ns#s)
             else error("unknown uuid: ", s)));
-        if o.Params and instance(x, Type)
+        if o.Params and (instance(x, Type) or instance(x, ImmutableType))
         then TypeAndParams(
             ns, x, (
                 type := uuidsToCreate#ns#s#"_type";
@@ -464,10 +466,13 @@ addSaveMethod(ZZ,
     Namespace => "Oscar")
 
 addSaveMethod(QQ,
-    x -> QQ,
-    x -> concatenate(toString numerator x, "//", toString denominator x),
-    Name => "QQFieldElem",
-    Namespace => "Oscar")
+              x -> QQ,
+              x -> (
+                  if (den := denominator x) == 1
+                  then toString numerator x
+                  else concatenate(toString numerator x, "//", toString den)),
+              Name => "QQFieldElem",
+              Namespace => "Oscar")
 
 -- Oscar differentiates between univariate and multivariate polynomial rings,
 -- but multivariate rings can have just 1 variable, so we just always use that
@@ -480,7 +485,7 @@ addSaveMethod(PolynomialRing,
 
 addSaveMethod(RingElement,
     ring,
-    f -> apply(listForm f, mon -> {mon#0, mon#1}),
+    f -> apply(listForm f, mon -> {mon#0, OnlyData {mon#1}}),
     Name => "MPolyRingElem",
     Namespace => "Oscar")
 
@@ -488,6 +493,29 @@ addSaveMethod(List,
               x -> apply(x, y -> OnlyType {y}),
               x -> apply(x, y -> OnlyData {y}),
               Name => "Tuple",
+              Namespace => "Oscar")
+
+-- only supported for Hom between free modules (matrix space)
+addSaveMethod(Module,
+              ring,
+              M -> (
+                  expr := formation M;
+                  if expr === null or expr#0 =!= Hom
+                  then error "expected a Hom module";
+                  if not isFreeModule expr#1#0
+                  then error "expected source of Hom module to be free";
+                  if not isFreeModule expr#1#1
+                  then error "expected target of Hom module to be free";
+                  hashTable {
+                      "ncols" => rank expr#1#0,
+                      "nrows" => rank expr#1#1}),
+              Name => "MatSpace",
+              Namespace => "Oscar",
+              UseID => true)
+addSaveMethod(Matrix,
+              f -> Hom(source f, target f),
+              f -> applyTable(entries f, x -> OnlyData {x}),
+              Name => "MatElem",
               Namespace => "Oscar")
 
 -- loading
@@ -545,6 +573,17 @@ addLoadMethod("Tuple",
 
 addLoadMethod("Matrix",
               (type, data) -> matrix applyTable(data, f -> type.Instance f),
+              Namespace => "Oscar")
+
+addLoadMethod("MatSpace",
+              (type, data) -> (
+                  R := type.Type;
+                  Hom(R^(value data#"ncols"), R^(value data#"nrows"))),
+              Namespace => "Oscar")
+
+addLoadMethod("MatElem",
+              (type, data) -> matrix applyTable(data,
+                                                f -> type.Params.Instance f),
               Namespace => "Oscar")
 
 ----------------
@@ -1180,6 +1219,7 @@ R = ZZ[x,y,z,w]
 checkMRDI R
 checkMRDI random(3, R)
 checkMRDI {1, "some text", true}
+checkMRDI matrix(QQ, {{12, 31, 24, 78}, {51, 63, 17, 35}, {23, 99, 19, 34}})
 
 -- objects we can load but can't save
 checkLoad = (x, mrdi) -> assert BinaryOperation(symbol ===, x, loadMRDI mrdi)
@@ -1243,6 +1283,8 @@ checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2
 checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"String","data":"foo"}////
 -- save(stdout, (ZZRingElem(1), "some text", true))
 checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"Tuple","params":[{"name":"ZZRingElem","params":{"_type":"ZZRing"}},"String","Bool"]},"data":["1","some text",true]}////
+-- save(stdout, matrix(QQ,[12 31 24 78; 51 63 17 35; 23 99 19 34]))
+checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"MatElem","params":"3937a972-2e05-49dd-b868-94261a83c5ec"},"data":[["12","31","24","78"],["51","63","17","35"],["23","99","19","34"]],"_refs":{"3937a972-2e05-49dd-b868-94261a83c5ec":{"_type":{"name":"MatSpace","params":{"_type":"QQField"}},"data":{"ncols":"4","nrows":"3"}}}}////
 ///
 
 TEST ///
