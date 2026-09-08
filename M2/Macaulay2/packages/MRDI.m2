@@ -543,6 +543,10 @@ addLoadMethod("Tuple",
               (type, data) -> apply(type, data, (T, x) -> T.Instance x),
               Namespace => "Oscar")
 
+addLoadMethod("Matrix",
+              (type, data) -> matrix applyTable(data, f -> type.Instance f),
+              Namespace => "Oscar")
+
 ----------------
 -- validating --
 ----------------
@@ -1216,6 +1220,9 @@ checkLoad(5.0, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","
 
 -- save(stdout, Int[1, 2, 3, 4])
 checkLoad({1, 2, 3, 4}, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"Vector","params":"Base.Int"},"data":["1","2","3","4"]}////)
+
+-- save(stdout, [1 2; 3 4])
+checkLoad(matrix {{1, 2}, {3, 4}}, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"Matrix","params":"Base.Int"},"data":[["1","2"],["3","4"]]}////)
 
 checkLoad("hello", "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"String\",\"data\":\"hello\"}")
 checkLoad(3.14, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"Float64\",\"data\":\"3.14\"}")
