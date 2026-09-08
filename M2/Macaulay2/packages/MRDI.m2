@@ -494,7 +494,10 @@ addLoadMethod("Bool",
               Namespace => "Oscar")
 addLoadMethod("String", (type, data) -> data, Namespace => "Oscar")
 
-addLoadMethod("Base.Int", (type, data) -> value data, Namespace => "Oscar")
+addLoadMethod({"Base.Int", "Int8", "UInt8", "Int16", "UInt16", "Int32",
+               "UInt32", "Int64", "UInt64", "Int128", "UInt128", "BigInt"},
+              (type, data) -> value data, Namespace => "Oscar")
+
 addLoadMethod("ZZRingElem",
               (type, data) -> value data,
               Instance => ZZ,
@@ -1158,8 +1161,35 @@ R = ZZ[x,y,z,w]
 checkMRDI R
 checkMRDI random(3, R)
 
--- objects we can load but can't save yet
+-- objects we can load but can't save
 checkLoad = (x, mrdi) -> assert BinaryOperation(symbol ===, x, loadMRDI mrdi)
+
+-- Julia ints (we save to Oscar's ZZRingElem)
+-- save(stdout, 5)
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Base.Int","data":"5"}////)
+-- save(stdout, Int8(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Int8","data":"5"}////)
+-- save(stdout, UInt8(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"UInt8","data":"5"}////)
+-- save(stdout, Int16(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Int16","data":"5"}////)
+-- save(stdout, UInt16(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"UInt16","data":"5"}////)
+-- save(stdout, Int32(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Int32","data":"5"}////)
+-- save(stdout, UInt32(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"UInt32","data":"5"}////)
+-- save(stdout, Int64(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Base.Int","data":"5"}////)
+-- save(stdout, UInt64(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"UInt64","data":"5"}////)
+-- save(stdout, Int128(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Int128","data":"5"}////)
+-- save(stdout, UInt128(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"UInt128","data":"5"}////)
+-- save(stdout, BigInt(5))
+checkLoad(5, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"BigInt","data":"5"}////)
+
 checkLoad("hello", "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"String\",\"data\":\"hello\"}")
 checkLoad(3.14, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"Float64\",\"data\":\"3.14\"}")
 checkLoad(ZZ/101, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"FiniteField\",\"data\":\"101\"}")
