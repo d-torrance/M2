@@ -484,6 +484,12 @@ addSaveMethod(RingElement,
     Name => "MPolyRingElem",
     Namespace => "Oscar")
 
+addSaveMethod(List,
+              x -> apply(x, y -> OnlyType {y}),
+              x -> apply(x, y -> OnlyData {y}),
+              Name => "Tuple",
+              Namespace => "Oscar")
+
 -- loading
 
 addLoadMethod("Bool",
@@ -528,6 +534,14 @@ addLoadMethod({"PolyRingElem", "MPolyRingElem"},
               (type, data) -> (loadRingElement(type.Type))(type, data),
               Namespace => "Oscar",
               Instance => RingElement)
+
+-- containers
+addLoadMethod("Vector",
+              (type, data) -> apply(data, x -> type.Instance x),
+              Namespace => "Oscar")
+addLoadMethod("Tuple",
+              (type, data) -> apply(type, data, (T, x) -> T.Instance x),
+              Namespace => "Oscar")
 
 ----------------
 -- validating --
@@ -1161,6 +1175,7 @@ checkMRDI(1/2)
 R = ZZ[x,y,z,w]
 checkMRDI R
 checkMRDI random(3, R)
+checkMRDI {1, "some text", true}
 
 -- objects we can load but can't save
 checkLoad = (x, mrdi) -> assert BinaryOperation(symbol ===, x, loadMRDI mrdi)
@@ -1199,6 +1214,9 @@ checkLoad(5.0, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","
 -- save(stdout, Float64(5))
 checkLoad(5.0, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Float64","data":"5.0"}////)
 
+-- save(stdout, Int[1, 2, 3, 4])
+checkLoad({1, 2, 3, 4}, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"Vector","params":"Base.Int"},"data":["1","2","3","4"]}////)
+
 checkLoad("hello", "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"String\",\"data\":\"hello\"}")
 checkLoad(3.14, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"Float64\",\"data\":\"3.14\"}")
 checkLoad(ZZ/101, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"FiniteField\",\"data\":\"101\"}")
@@ -1216,6 +1234,8 @@ checkMRDI = x -> (
 checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"Bool","data":true}////
 -- save(stdout, "foo")
 checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"String","data":"foo"}////
+-- save(stdout, (ZZRingElem(1), "some text", true))
+checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"Tuple","params":[{"name":"ZZRingElem","params":{"_type":"ZZRing"}},"String","Bool"]},"data":["1","some text",true]}////
 ///
 
 TEST ///
