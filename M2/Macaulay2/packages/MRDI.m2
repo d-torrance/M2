@@ -171,7 +171,9 @@ processMRDI(String, List, MutableHashTable) := (ns, x, refs) -> (
     if class x === List then apply(x, y -> processMRDI(ns, y, refs))
     else toMRDIorUuid(ns, x, refs))
 processMRDI(String, HashTable, MutableHashTable) := (ns, x, refs) -> (
-    if class x === HashTable then applyValues(x, v -> processMRDI(ns, v, refs))
+    if class x === HashTable
+    then applyPairs(x, (k, v) -> (processMRDI(ns, k, refs),
+                                  processMRDI(ns, v, refs)))
     else toMRDIorUuid(ns, x, refs))
 processMRDI(String, OnlyType, MutableHashTable) :=  (ns, x, refs) -> (
     i := maybeUuid(ns, x#0, refs);
@@ -343,7 +345,7 @@ fromMRDI(String, HashTable) := o -> (ns, r) -> (
                        if r#?"params"
                        then fromMRDI(ns, r#"params", Params => true))
     -- otherwise, de-serialize its values
-    else applyValues(r, fromMRDI_ns))
+    else applyValues(r, v -> fromMRDI(ns, v, o)))
 fromMRDI(String, String) := o -> (ns, s) -> (
     -- if the string is a uuid, then return the corresponding object
     if isUuid s then (
@@ -382,52 +384,52 @@ addLoadMethod(List, Function) := o -> (types, f) -> (
 ------------------------
 
 addLoadMethod({"Boolean", "String"},
-              (type, data) -> data)
+              (params, data) -> data)
 addLoadMethod("ZZ",
-              (type, data) -> value data,
+              (params, data) -> value data,
               Instance => ZZ)
 addLoadMethod("QQ",
-              (type, data) -> value data#0 / value data#1,
+              (params, data) -> value data#0 / value data#1,
               Instance => QQ)
 addLoadMethod("Ring",
-              (type, data) -> (
+              (params, data) -> (
                   if data == "ZZ" then ZZ
                   else if data == "QQ" then QQ
                   else error "unknown ring"))
-addLoadMethod("QuotientRing", (type, data) -> ZZ/(value data))
-addLoadMethod("GaloisField", (type, data) -> (
+addLoadMethod("QuotientRing", (params, data) -> ZZ/(value data))
+addLoadMethod("GaloisField", (params, data) -> (
 	GF(value data#"char", value data#"degree")))
 addLoadMethod("PolynomialRing",
-              (type, data) -> type.Type[Variables => data#"variables"])
+              (params, data) -> params.Type[Variables => data#"variables"])
 
 -- RingElement is a catch-all instance type for a bunch of different rings
 loadRingElement = method()
 loadRingElement PolynomialRing := R -> (
-    R.cache.loadRingElement ??= ((type, data) -> (
+    R.cache.loadRingElement ??= ((params, data) -> (
         if #data == 0 then 0_R
         else sum(data, term -> times(
-            type.Params.Instance term#1,
+            params.Params.Instance term#1,
             R_(value \ toList term#0))))))
 loadRingElement QuotientRing := R -> (
     R.cache.loadRingElement ??= (
         if isFinitePrimeField R
-        then (type, data) -> (value data)_R
+        then (params, data) -> (value data)_R
         else notImplemented()))
 loadRingElement GaloisField := R -> (
     R.cache.loadRingElement ??= (
         if isFinitePrimeField R
-        then (type, data) -> (value data)_R
+        then (params, data) -> (value data)_R
         else notImplemented()))
 
 addLoadMethod("RingElement",
-              (type, data) -> (loadRingElement(type.Type))(type, data),
+              (params, data) -> (loadRingElement(params.Type))(params, data),
               Instance => RingElement)
 addLoadMethod("Ideal",
-              (type, data) -> ideal apply(data, f -> type.Instance f))
+              (params, data) -> ideal apply(data, f -> params.Instance f))
 addLoadMethod("Matrix",
-              (type, data) -> matrix applyTable(data, f -> type.Instance f))
+              (params, data) -> matrix applyTable(data, f -> params.Instance f))
 
-addLoadMethod("List", (type, data) -> apply(type, data, (T, x) -> T.Instance x))
+addLoadMethod("List", (params, data) -> apply(params, data, (T, x) -> T.Instance x))
 
 -- for debugging w/ "methods"
 LoadMethod = new SelfInitializingType of List
@@ -509,6 +511,27 @@ addSaveMethod(List,
               Name => "Tuple",
               Namespace => "Oscar")
 
+addSaveMethod(HashTable,
+              x -> (
+                  if class x =!= HashTable
+                  then error "expected a HashTable object";
+                  if #x == 0
+                  then error "cannot obtain type info for empty hash table";
+                  typeinfo := applyKeys(
+                      x, class, (v1,v2) -> (
+                          if class v1 === class v2
+                          then v1
+                          else error "expected values of the same type"));
+                  if #typeinfo > 1
+                  then error "expected keys of the same type";
+                  (k, v) := (pairs select(1, x, y -> true))#0;
+                  hashTable {
+                      "key_params" => OnlyType {k},
+                      "value_params" => OnlyType {v}}),
+              x -> applyPairs(x, (k, v) -> (OnlyData {k}, OnlyData {v})),
+              Name => "Dict",
+              Namespace => "Oscar")
+
 -- only supported for Hom between free modules (matrix space)
 addSaveMethod(Module,
               ring,
@@ -535,69 +558,87 @@ addSaveMethod(Matrix,
 -- loading
 
 addLoadMethod("Bool",
-              (type, data) -> (
+              (params, data) -> (
                   if instance(data, String)
                   then value data -- basic v1
                   else data),     -- basic v2
               Namespace => "Oscar")
-addLoadMethod("String", (type, data) -> data, Namespace => "Oscar")
+addLoadMethod("String", (params, data) -> data, Namespace => "Oscar")
 
 addLoadMethod({"Base.Int", "Int8", "UInt8", "Int16", "UInt16", "Int32",
                "UInt32", "Int64", "UInt64", "Int128", "UInt128", "BigInt",
                "Float16", "Float32", "Float64"},
-              (type, data) -> value data, Namespace => "Oscar")
+              (params, data) -> value data, Namespace => "Oscar")
 
 addLoadMethod("ZZRingElem",
-              (type, data) -> value data,
+              (params, data) -> value data,
               Instance => ZZ,
               Namespace => "Oscar")
 addLoadMethod("QQFieldElem",
-              (type, data) -> (
+              (params, data) -> (
                   x := separate("//", data);
                   if #x == 2 then value x#0 / value x#1
                   else value x#0 / 1),
               Instance => QQ,
               Namespace => "Oscar")
-addLoadMethod("String", (type, data) -> data, Namespace => "Oscar")
-addLoadMethod("Float64", (type, data) -> value data, Namespace => "Oscar")
-addLoadMethod("ZZRing", (type, data) -> ZZ, Namespace => "Oscar")
-addLoadMethod("QQField", (type, data) -> QQ, Namespace => "Oscar")
+addLoadMethod("String", (params, data) -> data, Namespace => "Oscar")
+addLoadMethod("Float64", (params, data) -> value data, Namespace => "Oscar")
+addLoadMethod("ZZRing", (params, data) -> ZZ, Namespace => "Oscar")
+addLoadMethod("QQField", (params, data) -> QQ, Namespace => "Oscar")
 addLoadMethod("FiniteField",
-    (type, data) -> (
-	if type =!= null then error "not implemented yet"
+    (params, data) -> (
+	if params =!= null then error "not implemented yet"
 	else ZZ/(value data)),
     Namespace => "Oscar")
 addLoadMethod({"PolyRing", "MPolyRing"},
-    (type, data) -> (
+    (params, data) -> (
 	-- TODO: handled indexed variables, e.g., x[1], x[2], x[3]
-	type.Type[Variables => data#"symbols"]),
+	params.Type[Variables => data#"symbols"]),
     Namespace => "Oscar")
 addLoadMethod({"PolyRingElem", "MPolyRingElem"},
-              (type, data) -> (loadRingElement(type.Type))(type, data),
+              (params, data) -> (loadRingElement(params.Type))(params, data),
               Namespace => "Oscar",
               Instance => RingElement)
 
 -- containers
 addLoadMethod("Vector",
-              (type, data) -> apply(data, x -> type.Instance x),
+              (params, data) -> apply(data, x -> params.Instance x),
               Namespace => "Oscar")
 addLoadMethod("Tuple",
-              (type, data) -> apply(type, data, (T, x) -> T.Instance x),
+              (params, data) -> apply(params, data, (T, x) -> T.Instance x),
+              Namespace => "Oscar")
+
+addLoadMethod("Dict",
+              (params, data) -> (
+                  -- Oscar v1.4+
+                  if params#?"key_params"
+                  then applyPairs(data, (k, v) -> (
+                      params#"key_params".Instance k,
+                      params#"value_params".Instance v))
+                  -- Oscar v1.1-1.3
+                  else if params#?"key_type" and params#?"value_type"
+                  then applyPairs(data, (k, v) -> (
+                      params#"key_type".Instance k,
+                      params#"value_type".Instance v))
+                  -- Oscar v1.0
+                  else applyPairs(data, (k, v) -> (
+                      params#"key_type".Instance k,
+                      params#k.Instance v))),
               Namespace => "Oscar")
 
 addLoadMethod("Matrix",
-              (type, data) -> matrix applyTable(data, f -> type.Instance f),
+              (params, data) -> matrix applyTable(data, f -> params.Instance f),
               Namespace => "Oscar")
 
 addLoadMethod("MatSpace",
-              (type, data) -> (
-                  R := type.Type;
+              (params, data) -> (
+                  R := params.Type;
                   Hom(R^(value data#"ncols"), R^(value data#"nrows"))),
               Namespace => "Oscar")
 
 addLoadMethod("MatElem",
-              (type, data) -> matrix applyTable(data,
-                                                f -> type.Params.Instance f),
+              (params, data) -> matrix applyTable(data,
+                                                f -> params.Params.Instance f),
               Namespace => "Oscar")
 
 ----------------
@@ -979,7 +1020,7 @@ Inputs
     of the MRDI JSON, or a list of strings to add multiple
     load methods at the same time
   f:Function
-    a function @TT "(type, data) -> Thing"@ that
+    a function @TT "(params, data) -> Thing"@ that
     reconstructs the object
   Namespace => String
     the namespace to register this method under
@@ -1012,7 +1053,7 @@ Description
   Example
     addNamespace("MySystem", "https://example.com", "1.0")
     addLoadMethod("MyInt",
-        (type, data) -> value data,
+        (params, data) -> value data,
         Namespace => "MySystem")
     loadMRDI "{\"_ns\":{\"MySystem\":[\"https://example.com\",\"1.0\"]},\"_type\":\"MyInt\",\"data\":\"42\"}"
 SeeAlso
@@ -1045,7 +1086,7 @@ Description
   Example
     addNamespace("MySystem", "https://example.com", "1.0")
     addLoadMethod("MyInt",
-        (type, data) -> value data,
+        (params, data) -> value data,
         Namespace => "MySystem")
     loadMRDI "{\"_ns\":{\"MySystem\":[\"https://example.com\",\"1.0\"]},\"_type\":\"MyInt\",\"data\":\"42\"}"
 ///
@@ -1239,6 +1280,8 @@ R = ZZ[x,y,z,w]
 checkMRDI R
 checkMRDI random(3, R)
 checkMRDI {1, "some text", true}
+checkMRDI hashTable {("a", 1), ("b", 2)}
+checkMRDI hashTable {("x", x)}
 checkMRDI matrix(QQ, {{12, 31, 24, 78}, {51, 63, 17, 35}, {23, 99, 19, 34}})
 
 -- objects we can load but can't save
@@ -1284,6 +1327,10 @@ checkLoad({1, 2, 3, 4}, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Os
 -- save(stdout, [1 2; 3 4])
 checkLoad(matrix {{1, 2}, {3, 4}}, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"Matrix","params":"Base.Int"},"data":[["1","2"],["3","4"]]}////)
 
+-- https://oscar-system.github.io/rosetta-stone-db_prototype/rosetta/containers/dict-string-int.html
+checkLoad(hashTable {("a", 1), ("b", 2)}, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.0.5"]},"_type":{"params":{"a":"Base.Int","b":"Base.Int","key_type":"String"},"name":"Dict"},"data":{"a":"1","b":"2"}}////)
+checkLoad(hashTable {("a", 1), ("b", 2)}, ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.3.1"]},"_type":{"params":{"value_type":"Base.Int","key_type":"String"},"name":"Dict"},"data":{"a":"1","b":"2"}}////)
+
 checkLoad("hello", "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"String\",\"data\":\"hello\"}")
 checkLoad(3.14, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"Float64\",\"data\":\"3.14\"}")
 checkLoad(ZZ/101, "{\"_ns\":{\"Oscar\":[\"https://github.com/oscar-system/Oscar.jl\",\"1.6.0\"]},\"_type\":\"FiniteField\",\"data\":\"101\"}")
@@ -1303,6 +1350,8 @@ checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2
 checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":"String","data":"foo"}////
 -- save(stdout, (ZZRingElem(1), "some text", true))
 checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"Tuple","params":[{"name":"ZZRingElem","params":{"_type":"ZZRing"}},"String","Bool"]},"data":["1","some text",true]}////
+-- save(stdout, Dict{String, ZZRingElem}("a" => 1, "b" => 2))
+checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"Dict","params":{"key_params":"String","value_params":{"name":"ZZRingElem","params":{"_type":"ZZRing"}}}},"data":{"b":"2","a":"1"}}////
 -- save(stdout, matrix(QQ,[12 31 24 78; 51 63 17 35; 23 99 19 34]))
 checkMRDI ////{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.8.2"]},"_type":{"name":"MatElem","params":"3937a972-2e05-49dd-b868-94261a83c5ec"},"data":[["12","31","24","78"],["51","63","17","35"],["23","99","19","34"]],"_refs":{"3937a972-2e05-49dd-b868-94261a83c5ec":{"_type":{"name":"MatSpace","params":{"_type":"QQField"}},"data":{"ncols":"4","nrows":"3"}}}}////
 ///
@@ -1327,7 +1376,7 @@ TEST ///
 -- custom namespace
 addNamespace("TestSystem", "https://example.com/test", "0.1")
 addSaveMethod(ZZ, identity, Name => "TestInt", Namespace => "TestSystem")
-addLoadMethod("TestInt", (type, data) -> value data, Namespace => "TestSystem")
+addLoadMethod("TestInt", (params, data) -> value data, Namespace => "TestSystem")
 s = saveMRDI(99, Namespace => "TestSystem")
 validateMRDI s
 assert Equation(99, loadMRDI s)
