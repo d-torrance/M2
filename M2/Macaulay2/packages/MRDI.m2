@@ -1602,3 +1602,356 @@ assert(try (saveMRDI Q2; false) else true);
 T := frac(QQ[t]);
 assert(try (saveMRDI T; false) else true);
 ///
+
+-----------------------------------------------------------------------------
+-- TODO: what's still missing
+-----------------------------------------------------------------------------
+-- Everything below was checked against this file on 2026-09-08.  "errors"
+-- means saveMRDI/loadMRDI raises; "silent" means it round-trips without
+-- complaint but loses information.
+--
+-- A caveat that applies throughout: in a single session,
+-- loadMRDI saveMRDI x often returns the *identical* object out of the uuid
+-- ref cache without ever calling the load method, so the TEST blocks above
+-- cannot see any of the silent losses listed here.  They only show up when
+-- the JSON is written in one process and read in another.  Any test for the
+-- items below should save to a file in one M2 and load it in a second one.
+--
+-- == Rings ==
+--
+-- * Quotient rings other than ZZ/p.  addSaveMethod(QuotientRing, ...) errors
+--   with "not implemented yet" unless isFinitePrimeField, and
+--   loadRingElement QuotientRing has a notImplemented() branch for the same
+--   case.  The machinery already exists: the GaloisField methods serialize
+--   GF(p^n) as (ambient poly ring by reference, defining polynomial), which
+--   is exactly what a general R/I needs, only with a list of generators
+--   instead of one.  Oscar calls these MPolyQuoRing/MPolyQuoRingElem.
+--
+-- * ZZ/n for composite n.  Same dispatch as above, so it errors.  Oscar has
+--   zzModRing/zzModRingElem.
+--
+-- * Fraction fields.  frac(QQ[x]) and its elements both error.  Params would
+--   be the base ring, data the pair {numerator, denominator} (compare the
+--   existing QQ method).  Oscar: FracField/FracFieldElem.  Note QQ is
+--   already special-cased and would stay that way.  PR #4680 adds
+--   ambient FractionField (and ambient LocalRing), which is exactly the
+--   accessor the params function wants -- ambient frac R is R -- so this
+--   gets tidier once that lands.
+--
+-- * Inexact fields: RealField (RR_prec), ComplexField (CC_prec), RRi, CCi,
+--   and the RingFamily/InexactFieldFamily objects RR and CC themselves.  All
+--   error, as do the numbers 3.5 and 1+2*ii.  Precision has to go in params,
+--   and the mantissa should be written in a form that doesn't round-trip
+--   through decimal -- see how Oscar serializes ArbField.  We can already
+--   *load* Float64 (from Oscar), so this is asymmetric today.
+--
+-- * Monoid/GeneralOrderedMonoid and MonoidElement.  Needed on their own, and
+--   also as the natural place to put the polynomial ring options below.
+--
+-- == Modules and maps ==
+--
+-- * Module.  Errors in the Macaulay2 namespace entirely.  In the Oscar
+--   namespace there is a Module method, but only for Hom(F, G) with F and G
+--   free, since it exists to serve MatSpace.  We need at least
+--     - free modules with their degrees: R^{-1,-2} is not R^2;
+--     - subquotients: coker, image, subquotient(gens, relations).
+--   Oscar: FreeModule/SubquoModule.
+--
+-- * Vector.  Errors.
+--
+-- * Matrix is the one that worries me most, because it fails silently.  The
+--   save method records only ring and entries, so source and target degrees
+--   are dropped and both are assumed free:
+--     R = QQ[x,y,z]; M = vars R ** R^{-3}
+--     degrees source M                        -- {{4}, {4}, {4}}
+--     degrees source loadMRDI saveMRDI M      -- {{1}, {1}, {1}} (new session)
+--     degrees target loadMRDI saveMRDI M      -- {{0}} rather than {{3}}
+--   A graded matrix comes back ungraded, so anything downstream that depends
+--   on degrees (resolutions, Hilbert functions, isHomogeneous) is wrong
+--   without any error being raised.  The fix is to make the params the
+--   source and target modules rather than the ring, which depends on Module
+--   support above.  Matrices between non-free modules are also unsupported.
+--
+-- * The apparent chicken and egg.  A matrix's params want to be its source
+--   and target modules, but a subquotient module's data wants to be its
+--   generator and relation matrices.  This looks circular and isn't, because
+--   the two recursions don't meet: in M2 a module's generators and relations
+--   are always maps of *free* modules, so the descent is
+--
+--     Matrix (general)  ->  source/target Module
+--     Module (subquot)  ->  generators, relations : free -> free
+--     Matrix (free)     ->  free source/target + entry table
+--     Module (free)     ->  rank + degrees + Ring
+--     Ring              ->  (already supported)
+--
+--   and it bottoms out after two steps.  I checked that the free-target
+--   claim survives the constructions that look like they might break it --
+--   image of a map out of a subquotient, image of a map into a subquotient,
+--   ker of such a map, subquotient of a subquotient, Hom(M,N), M ** N,
+--   prune -- and in every case
+--     isFreeModule ambient X, isFreeModule cover X,
+--     isFreeModule source X.generators, isFreeModule target X.generators,
+--     isFreeModule source X.relations,  isFreeModule target X.relations
+--   are all true.  M2 normalizes on construction: ambient is free by
+--   definition, so there is no such thing as a subquotient whose generators
+--   land in another subquotient.
+--
+--   So the two methods can be written in the obvious mutually recursive way,
+--   with no cycle-breaking machinery:
+--
+--     addSaveMethod(Module,     -- free case: params = ring, data = degrees
+--                               -- subquotient: params = ambient (a free
+--                               -- module, by uuid), data = the generator
+--                               -- and relation matrices
+--                   UseID => true)
+--     addSaveMethod(Matrix, f -> {target f, source f}, f -> entries f)
+--
+--   The free module is the base case that stops the descent, and giving
+--   Module UseID => true means a source and target shared between several
+--   matrices are emitted once into _refs.
+--
+--   Two things to get right on the load side:
+--
+--     - map(target f, source f, entries f) reconstructs a matrix equal to
+--       the original, including when source and target are subquotients
+--       (entries f is the cover-level table, and map takes it in those same
+--       terms), and R^(-degrees F) reconstructs a free module identical to
+--       F.  So the round trip really is just those three pieces...
+--     - ...except for Degree, which is a fourth piece and is *not* implied
+--       by the other three:
+--         h = map(R^1, R^1, {{x}}, Degree => {1})
+--         degree h                                     -- {1}
+--         degree map(target h, source h, entries h)    -- {0}
+--       so the matrix's Degree has to be stored alongside the entries.
+--
+--   Worth knowing, though, that the DAG property above is load-bearing
+--   rather than merely convenient.  maybeUuid does
+--       refs#i ??= toMRDI(ns, x, refs)
+--   which recurses to completion *before* it stores anything under refs#i,
+--   so the ref table can't break a cycle -- a genuinely self-referential
+--   object would recurse until the stack ran out rather than emitting a
+--   uuid back-reference.  If we ever do serialize something cyclic (a
+--   MutableHashTable holding itself, say), the fix is one line: put a
+--   placeholder in refs#i first, then recurse and overwrite it.  For
+--   modules and matrices we don't need it.
+--
+-- * RingMap.  Errors.  Params would be (source, target), data the images of
+--   the generators; DegreeMap/DegreeLift would need to come along too.
+--
+-- * MutableMatrix.  Errors.
+--
+-- * GroebnerBasis and Resolution are Core types but are engine handles; they
+--   are probably not worth serializing directly.  Complexes lives in a
+--   package now, not Core, so it's out of scope here.
+--
+-- == Ideals ==
+--
+-- * Ideal itself is fine over the coefficient rings we support, and it
+--   inherits down to MonomialIdeal on the save side -- but there is no
+--   load method registered for "MonomialIdeal", so
+--     loadMRDI saveMRDI monomialIdeal(x, y)
+--   fails with "unknown type: MonomialIdeal".  Either register the type or
+--   have the save method emit "Ideal".  This asymmetry is worth auditing for
+--   in general: any subclass of a type with a save method inherits it and
+--   gets a _type name with no matching load method.
+--
+-- == Basic and container types (Macaulay2 namespace) ==
+--
+-- Only List and Set are handled.  Still missing, all erroring:
+--
+-- * Sequence and Array (and VisibleList generally).  The List methods would
+--   almost work as is; they mainly need distinct type names so the class is
+--   restored rather than flattened to List.
+-- * HashTable and MutableHashTable.  The Oscar namespace has Dict, but it
+--   requires homogeneous keys and values, which M2 hash tables don't have to
+--   be; the Macaulay2 namespace should allow heterogeneous ones.
+-- * Option and OptionTable.
+-- * Tally and VirtualTally -- the multiset generalization of the Set support
+--   that's already here.
+-- * Symbol and IndexedVariable.  Needed in their own right, but also for the
+--   Variables census item below.
+-- * Nothing, i.e. null.
+-- * InfiniteNumber (infinity), IndeterminateNumber, and Constant (pi, ii,
+--   EulerConstant).
+-- * Partition.
+-- * BettiTally, MultigradedBettiTally, ProjectiveHilbertPolynomial.
+-- * Net.
+--
+-----------------------------------------------------------------------------
+-- TODO: census of polynomial ring options
+-----------------------------------------------------------------------------
+-- addSaveMethod(PolynomialRing, ...) stores exactly
+--     {"variables" => toString \ gens R}
+-- with the coefficient ring as params, and the load method is
+--     params.Type[Variables => data#"variables"]
+-- so every monoid option other than Variables is currently dropped, and
+-- dropped silently -- the ring that comes back is a valid ring, just not the
+-- one that was saved.  These two records are the complete serializations of
+--     QQ[x, y, Degrees => {2, 3}, MonomialOrder => Lex]
+--     QQ[x, y]
+-- and they differ only in the uuid.
+--
+-- But "everything in monoidDefaults" is the wrong target to aim at, because
+-- monoidDefaults is the *input* language and a good deal of it is absorbed
+-- into other options at construction time.  M2's own answer to "how do you
+-- rebuild a ring from its options" is newRing (newring.m2:31):
+--
+--     (coefficientRing R)(monoid [merge(options R, ..., last)])
+--
+-- i.e. feed `options R` -- the normalized table, not the user's input --
+-- back to monoid.  So the real question is which keys survive into
+-- `options R`, and which of those are recoverable from the others.
+--
+-- == Absorbed at construction: do NOT serialize ==
+--
+-- Three of the eighteen entries in monoidDefaults are not keys of
+-- `options R` at all.  Serializing them separately would at best be
+-- redundant and at worst double-apply:
+--
+-- Weights           Folded into MonomialOrder as a leading Weights block:
+--                     options (QQ[x, y, Weights => {3, 5}])
+--                     -- MonomialOrder => {Weights => {3,5}, MonomialSize =>
+--                     --                   32, GRevLex => {1,1}, Position => Up}
+--                     -- and no Weights key at all
+-- MonomialSize      Likewise folded in, as a MonomialSize block inside
+--                   MonomialOrder.  Passing it again alongside a saved
+--                   MonomialOrder yields {MonomialSize => 32,
+--                   MonomialSize => 8, ...} -- harmless but wrong-looking.
+-- VariableBaseName  Consumed.  It only generates names when Variables is
+--                   given as a number; once the names exist it's gone.
+--
+-- == Derived from other options: serialize only the exceptions ==
+--
+-- DegreeRank        = #(first Degrees).  The one case it isn't is a ring
+--                   with no variables, where Degrees is {} -- and
+--                   QQ[Variables => 0, DegreeRank => 3] is legal.  It's one
+--                   integer, so just store it.
+-- DegreeGroup       = ZZ^DegreeRank whenever it's free, which is almost
+--                   always; monoids.m2's own isDefault uses exactly
+--                   `isFreeModule opts#DegreeGroup` as the "not worth
+--                   printing" test.  Only torsion grading groups need
+--                   storing, and then the value is a Module (e.g.
+--                   `cokernel matrix {{0}, {2}}`), so this one waits on
+--                   Module support.  M2 warns that such rings are
+--                   experimental, so it's a fair thing to defer.
+-- Local             Its entire effect is already visible elsewhere: it sets
+--                   Global => false and prepends Weights => {-1, ...} to
+--                   MonomialOrder.  Re-passing Local => true on top of an
+--                   already-normalized MonomialOrder appends a *second*
+--                   copy of that weight block, and the copies accumulate:
+--                     R = QQ[x, y, Local => true]
+--                     again = R -> (coefficientRing R)(monoid [options R])
+--                     -- one round trip:    {Weights, MonomialSize, Weights, GRevLex, Position}
+--                     -- three round trips: {Weights, MonomialSize, Weights, Weights, Weights, GRevLex, Position}
+--                   I checked that the induced order is unchanged (the extra
+--                   blocks are tiebreakers after an identical one), so this
+--                   is bloat rather than a wrong answer -- but it means the
+--                   naive "save options R, pass it back" recipe is not
+--                   idempotent, and neither is newRing.  Better to save
+--                   Global plus the normalized MonomialOrder and not
+--                   re-pass Local.  The cost is cosmetic: (options R).Local
+--                   reads false and the ring no longer prints Local => true.
+-- Global            Keep it, per the above -- it's the flag that carries
+--                   Local's meaning without re-triggering Local's rewrite.
+--
+-- == Genuinely independent: must serialize ==
+--
+-- Variables         PARTIAL today.  Saved as strings, and any name that
+--                   isn't a valid symbol fails to load, because findSymbols
+--                   calls baseName' on it.  Subscripted variables are the
+--                   common casualty:
+--                     E = QQ[e_1..e_3]
+--                     loadMRDI saveMRDI E   -- (new session)
+--                     -- error: expected strings, integers, or symbols
+--                   Needs a real representation for IndexedVariable, not
+--                   toString.
+-- Degrees           Not currently saved; everything comes back degree 1:
+--                     R = QQ[x, y, Degrees => {2, 3}]
+--                     degrees loadMRDI saveMRDI R  -- {{1}, {1}} (new session)
+--                   Note that it is *not* recoverable from MonomialOrder,
+--                   even though the GRevLex block looks like it might carry
+--                   it: for Degrees => {2, 3} the block is GRevLex => {2, 3},
+--                   but for DegreeRank => 2 the degrees are {{1,0},{0,1}}
+--                   while the block is still GRevLex => {1, 1}.  GRevLex
+--                   stores the heft-collapsed vector, not the multidegrees.
+--                   Together with the Matrix item above, this is the biggest
+--                   correctness gap in the package.
+-- Heft              Usually findHeft's answer given Degrees, but the user
+--                   can override it with a different vector and M2 keeps
+--                   what it was given:
+--                     (options (QQ[x, y, Degrees => {1,2}, Heft => {3}])).Heft  -- {3}
+--                     (options (QQ[x, y, Degrees => {1,2}])).Heft              -- {1}
+--                   It's also null for Laurent and torsion-graded rings, so
+--                   the serialization has to allow null.
+-- Inverses          Not derivable, despite appearances.  It does show up in
+--                   MonomialOrder (RevLex becomes GroupRevLex), but feeding
+--                   that order back without Inverses => true is rejected, so
+--                   the flag has to be stored in its own right.  This is
+--                   also the one option whose absence errors rather than
+--                   degrading silently, since the element data carries
+--                   negative exponents:
+--                     R = QQ[t, Inverses => true, MonomialOrder => RevLex]
+--                     loadMRDI saveMRDI t^-1   -- (new session)
+--                     -- error: element is not invertible in this ring
+--                   Laurent rings are common enough (toric, tropical) that
+--                   this belongs near the front of the queue.
+-- MonomialOrder     Not saved; everything comes back GRevLex.  Serialize the
+--                   *normalized* form -- the VerticalList monoids.m2 stores
+--                   back into opts.MonomialOrder after makeMonomialOrdering
+--                   -- rather than the user's input form.  That's a strictly
+--                   smaller language: fixup1 in engine.m2 has already
+--                   expanded Eliminate n, ProductOrder {...}, bare symbols
+--                   and GLex into the primitives, so all we ever have to
+--                   write down is
+--                     Lex, RevLex, GroupLex, GroupRevLex, NCLex => n
+--                     GRevLex => {weights}
+--                     Weights => {...}, Position => Up|Down, MonomialSize => n
+--                   plus the size-specialized spellings LexTiny/LexSmall/
+--                   GRevLexTiny/GRevLexSmall that a small MonomialSize
+--                   introduces.  I confirmed Eliminate, ProductOrder and
+--                   Position => Down all survive a normalize-and-refeed
+--                   round trip unchanged.
+-- SkewCommutative   Not saved, so exterior algebras come back commutative --
+--                   a silent wrong answer for every computation in them.
+--                   Easy once Variables is solid: M2 normalizes it to a
+--                   plain list of variable indices ({0, 1, 2}), so it's a
+--                   list of integers with no name dependence.
+-- WeylAlgebra       Not saved either, and the same silent-wrong-answer
+--                   problem: differential operators become polynomials.
+--                   Slightly more awkward than SkewCommutative because M2
+--                   does *not* normalize it to indices -- (options W).
+--                   WeylAlgebra is {{x, dx}}, a list of pairs of
+--                   MonoidElements.  But monoid accepts index pairs on the
+--                   way in (WeylAlgebra => {0 => 1} works), so save
+--                   `apply(..., index)` and let it renormalize on load.
+-- Join              Only observable for towers, e.g. QQ[x][y, Join => false].
+--                   A three-valued flag (null/true/false); cheap to store,
+--                   and the existing tower tests don't cover it.
+--
+-- Constants         A plain boolean, and it does survive into the option
+--                   table ((options monoid[x, Constants => true]).Constants
+--                   is true), so there is nothing hard about storing it.
+--                   Blocked on tooling rather than design: on development as
+--                   of this writing, ZZ[x, Constants => true] dies with
+--                   SIGFPE and a core dump (the monoid builds fine, so it's
+--                   the rawTowerRing path in the ring constructor).  That is
+--                   fixed in PR #4680, so this can't be exercised until
+--                   #4680 lands.  Worth confirming afterwards that the tower
+--                   representation actually survives a round trip, rather
+--                   than assuming the boolean is the whole story.
+--
+-- == Can't serialize ==
+--
+-- DegreeMap         A FunctionClosure, only non-null when Join => false.
+-- DegreeLift        Same.  We can't write a function into JSON; the choices
+--                   are to refuse to save such a ring, or restrict to the
+--                   maps M2 can reconstruct on its own.
+--
+-- Two things that aren't monoid options but belong in the same census:
+--
+-- * Coefficient rings.  A polynomial ring is only as serializable as its
+--   coefficient ring, so everything in the Rings section above -- general
+--   quotients, fraction fields, RR/CC -- is also a hole here.  ZZ, QQ, ZZ/p,
+--   GF, and towers of those all work today.
+-- * The degrees of the ring's own generators as reported by degreesRing/
+--   degreeLength, which follow from Degrees and DegreeGroup.
