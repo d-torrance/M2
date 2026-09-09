@@ -311,7 +311,7 @@ new TypeAndParams from (String, Type, Thing) := (T, ns, type, params) -> (
                 else error("no 'Instance' declared for ", type))
             else x)})
 new TypeAndParams from (String, String, Thing) := (T, ns, name, params) -> T {
-    symbol Type => null,
+    symbol Type => name,
     Params => params,
     Instance => x -> (
         if isJSON x
