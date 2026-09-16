@@ -18,6 +18,7 @@
 #include "basic-rings/reader.hpp"
 #include "rings/ZZp.hpp"
 #include "unit-tests/ARingTest.hpp"
+#include "unit-tests/TestRingFactory.hpp"
 
 static bool maxH_initialized = false;
 static mpz_t maxH;
@@ -238,76 +239,6 @@ TEST(ARingZZpFlint, create)
 }
 
 // Run the shared field contract for each backend and supported modulus.
-template <typename RT>
-struct ARingFactory;
-
-template <>
-struct ARingFactory<M2::ARingZZp>
-{
-  static const char* name() { return "ARingZZp"; }
-  // two newarray_atomic(int, p) tables and an O(p^2) primitive-root search
-  static const char* limit() { return "table size; p <= 32749"; }
-  static bool supports(unsigned long p) { return p <= 32749; }
-  static std::unique_ptr<M2::ARingZZp> make(unsigned long p)
-  {
-    return std::unique_ptr<M2::ARingZZp>(new M2::ARingZZp(p));
-  }
-};
-
-template <>
-struct ARingFactory<M2::ARingZZpFFPACK>
-{
-  static const char* name() { return "ARingZZpFFPACK"; }
-  // Givaro::Modular<double> needs p(p-1) exact in a 53-bit mantissa.  This is
-  // the backend limit, not the smaller value getMaxModulus() advertises.
-  static const char* limit() { return "double mantissa; p <= 94906266"; }
-  static bool supports(unsigned long p)
-  {
-    return p <= static_cast<unsigned long>(
-                    M2::ARingZZpFFPACK::FieldType::maxCardinality());
-  }
-  static std::unique_ptr<M2::ARingZZpFFPACK> make(unsigned long p)
-  {
-    return std::unique_ptr<M2::ARingZZpFFPACK>(
-        new M2::ARingZZpFFPACK(static_cast<M2::ARingZZpFFPACK::UTT>(p)));
-  }
-};
-
-template <>
-struct ARingFactory<M2::ARingZZpFlint>
-{
-  static const char* name() { return "ARingZZpFlint"; }
-  // flint nmod takes the whole unsigned 64-bit range.  Note that the generic
-  // Ring interface holds the characteristic in a signed long, so above 2^63 a
-  // ring reports a negative characteristic; the ARing class itself is fine.
-  static const char* limit() { return "none below 2^64"; }
-  static bool supports(unsigned long) { return true; }
-  static std::unique_ptr<M2::ARingZZpFlint> make(unsigned long p)
-  {
-    return std::unique_ptr<M2::ARingZZpFlint>(new M2::ARingZZpFlint(p));
-  }
-};
-
-struct ModulusCase
-{
-  unsigned long p;
-  const char* why;
-};
-
-static const ModulusCase zzpModuli[] = {
-    {2UL, "smallest prime; char 2 was long suspected of failing for ffpack"},
-    {3UL, "smallest odd prime"},
-    {101UL, "small generic"},
-    {32749UL, "largest prime ARingZZp accepts"},
-    {32771UL, "first prime above the ffpack getMaxModulus() stub"},
-    {33500479UL, "historical ffpack/flint case"},
-    {66000007UL, "historical ffpack/flint case"},
-    {67108859UL, "historical ffpack/flint case"},
-    {94906249UL, "largest prime at or below Givaro's real ceiling"},
-    {2147483647UL, "largest prime < 2^31"},
-    {9223372036854775783UL, "largest prime < 2^63"},
-    {18446744073709551557UL, "largest prime < 2^64"},
-};
 
 template <typename RT>
 class ZZpRing : public ::testing::Test

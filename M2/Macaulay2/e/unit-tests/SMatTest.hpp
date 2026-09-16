@@ -8,7 +8,7 @@
 #include <limits>
 #include <vector>
 #include "buffer.hpp"
-#include "unit-tests/MatrixRingFactory.hpp"
+#include "unit-tests/TestRingFactory.hpp"
 #include "unit-tests/MatrixShape.hpp"
 
 namespace {
@@ -18,7 +18,7 @@ class SMatTest : public ::testing::Test
  protected:
   using Ring = RT;
   using Mat = SMat<Ring>;
-  Ring& ring = MatrixRingFactory<Ring>::shared();
+  Ring& ring = TestRingFactory<Ring>::shared();
 
   // Returning an owning temporary keeps MPFR/GMP coefficients alive through
   // the matrix call, without copying their resource-owning C structs.

@@ -11,7 +11,7 @@
 #include "basic-mutable-matrices/mat-arith.hpp"
 #include "basic-mutable-matrices/mat-elem-ops.hpp"
 #include "unit-tests/MatrixShape.hpp"
-#include "unit-tests/MatrixRingFactory.hpp"
+#include "unit-tests/TestRingFactory.hpp"
 
 namespace {
 template <typename RT>
@@ -22,7 +22,7 @@ class DMatTest : public ::testing::Test
   using Mat = DMat<Ring>;
   // DMat has no member arithmetic; row and column operations are statics.
   using Ops = MatElementaryOps<Mat>;
-  Ring& ring = MatrixRingFactory<Ring>::shared();
+  Ring& ring = TestRingFactory<Ring>::shared();
 
   // Returning an owning temporary keeps MPFR/GMP coefficients alive through
   // the matrix call, without copying their resource-owning C structs.

@@ -30,7 +30,7 @@
 #include "coeffrings.hpp"
 #include "basic-rings/aring-glue.hpp"
 #include "unit-tests/SMatTest.hpp"
-#include "unit-tests/MatrixRingFactory.hpp"
+#include "unit-tests/TestRingFactory.hpp"
 #include "unit-tests/util-polyring-creation.hpp"
 #include "util.hpp"
 
@@ -211,7 +211,7 @@ TYPED_TEST(SMatTest, grabSwapsRingShapeAndEntries)
   using Ring = TypeParam;
   using Mat = SMat<Ring>;
   auto& ring = this->ring;
-  Ring& otherRing = MatrixRingFactory<Ring>::alternate();
+  Ring& otherRing = TestRingFactory<Ring>::alternate();
   Mat first(ring, 2, 1), second(otherRing, 1, 2);
   this->fill(first, {2, -3});
   typename Ring::Element value(otherRing);
@@ -841,9 +841,8 @@ TEST(SMatZeroDivisorTest, scalingRemovesAnnihilatedEntries)
 {
   // Over ZZ/101[x]/(x^2), multiplying the nonzero entry x by x removes it.
   // A field-only suite cannot exercise this sparse-node removal path.
-  const Ring* quotient =
-      simpleQuotientRing(simplePolynomialRing(101, {"x"}), {"x^2"});
-  CoefficientRingR ring(quotient);
+  const Ring* quotient = nullptr;
+  CoefficientRingR ring = makeNilpotentCoefficientRing(101, quotient);
   const ring_elem x = quotient->var(0);
   SMat<CoefficientRingR> row(ring, 2, 2), column(ring, 2, 2);
   row.set_entry(1, 0, x);
@@ -889,9 +888,8 @@ TEST(SMatZeroDivisorTest, DISABLED_columnScalingVisitsNodeAfterRemoval)
 {
   // Removing the leading x*x entry must not skip multiplication of the next
   // node.
-  const Ring* quotient =
-      simpleQuotientRing(simplePolynomialRing(101, {"x"}), {"x^2"});
-  CoefficientRingR ring(quotient);
+  const Ring* quotient = nullptr;
+  CoefficientRingR ring = makeNilpotentCoefficientRing(101, quotient);
   const ring_elem x = quotient->var(0);
   SMat<CoefficientRingR> matrix(ring, 2, 1);
   matrix.set_entry(1, 0, x);

@@ -29,7 +29,7 @@
 #include "basic-mutable-matrices/mat-arith.hpp"
 #include "basic-mutable-matrices/mat-linalg.hpp"
 #include "unit-tests/DMatTest.hpp"
-#include "unit-tests/MatrixRingFactory.hpp"
+#include "unit-tests/TestRingFactory.hpp"
 #include "util.hpp"
 
 namespace {
@@ -261,7 +261,7 @@ TYPED_TEST(DMatTest, swapExchangesRingShapeAndEntries)
   using Mat = DMat<Ring>;
   using Ops = MatElementaryOps<Mat>;
   auto& ring = this->ring;
-  Ring& otherRing = MatrixRingFactory<Ring>::alternate();
+  Ring& otherRing = TestRingFactory<Ring>::alternate();
   Mat first(ring, 2, 1), second(otherRing, 1, 2);
   this->fill(first, {2, -3});
   typename Ring::Element value(otherRing);

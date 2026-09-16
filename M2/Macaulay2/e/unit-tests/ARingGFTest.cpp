@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "unit-tests/ARingTest.hpp"
+#include "unit-tests/TestRingFactory.hpp"
 #include "unit-tests/util-polyring-creation.hpp"
 
 // Extension fields expose characteristic and dimension rather than cardinality.
@@ -34,16 +35,9 @@ void getElement<M2::ARingGFFlint>(const M2::ARingGFFlint& R,
 namespace {
 using Ring = M2::ARingGFFlint;
 
-// FLINT's Zech representation requires a primitive defining polynomial.
 std::unique_ptr<Ring> makeField(int characteristic, const std::string& modulus)
 {
-  const auto* polynomialRing = simplePolynomialRing(characteristic, {"a"});
-  if (polynomialRing == nullptr) return nullptr;
-  const auto* quotient = simpleQuotientRing(polynomialRing, {modulus});
-  if (quotient == nullptr) return nullptr;
-  const auto* original = quotient->cast_to_PolynomialRing();
-  if (original == nullptr) return nullptr;
-  return std::make_unique<Ring>(*original, original->var(0));
+  return makeGaloisField<Ring>(characteristic, modulus);
 }
 
 void expectCoefficients(const Ring& R,
