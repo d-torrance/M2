@@ -492,7 +492,6 @@ if(BUILD_TESTING)
     unit-tests/MatrixShape.hpp
     unit-tests/MatrixRingFactory.hpp
     unit-tests/DMatTest.hpp
-    unit-tests/ARingMatrixTest.hpp
     unit-tests/MatrixTest.hpp
     unit-tests/DMatTest.cpp
     unit-tests/SMatTest.cpp
