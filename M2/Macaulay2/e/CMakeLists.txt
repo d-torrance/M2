@@ -490,6 +490,7 @@ if(BUILD_TESTING)
     unit-tests/RingTowerTest.cpp
 
     unit-tests/MatrixShape.hpp
+    unit-tests/MatrixRingFactory.hpp
     unit-tests/DMatTest.hpp
     unit-tests/ARingMatrixTest.hpp
     unit-tests/MatrixTest.hpp
