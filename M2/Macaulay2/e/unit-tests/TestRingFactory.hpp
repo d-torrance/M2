@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <type_traits>
 
 #include "basic-rings/aring-ZZp.hpp"
@@ -181,5 +182,44 @@ inline const ModulusCase zzpModuli[] = {
     {9223372036854775783UL, "largest prime < 2^63"},
     {18446744073709551557UL, "largest prime < 2^64"},
 };
+
+// Run 'check' over each parameterisation of RT worth covering.  The ZZ/p
+// backends sweep zzpModuli, which is the only way the matrix suites reach
+// characteristic 2 -- where negation is the identity, so a skew form's zero
+// diagonal cannot be derived and must be checked.  The GF classes get a
+// second field in characteristic 2 for the same reason.  Every other ring
+// type has one parameterisation.
+template <typename RT, typename Check>
+void overParameterisations(Check check)
+{
+  if constexpr (std::is_same_v<RT, M2::ARingZZp> ||
+                std::is_same_v<RT, M2::ARingZZpFFPACK> ||
+                std::is_same_v<RT, M2::ARingZZpFlint>)
+    {
+      for (const ModulusCase& m : zzpModuli)
+        {
+          if (sizeof(unsigned long) <= 4 && m.p > 0xffffffffUL) continue;
+          if (!ARingFactory<RT>::supports(m.p)) continue;
+          SCOPED_TRACE(std::string(ARingFactory<RT>::name()) + " p=" +
+                       std::to_string(m.p) + " (" + m.why + ")");
+          check(*ARingFactory<RT>::make(m.p));
+        }
+    }
+  else if constexpr (std::is_same_v<RT, M2::ARingGFFlint> ||
+                     std::is_same_v<RT, M2::ARingGFFlintBig> ||
+                     std::is_same_v<RT, M2::ARingGFM2>)
+    {
+      // a^2+a+1 is primitive over GF(2); a^2-8a+18 over GF(37).
+      for (const auto& field : {std::pair<int, const char*> {2, "a^2+a+1"},
+                                {37, "a^2-8*a+18"}})
+        {
+          SCOPED_TRACE(::testing::Message()
+                       << "GF(" << field.first << "^2)");
+          check(*makeGaloisField<RT>(field.first, field.second));
+        }
+    }
+  else
+    check(TestRingFactory<RT>::shared());
+}
 
 #endif

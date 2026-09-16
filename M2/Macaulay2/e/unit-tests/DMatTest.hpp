@@ -101,6 +101,7 @@ class DMatTest : public ::testing::Test
                  size_t rank = 0,
                  bool random = false)
   {
+    const Ring& ring = matrix.ring();
     int counter = 0;
     auto next = [&](typename Ring::ElementType& out) {
       if constexpr (RingHasRandom<Ring>::value)
@@ -109,8 +110,14 @@ class DMatTest : public ::testing::Test
             ring.random(out);
             return;
           }
-      // 1..7: nonzero in both characteristics the factory builds, 37 and 101.
-      ring.set(out, 1 + (counter++ % 7));
+      // Must be nonzero for the shapes to mean anything structurally, and a
+      // small fixed sequence is zero half the time in characteristic 2.
+      for (int i = 0; i < 100; ++i)
+        {
+          ring.set(out, 1 + (counter++ % 7));
+          if (!ring.is_zero(out)) return;
+        }
+      ring.set(out, 1);
     };
     fillMatrixShape(ring,
                     matrix.numRows(),

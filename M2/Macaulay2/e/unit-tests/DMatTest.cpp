@@ -778,6 +778,53 @@ TYPED_TEST(DMatTest, randomEntriesSurviveArithmetic)
   EXPECT_TRUE(MatrixOps::isEqual(copy, matrix));
 }
 
+TYPED_TEST(DMatTest, shapesOverEveryParameterisation)
+{
+  // The worked-value tests run at one parameterisation per ring.  Sweep the
+  // rest here with characteristic-independent checks -- this is the only
+  // place the suite sees characteristic 2, where -1 == 1 and a skew form's
+  // zero diagonal cannot be derived from a == -a.
+  using Ring = TypeParam;
+  using Mat = DMat<Ring>;
+  using Ops = MatElementaryOps<Mat>;
+  overParameterisations<Ring>([&](const Ring& R) {
+    Mat symmetric(R, 5, 5), transposed(R, 5, 5);
+    this->fillShape(symmetric, MatrixShape::Symmetric);
+    MatrixOps::transpose(symmetric, transposed);
+    EXPECT_TRUE(MatrixOps::isEqual(symmetric, transposed));
+    EXPECT_FALSE(MatrixOps::isZero(symmetric));
+
+    Mat skew(R, 5, 5), skewTransposed(R, 5, 5);
+    this->fillShape(skew, MatrixShape::SkewSymmetric);
+    MatrixOps::transpose(skew, skewTransposed);
+    MatrixOps::negateInPlace(skewTransposed);
+    EXPECT_TRUE(MatrixOps::isEqual(skew, skewTransposed));
+    typename Ring::Element diagonal(R);
+    for (size_t i = 0; i < 5; ++i)
+      {
+        SCOPED_TRACE(::testing::Message() << "skew diagonal " << i);
+        Ops::getEntry(skew, i, i, diagonal);
+        EXPECT_TRUE(R.is_zero(diagonal));
+      }
+
+    Mat upper(R, 4, 4);
+    this->fillShape(upper, MatrixShape::UpperTriangular);
+    for (size_t c = 0; c < 4; ++c)
+      {
+        SCOPED_TRACE(::testing::Message() << "upper column " << c);
+        EXPECT_EQ(Ops::lead_row(upper, c), c);
+      }
+
+    for (size_t rank : {size_t(0), size_t(2), size_t(4)})
+      {
+        SCOPED_TRACE(::testing::Message() << "prescribed rank " << rank);
+        Mat matrix(R, 4, 6);
+        this->fillShape(matrix, MatrixShape::PrescribedRank, 1.0, rank);
+        EXPECT_EQ(MatrixOps::rank(matrix), rank);
+      }
+  });
+}
+
 TYPED_TEST(DMatTest, negationAndScalarMultiplication)
 {
   using Ring = TypeParam;

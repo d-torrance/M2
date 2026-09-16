@@ -745,6 +745,61 @@ TYPED_TEST(SMatTest, generatedIdentityAndPrescribedRankShapes)
     }
 }
 
+TYPED_TEST(SMatTest, shapesOverEveryParameterisation)
+{
+  // As in DMatTest: the worked-value tests run at one parameterisation, so
+  // this is the only place the suite sees characteristic 2, where -1 == 1 and
+  // a skew form's zero diagonal cannot be derived from a == -a.
+  using Ring = TypeParam;
+  using Mat = SMat<Ring>;
+  overParameterisations<Ring>([&](const Ring& R) {
+    Mat symmetric(R, 5, 5);
+    this->fillShape(symmetric, MatrixShape::Symmetric);
+    EXPECT_FALSE(symmetric.is_zero());
+    typename Ring::Element upper(R), lower(R);
+    for (size_t r = 0; r < 5; ++r)
+      for (size_t c = 0; c < 5; ++c)
+        {
+          SCOPED_TRACE(::testing::Message() << "entry (" << r << ", " << c
+                                            << ")");
+          R.set_zero(upper);
+          R.set_zero(lower);
+          symmetric.get_entry(r, c, upper);
+          symmetric.get_entry(c, r, lower);
+          EXPECT_TRUE(R.is_equal(upper, lower));
+        }
+
+    Mat skew(R, 5, 5);
+    this->fillShape(skew, MatrixShape::SkewSymmetric);
+    typename Ring::Element negated(R);
+    for (size_t r = 0; r < 5; ++r)
+      for (size_t c = 0; c < 5; ++c)
+        {
+          SCOPED_TRACE(::testing::Message() << "entry (" << r << ", " << c
+                                            << ")");
+          R.set_zero(upper);
+          R.set_zero(lower);
+          skew.get_entry(r, c, upper);
+          skew.get_entry(c, r, lower);
+          R.negate(negated, lower);
+          EXPECT_TRUE(R.is_equal(upper, negated));
+        }
+    for (size_t i = 0; i < 5; ++i)
+      {
+        SCOPED_TRACE(::testing::Message() << "skew diagonal " << i);
+        EXPECT_FALSE(skew.get_entry(i, i, upper));
+      }
+
+    Mat triangular(R, 4, 4);
+    this->fillShape(triangular, MatrixShape::UpperTriangular);
+    for (size_t c = 0; c < 4; ++c)
+      {
+        SCOPED_TRACE(::testing::Message() << "upper column " << c);
+        EXPECT_EQ(triangular.lead_row(c), c);
+      }
+  });
+}
+
 using SMatZZpTest = SMatTest<M2::ARingZZp>;
 
 // vec_equals ignores row indices and accepts a common prefix of coefficients.
