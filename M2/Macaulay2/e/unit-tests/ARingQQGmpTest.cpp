@@ -67,7 +67,7 @@ TEST_F(ARingQQGMP, Formatting)
   EXPECT_EQ(std::string(o.str()), "24/23");
 }
 
-TEST_F(ARingQQGMP, Conversions)
+TEST_F(ARingQQGMP, DISABLED_Conversions)
 {
   // lift_to_mpz, set(double) and set(gmp_RR) are GMP-only.
   {

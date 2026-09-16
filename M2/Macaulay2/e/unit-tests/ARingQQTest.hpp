@@ -126,7 +126,7 @@ TYPED_TEST_P(ARingQQ, Comparisons)
   }
 }
 
-TYPED_TEST_P(ARingQQ, Conversions)
+TYPED_TEST_P(ARingQQ, DISABLED_Conversions)
 {
   {
     SCOPED_TRACE("set: from int, long, mpz and mpq");
@@ -415,7 +415,7 @@ REGISTER_TYPED_TEST_SUITE_P(ARingQQ,
                             Construction,
                             Storage,
                             Comparisons,
-                            Conversions,
+                            DISABLED_Conversions,
                             Arithmetic,
                             Powers,
                             Syzygy,

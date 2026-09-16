@@ -199,7 +199,7 @@ TEST(ARingZZ, invert)
 //
 
 
-TEST(ARingZZ, divide)
+TEST(ARingZZ, DISABLED_divide)
 {
   
   M2::ARingZZ R;

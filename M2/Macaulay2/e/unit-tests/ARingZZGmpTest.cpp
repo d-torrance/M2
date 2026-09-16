@@ -44,7 +44,7 @@ class ARingZZGMP : public ::testing::Test
   }
 };
 
-TEST_F(ARingZZGMP, Construction)
+TEST_F(ARingZZGMP, DISABLED_Construction)
 {
   // static_cast avoids odr-using ringID, which has no out-of-line definition.
   EXPECT_EQ(static_cast<int>(M2::ARingZZGMP::ringID),

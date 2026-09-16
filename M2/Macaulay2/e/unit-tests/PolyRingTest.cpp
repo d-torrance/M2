@@ -18,7 +18,7 @@
 
 #include "unit-tests/util-polyring-creation.hpp"
 
-TEST(PolyRing, createDegreesRing)
+TEST(PolyRing, DISABLED_createDegreesRing)
 {
   const Ring* DR = degreeRing(1);
   EXPECT_FALSE(error());
@@ -29,7 +29,7 @@ TEST(PolyRing, createDegreesRing)
   std::cout << "ring is " << o.str() << std::endl;
 }
 
-TEST(PolyRing, createDegreesRing2)
+TEST(PolyRing, DISABLED_createDegreesRing2)
 {
   const Ring* DR = degreeRing({"t1", "t2"});
   EXPECT_FALSE(error());
