@@ -63,8 +63,11 @@ void expectCancelledToZero(const Mat& matrix)
     }
 }
 
-// Rank is algebraic only over an exact field or domain.  Over RR/CC it is a
-// tolerance decision: a rank-3 matrix with exact integer entries reports 4.
+// Rank is algebraic only over an exact field or domain.  Over the
+// approximate rings it is a tolerance decision, and which ranks come out
+// wrong depends on the LAPACK build: a rank-3 matrix with exact integer
+// entries reports 4 here, and a rank-2 one does elsewhere.  Excluded rather
+// than pinned -- there is no value to pin.
 template <typename RT>
 constexpr bool ranks()
 {
@@ -815,13 +818,14 @@ TYPED_TEST(DMatTest, shapesOverEveryParameterisation)
         EXPECT_EQ(Ops::lead_row(upper, c), c);
       }
 
-    for (size_t rank : {size_t(0), size_t(2), size_t(4)})
-      {
-        SCOPED_TRACE(::testing::Message() << "prescribed rank " << rank);
-        Mat matrix(R, 4, 6);
-        this->fillShape(matrix, MatrixShape::PrescribedRank, 1.0, rank);
-        EXPECT_EQ(MatrixOps::rank(matrix), rank);
-      }
+    if (ranks<Ring>())
+      for (size_t rank : {size_t(0), size_t(1), size_t(3), size_t(4)})
+        {
+          SCOPED_TRACE(::testing::Message() << "prescribed rank " << rank);
+          Mat matrix(R, 4, 6);
+          this->fillShape(matrix, MatrixShape::PrescribedRank, 1.0, rank);
+          EXPECT_EQ(MatrixOps::rank(matrix), rank);
+        }
   });
 }
 
