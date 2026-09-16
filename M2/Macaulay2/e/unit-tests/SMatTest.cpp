@@ -30,6 +30,7 @@
 #include "coeffrings.hpp"
 #include "basic-rings/aring-glue.hpp"
 #include "unit-tests/SMatTest.hpp"
+#include "unit-tests/MatrixRingFactory.hpp"
 #include "unit-tests/util-polyring-creation.hpp"
 #include "util.hpp"
 
@@ -38,39 +39,6 @@ namespace {
 M2_arrayint indices(std::initializer_list<int> values)
 { return stdvector_to_M2_arrayint(std::vector<int>(values)); }
 
-// These are the coefficient types for which the engine instantiates SMat.
-// Use one common contract so changes exercise every backend consistently.
-template <typename RT>
-struct SMatRingFactory
-{
-  static std::unique_ptr<RT> make()
-  {
-    if constexpr (std::is_same_v<RT, M2::ARingZZp> ||
-                  std::is_same_v<RT, M2::ARingZZpFFPACK> ||
-                  std::is_same_v<RT, M2::ARingZZpFlint>)
-      return std::make_unique<RT>(101);
-    else if constexpr (std::is_same_v<RT, M2::ARingRRR> ||
-                       std::is_same_v<RT, M2::ARingCCC> ||
-                       std::is_same_v<RT, M2::ARingRRi> ||
-                       std::is_same_v<RT, M2::ARingCCi>)
-      return std::make_unique<RT>(100);
-    else if constexpr (std::is_same_v<RT, CoefficientRingR>)
-      return std::make_unique<RT>(globalQQ);
-    else if constexpr (std::is_same_v<RT, M2::ARingGFFlint> ||
-                       std::is_same_v<RT, M2::ARingGFFlintBig> ||
-                       std::is_same_v<RT, M2::ARingGFM2>)
-      {
-        // This primitive quadratic keeps the legacy GF table small; its
-        // generator has order 1368. Each fixture owns its coefficient ring.
-        static const auto* quotient =
-            dynamic_cast<const PolynomialRing*>(simpleQuotientRing(
-                simplePolynomialRing(37, {"x"}), {"x^2-8*x+18"}));
-        return std::make_unique<RT>(*quotient, quotient->var(0));
-      }
-    else
-      return std::make_unique<RT>();
-  }
-};
 
 using SMatRings = ::testing::Types<M2::ARingZZp,
                                    M2::ARingZZpFFPACK,
@@ -167,6 +135,53 @@ TYPED_TEST(SMatTest, iteratorConversionAndReset)
   EXPECT_TRUE(ring.is_equal(it.value(), this->scalar(5)));
 }
 
+TYPED_TEST(SMatTest, entriesFromTriplesAndRingElements)
+{
+  // The ring-element forms carry coefficients a small integer cannot express,
+  // such as a GF(p^k) element outside the prime subfield.  ElementArray owns
+  // them; the vectors alias its storage and must not outlive it.
+  using Ring = TypeParam;
+  using Mat = SMat<Ring>;
+  auto& ring = this->ring;
+
+  Mat triples(ring, 3, 3);
+  this->fill(triples, {{0, 1, 7}, {2, 0, -5}});
+  this->expectMatrix(triples, 3, 3, {0, 7, 0, 0, 0, 0, -5, 0, 0});
+
+  typename Ring::ElementArray owners(ring, 4);
+  for (size_t i = 0; i < 4; ++i)
+    {
+      if constexpr (RingHasRandom<Ring>::value)
+        ring.random(owners[i]);
+      else
+        ring.set(owners[i], static_cast<int>(2 * i + 1));
+    }
+
+  std::vector<typename Ring::ElementType> rowMajor;
+  for (size_t i = 0; i < 4; ++i) rowMajor.push_back(owners[i]);
+  Mat elements(ring, 2, 2);
+  this->fill(elements, rowMajor);
+
+  std::vector<MatrixElementEntry<typename Ring::ElementType>> placed;
+  placed.push_back({1, 0, owners[3]});
+  placed.push_back({0, 2, owners[1]});
+  Mat scattered(ring, 2, 3);
+  this->fill(scattered, placed);
+
+  typename Ring::Element actual(ring);
+  for (size_t i = 0; i < 4; ++i)
+    {
+      SCOPED_TRACE(::testing::Message() << "row-major element " << i);
+      ring.set_zero(actual), elements.get_entry(i / 2, i % 2, actual);
+      EXPECT_TRUE(this->equal(ring, actual, owners[i]));
+    }
+  ring.set_zero(actual), scattered.get_entry(1, 0, actual);
+  EXPECT_TRUE(this->equal(ring, actual, owners[3]));
+  ring.set_zero(actual), scattered.get_entry(0, 2, actual);
+  EXPECT_TRUE(this->equal(ring, actual, owners[1]));
+  EXPECT_FALSE(scattered.is_zero());
+}
+
 TYPED_TEST(SMatTest, copiesOwnTheirEntries)
 {
   // Both copy interfaces must preserve zeros and own independently mutable
@@ -196,8 +211,7 @@ TYPED_TEST(SMatTest, grabSwapsRingShapeAndEntries)
   using Ring = TypeParam;
   using Mat = SMat<Ring>;
   auto& ring = this->ring;
-  auto otherRingOwner = SMatRingFactory<Ring>::make();
-  Ring& otherRing = *otherRingOwner;
+  Ring& otherRing = MatrixRingFactory<Ring>::alternate();
   Mat first(ring, 2, 1), second(otherRing, 1, 2);
   this->fill(first, {2, -3});
   typename Ring::Element value(otherRing);
@@ -605,6 +619,130 @@ TYPED_TEST(SMatTest, emptySubmatrices)
   EXPECT_EQ(&noColumns.ring(), &ring);
   this->expectMatrix(noRows, 0, 2, {});
   this->expectMatrix(noColumns, 2, 0, {});
+}
+
+TYPED_TEST(SMatTest, generatedSymmetricShapes)
+{
+  // Checked entry by entry: SMat has no transpose.  The skew diagonal must
+  // be zeroed, not derived: in characteristic 2, a == -a would not force it.
+  using Ring = TypeParam;
+  using Mat = SMat<Ring>;
+  auto& ring = this->ring;
+
+  Mat symmetric(ring, 5, 5);
+  this->fillShape(symmetric, MatrixShape::Symmetric);
+  EXPECT_FALSE(symmetric.is_zero());
+  typename Ring::Element upper(ring), lower(ring);
+  for (size_t r = 0; r < 5; ++r)
+    for (size_t c = 0; c < 5; ++c)
+      {
+        SCOPED_TRACE(::testing::Message() << "entry (" << r << ", " << c << ")");
+        ring.set_zero(upper);
+        ring.set_zero(lower);
+        symmetric.get_entry(r, c, upper);
+        symmetric.get_entry(c, r, lower);
+        EXPECT_TRUE(this->equal(ring, upper, lower));
+      }
+
+  Mat skew(ring, 5, 5);
+  this->fillShape(skew, MatrixShape::SkewSymmetric);
+  typename Ring::Element negated(ring);
+  for (size_t r = 0; r < 5; ++r)
+    for (size_t c = 0; c < 5; ++c)
+      {
+        SCOPED_TRACE(::testing::Message() << "entry (" << r << ", " << c << ")");
+        ring.set_zero(upper);
+        ring.set_zero(lower);
+        skew.get_entry(r, c, upper);
+        skew.get_entry(c, r, lower);
+        ring.negate(negated, lower);
+        EXPECT_TRUE(this->equal(ring, upper, negated));
+      }
+  for (size_t i = 0; i < 5; ++i)
+    {
+      SCOPED_TRACE(::testing::Message() << "diagonal entry " << i);
+      EXPECT_FALSE(skew.get_entry(i, i, upper));
+    }
+}
+
+TYPED_TEST(SMatTest, generatedSparseAndTriangularShapes)
+{
+  // Only a shaped fill produces a pattern rather than a hand-listed one.
+  // Every stored entry must be nonzero, and lead_row is the only report of
+  // where a column ends.
+  using Ring = TypeParam;
+  using Mat = SMat<Ring>;
+  auto& ring = this->ring;
+
+  Mat empty(ring, 6, 6);
+  this->fillShape(empty, MatrixShape::Sparse, 0.0);
+  EXPECT_TRUE(empty.is_zero());
+
+  Mat full(ring, 6, 6);
+  this->fillShape(full, MatrixShape::Sparse, 1.0);
+  size_t stored = 0;
+  for (size_t c = 0; c < 6; ++c)
+    {
+      auto it = full.begin();
+      it.set(c);
+      while (it.valid())
+        {
+          SCOPED_TRACE(::testing::Message() << "column " << c << ", row "
+                                            << it.row());
+          EXPECT_FALSE(ring.is_zero(it.value()));
+          ++stored;
+          it.next();
+        }
+    }
+  EXPECT_EQ(stored, 36);
+
+  Mat upper(ring, 4, 4);
+  this->fillShape(upper, MatrixShape::UpperTriangular);
+  for (size_t c = 0; c < 4; ++c)
+    {
+      SCOPED_TRACE(::testing::Message() << "upper column " << c);
+      EXPECT_EQ(upper.lead_row(c), c);
+    }
+
+  Mat lower(ring, 4, 4);
+  this->fillShape(lower, MatrixShape::LowerTriangular);
+  for (size_t c = 0; c < 4; ++c)
+    {
+      SCOPED_TRACE(::testing::Message() << "lower column " << c);
+      EXPECT_EQ(lower.lead_row(c), 3);
+    }
+}
+
+TYPED_TEST(SMatTest, generatedIdentityAndPrescribedRankShapes)
+{
+  // PrescribedRank uses ring arithmetic only, so it works here even though
+  // MatrixOps::rank does not exist for SMat.
+  using Ring = TypeParam;
+  using Mat = SMat<Ring>;
+  auto& ring = this->ring;
+
+  Mat identity(ring, 4, 4);
+  this->fillShape(identity, MatrixShape::Identity);
+  this->expectMatrix(
+      identity, 4, 4, {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1});
+
+  Mat none(ring, 4, 6);
+  this->fillShape(none, MatrixShape::PrescribedRank, 1.0, 0);
+  EXPECT_TRUE(none.is_zero());
+
+  for (size_t rank : {size_t(1), size_t(3), size_t(4)})
+    {
+      SCOPED_TRACE(::testing::Message() << "prescribed rank " << rank);
+      Mat matrix(ring, 4, 6);
+      this->fillShape(matrix, MatrixShape::PrescribedRank, 1.0, rank);
+      EXPECT_FALSE(matrix.is_zero());
+      // The leading minor is unit triangular, so those columns are nonempty.
+      for (size_t c = 0; c < rank; ++c)
+        {
+          SCOPED_TRACE(::testing::Message() << "column " << c);
+          EXPECT_NE(matrix.lead_row(c), std::numeric_limits<size_t>::max());
+        }
+    }
 }
 
 using SMatZZpTest = SMatTest<M2::ARingZZp>;

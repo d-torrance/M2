@@ -6,21 +6,19 @@
 #include <cstddef>
 #include <initializer_list>
 #include <limits>
-#include <memory>
 #include <vector>
 #include "buffer.hpp"
+#include "unit-tests/MatrixRingFactory.hpp"
+#include "unit-tests/MatrixShape.hpp"
 
 namespace {
-template <typename RT>
-struct SMatRingFactory;
 template <typename RT>
 class SMatTest : public ::testing::Test
 {
  protected:
   using Ring = RT;
   using Mat = SMat<Ring>;
-  std::unique_ptr<Ring> ringOwner = SMatRingFactory<Ring>::make();
-  Ring& ring = *ringOwner;
+  Ring& ring = MatrixRingFactory<Ring>::shared();
 
   // Returning an owning temporary keeps MPFR/GMP coefficients alive through
   // the matrix call, without copying their resource-owning C structs.
@@ -53,6 +51,72 @@ class SMatTest : public ::testing::Test
     for (size_t r = 0; r < matrix.numRows(); ++r)
       for (size_t c = 0; c < matrix.numColumns(); ++c)
         matrix.set_entry(r, c, scalar(*value++));
+  }
+
+  // Triples, integer coefficients: {{0, 1, 7}, {2, 3, 9}}.  Only the listed
+  // positions are written, so these compose with a shaped fill.
+  void fill(Mat& matrix, std::initializer_list<MatrixEntry> entries)
+  {
+    for (const auto& e : entries)
+      {
+        ASSERT_LT(e.row, matrix.numRows());
+        ASSERT_LT(e.col, matrix.numColumns());
+        matrix.set_entry(e.row, e.col, scalar(static_cast<int>(e.coeff)));
+      }
+  }
+
+  // Ring-element coefficients, for values with no integer form -- an element
+  // of GF(p^k) outside the prime subfield.  Vectors rather than initializer
+  // lists: where ElementType is int the latter would be ambiguous above.
+  void fill(Mat& matrix,
+            const std::vector<typename Ring::ElementType>& values)
+  {
+    ASSERT_EQ(values.size(), matrix.numRows() * matrix.numColumns());
+    for (size_t i = 0; i < values.size(); ++i)
+      matrix.set_entry(i / matrix.numColumns(), i % matrix.numColumns(), values[i]);
+  }
+
+  void fill(Mat& matrix,
+            const std::vector<MatrixElementEntry<typename Ring::ElementType>>&
+                entries)
+  {
+    for (const auto& e : entries)
+      {
+        ASSERT_LT(e.row, matrix.numRows());
+        ASSERT_LT(e.col, matrix.numColumns());
+        matrix.set_entry(e.row, e.col, e.coeff);
+      }
+  }
+
+  // For the properties a literal fill cannot express: an exact rank, a zero
+  // skew diagonal, a sparsity pattern.  random = true draws from the ring,
+  // the only way to reach values a small integer cannot represent.
+  void fillShape(Mat& matrix,
+                 MatrixShape shape,
+                 double density = 1.0,
+                 size_t rank = 0,
+                 bool random = false)
+  {
+    int counter = 0;
+    auto next = [&](typename Ring::ElementType& out) {
+      if constexpr (RingHasRandom<Ring>::value)
+        if (random)
+          {
+            ring.random(out);
+            return;
+          }
+      // 1..7: nonzero in both characteristics the factory builds, 37 and 101.
+      ring.set(out, 1 + (counter++ % 7));
+    };
+    fillMatrixShape(ring,
+                    matrix.numRows(),
+                    matrix.numColumns(),
+                    shape,
+                    density,
+                    rank,
+                    next,
+                    [&](size_t r, size_t c, const typename Ring::ElementType& a)
+                    { matrix.set_entry(r, c, a); });
   }
 
   void expectMatrix(const Mat& matrix,
