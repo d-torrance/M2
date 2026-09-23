@@ -1,4 +1,11 @@
-Neither algorithm named in this request exists, and `radical`'s implementation is still the translated classic
+### What the request is about
+
+The *radical* of an ideal is the ideal of everything some power of which lies in it. Computing it is
+a standard operation with a sizeable literature of algorithms behind it, and this request names two
+of them — Krick/Logar for characteristic zero, Kemper for characteristic p — asking that they replace
+what M2 does now, with the documentation rewritten to match.
+
+Neither algorithm named here exists, and `radical`'s implementation is still the translated classic
 Macaulay script it has always been.
 
 ### What `radical` implements today
@@ -56,15 +63,9 @@ acknowledged in the source, not on a measured cost, and I have not established h
 ordinary input today. If a maintainer would rather see that first, it is a reasonable thing to ask for before
 anyone commits to implementing a paper.
 
-### Provenance
+### The references
 
-This is one request from `bugs/dan/0-bugs-decker.m2`, a wishlist file removed with the `bugs/` tree in
-d2c8d27826 and catalogued in #36:
-
-> Implement faster algorithms for radical: Krick/Logar in characteristic zero and Kemper in characteristic
-> p>0.  Rewrite documentation accordingly.
-
-The references are presumably Krick and Logar, *An algorithm for the computation of the radical of an ideal
+Presumably Krick and Logar, *An algorithm for the computation of the radical of an ideal
 in the ring of polynomials* (AAECC 1991), and Kemper, *The calculation of radical ideals in positive
 characteristic* (J. Symbolic Comput. 2002).
 

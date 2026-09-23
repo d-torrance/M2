@@ -1,3 +1,11 @@
+### What the file asks for
+
+`hilbertSeries` returns the Hilbert series of a ring or module as a formal expression rather than a
+number — a `Divide`, whose numerator and denominator can be taken apart with `numerator`,
+`denominator` and `value`. This file is a worked session exercising `hilbertPolynomial` and
+`hilbertSeries` on a monomial curve, ending in a note to itself: those operations are not mentioned in
+the documentation, and references to them need adding.
+
 The specific documentation gap the file names is still there.
 
 All three operations work. On `monomialCurveIdeal(QQ[a..d], {1,3,4})`:

@@ -1,3 +1,10 @@
+### What the file reports
+
+`rowMult`, `rowAdd`, `rowSwap` and their column counterparts are the elementary row and column
+operations on a mutable matrix. They work in place, modifying the matrix they are given rather than
+returning a new one. This two-line file notes that `rowMult` nevertheless returns a value its
+documentation never mentions, and guesses that the rest of the family does the same.
+
 True as reported, and the file's suspicion that *"the other col and row functions might also"* is
 confirmed for the whole family.
 

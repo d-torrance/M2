@@ -1,4 +1,14 @@
-An interrupt that arrives while the engine is inverting a ring element is reported as
+### What the file asks for
+
+An `alarm` firing, or Ctrl-C, interrupts a computation down in the engine. This file's complaint is
+about what the caller says afterwards: a routine returns some out-of-band value to signal that it
+stopped, the code above it reads that value as a specific mathematical failure, and reports *that*
+rather than the interrupt. Mike asks for the engine to be audited for the pattern, and gives one
+example of it — an interrupted inverse reported as *"negative power of noninvertible element
+requested"*.
+
+That example still works, in the sense of still being wrong. An interrupt that arrives while the
+engine is inverting a ring element is reported as
 `either element not invertible, or no method available to compute its inverse` — a statement about
 the element, not about the interrupt. The example in the file above still produces it verbatim.
 

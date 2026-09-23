@@ -1,3 +1,10 @@
+### What the file reports
+
+`methods f` lists the methods installed for `f`, which is how you find out what it can be applied to.
+For the operators, M2 installs the "no method available" error *as a method* on `Thing` and on `Type`,
+so those entries turn up in the listing alongside the real ones. Most of this file is a transcript of
+`formatDocumentTag \ methods symbol =` showing how much of the output that accounts for.
+
 Still true, and measurably worse than when the file was written: its transcript shows 102 entries;
 `methods symbol =` now returns **154**, of which exactly **4** are real assignment methods
 (`RawMutableMatrix _ Sequence`, `MutableMatrix _ Sequence`, `IndexedVariableTable _ Thing`,

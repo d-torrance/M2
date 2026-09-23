@@ -1,3 +1,11 @@
+### What the file reports
+
+`TABLE` lays out a grid of cells for Macaulay2's output and documentation, and `printWidth` is the
+number of columns that output is meant to fit into. The two never meet: a table gives every cell the
+full width rather than dividing the available width between them, so two 80-column cells come out as
+a 150-column table while `printWidth` is 80. This file is that rendering, under Dan's note that the
+width is not being diminished at all.
+
 A `TABLE` does not divide the available width among its cells, so the rendered net is as wide as the
 sum of the cells regardless of `printWidth`.
 

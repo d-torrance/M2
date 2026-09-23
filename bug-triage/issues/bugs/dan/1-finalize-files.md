@@ -1,3 +1,10 @@
+### What the file asks for
+
+Writing to a file in Macaulay2 buffers the output, and `close` is what pushes the buffer to disk. This
+one-line file asks that a file object which becomes garbage — the variable holding it reassigned, with
+no `close` — be finalized, flushed and closed by the garbage collector rather than simply vanishing
+with whatever was still buffered in it.
+
 Unmet on all three counts — finalized, flushed, closed — and buffered data is genuinely lost, not
 merely delayed. Measured rather than read:
 

@@ -1,3 +1,10 @@
+### What the file asks for
+
+`run` executes a shell command from inside Macaulay2. Press Ctrl-C while one is running and the
+interrupt goes to the child; what happens to M2 itself is the part worth knowing, and the answer is
+that `run` ignores the interrupt and reports it in its return code instead — 2, for `SIGINT`. This
+one-line file asks for that behaviour to be documented.
+
 Half met, and the other half is **contradicted** by the current text.
 
 ### The return-code half is documented

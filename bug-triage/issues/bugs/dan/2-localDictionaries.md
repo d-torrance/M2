@@ -1,4 +1,13 @@
-`localDictionaries` applied to a global symbol returns a dictionary that is not local, does not
+### What the file reports
+
+Macaulay2 resolves names through dictionaries, and `localDictionaries` is meant to hand back the ones
+belonging to the lexical scopes around something — a function's own local variables, as against the
+global ones. Asked about a *global* symbol it gives an answer anyway, and the answer is a package's
+private dictionary. These seven lines are that transcript, under Dan's comment: *"that dictionary
+doesn't look local"*.
+
+He is right, and it is worse than not looking local. `localDictionaries` applied to a global symbol
+returns a dictionary that is not local, does not
 contain the symbol, and is the same one whatever symbol you pass.
 
 ```m2

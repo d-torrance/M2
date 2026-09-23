@@ -1,4 +1,9 @@
-`topCoefficients` segfaults on any matrix with two or more rows in which some component does not
+### What the file reports
+
+`topCoefficients f` extracts the leading coefficients of `f` with respect to the first variable of
+its ring. These three lines hand it a 3-by-2 matrix, and the third is annotated *"CRASH!!"*.
+
+It still crashes. `topCoefficients` segfaults on any matrix with two or more rows in which some component does not
 involve the top variable. Two entries are enough:
 
 ```m2

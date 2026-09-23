@@ -1,4 +1,9 @@
-Never adopted: `fsanitize` appears nowhere in the tree, and no CI workflow builds with a sanitizer.
+### What the file asks for
+
+Most of the file is a 2013 blog post, quoted whole, announcing that Clang had gained an integer
+overflow checker reachable as `-fsanitize=integer`. The ask is the line above it: try it on Macaulay2.
+
+Nobody has. `fsanitize` appears nowhere in the tree, and no CI workflow builds with a sanitizer.
 
 ### What has changed since the file was written
 

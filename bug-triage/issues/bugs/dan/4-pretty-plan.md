@@ -1,3 +1,11 @@
+### What the file is about
+
+`pretty` is a pretty-printer in Macaulay2: it lays a value out across several lines and respects
+`printWidth` while doing it. This file is Dan's plan for it from 2006 — two options he meant to add,
+one for choosing which types to descend into and one for readability, along the lines of
+`toExternalString` — kept together with the exchange with Mike Stillman that prompted them, where Mike
+adds that a machine-readable variant would be welcome too.
+
 `pretty` has been declared experimental since 2006, its only method is `undocumented`, and no
 package or Core function calls it. It is worth deciding whether to document it or drop it.
 

@@ -1,4 +1,13 @@
-`prune` on a quotient ring recomputes everything on every call. The module version caches; the ring
+### What the file is about
+
+Forming a quotient ring `S/I` takes a Gröbner basis of `I`, and so do `trim`, `prune` and
+`flattenRing` applied to the result. Compute that basis once and keep it and all of those are cheap;
+recompute it each time and they are not. This file is Mike timing exactly that sequence with
+`gbTrace` turned up, annotating the lines that recompute — *"PROBLEM: we do not want to copy the
+GB!!"*, *"recomputing the GB FIX"* — and marking where fixes later landed.
+
+One of the marked lines is still slow. `prune` on a quotient ring recomputes everything on every
+call. The module version caches; the ring
 version does not.
 
 ```m2

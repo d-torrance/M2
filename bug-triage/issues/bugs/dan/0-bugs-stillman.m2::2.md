@@ -1,3 +1,10 @@
+### What the request is about
+
+`monomials f` returns the monomials that appear in `f`. Mike Stillman's note is that applied to a
+matrix with more than one row the answer comes out "messed up", pointing at the test in the
+documentation; Dan's reply appended underneath — *"what's the problem?"* — is the question this issue
+answers. The answer is that the code is right and the documentation is wrong.
+
 `Macaulay2Doc/functions/monomials-doc.m2` describes a one-row output and says each monomial appears once.
 Neither holds once the argument is a matrix with more than one row, which is the case the request is about.
 
@@ -75,13 +82,5 @@ This is distinct from [#4647](https://github.com/Macaulay2/M2/issues/4647), whic
 nodes under `Macaulay2Doc/operators/`; this one is a function node whose content is wrong rather than whose
 style is old.
 
-### Provenance
-
-The request is one line of a 2005 scratchpad, and the reply beneath it is the whole reason it is still here:
-
-> `-- 'monomials' applied to a matrix with more than one row is coming out messed up`
-> `-- see the test in functions/monomials-doc.m2`
->
-> &nbsp;&nbsp;&nbsp;&nbsp;`what's the problem? [drg]`
 
 The problem is the documentation, and the file it points at is the file that has it.

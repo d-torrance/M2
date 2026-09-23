@@ -1,3 +1,11 @@
+### What the file reports
+
+`R_0`, `R_1`, … name the generators of a ring `R` by index, and `R_0..R_3` is the range of them, which
+ought to be four elements of `R`. Create a second ring over the same variable symbols, though, and
+from then on `R_0..R_3` yields bare `IndexedVariable`s instead of ring elements — permanently, for the
+rest of the session. This file is Dan's report together with the implementation of `..` he traced it
+to, ending on the observation that is the mechanism: *"when v is changed, it is changed permanently!"*
+
 Still reproduces, and one call earlier than the file reports.
 
 ```m2

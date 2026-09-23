@@ -1,3 +1,12 @@
+### What the file is about
+
+A Galois field `GF(p, n)` is `ZZ/p` modulo an irreducible polynomial of degree `n`, and which
+polynomial to use is a real choice. A sparse one is cheap to compute with but expensive to search for;
+the tabulated Conway polynomials are canonical and instant to look up, but the table only goes so far.
+Most of this file is a 2009 PARI mailing-list thread quoted whole, in which PARI's maintainers explain
+how `ffinit` chooses and why. Dan kept it for the one line at the top — *"Maybe pari's equations for
+finite fields are better"* — because M2 faces the same choice.
+
 Unmet — and the answer turns out cheaper than the file imagined, because the sparse modulus it wants is
 already available inside M2. Reframed onto FLINT, since PARI left the tree in `e79bd82855` (2025-03-07).
 

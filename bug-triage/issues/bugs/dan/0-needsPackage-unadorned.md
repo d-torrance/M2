@@ -1,11 +1,14 @@
-`needsPackage` still has no `Using` option. Its options are `LoadDocumentation`, `Configuration`,
-`FileName`, `Reload` and `DebuggingMode`.
-
 ### What the file asks for
 
-`needsPackage(..., Using => false)`: load the package but put a dictionary on `dictionaryPath` holding
-only the **synonym** symbols — the ones containing `$` — so the package's names are reachable
-explicitly (`foo$Pkg`) without being dumped into scope unadorned.
+Loading a Macaulay2 package puts its exported names into scope unadorned, so after loading, `graph`
+means that package's `graph`. Every exported symbol also has a qualified *synonym* spelling containing
+a `$` — `foo$Pkg` — which is what M2's shadowing warning tells you to use when two packages claim
+the same name. This file asks `needsPackage` and `loadPackage` for an option, `Using => false`, that
+loads a package with a dictionary holding only those synonyms on `dictionaryPath`: the package's names
+stay reachable explicitly, but nothing is dumped into scope unadorned.
+
+No such option exists. `needsPackage` takes `LoadDocumentation`, `Configuration`, `FileName`, `Reload`
+and `DebuggingMode`, and nothing else.
 
 ### Why it is worth having
 

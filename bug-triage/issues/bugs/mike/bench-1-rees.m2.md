@@ -1,4 +1,13 @@
-`reesIdeal(I, a)` — the two-argument form, whose comment in the source reads "the following method, usually
+### What the file is about
+
+The Rees algebra of an ideal is what M2 builds to study the ideal's powers, and `reesIdeal` computes
+the ideal defining it. It has two forms: `reesIdeal I`, and `reesIdeal(I, a)` for a non-zerodivisor
+`a` in the ideal, which the source describes as usually the faster of the two. This file is a set of
+examples Mike wanted added to the `ReesAlgebra` benchmarks, timing both forms against each other —
+and on the very first one the supposedly faster form is annotated *"doesn't finish before I get
+impatient (10 min?)!"*
+
+That is still the case. `reesIdeal(I, a)` — the two-argument form, whose comment in the source reads "the following method, usually
 faster" — does not finish on a 7-variable monomial curve where the one-argument form takes two seconds:
 
 ```m2

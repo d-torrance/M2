@@ -1,3 +1,11 @@
+### What the file asks for
+
+A package that depends on another declares it in its `newPackage` call, through `PackageImports` or
+`PackageExports` — which load the dependency at the right moment and decide whether its names are
+passed on to the loading user. Calling `needsPackage` in the body of a package instead does neither
+reliably. This file is a 2012 grep across the distributed packages listing every place that happens,
+with the instruction to replace them all.
+
 89% done, and what remains is a finite, checkable list rather than an open-ended sweep.
 
 ### Where it stands

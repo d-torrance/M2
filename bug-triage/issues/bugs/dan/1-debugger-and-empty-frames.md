@@ -1,3 +1,10 @@
+### What the file reports
+
+When an error drops you into the Macaulay2 debugger, typing `end` is supposed to leave the current
+frame and put you back in the function that called it, where you can inspect the caller's variables.
+This file is four lines in which that does not happen — `g` calls `f`, `f` divides by zero, and `end`
+returns straight to the top level with `g` skipped entirely. Dan's comment calls it counter-intuitive.
+
 Reproduces — and it is not merely counter-intuitive, as the file says. It **contradicts the
 documentation**.
 

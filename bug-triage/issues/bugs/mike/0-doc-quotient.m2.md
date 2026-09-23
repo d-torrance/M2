@@ -1,4 +1,10 @@
-`(quotient, Ideal)` shares a documentation node with `comodule`, and that node says the output is a
+### What the file reports
+
+`quotient I`, for an ideal `I` of a ring `R`, gives the quotient ring `R/I`. These two lines say the
+documentation for it is wrong, and add that the `quotient` page ought to say something more besides.
+
+The first half is straightforwardly true. `(quotient, Ideal)` shares a documentation node with
+`comodule`, and that node says the output is a
 module. It is not — for an ideal, `quotient` returns a ring:
 
 ```m2

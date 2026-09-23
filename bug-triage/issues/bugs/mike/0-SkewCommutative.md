@@ -1,3 +1,10 @@
+### What the file reports
+
+In a skew-commutative — exterior — algebra the variables anticommute, and a variable therefore
+squares to zero. This file builds one whose variables have degrees 1, 2 and 3, asks for `b^2`, gets
+`0`, and marks it: *"is this really what we intend?"* The question is a real one, because the usual
+sign rule depends on degrees, and `b` here has even degree.
+
 The [`"exterior algebras"`](https://github.com/Macaulay2/M2/blob/development/M2/Macaulay2/packages/Macaulay2Doc/ov_rings.m2#L1242-L1257)
 documentation node states a degree-dependent commutation rule:
 

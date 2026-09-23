@@ -1,3 +1,9 @@
+### What the file reports
+
+`scc1` is the compiler that translates the `.d` sources of the M2 interpreter into C. This two-line
+file says that handing it an input file named `string.d` makes it crash — not reject the file with a
+diagnostic, but die.
+
 Reproduced. Copy any `.d` file to `string.d` and run `scc1` on it:
 
 ```

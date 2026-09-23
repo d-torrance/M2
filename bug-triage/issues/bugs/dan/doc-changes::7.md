@@ -1,4 +1,11 @@
-`Ideal ? Ideal` is not defined, so a list of ideals cannot be sorted:
+### What the request is about
+
+`?` is Macaulay2's comparison operator: `a ? b` answers `<`, `=` or `>`, and `sort` is built on it.
+This entry is a single line from a list of documentation changes Dan was keeping, and it sits between
+the `==` and `!=` entries, among the comparison operators — which is what fixes it as a request for
+the *binary* comparison on ideals rather than the unary `? I` that prints brief documentation.
+
+That binary form is not defined, so a list of ideals cannot be sorted:
 
 ```m2
 i1 : R = QQ[x,y];
@@ -44,16 +51,9 @@ necessary because it does two `isSubset` calls, and asks why some code there is 
 equality and its cost; this is an arbitrary ordering for sorting. They would be fixed in different places, though anyone
 touching ideal comparison may want to look at both.
 
-### Provenance
+### The rest of the file
 
-One entry from `bugs/dan/doc-changes`, which reads simply:
-
-```text
-?	? for ideals?
-```
-
-It sits between the `==` and `!=` entries, among the comparison operators, which is what settles it as the binary reading
-rather than the unary one. The remaining 32 entries of that file were triaged in the same pass and are recorded in the
-catalogue.
+The remaining 32 entries of `bugs/dan/doc-changes` were triaged in the same pass and are recorded in
+the catalogue.
 
 Searched titles for `compare ideal`, `sort ideal` and `codim`, and comments for `Ideal ? Ideal`; nothing tracks this.

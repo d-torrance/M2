@@ -1,3 +1,12 @@
+### What the file reports
+
+`newPackage(..., Reload => true)` re-reads a package into a running session, which is how a package
+gets developed without restarting M2. Everything belonging to the previous copy ought then to become
+garbage. This file is a loop that reloads under a memory limit, on the suspicion that it does not, and
+it names two leaks. One of them is the `Attributes` table — the side table M2 uses to record facts
+about an object that cannot live on the object itself, such as the `ReverseDictionary` entry that lets
+a value print under the name it was assigned to.
+
 The `Attributes` half reproduces and is measurable:
 
 | | `Attributes` entries |

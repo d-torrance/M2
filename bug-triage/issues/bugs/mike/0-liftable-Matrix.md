@@ -1,3 +1,11 @@
+### What the file asks for
+
+`lift(f, R)` moves an element or a matrix down into a smaller ring, when what it is made of actually
+lives there; `liftable(f, R)` is the predicate that says beforehand whether it will work. This file
+is Dan asking Mike for the engine-level predicate that would let `liftable` cover matrices —
+`rawMatrixLiftable`, beside the `rawMatrixLift` that already exists — with a stopgap definition in M2
+written out underneath.
+
 `lift` accepts matrices; `liftable` does not. So there is no way to ask whether a matrix can be lifted
 except by attempting the lift and catching the failure.
 

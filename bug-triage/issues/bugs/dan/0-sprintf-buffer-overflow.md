@@ -1,3 +1,9 @@
+### What the file asks for
+
+`sprintf` writes formatted text into a buffer the caller supplies, without knowing how large that
+buffer is, so every call is a potential overflow unless the buffer is provably big enough. This file
+is one line long and asks for M2's uses of it to be audited.
+
 The audit never happened. **14 bare `sprintf` calls** remain in `c/` and `d/`, and two of them are
 sized by their input rather than bounded:
 

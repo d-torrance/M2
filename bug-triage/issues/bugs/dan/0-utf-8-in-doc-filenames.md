@@ -1,3 +1,9 @@
+### What the file reports
+
+Macaulay2's documentation installs as one html file per node, and the filename is derived from the
+node's name by `toFilename`. A node called "Gröbner bases" therefore yields a filename with the raw
+UTF-8 `ö` still in it, which is the name Dan spotted in an installed 1.2 tree and wrote down here.
+
 Still generated. `toFilename` maps the ASCII specials through its `tt` table but passes multi-byte
 UTF-8 through unchanged, so the installed documentation holds **9 such names**, including the exact one
 this file names:

@@ -1,3 +1,9 @@
+### What the request is about
+
+The documentation node for `hilbertPolynomial` of a module has part of its worked example commented
+out, because the computation it contained was failing. Laura Gold's request is the obvious
+consequence: once that bug is fixed, the comments should come off.
+
 The request came with its own closing condition — *"When the bug gets fixed, the comments need to be removed"* — and that
 condition is now met, so this is a small piece of housekeeping that has simply been waiting a long time for someone to
 notice.

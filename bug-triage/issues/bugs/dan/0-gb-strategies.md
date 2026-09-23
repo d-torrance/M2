@@ -1,11 +1,17 @@
-Not done, and both halves of the file's design are still visible in the current code.
+### What the file asks for
+
+`gb` computes a Gröbner basis, and its `Strategy` option picks the algorithm from a fixed set the
+interpreter knows about. Some classes of ring admit a far better algorithm than the general one — the
+`BooleanGB` package has one for Boolean rings — but nothing lets a ring tell `gb` about it, so such a
+package has to export its own entry point and users have to know to call it instead. This file
+sketches the alternative.
 
 ### The state today
 
-`gb.m2` keeps a fixed `RawStrategyCodes` table and errors on an unrecognized strategy name, so there
-is no way for a ring to introduce one. And `BooleanGB` does exactly what the file was written to
-avoid: it exports `gbBoolean` as a separate entry point, rather than registering a strategy that
-ordinary `gb` would find.
+Not done, and both halves of the problem are still visible. `gb.m2` keeps a fixed `RawStrategyCodes`
+table and errors on an unrecognized strategy name, so a ring has no way to introduce one. And
+`BooleanGB` does exactly what the file was written to avoid: it exports `gbBoolean` as a separate
+entry point, rather than registering a strategy that ordinary `gb` would find.
 
 ### What the file proposes
 

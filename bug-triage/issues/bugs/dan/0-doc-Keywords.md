@@ -1,7 +1,12 @@
-The four examples in the file are all aliases from *other systems* — `solve` for `RationalPoints`,
-`Normalform` for `%`, `inList`/`element` for `member`, `Inheritance`/`Parent` for `showStructure` — so
-what is being asked for is discovery by synonym: a user who knows another system's vocabulary should
-find M2's node.
+### What the file asks for
+
+`about` is Macaulay2's documentation search: it looks through the documentation for a string and lists
+the nodes that mention it. Because it searches the text that happens to be there, a node is findable
+only under the words its author wrote. This file collects user requests for a second, author-declared
+set of words per node — `Normalform` should find `%`, `solve` should find `RationalPoints`, `inList`
+and `element` should find `member` — largely the names other computer algebra systems use for the same
+operation — `Inheritance` and `Parent` for `showStructure` being the fourth. What is wanted is
+discovery by synonym: someone who knows another system's vocabulary should land on M2's node.
 
 ### What search does today
 

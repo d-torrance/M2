@@ -1,4 +1,12 @@
-Two threads assigning past the end of the same `MutableList` silently lose about a quarter of their
+### What the request is about
+
+A `MutableList` grows when you assign past its end: the underlying sequence is reallocated and the
+new slot filled in. This entry is one line from the removed file's inventory of what was *not yet
+re-entrant*, written in 2010 while M2's thread support was being built, and it names that growth path
+as unsafe to run from two threads at once.
+
+It is right, and the way it fails is silent. Two threads assigning past the end of the same
+`MutableList` silently lose about a quarter of their
 writes. No error is raised, and the list can end up shorter than the largest index that was assigned.
 
 ### The reproducer
@@ -93,14 +101,5 @@ A lock around the reallocation would close it. If concurrent mutation of a share
 be unsupported rather than merely unimplemented, saying so in the documentation would close it too — at
 present nothing says either way, and the failure is silent, which is the worst combination.
 
-### Provenance
-
-This is the one item listed under "not yet re-entrant" in the removed file's own inventory, written in 2010
-while the thread system was being built:
-
-> not yet re-entrant :
->
-> &nbsp;&nbsp;&nbsp;&nbsp;storing an entry into a mutable list at a position greater than the size,
-> causing the list to be enlarged
 
 The rest of that inventory has held up. This one entry is unchanged fifteen years later.

@@ -1,4 +1,12 @@
-`SortStrategy` is documented as *"Not implemented yet."* but the engine reads it, validates nothing, and
+### What the file is about
+
+`res` computes a free resolution, and takes a row of options saying how — `Strategy`, `SortStrategy`,
+degree and pair limits. This file's opening line states its purpose: *"Determine the options to
+resolution"*. It is Mike running one large resolution over a 20-variable ring under setting after
+setting to find out what each of them does.
+
+One of them should not be doing anything at all. `SortStrategy` is documented as *"Not implemented
+yet."* but the engine reads it, validates nothing, and
 two of its bit values fail — one by crashing, one by silently returning a resolution that is not minimal.
 
 Six variables are enough:

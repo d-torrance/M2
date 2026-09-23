@@ -1,3 +1,11 @@
+### What the file reports
+
+Macaulay2 draws mathematics in plain text, stacking fractions, matrices and exponents across several
+lines. When the base of a power is itself several lines tall — a quotient ring drawn as a fraction, say
+— the exponent is placed level with the base's baseline, part way down it, instead of up at the top
+where it belongs. This file is the transcript, with Dan's own arrow marking where the `6` should have
+gone.
+
 Reproduces byte for byte, and the cause is one line.
 
 `net Superscript` (`expressions.m2:774-779`) raises the exponent by `1 + depth n`, computed from the

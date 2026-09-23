@@ -1,5 +1,9 @@
-Still hand-maintained, and the file's own comment is still in the tree: `d/Makefile.files.in` lists
-the `e/*.hpp` dependencies literally and carries `should automate these dependencies`.
+### What the file asks for
+
+The Macaulay2 interpreter's sources in `d/` compile to objects that include engine headers from `e/`,
+so a change to an engine header has to rebuild the right `d/*.o` files. Which object depends on which
+header is written out by hand in `d/Makefile.files.in` — which still carries its own note reading
+`should automate these dependencies`. This one-line file asks for that list to be generated instead.
 
 ### Why it matters
 

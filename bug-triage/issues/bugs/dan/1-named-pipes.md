@@ -1,3 +1,8 @@
+### What the file reports
+
+`openInOut` opens a channel that Macaulay2 can both read from and write to. A named pipe — a fifo
+sitting on the filesystem — is among the obvious things to point it at. This one-line file says that
+does not work.
 
 `openInOut` accepts `"-"`, a `$host:service` socket, a `!cmd` pipe and a listener. For anything
 else — any ordinary filename, including a named pipe — it errors, and has since 1998:

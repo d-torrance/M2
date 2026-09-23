@@ -164,12 +164,35 @@ def prose_for(key):
         return f.read().strip() or None
 
 
+def fenced(text):
+    """One request, fenced so it reads as a quotation from a file.
+
+    It was a blockquote until a reader reported these issues read as though
+    they start mid-story.  A blockquote of one elliptical line sits in the same
+    register as our own prose; a fence says "this is the file, not us".  The
+    fence grows past any backtick run inside the text, so a request containing
+    ``` cannot break out -- same reasoning as bin/push-project's fenced.
+    """
+    text = text.rstrip("\n")
+    ticks = "```"
+    while ticks in text:
+        ticks += "`"
+    return "%stext\n%s\n%s" % (ticks, text, ticks)
+
+
 def body_for(ask, prose):
     """The whole body of an issue filed from one ask.
 
     Provenance and attribution first, then the ask verbatim, then the commentary
     -- the same order bin/push-project uses, for the same reason: a reader has to
     know who wrote this before weighing it.
+
+    Two changes made after a reader reported that these issues "start in the
+    middle of the story".  The preamble is cut to two short sentences, matching
+    issue_body_for; and the request is fenced rather than blockquoted, so it is
+    visibly somebody else's words from a file rather than prose of ours.  The
+    third part of that fix is in the prose itself, which now opens by saying
+    what the request is about instead of straight into whether it is met.
     """
     fields = []
     for column, label in (("verdict", ""), ("disposition", "disposition"),
@@ -189,20 +212,18 @@ def body_for(ask, prose):
         # the comment at project.ASK_MARKER.
         "<!-- bug-triage-ask: %s -->" % catalog.ask_key(ask), "",
         "---", "",
-        "This issue was triaged from one request inside `%s`, one of the 857 files "
+        project.ATTRIBUTION, "",
+        "It comes from one request inside [`%s`](%s), one of the 857 files "
         "removed from the pre-GitHub `bugs/` tree by %s and catalogued in "
-        "[#36](%s/issues/36).  That file is a wishlist holding several unrelated "
-        "requests, so its asks were split apart and filed separately rather than "
-        "as one issue nobody could close.  **The commentary below was written by "
-        "Claude (Claude Opus 5, via Claude Code)**, not by %s, whose account "
-        "posted it -- please weigh it accordingly."
-        % (ask["path"], project.linkify("d2c8d27826"), project.REPO_URL,
-           project.ACCOUNT),
+        "[#36](%s/issues/36).  That file is a wishlist of unrelated requests, "
+        "so they were filed one at a time; this is the request, quoted exactly, "
+        "and what it means today follows it."
+        % (ask["path"], project.file_url(ask["path"]),
+           project.linkify("d2c8d27826"), project.REPO_URL),
         "", "### The request, verbatim", "",
-        "> " + "\n> ".join((ask["ask"] or "").split("\n")), "",
-        "The rest of the file is unrelated to this request; it is linked in the "
-        "footer below.", "",
-        "### Where it stands today", "",
+        fenced(ask["ask"] or ""), "",
+        # Headings belong to the prose, not here -- see the note at the same
+        # point in bin/push-project's issue_body_for.
         project.linkify(prose), "",
         "<sub>%s &middot; source of truth: [`bug-triage/asks.tsv`](%s)</sub>"
         % (" &middot; ".join(fields),

@@ -1,3 +1,11 @@
+### What the file reports
+
+A Macaulay2 documentation node lists the optional arguments of the function it documents, each linked to
+its own page, and the documentation builder warns about any option left undocumented. This file is
+Dan's observation that for `symmetricAlgebra` neither half works: the build warns about only three of
+its options while `options symmetricAlgebra` shows twelve, and the installed html page carries links to
+none of them.
+
 The html half of this was fixed in direct response to the file — and then silently undone.
 
 ### The history

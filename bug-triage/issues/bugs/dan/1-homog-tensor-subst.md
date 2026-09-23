@@ -1,3 +1,11 @@
+### What the file reports
+
+`A ** B` forms the tensor product of two polynomial rings, so `C = A ** B` contains a copy of each,
+and `substitute(m, C)` carries a matrix over `A` into it. That ought to preserve the degrees the
+entries had — and does not: they all come back zero, and the matrix is no longer homogeneous. This
+file is that transcript, with Dan's own diagnosis of what is missing: `substitute` is not paying
+attention to how `C` was constructed from `A`.
+
 Reproduces byte for byte:
 
 ```m2

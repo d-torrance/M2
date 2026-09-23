@@ -1,3 +1,10 @@
+### What the file asks for
+
+Macaulay2 lets a package register an alternative algorithm for a built-in function as a *hook*, filed
+under a `Strategy` name, so that `Hom` or `Ext` can be computed a different way once that package is
+loaded — without the package having to overwrite the method. This one-line file asks for that
+mechanism on `Hom` and `Ext`, so the D-module packages could supply theirs.
+
 Filed as the general gap rather than the D-module one, because the general gap is what blocks anybody.
 
 ### `Hom` is hookified; `Ext` is not

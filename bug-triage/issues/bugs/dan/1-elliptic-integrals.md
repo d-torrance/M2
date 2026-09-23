@@ -1,3 +1,12 @@
+### What the file asks for
+
+`EllipticIntegrals` is a Macaulay2 package for computing with elliptic curves over the complex
+numbers, where a curve carries a lattice of periods and `Period` and `Period'` are its two generators.
+These five lines are Dan's notes-to-self about the package's own correctness: check that the branch
+cuts of its `E.log` are not pathological, and check the sign of the imaginary part of the second
+period — the second carrying the observation that the paper the value comes from has the complex
+conjugate of what the package asserts.
+
 Neither check was done, and the source says so.
 
 ### The sign of the second period

@@ -1,3 +1,13 @@
+### What the file is about
+
+Macaulay2 caches expensive results, so asking for a Gröbner basis twice computes it once and reads the
+cache the second time. Sometimes you want the opposite — to time a fresh computation, say — which means
+reaching into the cache and removing the entry by hand. This file is a 2006 exchange between Mike
+Stillman and Dan on that subject. Mike opens by reporting that the manual's description of how to do it
+no longer works, and the two of them go on to discuss what a supported replacement would have to mean:
+a `Cache => false` option on `gb` and `res`, and a `clearCache` whose hard question is how far from an
+object its caches should be cleared.
+
 Two live asks, and the first is a verified documentation defect.
 
 ### The manual documents a no-op

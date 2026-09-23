@@ -1,3 +1,11 @@
+### What the file reports
+
+Given two matrices, `quotientRemainder(f, g)` divides one by the other, and `f % g` is the remainder
+half of the same operation. This file records two things about them. The narrow one is an
+inconsistency: `%` insists the modules be free, while `quotientRemainder` accepts a non-free source,
+so the two disagree about the same input. The wider one is that it is not clear which of them is
+right — with a non-free source, Dan notes, the quotient may not be well defined at all.
+
 The inconsistency the file reports still stands, and it is easy to see side by side:
 
 ```m2

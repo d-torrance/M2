@@ -1,12 +1,14 @@
-`dumpdata`/`loaddata` were removed in `d560e8284a` (2019), and nothing replaced them. There is no
-fork server, no daemon mode, and no persistent-process mechanism of any kind, so every invocation of
-M2 pays full startup — which is precisely the cost the proposal was meant to amortize.
-
 ### What the file proposes
 
-A small protocol rather than a rewrite: one M2 process waits on a pair of pipes, forks on a start
-message, and lets the child take further arguments, return output and exit, while the parent stays
-warm for the next request.
+`dumpdata` and `loaddata` used to let M2 dump an initialized image and start from it, so a session did
+not have to redo its startup work every time. They stopped working everywhere and were removed in
+`d560e8284a` (2019), and nothing replaced them: there is no fork server, no daemon mode and no
+persistent-process mechanism of any kind, so every invocation of M2 pays full startup — precisely the
+cost an image was there to amortize.
+
+What the file sketches is a small protocol rather than a rewrite. One M2 process waits on a pair of
+pipes, forks on a start message, and lets the child take further arguments, return output and exit,
+while the parent stays warm for the next request.
 
 ### Why it still matters
 

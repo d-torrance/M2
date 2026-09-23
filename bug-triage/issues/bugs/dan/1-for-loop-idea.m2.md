@@ -1,3 +1,10 @@
+### What the file asks for
+
+Macaulay2's `for` loop either counts — `for i from 0 to 5 do ...` — or iterates over something, `for j
+in L do ...`. The `in` form takes anything iterable, a range of pairs included, so `(0,0)..(5,6)` runs
+through all nine of them. This file is Bart Snapp's suggestion that the counting form accept the same
+bounds, so `for i from (0,0) to (5,6)` means what the `in` spelling already means.
+
 This issue covers the whole `for`-bounds gap: `1-for-sequence-idea` and `1-for-by` are recorded as
 duplicates of it.
 

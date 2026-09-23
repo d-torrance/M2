@@ -1,3 +1,12 @@
+### What the file asks for
+
+`on` is Macaulay2's tracing facility: `on f` wraps `f` so that each call prints its arguments and its
+result. A *method function* such as `basis` is not one function but a table of methods, one per
+argument signature, and `on` wraps only the outer dispatcher — so tracing it tells you a call
+happened but not which method took it. This file asks that `on` reach the individual methods, supplies
+a draft patch doing so, and ends by noting that the draft's own classification of functions is already
+incomplete.
+
 Still unmet, and the obvious workaround does not reach the interesting case.
 
 ### Why `f = on f` is not enough

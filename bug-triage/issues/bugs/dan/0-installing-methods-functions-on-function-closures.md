@@ -1,3 +1,11 @@
+### What the file asks for
+
+In Macaulay2 `f X := g` installs `g` as the method for `f` on arguments of class `X` — but that only
+means anything if `f` is a *method function*, created by `method()`, which carries a table for the
+method to go into. `first` is not one: it is a plain closure, `first = x -> x#0`. So assigning a
+method to it has nowhere to write, and M2 accepts the line and quietly does nothing. This file asks
+for an error, and then names the reason one cannot simply be added.
+
 Still accepted silently:
 
 ```m2
@@ -5,9 +13,6 @@ i1 : first List := x -> x
 o1 = {*Function[stdio:1:15-1:17]*}
 o1 : FunctionClosure
 ```
-
-`first` is a plain function closure (`startup.m2`: `first = x -> x#0`), not a method function, so
-there is no method table for the assignment to write into. Nothing is installed and nothing is said.
 
 ### The complication the file names itself
 

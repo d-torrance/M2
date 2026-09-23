@@ -1,3 +1,11 @@
+### What the file reports
+
+`when` is the case statement of the language the M2 interpreter is written in: given a value whose
+type is a union, it dispatches on which member the value actually is, with an `else` for anything
+left over. The four lines in this file define a union of exactly two types and then handle both of
+them, so the `else` cannot be reached — and Dan's comment on the end, *"oops! This needs to be
+fixed"*, is that `scc1` compiles that situation wrongly instead of rejecting it.
+
 `scc1` still miscompiles it, and the failure is silent dead code rather than a diagnostic.
 
 With every case of the union covered:

@@ -1,4 +1,11 @@
-Still reproduces. A non-square matrix gets an "inverse" instead of an error:
+### What the file reports
+
+An inverse only exists for a square matrix. `inverse` — and `M^-1`, which is the same operation
+spelled as a power — never checks, so a 1×2 matrix comes back with a 2×1 "inverse". The stray `o34`
+line at the top of the file belongs to an unrelated example, since Dan was collecting several things
+he thought should error; the `inverse` lines are the one this issue is about.
+
+### It still behaves that way
 
 ```m2
 i1 : inverse matrix {{1,2}}
@@ -7,26 +14,22 @@ o1 = | 1 |
                 2        1
 o1 : Matrix ZZ  <--- ZZ
 
-i2 : (matrix {{1,2}})^-1              -- same answer by the other spelling
-```
+i2 : (matrix {{1,2}})^-1              -- the same answer, by the other spelling
 
-while the transpose is diagnosed correctly:
-
-```m2
-i3 : inverse matrix {{1},{2}}
+i3 : inverse matrix {{1},{2}}         -- the tall matrix, correctly refused
 stdio:3:1:(3): error: matrix not invertible
 ```
 
-So one orientation errors and the other returns a matrix that is not an inverse of anything —
-`matrix {{1,2}} * matrix {{1},{0}}` is the 1×1 identity, but the product the other way is not the 2×2
-identity, which is what "inverse" claims.
+So a wide matrix gets an answer, a tall one gets an error, and the answer is not an inverse of
+anything: `matrix {{1,2}} * matrix {{1},{0}}` is the 1×1 identity, but the product the other way round
+is not the 2×2 identity. The word "inverse" claims both.
 
 ### Why the two orientations differ
 
-The computation is a solve rather than an inversion: for a wide matrix a right inverse exists and is
-found, for a tall one nothing satisfies the system and the error fires. The bug is that `inverse` does
-not first insist on a square matrix, so a one-sided solution is returned under a name that promises a
-two-sided one.
+What `inverse` computes is a solve rather than an inversion. For a wide matrix a right inverse exists
+and is found; for a tall one nothing satisfies the system, so the error fires. The defect is that
+`inverse` never insists on a square matrix first, so a one-sided solution is returned under a name
+that promises a two-sided one.
 
 ### Related
 

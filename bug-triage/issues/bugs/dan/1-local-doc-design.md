@@ -1,3 +1,11 @@
+### What the file reports
+
+Macaulay2's manual includes a run of nodes that follow the Singular book, working its examples in M2.
+One of them builds a *local* ring — the monomial order is set so low-degree terms lead, which makes any
+element with a non-zero constant term a unit — and then prints `y % J`, the remainder of `y` on
+division by an ideal `J`. The node's own text tells the reader that the answer is WRONG. Dan's note is
+that it is not wrong: it is right, and for the reason the next clause of that same sentence gives.
+
 The passage the file objects to is still in the manual, at
 [`Macaulay2Doc/M2-Singular-Book.m2:351`](https://github.com/Macaulay2/M2/blob/development/M2/Macaulay2/packages/Macaulay2Doc/M2-Singular-Book.m2#L351),
 in the node **"Singular Book 1.4.9"**:

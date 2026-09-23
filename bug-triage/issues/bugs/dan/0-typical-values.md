@@ -1,3 +1,11 @@
+### What the file asks for
+
+When you install a method in Macaulay2 you can also declare the class its result normally has — its
+*typical value* — by naming that class before the function, as in `prune Matrix := Matrix => f`. The
+documentation machinery then renders the method with the right return type. The same construction
+works for binary operators, `X + X := X => (x,y) -> ...`, and it is that spelling this two-line file
+asks to have documented.
+
 Undocumented, and the form works — which is the awkward combination, since a user has no way to learn
 about a feature that is fully functional.
 

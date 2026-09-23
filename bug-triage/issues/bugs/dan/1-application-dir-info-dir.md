@@ -1,3 +1,10 @@
+### What the file asks for
+
+Macaulay2 can install a package's documentation as a GNU info file, and `installPackage` writes one
+into the user's own prefix. Info readers do not find pages by looking at the directory; they consult an
+index file named `dir` that sits alongside them. This file is a directory listing showing exactly that
+gap — one `.info` file and no `dir` — and asks `installPackage` to create and maintain it.
+
 Still not done. `installPackage` writes an `.info` file into the user's Application Support tree but
 never creates or updates the `dir` index beside it.
 

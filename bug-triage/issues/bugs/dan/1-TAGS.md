@@ -1,3 +1,10 @@
+### What the file asks for
+
+A `TAGS` file is what lets an editor jump from a name to its definition. `etags` can include one tags
+file inside another, so tables built for separate directories can be presented as a single one. This
+two-line file observes that and asks M2 to use it, so that one `TAGS` covers the whole tree instead of
+one per directory.
+
 Unmet, and the specific mechanism the file proposes is nowhere in the tree.
 
 ### The state today

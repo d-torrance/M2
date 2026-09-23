@@ -1,3 +1,11 @@
+### What the file reports
+
+`NumericalAlgebraicGeometry` solves polynomial systems numerically by *homotopy continuation*: it takes
+the known solutions of an easy system and tracks them, in steps, along a path to the system you
+actually want. `track` and `trackHomotopy` are two entry points for that, and each records a
+`NumberOfSteps` on every solution it hands back. This file runs one problem through both and ends on
+Anton's note: *"NOTE THE DISCREPANCY in the number of steps reported"*.
+
 `track` and `trackHomotopy` both record a `NumberOfSteps` in each solution's cache, and
 [the documentation](https://github.com/Macaulay2/M2/blob/development/M2/Macaulay2/packages/NumericalAlgebraicGeometry/doc.m2#L445)
 gives it one meaning for both — *"number of steps taken on the corresponding homotopy path"*. The two

@@ -1,3 +1,11 @@
+### What the file asks for
+
+`pivots` of a matrix returns the position of the leading entry in each column. Which entry that is
+rests on an assumption — that the matrix is in column echelon form, so scanning a column from one end
+finds the right one. This file is Dan quoting the implementation and asking for two things: that the
+assumption be documented, and that every use of the function be checked against it. He says what
+prompted him, which is that he wrote the fallback path of `minimalPresentation Module` without knowing
+the assumption was there.
 
 `pivots` is unchanged from the code quoted above — `matrix2.m2:10-19`, `-- I wish this could be in
 the engine` comment included. It walks each column and returns the position of the first non-zero

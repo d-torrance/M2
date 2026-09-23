@@ -1,4 +1,11 @@
-`rawLinAlgDeterminant` on a matrix over the FLINT integer ring segfaults, and corrupts the heap on the way
+### What the file is about
+
+`ZZFlint` is one of the engine's alternative implementations of the integers, backed by the FLINT
+library and reachable from a session only after `debug Core`. This file is Mike putting it through
+its paces — arithmetic on elements, then random mutable matrices over it, then linear algebra on
+those — the sort of script written while working out whether an implementation is finished.
+
+It is not. `rawLinAlgDeterminant` on a matrix over the FLINT integer ring segfaults, and corrupts the heap on the way
 out, whenever any entry is zero. The 2-by-2 identity matrix is enough:
 
 ```m2

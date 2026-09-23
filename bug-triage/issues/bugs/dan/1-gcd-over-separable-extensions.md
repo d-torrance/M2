@@ -1,3 +1,10 @@
+### What the file asks for
+
+Over an extension field such as `QQ[a]/(a^2-2)`, the coefficient arithmetic is governed by the minimal
+polynomial: `a^2` is 2, not some new quantity. A `gcd` of two polynomials with coefficients there has
+to work in that arithmetic to be right. These two lines ask for `gcd` over separable extensions,
+sketching the approach — that every scalar is, up to a unit, an idempotent.
+
 Unmet — and rather than declining, `gcd` returns a common divisor that is **not greatest**.
 
 ### The counterexample

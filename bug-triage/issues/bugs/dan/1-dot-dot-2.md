@@ -1,3 +1,11 @@
+### What the file reports
+
+`vars n` returns the n-th variable in a standard naming scheme Macaulay2 keeps, and `..` between two
+symbols runs through that scheme from one to the other, so `a .. e` gives the first five letters. The
+scheme continues past the letters — negative indices produce `X11`, large ones produce `x0` — but `..`
+cannot look those generated names back up. The two lines in this file are that failure, next to the
+`vars` call that produces the very name it rejects.
+
 Reproduces cold, and the order of the file's two lines matters — which is worth knowing before testing it.
 
 ```m2

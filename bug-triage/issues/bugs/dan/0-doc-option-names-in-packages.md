@@ -1,15 +1,22 @@
+### What the file asks for
+
+An optional argument in Macaulay2 is named by a symbol, so a package defining its own options defines
+symbols for them. Those symbols have to be exported or the package will not install — and nothing
+tells an author so. This file asks for the requirement to be documented, and for the error that
+enforces it to explain itself.
+
 Verified, and the file misplaces the error, which is worth correcting on the way in.
 
 ### The behaviour
 
-A package-defined option name must be exported, or installing the package fails:
+The failure looks like this:
 
 ```
 error: mutable unexported unset symbol(s) in package MyPkg: 'MyOpt'
 ```
 
-Exporting it installs cleanly. This is undocumented — neither Macaulay2Doc nor the wiki style guide
-mentions the requirement, which is what the file asks to fix.
+Exporting `MyOpt` installs cleanly. Neither Macaulay2Doc nor the wiki style guide mentions the
+requirement, which is what the file asks to fix.
 
 ### Where the error actually comes from
 

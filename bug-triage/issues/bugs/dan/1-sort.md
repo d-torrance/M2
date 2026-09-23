@@ -1,3 +1,9 @@
+### What the file asks for
+
+`sort` puts a list in order. These three lines are Dan's notes on making its internals better: make the
+internal sort non-recursive, so that sorting 50000 equal things takes a hundredth of a second rather
+than however long it was taking; perhaps tally the elements first, to spot the duplicates; and make
+sure the whole thing can be interrupted.
 
 Two of the three requests above are unmet, and the measurements are worse than the note suggests —
 the duplicate case it names is not the slowest one.

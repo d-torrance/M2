@@ -1,3 +1,10 @@
+### What the file reports
+
+`substitute(I, {x => y})` rewrites an ideal or an expression, sending the generators you name to the
+values you give. This file is a transcript of it refusing to do that between two rings that were built
+by calling the same function twice — identical in construction, but separate objects — and erroring
+about a generator the reader can see perfectly well in front of them. Dan's entire comment is
+*"sigh:"*.
 
 This still happens, and it is broader than the transcript above suggests: the failure is not about the
 coefficient generator, it is about substituting *any* generator between two rings that were built

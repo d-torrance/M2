@@ -1,4 +1,13 @@
-Two engine-level suggestions for speeding up `Schubert2`, recorded when the package was being written
+### What the file asks for
+
+`Schubert2` does intersection theory by computing in an *intersection ring*, a quotient of a
+polynomial ring whose elements are cycle classes. This file is two suggestions for making that
+faster, written while the package was being built: give the engine a dot product of two polynomials,
+so that integrating a cycle class becomes one engine call against a table of the integrals of each
+monomial; and move `logg` and `expp`, the conversions between Chern classes and Chern characters,
+into the engine too.
+
+Two engine-level suggestions, recorded when the package was being written
 and still unimplemented. Filed so they are findable; neither is accompanied by a benchmark, here or in
 the original, so the case for either rests on the reasoning rather than on measurement.
 

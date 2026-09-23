@@ -1,5 +1,10 @@
-The file settles its own first half — it says `(FIXED)` for the `.installed` problem. The second half is
-unmet.
+### What the file asks for
+
+A package's documentation is compiled into a database that `installPackage` builds, with a `.installed`
+stamp recording that the work was done. This file raises two things and answers the first itself: that
+starting from a partial tree could leave the stamp in place while the database was never built — marked
+`(FIXED)` in the file — and that a database found missing ought to be rebuilt automatically, provided
+the directory is writable. The second half is unmet.
 
 ### What is missing
 

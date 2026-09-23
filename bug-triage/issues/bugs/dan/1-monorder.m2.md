@@ -1,3 +1,11 @@
+### What the file is about
+
+A ring's monomial order is given as a list of blocks — `GRevLex`, `Lex`, `Weights` and the rest —
+passed as the `MonomialOrder` option, and `Weights` can additionally be supplied as an option of its
+own beside it. This file is a set of twenty such ring declarations that Dan sorted into the ones
+behaving correctly and the ones that "should be fixed", several of them annotated with his own
+uncertainty about what the right answer was.
+
 Of the five items the file lists under "these should be fixed", two are done and one turns out not to
 be a defect. What is left is a single inconsistency, and it is the part worth fixing.
 

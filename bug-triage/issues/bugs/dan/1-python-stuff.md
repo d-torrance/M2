@@ -1,3 +1,11 @@
+### What the file asks for
+
+Macaulay2 embeds CPython, and its `Python` package lets an M2 session hold Python values as objects of
+type `PythonObject`. CPython manages memory by reference counting: whoever takes a reference to an
+object is responsible for giving it back with `Py_DECREF`, or the object is never freed. These three
+lines ask that M2 do that when it is finished with a wrapped object, that the interface be checked for
+leaks, and — separately — that somebody write a worked example of a C library loaded through a Python
+module.
 
 Of the three requests above, the third is done and the first two are one thing: M2 acquires a
 reference to every Python object it wraps and never releases it.

@@ -1,3 +1,11 @@
+### What the file reports
+
+Computing `gcd` of two polynomials means doing arithmetic in their coefficient ring. Macaulay2 has
+two ways of naming the same finite field — `GF(3,4)`, which constructs it, and `toField` applied to a
+quotient the user knows to be a field — and `gcd` does not treat them alike. This file works through
+both spellings, records which of them `gcd` accepts, and ends on the complaint that the documentation
+mentions none of it: *"doc is lacking"*.
+
 `gcd` refuses to work over a field extension built with `toField`, while working over the `GF`
 spelling of the same field. Both rings below are fields of order 81:
 

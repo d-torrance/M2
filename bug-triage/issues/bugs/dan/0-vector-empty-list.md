@@ -1,7 +1,12 @@
-Still no empty vector, and the message has got **worse** since the file was written.
+### What the file reports
 
-The file records `vector {}` failing with "expected nonempty list" from `matrix1.m2:276`. Today it dies
-further in, inside `vector Matrix`:
+`vector` builds a vector — an element of a free module — out of a list of entries. Handed the empty
+list it has no ring to build over and no rank to build to, so it fails; the file is the transcript of
+that failure, from a 1.4 session in 2011.
+
+There is still no way to get an empty vector, and the message has got **worse** since. The file
+records `vector {}` failing with "expected nonempty list" from `matrix1.m2:276`. Today it dies further
+in, inside `vector Matrix`:
 
 ```m2
 i1 : vector {}

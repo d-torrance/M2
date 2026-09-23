@@ -1,4 +1,12 @@
-`kernel RingMap` accepts `DegreeLimit`, `SubringLimit` and `Strategy`, and honours them. The two
+### What the file asks about
+
+`pushForward1` computed the image of a module along a ring map, and carried a row of options for
+steering the computation — degree and pair limits, a strategy, stopping conditions. It was superseded
+by `coimage`. This file is Dan asking Mike whether the loss of those options matters, with `options
+pushForward1` and `options coimage` printed one after the other to show what went missing.
+
+They are still missing, and it is not only `coimage`. `kernel RingMap` accepts `DegreeLimit`,
+`SubringLimit` and `Strategy`, and honours them. The two
 one-line functions in `ringmap.m2` that exist only to call it accept no options at all, so those
 controls cannot be reached through them.
 

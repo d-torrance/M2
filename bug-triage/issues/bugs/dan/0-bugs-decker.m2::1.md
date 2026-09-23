@@ -1,4 +1,12 @@
-The `minimalPrimes` documentation tells the reader that decomposition does *not* happen over the extension
+### What the request is about
+
+An ideal can be decomposed into primes over the coefficient field you are working in, or over an
+extension of it where those factors break up further — the *absolute* decomposition. The
+`minimalPrimes` documentation raises that distinction and then leaves it there. Decker's request is
+that the example be finished by showing how `factor` behaves over an extension field, prefaced by the
+note that the interface to libfac wants doing first.
+
+The documentation still tells the reader that decomposition does *not* happen over the extension
 field, and then stops without showing what does. The passage is at
 [`MinimalPrimes/doc.m2:126-131`](https://github.com/Macaulay2/M2/blob/development/M2/Macaulay2/packages/MinimalPrimes/doc.m2#L126-L131):
 

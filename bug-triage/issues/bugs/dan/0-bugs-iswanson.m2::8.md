@@ -1,4 +1,11 @@
-The documentation for `GroupRevLex` ends with
+### What the request is about
+
+`GroupRevLex` is a monomial order that makes the first `n` variables of a ring invertible, so that
+`a^-1` is an element of the ring rather than of its fraction field. Irena Swanson's request reports
+that the order does not seem to be installed, and asks that the manual's lines about it be
+uncommented once it is.
+
+The situation has since inverted. The documentation for `GroupRevLex` ends with
 
 ```m2
      Caveat => { "This feature has not been implemented yet."}
@@ -58,17 +65,9 @@ so a caveat scoped to Gröbner bases may be warranted where the blanket one is n
 construction, arithmetic and `gb`, so there may be other gaps; that is precisely why this is filed as a question about
 the documentation rather than as a patch.
 
-### Provenance
+### The other half of the request, and the rest of the file
 
-One request from `bugs/dan/0-bugs-iswanson.m2`, which reads:
-
-```text
-GroupRevLex does not seem to be installed
-Then uncomment the lines in monomorderings.m2 in the manual
-for GroupRevLex.
-```
-
-The situation has inverted since. The manual lines are no longer commented out — `monomorderings.m2` is now
+The manual lines are no longer commented out — `monomorderings.m2` is now
 `ov_monomial_orderings.m2` and documents `GroupRevLex` at `:608`, with cross-references at `:93`, `:114`, `:168` and
 `:684` — so that half of the request is done. What remains is the opposite of what was reported: the feature is
 installed and the documentation says it isn't.

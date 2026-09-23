@@ -1,3 +1,13 @@
+### What the file is about
+
+A Gröbner basis computation goes much faster if it is told the Hilbert function in advance, and the
+same hint helps a free resolution. Both need the ring and the matrix to satisfy conditions first —
+singly graded, positive variable degrees, homogeneous in that grading — and something has to check
+them. This file is Mike Stillman asking Dan to add those checks to the front end, listing the
+conditions for each computation, with Dan's reply on top naming the two he could not do: there was no
+way to hand a resolution a Hilbert function hint at all, and no way to ask whether a matrix is
+homogeneous with respect to only the first component of its degree.
+
 Mike's list of tests is met. Dan's two exceptions are not, and this issue covers both.
 
 ### The predicates Mike wanted now exist

@@ -1,6 +1,13 @@
+### What the file asks for
 
-The note above proposes a `LocatedString` type. This issue files the need it names rather than that
-remedy, because M2 has since grown a cheaper mechanism for exactly this and one of the note's two
+When Macaulay2 reports an error in code it read from a file it can say where — filename, line, column.
+A string carries no such thing: once source text is inside a string, M2 has forgotten where it came
+from. This note asks that quoted strings, and strings returned by `get`, know their own position, and
+that `lines` and `substring` preserve it. It gives two motivations — `SimpleDoc`, which tracks line
+numbers by hand for want of this, and the error messages `value` produces — and proposes a new
+`LocatedString` type as the mechanism.
+
+This issue files the need the note names rather than that particular remedy, because M2 has since grown a cheaper mechanism for exactly this and one of the note's two
 motivations can be demonstrated as a plain defect.
 
 ### A documentation node's recorded location points at the next construct

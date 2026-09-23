@@ -1,3 +1,10 @@
+### What the file reports
+
+When an error stops Macaulay2 the debugger opens and the prompt changes from `i` to `ii`. `break` is
+the debugger command for getting back out of it. This file is a transcript in which it does not get
+you out: loading a package errors, `break` at the debugger prompt carries on into the *next* error in
+the same file, and the session is left sitting several debuggers deep.
+
 The documented behaviour and the actual behaviour disagree. `Core/code.m2:263` documents
 
 > `break` -- leave the debugger, returning to top level

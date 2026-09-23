@@ -1,4 +1,13 @@
-`pushFwd` cannot describe one Galois field as a module over a smaller one, although the same extension
+### What the file is about
+
+This file is Mike's list of five problems with Galois fields, annotated by him afterwards with which
+ones were dealt with; three are marked FIXED. The one this issue takes up is number 5, still marked
+TO BE DONE — *"module structure of one GF wrt a smaller one"* — with his note that it ought to be a
+special case of `pushForward`. Concretely: `GF(27)` sits inside `GF(729)`, and the ask is to describe
+the larger as a module over the smaller.
+
+That is still not possible. `pushFwd` cannot describe one Galois field as a module over a smaller
+one, although the same extension
 written as quotient rings works fine.
 
 ```m2

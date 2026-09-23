@@ -1,3 +1,11 @@
+### What the file asks for
+
+`map(R, S, L)` builds a ring homomorphism from `S` to `R` by saying where each generator of `S` is
+sent, `L` giving the destinations in order. There is also an option spelling — `{b => a}` — which
+names the generator instead of relying on its position. This file is a transcript of that spelling
+being refused for a map out of a tower `R[b]` down to `R`, with Dan's note that it would be nice if it
+worked.
+
 Option-style destinations are already supported — but only when the source and target are the same
 ring, which is why the file's example fails.
 

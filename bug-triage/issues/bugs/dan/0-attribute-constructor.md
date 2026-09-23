@@ -1,6 +1,15 @@
-Still emitted. `c/cprint.c:487` writes `__attribute__ ((constructor))` into the C that `scc1`
-generates, so every build of the interpreter depends on a GCC extension rather than on anything in
-the C standard.
+### What the file is recording
+
+The Macaulay2 interpreter is not written in C directly. Its sources are the `.d` files in
+[`Macaulay2/d/`](https://github.com/Macaulay2/M2/tree/development/M2/Macaulay2/d), written in M2's own
+language, and `scc1` — "the D to C translator", built in
+[`Macaulay2/c/`](https://github.com/Macaulay2/M2/tree/development/M2/Macaulay2/c) — turns them into C,
+which is what the build then compiles. Among the things `scc1` emits is one `<package>_prepare`
+function per source file, tagged so the linker runs it before `main`. The tag it uses is
+`__attribute__ ((constructor))`, a GCC extension with no ANSI C equivalent, and that is the whole of
+Dan's observation: not a bug anyone can trigger, but a portability debt in generated code.
+
+Still emitted, from `c/cprint.c:487`.
 
 ### Why it matters, and why it has not bitten
 

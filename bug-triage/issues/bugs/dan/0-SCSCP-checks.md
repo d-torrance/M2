@@ -1,3 +1,13 @@
+### What the file asks for
+
+SCSCP is the protocol M2's `SCSCP` package implements for talking to other computer algebra systems
+over a socket. Exercising it needs a running server, which is why its checks sit in the manual
+pre-release list `0-final-checks-before-distribution` instead of in CI: automating them would mean a
+build machine serving the network. Dan R's observation, quoted in the file, removes that objection —
+`startServer "127.0.0.1"` binds the loopback interface only, so a test server is unreachable from off
+the machine. The file asks that the checks be automated on that basis, with `make insecure-check` as
+the name for opting out deliberately.
+
 Not automated. The ingredient the file relies on does exist — `startServer(String,String)` accepts an
 interface to bind, so `startServer "127.0.0.1"` is available and gives the "only reachable from this
 machine" property the file wants. What was never built is the automation around it:

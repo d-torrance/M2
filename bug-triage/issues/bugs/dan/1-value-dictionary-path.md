@@ -1,3 +1,9 @@
+### What the file asks for
+
+`value` takes a string of Macaulay2 code and evaluates it. Every symbol in that string has to be
+resolved somewhere, and `value` resolves against `dictionaryPath` — a single global list belonging to
+the session. These two lines ask for a form of `value` that takes the dictionaries to look in as an
+argument instead.
 
 `value` resolves symbols against the ambient `dictionaryPath` and offers no way to override that for a
 single call. `methods value` has eight entries — `String`, `Nothing`, `IndexedVariableTable`,

@@ -1,3 +1,9 @@
+### What the file asks for
+
+Macaulay2 has an `Expression` type for holding mathematics unevaluated, so that it can be printed or
+rearranged rather than computed. `BinaryOperation` is the expression standing for an operator with two
+operands; there is no `UnaryOperation` for one with a single operand. This one-line file asks for it,
+so that `not` of an `Equation` can be finished.
 
 The `UnaryOperation` expression type does not exist. `git grep UnaryOperation` over the whole tree
 returns two lines, both inside comments: `expressions.m2:471` and a disabled `toOpenMath` method at

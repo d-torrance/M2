@@ -1,3 +1,12 @@
+### What the file reports
+
+`toField` tells Macaulay2 to treat a ring as a field. It takes that on trust rather than checking, so
+it can be handed something that is not one — `ZZ/101[a]/(a^2-1)`, say, where `a^2-1 = (a-1)(a+1)` and
+`a-1` is therefore a zero divisor. Dividing by such an element has to fail, and `getNonUnit` is the
+function that is meant to tell you afterwards which element was at fault. This file is Mike working
+through division in `toField` rings, two of its assertions annotated "still failing", and ending: *"one
+of these operations should say something about finding a zero divisor!!"*
+
 When `toField` is applied to a ring that is not in fact a field, dividing by a zero divisor is
 diagnosed well over a multivariate quotient and poorly over a univariate one. Adding an unused second
 variable to the same ring changes both the error message and whether the offending element is

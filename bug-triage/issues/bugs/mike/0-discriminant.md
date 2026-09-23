@@ -1,4 +1,13 @@
-`discriminant(f, x)` returns the resultant of `f` and `f'` without either of the normalizations that
+### What the file reports
+
+The discriminant of a polynomial vanishes exactly when it has a repeated root, and for `(x-a)(x-b)`
+it is `(a-b)^2`. This file computes it at degrees 2 and 3 and *adds* the product-of-differences that
+it ought to equal — getting `0` both times, where a matching convention would have given twice the
+value. So M2's answer is the negative of the expected one, which is the question the file ends on:
+*"Is the sign right?"*
+
+It is not, and the sign is only half of it. `discriminant(f, x)` returns the resultant of `f` and
+`f'` without either of the normalizations that
 turn a resultant into a discriminant, and the documentation does not say so. The standard definition is
 
 $$\operatorname{disc}(f) \;=\; \frac{(-1)^{n(n-1)/2}}{a_n}\,\operatorname{Res}(f, f')$$
@@ -74,7 +83,3 @@ against that issue and rewrites this same line, adding an early `if diff(f,x) ==
 guard around the `resultant` call. It does not change the normalization, so the two are independent —
 but they touch the same two lines and would want coordinating.
 
-### Where this came from
-
-Cataloguing the `bugs/` directory removed in d2c8d27826 (#36). `bugs/mike/0-discriminant` records the
-degree 2 and 3 identities above and asks simply: *"Is the sign right?"*

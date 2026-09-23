@@ -1,3 +1,11 @@
+### What the file is about
+
+`kernel f` for a ring map is computed by forming the graph ideal of `f` and taking a Gröbner basis of
+it, which is the expensive step. Knowing the ideal's Hilbert function in advance lets that computation
+be given a hint and go much faster — but the hint is only usable when the ideal is homogeneous. This
+file is Mike Stillman's 2008 recipe for the case where it is not: homogenize a Gröbner basis of `J`
+and the `f_i`, build the hint from the homogenized pieces, then dehomogenize and `forceGB` the result.
+
 Mike's 2008 recipe has three ingredients, and they have landed unevenly.
 
 ### The Hilbert-function hint: implemented, for degree-preserving maps

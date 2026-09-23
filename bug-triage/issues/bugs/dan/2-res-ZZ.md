@@ -1,3 +1,12 @@
+### What the file is about
+
+A free resolution presents a module as a chain of free modules and maps between them, and is
+*minimal* when no redundancy is left in it — the minimal resolution of the zero module is empty. This
+file is a 2006 exchange between Dan and Mike Stillman about `res` returning resolutions that are a
+step too long without noticing, from which Dan lists three tasks: make `res` keep going past the
+ring's global dimension where it must, work out why it inserted the presentation matrix as `dd_1`,
+and make it stop at the global dimension over `ZZ[x1,...,xn]`. This issue is the second of the three.
+
 Over a polynomial ring, `freeResolution` hands the given presentation matrix back as `dd_1` without
 minimizing it, so a module that is zero can get a free resolution of length 2.
 

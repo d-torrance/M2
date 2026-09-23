@@ -1,3 +1,9 @@
+### What the file reports
+
+`smithNormalForm A` computes the Smith normal form of a matrix, and its `ChangeMatrix` option says
+which of the two change-of-basis matrices to compute alongside it — the value is a list of two
+booleans, one per side. Hand it a list of one and M2 does not mention the option: it fails with an
+internal array-index error. These three lines are that transcript.
 
 Unchanged after seventeen years, message included:
 

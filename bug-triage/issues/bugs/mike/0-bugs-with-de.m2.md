@@ -1,4 +1,13 @@
-`graphIdeal` and `graphRing` declare `MonomialOrder` among their options and then discard it. The
+### What the file is about
+
+This file is a scratchpad of complaints about half a dozen functions — `graphIdeal`, `pushForward`,
+`basis`, `pushNonLinear` — a few lines apiece. The line this issue comes from is the second under
+`graphIdeal`: *"doesn't make use of options"*. `graphIdeal f` builds the ideal of the graph of a ring
+map inside a new ring that it constructs, and `MonomialOrder` is one of the options it accepts for
+that ring.
+
+It is accepted and then discarded. `graphIdeal` and `graphRing` declare `MonomialOrder` among their
+options and ignore it. The
 option is accepted without complaint and the result is identical to the default:
 
 ```m2

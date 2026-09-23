@@ -1,5 +1,14 @@
-The raw hooks exist and are complete; what is missing is any front end. And there are **two**
-implementations, which is the first thing to settle.
+### What the file asks for
+
+A *tower ring* represents a chain of simple extensions — `F5[a]/(a^2-2)[b]/(b^2-a)`, and so on — as a
+nested structure, instead of flattening it into one polynomial ring carrying relations. Macaulay2's
+engine has that representation, along with the univariate gcd and factorization algorithms it exists
+to serve. What it has never had is any way to reach it from an M2 session. This file is Dan's sketch
+of the missing front end: a constructor `engineTowerRing`, a `class EngineTowerRing`, quotients by a
+tower of relations, and `promote` and `lift` that work.
+
+The raw hooks are all there and complete. What complicates the request is that there are **two**
+implementations behind them, which is the first thing to settle.
 
 ### What exists
 

@@ -1,3 +1,10 @@
+### What the file asks for
+
+Macaulay2's manual can be installed as GNU info as well as html. A reader moves around an info manual
+by two means: a menu on each node, which the `m` key and the reader's table of contents both work from,
+and an `Index` node for looking a name up directly. This one-line file asks that the info documentation
+make both of those reachable.
+
 Half met, half never attempted — and the check that would have caught the gap has been switched off
 since 2009.
 

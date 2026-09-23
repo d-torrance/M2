@@ -1,3 +1,11 @@
+### What the file asks for
+
+`flattenRing` rewrites a tower of rings as a single quotient of a polynomial ring, handing back a ring
+map alongside it. These five lines point at two efficiencies, the second depending on the first: the
+flattened ring could reuse the engine's existing raw ring where the flattening does not really change
+it, and once a map's source and target share a raw ring, applying it could return its argument
+untouched instead of computing.
+
 Both halves unmet, and the second is measurable without the first — so it is the easier one to act on.
 
 ### Ring-map application never short-circuits

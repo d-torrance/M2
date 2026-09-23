@@ -1,4 +1,10 @@
-Fractions are not put in lowest terms when the base ring has quotient relations, so an arbitrarily
+### What the file reports
+
+A fraction ought to be kept in lowest terms, with no factor common to its numerator and denominator.
+This file builds fractions over a base ring carrying a relation — `frac(QQ[x]/(x^5-2)[y])` — cubes
+one and prints the pieces, which is Mike checking whether they come back reduced.
+
+They do not. Fractions are not put in lowest terms when the base ring has quotient relations, so an arbitrarily
 large integer factor is carried in both numerator and denominator.
 
 ```m2

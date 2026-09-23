@@ -1,3 +1,10 @@
+### What the file asks for
+
+`regularity` computes the Castelnuovo–Mumford regularity of an ideal, module or complex, and there is
+more than one algorithm for doing it. The `Regularity` package implements a different one, so the
+useful arrangement would be for loading that package to make its algorithm available through
+`regularity` itself. This file is Dan's note to Alexandra asking for a hook that would allow it, with
+the rider that the value of `Strategy` should somehow be checked.
 
 Unmet in every particular, and the mechanism it asks for has since become M2's standard way of doing
 this — so it is cheaper now than when the note was written.

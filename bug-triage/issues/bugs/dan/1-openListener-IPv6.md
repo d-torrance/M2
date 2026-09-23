@@ -1,3 +1,8 @@
+### What the file asks for
+
+Macaulay2 opens a network connection by writing the host and port into one string —
+`openInOut "$host:2500"` — and handing the pieces to `getaddrinfo` to resolve. This single line asks
+that IPv6 addresses be made to work there.
 
 IPv6 works. What has no spelling is an IPv6 **address literal**, which is what the one-line
 request above is about.

@@ -1,3 +1,12 @@
+### What the file asks for
+
+Every Macaulay2 documentation node opens with a Synopsis whose Usage line shows how the function is
+called. For `installPackage` that line reads `installPackage PACKAGENAME`, and the file asks that it
+read `installPackage "FOO"` instead, so a reader can see the argument is a string. The parenthetical at
+the end raises the reason the page has no worked example demonstrating it: actually running
+`installPackage` would make invasive changes to the reader's system, so there needs to be a way to
+stash example output node by node.
+
 The parenthetical in the file was built; the titular ask was not — and the ask needs restating before it
 is acted on.
 

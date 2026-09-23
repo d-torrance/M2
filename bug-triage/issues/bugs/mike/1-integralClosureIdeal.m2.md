@@ -1,4 +1,13 @@
-`integralClosure I` can be intractable where `integralClosure(J, d)` returning the same ideal is instant,
+### What the file is about
+
+The integral closure of an ideal is a larger ideal computed from it, and `integralClosure` comes in
+two forms: one argument, and `integralClosure(I, d)` for the closure of `I^d`. This file is a set of
+test examples Mike gathered for it, carrying his own timings from an older version, headed with the
+note that it also records *"some bugs/unpleasant-isms DE found while playing with this"*. One of them
+is marked where it happens — a line that *"doesn't seem to finish in small time"*.
+
+It still does not. `integralClosure I` can be intractable where `integralClosure(J, d)` returning the
+same ideal is instant,
 because the one-argument form always passes the ideal it is handed straight to the Rees algebra.
 
 Over `ZZ/101[a,b]`, with `i = ideal(a^4, a^3*b, a*b^3, b^4)`:

@@ -1,3 +1,9 @@
+### What the file asks for
+
+`R_0`, `R_1`, … are the generators of a ring `R`, named by index. This file proposes a `Sequence` form
+so that `R_(1..3)` yields the second through fourth of them in one go, and shows the one-line method
+that would do it. David liked the idea; that is the whole of the file.
+
 Not installed: `R_(1..3)` still errors with "no method for binary operator `_`" on
 `(PolynomialRing, Sequence)`.
 

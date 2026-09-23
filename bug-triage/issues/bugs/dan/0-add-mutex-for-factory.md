@@ -1,6 +1,17 @@
-Still true. There is no C-level lock around the libfactory interface, and the workaround is visible
-in package code rather than in the interface: `ThreadedGB.m2:33` steers around factory instead of
-serializing access to it.
+### What the file asks for
+
+Macaulay2 does not factor multivariate polynomials itself. `factor` and `gcd` hand that work to
+Singular-Factory, the library from the University of Kaiserslautern that M2 links against, through the
+glue in
+[`e/interface/factory.cpp`](https://github.com/Macaulay2/M2/blob/development/M2/Macaulay2/e/interface/factory.cpp)
+— reached from the top level as `rawFactor` and `rawGCD`. M2 also has tasks and threads, so two
+computations can be inside that glue at the same time, and nothing stops them. Dan's note asks for a
+lock around it. This is not about a wrong answer in an ordinary single-threaded session; it is about
+what a threaded one does.
+
+Still unaddressed. There is no C-level lock around the interface, and the only accommodation in the
+tree is in package code rather than in the interface itself: `ThreadedGB.m2:33` steers around factory
+instead of serializing access to it.
 
 ### Why a mutex rather than a fix in factory
 

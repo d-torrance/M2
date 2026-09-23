@@ -222,6 +222,16 @@ def issue_body_for(row, number=None):
     content, then the untouched original, then our commentary.  Drafts keep the
     older trailing-block layout: they are internal, the original is already in
     files/, and rewriting 375 of them buys nothing.
+
+    The boilerplate is deliberately two short sentences -- attribution, then
+    where the file came from.  It was one dense paragraph until a reader
+    reported that these issues "start in the middle of the story": the
+    bookkeeping arrived at full length before anything a stranger could use,
+    and the commentary below then opened as a delta against the quote ("Still
+    true.", "Not installed:").  The remedy is split between here and the prose:
+    this keeps the preamble out of the way, and each summary under issues/ now
+    opens by saying what the quoted note is about before saying where it
+    stands.
     """
     fields = []
     for column, label in (("verdict", ""), ("disposition", "disposition"),
@@ -240,15 +250,25 @@ def issue_body_for(row, number=None):
         # lived in, its siblings, its history.  block_for, which writes the drafts,
         # deliberately does not do this: a draft is internal and also carries the
         # file, so 728 rewrites would buy nothing.
-        "This issue was triaged from [`%s`](%s), one of the 857 files removed from "
-        "the pre-GitHub `bugs/` tree by %s and catalogued in [#36](%s/issues/36).  "
-        "**The commentary below was written by Claude (Claude Opus 5, via Claude "
-        "Code)**, not by @d-torrance, whose account posted it -- please weigh it "
-        "accordingly." % (row["path"], project.file_url(row["path"]),
-                          linkify("d2c8d27826"), REPO_URL),
+        project.ATTRIBUTION, "",
+        # One sentence, with a real subject.  This read "It comes from ..."
+        # briefly, which opens the issue on a pronoun with no antecedent, and
+        # went on to narrate the document's own layout -- "the file is quoted
+        # below; what it means today follows it" -- which tells a reader nothing
+        # they cannot see from the headings.
+        "This is [`%s`](%s), one of the 857 files removed from the pre-GitHub "
+        "`bugs/` tree by %s and catalogued in [#36](%s/issues/36)."
+        % (row["path"], project.file_url(row["path"]),
+           linkify("d2c8d27826"), REPO_URL),
         "", fenced(row["path"]), "",
-        "### Where it stands today", "",
+        # No heading is injected here.  A summary now opens with a paragraph
+        # orienting a reader who has never seen the function the file is about,
+        # and "### Where it stands today" would be the wrong roof over that; so
+        # each summary carries its own headings, and that one still appears in
+        # nearly all of them, one paragraph lower.  The fallback below keeps a
+        # heading because a raw note is nothing but a status.
         summary_for(row["path"]) or (
+            "### Where it stands today\n\n"
             "*No summary has been written for this row yet; the catalogue's own "
             "note follows, which is internal shorthand rather than prose.*\n\n> "
             + linkify(row["note"])), "",

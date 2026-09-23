@@ -1,4 +1,12 @@
-`prune` and `minimalPresentation` silently drop a `Lex` order, returning a ring that orders its monomials by
+### What the request is about
+
+`minimalPresentation` takes a ring and returns a smaller one presenting the same thing, dropping the
+variables its relations make redundant; `prune` is the same operation under the commoner name. The
+smaller ring needs a monomial order of its own, and the sensible one to give it is the order the
+original had, restricted to the variables that survive. Andrew Taylor's request says only that this
+needs repairing, so the first job was finding out what goes wrong.
+
+What goes wrong is that `prune` and `minimalPresentation` silently drop a `Lex` order, returning a ring that orders its monomials by
 `GRevLex` instead:
 
 ```m2
@@ -87,13 +95,8 @@ on an ideal with very large coefficients, nor [#196](https://github.com/Macaulay
 `monomial order`, bodies for `monOrder`, `minPres` and `MonomialOrder`, and comments for
 `minimalPresentation monomial`, `monOrder` and `minPres`.
 
-### Provenance
+### The rest of the file
 
-One request from `bugs/dan/0-bugs-ataylor.m2`, a wishlist file removed with the `bugs/` tree in d2c8d27826
-and catalogued in #36:
-
-> minPres still needs to have how it deals with monomial orders repaired.
-
-Still true. The other three requests in that file — that `prune` and `minPres` be synonyms of
+The other three requests in `bugs/dan/0-bugs-ataylor.m2` — that `prune` and `minPres` be synonyms of
 `minimalPresentation`, that synonyms be highlighted in Emacs, and that they appear in the documentation
-index — have all since been met.
+index — have all since been met. This one is the only part still outstanding.

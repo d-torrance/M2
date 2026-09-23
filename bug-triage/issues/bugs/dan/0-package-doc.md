@@ -1,3 +1,5 @@
+### Where it stands
+
 Closed as wontfix, with the reasoning kept here since the file reads as an unaddressed request.
 
 The file asks to remove the export list from the bottom of a package's documentation page and put a

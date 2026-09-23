@@ -1,3 +1,9 @@
+### What the file asks for
+
+`ambient R` gives the ring that `R` is a quotient of, so `ambient(QQ[x]/I)` is `QQ[x]`. Asked of a ring
+that is not a quotient at all, such as `ZZ`, it raises an error rather than answering. This file is
+Bart Snapp's suggestion that it just return the ring, together with Dan's reply naming the catch.
+
 Not adopted. `ambient ZZ` and `ambient QQ` still fail with "no ambient ring present"
 (`Core/rings.m2:53`), so Bart Snapp's suggestion — that `ambient R` return `R` when `R` is not a
 quotient ring — is unmet.

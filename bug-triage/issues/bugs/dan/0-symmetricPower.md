@@ -1,3 +1,11 @@
+### What the file reports
+
+`symmetricPower(d, M)` forms the d-th symmetric power of a module, and `symmetricPower(d, f)` does the
+same to a map, so the result is a map between the symmetric powers of `f`'s source and target. This
+file is Dan and David Eisenbud's working code for both, and it carries its own warning: the `Matrix`
+branch is commented *"old code, probably not right now, because we need agreement with the symmetric
+power module, which might have relations"*.
+
 Half of the file's concern has been addressed, and the two halves now disagree with each other, which
 is worse than the original state.
 

@@ -1,4 +1,12 @@
-There is no way to wait for the first of several tasks to finish. `taskResult` waits for one specific task,
+### What the request is about
+
+`schedule` starts a computation as a task running alongside the session, and `taskResult` waits for
+one particular task and hands back its value. This entry merges two lines from the removed file's
+inventory, both asking for the counterpart that is missing: a way to wait on a *set* of tasks and
+return as soon as the first of them finishes. The file's own parenthetical names the likely
+mechanism — a `pthread_cond_t`.
+
+There is still no way to do it. `taskResult` waits for one specific task,
 and the only other introspection is `isReady`, so racing several strategies and taking whichever answers
 first means busy-polling — burning a core doing nothing while you wait.
 

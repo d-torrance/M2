@@ -1,4 +1,12 @@
-The Alexander dual of a monomial ideal comes back empty over a tower ring, where the same ideal over a
+### What the file reports
+
+The Alexander dual of a monomial ideal is another monomial ideal, and Macaulay2 computes it by
+handing the problem to the external Frobby library. This file is a crash — a segmentation fault
+inside Frobby's `alexanderDual`, with a gdb backtrace — which Dan suspected came from
+`rawAlexanderDual` passing it bad data. The ring in his example is a tower, `QQ[x][y]`.
+
+Nothing crashes now, but the answer is still wrong: the Alexander dual comes back empty over a tower
+ring, where the same ideal over a
 flat ring gives the right answer:
 
 ```m2

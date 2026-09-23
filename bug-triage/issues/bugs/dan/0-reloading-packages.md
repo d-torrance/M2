@@ -1,6 +1,11 @@
-Still drops the configuration, and the path is short enough to quote.
+### What the file reports
 
-`loadPackage Package` forces `Reload => true` (`Core/packages.m2:193`), and neither of the two callers
+A package can be loaded with configuration — `loadPackage("Foo", Configuration => {...})` — which is
+how it is told where an external program lives, or which directory to work in. `check` and
+`installPackage` both reload a package in the course of their work, and Dan's note asks whether they
+ought to reload it with the configuration it already had.
+
+They do not, and the path is short enough to quote. `loadPackage Package` forces `Reload => true` (`Core/packages.m2:193`), and neither of the two callers
 that reload passes `Configuration` along:
 
 - `installPackage.m2:670`

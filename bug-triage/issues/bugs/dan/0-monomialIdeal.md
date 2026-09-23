@@ -1,3 +1,10 @@
+### What the file reports
+
+`monomialIdeal` builds an ideal that Macaulay2 stores and computes with as a monomial ideal. Handed
+the empty list, it neither returns the zero ideal nor says that the list is empty — it reports
+*"expected a polynomial ring without quotient elements"*, a complaint about a ring the caller never
+mentioned. Dan's file records the message, not the refusal, as the bug.
+
 Unchanged, and the asymmetry with `ideal` is what makes the message wrong rather than merely terse:
 
 ```m2

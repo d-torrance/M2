@@ -1,5 +1,10 @@
-Reproduces exactly. The same package option comes back as a different type depending on how the
-package was loaded:
+### What the file reports
+
+A Macaulay2 package declares itself by calling `newPackage`, passing options such as `Configuration`.
+There are two ways to get a package loaded: `loadPackage "Foo"`, which goes through M2's package
+machinery, or `load "Foo.m2"`, which simply reads the file. Dan's file records that the same
+`Configuration` option comes back as a different *type* depending on which route was taken. It still
+does:
 
 ```m2
 i1 : loadPackage "Foo"; class (options Foo).Configuration

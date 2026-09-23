@@ -1,3 +1,13 @@
+### What the file is about
+
+A tower of rings such as `(QQ[s]/I)[t]` can be rewritten as a single quotient of one polynomial ring,
+`QQ[t,s]/I`, and `flattenRing` is what does that; its `CoefficientRing` option names the ring at the
+bottom to flatten down to. This file is a 2006 exchange between Dan and Mike Stillman raising three
+separate questions about it: what should happen when the requested coefficient ring appears in the
+chain as `(k/I)[a]`; whether the flattened ring ought to keep the multidegrees its variables had, so
+that homogeneity survives the flattening; and what it should do about degrees and monomial ordering
+generally.
+
 Three asks in the file, with three different destinations. This issue is the first.
 
 ### (1) The opening question — unmet, and it errors

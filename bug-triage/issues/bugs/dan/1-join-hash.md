@@ -1,3 +1,10 @@
+### What the file asks for
+
+Every Macaulay2 list carries a hash code, computed by folding over its elements. `join(L, M)` builds a
+new list and so folds over the whole of `L` and `M` again, even though both already have hash codes of
+their own. This file asks whether the new code could be derived from the two old ones instead, and
+raises the same question for `new List from`, `toList` and `toSequence`.
+
 The guess in the file is right, and the saving is worth having.
 
 ### Every List construction folds the whole list

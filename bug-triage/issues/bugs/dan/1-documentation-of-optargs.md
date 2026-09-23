@@ -1,3 +1,9 @@
+### What the file asks for
+
+An optional argument in Macaulay2 gets its own documentation page, written under a key of the form
+`[f, Opt]`, and that is where a reader finds the option's type, its default and what it does. This
+one-line file asks that the way to write such documentation be itself documented.
+
 Half met by `4f82b03a94` (2020-08-06), twelve years after the file.
 
 ### What is documented

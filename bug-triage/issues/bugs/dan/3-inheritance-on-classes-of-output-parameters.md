@@ -1,3 +1,12 @@
+### What the file asks for
+
+A method can be declared to take a *type* as an argument rather than a value: in `lift'(r, ZZ)` the
+second argument is the type `ZZ` itself, not an integer. A documentation node lists its Inputs with a
+short description of each, generated automatically from the argument's class. This file is Dan's note
+that the generated wording is wrong in the type case — it says "an integer" where it ought to say "a
+type of integer" — with a transcript showing it, and the remark that this has to be sorted out if the
+descriptions are to stay automatic.
+
 When a method dispatches on a *type* argument, its documentation page describes that argument two
 ways, and only the heading is right.
 

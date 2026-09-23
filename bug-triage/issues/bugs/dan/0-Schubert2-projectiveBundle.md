@@ -1,3 +1,13 @@
+### What the file asks for
+
+`Schubert2` is Macaulay2's intersection theory package. Each abstract variety it builds carries an
+*intersection ring*, whose generators are the classes you compute with, and the ring it builds for a
+projective bundle has more variables in it than it needs. This file is a note that they could be
+eliminated, together with the reason nobody has: doing so moves the ring's generators, and the
+explicit abstract maps constructed there by methods of `map` are written in terms of the old ones. The
+bulk of the file is a diff of the downstream corrections that entails, written by someone who had
+tried it.
+
 Never attempted, and the tree is still on the near side of the diff the file carries — which is what
 makes the file worth keeping rather than the request itself.
 

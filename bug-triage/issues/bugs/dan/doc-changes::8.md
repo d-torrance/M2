@@ -1,6 +1,13 @@
-This collects the "modernize this node" requests from a single wishlist file, because they are one condition rather than
-fourteen: a set of operator documentation nodes still written in the pre-`Headline` style, `TT "x op y", " -- ..."`, with
-no `Usage`, `Inputs`, `Outputs` and often no example. In several cases the node's own sibling — same file, same shape,
+### What the request is about
+
+A Macaulay2 documentation node has a standard shape: a `Headline`, then `Usage`, `Inputs`, `Outputs`
+and a worked example. Nodes written before that convention existed are bare prose —
+`TT "x op y", " -- ..."` — with none of it. The entry quoted above is one line from a list Dan kept
+of documentation to bring up to date, and fourteen entries in that file say the same thing about
+different operators.
+
+This issue collects them, because they are one condition rather than fourteen: operator nodes still
+in the pre-`Headline` style, with no `Usage`, `Inputs`, `Outputs` and often no example. In several cases the node's own sibling — same file, same shape,
 sometimes ten lines away — is fully modern, which is what makes these worth fixing as a batch.
 
 **Not in scope, to be explicit about it.** Bare-symbol nodes carrying only a `Headline` are the deliberate convention

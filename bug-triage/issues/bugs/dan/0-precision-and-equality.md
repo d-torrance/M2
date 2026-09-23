@@ -1,3 +1,11 @@
+### What the file reports
+
+Real numbers in Macaulay2 carry a precision, and the `p` suffix sets it: `1p10` is 1 held to 10 bits,
+where a plain decimal literal is held to the default 53. Comparing two such numbers therefore needs a
+rule about which precision the comparison happens in. Dan's file shows that whatever the rule is, it
+is not a predictable one — two literals differing only in their final digit give opposite answers
+against the same `1p10`, and it is the *closer* of the two that comes back unequal.
+
 Reproduces exactly:
 
 ```m2

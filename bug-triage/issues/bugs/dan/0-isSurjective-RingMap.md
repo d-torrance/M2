@@ -1,4 +1,7 @@
-Still missing. `isSurjective` has two methods and neither takes a ring map:
+### What the file asks for
+
+`isSurjective` answers whether a map is onto. Macaulay2 installs it for `Matrix` and for `SheafMap`
+but not for `RingMap`, so asking it of a map between rings is an error rather than an answer:
 
 ```m2
 i1 : methods isSurjective
@@ -10,7 +13,7 @@ i3 : isSurjective f
 stdio:3:1:(3): error: no method for adjacent objects ...
 ```
 
-So the request is unchanged since the file was written.
+Unchanged since the file was written.
 
 ### Notes for whoever picks this up
 

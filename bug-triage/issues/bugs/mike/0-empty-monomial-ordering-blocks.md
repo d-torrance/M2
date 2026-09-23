@@ -1,5 +1,13 @@
-An empty block in a monomial ordering is dropped inside the engine, so `selectInSubring` counts
-blocks differently from the way they were written and silently returns the wrong columns.
+### What the file reports
+
+A ring's monomial order is written as a sequence of blocks, and `selectInSubring(n, m)` returns the
+columns of `m` lying in the subring cut out by the first `n` of them — so it works by counting
+blocks. This file is Dan's report that a block covering no variables gets quietly dropped below the
+top level, which makes that count wrong, together with the fix he tried first and his note that it
+*"broke many tests"*.
+
+The dropped block means `selectInSubring` counts differently from the way the order was written, and
+silently returns the wrong columns.
 
 ```m2
 i1 : R = QQ[x,y,z, MonomialOrder => {Eliminate 0, Eliminate 1}]

@@ -1,4 +1,12 @@
-`conjugate` has no method for `Matrix` or `MutableMatrix`, and there is no conjugate transpose under any
+### What the request is about
+
+`conjugate` of a complex number flips the sign of its imaginary part. The *conjugate transpose* of a
+matrix — transposed, with every entry conjugated — is the operation that plays the role of
+"transpose" throughout numerical linear algebra over `CC`: it is what makes a matrix unitary, and
+what `SVD`, `eigenvectors` and `solve` are all defined in terms of. This one-line request asks for
+`conjugate` on a `Matrix` and a `MutableMatrix`, and wonders about the conjugate transpose as well.
+
+Neither exists. `conjugate` has no method for `Matrix` or `MutableMatrix`, and there is no conjugate transpose under any
 spelling — in a system whose `SVD`, `eigenvalues`, `eigenvectors` and `solve` over `CC` are all LAPACK-backed
 and all defined in terms of the adjoint.
 

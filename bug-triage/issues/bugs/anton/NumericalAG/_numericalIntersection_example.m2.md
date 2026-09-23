@@ -1,3 +1,12 @@
+### What the file is about
+
+`NumericalAlgebraicGeometry` describes a solution set numerically as a *witness set*: the points
+where the variety meets a random linear slice, which between them pin down its dimension and degree.
+`numericalIntersection` takes two witness sets and computes one for their intersection. This file is
+Anton's worked example — decompose an ideal, take a witness set from each of two components, intersect
+them — and the transcript at the foot of it trails off after "a numerical variety with components
+in", with nothing following.
+
 Two witness-set checks in
 [`witness-set.m2`](https://github.com/Macaulay2/M2/blob/development/M2/Macaulay2/packages/NumericalAlgebraicGeometry/witness-set.m2)
 fail intermittently on small inputs, and between them they produce a wrong answer, no answer, and an
