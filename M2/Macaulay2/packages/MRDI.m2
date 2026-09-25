@@ -236,9 +236,9 @@ addSaveMethod(Ring,
 	else error "not implemented yet"))
 
 addSaveMethod(QuotientRing,
-    R -> (
-	if isFinitePrimeField R then char R
-	else error "not implemented yet"))
+    ambient,
+    R -> OnlyData {ideal R},
+    UseID => true)
 
 addSaveMethod(GaloisField,
               F -> if F.degree > 1 then ambient ambient F,
@@ -404,7 +404,12 @@ addLoadMethod("Ring",
                   if data == "ZZ" then ZZ
                   else if data == "QQ" then QQ
                   else error "unknown ring"))
-addLoadMethod("QuotientRing", (params, data) -> ZZ/(value data))
+addLoadMethod("QuotientRing", (params, data) -> (
+        if instance(data, String) then ZZ/value data -- ZZ/p
+        else (
+            R := params.Type;
+            I := ideal apply(data, f -> params.Instance f);
+            R/I)))
 addLoadMethod("GaloisField",
               (params, data) -> (
                   -- GF(p)
@@ -1229,6 +1234,7 @@ I = monomialCurveIdeal(R, {1, 2, 3})
 checkMRDI I_0
 checkMRDI I
 checkMRDI gens I
+checkMRDI(R/I)
 -- rational coefficients
 checkMRDI((1/2)*x + (3/4)*y - 7/3)
 checkMRDI ideal((1/2)*x^2 - (3/5)*y, (7/11)*x*y + 1)
@@ -1258,30 +1264,7 @@ checkMRDI matrix {{1/2, 3/4}, {5/6, 7/8}}
 ///
 
 -* code to generate strings for the next test:
-
-printWidth = 0
-getFormattedMRDI = x -> (
-    format replace(regexQuote version#"VERSION", "@VERSION@", saveMRDI x))
-scan({
-        true,
-        5,
-        5_(ZZ/7),
-        5_(GF 7),
-        "foo",
-        ZZ,
-        QQ,
-        ZZ/101,
-        GF(2, 3),
-        a + 1,
-        QQ[x],
-        QQ[x][y][z],
-        (R = QQ[x,y,z,w]; I = monomialCurveIdeal(R, {1, 2, 3}); I_0),
-        I,
-        gens I,
-        {true, false},
-        set {1, 2, 3}
-        }, x -> << "checkMRDI " << getFormattedMRDI x << endl)
-
+getFormattedMRDI = x -> format replace(regexQuote version#"VERSION", "@VERSION@", saveMRDI x)
 *-
 
 TEST ///
@@ -1289,23 +1272,40 @@ TEST ///
 needsPackage "JSON"
 checkMRDI = x -> (
     x = replace("@VERSION@", version#"VERSION", x);
+    print (z := loadMRDI x, class z);
     y := saveMRDI loadMRDI x;
     assert BinaryOperation(symbol ===, fromJSON x, fromJSON y))
+-- true
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Boolean\", \"data\": true}"
+-- 5
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"ZZ\", \"data\": \"5\"}"
-checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": {\"params\": {\"_type\": \"QuotientRing\", \"data\": \"7\"}, \"name\": \"RingElement\"}, \"data\": \"-2\"}"
-checkMRDI "{\"_type\": {\"params\": \"aadb5efe-8527-4625-be6c-57639489d0f5\", \"name\": \"GaloisField\"}, \"data\": [[[\"3\"], \"1\"], [[\"1\"], \"1\"], [[\"0\"], \"1\"]], \"id\": \"3cadb043-2df7-4057-8ec5-b3b20b3d6433\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"aadb5efe-8527-4625-be6c-57639489d0f5\": {\"_type\": {\"params\": {\"_type\": \"QuotientRing\", \"data\": \"2\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"a\"]}}}}"
-checkMRDI "{\"_type\": {\"params\": \"3cadb043-2df7-4057-8ec5-b3b20b3d6433\", \"name\": \"RingElement\"}, \"data\": [[[\"1\"], \"1\"], [[\"0\"], \"1\"]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"3cadb043-2df7-4057-8ec5-b3b20b3d6433\": {\"_type\": {\"params\": \"aadb5efe-8527-4625-be6c-57639489d0f5\", \"name\": \"GaloisField\"}, \"data\": [[[\"3\"], \"1\"], [[\"1\"], \"1\"], [[\"0\"], \"1\"]]}, \"aadb5efe-8527-4625-be6c-57639489d0f5\": {\"_type\": {\"params\": {\"_type\": \"QuotientRing\", \"data\": \"2\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"a\"]}}}}"
+-- 5_(ZZ/7)
+checkMRDI "{\"_type\": {\"params\": \"5243e1c3-9b57-4522-b84e-478527e75c23\", \"name\": \"RingElement\"}, \"data\": \"-2\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"5243e1c3-9b57-4522-b84e-478527e75c23\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"ZZ\"}, \"name\": \"QuotientRing\"}, \"data\": [\"7\"]}}}"
+-- 5_(GF 7)
+checkMRDI "{\"_type\": {\"params\": \"49b3ab29-43ed-46a5-93f4-2f7ec2df9181\", \"name\": \"RingElement\"}, \"data\": \"-2\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"49b3ab29-43ed-46a5-93f4-2f7ec2df9181\": {\"_type\": \"GaloisField\", \"data\": \"7\"}}}"
+-- "foo"
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"String\", \"data\": \"foo\"}"
+-- ZZ
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"ZZ\"}"
+-- QQ
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"Ring\", \"data\": \"QQ\"}"
-checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": \"QuotientRing\", \"data\": \"101\"}"
+-- QQ[x]
 checkMRDI "{\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\"]}, \"id\": \"31292984-9503-4034-9a78-7badbc3d5710\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}}"
+-- QQ[x][y][z]
 checkMRDI "{\"_type\": {\"params\": \"8731803f-89bd-4ff7-a599-79375b33cf4c\", \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"z\"]}, \"id\": \"27447205-6c41-4ed5-91ba-f7b96c0a65ce\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"8731803f-89bd-4ff7-a599-79375b33cf4c\": {\"_type\": {\"params\": \"81e005bb-a348-423a-a627-e96ff29a3597\", \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"y\"]}}, \"81e005bb-a348-423a-a627-e96ff29a3597\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\"]}}}}"
+-- R = QQ[x,y,z,w]; z^2 - y*w
 checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"name\": \"RingElement\"}, \"data\": [[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
+-- I = monomialCurveIdeal(R, {1,2,3})
 checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"name\": \"Ideal\"}, \"data\": [[[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"1\", \"1\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"2\", \"0\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"1\", \"0\"], [\"-1\", \"1\"]]]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
+-- gens I
 checkMRDI "{\"_type\": {\"params\": \"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\", \"name\": \"Matrix\"}, \"data\": [[[[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"1\", \"1\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"2\", \"0\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"1\", \"0\"], [\"-1\", \"1\"]]]]], \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"cfaa114f-9d5a-44e1-abbb-a0ee2ca94fe4\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
+-- ZZ/101
+checkMRDI "{\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"ZZ\"}, \"name\": \"QuotientRing\"}, \"data\": [\"101\"], \"id\": \"d7510951-1bb2-4c8b-b34b-cd92991e8fce\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}}"
+-- R/I
+checkMRDI "{\"_type\": {\"params\": \"e8ae3715-0c98-4590-bbaf-77398caba8db\", \"name\": \"QuotientRing\"}, \"data\": [[[[\"0\", \"0\", \"2\", \"0\"], [\"1\", \"1\"]], [[\"0\", \"1\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"1\", \"1\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"0\", \"1\"], [\"-1\", \"1\"]]], [[[\"0\", \"2\", \"0\", \"0\"], [\"1\", \"1\"]], [[\"1\", \"0\", \"1\", \"0\"], [\"-1\", \"1\"]]]], \"id\": \"14897f61-7518-4c61-b6d8-3055a3b619c2\", \"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_refs\": {\"e8ae3715-0c98-4590-bbaf-77398caba8db\": {\"_type\": {\"params\": {\"_type\": \"Ring\", \"data\": \"QQ\"}, \"name\": \"PolynomialRing\"}, \"data\": {\"variables\": [\"x\", \"y\", \"z\", \"w\"]}}}}"
+-- {true, false}
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": {\"params\": [\"Boolean\", \"Boolean\"], \"name\": \"List\"}, \"data\": [true, false]}"
+-- set {1, 2, 3}
 checkMRDI "{\"_ns\": {\"Macaulay2\": [\"https://macaulay2.com\", \"@VERSION@\"]}, \"_type\": {\"params\": [\"ZZ\", \"ZZ\", \"ZZ\"], \"name\": \"Set\"}, \"data\": [\"1\", \"2\", \"3\"]}"
 ///
 
@@ -1580,27 +1580,6 @@ checkError(
 checkError(
     hashTable {(1, "ZZ")},
     "expected all keys to be strings, but got 1")
-///
-
--- Save-path error: only ZZ, QQ, and finite prime fields are currently
--- supported as base rings. Pin the documented "not implemented yet"
--- behavior for a non-finite-prime-field quotient (audit notes:
--- MRDI.m2:188 and :193).
-TEST ///
-R := QQ[x];
-Q := R / ideal(x^2);
--- Quotient of QQ[x] by a non-zero-dimensional polynomial ideal: not a
--- finite prime field.
-assert(try (saveMRDI Q; false) else true);
--- For a more direct test we hit the QuotientRing dispatch on a quotient
--- that is *not* isFinitePrimeField.
-S := QQ[y];
-Q2 := S / ideal(y^3 - 1);
-assert(try (saveMRDI Q2; false) else true);
--- And the same default Ring dispatch: anything that is not ZZ/QQ that
--- somehow reaches the Ring save method also errors.
-T := frac(QQ[t]);
-assert(try (saveMRDI T; false) else true);
 ///
 
 -----------------------------------------------------------------------------
@@ -1955,3 +1934,7 @@ assert(try (saveMRDI T; false) else true);
 --   GF, and towers of those all work today.
 -- * The degrees of the ring's own generators as reported by degreesRing/
 --   degreeLength, which follow from Degrees and DegreeGroup.
+
+end
+
+loadPackage("MRDI", FileName => "~/src/macaulay2/M2/M2/Macaulay2/packages/MRDI.m2", Reload => true)
