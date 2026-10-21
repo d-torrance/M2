@@ -149,12 +149,11 @@ class ARingCCi : public SimpleARing<ARingCCi>
     mpfi_set(&result.im, &a.im);
   }
 
-  void set(ElementType &result, long a) const
+  void set_from_long(ElementType &result, long a) const
   {
     mpfi_set_si(&result.re, a);
     mpfi_set_si(&result.im, 0);
   }
-  void set(ElementType &result, int a) const { set(result, (long)a); }
 
   void set_var(ElementType &result, int v) const
   {

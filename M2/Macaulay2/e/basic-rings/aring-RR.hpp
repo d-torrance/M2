@@ -88,11 +88,10 @@ class ARingRR : public SimpleARing<ARingRR>
   }
 
   void copy(ElementType &result, const ElementType &a) const { set(result, a); }
-  void set(ElementType &result, long a) const
+  void set_from_long(ElementType &result, long a) const
   {
     result = static_cast<double>(a);
   }
-  void set(ElementType &result, int a) const { result = a; }
 
   void set_var(ElementType &result, int v) const
   {

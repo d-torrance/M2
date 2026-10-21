@@ -328,7 +328,7 @@ TEST_F(ARingCCC, Conversions)
     M2::ARingRRR R(100);
     M2::ARingRRR::Element real(R), imaginary(R);
     R.set(real, 1.5);
-    R.set(imaginary, -2);
+    R.set_from_long(imaginary, -2);
 
     C.set(result, &real.value(), &imaginary.value());
 
@@ -341,7 +341,7 @@ TEST_F(ARingCCC, Conversions)
     SCOPED_TRACE("set from rrr: real value");
     const auto& R = C.real_ring();
     M2::ARingRRR::Element source(R);
-    R.set(source, 2);
+    R.set_from_long(source, 2);
     C.set(a, 9.0, 8.0);
 
     ASSERT_TRUE(C.set_from_RRR(a, source));
@@ -354,7 +354,7 @@ TEST_F(ARingCCC, Conversions)
     SCOPED_TRACE("set real part: existing complex value");
     const auto& R = C.real_ring();
     M2::ARingRRR::Element real(R);
-    R.set(real, -3);
+    R.set_from_long(real, -3);
     C.set(a, 1.0, 2.0);
 
     C.set_real_part(a, real);
@@ -368,7 +368,7 @@ TEST_F(ARingCCC, Conversions)
     SCOPED_TRACE("set imaginary part: existing complex value");
     const auto& R = C.real_ring();
     M2::ARingRRR::Element imaginary(R);
-    R.set(imaginary, -3);
+    R.set_from_long(imaginary, -3);
     C.set(a, 1.0, 2.0);
 
     C.set_imaginary_part(a, imaginary);
@@ -598,7 +598,7 @@ TEST_F(ARingCCC, Arithmetic)
     SCOPED_TRACE("arithmetic: real scalar and mixed point");
     const auto& R = C.real_ring();
     Ring::RealRingType::Element scalar(R);
-    R.set(scalar, 2);
+    R.set_from_long(scalar, 2);
     C.set(a, 3.0, 4.0);
 
     C.mult(result, a, scalar);
@@ -726,10 +726,10 @@ TEST_F(ARingCCC, Magnitude)
     M2::ARingRRR bigRealRing(100);
     M2::ARingRRR::Element norm(bigRealRing);
     C.set(a, 3.0, 4.0);
-    bigRealRing.set(norm, 0);
+    bigRealRing.set_from_long(norm, 0);
     C.increase_norm(&norm.value(), a);
     EXPECT_TRUE(realEquals(&norm.value(), 5)) << "larger magnitude";
-    bigRealRing.set(norm, 10);
+    bigRealRing.set_from_long(norm, 10);
     C.increase_norm(&norm.value(), a);
     EXPECT_TRUE(realEquals(&norm.value(), 10)) << "smaller magnitude";
   }

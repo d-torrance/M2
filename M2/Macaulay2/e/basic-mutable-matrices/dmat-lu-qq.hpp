@@ -119,7 +119,7 @@ class DMatLinAlg<M2::ARingQQ>
 //     fmpq_init(b);
 //     for (size_t c = 0; c < LU.numColumns(); c++)
 //       {
-//         if (c < min) L.ring().set(L.entry(c, c), 1);
+//         if (c < min) L.ring().set_from_long(L.entry(c, c), 1);
 //         for (size_t r = 0; r < LU.numRows(); r++)
 //           {
 //             if (r <= c)

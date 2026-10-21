@@ -121,11 +121,10 @@ class ARingRRi : public SimpleARing<ARingRRi>
     mpfi_set(&result, &a);
   }
 
-  void set(ElementType &result, long a) const
+  void set_from_long(ElementType &result, long a) const
   {
     mpfi_set_si(&result, a);
   }
-  void set(ElementType &result, int a) const { set(result, (long)a); }
 
   void set_var(ElementType &result, int v) const
   {

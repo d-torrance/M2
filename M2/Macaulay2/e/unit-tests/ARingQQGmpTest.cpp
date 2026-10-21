@@ -21,7 +21,7 @@ void getElement<RingType>(const RingType& R,
                           RingType::ElementType& result)
 {
   if (index < 50)
-    R.set(result, index - 25);
+    R.set_from_long(result, index - 25);
   else
     {
       R.random(result);
@@ -58,8 +58,8 @@ TEST_F(ARingQQGMP, Formatting)
   RingType::Element a(R), b(R);
   buffer o;
 
-  R.set(a, 24);
-  R.set(b, 23);
+  R.set_from_long(a, 24);
+  R.set_from_long(b, 23);
   R.divide(a, a, b);
   R.elem_text_out(o, a, true, false, false);
   EXPECT_EQ(std::string(o.str()), "24/23");
@@ -77,7 +77,7 @@ TEST_F(ARingQQGMP, Conversions)
     mpz_init(result);
 
     // integers lift
-    R.set(a, -12);
+    R.set_from_long(a, -12);
     EXPECT_TRUE(R.lift_to_mpz(result, a));
     EXPECT_EQ(mpz_cmp_si(result, -12), 0);
 
@@ -171,7 +171,7 @@ TEST_F(ARingQQGMP, Conversions)
 
     mpfr_set_si(x, -7, MPFR_RNDN);
     EXPECT_TRUE(R.set(a, x));
-    R.set(expected, -7);
+    R.set_from_long(expected, -7);
     EXPECT_TRUE(R.is_equal(a, expected));
 
     // 1/3 at 100 bits rounds back from 1/3

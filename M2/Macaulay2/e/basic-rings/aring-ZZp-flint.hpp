@@ -87,17 +87,16 @@ class ARingZZpFlint : public SimpleARing<ARingZZpFlint>
 
   void set(ElementType &result, ElementType a) const { result = a; }
   void set_zero(ElementType &result) const { result = 0; }
-  void set(ElementType &result, long a) const
+  void set_from_long(ElementType &result, long a) const
   {
     // printf("called deprecated and inefficient
-    // ARingZZpFlint::set\n");
+    // ARingZZpFlint::set_from_long\n");
     fmpz_t b;
     fmpz_init(b);
     fmpz_set_si(b, a);
     result = fmpz_fdiv_ui(b, mCharac);
     fmpz_clear(b);
   }
-  void set(ElementType &result, int a) const { set(result, (long)a); }
 
   void set_var(ElementType &result, int v) const
   {
@@ -187,7 +186,7 @@ class ARingZZpFlint : public SimpleARing<ARingZZpFlint>
       {
         // case a == 0
         if (n < 0) throw exc::division_by_zero_error();
-        if (n == 0) return set(result, 1);
+        if (n == 0) return set_from_long(result, 1);
         if (n > 0) return set_zero(result);
       }
   }
@@ -203,7 +202,7 @@ class ARingZZpFlint : public SimpleARing<ARingZZpFlint>
       {
         // case a == 0
         if (mpz_sgn(n) == 0)
-          set(result, 1);
+          set_from_long(result, 1);
         else if (mpz_sgn(n) > 0)
           set_zero(result);
         else

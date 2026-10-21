@@ -176,7 +176,7 @@ void fill_lower_and_upper(const std::vector<double>& lapack_numbers,  // column-
           // upper.entry(r, c).re = *U++;
           // upper.entry(r, c).im = *U++;
         }
-      ring.set(lower.entry(c, c), 1);
+      ring.set_from_long(lower.entry(c, c), 1);
       for (size_t r = c+1 ; r <= lower.numColumns(); ++r)
         {
           double re = *U++;

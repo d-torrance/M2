@@ -60,7 +60,7 @@ class CoefficientRingZZp : public M2::SimpleARing<CoefficientRingZZp>
 #endif
   }
 
-  void set(elem &result, long a) const
+  void set_from_long(elem &result, long a) const
   {
     a = a % p;
     if (a < 0) a += p;
@@ -233,8 +233,7 @@ class CoefficientRingR
   void set_zero(elem &result) const { result = R->zero(); }
   void copy(elem &result, elem a) const { result = a; }
   void set(elem &result, elem a) const { result = a; }
-  void set(elem &result, long a) const { result = R->from_long(a); }
-  void set(elem &result, int a) const { result = R->from_long(a); }
+  void set_from_long(elem &result, long a) const { result = R->from_long(a); }
   void set(elem &result, mpz_t a) const { result = R->from_int(a); }
   bool is_zero(elem result) const { return R->is_zero(result); }
   bool is_equal(elem a, elem b) const { return R->is_equal(a, b); }

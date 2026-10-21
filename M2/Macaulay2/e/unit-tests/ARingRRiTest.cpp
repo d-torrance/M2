@@ -16,7 +16,7 @@ void getElement<M2::ARingRRi>(const M2::ARingRRi& R,
                               M2::ARingRRi::ElementType& result)
 {
   if (index < 50)
-    R.set(result, index - 25);
+    R.set_from_long(result, index - 25);
   else
     R.random(result);
 }
@@ -145,9 +145,9 @@ TEST(ARingRRi, comparison)
     EXPECT_FALSE(R.is_equal(c,d));
     EXPECT_TRUE(R.is_equal(c,e));
 
-    R.set(f,2);
-    R.set(g,2);
-    R.set(h,3);
+    R.set_from_long(f,2);
+    R.set_from_long(g,2);
+    R.set_from_long(h,3);
 
     EXPECT_TRUE(R.is_equal(f,g));
     EXPECT_FALSE(R.is_equal(f,h));
@@ -279,7 +279,7 @@ TEST(ARingRRi, leftandright)
 
     EXPECT_TRUE(S.is_equal(n,m));
 
-    S.set(m,1);
+    S.set_from_long(m,1);
     R.set_right(a,m);
 
     EXPECT_TRUE(R.is_empty(a));
@@ -287,7 +287,7 @@ TEST(ARingRRi, leftandright)
     R.set_left(a,1.5);
     R.set_right(a,2.5);
 
-    S.set(n,1);
+    S.set_from_long(n,1);
     R.diameter(m,a);
 
     EXPECT_TRUE(S.is_equal(m,n));
@@ -375,7 +375,7 @@ TEST_F(ARingRRiFixture, arithmeticExamples)
     // Point intervals have the ordinary integer power values, including 0^0.
     SCOPED_TRACE("power: exact point values");
     Ring::Element a {R}, result {R};
-    R.set(a, -2);
+    R.set_from_long(a, -2);
     R.power(result, a, 3);
     EXPECT_TRUE(hasBounds(result, -8, -8));
     R.set_zero(a);
@@ -539,7 +539,7 @@ TEST_F(ARingRRiFixture, power_and_invert)
   SCOPED_TRACE("seed 0x525269");
   ARingElementGenerator<Ring> gen(R);
   Ring::Element a {R}, b {R}, c {R}, result {R}, one {R};
-  R.set(one, 1);
+  R.set_from_long(one, 1);
   mpz_t exponent;
   mpz_init(exponent);
   for (int trial = 0; trial < ntrials; ++trial)

@@ -98,11 +98,10 @@ class ARingQQFlint : public SimpleARing<ARingQQFlint>
   }
 
   void set_zero(ElementType& result) const { fmpq_zero(&result); }
-  void set(ElementType& result, long a) const
+  void set_from_long(ElementType& result, long a) const
   {
     fmpq_set_si(&result, a, 1);
   }
-  void set(ElementType& result, int a) const { fmpq_set_si(&result, a, 1); }
 
   void set(ElementType& result, mpz_srcptr a) const
   {

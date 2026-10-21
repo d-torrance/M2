@@ -21,7 +21,7 @@ void getElement<M2::ARingRRR>(const M2::ARingRRR& R,
                               M2::ARingRRR::ElementType& result)
 {
   if (index < 50)
-    R.set(result, index - 25);
+    R.set_from_long(result, index - 25);
   else
     R.random(result);
 }
@@ -46,7 +46,7 @@ std::string describe(const M2::ARingRRR::ElementType& value)
   mpfr_abs(&scale.value(), &expected, MPFR_RNDN);
   mpfr_abs(&difference.value(), &actual, MPFR_RNDN);
   mpfr_max(&scale.value(), &scale.value(), &difference.value(), MPFR_RNDN);
-  if (mpfr_cmp_ui(&scale.value(), 1) < 0) R.set(scale, 1);
+  if (mpfr_cmp_ui(&scale.value(), 1) < 0) R.set_from_long(scale, 1);
   mpfr_mul_2si(&tolerance.value(), &scale.value(), -nbits, MPFR_RNDN);
   mpfr_sub(&difference.value(), &actual, &expected, MPFR_RNDN);
   mpfr_abs(&difference.value(), &difference.value(), MPFR_RNDN);
@@ -65,12 +65,12 @@ TEST(ARingRRR, approximationTolerance)
   // or NaN.
   M2::ARingRRR R(100);
   M2::ARingRRR::Element a(R), b(R);
-  R.set(a, 1);
-  R.set(b, 1);
+  R.set_from_long(a, 1);
+  R.set_from_long(b, 1);
   EXPECT_TRUE(almostEqual(R, 98, a, b));
   mpfr_nextabove(&b.value());
   EXPECT_TRUE(almostEqual(R, 98, a, b));
-  R.set(b, 2);
+  R.set_from_long(b, 2);
   EXPECT_FALSE(almostEqual(R, 98, a, b));
   mpfr_set_nan(&b.value());
   EXPECT_FALSE(almostEqual(R, 98, a, b));
@@ -329,7 +329,7 @@ TEST(ARingRRR, power_and_invert)
         {
           R.invert(c, a);
           R.mult(c, c, a);
-          R.set(d, 1);
+          R.set_from_long(d, 1);
           EXPECT_TRUE(almostEqual(R, R.get_precision() - 4, c, d));
         }
 
@@ -400,8 +400,8 @@ TEST(ARingRRR, precision_matters)
   R.init(a);
   R.init(b);
   R.init(c);
-  R.set(a, 1);
-  R.set(b, 3);
+  R.set_from_long(a, 1);
+  R.set_from_long(b, 3);
   R.divide(c, a, b);  // c = 1/3 at 100 bits
   EXPECT_NE(mpfr_cmp_d(&c, 1.0 / 3.0), 0);
 
@@ -437,9 +437,9 @@ TEST(ARingRRR, set_coercions)
     // Both signed integer overloads preserve small exact values.
     SCOPED_TRACE("set(long), set(int)");
     M2::ARingRRR::Element a(R);
-    R.set(a, 12345L);
+    R.set_from_long(a, 12345L);
     EXPECT_EQ(mpfr_cmp_si(&a.value(), 12345), 0);
-    R.set(a, -7);
+    R.set_from_long(a, -7);
     EXPECT_EQ(mpfr_cmp_si(&a.value(), -7), 0);
   }
 
@@ -467,8 +467,8 @@ TEST(ARingRRR, set_coercions)
     EXPECT_EQ(mpfr_cmp_d(&a.value(), -1.75), 0);
     mpq_set_si(q, 1, 3);
     EXPECT_TRUE(R.set(a, q));
-    R.set(b, 1);
-    R.set(c, 3);
+    R.set_from_long(b, 1);
+    R.set_from_long(c, 3);
     R.divide(b, b, c);  // 1/3 at 100 bits
     EXPECT_TRUE(R.is_equal(a, b));
     mpq_clear(q);
@@ -513,10 +513,10 @@ TEST(ARingRRR, set_coercions)
     // A coefficient-ring variable placeholder replaces the old value with one.
     SCOPED_TRACE("set_var always gives 1");
     M2::ARingRRR::Element a(R);
-    R.set(a, 7);
+    R.set_from_long(a, 7);
     R.set_var(a, 0);
     EXPECT_EQ(mpfr_cmp_si(&a.value(), 1), 0);
-    R.set(a, -2);
+    R.set_from_long(a, -2);
     R.set_var(a, 3);
     EXPECT_EQ(mpfr_cmp_si(&a.value(), 1), 0);
   }
@@ -569,7 +569,7 @@ TEST(ARingRRR, ring_elem_roundtrip)
       EXPECT_TRUE(R.is_equal(a, b));
       EXPECT_TRUE(R.is_equal(R.from_ring_elem_const(r), a));
       EXPECT_EQ(mpfr_get_prec(r.get_mpfr()), 100);
-      R.set(a, 12345);
+      R.set_from_long(a, 12345);
       EXPECT_TRUE(R.is_equal(R.from_ring_elem_const(r), b));
     }
   R.clear(b);
@@ -645,7 +645,7 @@ TEST(ARingRRR, abs_and_abs_squared)
     // A separate known square checks multiplication of two negative factors.
     SCOPED_TRACE("abs_squared: negative integer");
     M2::ARingRRR::Element a(R), result(R);
-    R.set(a, -3);
+    R.set_from_long(a, -3);
 
     R.abs_squared(result, a);
 
@@ -673,7 +673,7 @@ TEST(ARingRRR, compare_elems)
   EXPECT_EQ(R.compare_elems(d, a), 1);
 
   // values that differ only beyond 53 bits still compare correctly
-  R.set(a, 1);
+  R.set_from_long(a, 1);
   mpfr_set_ui_2exp(&b, 1, -80, MPFR_RNDN);
   R.add(b, a, b);  // b = 1 + 2^-80
   EXPECT_EQ(R.compare_elems(a, b), -1);
@@ -683,7 +683,7 @@ TEST(ARingRRR, compare_elems)
   // infinities
   mpfr_set_inf(&a, -1);
   mpfr_set_inf(&b, 1);
-  R.set(c, 1);
+  R.set_from_long(c, 1);
   EXPECT_EQ(R.compare_elems(a, c), -1);
   EXPECT_EQ(R.compare_elems(b, c), 1);
   EXPECT_EQ(R.compare_elems(a, b), -1);
@@ -705,7 +705,7 @@ TEST(ARingRRR, DISABLED_compare_elems_nan)
   R.init(nan);
   R.init(one);
   mpfr_set_nan(&nan);
-  R.set(one, 1);
+  R.set_from_long(one, 1);
   EXPECT_NE(R.compare_elems(nan, one), 0);
   EXPECT_NE(R.compare_elems(one, nan), 0);
   EXPECT_FALSE(R.is_equal(nan, one));
@@ -722,7 +722,7 @@ TEST(ARingRRR, is_unit)
   M2::ARingRRR::ElementType a, b;
   R.init(a);
   R.init(b);
-  R.set(a, 0);  // init leaves a as NaN, so set it explicitly
+  R.set_from_long(a, 0);  // init leaves a as NaN, so set it explicitly
   R.set(b, 0.5);
   EXPECT_TRUE(R.is_unit(b));
   EXPECT_FALSE(R.is_unit(a));
@@ -815,7 +815,7 @@ TEST(ARingRRR, power_edge_cases)
     {
       SCOPED_TRACE(sample.name);
       M2::ARingRRR::Element a(R), result(R);
-      R.set(a, sample.base);
+      R.set_from_long(a, sample.base);
       mpz_t exponent;
       mpz_init_set_ui(exponent, 1);
       mpz_mul_2exp(exponent, exponent, 40);
@@ -1002,7 +1002,7 @@ TEST(ARingRRR, coerceToDouble)
   R.init(a);
   R.set(a, -2.75);
   EXPECT_EQ(R.coerceToDouble(a), -2.75);
-  R.set(a, 3);
+  R.set_from_long(a, 3);
   mpfr_si_div(
       &a, 1, &a, MPFR_RNDN);  // 1/3 at 100 bits rounds to the double 1/3
   EXPECT_EQ(R.coerceToDouble(a), 1.0 / 3.0);
@@ -1078,9 +1078,9 @@ TEST(ARingRRR, addMultipleToKnownAnswer)
   M2::ARingRRR R(100);
   M2::ARingRRR::Element a(R), b(R), r(R);
 
-  R.set(r, 1);
-  R.set(a, 2);
-  R.set(b, 3);
+  R.set_from_long(r, 1);
+  R.set_from_long(a, 2);
+  R.set_from_long(b, 3);
   R.addMultipleTo(r, a, b);
   EXPECT_EQ(mpfr_cmp_si(&r.value(), 7), 0);
 }
@@ -1119,7 +1119,7 @@ TEST(ARingRRR, negativePowerProperties)
   M2::ARingRRR R(100);
   ARingElementGenerator<M2::ARingRRR> gen(R);
   M2::ARingRRR::Element a(R), b(R), c(R), one(R);
-  R.set(one, 1);
+  R.set_from_long(one, 1);
 
   for (int i = 0; i < ntrials; i++)
     {

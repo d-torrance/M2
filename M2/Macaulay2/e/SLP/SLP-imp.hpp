@@ -159,7 +159,7 @@ void SLEvaluatorConcrete<RT>::computeNextNode()
   switch (*nIt++)
     {
       case SLProgram::MProduct:
-        ring().set(v, 1);
+        ring().set_from_long(v, 1);
         for (int i = 0; i < *numInputsIt; i++)
           ring().mult(v, v, *(vIt + (*inputPositionsIt++)));
         numInputsIt++;
@@ -433,10 +433,10 @@ bool HomotopyConcrete<RT, FixedPrecisionHomotopyAlgorithm>::track(
   // constants
   RealElement one(R), two(R), four(R), six(R), one_half(R), one_sixth(R);
   RealElementType& dt_factor = one_half;
-  R.set(one, 1);
-  R.set(two, 2);
-  R.set(four, 4);
-  R.set(six, 6);
+  R.set_from_long(one, 1);
+  R.set_from_long(two, 2);
+  R.set_from_long(four, 4);
+  R.set_from_long(six, 6);
   R.divide(one_half, one, two);
   R.divide(one_sixth, one, six);
 
@@ -749,8 +749,8 @@ bool HomotopyConcrete<RT, FixedPrecisionHomotopyAlgorithm>::track(
       for (size_t i = 0; i <= n; i++) C.set(ou.entry(i, s), x0c0.entry(i, 0));
       C.set(ou.entry(n + 1, s), dc);  // store last increment attempted
       if (status == PROCESSING) status = REGULAR;
-      oe.ring().set(oe.entry(0, s), status);
-      oe.ring().set(oe.entry(1, s), count);
+      oe.ring().set_from_long(oe.entry(0, s), status);
+      oe.ring().set_from_long(oe.entry(1, s), count);
     }
 
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();

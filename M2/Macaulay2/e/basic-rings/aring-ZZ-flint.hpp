@@ -90,7 +90,10 @@ class ARingZZ : public SimpleARing<ARingZZ>
   }
 
   void set_zero(ElementType& result) const { fmpz_set_si(&result, 0); }
-  void set(ElementType& result, int a) const { fmpz_set_si(&result, a); }
+  void set_from_long(ElementType& result, long a) const
+  {
+    fmpz_set_si(&result, a);
+  }
 
 void set(ElementType& result, mpz_srcptr a) const
   {

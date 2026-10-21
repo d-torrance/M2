@@ -106,7 +106,7 @@ M2_arrayint Tower::support(const ring_elem a) const
 ring_elem Tower::from_long(long n) const
 {
   TowerPolynomial f;
-  D->set(f, n);
+  D->set_from_long(f, n);
   return TOWER_RINGELEM(f);
 }
 

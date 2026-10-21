@@ -153,11 +153,11 @@ class ARingGFM2 : public SimpleARing<ARingGFM2>
   void copy(elem &result, elem a) const { result = a; }
   void init(elem &result) const { result = 0; }
   void init_set(elem &result, elem a) const { result = a; }
-  void set(elem &result, int a) const { set(result, (long)a); }
+  void set(elem &result, elem a) const { result = a; }
   void set_zero(elem &result) const { result = 0; }
   static void clear(elem &result) { (void) result; }
 
-  void set(elem &result, long a) const
+  void set_from_long(elem &result, long a) const
   {
     int a1 = static_cast<int>(a % characteristic());
     if (a1 < 0) a1 += characteristic();

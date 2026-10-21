@@ -20,7 +20,7 @@ void getElement<M2::ARingRR>(const M2::ARingRR& R,
                              M2::ARingRR::ElementType& result)
 {
   if (index < 50)
-    R.set(result, index - 25);
+    R.set_from_long(result, index - 25);
   else
     R.random(result);
 }
@@ -343,7 +343,7 @@ TEST(ARingRR, power_and_invert)
         {
           R.invert(c, a);
           R.mult(c, c, a);
-          R.set(d, 1);
+          R.set_from_long(d, 1);
           EXPECT_TRUE(almostEqual(R, R.get_precision() - 4, c, d));
         }
 
@@ -443,12 +443,12 @@ TEST(ARingRR, set_coercions)
     // their value.
     SCOPED_TRACE("set(long)");
     M2::ARingRR::Element a(R);
-    R.set(a, 12345L);
+    R.set_from_long(a, 12345L);
     EXPECT_EQ(a.value(), 12345.0);
-    R.set(a, -7L);
+    R.set_from_long(a, -7L);
     EXPECT_EQ(a.value(), -7.0);
     long big = (1L << 53);
-    R.set(a, big);
+    R.set_from_long(a, big);
     EXPECT_EQ(a.value(), 9007199254740992.0);
   }
 
@@ -511,10 +511,10 @@ TEST(ARingRR, set_coercions)
     // A coefficient-ring variable placeholder replaces the old value with one.
     SCOPED_TRACE("set_var always gives 1");
     M2::ARingRR::Element a(R);
-    R.set(a, 7);
+    R.set_from_long(a, 7);
     R.set_var(a, 0);
     EXPECT_EQ(a.value(), 1.0);
-    R.set(a, -2);
+    R.set_from_long(a, -2);
     R.set_var(a, 3);
     EXPECT_EQ(a.value(), 1.0);
   }
@@ -652,7 +652,7 @@ TEST(ARingRR, abs_and_abs_squared)
     // A separate known square checks multiplication of two negative factors.
     SCOPED_TRACE("abs_squared: negative integer");
     M2::ARingRR::Element a(R), result(R);
-    R.set(a, -3);
+    R.set_from_long(a, -3);
 
     R.abs_squared(result, a);
 
@@ -715,7 +715,7 @@ TEST(ARingRR, power_edge_cases)
       SCOPED_TRACE(::testing::Message()
                    << "power_mpz: oversized exponent, sign " << sign);
       M2::ARingRR::Element a(R), result(R);
-      R.set(a, 2);
+      R.set_from_long(a, 2);
       mpz_t exponent;
       mpz_init_set_si(exponent, sign);
       mpz_mul_2exp(exponent, exponent, 40);
@@ -980,7 +980,7 @@ TEST(ARingRR, negativePowerProperties)
   M2::ARingRR R;
   ARingElementGenerator<M2::ARingRR> gen(R);
   M2::ARingRR::Element a(R), b(R), c(R), one(R);
-  R.set(one, 1);
+  R.set_from_long(one, 1);
   const auto nbits = R.get_precision();
 
   for (int i = 0; i < ntrials; i++)

@@ -308,7 +308,7 @@ class DRing : public our_new_delete
     result = D.var(level, n);
   }
 
-  void set(TowerPolynomial &result, long r)
+  void set_from_long(TowerPolynomial &result, long r)
   {
     r = r % P;
     if (r < 0) r += P;

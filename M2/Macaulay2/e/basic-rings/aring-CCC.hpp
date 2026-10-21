@@ -131,17 +131,16 @@ class ARingCCC : public SimpleARing<ARingCCC>
   }
 
   void copy(ElementType& result, const ElementType& a) const { set(result, a); }
-  void set(ElementType& result, long a) const
+  void set_from_long(ElementType& result, long a) const
   {
     mpfr_set_si(&result.re, a, MPFR_RNDN);
     mpfr_set_si(&result.im, 0, MPFR_RNDN);
   }
-  void set(ElementType& result, int a) const { set(result, (long)a); }
 
   void set_var(ElementType& result, int v) const
   {
     (void) v;
-    set(result, 1);
+    set_from_long(result, 1);
   }
 
   void set(ElementType& result, mpz_srcptr a) const
@@ -401,7 +400,7 @@ class ARingCCC : public SimpleARing<ARingCCC>
   {
     ElementType curr_pow;
     init(curr_pow);
-    set(result, 1);
+    set_from_long(result, 1);
     if (n == 0)
       {
       }

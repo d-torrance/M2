@@ -120,17 +120,16 @@ class ARingCC : public SimpleARing<ARingCC>
   }
 
   void copy(ElementType& result, const ElementType& a) const { set(result, a); }
-  void set(ElementType& result, long a) const
+  void set_from_long(ElementType& result, long a) const
   {
     result.re = static_cast<double>(a);
     result.im = 0.0;
   }
-  void set(ElementType& result, int a) const { set(result, (long)a); }
 
   void set_var(ElementType& result, int v) const
   {
     (void) v;
-    set(result, 1);
+    set_from_long(result, 1);
   }
 
   void set(ElementType& result, mpz_srcptr a) const
@@ -308,7 +307,7 @@ class ARingCC : public SimpleARing<ARingCC>
   {
     ElementType curr_pow;
     init(curr_pow);
-    set(result, 1);
+    set_from_long(result, 1);
     if (n == 0)
       {
       }

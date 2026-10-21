@@ -364,7 +364,7 @@ TEST_F(ARingCCi, Conversions)
     M2::ARingRRR R(100);
     M2::ARingRRR::Element real(R), imaginary(R);
     R.set(real, 1.5);
-    R.set(imaginary, -2);
+    R.set_from_long(imaginary, -2);
 
     C.set(result, &real.value(), &imaginary.value());
 
@@ -731,17 +731,17 @@ TEST_F(ARingCCi, Membership)
     SCOPED_TRACE("is member: big real");
     M2::ARingRRR R(100);
     M2::ARingRRR::Element value(R);
-    R.set(value, 2);
+    R.set_from_long(value, 2);
     setBounds(a, 1, 3, -1, 1);
 
     EXPECT_TRUE(C.is_member(value, a)) << "interior point";
-    R.set(value, 1);
+    R.set_from_long(value, 1);
     EXPECT_TRUE(C.is_member(value, a)) << "real boundary point";
-    R.set(value, 4);
+    R.set_from_long(value, 4);
     EXPECT_FALSE(C.is_member(value, a)) << "outside real interval";
 
     setBounds(a, 1, 3, 2, 3);
-    R.set(value, 2);
+    R.set_from_long(value, 2);
     EXPECT_FALSE(C.is_member(value, a)) << "imaginary interval excludes zero";
   }
 
@@ -752,17 +752,17 @@ TEST_F(ARingCCi, Membership)
     SCOPED_TRACE("is member: real interval");
     M2::ARingRRi R(100);
     M2::ARingRRi::Element value(R);
-    R.set(value, 2);
+    R.set_from_long(value, 2);
     setBounds(a, 1, 3, -1, 1);
 
     EXPECT_TRUE(C.is_member(value, a)) << "interior point";
-    R.set(value, 1);
+    R.set_from_long(value, 1);
     EXPECT_TRUE(C.is_member(value, a)) << "real boundary point";
-    R.set(value, 4);
+    R.set_from_long(value, 4);
     EXPECT_FALSE(C.is_member(value, a)) << "outside real interval";
 
     setBounds(a, 1, 3, 2, 3);
-    R.set(value, 2);
+    R.set_from_long(value, 2);
     EXPECT_FALSE(C.is_member(value, a)) << "imaginary interval excludes zero";
   }
 
@@ -773,17 +773,17 @@ TEST_F(ARingCCi, Membership)
     SCOPED_TRACE("is member: complex point");
     M2::ARingCCC R(100);
     M2::ARingCCC::Element value(R);
-    R.set(value, 2);
+    R.set_from_long(value, 2);
     setBounds(a, 1, 3, -1, 1);
 
     EXPECT_TRUE(C.is_member(value, a)) << "interior point";
-    R.set(value, 1);
+    R.set_from_long(value, 1);
     EXPECT_TRUE(C.is_member(value, a)) << "real boundary point";
-    R.set(value, 4);
+    R.set_from_long(value, 4);
     EXPECT_FALSE(C.is_member(value, a)) << "outside real interval";
 
     setBounds(a, 1, 3, 2, 3);
-    R.set(value, 2);
+    R.set_from_long(value, 2);
     EXPECT_FALSE(C.is_member(value, a)) << "imaginary interval excludes zero";
   }
 }
@@ -954,7 +954,7 @@ TEST_F(ARingCCi, Arithmetic)
     // single point. Reusing an interval can make its range wider.
     Ring::Element zero(C), one(C);
     C.set_zero(zero);
-    C.set(one, 1);
+    C.set_from_long(one, 1);
     C.mult(result, a, b);
     C.subtract_multiple(result, a, b);
     EXPECT_TRUE(contains(result, zero)) << "subtract product from itself";

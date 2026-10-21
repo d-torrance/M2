@@ -93,11 +93,10 @@ class ARingQQGMP : public SimpleARing<ARingQQGMP>
   }
 
   void set_zero(ElementType& result) const { mpq_set_si(&result, 0, 1); }
-  void set(ElementType& result, long a) const
+  void set_from_long(ElementType& result, long a) const
   {
     mpq_set_si(&result, a, 1);
   }
-  void set(ElementType& result, int a) const { set(result, (long)a); }
 
   void set(ElementType& result, mpz_srcptr a) const
   {

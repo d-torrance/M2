@@ -241,6 +241,7 @@ class DummyRing : public SimpleARing<DummyRing>
 
   void init_set(elem &result, elem a) const { result = a; }
   void set(elem &result, elem a) const { result = a; }
+  void set_from_long(elem &result, long a) const { result = a; }
   void init(elem &result) const { result = 0; }
   void set(elem &result, mpz_srcptr a) const
     {

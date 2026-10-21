@@ -109,7 +109,7 @@ class ConcreteRing : public Ring
     if (displayArithmeticCalls) fprintf(stderr, "calling from_long\n");
     ring_elem result;
     Element a(*R);
-    R->set(a, n);
+    R->set_from_long(a, n);
     R->to_ring_elem(result, a);
     return result;
   }

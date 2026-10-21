@@ -83,11 +83,10 @@ class ARingZZGMP : public SimpleARing<ARingZZGMP>
   }
 
   void set_zero(ElementType& result) const { mpz_set_si(&result, 0); }
-  void set(ElementType& result, long a) const
+  void set_from_long(ElementType& result, long a) const
   {
     mpz_set_si(&result, a);
   }
-  void set(ElementType& result, int a) const { mpz_set_si(&result, a); }
 
   void set(ElementType& result, mpz_srcptr a) const
   {
