@@ -1,7 +1,7 @@
 # Group 1: minimal generators over rings that are not affine
 
 **Primary file:** `M2/Macaulay2/m2/matrix2.m2`, lines 198-320
-**Secondary:** `M2/Macaulay2/m2/gb.m2:209-241`
+**Secondary:** `M2/Macaulay2/m2/gb.m2:209-250`
 **Selected by:** `bin/cluster`, top-ranked candidate (score 16.4, and first under six of the
 seven weightings tried — see [Why this group](#why-this-group))
 
@@ -19,7 +19,98 @@ Six issues, **three** distinct causes, one file. Two of the six are silent wrong
 
 All six were **re-verified on 2026-08-26** against a `development` build — see
 [Testing notes](#testing-notes), which contains the one thing that will waste your afternoon if
-you skip it.
+you skip it. The background section and the transcripts added with it were re-run on
+2026-10-21 against `1.26.06-100-gb4b4c163a1`; no commit since 2026-08-20 touches `matrix2.m2` or
+`gb.m2`.
+
+---
+
+## Background — what each strategy assumes
+
+### Minimality needs a residue field
+
+Minimal generation is well defined in two settings: graded modules over a ring with `R_0` a
+field, and finitely generated modules over a local ring. Both are graded/local Nakayama:
+`m_1..m_r` generate `M` iff their images span `M/mM` over `k = R/m`, so `μ(M) = dim_k M/mM` is
+an invariant and a generating set is minimal iff it maps to a basis of `M/mM`. The test is linear
+algebra over a field, one degree at a time — which is what lets a Groebner computation decide
+minimality *before* the basis is complete.
+
+That is `StopWithMinimalGenerators` (engine stop code `COMP_DONE_MIN_GENS`, `gb.m2:32`). Sweeping
+up through degrees, each degree-`d` generator either reduces to zero against the basis so far
+(redundant) or contributes a new basis element of `(M/mM)_d` (minimal). Reduction is legitimate
+because every nonzero lead coefficient is invertible. Its documentation (`gb-doc.m2:54`) already
+hedges: *"the minimal set (or a trimmed set, if not homogeneous or local) of generators"*.
+
+Over `ZZ[x]` with `m = (x)`, `R/m = ZZ`, and every part of that breaks: a lead coefficient of 3
+cannot cancel one of 2, so strong Groebner bases need gcd combinations of lead coefficients; those
+combinations can produce elements of *lower* degree late, constants included; and minimality over
+a PID is Smith normal form, not degreewise linear algebra. #4095's first example is the sharpest
+witness: lead terms `x^2` and `x^4`, so the second looks redundant, yet `(Φ3, Φ5)` is the unit
+ideal.
+
+### Two hypotheses, and only their conjunction loses generators
+
+Nakayama has two hypotheses — field coefficients, and graded (or local) — and every failing
+example breaks both. Which one does the damage? Random ideals with 2–4 generators, `trim`med and
+compared against a freshly constructed copy (fresh because of the [caching
+trap](#testing-notes)), on 2026-09-02:
+
+| coefficients | input | `trim I != I` |
+| --- | --- | ---: |
+| `ZZ[u]`, `ZZ[u,v]`, `ZZ[u,v,w]` | homogeneous | 0 of 1500 |
+| `ZZ[u]`, `ZZ[u,v]`, `ZZ[u,v,w]` | inhomogeneous | **49 of 700** |
+| `QQ[u,v]` | homogeneous | 0 of 300 |
+| `QQ[u,v]` | inhomogeneous | 0 of 300 |
+
+Seventeen constructed graded `ZZ` cases (`(6,10,15,x)` and other gcd-heavy ones, and the
+homogenisations of both #4095 examples) also all came out right.
+
+**Non-field coefficients alone make the stopped basis incomplete, but harmlessly.** On the
+homogenised #4095 example the stop misses `2z^4`, which is already in the ideal of what it kept,
+so `trim I == I` still holds:
+
+```m2
+S = ZZ[x,z]
+stop = m -> gens gb(m, StopWithMinimalGenerators=>true, Syzygies=>false, ChangeMatrix=>false)
+stop gens ideal(x^2+z^2, x^3+z^3)   -- | x2+z2 xz2-z3 |
+gens gb ideal(x^2+z^2, x^3+z^3)     -- | x2+z2 xz2-z3 2z4 |
+```
+
+**Removing the grading turns that into a wrong answer.** The degree sweep is what guarantees that
+by the time the criterion fires, every degree where the answer could change has been visited.
+Without a grading, generating elements arrive later and lower — the constant `2` in
+`ideal(x^2+1, x^3+1)` over `ZZ[x]`, where the stopped basis is `| x-1 |` and the full one is
+`| 2 x+1 |` — and what was kept no longer generates. This is also why #747's answer
+depends on the order of the summands: nothing makes the stopping point a property of the module
+rather than of the presentation. Over a field, inhomogeneity costs only the *guarantee* of
+minimality (#105's territory), not correctness. This bears on the patch: see [a tighter
+predicate](#a-tighter-predicate).
+
+### Which hypothesis each mechanism needs, and what guards it
+
+| mechanism | needs | guard in the code |
+| --- | --- | --- |
+| `StopWithMinimalGenerators` | `R/m` a field | **none** — unconditionally `true` (`matrix2.m2:198`, `:231`) |
+| `Complement` branch | graded, field coefficients | `isHomogeneous M and isAffineRing ring M` (`:204`) |
+| `complement` itself | field, or `ZZ`, or a tower over those | `complementOkay` (`:157`) |
+| `trimPID` / Smith normal form | `R` a PID | `PolynomialRing`, one variable, field coefficients (`:304`) |
+| LLL cleanup | `R = ZZ` | `ring M === ZZ` (`:281`) |
+| `f // gb g` | a change matrix was computed | **none** (`gb.m2:209`) |
+
+The two rows with no guard are the two kinds of wrong answer; the others are guards that are too
+narrow. `complement` is *not* part of the problem: over `ZZ` it computes a Smith normal form and
+keeps the rows with ±1 pivots, and `complementOkay` — *"modeled after isAffineRing, but allows ZZ,
+too"* — recurses through polynomial towers, so `ZZ[x]` is accepted. The early stop is the broken
+part. `Strategy => Inhomogeneous` (`:245`, `:275`) still calls `mingb`, so it inherits the defect.
+
+### One diagnostic separates the causes
+
+Calling `gb` with exactly `mingb`'s options (the `stop` helper above) tests cause (a) from the top
+level, without patching anything. Where its output matches the wrong answer and differs from
+`gens gb I`, the early stop is the cause and nothing else is; where it matches `gens gb I`, the
+early stop is exonerated. #747 and #4095 are the first kind; **#837 is the second**, so the
+cause-(a) patch does not fix it.
 
 ---
 
@@ -61,7 +152,23 @@ trim(trim(I+J)+K)   -- | 3 x-y a-1 |        <- y^2+1 is gone
 ```
 
 The second is a **strict subideal** of the first (`isSubset` one way and not the other, checked),
-so this is not a presentation difference. #4095 is sharper still:
+so this is not a presentation difference: `(y^2+1) % ideal(3, x-y, a-1)` is `y^2+1`. And it
+changes the object, not just its description — modulo `(3, x-y, a-1)` the ring is `F_3[y]`, and
+`y^2+1` is irreducible there, so the right answer is a maximal ideal with residue field `F_9`
+and `trim`'s is a non-maximal prime with quotient `F_3[y]`.
+
+The [diagnostic](#one-diagnostic-separates-the-causes) reproduces both answers exactly. The inner
+`trim`s are harmless; they hand the outer one different generating sets for the same module, and
+the early stop lands in a different place on each:
+
+```m2
+-- I, J, K rebuilt fresh as functions, as in the regression test below
+stop gens(trim(I()+J()) + K())   -- | 3 x-y a-1 |        exactly the wrong answer
+stop gens(trim(I()+K()) + J())   -- | 3 x-y a-1 y2+1 |   exactly the right one
+```
+
+A wrong answer that changes when the input is rewritten is the signature of an unsound early
+exit, not of a mathematical ambiguity. #4095 is sharper still:
 
 ```m2
 S = ZZ[x]
@@ -69,8 +176,18 @@ trim ideal(x^2+x+1, x^4+x^3+x^2+x+1)   -- ideal(x+1), but the ideal is the unit 
 trim ideal(x^2+1, x^3+1)               -- ideal(x-1), but the ideal is ideal(2, x+1)
 ```
 
-In the second the constant is dropped *and* the linear form changes. The report and the
-workaround in its thread both frame this as being about the unit ideal; it is not.
+The first pair is `Φ3, Φ5`, whose resultant is a unit. For the second, by hand:
+`(x^3+1) - x(x^2+1) = 1-x`, then `(x^2+1) - (x+1)(x-1) = 2`, so the ideal is `(2, x+1)`. `trim`
+drops the constant *and* returns a linear form that is not a true generator, and
+`(x^2+1) % ideal(x-1)` is `2`: **`trim`'s output does not contain its input's first generator**.
+The report and the workaround in its thread both frame this as being about the unit ideal; it is
+not.
+
+Both wrong answers are literally the early-stopped bases (`stop` gives `| x+1 |` and `| x-1 |`),
+and **`mingens` is wrong too** — `mingens ideal(x^2+1, x^3+1)` is `| x-1 |`. So the defect is
+upstream of `trim`'s bookkeeping, and both `mingb` lines need the patch; neither is merely
+inheriting the other's mistake. The odd surviving generator is an element of the partial basis,
+produced by one reduction step and frozen when the computation stopped.
 
 ### Candidate patch — written, run, and it works
 
@@ -95,7 +212,8 @@ used in this file at :205**, so this is reuse rather than a new predicate:
 | `QQ`, `QQ[x]`, `ZZ/7[x]`, `QQ[x]/x^2`, `GF 9`, `(GF 9)[x]`, `frac(QQ[u])`, `(frac(QQ[u]))[v]` | true | fine |
 
 The correspondence is exact on every ring tried — every broken ring is non-affine and every
-working ring is affine.
+working ring is affine. Mathematically it is Nakayama's coefficient hypothesis transcribed into
+code: stop early only where the early stop is sound.
 
 **Result, measured.** With the patch, all three wrong answers become right: #747's three
 orderings agree and keep `y^2+1`; `trim ideal(x^2+x+1, x^4+x^3+x^2+x+1)` becomes `ideal 1` with
@@ -125,6 +243,23 @@ The `QQ` row is the one that matters for regression risk: the affine path is unt
 intended. **This is a small sample and the honest caveat is that nobody has run this against a
 large `ZZ` computation** — if a slowdown shows up anywhere it will be there, and it is worth one
 deliberate check before the PR.
+
+### A tighter predicate
+
+The patch is deliberately conservative. It also switches the fast path off for *graded* modules
+over `ZZ`, where [the measurements](#two-hypotheses-and-only-their-conjunction-loses-generators)
+found no wrong answer in 1500 random and 17 constructed cases. The tighter test costs nothing,
+since `isHomogeneous M` is already computed in `mingens`:
+
+```m2
+StopWithMinimalGenerators => isAffineRing ring M or isHomogeneous M
+```
+
+The case for the conservative form anyway: Nakayama genuinely fails for graded modules over `ZZ`
+(`μ(M)` is not defined there), so "none in 1500" is evidence, not a theorem — and this whole group
+is a stopping criterion resting on an unstated hypothesis. If the slowdown in the cost table turns
+out to fall mainly on graded `ZZ` computations, that is the argument for the tighter one, and it is
+worth finding out which case the slow row is.
 
 ---
 
@@ -156,6 +291,29 @@ f // gb g                         -- map(B^0, B^1, 0)      <- wrong, silently
 f // gb(g, ChangeMatrix => true)  -- | x |
                                   -- | 0 |
 ```
+
+The bookkeeping: if `g_1..g_n` generate and `h_1..h_s` is a Groebner basis, the change matrix
+`T` has `h_j = Σ g_i T_ij`. Dividing `f` by the basis gives `f = Σ c_j h_j + r`; with `r = 0`,
+membership is settled, but expressing `f` in the *original* generators needs `q = T c`. Without
+`T` the membership question is answerable and the expression is not.
+
+**Why `f // g` gets it right.** Not different mathematics — a different owner of the basis.
+`quotient(Matrix, Matrix)` reaches its `"Reflexive"` hook (`matrix2.m2:426-440`), which builds
+and caches its own basis and demands the data it is about to use:
+
+```m2
+else g.cache#"gb for quotient" = (
+     if M.?relations
+     then gb(g' | relations M, ChangeMatrix => true, SyzygyRows => rank source g')
+     else gb(g',               ChangeMatrix => true)));
+```
+
+`f // gb g` instead accepts whatever basis the user hands it.
+
+**`quotientRemainder` has the same bug.** `quotientRemainder(Matrix, GroebnerBasis)`
+(`gb.m2:216`) makes the same unchecked `rawGBMatrixLift` call under the same comment, and on the
+example above returns the same zero-source quotient (verified 2026-10-21). A fix should cover
+both.
 
 ### It is detectable, cheaply
 
@@ -190,6 +348,12 @@ So the objection that stopped the optimisation in 2015 does not hold against the
 and #278 is a smaller task than it reads: check the reasoning against `gbTypeCode`, restore the
 block, and let the existing key do the work. **This has not been attempted here** — it wants
 cause (b) settled first, since it is the same question about the same data.
+
+One caution, and it is the reason to settle #256 first. The cache is deliberately permissive in
+one direction: `gbGetPartialComputation` (`gb.m2:243-250`) hands back a `gbWithChg` computation
+when only `gbOnly` was requested, since a basis with more data still answers the smaller
+question. The keys are distinct, but a lookup under one can be answered by the other — which is
+exactly the seam the anomaly below falls through.
 
 ### An anomaly found while checking this, worth its own issue
 
@@ -229,6 +393,14 @@ ideal(i+2) == I            -- true, so 5 is redundant
 ```
 
 Note this one is **redundant, not wrong** — unlike cause (a), no generator is lost.
+`ideal(5,5)` over `ZZ[]` presents the correct module `F_5`, with a duplicated generator.
+`N(2+i) = 5`, so `5 = (2+i)(2-i)` and `I = (2+i)` is principal.
+
+**The early stop is not to blame here.** The [diagnostic](#one-diagnostic-separates-the-causes)
+gives `| 5 i+2 |` both with and without `StopWithMinimalGenerators`: the engine's Groebner
+machinery over this ring does not reduce `5` against `i+2` however long it runs. So **the
+cause-(a) patch does not fix #837**; the default `Complement` strategy cannot see the redundancy,
+and only Smith normal form can.
 
 **The strategy would work if it were reached.** `smithNormalForm` — which is all `trimPID` needs —
 runs fine over `A`:
@@ -239,8 +411,11 @@ smithNormalForm(presentation module I, ChangeMatrix => {true, false})
 --  | 0 0 |  | -i+2  1 |
 ```
 
-Rank 1 with a unit, which is the right answer. So this is a guard-widening fix, not new
-mathematics. **No patch was written for it.** The guard has to be widened to the right class —
+Rank 1 with a unit, which is the right answer: over a PID, `coker f ≅ R^(m-r) ⊕ ⊕ R/(d_i)`,
+and the generators belonging to unit `d_i` can be deleted, which is exactly what `trimPID`
+(`matrix2.m2:289`) does. `ZZ[i]` is Euclidean under `a^2+b^2`, hence a PID; the guard asks for
+one particular family of PIDs (univariate over a field), not the one #837 is about. So this is a
+guard-widening fix, not new mathematics. **No patch was written for it.** The guard has to be widened to the right class —
 `ambient A` is `ZZ[i]`, a `PolynomialRing`, so `instance(ambient R, PolynomialRing)` reaches it,
 but "is this ring a PID" is not a question M2 can answer in general, and widening it too far will
 send non-PIDs into `trimPID`. That judgement is yours, and it is the second
@@ -267,6 +442,20 @@ promises less than that. Two smaller findings ride along:
 - `Strategy => Inhomogeneous` is inert for `mingens` — it is a real branch only in `trim`
   (`matrix2.m2:245` and `:275`).
 - `mingens` accepts an unrecognised `Strategy` silently, where `trim` errors.
+
+```m2
+Q = QQ[a..d]; I = ideal(a,b)*ideal(a,b)
+mingens(I, Strategy => Inhomogeneous)          -- | b2 ab a2 |, same as the default
+mingens(I, Strategy => "bogus")                -- | b2 ab a2 |, accepted
+trim(I, Strategy => "bogus")                   -- error: trim: unrecognized Strategy option
+```
+
+Both have one source-level explanation. In `mingens Module` the option is read only at
+`matrix2.m2:204` and `:214`, both tests of `opts.Strategy === Complement` *inside* the
+`if M.?relations` branch. An ideal's module has generators and no relations, so control reaches
+`else mingens mingb M.generators` (`:211`), which never looks at `opts.Strategy`: there is no
+`else error` arm because there is no dispatch to fall off. `trim Module` tests both strategies in
+each branch and ends each with `error "trim: unrecognized Strategy option"` (`:251`, `:278`).
 
 This is the cheap row in the group and the one to do last.
 
@@ -382,7 +571,8 @@ These are the two places where the fix depends on a decision rather than on a fa
    what Dan asked for in 2015 and it is honest, but it turns working-if-lucky user code into a
    hard failure. Recomputing is friendlier and matches what `f // g` already does, but it hides a
    real performance cliff behind an innocuous operator. A third option is to error only when the
-   result would be the zero map. The detection is settled either way; only the response is open.
+   result would be the zero map. The detection is settled either way; only the response is open,
+   and whichever it is applies to `quotientRemainder(Matrix, GroebnerBasis)` too.
 
 2. **#837: how far should the PID guard widen?** `instance(ambient R, PolynomialRing)` reaches
    `ZZ[i]/(i^2+1)`, but M2 cannot decide "is this a PID" in general, and a guard that is too loose
@@ -452,7 +642,8 @@ Recorded in `parking.tsv`:
   above is the artefact.
 - **Suggested commit split** — a suggestion only, and the split is yours:
   1. cause (a), both `mingb` lines, plus `tests/normal/trim-ZZ.m2` → closes #747 and #4095
-  2. cause (b) in `gb.m2`, plus `tests/normal/gb-changematrix.m2` → closes #256, then #278 as a
+  2. cause (b) in `gb.m2` (`quotient` and `quotientRemainder`), plus
+     `tests/normal/gb-changematrix.m2` → closes #256, then #278 as a
      follow-up on the same reasoning
   3. cause (c), the guard → closes #837
   4. cause (d), documentation → closes #105
