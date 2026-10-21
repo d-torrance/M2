@@ -1935,6 +1935,190 @@ checkError(
 -- * The degrees of the ring's own generators as reported by degreesRing/
 --   degreeLength, which follow from Degrees and DegreeGroup.
 
+-----------------------------------------------------------------------------
+-- Notes on OSCAR's serialization refactor (Oscar.jl PR #6016)
+-----------------------------------------------------------------------------
+-- Condensed from a design note written 2026-09-06/07, while the
+-- OnlyType/OnlyData save side and the TypeAndParams load side were being
+-- worked out.  The note's own save- and load-side sections are superseded by
+-- the code above and are not repeated here.  The open items were re-checked
+-- against this file on 2026-10-21.
+--
+-- == Open items ==
+--
+-- * A uuid-shaped String fails to load.  In the Oscar namespace,
+--       {"_type": "String", "data": "550e8400-e29b-41d4-a716-446655440000"}
+--   is a legal String, but fromMRDI(String, String) treats any string that
+--   looks like a uuid as a ref, and errors with "unknown uuid".  The test
+--   should be membership, not shape:
+--       isUuid s and (thingsByUuid#?s or uuidsToCreate#ns#?s)
+--   That gives up the loud error on a genuinely dangling ref, which belongs
+--   in validateMRDI instead, along with the other structural claim worth
+--   checking there: that a container's params agree with the types of the
+--   refs its data points at.  The loader can't enforce that, since a ref
+--   returns the whole object and so silently wins over the params.
+-- * {R, x^2} writes one uuid into both subtrees: into params as
+--   RingElement's type parameter, and into data as the list's first entry.
+--   It should load with first L === ring last L, and {R, R} with
+--   first L === last L.  Both hold in a single session, but only via the
+--   uuid cache (see the caveat at the top of the TODO block above), so they
+--   want the two-process test.
+-- * TypeAndParams has no net, so one in an error message or the debugger
+--   prints its Instance closure as FunctionClosure[...].  This is enough:
+--       net TypeAndParams := T -> net T.Type
+--
+-- == What #6016 changes ==
+--
+-- Opened 2026-05-20 by antonydellavecchia, still open; 209 commits,
+-- +2254/-1891 across 49 files.  The two-argument entry point
+--     load_object(s, ::Type, params)
+-- becomes
+--     load_object(s, tp::TypeAndParams)
+-- where TypeAndParams is a struct carrying a type together with its
+-- contextual parameters.  load_type_and_params now returns one, so the type
+-- refined while walking the type tree (Vector -> Vector{T}) survives into
+-- data parsing, and a container's load method just passes the descriptor
+-- down to its entries.  Parameters may also be a tuple of Pairs, indexed by
+-- symbol (tp[:domain], tp[:codomain]); PhylogeneticModel's paired
+-- _entry_type/_params keys collapse to one key each, and
+-- _convert_override_params is deleted.
+--
+-- The part worth taking is a rule: no types inside data.  From the PR's new
+-- developer documentation: "All type information -- including the types of
+-- nested objects -- must be fully described in the type tree (via
+-- type_and_params) so that the deserializer can resolve all types before
+-- touching the data tree."  data/schema.json now forbids a _type key inside
+-- data.  It is the rule this package's original List saving broke: {x^2, y}
+-- wrote the ring once per element in params, plus a full _type block in
+-- every data entry.
+--
+-- On disk, a type node is one of
+--   * a registered type name ("Bool", "Base.Int");
+--   * a uuid pointing into _refs at an object that serves as context (a
+--     ring, a field);
+--   * {"name": ..., "params": ...}, where params is a type node, an array of
+--     them, or an object of named ones.
+-- OSCAR's parse resolves uuid leaves (load_ref) and singleton types (U())
+-- to objects eagerly, and keeps everything else as a descriptor.
+--
+-- == What OSCAR's design rests on, which M2 lacks ==
+--
+-- 1. reverse_type_map, a total name <-> type registry: each Julia type is
+--    registered under one literal name.  M2 can't have all of one, because
+--    Name may be a function of the object (Name => R -> oscarRings#R gives
+--    "ZZRing" or "QQField" from the one class Ring).  A wrinkle: when
+--    several Julia types share a name, the map's entry is a Dict with a
+--    "default" key, and the file's _instance field picks among them.  That
+--    is what _instance in OSCAR's type nodes is for.
+-- 2. elem_type, which maps a parent's type to its elements' type, so OSCAR
+--    can build an instance descriptor from any parent.  Its Ideal loader
+--    does TypeAndParams(elem_type(R), R) for each generator.  M2's
+--    counterpart has to be declared, which is what the Instance option is.
+-- 3. Base.issingletontype, which decides at parse time whether a parameter
+--    becomes an object (U()) or stays a descriptor.  M2 doesn't need it; see
+--    "Position, not naming".
+-- 4. Parametric containers: Vector{T} carries its element type.  M2 gets
+--    the same information from the file, with one descriptor per element.
+-- 5. type_and_params(x::T) where T <: SetElem = TypeAndParams(T, parent(x)),
+--    a type constraint making an element's params its parent.  In M2 this
+--    is a convention; see "An instance's params are exactly its class".
+--
+-- == Position, not naming ==
+--
+-- OSCAR names classes and instances separately (ZZRing and ZZRingElem,
+-- MPolyRing and MPolyRingElem).  Here Name => toString @@ class names only
+-- instances: saveMRDI 5 is {"_type": "ZZ", "data": "5"}, and saveMRDI ZZ is
+-- {"_type": "Ring", "data": "ZZ"}.  The two ZZs don't collide, because the
+-- role is given by the position:
+--     Ring "ZZ"    the ring ZZ       a class applied to data
+--     ZZ "5"       the integer 5     a different class applied to data
+--     ZZ ()        the ring ZZ       the class itself
+-- Every descriptor names a class, and a (descriptor, data) pair is an
+-- instance, so no name has to say which it is.  That makes issingletontype
+-- unnecessary, not just absent.  A descriptor with no data (a bare "ZZ" in
+-- a params array) supports T data but not T(): a bare "ZZ" identifies no
+-- particular integer, so there is nothing to force it to.
+--
+-- == An instance's params are exactly its class ==
+--
+-- This is what makes Instance sound.  Routing from a class descriptor to
+-- its instances passes that same descriptor as the instances' params, so an
+-- instance that needed anything more would be inexpressible.  In OSCAR it
+-- holds without exception.  As of 2026-09-07, all 79 type_and_params
+-- definitions in src/Serialization/ and in five experimental packages
+-- (AlgebraicStatistics, FTheoryTools, LieAlgebras,
+-- MatroidRealizationSpaces, OscarDB) were checked.  The only element-level
+-- overrides name a different parent: RootSpaceElem and DualRootSpaceElem
+-- use root_system(e), and TropicalSemiringElem uses parent(obj).  All 27
+-- definitions with compound params are for
+--   * parents: MatGroup, MPolyDecRing, MPolyLocRing, MPolyQuoLocRing, Lie
+--     algebras, LieAlgebraModule, IndexedRing;
+--   * morphisms (domain and codomain): FinGenAbGroupHom, MPolyAnyMap,
+--     MPolyLocalizedRingHom, MPolyQuoLocalizedRingHom;
+--   * structures: ZZLat, QuadSpaceWithIsom, ZZLatWithIsom, polyhedral
+--     objects, matroid realization spaces, phylogenetic models, F-theory
+--     models;
+--   * containers: Array, Dict, NamedTuple.
+-- None of these are things whose instances are loaded by name.
+--
+-- == What not to borrow ==
+--
+-- * Forcing parameters at parse time with issingletontype (see above).
+-- * Vector's hoisting.  OSCAR's Vector requires all entries to share one
+--   descriptor, so that a single copy can be hoisted into params.  M2 lists
+--   are heterogeneous, so the right analogue is OSCAR's Tuple: one
+--   descriptor per position.  Compressing long homogeneous lists can come
+--   later as a size optimization, with the reader rule "array => one per
+--   position, single => applies to all".
+-- * Dispatching on the shape of params, as in
+--   TypeAndParams{<:FracField, <:Ring}.  Here that would mean a second
+--   registry keyed on the class of params; a load method can branch on
+--   instance(params, HashTable) instead.  OSCAR pays for it with six
+--   save_type_and_params methods.
+-- * OSCAR's param names key_params, value_params, subtype_params and dims.
+--   We have to read them, but shouldn't write them in Macaulay2-namespace
+--   files, since an M2 HashTable has no key type to record.  OSCAR's Array
+--   also puts a raw integer (dims) in the type tree, special-cased by key
+--   name.  Our grammar has no room for that.  If a plain number is ever
+--   wanted there, use an object node such as {"_type": "ZZ", "data": "5"},
+--   which loads through the ordinary ZZ method.
+-- * override_params, which loads a file's root into the caller's context
+--   rather than the file's.  It is a separate feature; if we ever want it,
+--   the natural spelling is loadMRDI(s, Params => R).
+--
+-- == Interoperability ==
+--
+-- * OSCAR writes {"_type": "QQField"} for a data-less object.  For example,
+--   data/JohnsonSolids/j09.mrdi has
+--       "_type": {"name": "PolyRing", "params": {"_type": "QQField"}}
+--   but OSCAR's reader also accepts a bare "QQField", so both forms exist in
+--   the wild.  The wrapper is a writer convention, not a format invariant,
+--   so it can't be used to tell forcing a descriptor from applying it.
+-- * A descriptor in params and a uuid in data come with no signal to tell
+--   them apart.  OSCAR's reader uses serialize_with_id(T), a predicate on the
+--   Julia type.  We have no load-time equivalent (UseID is looked up on the
+--   class of an object, and the reader only has a type name), so for files
+--   OSCAR wrote, the signal has to come from the datum: a uuid-shaped string
+--   that resolves to a ref.  Hence the first open item above.
+--
+-- == Cost, and why now ==
+--
+-- What #6016 gets wrong is the timing: a breaking change to an interface
+-- that is public in practice, as a 209-commit, 49-file patch to a mature
+-- format.  A reviewer with downstream serialization code (lgoettgens) asked
+-- what the change was for and how to migrate.  The author's first answer, a
+-- compatibility method, didn't work, and they conceded "there is no way to
+-- call this".  The PR's own documentation also leaves the naming open
+-- ("with the exact name of this struct and function to be discussed?"),
+-- and nobody has answered.
+--
+-- This package is cheaper to change, though not free.  It has been
+-- distributed since 1f75977ee7 (2026-04-28), it shipped in 1.26.05 and
+-- 1.26.06, and addLoadMethod and addSaveMethod are exported.  But it is
+-- version 0.1, and nothing else in packages/ calls either function, so the
+-- on-disk shape of container files can change while almost nobody holds
+-- one.
+
 end
 
 loadPackage("MRDI", FileName => "~/src/macaulay2/M2/M2/Macaulay2/packages/MRDI.m2", Reload => true)
