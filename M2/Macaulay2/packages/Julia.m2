@@ -6,6 +6,7 @@ newPackage("Julia",
             Name => "Doug Torrance",
             Email => "dtorrance9@gatech.edu",
             HomePage => "https://d-torrance.github.io"}},
+    PackageImports => {"ForeignFunctions"},
     Keywords => {"Interfaces"},
     AuxiliaryFiles => true)
 
@@ -20,8 +21,6 @@ export {
     "juliaSymbol",
     "juliaValue",
 }
-
-needsPackage "ForeignFunctions"
 
 --------------------------------
 -- foreign function interface --
@@ -701,9 +700,6 @@ check oo
 --    tables -- looking one up with an equal but distinct object misses
 
 -- packaging
---  * fill in the newPackage options: Version, Headline, Date, Authors,
---    Keywords, and PackageImports => {"ForeignFunctions"} in place of
---    the needsPackage call
 --  * add a Configuration option for the libjulia path, so that
 --    packagers can point at it without a julia binary
 --  * add an escape hatch when julia isn't found, as RInterface does
