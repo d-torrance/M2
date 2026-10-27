@@ -26,5 +26,11 @@ function zz_to_bigint(ptr::Ptr{Cvoid})
           (Ref{BigInt}, Ptr{Cvoid}), n, ptr)
     n
 end
+function int128_to_zz(x::Int128)
+    ((x >> 64) % Int64, x % UInt64)
+end
+function uint128_to_zz(x::UInt128)
+    ((x >> 64) % UInt64, x % UInt64)
+end
 
 end

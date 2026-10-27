@@ -247,6 +247,15 @@ addJuliaToM2Function("UInt8", value @@ jlUnboxUint8)
 addJuliaToM2Function("UInt16", value @@ jlUnboxUint16)
 addJuliaToM2Function("UInt32", value @@ jlUnboxUint32)
 addJuliaToM2Function("UInt64", value @@ jlUnboxUint64)
+int128ToZZ = JuliaFunction(jlM2JuliaModule, "int128_to_zz")
+addJuliaToM2Function("Int128", x -> (
+    (hi, lo) := value int128ToZZ x;
+    hi * 2^64 + lo))
+uint128ToZZ = JuliaFunction(jlM2JuliaModule, "uint128_to_zz")
+addJuliaToM2Function("UInt128", x -> (
+    (hi, lo) := value uint128ToZZ x;
+    hi * 2^64 + lo))
+addJuliaToM2Function("BigInt", x -> value mpzT x)
 addJuliaToM2Function("Float32", value @@ jlUnboxFloat32)
 addJuliaToM2Function("Float64", value @@ jlUnboxFloat64)
 -- TODO: Int128, UInt128, Float16, BigInt, BigFloat
@@ -459,6 +468,9 @@ assert Equation(value (juliaGetGlobal "UInt8") 5, 5)
 assert Equation(value (juliaGetGlobal "UInt16") 5, 5)
 assert Equation(value (juliaGetGlobal "UInt32") 5, 5)
 assert Equation(value (juliaGetGlobal "UInt64") 5, 5)
+assert Equation(value (juliaGetGlobal "Int128") 5, 5)
+assert Equation(value (juliaGetGlobal "UInt128") 5, 5)
+assert Equation(value (juliaGetGlobal "BigInt") 5, 5)
 -- floating-point types
 assert Equation(value (juliaGetGlobal "Float32") 5, 5)
 assert Equation(value (juliaGetGlobal "Float64") 5, 5)
@@ -703,11 +715,6 @@ check oo
 -- TODO! --
 -----------
 
--- bugs
---  * new JuliaObject from ZZ boxes an Int64, so anything that doesn't
---    fit is silently truncated -- JuliaObject 2^70 is 0.  QQ has the
---    same bug, and RR rounds to a double.  See "bignums" below.
-
 -- documentation
 --  * write the documentation; there are no doc nodes at all yet
 --  * caveat: == and hash disagree for JuliaObject, and hash is
@@ -728,8 +735,7 @@ check oo
 --    install and version-pin the julia packages it needs
 
 -- julia -> M2
---  * Float16
---  * Int128, UInt128, BigInt, BigFloat -- see "bignums" below
+--  * Float16, BigFloat
 --  * NamedTuple, which julia APIs return all the time
 --  * value flattens a 2-d array column-major, so the shape is lost;
 --    size is right there, so nested lists would work
@@ -739,73 +745,6 @@ check oo
 --    pervasively: build a NamedTuple out of Options and hand it to
 --    Core.kwcall(nt, f, args...), which already works today
 --  * a way to call M2 functions from julia, cf. pythonWrapM2Function
-
--- bignums
---  * follow julia's own rule for integer literals and use the smallest
---    of Int64, Int128, and BigInt that fits, so that JuliaObject 5
---    behaves like typing 5 in julia.  QQ then follows from ZZ as
---    Rational{BigInt}; RR wants BigFloat, but toString gives only 6
---    digits, so use toExternalString and strip the "pNNN" suffix, and
---    pass the precision as a keyword.
---
---  * Int128/UInt128: the C API's box and unbox calls stop at 64 bits,
---    but jl_new_bits(type, ptr) boxes any primitive bits type from its
---    bytes, and jl_data_ptr(v) is just v, so unboxing is a 16-byte read.
---    Nothing 128-bit crosses libffi by value, which is just as well,
---    since ffiIntegerType only handles 8, 16, 32, and 64 bits.
---
---      jlNewBits = foreignFunction(libjulia, "jl_new_bits", voidstar,
---          {voidstar, voidstar})
---      -- 0x61626364 reads as "abcd" on big-endian, "dcba" on little
---      loOffset = if version#"endianness" == "abcd" then 8 else 0
---      hiOffset = 8 - loOffset
---      toInt128 = x -> (
---          buf := getMemory 16;
---          *voidstar(value buf + loOffset) = uint64 (x % 2^64);
---          *voidstar(value buf + hiOffset) = int64  (x // 2^64);
---          JuliaObject jlNewBits(juliaGetGlobal "Int128", buf))
---      fromInt128 = z -> (
---          p := value voidstar z;  -- value z would try to convert!
---          value uint64 (p + loOffset) +
---              2^64 * value int64 (p + hiOffset))
---
---  * BigInt has no C API support at all, so copy through gmp.  Julia
---    ships its own libgmp and points it at julia's allocators (see
---    base/gmp.jl), so the *receiving* side has to do the allocating:
---    for julia -> M2 we call __gmpz_set into an mpzT, and for
---    M2 -> julia julia ccalls it.  BigInt is layout-identical to
---    __mpz_struct, so pointer_from_objref hands back a usable mpz_ptr.
---    Going the other way, "voidstar m" gives the mpz_ptr stored inside
---    an mpzT -- "voidstar address m" does not, since that re-wraps the
---    outer address.
---
---      juliaValue ///
---      module M2GMP
---          function from_mpz(p::Ptr{Cvoid})
---              z = BigInt()
---              ccall((:__gmpz_set, :libgmp), Cvoid,
---                  (Ref{BigInt}, Ptr{Cvoid}), z, p)
---              z
---          end
---      end
---      ///
---
---      mpzSet = foreignFunction("__gmpz_set", void, {mpzT, voidstar})
---      fromJulia = z -> (
---          p := jlUnboxVoidPointer(
---              (JuliaFunction "pointer_from_objref") z);
---          d := mpzT 0; mpzSet(d, p); value d)
---      toJulia = x -> (
---          m := mpzT x;
---          r := jlFromMpz JuliaObject jlBoxVoidPointer value voidstar m;
---          m;  -- keep m alive across the call
---          r)
---
---    strings work too -- parse(BigInt, toString x) out, __gmpz_set_str
---    into an mpzT back -- and are marginally faster below ~10000 digits,
---    since ~2.5 ms of per-call overhead dominates either way.  Don't use
---    M2's value to parse the incoming decimal string, though: that runs
---    the M2 parser over the digits and is 600x slower.
 
 -- methods
 --  * >>> (see above)
