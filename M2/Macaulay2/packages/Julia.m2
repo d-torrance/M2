@@ -62,8 +62,6 @@ jlUnboxUint64 = foreignFunction(libjulia, "jl_unbox_uint64", uint64, voidstar)
 jlUnboxUint8 = foreignFunction(libjulia, "jl_unbox_uint8", uint8, voidstar)
 
 -- symbols
-jlBaseModule = foreignSymbol(libjulia, "jl_base_module", voidstar)
-jlMainModule = foreignSymbol(libjulia, "jl_main_module", voidstar)
 jlNothing = foreignSymbol(libjulia, "jl_nothing", voidstar)
 
 --------------------
@@ -72,12 +70,6 @@ jlNothing = foreignSymbol(libjulia, "jl_nothing", voidstar)
 
 jlInit()
 addEndFunction(() -> jlAtexitHook 0)
-
--- symbols not exported by C API (now that we're initialized)
-jlDeleteGlobal = jlGetGlobal(jlMainModule, jlSymbol "delete!")
-jlGetGlobalGlobal = jlGetGlobal(jlMainModule, jlSymbol "getglobal")
-jlSetindexGlobal = jlGetGlobal(jlMainModule, jlSymbol "setindex!")
-jlShowerror = jlGetGlobal(jlMainModule, jlSymbol "showerror")
 
 -----------------
 -- JuliaObject --
@@ -93,9 +85,19 @@ importFrom(Core, "toExternalFormat")
 toExternalString JuliaObject := toExternalFormat @@ describe
 JuliaObject.AfterPrint = x -> (JuliaObject, " of type ", jlTypeof x)
 
+-- modules
+jlBaseModule = JuliaObject foreignSymbol(libjulia, "jl_base_module", voidstar)
+jlMainModule = JuliaObject foreignSymbol(libjulia, "jl_main_module", voidstar)
+jlM2JuliaModule = JuliaObject jlLoad(jlMainModule, currentFileDirectory | "Julia/M2Julia.jl")
+
+-- symbols not exported by C API
+jlDeleteGlobal = jlGetGlobal(jlMainModule, jlSymbol "delete!")
+jlGetGlobalGlobal = jlGetGlobal(jlMainModule, jlSymbol "getglobal")
+jlSetindexGlobal = jlGetGlobal(jlMainModule, jlSymbol "setindex!")
+jlShowerror = jlGetGlobal(jlMainModule, jlSymbol "showerror")
+
 -- keep a dict of known julia objects so they don't get garbage
 -- collected out from under us
-jlM2JuliaModule = jlLoad(jlMainModule, currentFileDirectory | "Julia/M2Julia.jl")
 knownObjects = jlGetGlobal(jlM2JuliaModule, jlSymbol "known_objects")
 knownObjectCount = 0
 finalizer = key -> x -> jlCall2(jlDeleteGlobal, knownObjects, jlBoxInt64 key)
@@ -138,7 +140,9 @@ juliaSymbol Thing := juliaSymbol @@ toString
 --------------------
 
 juliaGetGlobal = method()
-juliaGetGlobal String := s -> juliaCall(jlGetGlobalGlobal, (jlMainModule, jlSymbol s))
+juliaGetGlobal(JuliaObject, String) := (M, s) -> juliaCall(jlGetGlobalGlobal, (M, jlSymbol s))
+juliaGetGlobal(JuliaObject, Thing) := (M, s) -> juliaGetGlobal(M, toString s)
+juliaGetGlobal String := s -> juliaGetGlobal(jlMainModule, s)
 juliaGetGlobal Thing := juliaGetGlobal @@ toString
 
 -------------------
@@ -166,6 +170,9 @@ new JuliaFunction from JuliaObject := (T, f) -> x -> juliaCall(f, x)
 new JuliaFunction from String := (T, s) -> T juliaGetGlobal s
 new JuliaFunction from Function :=
 new JuliaFunction from Symbol   := (T, s) -> T toString s
+new JuliaFunction from (JuliaObject, String) := (T, M, s) -> T juliaGetGlobal(M, s)
+new JuliaFunction from (JuliaObject, Function) :=
+new JuliaFunction from (JuliaObject, Symbol)   := (T, M, s) -> T(M, toString s)
 JuliaObject Thing := (f, x) -> juliaCall(f, x)
 
 -- functions we'll use
@@ -186,7 +193,7 @@ jlString = JuliaFunction "string"
 jlTrunc = JuliaFunction "trunc"
 jlTuple = JuliaFunction "tuple"
 jlTypeof = JuliaFunction "typeof"
-jlVect = JuliaFunction juliaCall(jlGetGlobalGlobal, (jlBaseModule, jlSymbol "vect"))
+jlVect = JuliaFunction(jlBaseModule, "vect")
 
 -- globals we'll use
 jlIm = juliaGetGlobal "im"
@@ -213,8 +220,7 @@ new JuliaObject from Nothing := (T, x) -> jlNothing
 
 getJlBool = x -> value jlUnboxBool x == 1
 
-setValueKey = JuliaFunction JuliaObject jlGetGlobal(jlM2JuliaModule,
-    jlSymbol "set_value_key")
+setValueKey = JuliaFunction(jlM2JuliaModule, "set_value_key")
 juliaToM2Functions = new MutableList
 addJuliaToM2Function = method()
 addJuliaToM2Function(String, Function) := (typename, f) -> (
@@ -244,7 +250,7 @@ addJuliaToM2Function("Tuple", x -> value \ toSequence x)
 addJuliaToM2Function("AbstractDict", x -> hashTable apply(toList x, kv -> value \ (kv_1, kv_2)))
 addJuliaToM2Function("Nothing", x -> null)
 
-valueKey = jlGetGlobal(jlM2JuliaModule, jlSymbol "value_key")
+valueKey = juliaGetGlobal(jlM2JuliaModule, "value_key")
 value JuliaObject := x -> (
     key := value jlUnboxInt64 jlCall1(valueKey, x);
     if key == -1 then error("no method found for applying 'value' to: ", newline,
@@ -793,10 +799,6 @@ check oo
 --    the M2 parser over the digits and is 600x slower.
 
 -- methods
---  * juliaGetGlobal only looks in Main, so there's no way to reach a
---    name that Base declares public but doesn't export (cf. vect) or
---    anything in another module; take a module argument, or split a
---    qualified name like "Base.vect" on the dots
 --  * >>> (see above)
 
 -- tests
