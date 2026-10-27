@@ -15,4 +15,16 @@ function set_value_key(T::Type, key::Int)
     @eval value_key(::$T) = $key
     nothing
 end
+
+# integer conversion
+function zz_to_int128(hi::Int64, lo::UInt64)
+    (Int128(hi) << 64) | lo
+end
+function zz_to_bigint(ptr::Ptr{Cvoid})
+    n = BigInt()
+    ccall((:__gmpz_set, Base.GMP.libgmp), Cvoid,
+          (Ref{BigInt}, Ptr{Cvoid}), n, ptr)
+    n
+end
+
 end

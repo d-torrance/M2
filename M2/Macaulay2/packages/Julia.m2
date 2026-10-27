@@ -34,6 +34,8 @@ jlAtexitHook = foreignFunction(libjulia, "jl_atexit_hook", void, int)
 jlBoxBool = foreignFunction(libjulia, "jl_box_bool", voidstar, int8)
 jlBoxFloat64 = foreignFunction(libjulia, "jl_box_float64", voidstar, double)
 jlBoxInt64 = foreignFunction(libjulia, "jl_box_int64", voidstar, int64)
+jlBoxUint64 = foreignFunction(libjulia, "jl_box_uint64", voidstar, uint64)
+jlBoxVoidpointer = foreignFunction(libjulia, "jl_box_voidpointer", voidstar, voidstar)
 jlCall = foreignFunction(libjulia, "jl_call", voidstar, {voidstar, voidstarstar, uint32})
 jlCall0 = foreignFunction(libjulia, "jl_call0", voidstar, voidstar)
 jlCall1 = foreignFunction(libjulia, "jl_call1", voidstar, {voidstar, voidstar})
@@ -203,7 +205,14 @@ jlIm = juliaGetGlobal "im"
 -----------------
 
 new JuliaObject from Boolean := (T, x) -> jlBoxBool if x then 1 else 0
-new JuliaObject from ZZ := (T, x) -> jlBoxInt64 x
+zzToInt128 = JuliaFunction(jlM2JuliaModule, "zz_to_int128")
+zzToBigInt = JuliaFunction(jlM2JuliaModule, "zz_to_bigint")
+new JuliaObject from ZZ := (T, x) -> (
+    if x < -2^127 or x > 2^127 - 1
+    then zzToBigInt jlBoxVoidpointer mpzT x
+    else if x < -2^63 or x > 2^63 - 1
+    then zzToInt128(jlBoxInt64(x // 2^64), jlBoxUint64(x % 2^64))
+    else jlBoxInt64 x)
 new JuliaObject from QQ := (T, x) -> jlRationalDivision(numerator x, denominator x)
 new JuliaObject from RR := (T, x) -> jlBoxFloat64 x
 new JuliaObject from CC := (T, x) -> realPart x + jlIm * imaginaryPart x
