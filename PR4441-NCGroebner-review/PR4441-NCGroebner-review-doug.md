@@ -9,22 +9,23 @@ Details: `PR4441-NCGroebner-review-claude.md`.
 2. **`ASSERT_EQ` hides the rest of the suffix-tree tests (§5).** The later blocks (596 overlaps, superwords, left overlaps) have never run; use `EXPECT_EQ`.
 3. **Broken Emacs footer.** clang-format merged `compile-command`, `indent-tabs-mode` and `End:` into two lines (`:888–889`).
 4. **`NCReduction.tryit` is now a duplicate.** It repeats two other heap tests, and `tryOutMathicCode` is left with no callers.
-5. **Deleted clue for #4700 (§6).** "This doesn't give an error unless you use *all* the terms" was dropped; it belongs above the disabled test.
-6. **A TODO became an unchecked statement (§13).** The heft/length offset comment in `spairs` (`:369`); its checks are also `EXPECT_TRUE(a && b)` with no values reported.
-7. **`NCGroebner.sorting` tests `std::map` (minor).** It asserts `std::pair` ordering, not engine behavior.
-8. **`EXPECT_TRUE(f == h)` (minor, §5).** Three comparisons still don't print their values.
+5. **`MemoryBlock.tryit` doesn't test shrinking.** Values are written only after `shrinkLastAllocate`, and the address isn't checked. So it can't catch the data loss or move that F4's two callers would suffer, even though its opener claims it does.
+6. **Deleted clue for #4700 (§6).** "This doesn't give an error unless you use *all* the terms" was dropped; it belongs above the disabled test.
+7. **A TODO became an unchecked statement (§13).** The heft/length offset comment in `spairs` (`:369`); its checks are also `EXPECT_TRUE(a && b)` with no values reported.
+8. **`NCGroebner.sorting` tests `std::map` (minor).** It asserts `std::pair` ordering, not engine behavior.
+9. **`EXPECT_TRUE(f == h)` (minor, §5).** Three comparisons still don't print their values.
 
 ## For Doug / Mike only
 
-9. **Ask Mike** whether the suffix-tree expected values are still right, and whether unused experimental code should have disabled tests and an issue at all.
-10. `MonomialOrdering.create` is misplaced in this file; a candidate to move later.
+10. **Ask Mike** whether the suffix-tree expected values are still right, and whether unused experimental code should have disabled tests and an issue at all.
+11. `MonomialOrdering.create` is misplaced in this file; a candidate to move later.
 
 ## Good
 
-11. The heap tests were folded into two shared helpers that assert instead of printing. `MemoryBlock` now checks stored values. The leaks are gone, and `WordTable`/`SuffixTree` share one Sklyanin template.
+12. The heap tests were folded into two shared helpers that assert instead of printing. `MemoryBlock` now checks that later allocations don't overwrite earlier ones. The leaks are gone, and `WordTable`/`SuffixTree` share one Sklyanin template.
 
 ## Status
 
-12. Built with Autotools on Ubuntu 24.04. The 19 enabled tests pass, also shuffled; the full suite has 879 passed, 4 skipped and 26 disabled. Of the 3 disabled tests, 2 fail on their assertions and 1 segfaults. CMake and coverage were not run.
+13. Built with Autotools on Ubuntu 24.04. The 19 enabled tests pass, also shuffled; the full suite has 879 passed, 4 skipped and 26 disabled. Of the 3 disabled tests, 2 fail on their assertions and 1 segfaults. CMake and coverage were not run.
 
 *Summary drafted by Claude Opus 5.5 from the full review; to be edited by Doug.*

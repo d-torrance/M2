@@ -36,6 +36,14 @@ The compile-command string is split across two lines and `End:` is no longer on 
 
 ---
 
+**`e/unit-tests/NCGroebnerTest.cpp:121`** (opener at `:104`)
+
+The opener says "Allocation growth and shrinking must preserve every still-live stored value", but the values are written only *after* `shrinkLastAllocate` (`:125`). So the test can't detect shrinking losing or moving data. That is the contract the two production callers rely on: `f4/f4-spairs.cpp:56` writes the lcm into a `max_monomial_size()` array and then shrinks it, and `gb-f4/MonomialView.cpp:72` fills its result, shrinks, and then writes through `rng.first`. Both need the address to stay put and the prefix to survive.
+
+`shrinkLastAllocate` frees the top array and allocates it again. If the address changes, it only prints `"ooops: location changed"` (`MemoryBlock.hpp`), and the test doesn't check the address either. Suggested change: fill the whole array before shrinking, then `ASSERT_EQ` that `range.first` is unchanged and `EXPECT_EQ` the first four values. The growth half of the opener is checked by the read-back loop and is fine (§13).
+
+---
+
 **`e/unit-tests/NCGroebnerTest.cpp:138`**
 
 `NCReduction.tryit` used to call `tryOutMathicCode()`. It now runs `checkPolynomialHeap` on `NaiveGeobucket` and `NaiveDedupGeobucket`, which `NaivePolynomialHeap` (`:164`) and `NaiveDedupPolynomialHeap` (`:157`) already do. So:
@@ -79,7 +87,7 @@ Several element comparisons are still `EXPECT_TRUE(f == h)` / `EXPECT_TRUE(A->co
 ### What complies well
 
 - The four copies of the heap test were folded into `checkPolynomialHeap` / `checkOverlappingHeapTerms`. They now assert intermediate values after each `removeLeadTerm` instead of printing them, and the debug output is gone.
-- The `MemoryBlock` test now checks that earlier allocations keep their values after later ones and after `shrinkLastAllocate`. The old version only checked the range sizes.
+- The `MemoryBlock` test now reads every allocation back at the end, so it checks that later allocations, including ones in new arena chunks, don't overwrite earlier ones. The old version only checked the range sizes, and accepted either size for any allocation. (Shrinking is not covered; see `:121` above.)
 - `prefix_suffix` became a case table. The `FreeAlgebra.polyarithmetic` scopes each set up their own inputs instead of reusing `f`, `g`, `h` through `setZero`.
 - `FreeAlgebraQuotient` was a leaked `new`; it's now on the stack, and `GB` is declared first, so it outlives the quotient. The suffix trees are `unique_ptr`s.
 - The `#if 0` blocks and the unused `operator<<` overloads are gone. The `subwords`/`subword` checks that had been commented out are restored inside the disabled test.
