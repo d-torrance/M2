@@ -201,6 +201,7 @@ jlGetproperty = JuliaFunction "getproperty"
 jlHasproperty = JuliaFunction "hasproperty"
 jlInt = JuliaFunction "Int"
 jlIterate = JuliaFunction "iterate"
+jlKeys = JuliaFunction "keys"
 jlPair = JuliaFunction "Pair"
 jlRationalDivision = JuliaFunction "//"
 jlRepr = JuliaFunction "repr"
@@ -281,6 +282,7 @@ addJuliaToM2Function("Char", utf8 @@ value @@ jlInt)
 addJuliaToM2Function("String", value @@ jlStringPtr)
 addJuliaToM2Function("AbstractArray", x -> value \ toList x)
 addJuliaToM2Function("Tuple", x -> value \ toSequence x)
+addJuliaToM2Function("NamedTuple", x -> apply(toString \ toSequence jlKeys x, name -> name => value x@@name))
 addJuliaToM2Function("AbstractDict", x -> hashTable apply(toList x, kv -> value \ (kv_1, kv_2)))
 addJuliaToM2Function("Nothing", x -> null)
 
@@ -752,7 +754,6 @@ check oo
 
 -- julia -> M2
 --  * Float16, BigFloat
---  * NamedTuple, which julia APIs return all the time
 --  * value flattens a 2-d array column-major, so the shape is lost;
 --    size is right there, so nested lists would work
 
