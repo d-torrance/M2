@@ -197,6 +197,7 @@ JuliaObject Thing := (f, x) -> juliaCall(f, x)
 jlDelete = JuliaFunction "delete!"
 jlDict = JuliaFunction "Dict"
 jlEachrow = JuliaFunction "eachrow"
+jlEltype = JuliaFunction "eltype"
 jlGetindex = JuliaFunction "getindex"
 jlGetproperty = JuliaFunction "getproperty"
 jlHasproperty = JuliaFunction "hasproperty"
@@ -209,12 +210,14 @@ jlRationalDivision = JuliaFunction "//"
 jlRepr = JuliaFunction "repr"
 jlSetindex = JuliaFunction "setindex!"
 jlSetproperty = JuliaFunction "setproperty!"
+jlSize = JuliaFunction "size"
 jlSprint = JuliaFunction "sprint"
 jlString = JuliaFunction "string"
 jlTrunc = JuliaFunction "trunc"
 jlTuple = JuliaFunction "tuple"
 jlTypeof = JuliaFunction "typeof"
 jlVect = JuliaFunction(jlBaseModule, "vect")
+jlZeros = JuliaFunction "zeros"
 
 -- globals we'll use
 jlIm = juliaGetGlobal "im"
@@ -241,7 +244,10 @@ new JuliaObject from List := (T, x) -> jlVect toSequence x
 new JuliaObject from Sequence := (T, x) -> jlTuple x
 new JuliaObject from HashTable := (T, x) -> jlDict(jlPair \ toSequence pairs x)
 new JuliaObject from Nothing := (T, x) -> jlNothing
-new JuliaObject from Matrix := (T, x) -> jlHvcat prepend(numColumns x, toSequence flatten entries x)
+new JuliaObject from Matrix := (T, x) -> (
+    if numRows x == 0 or numColumns x == 0
+    then jlZeros(jlTypeof 0_(ring x), numRows x, numColumns x)
+    else jlHvcat prepend(numColumns x, toSequence flatten entries x))
 
 -----------------
 -- julia -> M2 --
@@ -288,7 +294,12 @@ addJuliaToM2Function("Tuple", x -> value \ toSequence x)
 addJuliaToM2Function("NamedTuple", x -> apply(toString \ toSequence jlKeys x, name -> name => value x@@name))
 addJuliaToM2Function("AbstractDict", x -> hashTable apply(toList x, kv -> value \ (kv_1, kv_2)))
 addJuliaToM2Function("Nothing", x -> null)
-addJuliaToM2Function("AbstractMatrix", x -> matrix value jlEachrow x)
+addJuliaToM2Function("AbstractMatrix", x -> (
+    (m, n) := value jlSize x;
+    if m == 0 or n == 0 then (
+        R := ring value (jlEltype x) 0;
+        map(R^m, R^n, 0))
+    else matrix value jlEachrow x))
 
 valueKey = juliaGetGlobal(jlM2JuliaModule, "value_key")
 value JuliaObject := x -> (
@@ -758,8 +769,6 @@ check oo
 
 -- julia -> M2
 --  * Float16, BigFloat
---  * value flattens a 2-d array column-major, so the shape is lost;
---    size is right there, so nested lists would work
 
 -- M2 -> julia
 --  * a way to call M2 functions from julia, cf. pythonWrapM2Function
