@@ -26,6 +26,7 @@ class ARingRRi : public SimpleARing<ARingRRi>
 
  public:
   static const RingID ringID = ring_RRi;
+  static constexpr bool copyable_across_instances = true;
 
   typedef __mpfi_struct elem;
   typedef elem ElementType;

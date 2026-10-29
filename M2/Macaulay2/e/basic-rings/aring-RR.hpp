@@ -21,6 +21,7 @@ class ARingRR : public SimpleARing<ARingRR>
   // approximate real numbers, implemented as doubles.
  public:
   static const RingID ringID = ring_RR;
+  static constexpr bool copyable_across_instances = true;
 
   typedef double elem;
   typedef elem ElementType;

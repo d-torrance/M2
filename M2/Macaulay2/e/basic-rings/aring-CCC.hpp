@@ -27,6 +27,7 @@ class ARingCCC : public SimpleARing<ARingCCC>
   const ARingRRR mRRR;  // reals with the same precision
  public:
   static const RingID ringID = ring_CCC;
+  static constexpr bool copyable_across_instances = true;
 
   typedef cc_struct elem;  // ??? staighten this out!!!
   typedef elem ElementType;

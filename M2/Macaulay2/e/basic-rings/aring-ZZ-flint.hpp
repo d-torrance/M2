@@ -31,6 +31,7 @@ class ARingZZ : public SimpleARing<ARingZZ>
 {
  public:
   static const RingID ringID = ring_ZZFlint;
+  static constexpr bool copyable_across_instances = true;
 
   typedef fmpz ElementType;
   typedef ElementType elem;

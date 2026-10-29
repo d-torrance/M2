@@ -23,6 +23,7 @@ class ARingZZGMP : public SimpleARing<ARingZZGMP>
 {
  public:
   static const RingID ringID = ring_ZZ;
+  static constexpr bool copyable_across_instances = true;
 
   typedef __mpz_struct ElementType;
   typedef ElementType elem;

@@ -55,6 +55,10 @@ enum RingID {
 */
 class RingInterface : public our_new_delete
 {
+ public:
+  // True if all rings of this type are the same ring up to precision, so
+  // set can copy an element of one into another.  Not true for, e.g., ZZ/p.
+  static constexpr bool copyable_across_instances = false;
 };  ///< inherit from this if the class is to be used as a template parameter
     /// for ConcreteRing
 

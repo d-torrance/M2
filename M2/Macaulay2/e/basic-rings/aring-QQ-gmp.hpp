@@ -27,6 +27,7 @@ class ARingQQGMP : public SimpleARing<ARingQQGMP>
 {
  public:
   static const RingID ringID = ring_QQ;
+  static constexpr bool copyable_across_instances = true;
 
   typedef __mpq_struct ElementType;
   typedef ElementType elem;

@@ -34,6 +34,7 @@ class ARingQQFlint : public SimpleARing<ARingQQFlint>
 {
  public:
   static const RingID ringID = ring_QQFlint;
+  static constexpr bool copyable_across_instances = true;
 
   typedef fmpq ElementType;
   typedef ElementType elem;
