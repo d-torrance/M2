@@ -28,7 +28,7 @@
 
 namespace M2 {
 template <typename RT>
-bool get_from_BigReal(const RT& R, typename RT::ElementType& a, gmp_RR b)
+bool try_set_from(const RT& R, typename RT::ElementType& a, gmp_RR b)
 {
   (void) R;
   (void) a;
@@ -37,7 +37,7 @@ bool get_from_BigReal(const RT& R, typename RT::ElementType& a, gmp_RR b)
 }
 
 template <typename RT>
-bool get_from_Interval(const RT& R, typename RT::ElementType& a, gmp_RRi b)
+bool try_set_from(const RT& R, typename RT::ElementType& a, gmp_RRi b)
 {
   (void) R;
   (void) a;
@@ -46,13 +46,13 @@ bool get_from_Interval(const RT& R, typename RT::ElementType& a, gmp_RRi b)
 }
 
 template <typename RT>
-bool get_from_ComplexInterval(const RT& R, typename RT::ElementType & a, gmp_CCi b)
+bool try_set_from(const RT& R, typename RT::ElementType & a, gmp_CCi b)
 {
     return false;
 }
 
 template <typename RT>
-bool get_from_BigComplex(const RT& R, typename RT::ElementType& a, gmp_CC b)
+bool try_set_from(const RT& R, typename RT::ElementType& a, gmp_CC b)
 {
   (void) R;
   (void) a;
@@ -60,7 +60,7 @@ bool get_from_BigComplex(const RT& R, typename RT::ElementType& a, gmp_CC b)
   return false;
 }
 template <typename RT>
-bool get_from_double(const RT& R, typename RT::ElementType& a, double b)
+bool try_set_from(const RT& R, typename RT::ElementType& a, double b)
 {
   (void) R;
   (void) a;
@@ -68,10 +68,10 @@ bool get_from_double(const RT& R, typename RT::ElementType& a, double b)
   return false;
 }
 template <typename RT>
-bool get_from_complex_double(const RT& R,
-                             typename RT::ElementType& a,
-                             double re,
-                             double im)
+bool try_set_from(const RT& R,
+                  typename RT::ElementType& a,
+                  double re,
+                  double im)
 {
   (void) R;
   (void) a;
@@ -80,158 +80,158 @@ bool get_from_complex_double(const RT& R,
   return false;
 }
 
-inline bool get_from_BigReal(const ARingQQ& R,
-                             ARingQQ::ElementType& a,
-                             gmp_RR b)
+inline bool try_set_from(const ARingQQ& R,
+                         ARingQQ::ElementType& a,
+                         gmp_RR b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_BigReal(const ARingRR& R,
-                             ARingRR::ElementType& a,
-                             gmp_RR b)
+inline bool try_set_from(const ARingRR& R,
+                         ARingRR::ElementType& a,
+                         gmp_RR b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_BigReal(const ARingRRR& R,
-                             ARingRRR::ElementType& a,
-                             gmp_RR b)
+inline bool try_set_from(const ARingRRR& R,
+                         ARingRRR::ElementType& a,
+                         gmp_RR b)
 {
   return R.set_from(a, b);
 }
     
-inline bool get_from_BigReal(const ARingRRi& R,
-                             ARingRRi::ElementType& a,
-                             gmp_RR b)
+inline bool try_set_from(const ARingRRi& R,
+                         ARingRRi::ElementType& a,
+                         gmp_RR b)
 {
     return R.set_from(a, b);
 }
 
-inline bool get_from_BigReal(const ARingCC& R,
-                             ARingCC::ElementType& a,
-                             gmp_RR b)
+inline bool try_set_from(const ARingCC& R,
+                         ARingCC::ElementType& a,
+                         gmp_RR b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_BigReal(const ARingCCC& R,
-                             ARingCCC::ElementType& a,
-                             gmp_RR b)
+inline bool try_set_from(const ARingCCC& R,
+                         ARingCCC::ElementType& a,
+                         gmp_RR b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_BigComplex(const ARingCCC& R,
-                                ARingCCC::ElementType& a,
-                                gmp_CC b)
+inline bool try_set_from(const ARingCCC& R,
+                         ARingCCC::ElementType& a,
+                         gmp_CC b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_BigComplex(const ARingCC& R,
-                                ARingCC::ElementType& a,
-                                gmp_CC b)
+inline bool try_set_from(const ARingCC& R,
+                         ARingCC::ElementType& a,
+                         gmp_CC b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_double(const ARingRRR& R,
-                            ARingRRR::ElementType& a,
-                            double b)
+inline bool try_set_from(const ARingRRR& R,
+                         ARingRRR::ElementType& a,
+                         double b)
 {
   return R.set_from(a, b);
 }
   
-inline bool get_from_double(const ARingRRi& R,
-                            ARingRRi::ElementType& a,
-                            double b)
+inline bool try_set_from(const ARingRRi& R,
+                         ARingRRi::ElementType& a,
+                         double b)
 {
    return R.set_from(a, b);
 }  
     
-inline bool get_from_Interval(const ARingRRi& R,
-                              ARingRRi::ElementType& a,
-                              gmp_RRi b)
+inline bool try_set_from(const ARingRRi& R,
+                         ARingRRi::ElementType& a,
+                         gmp_RRi b)
 {
     return R.set_from(a, b);
 }
 
-inline bool get_from_ComplexInterval(const ARingCCi& R,
-                              ARingCCi::ElementType& a,
-                              gmp_CCi b)
+inline bool try_set_from(const ARingCCi& R,
+                         ARingCCi::ElementType& a,
+                         gmp_CCi b)
 {
     R.set(a, b);
     return true;
 }
 
-inline bool get_from_double(const ARingCCi& R,
-                            ARingCCi::ElementType& a,
-                            double b)
+inline bool try_set_from(const ARingCCi& R,
+                         ARingCCi::ElementType& a,
+                         double b)
 {
    return R.set_from(a, b);
 }
 
-inline bool get_from_Interval(const ARingCCi& R,
-                              ARingCCi::ElementType& a,
-                              gmp_RRi b)
+inline bool try_set_from(const ARingCCi& R,
+                         ARingCCi::ElementType& a,
+                         gmp_RRi b)
 {
     return R.set_from(a, b);
 }
 
-inline bool get_from_BigComplex(const ARingCCi& R,
-                                ARingCCi::ElementType& a,
-                                gmp_CC b)
+inline bool try_set_from(const ARingCCi& R,
+                         ARingCCi::ElementType& a,
+                         gmp_CC b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_BigReal(const ARingCCi& R,
-                             ARingCCi::ElementType& a,
-                             gmp_RR b)
+inline bool try_set_from(const ARingCCi& R,
+                         ARingCCi::ElementType& a,
+                         gmp_RR b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_double(const ARingRR& R, ARingRR::ElementType& a, double b)
+inline bool try_set_from(const ARingRR& R, ARingRR::ElementType& a, double b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_double(const ARingCCC& R,
-                            ARingCCC::ElementType& a,
-                            double b)
+inline bool try_set_from(const ARingCCC& R,
+                         ARingCCC::ElementType& a,
+                         double b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_double(const ARingCC& R, ARingCC::ElementType& a, double b)
+inline bool try_set_from(const ARingCC& R, ARingCC::ElementType& a, double b)
 {
   return R.set_from(a, b);
 }
 
-inline bool get_from_complex_double(const ARingCCC& R,
-                                    ARingCCC::ElementType& a,
-                                    double re,
-                                    double im)
+inline bool try_set_from(const ARingCCC& R,
+                         ARingCCC::ElementType& a,
+                         double re,
+                         double im)
 {
   R.set_from(a, re, im);
   return true;
 }
 
-inline bool get_from_complex_double(const ARingCC& R,
-                                    ARingCC::ElementType& a,
-                                    double re,
-                                    double im)
+inline bool try_set_from(const ARingCC& R,
+                         ARingCC::ElementType& a,
+                         double re,
+                         double im)
 {
   R.set_from(a, re, im);
   return true;
 }
 
-inline bool get_from_complex_double(const ARingCCi& R,
-                                    ARingCCi::ElementType& a,
-                                    double re,
-                                    double im)
+inline bool try_set_from(const ARingCCi& R,
+                         ARingCCi::ElementType& a,
+                         double re,
+                         double im)
 {
   R.set_from(a, re, im);
   return true;
