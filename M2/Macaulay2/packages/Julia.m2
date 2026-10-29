@@ -89,12 +89,14 @@ JuliaObject.AfterPrint = x -> (JuliaObject, " of type ", jlTypeof x)
 
 -- modules
 jlBaseModule = JuliaObject foreignSymbol(libjulia, "jl_base_module", voidstar)
+jlCoreModule = JuliaObject foreignSymbol(libjulia, "jl_core_module", voidstar)
 jlMainModule = JuliaObject foreignSymbol(libjulia, "jl_main_module", voidstar)
 jlM2JuliaModule = JuliaObject jlLoad(jlMainModule, currentFileDirectory | "Julia/M2Julia.jl")
 
 -- symbols not exported by C API
 jlDeleteGlobal = jlGetGlobal(jlMainModule, jlSymbol "delete!")
 jlGetGlobalGlobal = jlGetGlobal(jlMainModule, jlSymbol "getglobal")
+jlKwcall = jlGetGlobal(jlCoreModule, jlSymbol "kwcall")
 jlSetindexGlobal = jlGetGlobal(jlMainModule, jlSymbol "setindex!")
 jlShowerror = jlGetGlobal(jlMainModule, jlSymbol "showerror")
 
@@ -142,7 +144,8 @@ juliaSymbol Thing := juliaSymbol @@ toString
 --------------------
 
 juliaGetGlobal = method()
-juliaGetGlobal(JuliaObject, String) := (M, s) -> juliaCall(jlGetGlobalGlobal, (M, jlSymbol s))
+juliaGetGlobal(JuliaObject, String) := (M, s) -> JuliaObjectOrError(
+    jlCall2(jlGetGlobalGlobal, M, jlSymbol s))
 juliaGetGlobal(JuliaObject, Thing) := (M, s) -> juliaGetGlobal(M, toString s)
 juliaGetGlobal String := s -> juliaGetGlobal(jlMainModule, s)
 juliaGetGlobal Thing := juliaGetGlobal @@ toString
@@ -157,16 +160,29 @@ JuliaFunction.synonym = "Julia function"
 net      JuliaFunction :=
 toString JuliaFunction := f -> (frames f)#0#1
 
-juliaCall = (f, x) -> JuliaObjectOrError(
-    if instance(x, Sequence) then (
-        x = apply(x, y -> JuliaObject y);
-        if #x == 0 then jlCall0 f
-        else if #x == 1 then jlCall1(f, x#0)
-        else if #x == 2 then jlCall2(f, x#0, x#1)
-        else if #x == 3 then jlCall3(f, x#0, x#1, x#2)
-        else if #x == 4 then jlCall4(f, x#0, x#1, x#2, x#3)
-        else jlCall(f, toList x, #x))
-    else jlCall1(f, JuliaObject x))
+optionsToNamedtuple = jlGetGlobal(jlM2JuliaModule, jlSymbol "options_to_namedtuple")
+
+juliaCallHelper = (f, x) -> JuliaObjectOrError(
+    x = apply(x, y -> JuliaObject y);
+    if #x == 0 then jlCall0 f
+    else if #x == 1 then jlCall1(f, x#0)
+    else if #x == 2 then jlCall2(f, x#0, x#1)
+    else if #x == 3 then jlCall3(f, x#0, x#1, x#2)
+    else if #x == 4 then jlCall4(f, x#0, x#1, x#2, x#3)
+    else jlCall(f, toList x, #x))
+
+juliaCall = method()
+juliaCall(JuliaObject, Thing) := (f, x) -> (
+    JuliaObjectOrError jlCall1(f, JuliaObject x))
+juliaCall(JuliaObject, Sequence) := (f, x) -> (
+    p := partition(y -> instance(y, Option), x);
+    if p#?true then (
+        names := apply(p#true, y -> toString first y);
+        vals := apply(p#true, y -> last y);
+        kwargs := juliaCallHelper(optionsToNamedtuple, (names, vals));
+        juliaCallHelper(jlKwcall, join((kwargs, f), p#false ?? ())))
+    else juliaCallHelper(f, x))
+juliaCall(JuliaObject, Option) := (f, x) -> juliaCall(f, 1:x)
 
 new JuliaFunction from JuliaObject := (T, f) -> x -> juliaCall(f, x)
 new JuliaFunction from String := (T, s) -> T juliaGetGlobal s
@@ -741,9 +757,6 @@ check oo
 --    size is right there, so nested lists would work
 
 -- M2 -> julia
---  * keyword arguments, which Oscar and HomotopyContinuation both use
---    pervasively: build a NamedTuple out of Options and hand it to
---    Core.kwcall(nt, f, args...), which already works today
 --  * a way to call M2 functions from julia, cf. pythonWrapM2Function
 
 -- methods

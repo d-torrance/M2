@@ -33,4 +33,10 @@ function uint128_to_zz(x::UInt128)
     ((x >> 64) % UInt64, x % UInt64)
 end
 
+# named tuples
+function options_to_namedtuple(name_strs::Tuple{Vararg{String}}, values::Tuple)
+    names = map(Symbol, name_strs)
+    NamedTuple{names}(values)
+end
+
 end
