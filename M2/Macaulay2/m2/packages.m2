@@ -145,7 +145,13 @@ net      Package :=
 toString Package := pkg -> if pkg#?"pkgname" then pkg#"pkgname" else "-*package*-"
 texMath  Package := pkg -> texMath toString pkg
 options  Package := pkg -> pkg.Options
-methods  Package := pkg -> select(methods(), m -> package' m === pkg)
+-- package' m can only be pkg if m is documented in pkg or its youngest
+-- component is from pkg, so check these cheaply before calling package',
+-- which may otherwise search the documentation of every loaded package
+methods  Package := pkg -> select(methods(), m -> (
+	youngest(package' \ splice m) === pkg
+	or fetchRawDocumentation(pkg, format makeDocumentTag(m, Package => pkg)) =!= null)
+    and package' m === pkg)
 hypertext Package := SAMPc "constant"
 
 -- TODO: should this go elsewhere?

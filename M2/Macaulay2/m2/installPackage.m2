@@ -835,6 +835,8 @@ installPackage Package := opts -> pkg -> (
 	-- process documentation
 	verboseLog "processing documentation nodes...";
 	-- ~50s -> ~100s for Macaulay2Doc
+	-- speeds up the "Ways to use" sections
+	indexThingMethods();
 	scan(nodes, tag ->
 	    if      isUndocumented tag              then verboseLog("undocumented ", toString tag)
 	    else if isSecondaryTag tag              then verboseLog("is secondary ", toString tag)
@@ -842,6 +844,7 @@ installPackage Package := opts -> pkg -> (
 	    and     not opts.MakeInfo -- when making the info file, we need to process all the documentation
 	    and rawDocumentationCache#?(format tag) then verboseLog("skipping     ", toString tag)
 	    else storeProcessedDocumentation(pkg, tag, opts, verboseLog));
+	thingMethodsIndex = null;
 
 	if chkdoc then checkForErrors pkg;
 

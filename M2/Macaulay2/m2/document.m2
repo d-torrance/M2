@@ -377,8 +377,14 @@ fetchRawDocumentation(Package, String) := opts -> (pkg, fkey) -> fetchRawDocumen
 
 fetchRawDocumentation(Nothing,   Thing)  := opts -> (null,   fkey) -> null
 fetchRawDocumentation(HashTable, String) := opts -> (rawdoc, fkey) -> if rawdoc#?fkey then rawdoc#fkey
+-- parsing raw documentation is slow, so cache the results for read-only databases
+rawDocumentationDBCache := new MutableHashTable
 fetchRawDocumentation(Database,  String) := opts -> (rawdb,  fkey) -> if isOpen rawdb and rawdb#?fkey then (
-    evaluateWithPackage(getpkg "Text", rawdb#fkey, value))
+    parse := () -> evaluateWithPackage(getpkg "Text", rawdb#fkey, value);
+    if isMutable rawdb then parse()
+    else (
+	cache := rawDocumentationDBCache#rawdb ??= new MutableHashTable;
+	cache#fkey ??= parse()))
 
 -----------------------------------------------------------------------------
 -- getPrimaryTag, fetchAnyRawDocumentation

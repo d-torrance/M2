@@ -189,6 +189,22 @@ methods Sequence := F -> (
     scan(select(F, e -> instance(e, Type)), T -> scan(sequenceMethods(T, F, tallyF), key -> found#key = true));
     previousMethodsFound = new NumberedVerticalList from sortByLocation select(keys found, isCallable))
 
+-- an index F => {keys of thingMethods(T, F) for all T}, so that 'methods F'
+-- needn't search all dictionaries each time; installPackage builds it
+-- before processing documentation and removes it afterwards
+thingMethodsIndex = null
+indexThingMethods = () -> (
+    thingMethodsIndex = new MutableHashTable;
+    add := (F, key) -> (
+	found := thingMethodsIndex#F ??= new MutableHashTable;
+	found#key = true);
+    searchAllDictionaries(Type, T -> scan(pairs T, (key, func) -> if instance(func, Function) then (
+		-- these cases match thingMethods
+		add(key, (key, T));
+		if isUnaryAssignmentOperator key then scan(key, F -> add(F, (key, T)));
+		if instance(key, Sequence) then scan(splice key, F ->
+		    if not (isUnaryAssignmentOperator key and isMember(F, key)) then add(F, key))))))
+
 methods ScriptedFunctor := -- TODO: OO and other scripted functors aren't supported
 -- FIXME: why is 'methods Format' giving two things?
 methods Symbol :=
@@ -198,7 +214,9 @@ methods Thing  := F -> (
     found := new MutableHashTable;
     -- TODO: either finish or remove nullaryMethods
     if nullaryMethods#?(1:F) then found#(1:F) = true;
-    searchAllDictionaries(Type, T -> scan(thingMethods(T, F), key -> found#key = true));
+    if thingMethodsIndex =!= null then (
+	if thingMethodsIndex#?F then scan(keys thingMethodsIndex#F, key -> found#key = true))
+    else searchAllDictionaries(Type, T -> scan(thingMethods(T, F), key -> found#key = true));
     previousMethodsFound = new NumberedVerticalList from sortByLocation keys found)
 
 -- this one is here because it needs previousMethodsFound
