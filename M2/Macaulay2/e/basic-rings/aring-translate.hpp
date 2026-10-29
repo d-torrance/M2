@@ -467,6 +467,22 @@ inline bool mypromote(const ARingCCC& R,
 }
 /////////////////////////////////////////////////////
 /////////////////////////////////////////////////////
+template <typename Ring>
+bool mylift(const Ring& R,
+            const Ring& S,
+            typename Ring::ElementType& result_gR,
+            const typename Ring::ElementType& gS)
+{
+  (void) S;
+  if constexpr (Ring::copyable_across_instances)
+    {
+      R.set(result_gR, gS);
+      return true;
+    }
+  else
+    return false;
+}
+/////////////////////////////////////////////////////
 inline bool mylift(const ARingRRR& R,
                    const ARingRR& S,
                    ARingRRR::ElementType& result_gR,
@@ -474,15 +490,6 @@ inline bool mylift(const ARingRRR& R,
 {
   (void) S;
   R.set_from(result_gR, gS);
-  return true;
-}
-inline bool mylift(const ARingRRR& R,
-                   const ARingRRR& S,
-                   ARingRRR::ElementType& result_gR,
-                   const ARingRRR::ElementType& gS)
-{
-  (void) S;
-  R.set(result_gR, gS);
   return true;
 }
 inline bool mylift(const ARingRRR& R,
@@ -503,15 +510,6 @@ inline bool mylift(const ARingRRR& R,
   return gS.im == 0;
 }
 /////////////////////////////////////////////////////
-inline bool mylift(const ARingRR& R,
-                   const ARingRR& S,
-                   ARingRR::ElementType& result_gR,
-                   const ARingRR::ElementType& gS)
-{
-  (void) S;
-  R.set_from(result_gR, gS);
-  return true;
-}
 inline bool mylift(const ARingRR& R,
                    const ARingRRR& S,
                    ARingRR::ElementType& result_gR,
@@ -542,15 +540,6 @@ inline bool mylift(const ARingRR& R,
 }
 /////////////////////////////////////////////////////
 inline bool mylift(const ARingCCC& R,
-                   const ARingCCC& S,
-                   ARingCCC::ElementType& result_gR,
-                   const ARingCCC::ElementType& gS)
-{
-  (void) S;
-  R.set(result_gR, gS);
-  return true;
-}
-inline bool mylift(const ARingCCC& R,
                    const ARingCC& S,
                    ARingCCC::ElementType& result_gR,
                    const ARingCC::ElementType& gS)
@@ -567,15 +556,6 @@ inline bool mylift(const ARingCC& R,
   (void) S;
   auto gS1 = const_cast<ARingCCC::ElementType&>(gS);
   R.set_from(result_gR, &gS1.re, &gS1.im);
-  return true;
-}
-inline bool mylift(const ARingCC& R,
-                   const ARingCC& S,
-                   ARingCC::ElementType& result_gR,
-                   const ARingCC::ElementType& gS)
-{
-  (void) S;
-  R.set(result_gR, gS);
   return true;
 }
     
