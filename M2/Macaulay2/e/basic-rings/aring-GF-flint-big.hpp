@@ -194,7 +194,7 @@ class ARingGFFlintBig : public RingInterface
   void set(ElementType& result, const ElementType& a) const { copy(result, a); }
   void set_zero(ElementType& result) const { fq_nmod_zero(&result, mContext); }
   void clear(ElementType& result) const { fq_nmod_clear(&result, mContext); }
-  void set_from_long(ElementType& result, long a) const
+  void set_from(ElementType& result, long a) const
   {
     long a1 = a % characteristic();
     if (a1 < 0) a1 += characteristic();
@@ -203,30 +203,30 @@ class ARingGFFlintBig : public RingInterface
 
   void set_var(ElementType& result, int v) const
   {
-    if (v != 0) set_from_long(result, 1);
+    if (v != 0) set_from(result, 1);
     std::vector<long> poly = {0, 1};
     fromSmallIntegerCoefficients(result, poly);
   }
 
-  void set_from_mpz(ElementType& result, mpz_srcptr a) const
+  void set_from(ElementType& result, mpz_srcptr a) const
   {
     int b = static_cast<int>(mpz_fdiv_ui(a, characteristic()));
-    set_from_long(result, b);
+    set_from(result, b);
   }
 
-  bool set_from_mpq(ElementType& result, mpq_srcptr a) const
+  bool set_from(ElementType& result, mpq_srcptr a) const
   {
     ElementType n, d;
     init(n);
     init(d);
-    set_from_mpz(n, mpq_numref(a));
-    set_from_mpz(d, mpq_denref(a));
+    set_from(n, mpq_numref(a));
+    set_from(d, mpq_denref(a));
     if (is_zero(d)) return false;
     divide(result, n, d);
     return true;
   }
 
-  bool set_from_BigReal(ElementType& result, gmp_RR a) const
+  bool set_from(ElementType& result, gmp_RR a) const
   {
     (void) result;
     (void) a;
@@ -362,7 +362,7 @@ class ARingGFFlintBig : public RingInterface
   {
     assert(not is_zero(a));
     assert(not is_zero(b));
-    set_from_long(x, 1);
+    set_from(x, 1);
     divide(y, a, b);
     negate(y, y);
   }

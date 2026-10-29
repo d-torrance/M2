@@ -155,13 +155,13 @@ class ARingZZpFFPACK : public SimpleARing<ARingZZpFFPACK>
 
   void copy(ElementType &result, const ElementType a) const;
 
-  void set_from_long(ElementType &result, long a) const;
+  void set_from(ElementType &result, long a) const;
 
-  void set_from_mpz(ElementType &result, mpz_srcptr a) const;
+  void set_from(ElementType &result, mpz_srcptr a) const;
 
-  bool set_from_mpq(ElementType &result, mpq_srcptr a) const;
+  bool set_from(ElementType &result, mpq_srcptr a) const;
 
-  bool set_from_BigReal(ElementType &result, gmp_RR a) const
+  bool set_from(ElementType &result, gmp_RR a) const
   {
     (void) result;
     (void) a;

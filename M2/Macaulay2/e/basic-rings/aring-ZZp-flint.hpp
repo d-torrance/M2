@@ -87,10 +87,10 @@ class ARingZZpFlint : public SimpleARing<ARingZZpFlint>
 
   void set(ElementType &result, ElementType a) const { result = a; }
   void set_zero(ElementType &result) const { result = 0; }
-  void set_from_long(ElementType &result, long a) const
+  void set_from(ElementType &result, long a) const
   {
     // printf("called deprecated and inefficient
-    // ARingZZpFlint::set_from_long\n");
+    // ARingZZpFlint::set_from\n");
     fmpz_t b;
     fmpz_init(b);
     fmpz_set_si(b, a);
@@ -104,22 +104,22 @@ class ARingZZpFlint : public SimpleARing<ARingZZpFlint>
     result = 1;
   }
 
-  void set_from_mpz(ElementType &result, mpz_srcptr a) const
+  void set_from(ElementType &result, mpz_srcptr a) const
   {
     result = mpz_fdiv_ui(a, mCharac);
   }
 
-  bool set_from_mpq(ElementType &result, mpq_srcptr a) const
+  bool set_from(ElementType &result, mpq_srcptr a) const
   {
     ElementType n, d;
-    set_from_mpz(n, mpq_numref(a));
-    set_from_mpz(d, mpq_denref(a));
+    set_from(n, mpq_numref(a));
+    set_from(d, mpq_denref(a));
     if (is_zero(d)) return false;
     divide(result, n, d);
     return true;
   }
 
-  bool set_from_BigReal(ElementType &result, gmp_RR a) const
+  bool set_from(ElementType &result, gmp_RR a) const
   {
     (void) result;
     (void) a;
@@ -193,7 +193,7 @@ class ARingZZpFlint : public SimpleARing<ARingZZpFlint>
       {
         // case a == 0
         if (n < 0) throw exc::division_by_zero_error();
-        if (n == 0) return set_from_long(result, 1);
+        if (n == 0) return set_from(result, 1);
         if (n > 0) return set_zero(result);
       }
   }
@@ -209,7 +209,7 @@ class ARingZZpFlint : public SimpleARing<ARingZZpFlint>
       {
         // case a == 0
         if (mpz_sgn(n) == 0)
-          set_from_long(result, 1);
+          set_from(result, 1);
         else if (mpz_sgn(n) > 0)
           set_zero(result);
         else

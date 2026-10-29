@@ -204,7 +204,7 @@ class ARingTower : public RingInterface
   void clear(elem &f) const { clear(mStartLevel, f); }
   void set_zero(elem &result) const { result = nullptr; }
   void copy(elem &result, elem a) const { result = copy(mStartLevel, a); }
-  void set_from_long(elem &result, long a) const
+  void set_from(elem &result, long a) const
   {  // TODO: write this
     (void) result;
     (void) a;
@@ -212,14 +212,14 @@ class ARingTower : public RingInterface
 
   // v from 0..n_vars()-1, sets result to 0 if v is out of range
   void set_var(elem &result, int v) const { result = var(mStartLevel, v); }
-  void set_from_mpz(elem &result, mpz_srcptr a) const
+  void set_from(elem &result, mpz_srcptr a) const
   {
     (void) result;
     (void) a;
     assert(false);
   }  // TODO: write this
 
-  bool set_from_mpq(elem &result, mpq_srcptr a) const
+  bool set_from(elem &result, mpq_srcptr a) const
   {
     (void) result;
     (void) a;
@@ -227,7 +227,7 @@ class ARingTower : public RingInterface
     return false;
   }  // TODO: write this
 
-  bool set_from_BigReal(elem &result, gmp_RR a) const
+  bool set_from(elem &result, gmp_RR a) const
   {
     (void) result;
     (void) a;
@@ -427,15 +427,15 @@ class ARingTower : public RingInterface
     void set_zero(ElementType &result) const { result = 0; }
     
     
-    void set_from_long(ElementType &result, long r) {
+    void set_from(ElementType &result, long r) {
       r = r % mCharacteristic;
       if (r < 0) r += P;
       result = mRing.from_long(mStartLevel, r);
     }
     
-    void set_from_int(ElementType &result, mpz_ptr r);
+    void set_from(ElementType &result, mpz_ptr r);
     
-    bool set_from_mpq(ElementType &result, mpq_srcptr r);
+    bool set_from(ElementType &result, mpq_srcptr r);
     
     void set_random(ElementType &result) { result = mRing.random(mStartLevel); }
     

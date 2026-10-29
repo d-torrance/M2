@@ -121,9 +121,13 @@ class ARingRRi : public SimpleARing<ARingRRi>
     mpfi_set(&result, &a);
   }
 
-  void set_from_long(ElementType &result, long a) const
+  void set_from(ElementType &result, long a) const
   {
     mpfi_set_si(&result, a);
+  }
+  void set_from(ElementType &result, int a) const
+  {
+    set_from(result, static_cast<long>(a));
   }
 
   void set_var(ElementType &result, int v) const
@@ -131,30 +135,30 @@ class ARingRRi : public SimpleARing<ARingRRi>
     mpfi_set_si(&result, v);
   }
 
-  void set_from_mpz(ElementType &result, mpz_srcptr a) const
+  void set_from(ElementType &result, mpz_srcptr a) const
   {
     mpfi_set_z(&result, a);
   }
 
-  bool set_from_mpq(ElementType &result, mpq_srcptr a) const
+  bool set_from(ElementType &result, mpq_srcptr a) const
   {
     mpfi_set_q(&result, a);
     return true;
   }
 
-  bool set_from_double(ElementType &result, double a) const
+  bool set_from(ElementType &result, double a) const
   {
     mpfi_set_d(&result, a);
     return true;
   }
     
-  bool set_from_BigReal(ElementType &result, gmp_RR a) const
+  bool set_from(ElementType &result, gmp_RR a) const
   {
     mpfi_set_fr(&result, a);
     return true;
   }
     
-  bool set_from_Interval(ElementType &result, gmp_RRi a) const
+  bool set_from(ElementType &result, gmp_RRi a) const
   {
     mpfi_set(&result, a);
     return true;

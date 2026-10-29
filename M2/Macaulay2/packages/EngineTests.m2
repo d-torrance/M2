@@ -291,7 +291,7 @@ ringOpsZZp = (p) -> (
      -- test: subtract_multiple
      -- test: multiplication
      -- test: powers (can't do yet?)
-     -- test: set_from_mpz, set_from_mpq
+     -- test: set_from (mpz, mpq)
      -- test: invert, divide (not possible yet?)
      -- test: discreteLog
      -- test? syzygy, elem_text_out, text_out, compare_elems

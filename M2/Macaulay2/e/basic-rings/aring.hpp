@@ -236,20 +236,20 @@ class DummyRing : public SimpleARing<DummyRing>
 
   void init_set(elem &result, elem a) const { result = a; }
   void set(elem &result, elem a) const { result = a; }
-  void set_from_long(elem &result, long a) const { result = a; }
+  void set_from(elem &result, long a) const { result = a; }
   void init(elem &result) const { result = 0; }
-  void set_from_mpz(elem &result, mpz_srcptr a) const
+  void set_from(elem &result, mpz_srcptr a) const
     {
       (void) a;
       result = 0;
     }
-  bool set_from_mpq(elem &result, mpq_srcptr a) const
+  bool set_from(elem &result, mpq_srcptr a) const
     {
       (void) result;
       (void) a;
       return false;
     }
-  bool set_from_BigReal(elem &result, gmp_RR a) const
+  bool set_from(elem &result, gmp_RR a) const
     {
       (void) result;
       (void) a;
