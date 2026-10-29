@@ -196,9 +196,11 @@ JuliaObject Thing := (f, x) -> juliaCall(f, x)
 -- functions we'll use
 jlDelete = JuliaFunction "delete!"
 jlDict = JuliaFunction "Dict"
+jlEachrow = JuliaFunction "eachrow"
 jlGetindex = JuliaFunction "getindex"
 jlGetproperty = JuliaFunction "getproperty"
 jlHasproperty = JuliaFunction "hasproperty"
+jlHvcat = JuliaFunction "hvcat"
 jlInt = JuliaFunction "Int"
 jlIterate = JuliaFunction "iterate"
 jlKeys = JuliaFunction "keys"
@@ -239,6 +241,7 @@ new JuliaObject from List := (T, x) -> jlVect toSequence x
 new JuliaObject from Sequence := (T, x) -> jlTuple x
 new JuliaObject from HashTable := (T, x) -> jlDict(jlPair \ toSequence pairs x)
 new JuliaObject from Nothing := (T, x) -> jlNothing
+new JuliaObject from Matrix := (T, x) -> jlHvcat prepend(numColumns x, toSequence flatten entries x)
 
 -----------------
 -- julia -> M2 --
@@ -285,6 +288,7 @@ addJuliaToM2Function("Tuple", x -> value \ toSequence x)
 addJuliaToM2Function("NamedTuple", x -> apply(toString \ toSequence jlKeys x, name -> name => value x@@name))
 addJuliaToM2Function("AbstractDict", x -> hashTable apply(toList x, kv -> value \ (kv_1, kv_2)))
 addJuliaToM2Function("Nothing", x -> null)
+addJuliaToM2Function("AbstractMatrix", x -> matrix value jlEachrow x)
 
 valueKey = juliaGetGlobal(jlM2JuliaModule, "value_key")
 value JuliaObject := x -> (
