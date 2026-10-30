@@ -12,6 +12,7 @@ newPackage("Julia",
 
 export {
     -- classes
+    "JuliaContext",
     "JuliaFunction",
     "JuliaObject",
 
@@ -48,6 +49,7 @@ jlExceptionClear = foreignFunction(libjulia, "jl_exception_clear", void, void)
 jlExceptionOccurred = foreignFunction(libjulia, "jl_exception_occurred", voidstar, void)
 jlGetGlobal = foreignFunction(libjulia, "jl_get_global", voidstar, {voidstar, voidstar})
 jlInit = foreignFunction(libjulia, "jl_init", void, void)
+jlIsa = foreignFunction(libjulia, "jl_isa", int, {voidstar, voidstar})
 jlLoad = foreignFunction(libjulia, "jl_load", voidstar, {voidstar, charstar})
 jlStringPtr = foreignFunction(libjulia, "jl_string_ptr", charstar, voidstar)
 jlSymbol = foreignFunction(libjulia, "jl_symbol", voidstar, charstar)
@@ -65,6 +67,7 @@ jlUnboxUint8 = foreignFunction(libjulia, "jl_unbox_uint8", uint8, voidstar)
 jlUnboxVoidpointer = foreignFunction(libjulia, "jl_unbox_voidpointer", voidstar, voidstar)
 
 -- symbols
+jlModuleType = foreignSymbol(libjulia, "jl_module_type", voidstar)
 jlNothing = foreignSymbol(libjulia, "jl_nothing", voidstar)
 
 --------------------
@@ -92,6 +95,7 @@ JuliaObject.AfterPrint = x -> (JuliaObject, " of type ", jlTypeof x)
 jlBaseModule = JuliaObject foreignSymbol(libjulia, "jl_base_module", voidstar)
 jlCoreModule = JuliaObject foreignSymbol(libjulia, "jl_core_module", voidstar)
 jlMainModule = JuliaObject foreignSymbol(libjulia, "jl_main_module", voidstar)
+jlMetaModule = JuliaObject jlGetGlobal(jlMainModule, jlSymbol "Meta")
 jlM2JuliaModule = JuliaObject jlLoad(jlMainModule, currentFileDirectory | "Julia/M2Julia.jl")
 
 -- symbols not exported by C API
@@ -199,6 +203,7 @@ jlDelete = JuliaFunction "delete!"
 jlDict = JuliaFunction "Dict"
 jlEachrow = JuliaFunction "eachrow"
 jlEltype = JuliaFunction "eltype"
+jlEval = JuliaFunction(jlBaseModule, "eval")
 jlFloat32 = JuliaFunction "Float32"
 jlGetindex = JuliaFunction "getindex"
 jlGetproperty = JuliaFunction "getproperty"
@@ -208,6 +213,9 @@ jlInt = JuliaFunction "Int"
 jlIterate = JuliaFunction "iterate"
 jlKeys = JuliaFunction "keys"
 jlPair = JuliaFunction "Pair"
+jlMetaParseall = JuliaFunction(jlMetaModule, "parseall")
+jlModule = JuliaFunction "Module"
+jlNames = JuliaFunction "names"
 jlRationalDivision = JuliaFunction "//"
 jlRepr = JuliaFunction "repr"
 jlSetindex = JuliaFunction "setindex!"
@@ -476,9 +484,42 @@ lcm JuliaObject := lookup(lcm, JuliaObject, JuliaObject)
 -- evaluation --
 ----------------
 
-juliaValue = method()
-juliaValue String := JuliaObjectOrError @@ jlEvalString
-juliaValue Sequence := s -> juliaValue(concatenate \\ toString \ s)
+juliaValue = method(
+    Dispatch => Thing,
+    Options => {Global => null})
+juliaValue String := o -> s -> (
+    if o.Global === null then JuliaObjectOrError jlEvalString s
+    else jlEval(o.Global, jlMetaParseall s))
+juliaValue Sequence := o -> s -> juliaValue(concatenate \\ toString \ s, o)
+
+JuliaContext = new SelfInitializingType of MutableHashTable
+JuliaContext.synonym = "Julia context"
+globalAssignment JuliaContext
+
+new JuliaContext := T -> T {Global => jlModule()}
+new JuliaContext from String := (T, s) -> (
+    env := jlModule();
+    juliaValue(s, Global => env);
+    T {Global => env})
+
+JuliaContext String := (ctx, s) -> juliaValue(s, Global => ctx.Global)
+JuliaContext_String := (ctx, s) -> ctx.Global@@s
+
+importFrom(Core, {"Abbreviate", "TABLE", "TD", "TH"})
+listSymbols JuliaObject := x -> (
+    if not value jlIsa(x, jlModuleType) == 1
+    then error "expected a module"
+    else TABLE prepend(
+        apply({"symbol", "class", "value"}, s -> TH {s}),
+        apply(toList jlNames(x, all => true),
+              name -> (
+                  val := x@@name;
+                  apply({name, jlTypeof val, Abbreviate {val}}, s -> TD {s})))))
+listSymbols JuliaContext := ctx -> listSymbols ctx.Global
+
+use JuliaContext := ctx -> (
+    scan(toString \ toList jlNames(ctx.Global, all => true),
+         name -> try getSymbol name <- ctx.Global@@name))
 
 beginDocumentation()
 
