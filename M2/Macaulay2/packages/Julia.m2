@@ -408,7 +408,7 @@ scan({
     symbol %,
     symbol &,
     symbol |,
-    symbol >>, -- TODO: what to do about >>>?
+    symbol >>,
     symbol <<,
     gcd,
     lcm,
@@ -761,6 +761,7 @@ check oo
 --  * caveat: == and hash disagree for JuliaObject, and hash is
 --    interpreter level, so they shouldn't be used as keys in hash
 --    tables -- looking one up with an equal but distinct object misses
+--  * mention >>> in >> docs
 
 -- packaging
 --  * add a Configuration option for the libjulia path, so that
@@ -777,9 +778,6 @@ check oo
 
 -- M2 -> julia
 --  * a way to call M2 functions from julia, cf. pythonWrapM2Function
-
--- methods
---  * >>> (see above)
 
 -- tests
 --  * iterators, getindex/setindex, getproperty/setproperty, delete,
