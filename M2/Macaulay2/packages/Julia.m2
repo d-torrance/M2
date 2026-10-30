@@ -62,6 +62,7 @@ jlUnboxUint16 = foreignFunction(libjulia, "jl_unbox_uint16", uint16, voidstar)
 jlUnboxUint32 = foreignFunction(libjulia, "jl_unbox_uint32", uint32, voidstar)
 jlUnboxUint64 = foreignFunction(libjulia, "jl_unbox_uint64", uint64, voidstar)
 jlUnboxUint8 = foreignFunction(libjulia, "jl_unbox_uint8", uint8, voidstar)
+jlUnboxVoidpointer = foreignFunction(libjulia, "jl_unbox_voidpointer", voidstar, voidstar)
 
 -- symbols
 jlNothing = foreignSymbol(libjulia, "jl_nothing", voidstar)
@@ -198,6 +199,7 @@ jlDelete = JuliaFunction "delete!"
 jlDict = JuliaFunction "Dict"
 jlEachrow = JuliaFunction "eachrow"
 jlEltype = JuliaFunction "eltype"
+jlFloat32 = JuliaFunction "Float32"
 jlGetindex = JuliaFunction "getindex"
 jlGetproperty = JuliaFunction "getproperty"
 jlHasproperty = JuliaFunction "hasproperty"
@@ -229,6 +231,7 @@ jlIm = juliaGetGlobal "im"
 new JuliaObject from Boolean := (T, x) -> jlBoxBool if x then 1 else 0
 zzToInt128 = JuliaFunction(jlM2JuliaModule, "zz_to_int128")
 zzToBigInt = JuliaFunction(jlM2JuliaModule, "zz_to_bigint")
+rrToBigFloat = JuliaFunction(jlM2JuliaModule, "rr_to_bigfloat")
 new JuliaObject from ZZ := (T, x) -> (
     if x < -2^127 or x > 2^127 - 1
     then zzToBigInt jlBoxVoidpointer mpzT x
@@ -236,7 +239,10 @@ new JuliaObject from ZZ := (T, x) -> (
     then zzToInt128(jlBoxInt64(x // 2^64), jlBoxUint64(x % 2^64))
     else jlBoxInt64 x)
 new JuliaObject from QQ := (T, x) -> jlRationalDivision(numerator x, denominator x)
-new JuliaObject from RR := (T, x) -> jlBoxFloat64 x
+new JuliaObject from RR := (T, x) -> (
+    prec := precision x;
+    if prec <= 53 then jlBoxFloat64 x
+    else rrToBigFloat(jlBoxVoidpointer mpfrT x, prec))
 new JuliaObject from CC := (T, x) -> realPart x + jlIm * imaginaryPart x
 new JuliaObject from Number := (T, x) -> T numeric x
 new JuliaObject from String := (T, x) -> jlCstrToString x
@@ -282,9 +288,11 @@ addJuliaToM2Function("UInt128", x -> (
     (hi, lo) := value uint128ToZZ x;
     hi * 2^64 + lo))
 addJuliaToM2Function("BigInt", x -> value mpzT x)
+addJuliaToM2Function("Float16", x -> numeric(11, value jlUnboxFloat32 jlFloat32 x))
 addJuliaToM2Function("Float32", value @@ jlUnboxFloat32)
 addJuliaToM2Function("Float64", value @@ jlUnboxFloat64)
--- TODO: Int128, UInt128, Float16, BigInt, BigFloat
+bigfloatToRR = JuliaFunction(jlM2JuliaModule, "bigfloat_to_rr")
+addJuliaToM2Function("BigFloat", x -> value mpfrT jlUnboxVoidpointer bigfloatToRR x)
 addJuliaToM2Function("Rational", x -> value numerator x / value denominator x)
 addJuliaToM2Function("Complex", x -> value realPart x + ii * value imaginaryPart x)
 addJuliaToM2Function("Char", utf8 @@ value @@ jlInt)
@@ -766,9 +774,6 @@ check oo
 --    Both guards need to come before the libfile line.
 --  * a Pkg entry point, cf. pipInstall, so that a wrapper package can
 --    install and version-pin the julia packages it needs
-
--- julia -> M2
---  * Float16, BigFloat
 
 -- M2 -> julia
 --  * a way to call M2 functions from julia, cf. pythonWrapM2Function

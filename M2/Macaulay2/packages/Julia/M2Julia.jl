@@ -33,6 +33,18 @@ function uint128_to_zz(x::UInt128)
     ((x >> 64) % UInt64, x % UInt64)
 end
 
+# float conversion
+function rr_to_bigfloat(ptr::Ptr{Cvoid}, prec::Clong)
+    x = BigFloat(; precision = prec)
+    ccall((:mpfr_set, Base.MPFR.libmpfr), Cint,
+          (Ref{BigFloat}, Ptr{Cvoid}, Base.MPFR.MPFRRoundingMode),
+          x, ptr, Base.MPFR.MPFRRoundNearest)
+    x
+end
+function bigfloat_to_rr(x::BigFloat)
+    Ptr{Cvoid}(Base.unsafe_convert(Ref{BigFloat}, Base.cconvert(Ref{BigFloat}, x)))
+end
+
 # named tuples
 function options_to_namedtuple(name_strs::Tuple{Vararg{String}}, values::Tuple)
     names = map(Symbol, name_strs)
