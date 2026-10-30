@@ -38,6 +38,17 @@ assert Equation(R_{3,2}, x^3*y^2)
 
 R = QQ[x,y]/ideal(x^2-y)
 assert Equation(R_{3,1}, x*y^2)
+R = QQ[x,y]/ideal(x*y-1)
+assert Equation(R_{-1,0}, y)
+assert Equation(R_{-2,1}, y^3)
+R = QQ[x,y]/ideal(x^2-1)
+assert Equation(R_{-1,1}, x*y)
+assert Equation(R_{-2,1}, y)
+R = QQ[x,y]/ideal(x^2-y)
+assert try R_{-1,0} then false else true
+S = QQ[u]
+R = S/ideal(1_S) -- in the zero ring, 0 is invertible
+assert Equation(R_{-1}, 0)
 R = QQ[x,dx, WeylAlgebra => {x => dx}]
 assert Equation(R_{1,2}, x*dx^2)
 R = QQ[x,y,z, SkewCommutative => true]

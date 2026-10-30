@@ -186,6 +186,18 @@ ring_elem PolynomialRing::makeTerm(const Ring *coeffR,
                                    const ring_elem a,
                                    const_varpower monom) const
 {
+  if (is_quotient_ring()) {
+    varpower::Vector num, den;
+    varpower::split_signs(monom, num, den);
+    if (!varpower::is_one(den.data())) {
+      ring_elem inv = invert(makeTerm(coeffR, coeffR->one(), den.data()));
+      // invert returns 0 on failure, but 0 is the inverse in the zero ring
+      if (is_zero(inv) && !is_zero(one()))
+        throw exc::engine_error("negative power of noninvertible element");
+      return mult(makeTerm(coeffR, a, num.data()), inv);
+    }
+  }
+
   int nvars0 = n_vars();
   for (index_varpower i = monom; i.valid(); ++i) {
     if (i.exponent() < 0 && !getMonoid()->isLaurentVariable(i.var()))

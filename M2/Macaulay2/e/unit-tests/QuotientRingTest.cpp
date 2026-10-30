@@ -74,6 +74,30 @@ TEST(QuotientRing, makeTerm)
   EXPECT_TRUE(R->is_equal(t, monomialOf(R, {{0, 1}, {1, 2}})));
 }
 
+// A variable that is a unit in the quotient may have a negative exponent.
+TEST(QuotientRing, makeTermUnit)
+{
+  const PolynomialRing* A = simplePolynomialRing(101, {"x", "y"});
+  const Ring* R = simpleQuotientRing(A, {"x*y-1"});
+  ASSERT_NE(R, nullptr);
+  const Ring* kk = R->cast_to_PolynomialRing()->getCoefficients();
+
+  // x^(-1) == y modulo x*y-1
+  std::vector<int> vp = varpowerOf({{0, -1}});
+  ring_elem t = R->makeTerm(kk, kk->from_long(1), vp.data());
+  EXPECT_TRUE(R->is_equal(t, monomialOf(R, {{1, 1}})));
+
+  // x is not a unit modulo x^2-y
+  const Ring* S = simpleQuotientRing(A, {"x^2-y"});
+  ASSERT_NE(S, nullptr);
+  EXPECT_THROW(S->makeTerm(kk, kk->from_long(1), vp.data()), exc::engine_error);
+
+  // in the zero ring, 0 is the inverse of x
+  const Ring* Z = simpleQuotientRing(A, {"1"});
+  ASSERT_NE(Z, nullptr);
+  EXPECT_TRUE(Z->is_zero(Z->makeTerm(kk, kk->from_long(1), vp.data())));
+}
+
 // A quotient of a skew commutative ring is a PolyRingQuotient rather than a
 // SkewPolynomialRing, but it still carries the skew information, so makeTerm
 // must zero out squares of skew variables there too.
