@@ -2251,7 +2251,9 @@ TEST ///
   assert Equation(R_{2,0}, a^2)
   assert Equation(R_{}, 1)
   assert try R_{1,1,1} then false else true
+  assert try R_{-1,1} then false else true
   S = R/ideal(a*b - b*a)
+  assert try S_{-1,1} then false else true
   assert Equation(S_{1,2}, b^2*a)
   assert Equation(S_{}, 1)
 ///

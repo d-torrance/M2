@@ -315,6 +315,9 @@ void M2FreeAlgebra::debug_display(const ring_elem ff) const
 
 void M2FreeAlgebra::makeTerm(Poly& result, const ring_elem a, const_varpower monom) const
 {
+  for (index_varpower i = monom; i.valid(); ++i)
+    if (i.exponent() < 0)
+      throw exc::engine_error("expected nonnegative exponents");
   result.getCoeffInserter().push_back(a);
   monoid().fromMonomial(monom, result.getMonomInserter());
 }
