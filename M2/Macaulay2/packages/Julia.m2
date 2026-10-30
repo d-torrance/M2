@@ -21,6 +21,7 @@ export {
     "juliaGetGlobal",
     "juliaSymbol",
     "juliaValue",
+    "using",
 }
 
 --------------------------------
@@ -520,6 +521,11 @@ listSymbols JuliaContext := ctx -> listSymbols ctx.Global
 use JuliaContext := ctx -> (
     scan(toString \ toList jlNames(ctx.Global, all => true),
          name -> try getSymbol name <- ctx.Global@@name))
+
+using = method()
+using String := s -> (
+    juliaValue("using ", s);
+    juliaGetGlobal s)
 
 beginDocumentation()
 
