@@ -66,6 +66,20 @@ jobs:
           M2 -q --no-preload --stop --silent --no-threads
           -e 'print get "!env -u DYLD_LIBRARY_PATH julia -e '\''using Libdl; print(Libdl.dlpath(\"libjulia\"))'\'' 2>&1; s=$?; echo; echo status=$s"; exit 0'
 
+      - name: Probe from M2 using get with stdin from /dev/null
+        if: always()
+        run: >
+          M2 -q --no-preload --stop --silent --no-threads
+          -e 'print get "!julia -e '\''using Libdl; print(Libdl.dlpath(\"libjulia\"))'\'' < /dev/null 2>&1; s=$?; echo; echo status=$s"; exit 0'
+
+      - name: Load the Julia package with stdin from /dev/null in the probe
+        if: always()
+        run: |
+          cp -R m2src/M2/Macaulay2/packages patched
+          sed -i '' 's|2> /dev/null"|< /dev/null 2> /dev/null"|' patched/Julia.m2
+          grep -n 'Libdl.dlpath' patched/Julia.m2
+          M2 -q --no-preload --stop --silent --no-threads -e 'loadPackage("Julia", FileName => "patched/Julia.m2"); print value juliaValue "1 + 1"; exit 0'
+
       - name: Load the Julia package as the build does
         if: always()
         run: >
