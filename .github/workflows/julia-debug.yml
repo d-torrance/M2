@@ -1,0 +1,44 @@
+name: Debug libjulia lookup
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - julia-macos-debug
+
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-26 ]
+        install: [ setup-julia, brew ]
+        include:
+          - os: ubuntu-26.04
+            install: setup-julia
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }}-${{ matrix.install }}
+    steps:
+      - uses: julia-actions/setup-julia@v3
+        if: matrix.install == 'setup-julia'
+        with:
+          version: '1'
+
+      - name: Install Julia using Homebrew
+        if: matrix.install == 'brew'
+        run: brew install julia
+
+      - name: Show Julia installation
+        run: |
+          which julia
+          julia --version
+          ls -l "$(dirname "$(readlink -f "$(which julia)")")/../lib" || true
+
+      - name: Probe libjulia as Julia.m2 does
+        run: julia -e 'using Libdl; print(Libdl.dlpath("libjulia"))'
+
+      - name: Alternative lookups
+        if: always()
+        run: |
+          julia -e 'using Libdl; println(filter(contains("libjulia"), Libdl.dllist()))'
+          julia -e 'using Libdl; p = joinpath(Sys.BINDIR, Base.LIBDIR, "libjulia." * Libdl.dlext); println(p, " exists=", isfile(p))'
