@@ -7,38 +7,55 @@ on:
       - julia-macos-debug
 
 jobs:
-  probe:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ macos-26 ]
-        install: [ setup-julia, brew ]
-        include:
-          - os: ubuntu-26.04
-            install: setup-julia
-    runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }}-${{ matrix.install }}
+  m2-probe:
+    runs-on: macos-26
     steps:
       - uses: julia-actions/setup-julia@v3
-        if: matrix.install == 'setup-julia'
         with:
           version: '1'
 
-      - name: Install Julia using Homebrew
-        if: matrix.install == 'brew'
-        run: brew install julia
-
-      - name: Show Julia installation
+      - name: Install Macaulay2 from the Homebrew tap
         run: |
-          which julia
-          julia --version
-          ls -l "$(dirname "$(readlink -f "$(which julia)")")/../lib" || true
+          brew trust macaulay2/tap || true
+          brew tap macaulay2/tap
+          brew install macaulay2/tap/M2
+          M2 --version
 
-      - name: Probe libjulia as Julia.m2 does
-        run: julia -e 'using Libdl; print(Libdl.dlpath("libjulia"))'
+      - name: Check out the Julia package from the PR branch
+        uses: actions/checkout@v5
+        with:
+          repository: d-torrance/M2
+          ref: julia
+          sparse-checkout: M2/Macaulay2/packages/Julia
+          sparse-checkout-cone-mode: false
+          path: m2src
 
-      - name: Alternative lookups
+      - name: Get the Julia package files
+        run: |
+          cd m2src
+          git sparse-checkout set --no-cone M2/Macaulay2/packages/Julia.m2 'M2/Macaulay2/packages/Julia/*'
+          ls -l M2/Macaulay2/packages/Julia.m2 M2/Macaulay2/packages/Julia
+
+      - name: Probe from M2 using get, as Julia.m2 does
         if: always()
-        run: |
-          julia -e 'using Libdl; println(filter(contains("libjulia"), Libdl.dllist()))'
-          julia -e 'using Libdl; p = joinpath(Sys.BINDIR, Base.LIBDIR, "libjulia." * Libdl.dlext); println(p, " exists=", isfile(p))'
+        run: >
+          M2 -q --no-preload --stop --silent --no-threads
+          -e 'print get "!julia -e '\''using Libdl; print(Libdl.dlpath(\"libjulia\"))'\'' 2> /dev/null"; exit 0'
+
+      - name: Probe from M2 using run, showing stderr and exit status
+        if: always()
+        run: >
+          M2 -q --no-preload --stop --silent --no-threads
+          -e 'r = run "env | grep -i -E \"^(path|home|dyld|julia|ld_)\" ; julia -e '\''using Libdl; print(Libdl.dlpath(\"libjulia\"))'\''"; print("exit status: " | toString r); exit 0'
+
+      - name: Load the Julia package as the build does
+        if: always()
+        run: >
+          M2 -q --no-preload --stop --silent --no-threads
+          -e 'loadPackage("Julia", FileName => "m2src/M2/Macaulay2/packages/Julia.m2"); print value juliaValue "1 + 1"; exit 0'
+
+      - name: Load the Julia package with documentation
+        if: always()
+        run: >
+          M2 -q --no-preload --stop --silent --no-threads
+          -e 'loadPackage("Julia", FileName => "m2src/M2/Macaulay2/packages/Julia.m2", LoadDocumentation => true); print help JuliaObject; exit 0'
