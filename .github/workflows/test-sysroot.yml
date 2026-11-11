@@ -1,0 +1,61 @@
+name: Test dropping --sysroot (#4788)
+
+on: push
+
+jobs:
+  build-libraries:
+    name: ${{ matrix.os }}, cmake ${{ matrix.cmake }}, ${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+        cmake: ["3.31.6", "latest"]
+        compiler: [apple-clang, brew-clang]
+    defaults:
+      run:
+        working-directory: M2/BUILD/build
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: ${{ matrix.cmake }}
+
+      - name: Install requirements
+        run: |
+          brew install boost gdbm readline gmp autoconf automake libtool texinfo
+          echo "$(brew --prefix libtool)/libexec/gnubin" >> $GITHUB_PATH
+
+      - name: Use Homebrew Clang
+        if: matrix.compiler == 'brew-clang'
+        run: |
+          brew install llvm
+          echo "CC=clang"    >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+          echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+
+      - name: Show toolchain
+        run: |
+          cmake --version
+          xcodebuild -version
+          xcrun --show-sdk-path
+          cc --version
+
+      - name: Configure
+        run: |
+          cmake -S../.. -B. -GNinja \
+            -DCMAKE_BUILD_TYPE=Release -DBUILD_NATIVE=OFF \
+            -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix readline)" \
+            -DSTATIC_BOOST=OFF -DWITH_OMP=OFF -DWITH_TBB=OFF -DWITH_FFI=OFF \
+            -DWITH_XML=OFF -DWITH_PYTHON=OFF -DWITH_JANSSON=OFF \
+            -DBUILD_LIBRARIES="mpfr;frobby"
+          grep -E 'CMAKE_OSX_SYSROOT|CMAKE_C_COMPILER:' CMakeCache.txt
+
+      - name: Build mpfr
+        run: |
+          cmake --build . --target build-mpfr
+          grep -h -E '^(CFLAGS|LDFLAGS)=' $(find libraries/mpfr -name config.log)
+
+      - name: Build frobby
+        run: cmake --build . --target build-frobby
