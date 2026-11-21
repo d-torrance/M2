@@ -24,7 +24,7 @@ newPackage("LanguageServer",
             HomePage => "https://d-torrance.github.io"}},
     AuxiliaryFiles => true,
     Keywords => {"System"},
-    PackageImports => {"JSONRPC", "Parsing"})
+    PackageImports => {"JSONRPC"})
 
 ---------------
 -- ChangeLog --
@@ -71,23 +71,11 @@ addHeader = msg -> concatenate(
 -- remove (and extract content length) header from incoming message --
 ----------------------------------------------------------------------
 
--- parse using http grammar from
--- https://www.rfc-editor.org/rfc/rfc7230#section-3.2
-owsP = *orP(" ", "\t")
-fieldVCharP = Parser(c -> if c === null then null else (
-        x := first ascii c;
-        if x < 0x21 or x == 0x7f then null
-        else terminalParser c))
-fieldValueP = *andP(fieldVCharP, optP(+orP(" ", "\t") @ fieldVCharP))
-
-headerP = (-* extract content length *- x -> x#2) % andP(
-    "Content-Length:", owsP, NNParser, owsP, "\r\n",
-    optP(andP("Content-Type:", owsP, fieldValueP, owsP)),"\r\n")
-
-contentP = concatenate % *Parser(c ->
-    if c === null then null else terminalParser c)
-
-parseLSP = (headerP @ contentP) : charAnalyzer
+parseLSP = stream -> (
+    (head, body) := splitWWW stream;
+    m := regex("Content-Length:\\s*(\\d+)", head);
+    if m === null then error "could not extract Content-Length";
+    (changeBase(substring(m#1, head), 10), body))
 
 -----------------
 -- LSP methods --
