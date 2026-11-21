@@ -115,11 +115,30 @@ getLocation MethodFunctionSingle      :=
 getLocation MethodFunctionWithOptions := f -> (
     toLocation unique nonnull locate methods f)
 
+-- names of the packages that text loads or, if it's a package, imports
+usedPackages = text -> unique join(
+    select("(?:needs|load)Package\\s*\\(?\\s*\"(\\w+)\"", "\\1", text),
+    flatten apply(
+        select("Package(?:Imports|Exports)\\s*=>\\s*\\{([^}]*)\\}", "\\1",
+            text),
+        names -> select("\"(\\w+)\"", "\\1", names)))
+
+-- load the packages a document uses, so that hover, definition, and
+-- completion know about them
+-- note: stdout is the channel to the client, so anything a package prints
+-- while loading corrupts it
+loadDocument = uri -> scan(usedPackages demark(newline, openDocuments#uri),
+    name -> try needsPackage name)
+
 LSPmethods = hashTable {
     "textDocument/didOpen" => (
         {"textDocument"},
         txtdoc -> (
-            openDocuments#(txtdoc#"uri") = lines txtdoc#"text";)),
+            openDocuments#(txtdoc#"uri") = lines txtdoc#"text";
+            loadDocument txtdoc#"uri";)),
+    "textDocument/didSave" => (
+        {"textDocument"},
+        txtdoc -> (loadDocument txtdoc#"uri";)),
     "textDocument/didClose" => (
         {"textDocument"},
         txtdoc -> (remove(openDocuments, txtdoc#"uri");)),
