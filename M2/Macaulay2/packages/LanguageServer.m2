@@ -172,7 +172,10 @@ new LSPServer := T -> (
                 registerMethod(jserver, key, val#0, val#1));
             hashTable {
                 "capabilities" => hashTable {
-                    "textDocumentSync" => 1,
+                    "textDocumentSync" => hashTable {
+                        "openClose" => true,
+                        "change" => 1,
+                        "save" => true},
                     "hoverProvider" => true,
                     "definitionProvider" => true,
                     "completionProvider" => hashTable {},

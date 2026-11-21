@@ -16,7 +16,8 @@ capabilities = response#"result"#"capabilities"
 assert capabilities#?"hoverProvider"
 assert capabilities#?"definitionProvider"
 assert capabilities#?"completionProvider"
-assert Equation(capabilities#"textDocumentSync", 1)
+assert Equation(capabilities#"textDocumentSync"#"change", 1)
+assert capabilities#"textDocumentSync"#"save"
 assert Equation(response#"result"#"serverInfo"#"name",
     "Macaulay2 Language Server")
 
