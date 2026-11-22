@@ -6,7 +6,8 @@ handleRequest(server, makeRequest("initialize", {}, 1))
 uri = "test.m2"
 handleRequest(server, makeRequest("textDocument/didOpen",
         hashTable {"textDocument" => hashTable {
-                "uri" => uri, "text" => "ring\n"}}))
+                "uri" => uri,
+                "text" => "ring\nnotAGlobalSymbol\n"}}))
 response = fromJSON handleRequest(server, makeRequest("textDocument/definition",
         hashTable {
             "textDocument" => hashTable {"uri" => uri},
@@ -14,3 +15,12 @@ response = fromJSON handleRequest(server, makeRequest("textDocument/definition",
 locs = response#"result"
 assert BinaryOperation(symbol >, #locs, 0)
 assert all(locs, loc -> loc#?"uri" and loc#?"range")
+
+-- unknown words have no definition, and looking them up doesn't create a
+-- symbol
+response = fromJSON handleRequest(server, makeRequest("textDocument/definition",
+        hashTable {
+            "textDocument" => hashTable {"uri" => uri},
+            "position" => hashTable {"line" => 1, "character" => 0}}, 2))
+assert(response#"result" === null)
+assert not isGlobalSymbol "notAGlobalSymbol"

@@ -92,6 +92,8 @@ getWord = (txtdoc, pos) -> (
     while stop < #line - 1 and match("\\w", line#(stop + 1)) do stop += 1;
     substring(line, start, stop - start + 1))
 
+getValue = word -> if isGlobalSymbol word then value getGlobalSymbol word
+
 toLocation = method()
 toLocation FilePosition := pos -> hashTable {
     "uri" => toURL toAbsolutePath pos#0,
@@ -162,7 +164,7 @@ LSPmethods = hashTable {
         {"textDocument", "position"},
         (txtdoc, pos) -> (
             word := getWord(txtdoc, pos);
-            hoverdoc := ??(? value word);
+            hoverdoc := ??(? getValue word);
             if hoverdoc =!= null then hashTable {
                 "contents" => hashTable {
                     "kind" => "markdown",
@@ -171,7 +173,7 @@ LSPmethods = hashTable {
         {"textDocument", "position"},
         (txtdoc, pos) -> (
             word := getWord(txtdoc, pos);
-            ??(getLocation value word))),
+            ??(getLocation getValue word))),
     "textDocument/completion" => (
         {"textDocument", "position"},
         (txtdoc, pos) -> (
