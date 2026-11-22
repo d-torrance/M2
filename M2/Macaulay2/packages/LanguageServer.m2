@@ -115,6 +115,17 @@ getLocation MethodFunctionSingle      :=
 getLocation MethodFunctionWithOptions := f -> (
     toLocation unique nonnull locate methods f)
 
+kind = method()
+kind Command         :=
+kind Function        :=
+kind Manipulator     :=
+kind ScriptedFunctor := x -> 3  -- function
+kind Thing           := x -> 6  -- variable
+kind Type            := x -> 7  -- class
+kind Package         := x -> 9  -- module
+kind Symbol          := x -> 10 -- property
+kind Keyword         := x -> 14 -- keyword
+
 -- names of the packages that text loads or, if it's a package, imports
 usedPackages = text -> unique join(
     select("(?:needs|load)Package\\s*\\(?\\s*\"(\\w+)\"", "\\1", text),
@@ -167,7 +178,9 @@ LSPmethods = hashTable {
             word := getWord(txtdoc, pos);
             completions := apropos("^" | regexQuote word);
             if #completions > 0 then apply(completions,
-                completion -> hashTable {"label" => completion}))),
+                completion -> hashTable {
+                    "label" => completion,
+                    "kind" => kind value completion}))),
     }
 
 ---------------------
