@@ -317,14 +317,20 @@ bundle: programs
 
 	# Fix dylib-to-dylib references; strip hardened-runtime signatures first
 	# so install_name_tool can modify them, then remove @rpath/ LC_RPATH entries
-	# that would cause a circular dyld reference.
+	# that would cause a circular dyld reference.  dylibbundler rewrites every
+	# original LC_RPATH to @rpath/, so there may be several identical ones
+	# (which dyld refuses to load), and -delete_rpath only removes one per call.
 	for dylib in "$(LIB_DIR)/"*; do
 	    [ -f "$$dylib" ] && file "$$dylib" | grep -q "Mach-O" || continue
 	    libname=$$(basename "$$dylib")
 	    codesign --remove-signature "$$dylib" 2>/dev/null || true
 	    install_name_tool -id "@loader_path/$$libname" "$$dylib" 2>/dev/null || true
-	    install_name_tool -delete_rpath "@rpath/" "$$dylib" 2>/dev/null || true
-	    install_name_tool -delete_rpath "@rpath"  "$$dylib" 2>/dev/null || true
+	    while IFS= read -r rp; do
+	        case "$$rp" in @rpath|@rpath/)
+	            install_name_tool -delete_rpath "$$rp" "$$dylib" 2>/dev/null || true
+	            ;;
+	        esac
+	    done < <(otool -l "$$dylib" | awk '/LC_RPATH/{found=1} found && /path /{print $$2; found=0}')
 	    otool -L "$$dylib" 2>/dev/null | tail -n +2 | awk '{print $$1}' | while read -r dep; do
 	        depname=$$(basename "$$dep")
 	        [ -f "$(LIB_DIR)/$$depname" ] || continue
