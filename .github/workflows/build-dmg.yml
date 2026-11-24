@@ -36,12 +36,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-14
+          - os: macos-15
             arch: arm64
-            deployment_target: "14.0"
+            deployment_target: "15.0"
+          # Homebrew has no Intel bottles anymore, so build the
+          # libraries ourselves; see BUNDLED_LIBS in M2/BUILD/dmg/Makefile.
           - os: macos-15-intel
             arch: x86_64
             deployment_target: "15.0"
+            bundled_libs: "yes"
+
+    env:
+      DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
+      BUNDLED_LIBS: ${{ matrix.bundled_libs }}
 
     steps:
       - uses: actions/checkout@v6
@@ -54,11 +61,16 @@ jobs:
         run: |
           brew config
           brew update
+          # Build tools
+          brew install automake bison dylibbundler libtool make yasm googletest
+          brew install texinfo || true
+
+      - name: Install Homebrew libraries and programs
+        if: ${{ !matrix.bundled_libs }}
+        run: |
           brew trust macaulay2/tap
           brew tap macaulay2/tap
-          # Build tools
-          brew install automake bison dylibbundler ccache ctags llvm make yasm googletest r
-          brew install texinfo || true
+          brew install ccache ctags
           # M2 library dependencies
           brew install \
               bdw-gc boost eigen fplll jansson libffi tbb \
@@ -79,11 +91,21 @@ jobs:
           echo "$(brew --prefix make)/libexec/gnubin"    >> $GITHUB_PATH
           echo "$(brew --prefix libtool)/libexec/gnubin" >> $GITHUB_PATH
           echo "$(brew --prefix bison)/bin"              >> $GITHUB_PATH
-          echo "CPPFLAGS=-I$(brew --prefix)/include -I$(brew --prefix libomp)/include -I$(brew --prefix readline)/include" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$(brew --prefix)/lib -L$(brew --prefix libomp)/lib -L$(brew --prefix readline)/lib"             >> $GITHUB_ENV
+          if [ -n "$BUNDLED_LIBS" ]; then
+            echo "CPPFLAGS=-I$RUNNER_TEMP/deps/include"                  >> $GITHUB_ENV
+            echo "LDFLAGS=-L$RUNNER_TEMP/deps/lib"                       >> $GITHUB_ENV
+            echo "PKG_CONFIG_PATH=$RUNNER_TEMP/deps/lib/pkgconfig"       >> $GITHUB_ENV
+          else
+            echo "CPPFLAGS=-I$(brew --prefix)/include -I$(brew --prefix libomp)/include -I$(brew --prefix readline)/include" >> $GITHUB_ENV
+            echo "LDFLAGS=-L$(brew --prefix)/lib -L$(brew --prefix libomp)/lib -L$(brew --prefix readline)/lib"             >> $GITHUB_ENV
+          fi
           M2_VERSION=$(cat ../../VERSION)
           echo "M2_VERSION=$M2_VERSION"         >> $GITHUB_ENV
           echo "PKG_NAME=Macaulay2-$M2_VERSION" >> $GITHUB_ENV
+
+      - name: Build libraries M2 cannot build itself
+        if: ${{ matrix.bundled_libs }}
+        run: make deps
 
 # ----------------------
 #   Download external programs not available on Homebrew
@@ -112,7 +134,6 @@ jobs:
         env:
           WORKSPACE: ${{ github.workspace }}
           ARCH: ${{ matrix.arch }}
-          DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
         run: make all
 
 # ----------------------
@@ -162,7 +183,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-14
+          - os: macos-15
             arch: arm64
           - os: macos-15-intel
             arch: x86_64

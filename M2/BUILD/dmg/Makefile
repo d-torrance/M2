@@ -7,12 +7,15 @@
 # Variables (set via environment or make command line):
 #   WORKSPACE         -- repository root (staging/ lives here; default: three levels up)
 #   ARCH              -- arm64 or x86_64 (default: current machine architecture)
-#   DEPLOYMENT_TARGET -- minimum macOS version (default: 14.0)
+#   DEPLOYMENT_TARGET -- minimum macOS version (default: 15.0)
 #   RUNNER_TEMP       -- scratch directory for DMG staging and testing (default: /tmp)
 #   DMG_REVISION      -- revision of the DMG for a given M2 version (default: 1)
 #   FACTORY_PREFIX    -- where factory is installed (default: brew --prefix factory)
 #   GFTABLES_SRC      -- gftables directory to bundle (default: $(FACTORY_PREFIX)/share/factory/gftables)
 #   GFTABLES_REL      -- where they go inside the prefix (default: share/Macaulay2/Core/factory)
+#   BUNDLED_LIBS      -- if nonempty, have M2 build its libraries and programs from source
+#                        instead of using Homebrew's (default: empty)
+#   DEPS_PREFIX       -- where the deps target installs (default: $(RUNNER_TEMP)/deps)
 
 SHELL       := /bin/bash
 .SHELLFLAGS := -e -o pipefail -c
@@ -31,7 +34,7 @@ BUILDDIR    := $(abspath ../build)
 
 WORKSPACE         ?= $(abspath ../../..)
 ARCH              ?= $(shell uname -m)
-DEPLOYMENT_TARGET ?= 14.0
+DEPLOYMENT_TARGET ?= 15.0
 RUNNER_TEMP       ?= /tmp
 # Bump when rebuilding the DMG for an M2 version that has already been
 # released; it appears in the DMG filename only, not in the volume name or the
@@ -68,9 +71,86 @@ MOUNT_DIR        := $(RUNNER_TEMP)/M2-dmg
 INSTALL_DIR      := $(RUNNER_TEMP)/M2-installed
 INSTALLED_STAMP  := $(INSTALL_DIR)/.installed
 
-.PHONY: all gftables configure build install programs bundle dmg install-dmg run-basic-tests run-core-tests run-package-tests check
+# ----------------------
+#   Building the libraries ourselves
+# ----------------------
+
+# Homebrew no longer builds bottles for Intel (it is Tier 3 there), so the
+# x86_64 DMG sets BUNDLED_LIBS and has M2's own build system download and
+# build the libraries and programs below instead.  Name them all explicitly,
+# since otherwise configure uses any it finds on the runner, e.g., the gmp and
+# mpfr that come with the preinstalled gcc.
+BUNDLED_LIBS ?=
+BUILD_LIBRARIES := gc gdbm gmp mpfr mpfi readline ntl flint factory mpsolve \
+    frobby glpk cddlib fplll givaro fflas_ffpack tbb memtailor mathic \
+    mathicgb eigen normaliz 4ti2 gfan csdp nauty lrslib topcom cohomcalg msolve
+
+# M2 cannot build these four, so the deps target builds them into
+# DEPS_PREFIX.  They are static, except libomp, which the bundle target picks
+# up like any other dylib.
+DEPS_PREFIX     ?= $(RUNNER_TEMP)/deps
+DEPS_SRC        := $(RUNNER_TEMP)/deps-src
+LLVM_VERSION    := 23.1.6
+BOOST_VERSION   := 1.92.0
+LIBFFI_VERSION  := 3.8.1
+JANSSON_VERSION := 2.15.1
+
+ifneq ($(BUNDLED_LIBS),)
+# A factory we build ourselves installs the gftables in the right place and
+# configure records a relative path to them on its own.
+LIB_OPTIONS := --enable-build-libraries="$(BUILD_LIBRARIES)" --with-boost=$(DEPS_PREFIX)
+GFTABLES    :=
+DEPS_SEARCH := -s "$(DEPS_PREFIX)/lib"
+else
+LIB_OPTIONS := --with-system-libs GFTABLESDIR='$(GFTABLESDIR)'
+GFTABLES    := gftables
+endif
+
+.PHONY: all deps gftables configure build install programs bundle dmg install-dmg run-basic-tests run-core-tests run-package-tests check
 
 all: dmg
+
+# ----------------------
+#   Build what M2 cannot (BUNDLED_LIBS only)
+# ----------------------
+
+# libomp is built from LLVM's runtimes tree, which needs only a few top-level
+# directories of llvm-project; third-party/unittest is among them because
+# openmp adds its unit tests unconditionally.  Of boost we need the headers
+# and the regex library; configure falls back to header-only stacktrace.
+deps:
+	mkdir -p $(DEPS_SRC) $(DEPS_PREFIX)
+	cd $(DEPS_SRC)
+	export MACOSX_DEPLOYMENT_TARGET=$(DEPLOYMENT_TARGET)
+
+	llvm=llvm-project-$(LLVM_VERSION).src
+	curl -fsSL https://github.com/llvm/llvm-project/releases/download/llvmorg-$(LLVM_VERSION)/$$llvm.tar.xz \
+	    | tar -xJf - --include="$$llvm/"{cmake,llvm/cmake,llvm/utils,openmp,runtimes,third-party/unittest}"/*"
+	cmake -S $$llvm/runtimes -B $$llvm/build -DLLVM_ENABLE_RUNTIMES=openmp \
+	    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(DEPS_PREFIX) \
+	    -DCMAKE_INSTALL_NAME_DIR=$(DEPS_PREFIX)/lib -DLIBOMP_INSTALL_ALIASES=OFF
+	cmake --build $$llvm/build -j$(NCPU)
+	cmake --install $$llvm/build
+
+	curl -fsSL https://github.com/boostorg/boost/releases/download/boost-$(BOOST_VERSION)/boost-$(BOOST_VERSION)-b2-nodocs.tar.xz \
+	    | tar -xJf -
+	cd boost-$(BOOST_VERSION)
+	./bootstrap.sh --prefix=$(DEPS_PREFIX) --with-libraries=regex
+	./b2 -j$(NCPU) link=static variant=release install
+	cd ..
+
+	curl -fsSL https://github.com/libffi/libffi/releases/download/v$(LIBFFI_VERSION)/libffi-$(LIBFFI_VERSION).tar.gz \
+	    | tar -xzf -
+	cd libffi-$(LIBFFI_VERSION)
+	./configure --prefix=$(DEPS_PREFIX) --disable-shared --disable-docs
+	$(MAKE) -j$(NCPU) install
+	cd ..
+
+	curl -fsSL https://github.com/akheron/jansson/releases/download/v$(JANSSON_VERSION)/jansson-$(JANSSON_VERSION).tar.gz \
+	    | tar -xzf -
+	cd jansson-$(JANSSON_VERSION)
+	./configure --prefix=$(DEPS_PREFIX) --disable-shared
+	$(MAKE) -j$(NCPU) install
 
 # ----------------------
 #   Stage Factory's gftables
@@ -95,14 +175,14 @@ configure:
 	cd $(BUILDDIR) && F77=$(F77) FC=$(FC) MACOSX_DEPLOYMENT_TARGET=$(DEPLOYMENT_TARGET) \
 	    $(SRCDIR)/configure \
 	    --prefix=$(PKG) \
-	    GFTABLESDIR='$(GFTABLESDIR)' \
-	    --with-system-libs --with-fplll --without-python
+	    $(LIB_OPTIONS) \
+	    --with-fplll --without-python
 
 # ----------------------
 #   Build Macaulay2
 # ----------------------
 
-build: configure gftables
+build: configure $(GFTABLES)
 	$(MAKE) -C $(BUILDDIR) -j$(NCPU)
 
 # ----------------------
@@ -196,7 +276,7 @@ bundle: programs
 	    file "$$exe" | grep -q "Mach-O" || return 0
 	    dylibbundler -of -b -x "$$exe" -d "$(LIB_DIR)" -p "@rpath/" \
 	        -s "$(BREW)/lib" -s "$$(brew --prefix libomp)/lib" \
-	        -s "$$(brew --prefix readline)/lib" -s "$(LIB_DIR)" \
+	        -s "$$(brew --prefix readline)/lib" $(DEPS_SEARCH) -s "$(LIB_DIR)" \
 	        --overwrite-files
 	    while IFS= read -r rp; do
 	        install_name_tool -delete_rpath "$$rp" "$$exe" 2>/dev/null || true
