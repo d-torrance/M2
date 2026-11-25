@@ -323,19 +323,20 @@ bundle: programs
 	for dylib in "$(LIB_DIR)/"*; do
 	    [ -f "$$dylib" ] && file "$$dylib" | grep -q "Mach-O" || continue
 	    libname=$$(basename "$$dylib")
-	    codesign --remove-signature "$$dylib" 2>/dev/null || true
-	    install_name_tool -id "@loader_path/$$libname" "$$dylib" 2>/dev/null || true
+	    echo "  fix_dylib: $$libname"
+	    codesign --remove-signature "$$dylib" || true
+	    install_name_tool -id "@loader_path/$$libname" "$$dylib"
 	    while IFS= read -r rp; do
 	        case "$$rp" in @rpath|@rpath/)
-	            install_name_tool -delete_rpath "$$rp" "$$dylib" 2>/dev/null || true
+	            install_name_tool -delete_rpath "$$rp" "$$dylib"
 	            ;;
 	        esac
 	    done < <(otool -l "$$dylib" | awk '/LC_RPATH/{found=1} found && /path /{print $$2; found=0}')
-	    otool -L "$$dylib" 2>/dev/null | tail -n +2 | awk '{print $$1}' | while read -r dep; do
+	    otool -L "$$dylib" | tail -n +2 | awk '{print $$1}' | while read -r dep; do
 	        depname=$$(basename "$$dep")
 	        [ -f "$(LIB_DIR)/$$depname" ] || continue
 	        if [ "$$dep" = "@loader_path/$$depname" ]; then continue; fi
-	        install_name_tool -change "$$dep" "@loader_path/$$depname" "$$dylib" 2>/dev/null || true
+	        install_name_tool -change "$$dep" "@loader_path/$$depname" "$$dylib"
 	    done
 	done
 
@@ -344,6 +345,25 @@ bundle: programs
 	    [ -f "$$f" ] && file "$$f" | grep -q "Mach-O" || continue
 	    codesign --force --sign - "$$f" 2>/dev/null || true
 	done
+
+	# Catch any dylib the pass above missed here rather than as a dyld
+	# failure when M2 starts.
+	bad=0
+	for dylib in "$(LIB_DIR)/"*; do
+	    [ -f "$$dylib" ] && file "$$dylib" | grep -q "Mach-O" || continue
+	    libname=$$(basename "$$dylib")
+	    id=$$(otool -D "$$dylib" | tail -n +2)
+	    if [ "$$id" != "@loader_path/$$libname" ]; then
+	        echo "error: $$libname has install name $$id" >&2
+	        bad=1
+	    fi
+	    nrpath=$$(otool -l "$$dylib" | awk '/LC_RPATH/{found=1} found && /path /{if ($$2 == "@rpath" || $$2 == "@rpath/") n++; found=0} END{print n+0}')
+	    if [ "$$nrpath" -gt 0 ]; then
+	        echo "error: $$libname still has $$nrpath @rpath LC_RPATH entries" >&2
+	        bad=1
+	    fi
+	done
+	[ "$$bad" = 0 ]
 
 	# Unversioned aliases, e.g., libmpfi.dylib -> libmpfi.0.dylib.  bin/M2
 	# puts this directory on DYLD_LIBRARY_PATH, so dlopen finds libraries
