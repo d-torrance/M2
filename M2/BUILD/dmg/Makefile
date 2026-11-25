@@ -315,16 +315,20 @@ bundle: programs
 	    done
 	done
 
-	# Fix dylib-to-dylib references; strip hardened-runtime signatures first
-	# so install_name_tool can modify them, then remove @rpath/ LC_RPATH entries
+	# Fix dylib-to-dylib references, then remove @rpath/ LC_RPATH entries
 	# that would cause a circular dyld reference.  dylibbundler rewrites every
 	# original LC_RPATH to @rpath/, so there may be several identical ones
 	# (which dyld refuses to load), and -delete_rpath only removes one per call.
+	#
+	# Leave the existing signatures alone: install_name_tool edits signed
+	# files with just a warning, and everything is re-signed below.  Running
+	# codesign --remove-signature first left some files (e.g., Homebrew's
+	# libboost_regex on the macos-15 runner) with a __LINKEDIT segment that
+	# install_name_tool then refused to process.
 	for dylib in "$(LIB_DIR)/"*; do
 	    [ -f "$$dylib" ] && file "$$dylib" | grep -q "Mach-O" || continue
 	    libname=$$(basename "$$dylib")
 	    echo "  fix_dylib: $$libname"
-	    codesign --remove-signature "$$dylib" || true
 	    install_name_tool -id "@loader_path/$$libname" "$$dylib"
 	    while IFS= read -r rp; do
 	        case "$$rp" in @rpath|@rpath/)
@@ -374,7 +378,7 @@ bundle: programs
 	# let users run the examples.  Done after signing so that the passes
 	# above skip the symlinks.
 	for name in mpfi flint mpfr; do
-	    versioned=$$(ls "$(LIB_DIR)/lib$$name."*.dylib 2>/dev/null | head -1)
+	    versioned=$$(ls "$(LIB_DIR)/lib$$name."*.dylib 2>/dev/null | head -1 || true)
 	    [ -n "$$versioned" ] || continue
 	    ln -sf "$$(basename "$$versioned")" "$(LIB_DIR)/lib$$name.dylib"
 	done
